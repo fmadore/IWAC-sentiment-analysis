@@ -169,8 +169,8 @@
   :global(.variant-glass) {
     background-image: linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.05) 0%,
-      rgba(255, 255, 255, 0) 100%
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.05) 100%
     );
     backdrop-filter: blur(4px);
   }
