@@ -13,13 +13,14 @@
     SubjectivityFilter,
     SentimentChart,
     SentimentTrendsChart,
+    SubjectivityChart,
     selectedArticle
   } from '$lib';
   import type { DatasetInfo } from '$lib'; // Importer DatasetInfo
   import ArticleTable from '$lib/components/ArticleTable.svelte'; // Import ArticleTable
   import ArticleDetail from '$lib/components/ArticleDetail.svelte'; // Import ArticleDetail
   import AnalysisInfo from '$lib/components/AnalysisInfo.svelte'; // Import AnalysisInfo
-  import CentralityFilter from '$lib/components/CentralityFilter.svelte'; // Import CentralityFilter
+  import CentralityFilter from '$lib/components/ui/CentralityFilter.svelte'; // Import CentralityFilter
   import { Navigation } from '@skeletonlabs/skeleton-svelte';
   // Importons les icônes nécessaires
   import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
@@ -110,6 +111,9 @@
             <div class="space-y-6">
               <div class="card variant-glass p-6">
                 <SentimentChart />
+              </div>
+              <div class="card variant-glass p-6">
+                <SubjectivityChart />
               </div>
               <div class="card variant-glass p-6">
                 <SentimentTrendsChart />

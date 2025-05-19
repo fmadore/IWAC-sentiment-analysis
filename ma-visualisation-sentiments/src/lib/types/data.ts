@@ -3,6 +3,7 @@
 export interface SentimentAnalysis {
   centralite_islam_musulmans: 'Très central' | 'Central' | 'Secondaire' | 'Marginal' | 'Non abordé' | string | null; // string pour flexibilité si l'API renvoie autre chose
   centralite_justification: string | null;
+  subjectivite: 'Factuel' | 'Plutôt factuel' | 'Mixte' | 'Plutôt subjectif' | 'Subjectif' | 'Non applicable' | string | null;
   subjectivite_score: number | null;
   subjectivite_justification: string | null;
   polarite: 'Très positif' | 'Positif' | 'Neutre' | 'Négatif' | 'Très négatif' | 'Non applicable' | string | null;
