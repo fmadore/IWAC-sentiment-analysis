@@ -14,7 +14,7 @@
     LegendComponent
   } from 'echarts/components';
   import { CanvasRenderer } from 'echarts/renderers';
-  import type { EChartsOption } from 'echarts'; // Main EChartsOption
+  import type { EChartsOption, SeriesOption } from 'echarts'; // Main EChartsOption and SeriesOption
 
   // Register the required components
   use([
@@ -45,21 +45,45 @@
   };
 
   const unsubscribe = filteredArticles.subscribe(($articles: Article[]) => {
-    const counts: Record<string, number> = Object.fromEntries(polarityLabels.map(l => [l, 0]));
     let articlesAnalyzed = 0;
+    const newspaperPolarityCounts: Record<string, Record<string, number>> = {};
+    const uniqueNewspapers = new Set<string>();
+
     $articles.forEach((article: Article) => {
       if (article.sentiment_analysis?.polarite) {
         const polarityKey = article.sentiment_analysis.polarite as string;
-        if (counts.hasOwnProperty(polarityKey)) {
-          counts[polarityKey] = (counts[polarityKey] || 0) + 1;
+        const journal = article.journal_source || 'Inconnu'; // Handle undefined journal
+        uniqueNewspapers.add(journal);
+
+        if (!newspaperPolarityCounts[journal]) {
+          newspaperPolarityCounts[journal] = Object.fromEntries(polarityLabels.map(l => [l, 0]));
+        }
+        if (newspaperPolarityCounts[journal].hasOwnProperty(polarityKey)) {
+          newspaperPolarityCounts[journal][polarityKey]++;
         }
         articlesAnalyzed++;
       }
     });
 
+    const newspaperList = Array.from(uniqueNewspapers);
+
+    const seriesData: SeriesOption[] = newspaperList.map(journal => {
+      return {
+        name: journal,
+        type: 'bar',
+        stack: 'total',
+        emphasis: {
+          focus: 'series'
+        },
+        data: polarityLabels.map(label => newspaperPolarityCounts[journal]?.[label] || 0)
+        // ECharts will assign colors automatically. If specific colors are needed per newspaper:
+        // itemStyle: { color: getNewspaperColor(journal) }
+      };
+    });
+
     options = {
       title: {
-        text: `Distribution de la Polarité (${articlesAnalyzed} articles analysés)`,
+        text: `Distribution de la Polarité par Journal (${articlesAnalyzed} articles analysés)`,
         left: 'center',
         textStyle: {
           color: '#fff',
@@ -69,28 +93,61 @@
       },
       tooltip: {
         trigger: 'axis',
+        triggerOn: 'mousemove',
+        enterable: true,
         axisPointer: {
           type: 'shadow'
         },
+        confine: true,
         textStyle: {
           color: '#333'
         },
         backgroundColor: 'rgba(255, 255, 255, 0.9)',
         borderColor: 'rgba(255, 255, 255, 0.4)',
-        borderWidth: 1
+        borderWidth: 1,
+        formatter: function (params: any) {
+          if (!Array.isArray(params) || params.length === 0) {
+            return '';
+          }
+          const sortedParams = params.slice().sort((a: any, b: any) => b.value - a.value);
+          
+          let listItemsHtml = '';
+          let total = 0;
+          
+          sortedParams.forEach((param: any) => {
+            if (param.value > 0) { 
+              listItemsHtml += `${param.marker} ${param.seriesName}: ${param.value}<br/>`;
+            }
+            total += param.value; // Total should include all, even if not displayed due to future limits
+          });
+
+          // Wrap the list in a scrollable div
+          const scrollableListHtml = `
+            <div style="max-height: 200px; overflow-y: auto; margin-bottom: 5px;">
+              ${listItemsHtml}
+            </div>`;
+          
+          let tooltipHtml = `${params[0].axisValueLabel}<br/>`;
+          tooltipHtml += scrollableListHtml;
+          tooltipHtml += `<strong>Total: ${total}</strong>`;
+          
+          return tooltipHtml;
+        }
       },
       legend: {
-        data: ['Nombre d\'articles'],
+        data: newspaperList,
         top: '8%',
         textStyle: {
           color: '#fff'
-        }
+        },
+        type: 'scroll', // Added for better handling of many newspapers
+        orient: 'horizontal'
       },
       grid: {
         left: '3%',
         right: '4%',
         bottom: '3%',
-        top: '18%',
+        top: '18%', // Adjust top if legend takes more space
         containLabel: true
       },
       xAxis: {
@@ -106,8 +163,8 @@
         },
         axisLabel: {
           color: '#fff',
-          rotate: 30,  // Pivoter les étiquettes pour meilleure lisibilité
-          fontSize: 11  // Taille de police réduite pour s'adapter
+          rotate: 30,
+          fontSize: 11
         }
       },
       yAxis: {
@@ -126,24 +183,7 @@
           color: '#fff'
         }
       },
-      series: [{
-        name: 'Nombre d\'articles',
-        type: 'bar',
-        barWidth: '60%',
-        data: polarityLabels.map(l => ({
-          value: counts[l],
-          itemStyle: {
-            color: polarityColors[l as keyof typeof polarityColors]
-          }
-        })),
-        emphasis: {
-          itemStyle: {
-            shadowBlur: 10,
-            shadowOffsetX: 0,
-            shadowColor: 'rgba(0, 0, 0, 0.5)'
-          }
-        }
-      }]
+      series: seriesData
     };
   });
 
