@@ -1,6 +1,8 @@
 <!-- Composant SentimentCriteriaFilter.svelte --> 
 <script lang="ts">
   import { polarityFilter, subjectivityFilterRange } from '$lib/stores.ts'; // Ajustez chemin
+  import PolarityFilter from './PolarityFilter.svelte';
+  import SubjectivityFilter from './SubjectivityFilter.svelte';
 
   const allPolarities = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif', 'Non applicable'];
   // Pour le score de subjectivité, un simple input range ou deux inputs number
@@ -24,29 +26,17 @@
   }
 </script>
 
-<div class="filter-group">
-  <fieldset>
-    <legend>Filtrer par Polarité :</legend>
-    {#each allPolarities as p (p)}
-      <label>
-        <input type="checkbox" value={p} on:change={handlePolarityChange} checked={$polarityFilter.includes(p)} />
-        {p}
-      </label>
-    {/each}
-    <button on:click={() => polarityFilter.set([])}>Effacer sélection</button>
-  </fieldset>
+<div class="sentiment-criteria-filters">
+  <PolarityFilter />
+  <SubjectivityFilter />
 </div>
 
-<div class="filter-group">
-  <fieldset>
-    <legend>Filtrer par Score de Subjectivité (1-5) :</legend>
-    <label>Min: <input type="number" min="1" max="5" bind:value={minSubjectivity} on:input={updateSubjectivity} /></label>
-    <label>Max: <input type="number" min="1" max="5" bind:value={maxSubjectivity} on:input={updateSubjectivity} /></label>
-    <button on:click={() => subjectivityFilterRange.set([1,5])}>Réinitialiser</button>
-  </fieldset>
-</div>
 <style>
-  .filter-group { margin-bottom: 15px; }
-  fieldset { border: 1px solid #ccc; padding: 10px; }
-  label { margin-right: 10px; display: inline-block; }
+  .sentiment-criteria-filters {
+    /* Add any desired layout styles for the group here */
+    /* For example, if you want them side-by-side in a flex container on wider screens */
+    /* display: flex; */
+    /* gap: 20px; */
+    /* flex-wrap: wrap; */
+  }
 </style> 
