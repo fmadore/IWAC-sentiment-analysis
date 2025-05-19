@@ -10,6 +10,11 @@
     "filePath": "/data/Integrisme_resultats_analyse.json"
   },
   {
+    "id": "Femme_en_islam_resultats_analyse",
+    "name": "Femme en islam",
+    "filePath": "/data/Femme_en_islam_resultats_analyse.json"
+  },
+  {
     "id": "Union_Musulmane_du_Togo_resultats_analyse",
     "name": "Union Musulmane du Togo",
     "filePath": "/data/Union_Musulmane_du_Togo_resultats_analyse.json"
