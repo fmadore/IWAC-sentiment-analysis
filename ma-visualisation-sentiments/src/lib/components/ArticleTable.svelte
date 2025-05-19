@@ -90,7 +90,7 @@
   <div class="table-container card variant-glass">
     <table class="table">
       <thead>
-        <tr class="bg-surface-700/50">
+        <tr class="bg-surface-800">
           <th class="text-white">Titre</th>
           <th class="text-white">Journal</th>
           <th class="text-white">Date</th>
@@ -155,6 +155,8 @@
     position: sticky;
     top: 0;
     z-index: 1;
+    background-color: rgb(38, 41, 65); /* Couleur solide pour l'en-tête */
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
   }
 
   /* Classes spécifiques pour les polarités */
