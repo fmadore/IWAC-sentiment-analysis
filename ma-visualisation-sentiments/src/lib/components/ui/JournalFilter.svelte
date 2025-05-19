@@ -2,10 +2,11 @@
 <script lang="ts">
   import { currentDatasetArticles, journalFilter } from '$lib/stores'; // Ajustez chemin
   import { derived } from 'svelte/store';
+  import type { Article } from '$lib/types/data'; // Importer Article
 
-  const uniqueJournals = derived(currentDatasetArticles, $articles => {
+  const uniqueJournals = derived(currentDatasetArticles, ($articles: Article[]) => {
     const journals = new Set<string>();
-    $articles.forEach(article => {
+    $articles.forEach((article: Article) => {
       if (article.journal_source) journals.add(article.journal_source);
     });
     return Array.from(journals).sort();

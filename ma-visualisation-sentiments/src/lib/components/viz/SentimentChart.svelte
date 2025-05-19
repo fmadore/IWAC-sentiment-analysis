@@ -1,9 +1,10 @@
 <!-- Composant SentimentChart.svelte (sera adapté pour ECharts) --> 
 <script lang="ts">
-  import { ECharts } from 'svelte-echarts';
-  import type { EChartsOption } from 'echarts';
-  import { filteredArticles } from '$lib/stores'; // Utilise les données déjà filtrées
-  import { onDestroy, onMount } from 'svelte';
+  import { Chart } from 'svelte-echarts';
+  import type { EChartsOption } from 'echarts/types/dist/shared';
+  import { filteredArticles } from '$lib/stores';
+  import type { Article } from '$lib/types/data';
+  import { onDestroy } from 'svelte';
 
   let options: EChartsOption = {};
 
@@ -11,12 +12,15 @@
   const polarityLabels = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif', 'Non applicable'];
   // Couleurs pourraient être définies ici ou dans les options du graphique
 
-  const unsubscribe = filteredArticles.subscribe($articles => {
+  const unsubscribe = filteredArticles.subscribe(($articles: Article[]) => {
     const counts: Record<string, number> = Object.fromEntries(polarityLabels.map(l => [l, 0]));
     let articlesAnalyzed = 0;
-    $articles.forEach(article => {
+    $articles.forEach((article: Article) => {
       if (article.sentiment_analysis?.polarite) {
-        counts[article.sentiment_analysis.polarite] = (counts[article.sentiment_analysis.polarite] || 0) + 1;
+        const polarityKey = article.sentiment_analysis.polarite as string;
+        if (counts.hasOwnProperty(polarityKey)) {
+          counts[polarityKey] = (counts[polarityKey] || 0) + 1;
+        }
         articlesAnalyzed++;
       }
     });
@@ -25,32 +29,48 @@
       title: {
         text: `Distribution de la Polarité (${articlesAnalyzed} articles analysés)`
       },
-      tooltip: {},
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'shadow'
+        }
+      },
       legend: {
-        data:['Nombre d\'articles']
+        // data:['Nombre d\'articles'] // ECharts peut le déduire
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
       },
       xAxis: {
-        data: polarityLabels
+        type: 'category',
+        data: polarityLabels,
+        axisTick: {
+          alignWithLabel: true
+        }
       },
-      yAxis: {},
+      yAxis: {
+        type: 'value'
+      },
       series: [{
         name: 'Nombre d\'articles',
         type: 'bar',
+        barWidth: '60%',
         data: polarityLabels.map(l => counts[l])
-        // Vous pouvez ajouter des couleurs ici par exemple
-        // itemStyle: { color: ... }
       }]
     };
   });
 
   onDestroy(() => {
-    unsubscribe(); // Important pour éviter les fuites mémoire
+    unsubscribe();
   });
 </script>
 
 {#if $filteredArticles.length > 0}
   <div style="height:450px; position: relative;">
-    <ECharts {options} />
+    <Chart {options} />
   </div>
 {:else}
   <p>Aucun article ne correspond aux filtres actuels, ou aucun dataset n'est chargé.</p>
