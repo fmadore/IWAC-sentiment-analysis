@@ -20,17 +20,24 @@
   }
 </script>
 
-<div class="filter-group">
-  <label for="journal-filter">Filtrer par Journal :</label>
+<div class="card preset-outlined-surface-500 p-4 space-y-4">
+  <label for="journal-filter" class="label">
+    <span>Filtrer par Journal :</span>
+  </label>
   {#if $uniqueJournals.length > 0}
-    <select id="journal-filter" multiple on:change={handleChange}>
+    <select id="journal-filter" multiple on:change={handleChange} class="select">
       {#each $uniqueJournals as journal (journal)}
         <option value={journal} selected={$journalFilter.includes(journal)}>{journal}</option>
       {/each}
     </select>
-    <button on:click={() => journalFilter.set([])} title="Réinitialiser le filtre journal">Effacer sélection</button>
+    <button type="button" class="btn btn-sm preset-tonal-surface" on:click={() => journalFilter.set([])} title="Réinitialiser le filtre journal">
+      Effacer sélection
+    </button>
   {:else}
-    <p>Aucun journal à filtrer pour ce dataset.</p>
+    <p class="text-sm opacity-70">Aucun journal à filtrer pour ce dataset.</p>
   {/if}
 </div>
-<style>.filter-group {display: flex; flex-direction: column; gap: 5px;}</style> 
+<style>
+  /* Removed previous .filter-group style as card provides structure */
+  /* .filter-group {display: flex; flex-direction: column; gap: 5px;} */
+</style> 

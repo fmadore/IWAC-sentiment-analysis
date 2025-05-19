@@ -26,17 +26,11 @@
   }
 </script>
 
-<div class="sentiment-criteria-filters">
+<div class="flex flex-col md:flex-row gap-4"> <!-- Flex layout, responsive to screen size -->
   <PolarityFilter />
   <SubjectivityFilter />
 </div>
 
 <style>
-  .sentiment-criteria-filters {
-    /* Add any desired layout styles for the group here */
-    /* For example, if you want them side-by-side in a flex container on wider screens */
-    /* display: flex; */
-    /* gap: 20px; */
-    /* flex-wrap: wrap; */
-  }
+  /* Styles are handled by Tailwind utility classes on the div and child components */
 </style> 

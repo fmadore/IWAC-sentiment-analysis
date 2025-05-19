@@ -3,9 +3,9 @@
   import { availableDatasets, selectedDatasetId } from '$lib/stores.ts'; // Ajustez chemin
 </script>
 
-<div class="card p-4 mb-4 max-w-md mx-auto">
-  <label for="dataset-select" class="font-bold mb-2 block text-lg">
-    Choisir un Dataset :
+<div class="card preset-outlined-surface-500 p-4 mb-4 max-w-md mx-auto">
+  <label for="dataset-select" class="label font-bold mb-2 block text-lg">
+    <span>Choisir un Dataset :</span>
   </label>
   <select
     id="dataset-select"
@@ -17,7 +17,7 @@
       <option value={ds.id}>{ds.name}</option>
     {/each}
   </select>
-  <p class="text-xs text-neutral-500">
+  <p class="text-sm opacity-70">
     Sélectionnez un dataset pour afficher les articles correspondants.
   </p>
 </div> 

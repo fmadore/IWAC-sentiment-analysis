@@ -32,17 +32,28 @@
   }
 </script>
 
-<div class="filter-group">
-  <fieldset>
-    <legend>Filtrer par Score de Subjectivité (1-5) :</legend>
-    <label>Min: <input type="number" min="1" max="5" bind:value={minSubjectivity} on:input={updateSubjectivityStore} on:change={updateSubjectivityStore} /></label>
-    <label>Max: <input type="number" min="1" max="5" bind:value={maxSubjectivity} on:input={updateSubjectivityStore} on:change={updateSubjectivityStore} /></label>
-    <button on:click={resetSubjectivity}>Réinitialiser</button>
+<div class="card preset-outlined-surface-500 p-4 space-y-4">
+  <fieldset class="space-y-2">
+    <legend class="h6">Filtrer par Score de Subjectivité (1-5) :</legend>
+    <div class="flex items-center space-x-2">
+      <label class="label">
+        <span>Min:</span>
+        <input type="number" min="1" max="5" bind:value={minSubjectivity} on:input={updateSubjectivityStore} on:change={updateSubjectivityStore} class="input w-20" />
+      </label>
+      <label class="label">
+        <span>Max:</span>
+        <input type="number" min="1" max="5" bind:value={maxSubjectivity} on:input={updateSubjectivityStore} on:change={updateSubjectivityStore} class="input w-20" />
+      </label>
+    </div>
+    <button type="button" class="btn btn-sm preset-tonal-surface mt-2" on:click={resetSubjectivity}>
+      Réinitialiser
+    </button>
   </fieldset>
 </div>
 
 <style>
-  .filter-group { margin-bottom: 15px; }
-  fieldset { border: 1px solid #ccc; padding: 10px; }
-  label { margin-right: 10px; display: inline-block; }
+  /* Removed previous styles as card and utility classes handle them */
+  /* .filter-group { margin-bottom: 15px; } */
+  /* fieldset { border: 1px solid #ccc; padding: 10px; } */
+  /* label { margin-right: 10px; display: inline-block; } */
 </style> 
