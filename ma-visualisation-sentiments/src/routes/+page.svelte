@@ -25,6 +25,7 @@
   // Importons les icônes nécessaires
   import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
   import TableIcon from '@lucide/svelte/icons/table';
+  import TrendingUpIcon from '@lucide/svelte/icons/trending-up'; // Nouvelle icône
   import InfoIcon from '@lucide/svelte/icons/info';
   import XIcon from '@lucide/svelte/icons/x';
 
@@ -99,6 +100,9 @@
             <Navigation.Tile id="charts" label="Graphiques">
               <ChartIcon />
             </Navigation.Tile>
+            <Navigation.Tile id="trends" label="Tendances">
+              <TrendingUpIcon />
+            </Navigation.Tile>
             <Navigation.Tile id="table" label="Tableau">
               <TableIcon />
             </Navigation.Tile>
@@ -115,9 +119,10 @@
               <div class="card variant-glass p-6">
                 <SubjectivityChart />
               </div>
-              <div class="card variant-glass p-6">
-                <SentimentTrendsChart />
-              </div>
+            </div>
+          {:else if activeView === 'trends'}
+            <div class="card variant-glass p-6">
+              <SentimentTrendsChart />
             </div>
           {:else if activeView === 'table'}
             <div class="w-full card variant-glass p-6">

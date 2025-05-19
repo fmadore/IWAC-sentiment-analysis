@@ -81,7 +81,7 @@
 
     options = {
       title: {
-        text: `Tendance des Sentiments par Année (${articlesAnalyzed} articles analysés)`,
+        text: `Tendance des entiments par année (${articlesAnalyzed} articles analysés)`,
         left: 'center',
         textStyle: {
           color: '#fff',
