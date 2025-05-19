@@ -32,7 +32,6 @@
   let activeView = 'charts'; // Vue active par défaut
   let showDetailsSidebar = false; // État du panneau de détails
   let detailsPosition = { x: 0, y: 0 }; // Position du panneau de détails
-  let showInfoPanel = false; // État du panneau d'information
 
   onMount(() => {
     if (data.availableDatasets) {
@@ -49,11 +48,6 @@
   // Fermer le panneau de détails
   function closeDetails() {
     showDetailsSidebar = false;
-  }
-
-  // Afficher/masquer le panneau d'information
-  function toggleInfoPanel() {
-    showInfoPanel = !showInfoPanel;
   }
 
   selectedDatasetId.subscribe(async (id: string | null) => {
@@ -73,23 +67,17 @@
 </script>
 
 <main class="container max-w-6xl mx-auto p-4 md:p-6 mt-6">
+  <div class="mb-6">
+    <AnalysisInfo />
+  </div>
+
   <div class="flex justify-between items-center mb-6">
     <DatasetSelector />
-    <button class="btn variant-soft-primary" on:click={toggleInfoPanel}>
-      <InfoIcon size={20} class="mr-2" />
-      À propos de l'analyse
-    </button>
   </div>
 
   {#if $isLoadingDataset}
     <div class="alert variant-filled-warning p-4 mb-6">Chargement des données du corpus...</div>
   {:else if $currentDatasetArticles.length > 0}
-    {#if showInfoPanel}
-      <div class="mb-6">
-        <AnalysisInfo />
-      </div>
-    {/if}
-    
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       <JournalFilterComponent />
       <PolarityFilter />
