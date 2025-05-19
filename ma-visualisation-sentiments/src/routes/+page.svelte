@@ -10,7 +10,8 @@
     DatasetSelector, 
     JournalFilter as JournalFilterComponent, 
     SentimentCriteriaFilter, 
-    SentimentChart 
+    SentimentChart,
+    SentimentTrendsChart
   } from '$lib';
   import type { DatasetInfo } from '$lib'; // Importer DatasetInfo
 
@@ -50,6 +51,9 @@
     </div>
     <div class="chart-container">
       <SentimentChart />
+    </div>
+    <div class="chart-container" style="margin-top: 20px;">
+      <SentimentTrendsChart />
     </div>
   {:else if $selectedDatasetId && !$isLoadingDataset}
     <p>Aucun article trouvé pour ce dataset ou le dataset est vide.</p>
