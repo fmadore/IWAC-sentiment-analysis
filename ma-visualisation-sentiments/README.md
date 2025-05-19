@@ -129,6 +129,14 @@ Prérequis : Node.js et npm installés.
 -   `npm run lint`: Exécute ESLint pour vérifier les erreurs de style de code.
 -   `npm run format`: Exécute Prettier pour formater le code.
 
+## Déploiement
+
+L'application est automatiquement déployée sur GitHub Pages à chaque push sur la branche `main`.
+
+Vous pouvez accéder à la version en ligne ici : [https://fmadore.github.io/IWAC-sentiment-analysis/](https://fmadore.github.io/IWAC-sentiment-analysis/)
+
+Le déploiement est géré par un workflow GitHub Actions défini dans `.github/workflows/deploy.yml`.
+
 ---
 
 Ce README fournit une vue d'ensemble du projet. Pour des détails spécifiques sur l'implémentation, veuillez consulter le code source et les commentaires dans les fichiers respectifs.
