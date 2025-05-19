@@ -22,16 +22,30 @@
   // Importons les icônes nécessaires
   import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
   import TableIcon from '@lucide/svelte/icons/table';
+  import XIcon from '@lucide/svelte/icons/x';
 
   export let data: PageData; // Données du `load` de +page.ts
 
   let activeView = 'charts'; // Vue active par défaut
+  let showDetailsSidebar = false; // État du panneau de détails
+  let detailsPosition = { x: 0, y: 0 }; // Position du panneau de détails
 
   onMount(() => {
     if (data.availableDatasets) {
       availableDatasetsStore.set(data.availableDatasets);
     }
   });
+
+  // Gérer l'affichage des détails
+  function handleShowDetails(event: CustomEvent) {
+    showDetailsSidebar = true;
+    detailsPosition = event.detail.position;
+  }
+
+  // Fermer le panneau de détails
+  function closeDetails() {
+    showDetailsSidebar = false;
+  }
 
   selectedDatasetId.subscribe(async (id: string | null) => {
     if (id) {
@@ -53,7 +67,7 @@
   <DatasetSelector />
 
   {#if $isLoadingDataset}
-    <div class="alert card-enhanced glossy bg-warning-500 text-warning-contrast-500 p-4 mb-6">Chargement des données du dataset...</div>
+    <div class="alert variant-filled-warning p-4 mb-6">Chargement des données du dataset...</div>
   {:else if $currentDatasetArticles.length > 0}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <JournalFilterComponent />
@@ -61,7 +75,7 @@
       <SubjectivityFilter />
     </div>
 
-    <div class="card card-enhanced glossy mb-6 bg-surface-100-800 overflow-hidden">
+    <div class="card variant-glass mb-6 overflow-hidden">
       <div class="grid grid-cols-[auto_1fr]">
         <!-- Menu de navigation latéral -->
         <Navigation.Rail 
@@ -84,35 +98,101 @@
         <div class="p-6">
           {#if activeView === 'charts'}
             <div class="space-y-6">
-              <div class="card-enhanced glossy p-6 bg-surface-200-700">
+              <div class="card variant-glass p-6">
                 <SentimentChart />
               </div>
-              <div class="card-enhanced glossy p-6 bg-surface-200-700">
+              <div class="card variant-glass p-6">
                 <SentimentTrendsChart />
               </div>
             </div>
           {:else if activeView === 'table'}
-            <div class="flex flex-col gap-6">
-              <div class="w-full card-enhanced glossy p-6 bg-surface-200-700">
-                <h2 class="text-xl font-semibold mb-4 text-white">Liste des Articles</h2>
-                <ArticleTable />
-              </div>
-              <div class="w-full card-enhanced glossy p-6 bg-surface-200-700">
-                <h2 class="text-xl font-semibold mb-4 text-white">Détails de l'Article</h2>
-                <ArticleDetail />
-              </div>
+            <div class="w-full card variant-glass p-6">
+              <h2 class="h3 mb-4 text-white">Liste des Articles</h2>
+              <ArticleTable on:showDetails={handleShowDetails} />
             </div>
           {/if}
         </div>
       </div>
     </div>
   {:else if $selectedDatasetId && !$isLoadingDataset}
-    <div class="alert card-enhanced glossy bg-error-500 text-error-contrast-500 p-4 mb-6">Aucun article trouvé pour ce dataset ou le dataset est vide.</div>
+    <div class="alert variant-filled-error p-4 mb-6">Aucun article trouvé pour ce dataset ou le dataset est vide.</div>
   {:else}
-    <div class="alert card-enhanced glossy bg-info-500 text-info-contrast-500 p-4 mb-6">Veuillez sélectionner un dataset pour commencer.</div>
+    <div class="alert variant-filled-primary p-4 mb-6">Veuillez sélectionner un dataset pour commencer.</div>
   {/if}
 </main>
 
+<!-- Panneau de détails pour l'article -->
+{#if showDetailsSidebar}
+  <div class="details-tooltip card variant-glass" style="top: {Math.min(detailsPosition.y, window.innerHeight - 400)}px; left: {Math.min(detailsPosition.x + 20, window.innerWidth - 400)}px;">
+    <div class="details-header">
+      <h2 class="h3 m-0 text-white">Détails de l'Article</h2>
+      <button class="btn-icon variant-soft-surface" on:click={closeDetails} title="Fermer">
+        <XIcon size={20} />
+      </button>
+    </div>
+    <div class="details-content">
+      <ArticleDetail />
+    </div>
+  </div>
+{/if}
+
 <style>
-  /* Styles locaux */
+  /* Ajustements pour les cartes et alertes */
+  :global(.card) {
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(80, 80, 80, 0.2);
+  }
+  
+  :global(.variant-glass) {
+    background-image: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    backdrop-filter: blur(4px);
+  }
+  
+  /* Styles pour le panneau de détails */
+  .details-tooltip {
+    position: fixed;
+    width: 400px;
+    max-width: 90vw;
+    max-height: 80vh;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.2s ease-out;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  }
+  
+  .details-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .details-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.75rem;
+    max-height: 60vh;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    cursor: pointer;
+  }
 </style>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy } from 'svelte';
+  import { onDestroy, createEventDispatcher } from 'svelte';
   import { filteredArticles, selectedArticle } from '$lib/stores';
   import type { Article } from '$lib/types/data';
 
@@ -8,24 +8,38 @@
     articles = value;
   });
 
-  function selectArticle(article: Article) {
+  // État pour le tooltip/popup
+  let showDetails = false;
+  let detailsX = 0;
+  let detailsY = 0;
+  
+  // Dispatcher pour communiquer avec le parent
+  const dispatch = createEventDispatcher();
+
+  function selectArticle(article: Article, event: MouseEvent) {
     selectedArticle.set(article);
+    
+    // Notifier le parent de montrer les détails
+    dispatch('showDetails', {
+      article,
+      position: { x: event.clientX, y: event.clientY }
+    });
   }
 
-  // Définition des couleurs de polarité pour les badges, en harmonie avec les graphiques
+  // Définition des couleurs de polarité pour les badges
   const polarityColors = {
-    'Très positif': 'bg-[#00b894] text-white',
-    'Positif': 'bg-[#55efc4] text-black',
-    'Neutre': 'bg-[#74b9ff] text-black',
-    'Négatif': 'bg-[#ff7675] text-black',
-    'Très négatif': 'bg-[#d63031] text-white',
-    'Non applicable': 'bg-[#a5a5a5] text-white'
+    'Très positif': 'variant-filled-success',
+    'Positif': 'variant-soft-success',
+    'Neutre': 'variant-soft-primary',
+    'Négatif': 'variant-soft-error',
+    'Très négatif': 'variant-filled-error',
+    'Non applicable': 'variant-ghost'
   };
 
-  // Fonction d'aide pour obtenir la classe de couleur de badge selon la polarité
-  function getPolarityBadgeClass(polarity: string | null | undefined): string {
-    if (!polarity) return 'bg-[#a5a5a5] text-white';
-    return polarityColors[polarity as keyof typeof polarityColors] || 'bg-[#a5a5a5] text-white';
+  // Fonction d'aide pour obtenir la classe selon la polarité
+  function getPolarityClass(polarity: string | null | undefined): string {
+    if (!polarity) return 'variant-ghost';
+    return polarityColors[polarity as keyof typeof polarityColors] || 'variant-ghost';
   }
 
   onDestroy(() => {
@@ -34,27 +48,28 @@
 </script>
 
 {#if articles.length > 0}
-  <div class="table-container bg-surface-800 rounded-lg border border-surface-700 shadow-lg">
-    <table class="w-full">
+  <div class="table-container card variant-glass">
+    <table class="table">
       <thead>
-        <tr class="border-b border-surface-600">
-          <th class="p-3 text-white font-semibold text-left">Titre</th>
-          <th class="p-3 text-white font-semibold text-left">Journal</th>
-          <th class="p-3 text-white font-semibold text-left">Date</th>
-          <th class="p-3 text-white font-semibold text-left">Polarité</th>
+        <tr class="bg-surface-700/50">
+          <th class="text-white">Titre</th>
+          <th class="text-white">Journal</th>
+          <th class="text-white">Date</th>
+          <th class="text-white">Polarité</th>
         </tr>
       </thead>
       <tbody>
         {#each articles as article (article['o:id'])}
           <tr 
-            on:click={() => selectArticle(article)} 
-            class="border-b border-surface-700 transition-colors duration-200 hover:bg-surface-700 cursor-pointer {$selectedArticle && $selectedArticle['o:id'] === article['o:id'] ? 'bg-primary-500/40' : ''}"
+            on:click={(e) => selectArticle(article, e)} 
+            class="hover:bg-primary-500/20 cursor-pointer {$selectedArticle && $selectedArticle['o:id'] === article['o:id'] ? 'bg-primary-500/30' : ''}"
+            title="Cliquez pour voir les détails"
           >
-            <td class="p-3 text-white">{article['o:title'] ?? 'N/A'}</td>
-            <td class="p-3 text-white">{article.journal_source ?? 'N/A'}</td>
-            <td class="p-3 text-white">{article.publication_date ?? 'N/A'}</td>
-            <td class="p-3">
-              <span class="px-2 py-1 rounded-full text-xs font-medium {getPolarityBadgeClass(article.sentiment_analysis?.polarite)}">
+            <td class="text-white">{article['o:title'] ?? 'N/A'}</td>
+            <td class="text-white">{article.journal_source ?? 'N/A'}</td>
+            <td class="text-white">{article.publication_date ?? 'N/A'}</td>
+            <td>
+              <span class="badge {getPolarityClass(article.sentiment_analysis?.polarite)}">
                 {article.sentiment_analysis?.polarite ?? 'N/A'}
               </span>
             </td>
@@ -73,30 +88,58 @@
     overflow-y: auto;
   }
   
-  /* Style pour la scrollbar personnalisée */
-  .table-container::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+  .badge {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 9999px;
   }
   
-  .table-container::-webkit-scrollbar-track {
-    background: rgba(30, 30, 30, 0.2);
-    border-radius: 5px;
+  table {
+    width: 100%;
+    border-collapse: collapse;
   }
   
-  .table-container::-webkit-scrollbar-thumb {
-    background: rgba(100, 100, 100, 0.4);
-    border-radius: 5px;
-  }
-  
-  .table-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(120, 120, 120, 0.6);
+  th, td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
   
   th {
     position: sticky;
     top: 0;
     z-index: 1;
-    background: rgb(30, 41, 59);
+  }
+
+  /* Classes spécifiques pour les polarités */
+  :global(.variant-filled-success) {
+    background-color: #10B981 !important;
+    color: white !important;
+  }
+  
+  :global(.variant-soft-success) {
+    background-color: rgba(16, 185, 129, 0.2) !important;
+    color: #10B981 !important;
+  }
+  
+  :global(.variant-soft-primary) {
+    background-color: rgba(59, 130, 246, 0.2) !important;
+    color: #3B82F6 !important;
+  }
+  
+  :global(.variant-soft-error) {
+    background-color: rgba(239, 68, 68, 0.2) !important;
+    color: #EF4444 !important;
+  }
+  
+  :global(.variant-filled-error) {
+    background-color: #EF4444 !important;
+    color: white !important;
+  }
+  
+  :global(.variant-ghost) {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #E5E7EB !important;
   }
 </style> 
