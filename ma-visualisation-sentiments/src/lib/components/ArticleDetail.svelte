@@ -32,6 +32,36 @@
     if (!centrality) return 'variant-ghost';
     return centralityClasses[centrality as keyof typeof centralityClasses] || 'variant-ghost';
   }
+
+  // Fonction pour formater les dates
+  function formatDate(dateStr: string | null | undefined): string {
+    if (!dateStr) return 'Date non disponible';
+    
+    try {
+      // Gérer différents formats de date possibles
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) {
+        // Si la date n'est pas valide, renvoyer la chaîne originale
+        return dateStr;
+      }
+      
+      // Formater la date au format localisé (jour/mois/année)
+      return date.toLocaleDateString('fr-FR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    } catch (error) {
+      console.error("Erreur lors du formatage de la date:", error);
+      return dateStr;
+    }
+  }
+
+  // Fonction pour construire l'URL de l'article complet
+  function getArticleUrl(id: string | number | null | undefined): string {
+    if (!id) return '#';
+    return `https://islam.zmo.de/s/afrique_ouest/item/${id}`;
+  }
 </script>
 
 {#if $selectedArticle}
@@ -45,8 +75,17 @@
       </div>
       <div class="card variant-soft-surface p-3">
         <span class="text-sm uppercase font-bold opacity-75">Date de publication</span>
-        <p class="text-white mt-1">{$selectedArticle.publication_date ?? 'Date non disponible'}</p>
+        <p class="text-white mt-1">{formatDate($selectedArticle.publication_date)}</p>
       </div>
+    </div>
+
+    <div class="card variant-soft-surface p-3">
+      <span class="text-sm uppercase font-bold opacity-75">Lien vers l'article complet</span>
+      <p class="text-white mt-1">
+        <a href={getArticleUrl($selectedArticle['o:id'])} target="_blank" class="anchor">
+          Consulter l'article original
+        </a>
+      </p>
     </div>
     
     {#if $selectedArticle.sentiment_analysis}
@@ -124,5 +163,15 @@
     font-size: 0.75rem;
     font-weight: 500;
     border-radius: 9999px;
+  }
+  
+  .anchor {
+    color: #3B82F6;
+    text-decoration: underline;
+    transition: color 0.2s;
+  }
+  
+  .anchor:hover {
+    color: #60A5FA;
   }
 </style> 

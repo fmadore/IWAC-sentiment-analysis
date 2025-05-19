@@ -82,7 +82,7 @@
   </div>
 
   {#if $isLoadingDataset}
-    <div class="alert variant-filled-warning p-4 mb-6">Chargement des données du dataset...</div>
+    <div class="alert variant-filled-warning p-4 mb-6">Chargement des données du corpus...</div>
   {:else if $currentDatasetArticles.length > 0}
     {#if showInfoPanel}
       <div class="mb-6">
@@ -129,7 +129,7 @@
             </div>
           {:else if activeView === 'table'}
             <div class="w-full card variant-glass p-6">
-              <h2 class="h3 mb-4 text-white">Liste des Articles</h2>
+              <h2 class="h3 mb-4 text-white">Liste des articles</h2>
               <ArticleTable on:showDetails={handleShowDetails} />
             </div>
           {/if}
@@ -137,9 +137,9 @@
       </div>
     </div>
   {:else if $selectedDatasetId && !$isLoadingDataset}
-    <div class="alert variant-filled-error p-4 mb-6">Aucun article trouvé pour ce dataset ou le dataset est vide.</div>
+    <div class="alert variant-filled-error p-4 mb-6">Aucun article trouvé pour ce corpus ou le corpus est vide.</div>
   {:else}
-    <div class="alert variant-filled-primary p-4 mb-6">Veuillez sélectionner un dataset pour commencer.</div>
+    <div class="alert variant-filled-primary p-4 mb-6">Veuillez sélectionner un corpus pour commencer.</div>
   {/if}
 </main>
 
