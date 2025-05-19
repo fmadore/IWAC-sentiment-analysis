@@ -4,7 +4,7 @@
 </script>
 
 <div class="card card-enhanced glossy p-6 mb-6 bg-primary-500 text-primary-contrast-500">
-  <h3 class="font-bold mb-3 text-xl">Choisir un Dataset :</h3>
+  <h3 class="font-bold mb-3 text-xl">Choisir un corpus :</h3>
   <select
     id="dataset-select"
     bind:value={$selectedDatasetId}
@@ -16,6 +16,6 @@
     {/each}
   </select>
   <p class="text-sm opacity-80">
-    Sélectionnez un dataset pour afficher les articles correspondants.
+    Sélectionnez un corpus pour afficher les articles correspondants.
   </p>
 </div> 

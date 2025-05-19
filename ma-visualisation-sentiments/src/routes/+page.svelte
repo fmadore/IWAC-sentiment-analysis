@@ -145,7 +145,8 @@
 
 <!-- Panneau de détails pour l'article -->
 {#if showDetailsSidebar}
-  <div class="details-tooltip card variant-glass" style="top: {Math.min(detailsPosition.y, window.innerHeight - 400)}px; left: {Math.min(detailsPosition.x + 20, window.innerWidth - 400)}px;">
+  <div class="details-modal card variant-glass" 
+    style="max-height: {Math.min(window.innerHeight - 50, 800)}px;">
     <div class="details-header">
       <h2 class="h3 m-0 text-white">Détails de l'Article</h2>
       <button class="btn-icon variant-soft-surface" on:click={closeDetails} title="Fermer">
@@ -156,6 +157,7 @@
       <ArticleDetail />
     </div>
   </div>
+  <div class="modal-backdrop" on:click={closeDetails}></div>
 {/if}
 
 <style>
@@ -176,11 +178,13 @@
   }
   
   /* Styles pour le panneau de détails */
-  .details-tooltip {
+  .details-modal {
     position: fixed;
-    width: 400px;
-    max-width: 90vw;
-    max-height: 80vh;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 800px;
     z-index: 1000;
     display: flex;
     flex-direction: column;
@@ -188,24 +192,34 @@
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
   }
   
+  .modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    animation: fadeIn 0.1s ease-out;
+  }
+  
   .details-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.75rem;
+    padding: 0.75rem 1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
   
   .details-content {
     flex: 1;
     overflow-y: auto;
-    padding: 0.75rem;
-    max-height: 60vh;
+    padding: 0.75rem 1rem;
   }
   
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translate(-50%, -45%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
   }
   
   .btn-icon {
@@ -216,5 +230,17 @@
     height: 2.5rem;
     border-radius: 9999px;
     cursor: pointer;
+  }
+  
+  /* Media queries pour la responsivité */
+  @media (max-width: 640px) {
+    .details-modal {
+      width: 95%;
+      max-height: 90vh !important;
+    }
+    
+    .details-content {
+      padding: 0.5rem;
+    }
   }
 </style>
