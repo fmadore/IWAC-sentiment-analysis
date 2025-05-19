@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { PageData } from './$types';
+  import type { PageData } from './$types.js';
   import { onMount } from 'svelte';
   import { availableDatasets as availableDatasetsStore, selectedDatasetId, currentDatasetArticles, isLoadingDataset } from '$lib/stores'; // Ajustez chemin
-  import { fetchDataset } from './+page'; // Ou depuis un fichier utils
+  import { fetchDataset } from '$lib/utils'; // Ou depuis un fichier utils
   import type { DatasetInfo } from '$lib/types/data'; // Importer DatasetInfo
 
   import DatasetSelector from '$lib/components/ui/DatasetSelector.svelte';
