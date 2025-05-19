@@ -17,6 +17,11 @@
     }
     updateSubjectivitySelection();
   }
+
+  function clearSelection() {
+    selectedScores = [];
+    updateSubjectivitySelection();
+  }
 </script>
 
 <div class="card p-4">
@@ -32,6 +37,15 @@
       </button>
     {/each}
   </div>
+
+  {#if selectedScores.length > 0}
+    <button 
+      class="btn btn-sm variant-soft-surface mt-3" 
+      on:click={clearSelection}
+    >
+      Effacer sélection
+    </button>
+  {/if}
   
   <div class="mt-2 text-sm">
     <div class="flex gap-2 items-center mt-1">

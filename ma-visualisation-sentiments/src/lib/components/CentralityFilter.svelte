@@ -21,6 +21,11 @@
     }
     centralityFilters.set(selectedCentralities);
   }
+
+  function clearSelection() {
+    selectedCentralities = [];
+    centralityFilters.set(selectedCentralities);
+  }
 </script>
 
 <div class="card variant-glass p-4">
@@ -36,6 +41,15 @@
       </button>
     {/each}
   </div>
+
+  {#if selectedCentralities.length > 0}
+    <button 
+      class="btn btn-sm variant-soft-surface mt-3" 
+      on:click={clearSelection}
+    >
+      Effacer sélection
+    </button>
+  {/if}
 </div>
 
 <style>

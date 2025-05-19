@@ -25,6 +25,11 @@
     }
     updateSelection();
   }
+
+  function clearSelection() {
+    selectedPolarities = [];
+    updateSelection();
+  }
 </script>
 
 <div class="card p-4">
@@ -40,6 +45,15 @@
       </button>
     {/each}
   </div>
+
+  {#if selectedPolarities.length > 0}
+    <button 
+      class="btn btn-sm variant-soft-surface mt-3" 
+      on:click={clearSelection}
+    >
+      Effacer sélection
+    </button>
+  {/if}
 </div>
 
 <style>
