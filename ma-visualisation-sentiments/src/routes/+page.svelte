@@ -92,13 +92,13 @@
               </div>
             </div>
           {:else if activeView === 'table'}
-            <div class="flex flex-col lg:flex-row gap-6">
+            <div class="flex flex-col gap-6">
               <div class="w-full card-enhanced glossy p-6 bg-surface-200-700">
-                <h2 class="text-xl font-semibold mb-4">Liste des Articles</h2>
+                <h2 class="text-xl font-semibold mb-4 text-white">Liste des Articles</h2>
                 <ArticleTable />
               </div>
-              <div class="hidden lg:block lg:w-1/3 card-enhanced glossy p-6 bg-surface-200-700">
-                <h2 class="text-xl font-semibold mb-4">Détails de l'Article</h2>
+              <div class="w-full card-enhanced glossy p-6 bg-surface-200-700">
+                <h2 class="text-xl font-semibold mb-4 text-white">Détails de l'Article</h2>
                 <ArticleDetail />
               </div>
             </div>

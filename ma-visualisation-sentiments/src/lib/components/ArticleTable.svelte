@@ -34,10 +34,10 @@
 </script>
 
 {#if articles.length > 0}
-  <div class="table-container glossy bg-surface-900/60 rounded-lg border border-surface-500/20 shadow-lg">
+  <div class="table-container bg-surface-800 rounded-lg border border-surface-700 shadow-lg">
     <table class="w-full">
       <thead>
-        <tr class="border-b border-surface-500/30">
+        <tr class="border-b border-surface-600">
           <th class="p-3 text-white font-semibold text-left">Titre</th>
           <th class="p-3 text-white font-semibold text-left">Journal</th>
           <th class="p-3 text-white font-semibold text-left">Date</th>
@@ -48,11 +48,11 @@
         {#each articles as article (article['o:id'])}
           <tr 
             on:click={() => selectArticle(article)} 
-            class="border-b border-surface-500/20 transition-colors duration-200 hover:bg-surface-700/40 cursor-pointer {$selectedArticle && $selectedArticle['o:id'] === article['o:id'] ? 'bg-primary-500/30' : ''}"
+            class="border-b border-surface-700 transition-colors duration-200 hover:bg-surface-700 cursor-pointer {$selectedArticle && $selectedArticle['o:id'] === article['o:id'] ? 'bg-primary-500/40' : ''}"
           >
-            <td class="p-3 text-white/90">{article['o:title'] ?? 'N/A'}</td>
-            <td class="p-3 text-white/90">{article.journal_source ?? 'N/A'}</td>
-            <td class="p-3 text-white/90">{article.publication_date ?? 'N/A'}</td>
+            <td class="p-3 text-white">{article['o:title'] ?? 'N/A'}</td>
+            <td class="p-3 text-white">{article.journal_source ?? 'N/A'}</td>
+            <td class="p-3 text-white">{article.publication_date ?? 'N/A'}</td>
             <td class="p-3">
               <span class="px-2 py-1 rounded-full text-xs font-medium {getPolarityBadgeClass(article.sentiment_analysis?.polarite)}">
                 {article.sentiment_analysis?.polarite ?? 'N/A'}
@@ -64,19 +64,13 @@
     </table>
   </div>
 {:else}
-  <p class="text-center py-8 text-white/80">Aucun article à afficher avec les filtres actuels.</p>
+  <p class="text-center py-8 text-white">Aucun article à afficher avec les filtres actuels.</p>
 {/if}
 
 <style>
   .table-container {
     max-height: 400px;
     overflow-y: auto;
-    background-image: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.05) 0%,
-      rgba(255, 255, 255, 0) 100%
-    );
-    backdrop-filter: blur(4px);
   }
   
   /* Style pour la scrollbar personnalisée */
@@ -103,7 +97,6 @@
     position: sticky;
     top: 0;
     z-index: 1;
-    background: linear-gradient(180deg, rgba(30, 41, 59, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%);
-    backdrop-filter: blur(4px);
+    background: rgb(30, 41, 59);
   }
 </style> 
