@@ -7,6 +7,9 @@ export const selectedDatasetId = writable<string | null>(null);
 export const currentDatasetArticles = writable<Article[]>([]); // Articles du dataset sélectionné
 export const isLoadingDataset = writable<boolean>(false);
 
+// Store for the currently selected article
+export const selectedArticle = writable<Article | null>(null);
+
 // Filtres
 export const journalFilter = writable<string[]>([]); // Liste des journaux sélectionnés
 export const polarityFilter = writable<string[]>([]); // Liste des polarités sélectionnées

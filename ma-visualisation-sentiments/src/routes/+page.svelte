@@ -12,9 +12,12 @@
     PolarityFilter,
     SubjectivityFilter,
     SentimentChart,
-    SentimentTrendsChart
+    SentimentTrendsChart,
+    selectedArticle
   } from '$lib';
   import type { DatasetInfo } from '$lib'; // Importer DatasetInfo
+  import ArticleTable from '$lib/components/ArticleTable.svelte'; // Import ArticleTable
+  import ArticleDetail from '$lib/components/ArticleDetail.svelte'; // Import ArticleDetail
 
   export let data: PageData; // Données du `load` de +page.ts
 
@@ -29,16 +32,18 @@
       const selectedInfo = $availableDatasetsStore.find((d: DatasetInfo) => d.id === id);
       if (selectedInfo) {
         isLoadingDataset.set(true);
+        selectedArticle.set(null);
         currentDatasetArticles.set(await fetchDataset(selectedInfo.filePath, selectedInfo.id, fetch));
         isLoadingDataset.set(false);
       }
     } else {
       currentDatasetArticles.set([]);
+      selectedArticle.set(null);
     }
   });
 </script>
 
-<main class="container max-w-4xl mx-auto p-6">
+<main class="container max-w-6xl mx-auto p-6">
   <div class="card preset-surface p-8 mb-8 shadow-lg">
     <h1 class="preset-title text-3xl mb-4 text-center">Analyse de sentiments des articles de presse</h1>
     <DatasetSelector />
@@ -55,9 +60,21 @@
     <div class="card preset-surface p-6 mb-6 shadow">
       <SentimentChart />
     </div>
-    <div class="card preset-surface p-6 shadow">
+    <div class="card preset-surface p-6 mb-6 shadow">
       <SentimentTrendsChart />
     </div>
+
+    <div class="flex flex-col lg:flex-row gap-6 mb-6">
+      <div class="lg:w-2/3 card preset-surface p-6 shadow">
+        <h2 class="text-xl font-semibold mb-4">Liste des Articles</h2>
+        <ArticleTable />
+      </div>
+      <div class="lg:w-1/3 card preset-surface p-6 shadow">
+        <h2 class="text-xl font-semibold mb-4">Détails de l'Article</h2>
+        <ArticleDetail />
+      </div>
+    </div>
+
   {:else if $selectedDatasetId && !$isLoadingDataset}
     <div class="alert preset-error mb-4">Aucun article trouvé pour ce dataset ou le dataset est vide.</div>
   {:else}
