@@ -1,5 +1,10 @@
 [
   {
+    "id": "Conseil_Superieur_Islamique_resultats_analyse",
+    "name": "Conseil Supérieur Islamique",
+    "filePath": "/data/Conseil_Superieur_Islamique_resultats_analyse.json"
+  },
+  {
     "id": "Integrisme_resultats_analyse",
     "name": "Intégrisme",
     "filePath": "/data/Integrisme_resultats_analyse.json"
