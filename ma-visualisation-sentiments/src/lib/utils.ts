@@ -1,4 +1,4 @@
-import type { Article, Dataset } from '$lib/types/data';
+import type { Article, Dataset } from './types/data.ts';
 
 // Fonction pour charger un dataset spécifique (peut être appelée depuis un composant)
 export async function fetchDataset(filePath: string, datasetId: string, appFetch = fetch): Promise<Dataset> {

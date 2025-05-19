@@ -1,8 +1,8 @@
 <!-- Composant JournalFilter.svelte --> 
 <script lang="ts">
-  import { currentDatasetArticles, journalFilter } from '$lib/stores'; // Ajustez chemin
+  import { currentDatasetArticles, journalFilter } from '$lib/stores.ts'; // Ajustez chemin
   import { derived } from 'svelte/store';
-  import type { Article } from '$lib/types/data'; // Importer Article
+  import type { Article } from '$lib/types/data.ts'; // Importer Article
 
   const uniqueJournals = derived(currentDatasetArticles, ($articles: Article[]) => {
     const journals = new Set<string>();

@@ -1,6 +1,6 @@
 <!-- Composant DatasetSelector.svelte --> 
 <script lang="ts">
-  import { availableDatasets, selectedDatasetId } from '$lib/stores'; // Ajustez chemin
+  import { availableDatasets, selectedDatasetId } from '$lib/stores.ts'; // Ajustez chemin
 </script>
 
 <div class="filter-group">

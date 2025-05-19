@@ -1,6 +1,6 @@
 <!-- Composant SentimentCriteriaFilter.svelte --> 
 <script lang="ts">
-  import { polarityFilter, subjectivityFilterRange } from '$lib/stores'; // Ajustez chemin
+  import { polarityFilter, subjectivityFilterRange } from '$lib/stores.ts'; // Ajustez chemin
 
   const allPolarities = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif', 'Non applicable'];
   // Pour le score de subjectivité, un simple input range ou deux inputs number
