@@ -64,8 +64,6 @@
     const series = polarityLabels.map(polarity => ({
       name: polarity,
       type: 'line' as 'line',
-      stack: 'Total',
-      areaStyle: {},
       emphasis: {
         focus: 'series' as 'series'
       },
