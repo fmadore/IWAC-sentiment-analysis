@@ -1,11 +1,13 @@
 import type { Article, Dataset } from './types/data.ts';
+import { base } from '$app/paths';
 
 // Fonction pour charger un dataset spécifique (peut être appelée depuis un composant)
 export async function fetchDataset(filePath: string, datasetId: string, appFetch = fetch): Promise<Dataset> {
     try {
-        const response = await appFetch(filePath);
+        const resolvedPath = `${base}${filePath}`;
+        const response = await appFetch(resolvedPath);
         if (!response.ok) {
-            throw new Error(`Failed to load dataset ${filePath}`);
+            throw new Error(`Failed to load dataset ${resolvedPath}`);
         }
         // Temporarily type raw articles as any to handle potentially different structures from JSON
         const rawArticles: any[] = await response.json();
@@ -27,7 +29,7 @@ export async function fetchDataset(filePath: string, datasetId: string, appFetch
             ...rawArticle 
         }));
     } catch (error) {
-        console.error(`Error fetching dataset ${filePath}:`, error);
+        console.error(`Error fetching dataset ${base}${filePath}:`, error);
         return [];
     }
 }
