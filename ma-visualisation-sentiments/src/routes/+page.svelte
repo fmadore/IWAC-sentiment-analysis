@@ -18,8 +18,11 @@
   import type { DatasetInfo } from '$lib'; // Importer DatasetInfo
   import ArticleTable from '$lib/components/ArticleTable.svelte'; // Import ArticleTable
   import ArticleDetail from '$lib/components/ArticleDetail.svelte'; // Import ArticleDetail
+  import { Tabs } from '@skeletonlabs/skeleton-svelte';
 
   export let data: PageData; // Données du `load` de +page.ts
+
+  let tab = 'charts'; // Onglet par défaut
 
   onMount(() => {
     if (data.availableDatasets) {
@@ -56,23 +59,31 @@
       <PolarityFilter class_name="flex-1" />
       <SubjectivityFilter class_name="flex-1" />
     </div>
-    <div class="card preset-surface p-6 mb-6 shadow">
-      <SentimentChart />
-    </div>
-    <div class="card preset-surface p-6 mb-6 shadow">
-      <SentimentTrendsChart />
-    </div>
 
-    <div class="flex flex-col lg:flex-row gap-6 mb-6">
-      <div class="lg:w-2/3 card preset-surface p-6 shadow">
-        <h2 class="text-xl font-semibold mb-4">Liste des Articles</h2>
-        <ArticleTable />
+    <Tabs value={tab} onValueChange={({ value }) => tab = value} background="bg-sky-100" padding="py-2" class="mb-6">
+      <Tabs.Control value="charts">Graphiques</Tabs.Control>
+      <Tabs.Control value="table">Tableau</Tabs.Control>
+    </Tabs>
+
+    {#if tab === 'charts'}
+      <div class="card preset-surface p-6 mb-6 shadow">
+        <SentimentChart />
       </div>
-      <div class="lg:w-1/3 card preset-surface p-6 shadow">
-        <h2 class="text-xl font-semibold mb-4">Détails de l'Article</h2>
-        <ArticleDetail />
+      <div class="card preset-surface p-6 mb-6 shadow">
+        <SentimentTrendsChart />
       </div>
-    </div>
+    {:else if tab === 'table'}
+      <div class="flex flex-col lg:flex-row gap-6 mb-6">
+        <div class="w-full card preset-surface p-6 shadow">
+          <h2 class="text-xl font-semibold mb-4">Liste des Articles</h2>
+          <ArticleTable />
+        </div>
+        <div class="hidden lg:block lg:w-1/3 card preset-surface p-6 shadow">
+          <h2 class="text-xl font-semibold mb-4">Détails de l'Article</h2>
+          <ArticleDetail />
+        </div>
+      </div>
+    {/if}
 
   {:else if $selectedDatasetId && !$isLoadingDataset}
     <div class="alert preset-error mb-4">Aucun article trouvé pour ce dataset ou le dataset est vide.</div>
