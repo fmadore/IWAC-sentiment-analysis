@@ -1,0 +1,41 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # Or your default branch if it's different
+
+permissions:
+  contents: write # Required to push to the gh-pages branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # You can adjust this to your preferred Node.js version
+          cache: 'npm'
+          cache-dependency-path: ma-visualisation-sentiments/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./ma-visualisation-sentiments
+        run: npm ci
+
+      - name: Build application
+        working-directory: ./ma-visualisation-sentiments
+        run: npm run build # This uses the build script from your package.json
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./ma-visualisation-sentiments/build # The directory your static site is built into
+          # publish_branch: gh-pages # This is the default, so it's optional
+          # user_name: 'github-actions[bot]' # Optional: Defaults to 'github-actions[bot]'
+          # user_email: 'github-actions[bot]@users.noreply.github.com' # Optional
+          # commit_message: ${{ github.event.head_commit.message }} # Optional: Customize commit message 
