@@ -145,7 +145,13 @@
       <ArticleDetail />
     </div>
   </div>
-  <div class="modal-backdrop" on:click={closeDetails}></div>
+  <button 
+    class="modal-backdrop" 
+    on:click={closeDetails}
+    on:keydown={(e) => e.key === 'Escape' && closeDetails()}
+    aria-label="Fermer les détails"
+    role="dialog"
+  ></button>
 {/if}
 
 <style>
