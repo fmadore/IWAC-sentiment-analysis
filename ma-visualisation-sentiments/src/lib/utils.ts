@@ -15,15 +15,15 @@ export async function fetchDataset(filePath: string, datasetId: string, appFetch
             // Spread known fields first to allow specific overrides
             'o:id': rawArticle['o:id'],
             'o:title': rawArticle['o:title'],
-            journal_source: rawArticle.journal_source,
+            // Map display_title from JSON to journal_source in Article type
+            journal_source: rawArticle['display_title'] || rawArticle.journal_source,
             // Transform dcterms:date to publication_date
             publication_date: rawArticle['dcterms:date'], 
             sentiment_analysis: rawArticle.sentiment_analysis,
             // Add the dataset_id
             dataset_id: datasetId,
-            // Spread the rest of the rawArticle for any other fields not explicitly defined 
-            // in Article but present in JSON, if desired, though this might not be type-safe.
-            // For stricter typing, only map known fields.
+            // Spread the rest of the rawArticle. Be mindful of overwriting already mapped fields if keys clash.
+            // It's generally safer to explicitly map all needed fields from rawArticle.
             ...rawArticle 
         }));
     } catch (error) {
