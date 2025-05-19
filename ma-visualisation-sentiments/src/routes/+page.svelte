@@ -18,11 +18,14 @@
   import type { DatasetInfo } from '$lib'; // Importer DatasetInfo
   import ArticleTable from '$lib/components/ArticleTable.svelte'; // Import ArticleTable
   import ArticleDetail from '$lib/components/ArticleDetail.svelte'; // Import ArticleDetail
-  import { Tabs } from '@skeletonlabs/skeleton-svelte';
+  import { Navigation } from '@skeletonlabs/skeleton-svelte';
+  // Importons les icônes nécessaires
+  import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
+  import TableIcon from '@lucide/svelte/icons/table';
 
   export let data: PageData; // Données du `load` de +page.ts
 
-  let tab = 'charts'; // Onglet par défaut
+  let activeView = 'charts'; // Vue active par défaut
 
   onMount(() => {
     if (data.availableDatasets) {
@@ -58,33 +61,51 @@
       <SubjectivityFilter />
     </div>
 
-    <div class="card card-enhanced glossy p-2 mb-6 bg-surface-100-800">
-      <Tabs value={tab} onValueChange={({ value }) => tab = value}>
-        <Tabs.Control value="charts">Graphiques</Tabs.Control>
-        <Tabs.Control value="table">Tableau</Tabs.Control>
-      </Tabs>
+    <div class="card card-enhanced glossy mb-6 bg-surface-100-800 overflow-hidden">
+      <div class="grid grid-cols-[auto_1fr]">
+        <!-- Menu de navigation latéral -->
+        <Navigation.Rail 
+          value={activeView} 
+          onValueChange={(value) => activeView = value}
+          background="bg-primary-500/10"
+          padding="p-2"
+        >
+          {#snippet tiles()}
+            <Navigation.Tile id="charts" label="Graphiques">
+              <ChartIcon />
+            </Navigation.Tile>
+            <Navigation.Tile id="table" label="Tableau">
+              <TableIcon />
+            </Navigation.Tile>
+          {/snippet}
+        </Navigation.Rail>
+
+        <!-- Contenu associé au menu -->
+        <div class="p-6">
+          {#if activeView === 'charts'}
+            <div class="space-y-6">
+              <div class="card-enhanced glossy p-6 bg-surface-200-700">
+                <SentimentChart />
+              </div>
+              <div class="card-enhanced glossy p-6 bg-surface-200-700">
+                <SentimentTrendsChart />
+              </div>
+            </div>
+          {:else if activeView === 'table'}
+            <div class="flex flex-col lg:flex-row gap-6">
+              <div class="w-full card-enhanced glossy p-6 bg-surface-200-700">
+                <h2 class="text-xl font-semibold mb-4">Liste des Articles</h2>
+                <ArticleTable />
+              </div>
+              <div class="hidden lg:block lg:w-1/3 card-enhanced glossy p-6 bg-surface-200-700">
+                <h2 class="text-xl font-semibold mb-4">Détails de l'Article</h2>
+                <ArticleDetail />
+              </div>
+            </div>
+          {/if}
+        </div>
+      </div>
     </div>
-
-    {#if tab === 'charts'}
-      <div class="card card-enhanced glossy p-6 mb-6 bg-surface-100-800">
-        <SentimentChart />
-      </div>
-      <div class="card card-enhanced glossy p-6 mb-6 bg-surface-100-800">
-        <SentimentTrendsChart />
-      </div>
-    {:else if tab === 'table'}
-      <div class="flex flex-col lg:flex-row gap-6 mb-6">
-        <div class="w-full card card-enhanced glossy p-6 bg-surface-100-800">
-          <h2 class="text-xl font-semibold mb-4">Liste des Articles</h2>
-          <ArticleTable />
-        </div>
-        <div class="hidden lg:block lg:w-1/3 card card-enhanced glossy p-6 bg-surface-100-800">
-          <h2 class="text-xl font-semibold mb-4">Détails de l'Article</h2>
-          <ArticleDetail />
-        </div>
-      </div>
-    {/if}
-
   {:else if $selectedDatasetId && !$isLoadingDataset}
     <div class="alert card-enhanced glossy bg-error-500 text-error-contrast-500 p-4 mb-6">Aucun article trouvé pour ce dataset ou le dataset est vide.</div>
   {:else}
