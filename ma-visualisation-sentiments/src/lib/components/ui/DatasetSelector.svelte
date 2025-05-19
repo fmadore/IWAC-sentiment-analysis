@@ -3,7 +3,7 @@
   import { availableDatasets, selectedDatasetId } from '$lib/stores.ts'; // Ajustez chemin
 </script>
 
-<div class="card preset-outlined-surface-500 p-4 mb-4 max-w-md mx-auto">
+<div class="card preset-surface p-6 shadow mb-8 max-w-md mx-auto">
   <label for="dataset-select" class="label font-bold mb-2 block text-lg">
     <span>Choisir un Dataset :</span>
   </label>

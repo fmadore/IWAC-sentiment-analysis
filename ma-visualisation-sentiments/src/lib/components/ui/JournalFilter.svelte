@@ -20,7 +20,7 @@
   }
 </script>
 
-<div class="card preset-outlined-surface-500 p-4 space-y-4">
+<div class="card preset-surface p-6 shadow space-y-4">
   <label for="journal-filter" class="label">
     <span>Filtrer par Journal :</span>
   </label>

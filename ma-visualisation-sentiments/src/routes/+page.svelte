@@ -37,33 +37,32 @@
   });
 </script>
 
-<main class="container">
-  <h1>Analyse de Sentiments des Articles de Presse</h1>
-
-  <DatasetSelector />
+<main class="container max-w-4xl mx-auto p-6">
+  <div class="card preset-surface p-8 mb-8 shadow-lg">
+    <h1 class="preset-title text-3xl mb-4 text-center">Analyse de Sentiments des Articles de Presse</h1>
+    <DatasetSelector />
+  </div>
 
   {#if $isLoadingDataset}
-    <p>Chargement des données du dataset...</p>
+    <div class="alert preset-warning mb-4">Chargement des données du dataset...</div>
   {:else if $currentDatasetArticles.length > 0}
-    <div class="filters-container">
+    <div class="flex flex-wrap gap-4 mb-6 items-stretch">
       <JournalFilterComponent />
       <SentimentCriteriaFilter />
     </div>
-    <div class="chart-container">
+    <div class="card preset-surface p-6 mb-6 shadow">
       <SentimentChart />
     </div>
-    <div class="chart-container" style="margin-top: 20px;">
+    <div class="card preset-surface p-6 shadow">
       <SentimentTrendsChart />
     </div>
   {:else if $selectedDatasetId && !$isLoadingDataset}
-    <p>Aucun article trouvé pour ce dataset ou le dataset est vide.</p>
+    <div class="alert preset-error mb-4">Aucun article trouvé pour ce dataset ou le dataset est vide.</div>
   {:else}
-    <p>Veuillez sélectionner un dataset pour commencer.</p>
+    <div class="alert preset-info mb-4">Veuillez sélectionner un dataset pour commencer.</div>
   {/if}
 </main>
 
 <style>
-  .container { max-width: 1200px; margin: auto; padding: 20px; }
-  .filters-container { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
-  .chart-container { min-height: 400px; /* Pour éviter le "layout shift" */ }
+  /* Removed custom CSS for container, filters-container, and chart-container to let Skeleton handle layout and spacing */
 </style>
