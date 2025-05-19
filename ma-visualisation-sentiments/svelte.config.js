@@ -14,7 +14,7 @@ const config = {
 		adapter: adapter({
 			pages: 'build',
 			assets: 'build',
-			fallback: undefined, // '200.html' or '404.html' - consider adding this if you use client-side routing extensively and need a fallback for direct URL access.
+			fallback: '404.html', // '200.html' or '404.html' - consider adding this if you use client-side routing extensively and need a fallback for direct URL access.
 			precompress: false,
 			strict: true
 		}),
