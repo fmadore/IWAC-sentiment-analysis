@@ -50,7 +50,8 @@
 
     options = {
       title: {
-        text: `Distribution de la Polarité (${articlesAnalyzed} articles analysés)`
+        text: `Distribution de la Polarité (${articlesAnalyzed} articles analysés)`,
+        left: 'center'
       },
       tooltip: {
         trigger: 'axis',
@@ -59,12 +60,14 @@
         }
       },
       legend: {
-        // data:['Nombre d\'articles'] // ECharts can infer this
+        data: ['Nombre d\'articles'],
+        top: '8%'
       },
       grid: {
         left: '3%',
         right: '4%',
         bottom: '3%',
+        top: '18%',
         containLabel: true
       },
       xAxis: {

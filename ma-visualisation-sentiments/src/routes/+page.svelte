@@ -39,7 +39,7 @@
 
 <main class="container max-w-4xl mx-auto p-6">
   <div class="card preset-surface p-8 mb-8 shadow-lg">
-    <h1 class="preset-title text-3xl mb-4 text-center">Analyse de Sentiments des Articles de Presse</h1>
+    <h1 class="preset-title text-3xl mb-4 text-center">Analyse de sentiments des articles de presse</h1>
     <DatasetSelector />
   </div>
 
