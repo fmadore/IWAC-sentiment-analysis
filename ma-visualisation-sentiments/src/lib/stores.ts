@@ -75,16 +75,10 @@ export const loadDatasetArticles = async (filePath: string, datasetId: string, f
     // Vérifier si les données contiennent déjà un tableau d'articles
     if (Array.isArray(data)) {
       // Si c'est déjà un tableau, assurons-nous que chaque élément a le dataset_id
-      return data.map((item: any) => ({
-        ...item,
-        dataset_id: datasetId
-      }));
+      return data.map((item: any) => mapArticleProperties(item, datasetId));
     } else if (data.articles && Array.isArray(data.articles)) {
       // Format { articles: [...] }
-      return data.articles.map((item: any) => ({
-        ...item,
-        dataset_id: datasetId
-      }));
+      return data.articles.map((item: any) => mapArticleProperties(item, datasetId));
     } else {
       // Pas de structure reconnue, retourner un tableau vide
       console.error('Format de données non reconnu:', data);
@@ -94,4 +88,20 @@ export const loadDatasetArticles = async (filePath: string, datasetId: string, f
     console.error(`Error fetching dataset ${datasetId}:`, error);
     return [];
   }
-}; 
+};
+
+// Fonction utilitaire pour mapper les propriétés des articles depuis différents formats
+function mapArticleProperties(item: any, datasetId: string): Article {
+  return {
+    // Propriétés standard requises
+    'o:id': item['o:id'],
+    'o:title': item['o:title'],
+    // Mapper les noms de propriétés qui peuvent varier
+    journal_source: item.journal_source || item.Newspaper || item.display_title || 'N/A',
+    publication_date: item.publication_date || item['dcterms:date'] || 'N/A',
+    sentiment_analysis: item.sentiment_analysis || null,
+    dataset_id: datasetId,
+    // Conserver toutes les propriétés originales
+    ...item
+  };
+} 

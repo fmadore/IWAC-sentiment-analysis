@@ -57,6 +57,30 @@
     return centralityColors[centrality as keyof typeof centralityColors] || 'variant-ghost';
   }
 
+  // Fonction pour formater les dates
+  function formatDate(dateStr: string | null | undefined): string {
+    if (!dateStr) return 'N/A';
+    
+    try {
+      // Gérer différents formats de date possibles
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) {
+        // Si la date n'est pas valide, renvoyer la chaîne originale
+        return dateStr;
+      }
+      
+      // Formater la date au format localisé (jour/mois/année)
+      return date.toLocaleDateString('fr-FR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    } catch (error) {
+      console.error("Erreur lors du formatage de la date:", error);
+      return dateStr;
+    }
+  }
+
   onDestroy(() => {
     unsubscribeFiltered();
   });
@@ -83,7 +107,7 @@
           >
             <td class="text-white">{article['o:title'] ?? 'N/A'}</td>
             <td class="text-white">{article.journal_source ?? 'N/A'}</td>
-            <td class="text-white">{article.publication_date ?? 'N/A'}</td>
+            <td class="text-white">{formatDate(article.publication_date)}</td>
             <td>
               <span class="badge {getCentralityClass(article.sentiment_analysis?.centralite_islam_musulmans)}">
                 {article.sentiment_analysis?.centralite_islam_musulmans ?? 'Non abordé'}
