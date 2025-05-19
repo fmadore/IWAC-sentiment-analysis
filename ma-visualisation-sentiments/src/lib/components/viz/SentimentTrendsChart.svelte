@@ -73,7 +73,8 @@
 
     options = {
       title: {
-        text: `Tendance des Sentiments par Année (${articlesAnalyzed} articles analysés)`
+        text: `Tendance des Sentiments par Année (${articlesAnalyzed} articles analysés)`,
+        left: 'center'
       },
       tooltip: {
         trigger: 'axis',
@@ -85,12 +86,14 @@
         }
       },
       legend: {
-        data: [...polarityLabels]
+        data: [...polarityLabels],
+        top: '8%',
       },
       grid: {
         left: '3%',
         right: '4%',
-        bottom: '10%', // Increased bottom margin for DataZoom
+        bottom: '10%',
+        top: '18%',
         containLabel: true
       },
       xAxis: {
