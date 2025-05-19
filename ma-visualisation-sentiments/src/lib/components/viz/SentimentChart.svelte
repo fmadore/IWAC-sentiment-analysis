@@ -83,7 +83,7 @@
 
     options = {
       title: {
-        text: `Distribution de la Polarité par Journal (${articlesAnalyzed} articles analysés)`,
+        text: `Distribution de la polarité par journal (${articlesAnalyzed} articles analysés)`,
         left: 'center',
         textStyle: {
           color: '#fff',

@@ -46,8 +46,8 @@
     }
   }
   
-  // Définition des couleurs harmonisées avec le thème de l'application
-  const subjectivityColors = {
+  // Définition des couleurs harmonisées pour les niveaux de subjectivité
+  const subjectivityColors: Record<string, string> = {
     'Factuel': '#0984e3',       // Bleu foncé
     'Plutôt factuel': '#74b9ff', // Bleu clair
     'Mixte': '#a29bfe',         // Violet clair
@@ -55,6 +55,18 @@
     'Subjectif': '#fdcb6e',     // Jaune/Orange
     'Non applicable': '#a5a5a5'  // Gris
   };
+
+  // Palette de couleurs pour les journaux
+  const newspaperColorPalette = [
+    '#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', 
+    '#1abc9c', '#d35400', '#c0392b', '#16a085', '#8e44ad',
+    '#27ae60', '#2980b9', '#f1c40f', '#e67e22', '#6c5ce7'
+  ];
+
+  function getNewspaperColor(journal: string, index: number): string {
+    // Générer une couleur basée sur le nom du journal ou utiliser une couleur de la palette
+    return newspaperColorPalette[index % newspaperColorPalette.length];
+  }
 
   const unsubscribe = filteredArticles.subscribe(($articles: Article[]) => {
     let articlesAnalyzed = 0;
@@ -71,7 +83,7 @@
         if (!newspaperSubjectivityCounts[journal]) {
           newspaperSubjectivityCounts[journal] = Object.fromEntries(subjectivityLabels.map(l => [l, 0]));
         }
-        if (newspaperSubjectivityCounts[journal].hasOwnProperty(subjectivityKey)) {
+        if (Object.prototype.hasOwnProperty.call(newspaperSubjectivityCounts[journal], subjectivityKey)) {
           newspaperSubjectivityCounts[journal][subjectivityKey]++;
         }
         articlesAnalyzed++;
@@ -80,7 +92,7 @@
 
     const newspaperList = Array.from(uniqueNewspapers);
 
-    const seriesData: SeriesOption[] = newspaperList.map(journal => {
+    const seriesData: SeriesOption[] = newspaperList.map((journal, index) => {
       return {
         name: journal,
         type: 'bar',
@@ -90,16 +102,14 @@
         },
         data: subjectivityLabels.map(label => newspaperSubjectivityCounts[journal]?.[label] || 0),
         itemStyle: {
-          color: function(params: any) {
-            return subjectivityColors[subjectivityLabels[params.dataIndex]] || '#a5a5a5';
-          }
+          color: getNewspaperColor(journal, index)
         }
       };
     });
 
     options = {
       title: {
-        text: `Distribution de la Subjectivité par Journal (${articlesAnalyzed} articles analysés)`,
+        text: `Distribution de la subjectivité par journal (${articlesAnalyzed} articles analysés)`,
         left: 'center',
         textStyle: {
           color: '#fff',
