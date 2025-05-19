@@ -17,6 +17,39 @@ main.container {
   margin-bottom: 2.5rem;
 }
 
+/* Glossy effect styles */
+.glossy {
+  background-image: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+/* Enhanced card styles */
+.card-enhanced {
+  @apply rounded-xl shadow-lg transition-all duration-200;
+  overflow: hidden;
+}
+
+.card-enhanced:hover {
+  @apply shadow-xl;
+  transform: translateY(-2px);
+}
+
+/* Enhanced button styles */
+.btn-enhanced {
+  @apply rounded-lg font-medium transition-all duration-200;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.btn-enhanced:hover {
+  @apply shadow-md;
+  transform: translateY(-1px);
+}
+
 /* Your global custom CSS can go here */
 /* For example:
 body {
@@ -33,4 +66,24 @@ body {
 }
 body {
   font-family: 'Inter', system-ui, sans-serif;
+  background: rgb(15, 23, 42);
+  background-image: 
+    radial-gradient(at 40% 20%, rgba(24, 119, 242, 0.2) 0px, transparent 50%),
+    radial-gradient(at 80% 70%, rgba(63, 94, 251, 0.1) 0px, transparent 50%);
+  background-attachment: fixed;
+  background-size: cover;
+}
+
+/* Header styles */
+.page-header {
+  @apply py-6 mb-8 text-center;
+  background: linear-gradient(135deg, rgb(24, 119, 242) 0%, rgb(63, 94, 251) 100%);
+  background-size: 200% 200%;
+  animation: gradientFlow 15s ease infinite;
+}
+
+@keyframes gradientFlow {
+  0% {background-position: 0% 50%;}
+  50% {background-position: 100% 50%;}
+  100% {background-position: 0% 50%;}
 } 

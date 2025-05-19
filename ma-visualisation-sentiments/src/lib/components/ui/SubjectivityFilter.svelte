@@ -34,20 +34,24 @@
   }
 </script>
 
-<div class="card p-6 shadow space-y-4 {class_name} bg-primary-500 text-primary-contrast-500">
-  <fieldset class="space-y-2">
-    <legend class="h6">Filtrer par Score de Subjectivité (1-5) :</legend>
-    <div class="flex items-center space-x-2">
-      <label class="label">
-        <span>Min:</span>
-        <input type="number" min="1" max="5" bind:value={minSubjectivity} on:input={updateSubjectivityStore} on:change={updateSubjectivityStore} class="input w-20 bg-surface-200-700 text-surface-900-50" />
-      </label>
-      <label class="label">
-        <span>Max:</span>
-        <input type="number" min="1" max="5" bind:value={maxSubjectivity} on:input={updateSubjectivityStore} on:change={updateSubjectivityStore} class="input w-20 bg-surface-200-700 text-surface-900-50" />
-      </label>
+<div class="card card-enhanced glossy p-6 space-y-4 {class_name} bg-primary-500 text-primary-contrast-500">
+  <fieldset class="space-y-3">
+    <legend class="font-bold text-xl">Filtrer par Score de Subjectivité (1-5) :</legend>
+    <div class="flex flex-col sm:flex-row sm:items-center gap-4 mt-3">
+      <div class="bg-primary-400/20 p-3 rounded-lg backdrop-blur-sm border border-primary-300/30">
+        <label class="label block">
+          <span class="block mb-1">Min:</span>
+          <input type="number" min="1" max="5" bind:value={minSubjectivity} on:input={updateSubjectivityStore} on:change={updateSubjectivityStore} class="input w-full rounded-lg bg-surface-200-700 text-surface-900-50 border border-primary-300" />
+        </label>
+      </div>
+      <div class="bg-primary-400/20 p-3 rounded-lg backdrop-blur-sm border border-primary-300/30">
+        <label class="label block">
+          <span class="block mb-1">Max:</span>
+          <input type="number" min="1" max="5" bind:value={maxSubjectivity} on:input={updateSubjectivityStore} on:change={updateSubjectivityStore} class="input w-full rounded-lg bg-surface-200-700 text-surface-900-50 border border-primary-300" />
+        </label>
+      </div>
     </div>
-    <button type="button" class="btn btn-sm preset-tonal-surface mt-2" on:click={resetSubjectivity}>
+    <button type="button" class="btn btn-sm btn-enhanced bg-surface-300-600 hover:bg-surface-400-500 mt-3" on:click={resetSubjectivity}>
       Réinitialiser
     </button>
   </fieldset>

@@ -46,39 +46,39 @@
   });
 </script>
 
-<main class="container max-w-6xl mx-auto p-6">
-  <div class="card preset-surface p-8 mb-8 shadow-lg">
-    <DatasetSelector />
-  </div>
+<main class="container max-w-6xl mx-auto p-4 md:p-6 mt-6">
+  <DatasetSelector />
 
   {#if $isLoadingDataset}
-    <div class="alert preset-warning mb-4">Chargement des données du dataset...</div>
+    <div class="alert card-enhanced glossy bg-warning-500 text-warning-contrast-500 p-4 mb-6">Chargement des données du dataset...</div>
   {:else if $currentDatasetArticles.length > 0}
-    <div class="flex flex-col md:flex-row gap-4 mb-6 items-stretch">
-      <JournalFilterComponent class_name="flex-1" />
-      <PolarityFilter class_name="flex-1" />
-      <SubjectivityFilter class_name="flex-1" />
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <JournalFilterComponent />
+      <PolarityFilter />
+      <SubjectivityFilter />
     </div>
 
-    <Tabs value={tab} onValueChange={({ value }) => tab = value} background="bg-sky-100" padding="py-2" class="mb-6">
-      <Tabs.Control value="charts">Graphiques</Tabs.Control>
-      <Tabs.Control value="table">Tableau</Tabs.Control>
-    </Tabs>
+    <div class="card card-enhanced glossy p-2 mb-6 bg-surface-100-800">
+      <Tabs value={tab} onValueChange={({ value }) => tab = value}>
+        <Tabs.Control value="charts">Graphiques</Tabs.Control>
+        <Tabs.Control value="table">Tableau</Tabs.Control>
+      </Tabs>
+    </div>
 
     {#if tab === 'charts'}
-      <div class="card preset-surface p-6 mb-6 shadow">
+      <div class="card card-enhanced glossy p-6 mb-6 bg-surface-100-800">
         <SentimentChart />
       </div>
-      <div class="card preset-surface p-6 mb-6 shadow">
+      <div class="card card-enhanced glossy p-6 mb-6 bg-surface-100-800">
         <SentimentTrendsChart />
       </div>
     {:else if tab === 'table'}
       <div class="flex flex-col lg:flex-row gap-6 mb-6">
-        <div class="w-full card preset-surface p-6 shadow">
+        <div class="w-full card card-enhanced glossy p-6 bg-surface-100-800">
           <h2 class="text-xl font-semibold mb-4">Liste des Articles</h2>
           <ArticleTable />
         </div>
-        <div class="hidden lg:block lg:w-1/3 card preset-surface p-6 shadow">
+        <div class="hidden lg:block lg:w-1/3 card card-enhanced glossy p-6 bg-surface-100-800">
           <h2 class="text-xl font-semibold mb-4">Détails de l'Article</h2>
           <ArticleDetail />
         </div>
@@ -86,12 +86,12 @@
     {/if}
 
   {:else if $selectedDatasetId && !$isLoadingDataset}
-    <div class="alert preset-error mb-4">Aucun article trouvé pour ce dataset ou le dataset est vide.</div>
+    <div class="alert card-enhanced glossy bg-error-500 text-error-contrast-500 p-4 mb-6">Aucun article trouvé pour ce dataset ou le dataset est vide.</div>
   {:else}
-    <div class="alert preset-info mb-4">Veuillez sélectionner un dataset pour commencer.</div>
+    <div class="alert card-enhanced glossy bg-info-500 text-info-contrast-500 p-4 mb-6">Veuillez sélectionner un dataset pour commencer.</div>
   {/if}
 </main>
 
 <style>
-  /* Removed custom CSS for container, filters-container, and chart-container to let Skeleton handle layout and spacing */
+  /* Styles locaux */
 </style>

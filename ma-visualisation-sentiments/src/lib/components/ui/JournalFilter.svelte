@@ -22,21 +22,19 @@
   }
 </script>
 
-<div class="card p-6 shadow space-y-4 {class_name} bg-primary-500 text-primary-contrast-500">
-  <label for="journal-filter" class="label">
-    <span>Filtrer par Journal :</span>
-  </label>
+<div class="card card-enhanced glossy p-6 space-y-4 {class_name} bg-primary-500 text-primary-contrast-500">
+  <h3 class="font-bold text-xl">Filtrer par Journal :</h3>
   {#if $uniqueJournals.length > 0}
-    <select id="journal-filter" multiple on:change={handleChange} class="select bg-surface-200-700 text-surface-900-50">
+    <select id="journal-filter" multiple on:change={handleChange} class="select bg-surface-200-700 text-surface-900-50 rounded-lg border border-primary-300 min-h-[120px]">
       {#each $uniqueJournals as journal (journal)}
         <option value={journal} selected={$journalFilter.includes(journal)}>{journal}</option>
       {/each}
     </select>
-    <button type="button" class="btn btn-sm preset-tonal-surface" on:click={() => journalFilter.set([])} title="Réinitialiser le filtre journal">
+    <button type="button" class="btn btn-sm btn-enhanced bg-surface-300-600 hover:bg-surface-400-500" on:click={() => journalFilter.set([])} title="Réinitialiser le filtre journal">
       Effacer sélection
     </button>
   {:else}
-    <p class="text-sm opacity-70">Aucun journal à filtrer pour ce dataset.</p>
+    <p class="text-sm opacity-80">Aucun journal à filtrer pour ce dataset.</p>
   {/if}
 </div>
 <style>
