@@ -6,7 +6,7 @@
     selectedDatasetId, 
     currentDatasetArticles, 
     isLoadingDataset, 
-    fetchDataset, 
+    loadDatasetArticles, 
     DatasetSelector, 
     JournalFilter as JournalFilterComponent, 
     PolarityFilter,
@@ -18,10 +18,13 @@
   import type { DatasetInfo } from '$lib'; // Importer DatasetInfo
   import ArticleTable from '$lib/components/ArticleTable.svelte'; // Import ArticleTable
   import ArticleDetail from '$lib/components/ArticleDetail.svelte'; // Import ArticleDetail
+  import AnalysisInfo from '$lib/components/AnalysisInfo.svelte'; // Import AnalysisInfo
+  import CentralityFilter from '$lib/components/CentralityFilter.svelte'; // Import CentralityFilter
   import { Navigation } from '@skeletonlabs/skeleton-svelte';
   // Importons les icônes nécessaires
   import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
   import TableIcon from '@lucide/svelte/icons/table';
+  import InfoIcon from '@lucide/svelte/icons/info';
   import XIcon from '@lucide/svelte/icons/x';
 
   export let data: PageData; // Données du `load` de +page.ts
@@ -29,6 +32,7 @@
   let activeView = 'charts'; // Vue active par défaut
   let showDetailsSidebar = false; // État du panneau de détails
   let detailsPosition = { x: 0, y: 0 }; // Position du panneau de détails
+  let showInfoPanel = false; // État du panneau d'information
 
   onMount(() => {
     if (data.availableDatasets) {
@@ -47,13 +51,18 @@
     showDetailsSidebar = false;
   }
 
+  // Afficher/masquer le panneau d'information
+  function toggleInfoPanel() {
+    showInfoPanel = !showInfoPanel;
+  }
+
   selectedDatasetId.subscribe(async (id: string | null) => {
     if (id) {
       const selectedInfo = $availableDatasetsStore.find((d: DatasetInfo) => d.id === id);
       if (selectedInfo) {
         isLoadingDataset.set(true);
         selectedArticle.set(null);
-        currentDatasetArticles.set(await fetchDataset(selectedInfo.filePath, selectedInfo.id, fetch));
+        currentDatasetArticles.set(await loadDatasetArticles(selectedInfo.filePath, selectedInfo.id, fetch));
         isLoadingDataset.set(false);
       }
     } else {
@@ -64,15 +73,28 @@
 </script>
 
 <main class="container max-w-6xl mx-auto p-4 md:p-6 mt-6">
-  <DatasetSelector />
+  <div class="flex justify-between items-center mb-6">
+    <DatasetSelector />
+    <button class="btn variant-soft-primary" on:click={toggleInfoPanel}>
+      <InfoIcon size={20} class="mr-2" />
+      À propos de l'analyse
+    </button>
+  </div>
 
   {#if $isLoadingDataset}
     <div class="alert variant-filled-warning p-4 mb-6">Chargement des données du dataset...</div>
   {:else if $currentDatasetArticles.length > 0}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    {#if showInfoPanel}
+      <div class="mb-6">
+        <AnalysisInfo />
+      </div>
+    {/if}
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       <JournalFilterComponent />
       <PolarityFilter />
       <SubjectivityFilter />
+      <CentralityFilter />
     </div>
 
     <div class="card variant-glass mb-6 overflow-hidden">

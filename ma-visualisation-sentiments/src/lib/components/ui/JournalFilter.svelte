@@ -1,43 +1,78 @@
 <!-- Composant JournalFilter.svelte --> 
 <script lang="ts">
-  import { currentDatasetArticles, journalFilter } from '$lib/stores.ts'; // Ajustez chemin
-  import { derived } from 'svelte/store';
-  import type { Article } from '$lib/types/data.ts'; // Importer Article
+  import { onDestroy } from 'svelte';
+  import { currentDatasetArticles, journalFilters } from '$lib/stores.ts';
+  import type { Article } from '$lib/types/data';
 
-  export let class_name = ''; // Added prop
+  // Propriété pour référence externe, pas pour l'injection de propriété
+  export const class_name = '';
+  
+  // Variables locales
+  let journals: string[] = [];
+  let selectedJournals: string[] = [];
 
-  const uniqueJournals = derived(currentDatasetArticles, ($articles: Article[]) => {
-    const journals = new Set<string>();
-    $articles.forEach((article: Article) => {
-      if (article.journal_source) journals.add(article.journal_source);
-    });
-    return Array.from(journals).sort();
+  // Souscrire aux changements du dataset
+  const unsubscribe = currentDatasetArticles.subscribe(value => {
+    // Extraire les journaux uniques
+    journals = [...new Set(value.map(article => article.journal_source).filter(Boolean))] as string[];
+    journals.sort(); // Trier par ordre alphabétique
   });
 
-  // Gérer la sélection multiple (par exemple, avec des checkboxes)
-  // Ici, un simple select multiple pour l'exemple
-  function handleChange(event: Event) {
-      const selectedOptions = Array.from((event.target as HTMLSelectElement).selectedOptions);
-      journalFilter.set(selectedOptions.map(opt => opt.value));
+  // Fonction pour appliquer le filtre
+  function applyFilter() {
+    journalFilters.set(selectedJournals);
   }
+
+  function toggleJournal(journal: string) {
+    if (selectedJournals.includes(journal)) {
+      selectedJournals = selectedJournals.filter(j => j !== journal);
+    } else {
+      selectedJournals = [...selectedJournals, journal];
+    }
+    applyFilter();
+  }
+
+  onDestroy(() => {
+    unsubscribe();
+  });
 </script>
 
-<div class="card card-enhanced glossy p-6 space-y-4 {class_name} bg-primary-500 text-primary-contrast-500">
-  <h3 class="font-bold text-xl">Filtrer par Journal :</h3>
-  {#if $uniqueJournals.length > 0}
-    <select id="journal-filter" multiple on:change={handleChange} class="select bg-surface-200-700 text-surface-900-50 rounded-lg border border-primary-300 min-h-[120px]">
-      {#each $uniqueJournals as journal (journal)}
-        <option value={journal} selected={$journalFilter.includes(journal)}>{journal}</option>
-      {/each}
-    </select>
-    <button type="button" class="btn btn-sm btn-enhanced bg-surface-300-600 hover:bg-surface-400-500" on:click={() => journalFilter.set([])} title="Réinitialiser le filtre journal">
+<div class="card p-4">
+  <h3 class="h4 mb-4">Journal</h3>
+  
+  <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-1">
+    {#each journals as journal}
+      <button 
+        class="chip variant-soft-primary {selectedJournals.includes(journal) ? 'ring-2 ring-primary-500' : ''}" 
+        on:click={() => toggleJournal(journal)}
+      >
+        {journal}
+      </button>
+    {/each}
+  </div>
+
+  {#if selectedJournals.length > 0}
+    <button 
+      class="btn btn-sm variant-soft-surface mt-3" 
+      on:click={() => {selectedJournals = []; applyFilter();}}
+    >
       Effacer sélection
     </button>
-  {:else}
-    <p class="text-sm opacity-80">Aucun journal à filtrer pour ce dataset.</p>
   {/if}
 </div>
+
 <style>
-  /* Removed previous .filter-group style as card provides structure */
-  /* .filter-group {display: flex; flex-direction: column; gap: 5px;} */
+  .chip {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  
+  .chip:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
 </style> 

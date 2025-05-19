@@ -12,10 +12,25 @@
     'Non applicable': 'variant-ghost'
   };
 
+  // Définition des classes de centralité
+  const centralityClasses = {
+    'Très central': 'variant-filled-tertiary',
+    'Central': 'variant-soft-tertiary',
+    'Secondaire': 'variant-soft-surface',
+    'Marginal': 'variant-ghost',
+    'Non abordé': 'variant-ghost'
+  };
+
   // Fonction d'aide pour obtenir la classe selon la polarité
   function getPolarityClass(polarity: string | null | undefined): string {
     if (!polarity) return 'variant-ghost';
     return polarityClasses[polarity as keyof typeof polarityClasses] || 'variant-ghost';
+  }
+
+  // Fonction d'aide pour obtenir la classe selon la centralité
+  function getCentralityClass(centrality: string | null | undefined): string {
+    if (!centrality) return 'variant-ghost';
+    return centralityClasses[centrality as keyof typeof centralityClasses] || 'variant-ghost';
   }
 </script>
 
@@ -35,6 +50,26 @@
     </div>
     
     {#if $selectedArticle.sentiment_analysis}
+      <!-- Centralité -->
+      <div class="card variant-soft-surface p-4">
+        <div class="flex items-center mb-3">
+          <span class="badge {getCentralityClass($selectedArticle.sentiment_analysis.centralite_islam_musulmans)}">
+            {$selectedArticle.sentiment_analysis.centralite_islam_musulmans ?? 'Non abordé'}
+          </span>
+          <span class="ml-2 text-sm uppercase font-bold opacity-75">Centralité de l'islam/musulmans</span>
+        </div>
+        
+        {#if $selectedArticle.sentiment_analysis.centralite_justification}
+          <div class="mt-3">
+            <span class="text-sm uppercase font-bold opacity-75">Justification</span>
+            <blockquote class="mt-1 card variant-ghost p-3">
+              {$selectedArticle.sentiment_analysis.centralite_justification}
+            </blockquote>
+          </div>
+        {/if}
+      </div>
+      
+      <!-- Polarité -->
       <div class="card variant-soft-surface p-4">
         <div class="flex items-center mb-3">
           <span class="badge {getPolarityClass($selectedArticle.sentiment_analysis.polarite)}">
@@ -53,6 +88,7 @@
         {/if}
       </div>
       
+      <!-- Subjectivité -->
       <div class="card variant-soft-surface p-4">
         <div class="flex items-center mb-3">
           <span class="badge variant-soft-primary">
@@ -84,6 +120,9 @@
 
 <style>
   .badge {
-    @apply px-2 py-1 text-xs font-medium rounded-full;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 9999px;
   }
 </style> 

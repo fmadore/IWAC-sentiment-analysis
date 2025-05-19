@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { writable } from 'svelte/store';
-  import { polarityFilters } from '$lib/stores.ts';
+  import { polarityFilters } from '$lib/stores';
 
+  // Options de polarité disponibles
   const polarityOptions = [
     { value: 'Très positif', label: 'Très positif', class: 'variant-filled-success' },
     { value: 'Positif', label: 'Positif', class: 'variant-soft-success' },
@@ -10,13 +10,14 @@
     { value: 'Très négatif', label: 'Très négatif', class: 'variant-filled-error' },
     { value: 'Non applicable', label: 'Non applicable', class: 'variant-ghost' }
   ];
-  
+
   let selectedPolarities: string[] = [];
-  
+
+  // Mettre à jour le store lorsque la sélection change
   function updateSelection() {
     polarityFilters.set(selectedPolarities);
   }
-  
+
   function togglePolarity(polarity: string) {
     if (selectedPolarities.includes(polarity)) {
       selectedPolarities = selectedPolarities.filter(p => p !== polarity);
@@ -27,8 +28,8 @@
   }
 </script>
 
-<div class="card p-4">
-  <h3 class="h4 mb-4">Polarité</h3>
+<div class="card variant-glass p-4">
+  <h3 class="h4 mb-3 text-white">Polarité</h3>
   
   <div class="flex flex-wrap gap-2">
     {#each polarityOptions as option}
