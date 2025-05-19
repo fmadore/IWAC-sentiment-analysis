@@ -1,6 +1,8 @@
 <script lang="ts">
   import { subjectivityFilterRange } from '$lib/stores.ts';
 
+  export let class_name = '';
+
   // Initialize local reactive variables from the store for binding.
   let minSubjectivity = $subjectivityFilterRange ? $subjectivityFilterRange[0] : 1;
   let maxSubjectivity = $subjectivityFilterRange ? $subjectivityFilterRange[1] : 5;
@@ -32,7 +34,7 @@
   }
 </script>
 
-<div class="card preset-surface p-6 shadow space-y-4">
+<div class="card preset-surface p-6 shadow space-y-4 {class_name}">
   <fieldset class="space-y-2">
     <legend class="h6">Filtrer par Score de Subjectivité (1-5) :</legend>
     <div class="flex items-center space-x-2">

@@ -1,6 +1,8 @@
 <script lang="ts">
   import { polarityFilter } from '$lib/stores.ts';
 
+  export let class_name = '';
+
   const allPolarities = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif', 'Non applicable'];
 
   function handlePolarityChange(event: Event) {
@@ -15,7 +17,7 @@
   }
 </script>
 
-<div class="card preset-surface p-6 shadow space-y-4">
+<div class="card preset-surface p-6 shadow space-y-4 {class_name}">
   <fieldset class="space-y-2">
     <legend class="h6">Filtrer par Polarité :</legend>
     {#each allPolarities as p (p)}

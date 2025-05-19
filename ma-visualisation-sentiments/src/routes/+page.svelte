@@ -9,7 +9,8 @@
     fetchDataset, 
     DatasetSelector, 
     JournalFilter as JournalFilterComponent, 
-    SentimentCriteriaFilter, 
+    PolarityFilter,
+    SubjectivityFilter,
     SentimentChart,
     SentimentTrendsChart
   } from '$lib';
@@ -46,9 +47,10 @@
   {#if $isLoadingDataset}
     <div class="alert preset-warning mb-4">Chargement des données du dataset...</div>
   {:else if $currentDatasetArticles.length > 0}
-    <div class="flex flex-wrap gap-4 mb-6 items-stretch">
-      <JournalFilterComponent />
-      <SentimentCriteriaFilter />
+    <div class="flex flex-col md:flex-row gap-4 mb-6 items-stretch">
+      <JournalFilterComponent class_name="flex-1" />
+      <PolarityFilter class_name="flex-1" />
+      <SubjectivityFilter class_name="flex-1" />
     </div>
     <div class="card preset-surface p-6 mb-6 shadow">
       <SentimentChart />

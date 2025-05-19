@@ -4,6 +4,8 @@
   import { derived } from 'svelte/store';
   import type { Article } from '$lib/types/data.ts'; // Importer Article
 
+  export let class_name = ''; // Added prop
+
   const uniqueJournals = derived(currentDatasetArticles, ($articles: Article[]) => {
     const journals = new Set<string>();
     $articles.forEach((article: Article) => {
@@ -20,7 +22,7 @@
   }
 </script>
 
-<div class="card preset-surface p-6 shadow space-y-4">
+<div class="card preset-surface p-6 shadow space-y-4 {class_name}">
   <label for="journal-filter" class="label">
     <span>Filtrer par Journal :</span>
   </label>
