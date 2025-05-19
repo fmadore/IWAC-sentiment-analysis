@@ -34,17 +34,17 @@
   }
 </script>
 
-<div class="card preset-surface p-6 shadow space-y-4 {class_name}">
+<div class="card p-6 shadow space-y-4 {class_name} bg-primary-500 text-primary-contrast-500">
   <fieldset class="space-y-2">
     <legend class="h6">Filtrer par Score de Subjectivité (1-5) :</legend>
     <div class="flex items-center space-x-2">
       <label class="label">
         <span>Min:</span>
-        <input type="number" min="1" max="5" bind:value={minSubjectivity} on:input={updateSubjectivityStore} on:change={updateSubjectivityStore} class="input w-20" />
+        <input type="number" min="1" max="5" bind:value={minSubjectivity} on:input={updateSubjectivityStore} on:change={updateSubjectivityStore} class="input w-20 bg-surface-200-700 text-surface-900-50" />
       </label>
       <label class="label">
         <span>Max:</span>
-        <input type="number" min="1" max="5" bind:value={maxSubjectivity} on:input={updateSubjectivityStore} on:change={updateSubjectivityStore} class="input w-20" />
+        <input type="number" min="1" max="5" bind:value={maxSubjectivity} on:input={updateSubjectivityStore} on:change={updateSubjectivityStore} class="input w-20 bg-surface-200-700 text-surface-900-50" />
       </label>
     </div>
     <button type="button" class="btn btn-sm preset-tonal-surface mt-2" on:click={resetSubjectivity}>

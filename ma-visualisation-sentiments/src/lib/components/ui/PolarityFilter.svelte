@@ -17,7 +17,7 @@
   }
 </script>
 
-<div class="card preset-surface p-6 shadow space-y-4 {class_name}">
+<div class="card p-6 shadow space-y-4 {class_name} bg-primary-500 text-primary-contrast-500">
   <fieldset class="space-y-2">
     <legend class="h6">Filtrer par Polarité :</legend>
     {#each allPolarities as p (p)}

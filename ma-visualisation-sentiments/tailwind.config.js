@@ -20,7 +20,7 @@ export default {
 	},
 	plugins: [
 		skeleton({
-			themes: { preset: [ "mint" ] }
+			themes: { preset: [ "cerberus" ] }
 		})
 	]
 }; 
