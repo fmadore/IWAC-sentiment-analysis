@@ -85,7 +85,7 @@ L'application utilise les stores Svelte pour gérer l'état global :
 -   `+page.ts`: Sa fonction `load` est exécutée avant le rendu de la page. Elle récupère le contenu de `static/data/manifest.json` et le transmet au composant `+page.svelte`.
 -   `+page.svelte`:
     -   Reçoit les `availableDatasets` de la fonction `load`.
-    -   S'abonne aux changements de `selectedDatasetId`. Lorsqu'un dataset est sélectionné, il appelle `fetchDataset` (de `+page.ts`) pour charger les articles correspondants et met à jour `currentDatasetArticles`.
+    -   S'abonne aux changements de `selectedDatasetId`. Lorsqu'un dataset est sélectionné, il appelle `fetchDataset` (de `src/lib/utils.ts`) pour charger les articles correspondants et met à jour `currentDatasetArticles`.
     -   Affiche les composants d'interface utilisateur (`DatasetSelector`, `JournalFilterComponent`, `SentimentCriteriaFilter`) et le composant de visualisation (`SentimentChart`).
     -   Gère l'affichage des messages de chargement ou d'absence de données.
 

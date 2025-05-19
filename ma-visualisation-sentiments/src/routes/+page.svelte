@@ -1,14 +1,18 @@
 <script lang="ts">
   import type { PageData } from './$types.js';
   import { onMount } from 'svelte';
-  import { availableDatasets as availableDatasetsStore, selectedDatasetId, currentDatasetArticles, isLoadingDataset } from '$lib/stores'; // Ajustez chemin
-  import { fetchDataset } from '$lib/utils'; // Ou depuis un fichier utils
-  import type { DatasetInfo } from '$lib/types/data'; // Importer DatasetInfo
-
-  import DatasetSelector from '$lib/components/ui/DatasetSelector.svelte';
-  import JournalFilterComponent from '$lib/components/ui/JournalFilter.svelte';
-  import SentimentCriteriaFilter from '$lib/components/ui/SentimentCriteriaFilter.svelte';
-  import SentimentChart from '$lib/components/viz/SentimentChart.svelte';
+  import { 
+    availableDatasets as availableDatasetsStore, 
+    selectedDatasetId, 
+    currentDatasetArticles, 
+    isLoadingDataset, 
+    fetchDataset, 
+    DatasetSelector, 
+    JournalFilter as JournalFilterComponent, 
+    SentimentCriteriaFilter, 
+    SentimentChart 
+  } from '$lib';
+  import type { DatasetInfo } from '$lib'; // Importer DatasetInfo
 
   export let data: PageData; // Données du `load` de +page.ts
 

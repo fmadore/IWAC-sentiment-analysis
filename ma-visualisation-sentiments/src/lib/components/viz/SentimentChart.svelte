@@ -1,10 +1,33 @@
 <!-- Composant SentimentChart.svelte (sera adapté pour ECharts) --> 
 <script lang="ts">
   import { Chart } from 'svelte-echarts';
-  import type { EChartsOption } from 'echarts/types/dist/shared';
-  import { filteredArticles } from '$lib/stores';
-  import type { Article } from '$lib/types/data';
+  // import * as echarts from 'echarts'; // No longer importing the echarts namespace
   import { onDestroy } from 'svelte';
+
+  // ECharts core and modules for tree-shaking
+  import { init, use } from 'echarts/core';
+  import { BarChart } from 'echarts/charts';
+  import {
+    TitleComponent,
+    TooltipComponent,
+    GridComponent,
+    LegendComponent
+  } from 'echarts/components';
+  import { CanvasRenderer } from 'echarts/renderers';
+  import type { EChartsOption } from 'echarts'; // Main EChartsOption
+
+  // Register the required components
+  use([
+    TitleComponent,
+    TooltipComponent,
+    GridComponent,
+    LegendComponent,
+    BarChart,
+    CanvasRenderer
+  ]);
+
+  import { filteredArticles } from '$lib';
+  import type { Article } from '$lib';
 
   let options: EChartsOption = {};
 
@@ -36,7 +59,7 @@
         }
       },
       legend: {
-        // data:['Nombre d\'articles'] // ECharts peut le déduire
+        // data:['Nombre d\'articles'] // ECharts can infer this
       },
       grid: {
         left: '3%',
@@ -70,7 +93,7 @@
 
 {#if $filteredArticles.length > 0}
   <div style="height:450px; position: relative;">
-    <Chart {options} />
+    <Chart {init} {options} />
   </div>
 {:else}
   <p>Aucun article ne correspond aux filtres actuels, ou aucun dataset n'est chargé.</p>
