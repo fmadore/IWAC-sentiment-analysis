@@ -1,6 +1,6 @@
 # Visualisation d'Analyse de Sentiments
 
-Cette application SvelteKit est conçue pour visualiser les résultats d'analyses de sentiments effectuées sur des corpus d'articles de presse. Elle permet de charger différents datasets, de filtrer les articles selon divers critères (journal, polarité, score de subjectivité) et d'afficher les répartitions de sentiments sous forme de graphiques.
+Cette application SvelteKit est conçue pour visualiser les résultats d'analyses de sentiments effectuées sur des corpus d'articles de presse. Elle permet de charger différents datasets, de filtrer les articles selon divers critères (journal, polarité, score de subjectivité, centralité) et d'afficher les répartitions de sentiments sous forme de graphiques.
 
 ## Objectif
 
@@ -16,18 +16,30 @@ Le projet est structuré comme une application SvelteKit typique :
             -   `ui/`: Composants pour l'interface utilisateur (sélection de dataset, filtres).
                 -   `DatasetSelector.svelte`: Permet de choisir le corpus de données à analyser.
                 -   `JournalFilter.svelte`: Permet de filtrer les articles par source (nom du journal).
-                -   `SentimentCriteriaFilter.svelte`: Permet de filtrer par polarité du sentiment et score de subjectivité.
+                -   `PolarityFilter.svelte`: Permet de filtrer les articles par polarité du sentiment.
+                -   `SubjectivityFilter.svelte`: Permet de filtrer les articles par score de subjectivité.
+                -   `CentralityFilter.svelte`: Permet de filtrer les articles par centralité de l'islam/musulmans.
+                -   `SentimentCriteriaFilter.svelte`: Version antérieure qui combine les filtres de polarité et subjectivité.
             -   `viz/`: Composants pour la visualisation des données.
-                -   `SentimentChart.svelte`: Affiche les données de sentiment (ex: distribution de la polarité) en utilisant ECharts.
-        -   `stores.ts`: Stores Svelte pour la gestion d'état global de l'application (dataset sélectionné, filtres actifs, articles chargés et filtrés).
-        -   `utils.ts`: (Actuellement vide) Fonctions utilitaires pouvant être utilisées à travers l'application.
+                -   `SentimentChart.svelte`: Affiche la distribution de polarité par journal en utilisant ECharts.
+                -   `SubjectivityChart.svelte`: Affiche la distribution de subjectivité par journal.
+                -   `SentimentTrendsChart.svelte`: Affiche l'évolution des sentiments au fil du temps.
+            -   `AnalysisInfo.svelte`: Fournit des informations explicatives sur la méthodologie d'analyse.
+            -   `ArticleTable.svelte`: Affiche les articles dans un tableau interactif avec tri et sélection.
+            -   `ArticleDetail.svelte`: Affiche les détails d'un article sélectionné.
+        -   `stores.ts`: Stores Svelte pour la gestion d'état global de l'application.
+        -   `utils.ts`: Fonctions utilitaires pour le chargement et la transformation des données.
+        -   `index.ts`: Réexportation des composants, stores et types pour une importation simplifiée.
     -   `routes/`: Définit les pages de l'application.
-        -   `+page.svelte`: Le composant Svelte pour la page principale de la visualisation. Il assemble les différents composants UI et de visualisation.
-        -   `+page.ts`: Script de chargement de données pour la page principale. Il récupère la liste des datasets disponibles à partir du `manifest.json`.
+        -   `+page.svelte`: Le composant Svelte pour la page principale de la visualisation.
+        -   `+page.ts`: Script de chargement de données pour la page principale.
+        -   `+layout.svelte`: Définit la mise en page commune à toutes les pages.
+        -   `+layout.ts`: Configuration pour le prérendu de l'application.
     -   `types/`: Contient les définitions TypeScript pour les structures de données.
         -   `data.ts`: Définit les interfaces pour `Article`, `SentimentAnalysis`, `Dataset`, et `DatasetInfo`.
     -   `app.html`: Le template HTML principal de l'application.
     -   `app.d.ts`: Déclarations de types globaux pour l'application.
+    -   `app.postcss`: Styles CSS globaux et configuration Tailwind.
 -   `static/`: Contient les fichiers statiques.
     -   `data/`: **Emplacement pour vos fichiers de données JSON et le `manifest.json`.**
         -   `manifest.json`: Un fichier JSON qui liste les datasets disponibles et les chemins vers leurs fichiers JSON respectifs.
@@ -41,7 +53,7 @@ Le projet est structuré comme une application SvelteKit typique :
 ### Format des Données
 
 Les données d'analyse de sentiments doivent être fournies sous forme de fichiers JSON. Chaque fichier représente un "dataset" (par exemple, un corpus d'articles spécifique).
-Chaque fichier JSON doit contenir une liste d'objets `Article`, où chaque article inclut des métadonnées (titre, source, date) et un objet `sentiment_analysis` contenant les résultats de l'analyse (polarité, subjectivité, etc.).
+Chaque fichier JSON doit contenir une liste d'objets `Article`, où chaque article inclut des métadonnées (titre, source, date) et un objet `sentiment_analysis` contenant les résultats de l'analyse (polarité, subjectivité, centralité, etc.).
 
 Consultez `src/types/data.ts` pour la structure détaillée des objets `Article` et `SentimentAnalysis`.
 
@@ -67,26 +79,51 @@ L'application utilise les stores Svelte pour gérer l'état global :
 -   `availableDatasets`: Liste des datasets disponibles (chargée depuis `manifest.json`).
 -   `selectedDatasetId`: L'ID du dataset actuellement sélectionné par l'utilisateur.
 -   `currentDatasetArticles`: La liste des articles du dataset sélectionné.
+-   `selectedArticle`: L'article actuellement sélectionné pour affichage détaillé.
 -   `isLoadingDataset`: Un booléen indiquant si un dataset est en cours de chargement.
--   `journalFilter`: Un tableau des journaux sélectionnés pour le filtrage.
--   `polarityFilter`: Un tableau des polarités sélectionnées pour le filtrage.
--   `subjectivityFilterRange`: Un intervalle `[min, max]` pour filtrer par score de subjectivité.
--   `filteredArticles`: Un store dérivé qui contient les articles après application de tous les filtres actifs. C'est ce store qui est généralement utilisé par les composants de visualisation.
+-   `journalFilters`: Un tableau des journaux sélectionnés pour le filtrage.
+-   `polarityFilters`: Un tableau des polarités sélectionnées pour le filtrage.
+-   `subjectivityFilters`: Un tableau des scores de subjectivité sélectionnés pour le filtrage.
+-   `centralityFilters`: Un tableau des niveaux de centralité sélectionnés pour le filtrage.
+-   `filteredArticles`: Un store dérivé qui contient les articles après application de tous les filtres actifs.
+
+De plus, le store expose deux fonctions :
+-   `loadDatasetArticles`: Fonction pour charger un dataset depuis un fichier JSON.
+-   `mapArticleProperties`: Fonction interne pour harmoniser les propriétés des articles de différentes sources.
 
 ## Composants Clés
 
--   **`DatasetSelector.svelte`**: Affiche une liste déroulante des datasets disponibles (basée sur `availableDatasets`) et met à jour `selectedDatasetId` lorsque l'utilisateur fait une sélection.
--   **`JournalFilter.svelte`**: Affiche une liste des sources de journaux uniques présentes dans le dataset actuel et permet à l'utilisateur de sélectionner un ou plusieurs journaux pour filtrer les articles. Met à jour `journalFilter`.
--   **`SentimentCriteriaFilter.svelte`**: Permet à l'utilisateur de sélectionner des polarités spécifiques et/ou de définir une plage pour le score de subjectivité. Met à jour `polarityFilter` et `subjectivityFilterRange`.
--   **`SentimentChart.svelte`**: Utilise le store `filteredArticles` pour afficher une visualisation (actuellement un diagramme à barres avec ECharts montrant la distribution des polarités).
+### Composants de filtrage
+
+-   **`DatasetSelector.svelte`**: Affiche une liste déroulante des datasets disponibles et met à jour `selectedDatasetId` lorsque l'utilisateur fait une sélection.
+-   **`JournalFilter.svelte`**: Permet à l'utilisateur de sélectionner un ou plusieurs journaux pour filtrer les articles.
+-   **`PolarityFilter.svelte`**: Permet de filtrer les articles selon leur polarité (Très positif, Positif, Neutre, Négatif, Très négatif, Non applicable).
+-   **`SubjectivityFilter.svelte`**: Permet de filtrer les articles selon leur score de subjectivité (échelle de 1 à 5).
+-   **`CentralityFilter.svelte`**: Permet de filtrer les articles selon la centralité du sujet islam/musulmans (Très central, Central, Secondaire, Marginal, Non abordé).
+
+### Composants de visualisation
+
+-   **`SentimentChart.svelte`**: Utilise ECharts pour afficher un graphique à barres empilées de la distribution des polarités par journal.
+-   **`SubjectivityChart.svelte`**: Utilise ECharts pour afficher un graphique à barres empilées de la distribution des scores de subjectivité par journal.
+-   **`SentimentTrendsChart.svelte`**: Utilise ECharts pour afficher un graphique linéaire montrant l'évolution des sentiments au fil du temps (par année).
+
+### Composants d'affichage et d'information
+
+-   **`ArticleTable.svelte`**: Affiche un tableau des articles filtrés avec possibilité de tri et de sélection pour voir les détails.
+-   **`ArticleDetail.svelte`**: Affiche les détails complets d'un article sélectionné, y compris ses métadonnées et les résultats d'analyse.
+-   **`AnalysisInfo.svelte`**: Fournit des informations explicatives sur la méthodologie d'analyse (polarité, subjectivité, centralité).
 
 ## Page Principale (`+page.svelte` et `+page.ts`)
 
 -   `+page.ts`: Sa fonction `load` est exécutée avant le rendu de la page. Elle récupère le contenu de `static/data/manifest.json` et le transmet au composant `+page.svelte`.
 -   `+page.svelte`:
     -   Reçoit les `availableDatasets` de la fonction `load`.
-    -   S'abonne aux changements de `selectedDatasetId`. Lorsqu'un dataset est sélectionné, il appelle `fetchDataset` (de `src/lib/utils.ts`) pour charger les articles correspondants et met à jour `currentDatasetArticles`.
-    -   Affiche les composants d'interface utilisateur (`DatasetSelector`, `JournalFilterComponent`, `SentimentCriteriaFilter`) et le composant de visualisation (`SentimentChart`).
+    -   S'abonne aux changements de `selectedDatasetId`. Lorsqu'un dataset est sélectionné, il charge les articles correspondants et met à jour `currentDatasetArticles`.
+    -   Propose trois vues différentes via un menu de navigation latéral:
+      - **Graphiques**: Affiche les graphiques de distribution de polarité et de subjectivité
+      - **Tendances**: Affiche l'évolution des sentiments au fil du temps
+      - **Tableau**: Affiche les articles dans un tableau interactif
+    -   Inclut un panneau latéral pour afficher les détails d'un article sélectionné
     -   Gère l'affichage des messages de chargement ou d'absence de données.
 
 ## Développement
