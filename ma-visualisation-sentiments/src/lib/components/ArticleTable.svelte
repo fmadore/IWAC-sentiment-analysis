@@ -44,6 +44,15 @@
     'Marginal': 'variant-ghost',
     'Non abordé': 'variant-ghost'
   };
+  
+  // Définition des classes de subjectivité
+  const subjectivityClasses = {
+    '1': 'variant-filled-success',
+    '2': 'variant-soft-success',
+    '3': 'variant-soft-primary',
+    '4': 'variant-soft-error',
+    '5': 'variant-filled-error'
+  };
 
   // Fonction d'aide pour obtenir la classe selon la polarité
   function getPolarityClass(polarity: string | null | undefined): string {
@@ -55,6 +64,13 @@
   function getCentralityClass(centrality: string | null | undefined): string {
     if (!centrality) return 'variant-ghost';
     return centralityColors[centrality as keyof typeof centralityColors] || 'variant-ghost';
+  }
+  
+  // Fonction d'aide pour obtenir la classe selon le score de subjectivité
+  function getSubjectivityClass(score: string | number | null | undefined): string {
+    if (!score) return 'variant-ghost';
+    const scoreStr = String(score);
+    return subjectivityClasses[scoreStr as keyof typeof subjectivityClasses] || 'variant-ghost';
   }
 
   // Fonction pour formater les dates
@@ -96,6 +112,7 @@
           <th class="text-white">Date</th>
           <th class="text-white">Centralité</th>
           <th class="text-white">Polarité</th>
+          <th class="text-white">Subjectivité</th>
         </tr>
       </thead>
       <tbody>
@@ -116,6 +133,11 @@
             <td>
               <span class="badge {getPolarityClass(article.sentiment_analysis?.polarite)}">
                 {article.sentiment_analysis?.polarite ?? 'N/A'}
+              </span>
+            </td>
+            <td>
+              <span class="badge {getSubjectivityClass(article.sentiment_analysis?.subjectivite_score)}">
+                {article.sentiment_analysis?.subjectivite_score ?? 'N/A'}
               </span>
             </td>
           </tr>
