@@ -197,5 +197,5 @@
     <Chart {init} {options} />
   </div>
 {:else}
-  <p class="text-center py-8 text-white/80">Aucun article ne correspond aux filtres actuels, ou aucun dataset n'est chargé.</p>
+  <p class="text-center py-8 text-white/80">Aucun article ne correspond aux filtres actuels, ou aucun corpus n'est chargé.</p>
 {/if} 
