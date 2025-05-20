@@ -24,8 +24,8 @@
   }
 </script>
 
-<div class="card p-4">
-  <h3 class="h4 mb-4">Score de subjectivité</h3>
+<div class="card variant-glass p-4">
+  <h3 class="h4 mb-4 text-white">Score de subjectivité</h3>
   
   <div class="flex flex-wrap gap-2">
     {#each scores as score}

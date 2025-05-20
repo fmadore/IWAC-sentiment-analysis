@@ -37,8 +37,8 @@
   });
 </script>
 
-<div class="card p-4">
-  <h3 class="h4 mb-4">Journal</h3>
+<div class="card variant-glass p-4">
+  <h3 class="h4 mb-4 text-white">Journal</h3>
   
   <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-1">
     {#each journals as journal}
