@@ -6,7 +6,7 @@
 <div class="card variant-glass p-4">
   <h2 class="h3 mb-3 text-white">À propos de l'analyse</h2>
   
-  <p class="mb-4 text-white">Cette visualisation présente une analyse des sentiments concernant la représentation de l'islam et des musulmans dans les médias d'Afrique de l'Ouest francophone.</p>
+  <p class="mb-4 text-white">Cette visualisation présente une analyse des sentiments concernant la représentation de l'islam et des musulmans dans la presse d'Afrique de l'Ouest francophone.</p>
   
   <div class="accordion">
     <div class="accordion-item">
