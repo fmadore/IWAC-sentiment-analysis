@@ -8,6 +8,10 @@
     articles = value;
   });
 
+  // Variables pour le tri
+  let sortColumn: string = 'titre';
+  let sortDirection: 'asc' | 'desc' = 'asc';
+
   // État pour le tooltip/popup
   let showDetails = false;
   let detailsX = 0;
@@ -36,6 +40,16 @@
     'Non applicable': 'variant-ghost'
   };
 
+  // Ordre de tri pour les valeurs de polarité
+  const polarityOrder = {
+    'Très positif': 5,
+    'Positif': 4,
+    'Neutre': 3,
+    'Négatif': 2,
+    'Très négatif': 1,
+    'Non applicable': 0
+  };
+
   // Définition des couleurs de centralité
   const centralityColors = {
     'Très central': 'variant-filled-tertiary',
@@ -43,6 +57,15 @@
     'Secondaire': 'variant-soft-surface',
     'Marginal': 'variant-ghost',
     'Non abordé': 'variant-ghost'
+  };
+
+  // Ordre de tri pour les valeurs de centralité
+  const centralityOrder = {
+    'Très central': 5,
+    'Central': 4,
+    'Secondaire': 3,
+    'Marginal': 2,
+    'Non abordé': 1
   };
   
   // Définition des classes de subjectivité
@@ -97,6 +120,64 @@
     }
   }
 
+  // Fonction pour changer la colonne de tri
+  function sortBy(column: string) {
+    if (sortColumn === column) {
+      // Inverser la direction si on clique sur la même colonne
+      sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      // Nouvelle colonne de tri, direction par défaut ascendante
+      sortColumn = column;
+      sortDirection = 'asc';
+    }
+  }
+
+  // Fonction pour trier les articles
+  $: sortedArticles = [...articles].sort((a, b) => {
+    let valA, valB;
+    
+    // Extraction des valeurs selon la colonne
+    switch(sortColumn) {
+      case 'titre':
+        valA = a['o:title'] || '';
+        valB = b['o:title'] || '';
+        break;
+      case 'journal':
+        valA = a.journal_source || '';
+        valB = b.journal_source || '';
+        break;
+      case 'date':
+        valA = a.publication_date ? new Date(a.publication_date).getTime() : 0;
+        valB = b.publication_date ? new Date(b.publication_date).getTime() : 0;
+        break;
+      case 'centralite':
+        const centralA = a.sentiment_analysis?.centralite_islam_musulmans || 'Non abordé';
+        const centralB = b.sentiment_analysis?.centralite_islam_musulmans || 'Non abordé';
+        valA = centralityOrder[centralA as keyof typeof centralityOrder] || 0;
+        valB = centralityOrder[centralB as keyof typeof centralityOrder] || 0;
+        break;
+      case 'polarite':
+        const polA = a.sentiment_analysis?.polarite || 'Non applicable';
+        const polB = b.sentiment_analysis?.polarite || 'Non applicable';
+        valA = polarityOrder[polA as keyof typeof polarityOrder] || 0;
+        valB = polarityOrder[polB as keyof typeof polarityOrder] || 0;
+        break;
+      case 'subjectivite':
+        valA = Number(a.sentiment_analysis?.subjectivite_score || 0);
+        valB = Number(b.sentiment_analysis?.subjectivite_score || 0);
+        break;
+      default:
+        return 0;
+    }
+    
+    // Comparaison en fonction de la direction
+    if (sortDirection === 'asc') {
+      return valA > valB ? 1 : valA < valB ? -1 : 0;
+    } else {
+      return valA < valB ? 1 : valA > valB ? -1 : 0;
+    }
+  });
+
   onDestroy(() => {
     unsubscribeFiltered();
   });
@@ -107,16 +188,28 @@
     <table class="table">
       <thead>
         <tr class="bg-surface-800">
-          <th class="text-white">Titre</th>
-          <th class="text-white">Journal</th>
-          <th class="text-white">Date</th>
-          <th class="text-white">Centralité</th>
-          <th class="text-white">Polarité</th>
-          <th class="text-white">Subjectivité</th>
+          <th class="text-white sortable-header" on:click={() => sortBy('titre')}>
+            Titre {sortColumn === 'titre' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+          </th>
+          <th class="text-white sortable-header" on:click={() => sortBy('journal')}>
+            Journal {sortColumn === 'journal' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+          </th>
+          <th class="text-white sortable-header" on:click={() => sortBy('date')}>
+            Date {sortColumn === 'date' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+          </th>
+          <th class="text-white sortable-header" on:click={() => sortBy('centralite')}>
+            Centralité {sortColumn === 'centralite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+          </th>
+          <th class="text-white sortable-header" on:click={() => sortBy('polarite')}>
+            Polarité {sortColumn === 'polarite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+          </th>
+          <th class="text-white sortable-header" on:click={() => sortBy('subjectivite')}>
+            Subjectivité {sortColumn === 'subjectivite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+          </th>
         </tr>
       </thead>
       <tbody>
-        {#each articles as article (article['o:id'])}
+        {#each sortedArticles as article (article['o:id'])}
           <tr 
             on:click={(e) => selectArticle(article, e)} 
             class="hover:bg-primary-500/20 cursor-pointer {$selectedArticle && $selectedArticle['o:id'] === article['o:id'] ? 'bg-primary-500/30' : ''}"
@@ -179,6 +272,16 @@
     z-index: 1;
     background-color: rgb(38, 41, 65); /* Couleur solide pour l'en-tête */
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+  
+  .sortable-header {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s;
+  }
+  
+  .sortable-header:hover {
+    background-color: rgba(255, 255, 255, 0.1);
   }
 
   /* Classes spécifiques pour les polarités */
