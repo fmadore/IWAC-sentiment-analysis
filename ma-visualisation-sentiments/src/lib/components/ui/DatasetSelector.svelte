@@ -3,8 +3,8 @@
   import { availableDatasets, selectedDatasetId } from '$lib/stores.ts'; // Ajustez chemin
 </script>
 
-<div class="card card-enhanced glossy p-6 mb-6 bg-primary-500 text-primary-contrast-500">
-  <h3 class="font-bold mb-3 text-xl">Choisir un corpus :</h3>
+<div class="card variant-glass p-4 mb-6">
+  <h3 class="h4 mb-3 text-white">Choisir un corpus :</h3>
   <select
     id="dataset-select"
     bind:value={$selectedDatasetId}
@@ -15,7 +15,7 @@
       <option value={ds.id}>{ds.name}</option>
     {/each}
   </select>
-  <p class="text-sm opacity-80">
+  <p class="text-sm text-white opacity-80">
     Sélectionnez un corpus pour afficher les articles correspondants.
   </p>
 </div> 
