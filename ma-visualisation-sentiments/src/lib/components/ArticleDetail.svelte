@@ -20,6 +20,15 @@
     'Marginal': 'variant-ghost',
     'Non abordé': 'variant-ghost'
   };
+  
+  // Définition des classes de subjectivité
+  const subjectivityClasses = {
+    '1': 'variant-filled-success',
+    '2': 'variant-soft-success',
+    '3': 'variant-soft-primary',
+    '4': 'variant-soft-error',
+    '5': 'variant-filled-error'
+  };
 
   // Fonction d'aide pour obtenir la classe selon la polarité
   function getPolarityClass(polarity: string | null | undefined): string {
@@ -31,6 +40,13 @@
   function getCentralityClass(centrality: string | null | undefined): string {
     if (!centrality) return 'variant-ghost';
     return centralityClasses[centrality as keyof typeof centralityClasses] || 'variant-ghost';
+  }
+  
+  // Fonction d'aide pour obtenir la classe selon le score de subjectivité
+  function getSubjectivityClass(score: string | number | null | undefined): string {
+    if (!score) return 'variant-ghost';
+    const scoreStr = String(score);
+    return subjectivityClasses[scoreStr as keyof typeof subjectivityClasses] || 'variant-ghost';
   }
 
   // Fonction pour formater les dates
@@ -130,7 +146,7 @@
       <!-- Subjectivité -->
       <div class="card variant-soft-surface p-4">
         <div class="flex items-center mb-3">
-          <span class="badge variant-soft-primary">
+          <span class="badge {getSubjectivityClass($selectedArticle.sentiment_analysis.subjectivite_score)}">
             {$selectedArticle.sentiment_analysis.subjectivite_score}
           </span>
           <span class="ml-2 text-sm uppercase font-bold opacity-75">Score de Subjectivité</span>

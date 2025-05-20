@@ -19,12 +19,12 @@
         <div class="accordion-content p-3">
           <p class="mb-2">La polarité évalue le sentiment général exprimé dans l'article envers l'islam et/ou les musulmans :</p>
           <ul class="list-disc ml-5 space-y-1">
-            <li><span class="badge variant-filled-success">Très positif</span> - Portrait extrêmement favorable, enthousiaste, élogieux</li>
-            <li><span class="badge variant-soft-success">Positif</span> - Portrait favorable, optimiste</li>
-            <li><span class="badge variant-soft-primary">Neutre</span> - Pas de sentiment clair ou équilibre entre aspects positifs et négatifs</li>
-            <li><span class="badge variant-soft-error">Négatif</span> - Portrait défavorable, critique, pessimiste</li>
-            <li><span class="badge variant-filled-error">Très négatif</span> - Portrait extrêmement défavorable, alarmiste, très critique</li>
-            <li><span class="badge variant-ghost">Non applicable</span> - L'article ne traite pas de l'islam ou des musulmans</li>
+            <li><span class="chip variant-filled-success">Très positif</span> - Portrait extrêmement favorable, enthousiaste, élogieux</li>
+            <li><span class="chip variant-soft-success">Positif</span> - Portrait favorable, optimiste</li>
+            <li><span class="chip variant-soft-primary">Neutre</span> - Pas de sentiment clair ou équilibre entre aspects positifs et négatifs</li>
+            <li><span class="chip variant-soft-error">Négatif</span> - Portrait défavorable, critique, pessimiste</li>
+            <li><span class="chip variant-filled-error">Très négatif</span> - Portrait extrêmement défavorable, alarmiste, très critique</li>
+            <li><span class="chip variant-ghost">Non applicable</span> - L'article ne traite pas de l'islam ou des musulmans</li>
           </ul>
         </div>
       {/if}
@@ -40,11 +40,11 @@
         <div class="accordion-content p-3">
           <p class="mb-2">La subjectivité (note de 1 à 5) évalue le degré d'objectivité/subjectivité de l'article dans sa manière de représenter l'islam et/ou les musulmans :</p>
           <ul class="list-disc ml-5 space-y-1">
-            <li><strong>1 : Très objectif</strong> - Rapporte des faits vérifiables sans exprimer d'opinions personnelles</li>
-            <li><strong>2 : Plutôt objectif</strong> - Principalement factuel mais peut contenir des traces subtiles d'opinions</li>
-            <li><strong>3 : Mixte</strong> - Contient un mélange équilibré de faits et d'opinions ou présente plusieurs points de vue</li>
-            <li><strong>4 : Plutôt subjectif</strong> - Exprime clairement des opinions ou des jugements même s'il s'appuie sur certains faits</li>
-            <li><strong>5 : Très subjectif</strong> - Fortement biaisé, exprime des opinions et des émotions intenses avec peu de présentation objective</li>
+            <li><span class="chip variant-filled-success">1</span> - Très objectif - Rapporte des faits vérifiables sans exprimer d'opinions personnelles</li>
+            <li><span class="chip variant-soft-success">2</span> - Plutôt objectif - Principalement factuel mais peut contenir des traces subtiles d'opinions</li>
+            <li><span class="chip variant-soft-primary">3</span> - Mixte - Contient un mélange équilibré de faits et d'opinions ou présente plusieurs points de vue</li>
+            <li><span class="chip variant-soft-error">4</span> - Plutôt subjectif - Exprime clairement des opinions ou des jugements même s'il s'appuie sur certains faits</li>
+            <li><span class="chip variant-filled-error">5</span> - Très subjectif - Fortement biaisé, exprime des opinions et des émotions intenses avec peu de présentation objective</li>
           </ul>
         </div>
       {/if}
@@ -60,11 +60,11 @@
         <div class="accordion-content p-3">
           <p class="mb-2">La centralité évalue l'importance du sujet de l'islam et des musulmans dans l'article :</p>
           <ul class="list-disc ml-5 space-y-1">
-            <li><strong>Très central</strong> - L'article est principalement ou entièrement consacré à l'islam et/ou aux musulmans</li>
-            <li><strong>Central</strong> - L'islam et/ou les musulmans sont un des sujets principaux de l'article</li>
-            <li><strong>Secondaire</strong> - L'islam et/ou les musulmans sont mentionnés ou discutés, mais ne constituent pas le focus principal</li>
-            <li><strong>Marginal</strong> - L'islam et/ou les musulmans sont brièvement mentionnés de manière anecdotique</li>
-            <li><strong>Non abordé</strong> - L'article ne traite pas du tout de l'islam ou des musulmans</li>
+            <li><span class="chip variant-filled-tertiary">Très central</span> - L'article est principalement ou entièrement consacré à l'islam et/ou aux musulmans</li>
+            <li><span class="chip variant-soft-tertiary">Central</span> - L'islam et/ou les musulmans sont un des sujets principaux de l'article</li>
+            <li><span class="chip variant-soft-surface">Secondaire</span> - L'islam et/ou les musulmans sont mentionnés ou discutés, mais ne constituent pas le focus principal</li>
+            <li><span class="chip variant-ghost">Marginal</span> - L'islam et/ou les musulmans sont brièvement mentionnés de manière anecdotique</li>
+            <li><span class="chip variant-ghost">Non abordé</span> - L'article ne traite pas du tout de l'islam ou des musulmans</li>
           </ul>
         </div>
       {/if}
@@ -73,11 +73,11 @@
 </div>
 
 <style>
-  .badge {
+  .chip {
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
-    font-weight: 500;
     border-radius: 9999px;
+    display: inline-block;
   }
   
   .accordion {

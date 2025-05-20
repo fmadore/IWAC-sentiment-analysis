@@ -30,7 +30,7 @@
   <div class="flex flex-wrap gap-2">
     {#each scores as score}
       <button 
-        class="chip {score <= 2 ? 'variant-soft-success' : score <= 4 ? 'variant-soft-warning' : 'variant-soft-error'} {selectedScores.includes(score) ? 'ring-2 ring-primary-500' : ''}" 
+        class="chip {score === 1 ? 'variant-filled-success' : score === 2 ? 'variant-soft-success' : score === 3 ? 'variant-soft-primary' : score === 4 ? 'variant-soft-error' : 'variant-filled-error'} {selectedScores.includes(score) ? 'ring-2 ring-primary-500' : ''}" 
         on:click={() => toggleScore(score)}
       >
         {score}
@@ -47,18 +47,18 @@
     </button>
   {/if}
   
-  <div class="mt-2 text-sm">
+  <div class="mt-2 text-sm text-white">
     <div class="flex gap-2 items-center mt-1">
       <span class="badge variant-soft-success">1-2</span>
       <span>Plutôt objectif</span>
     </div>
     <div class="flex gap-2 items-center mt-1">
-      <span class="badge variant-soft-warning">3-4</span>
-      <span>Subjectivité mixte/modérée</span>
+      <span class="badge variant-soft-primary">3</span>
+      <span>Subjectivité mixte</span>
     </div>
     <div class="flex gap-2 items-center mt-1">
-      <span class="badge variant-soft-error">5</span>
-      <span>Très subjectif</span>
+      <span class="badge variant-soft-error">4-5</span>
+      <span>Plutôt/très subjectif</span>
     </div>
   </div>
 </div>
