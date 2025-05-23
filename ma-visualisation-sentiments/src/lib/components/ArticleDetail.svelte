@@ -1,6 +1,9 @@
 <script lang="ts">
-  import { selectedArticle } from '$lib/stores';
+  // import { selectedArticle } from '$lib/stores'; // Removed store import
   import type { Article } from '$lib/types/data';
+
+  // Props: Accept article as a prop
+  let { article }: { article: Article | null } = $props();
 
   // Définition des classes de polarité selon les variantes Skeleton
   const polarityClasses = {
@@ -80,45 +83,45 @@
   }
 </script>
 
-{#if $selectedArticle}
+{#if article}
   <div class="space-y-6 p-2">
-    <h3 class="h3 text-white">{$selectedArticle['o:title'] ?? 'Titre non disponible'}</h3>
+    <h3 class="h3 text-white">{article['o:title'] ?? 'Titre non disponible'}</h3>
     
     <div class="grid grid-cols-2 gap-3">
       <div class="card variant-soft-surface p-3">
         <span class="text-sm uppercase font-bold opacity-75">Journal</span>
-        <p class="text-white mt-1">{$selectedArticle.journal_source ?? 'Source non disponible'}</p>
+        <p class="text-white mt-1">{article.journal_source ?? 'Source non disponible'}</p>
       </div>
       <div class="card variant-soft-surface p-3">
         <span class="text-sm uppercase font-bold opacity-75">Date de publication</span>
-        <p class="text-white mt-1">{formatDate($selectedArticle.publication_date)}</p>
+        <p class="text-white mt-1">{formatDate(article.publication_date)}</p>
       </div>
     </div>
 
     <div class="card variant-soft-surface p-3">
       <span class="text-sm uppercase font-bold opacity-75">Lien vers l'article complet</span>
       <p class="text-white mt-1">
-        <a href={getArticleUrl($selectedArticle['o:id'])} target="_blank" class="anchor">
+        <a href={getArticleUrl(article['o:id'])} target="_blank" class="anchor">
           Consulter l'article original
         </a>
       </p>
     </div>
     
-    {#if $selectedArticle.sentiment_analysis}
+    {#if article.sentiment_analysis}
       <!-- Centralité -->
       <div class="card variant-soft-surface p-4">
         <div class="flex items-center mb-3">
-          <span class="badge {getCentralityClass($selectedArticle.sentiment_analysis.centralite_islam_musulmans)}">
-            {$selectedArticle.sentiment_analysis.centralite_islam_musulmans ?? 'Non abordé'}
+          <span class="badge {getCentralityClass(article.sentiment_analysis.centralite_islam_musulmans)}">
+            {article.sentiment_analysis.centralite_islam_musulmans ?? 'Non abordé'}
           </span>
           <span class="ml-2 text-sm uppercase font-bold opacity-75">Centralité de l'islam/musulmans</span>
         </div>
         
-        {#if $selectedArticle.sentiment_analysis.centralite_justification}
+        {#if article.sentiment_analysis.centralite_justification}
           <div class="mt-3">
             <span class="text-sm uppercase font-bold opacity-75">Justification</span>
             <blockquote class="mt-1 card variant-ghost p-3">
-              {$selectedArticle.sentiment_analysis.centralite_justification}
+              {article.sentiment_analysis.centralite_justification}
             </blockquote>
           </div>
         {/if}
@@ -127,17 +130,17 @@
       <!-- Polarité -->
       <div class="card variant-soft-surface p-4">
         <div class="flex items-center mb-3">
-          <span class="badge {getPolarityClass($selectedArticle.sentiment_analysis.polarite)}">
-            {$selectedArticle.sentiment_analysis.polarite}
+          <span class="badge {getPolarityClass(article.sentiment_analysis.polarite)}">
+            {article.sentiment_analysis.polarite}
           </span>
           <span class="ml-2 text-sm uppercase font-bold opacity-75">Polarité</span>
         </div>
         
-        {#if $selectedArticle.sentiment_analysis.polarite_justification}
+        {#if article.sentiment_analysis.polarite_justification}
           <div class="mt-3">
             <span class="text-sm uppercase font-bold opacity-75">Justification</span>
             <blockquote class="mt-1 card variant-ghost p-3">
-              {$selectedArticle.sentiment_analysis.polarite_justification}
+              {article.sentiment_analysis.polarite_justification}
             </blockquote>
           </div>
         {/if}
@@ -146,17 +149,17 @@
       <!-- Subjectivité -->
       <div class="card variant-soft-surface p-4">
         <div class="flex items-center mb-3">
-          <span class="badge {getSubjectivityClass($selectedArticle.sentiment_analysis.subjectivite_score)}">
-            {$selectedArticle.sentiment_analysis.subjectivite_score}
+          <span class="badge {getSubjectivityClass(article.sentiment_analysis.subjectivite_score)}">
+            {article.sentiment_analysis.subjectivite_score}
           </span>
           <span class="ml-2 text-sm uppercase font-bold opacity-75">Score de Subjectivité</span>
         </div>
         
-        {#if $selectedArticle.sentiment_analysis.subjectivite_justification}
+        {#if article.sentiment_analysis.subjectivite_justification}
           <div class="mt-3">
             <span class="text-sm uppercase font-bold opacity-75">Justification</span>
             <blockquote class="mt-1 card variant-ghost p-3">
-              {$selectedArticle.sentiment_analysis.subjectivite_justification}
+              {article.sentiment_analysis.subjectivite_justification}
             </blockquote>
           </div>
         {/if}
@@ -190,4 +193,4 @@
   .anchor:hover {
     color: #60A5FA;
   }
-</style> 
+</style>

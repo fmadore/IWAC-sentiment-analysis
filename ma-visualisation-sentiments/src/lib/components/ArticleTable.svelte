@@ -1,33 +1,41 @@
 <script lang="ts">
-  import { onDestroy, createEventDispatcher } from 'svelte';
+  import { onDestroy } from 'svelte'; // createEventDispatcher will be removed
   import { filteredArticles, selectedArticle } from '$lib/stores';
   import type { Article } from '$lib/types/data';
 
-  let articles: Article[] = [];
-  const unsubscribeFiltered = filteredArticles.subscribe(value => {
-    articles = value;
+  // Props - for event dispatching
+  let { onShowDetails }: { onShowDetails: (details: { article: Article, position: {x: number, y: number} }) => void } = $props();
+
+  let articles = $state<Article[]>([]);
+  // Update articles when filteredArticles changes
+  $effect(() => {
+    const unsubscribe = filteredArticles.subscribe(value => {
+      articles = value;
+    });
+    return unsubscribe; // Cleanup subscription
   });
 
   // Variables pour le tri
-  let sortColumn: string = 'titre';
-  let sortDirection: 'asc' | 'desc' = 'asc';
+  let sortColumn = $state<string>('titre');
+  let sortDirection = $state<'asc' | 'desc'>('asc');
 
-  // État pour le tooltip/popup
-  let showDetails = false;
-  let detailsX = 0;
-  let detailsY = 0;
+  // État pour le tooltip/popup - These seem unused in the provided snippet, but will be converted if used elsewhere in the full component
+  let showDetails = $state(false);
+  let detailsX = $state(0);
+  let detailsY = $state(0);
   
-  // Dispatcher pour communiquer avec le parent
-  const dispatch = createEventDispatcher();
+  // Dispatcher is removed
 
   function selectArticle(article: Article, event: MouseEvent) {
     selectedArticle.set(article);
     
-    // Notifier le parent de montrer les détails
-    dispatch('showDetails', {
-      article,
-      position: { x: event.clientX, y: event.clientY }
-    });
+    // Notifier le parent de montrer les détails via callback prop
+    if (onShowDetails) {
+      onShowDetails({
+        article, // Ensure article is passed as per the prop type
+        position: { x: event.clientX, y: event.clientY }
+      });
+    }
   }
 
   // Définition des couleurs de polarité pour les badges
@@ -133,7 +141,7 @@
   }
 
   // Fonction pour trier les articles
-  $: sortedArticles = [...articles].sort((a, b) => {
+  const sortedArticles = $derived([...articles].sort((a, b) => {
     let valA, valB;
     
     // Extraction des valeurs selon la colonne
@@ -176,11 +184,9 @@
     } else {
       return valA < valB ? 1 : valA > valB ? -1 : 0;
     }
-  });
+  }));
 
-  onDestroy(() => {
-    unsubscribeFiltered();
-  });
+  // onDestroy is no longer needed for the store subscription as $effect handles cleanup
 </script>
 
 {#if articles.length > 0}
@@ -188,22 +194,22 @@
     <table class="table">
       <thead>
         <tr class="bg-surface-800">
-          <th class="text-white sortable-header" on:click={() => sortBy('titre')}>
+          <th class="text-white sortable-header" onclick={() => sortBy('titre')}>
             Titre {sortColumn === 'titre' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
           </th>
-          <th class="text-white sortable-header" on:click={() => sortBy('journal')}>
+          <th class="text-white sortable-header" onclick={() => sortBy('journal')}>
             Journal {sortColumn === 'journal' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
           </th>
-          <th class="text-white sortable-header" on:click={() => sortBy('date')}>
+          <th class="text-white sortable-header" onclick={() => sortBy('date')}>
             Date {sortColumn === 'date' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
           </th>
-          <th class="text-white sortable-header" on:click={() => sortBy('centralite')}>
+          <th class="text-white sortable-header" onclick={() => sortBy('centralite')}>
             Centralité {sortColumn === 'centralite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
           </th>
-          <th class="text-white sortable-header" on:click={() => sortBy('polarite')}>
+          <th class="text-white sortable-header" onclick={() => sortBy('polarite')}>
             Polarité {sortColumn === 'polarite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
           </th>
-          <th class="text-white sortable-header" on:click={() => sortBy('subjectivite')}>
+          <th class="text-white sortable-header" onclick={() => sortBy('subjectivite')}>
             Subjectivité {sortColumn === 'subjectivite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
           </th>
         </tr>
@@ -211,26 +217,25 @@
       <tbody>
         {#each sortedArticles as article (article['o:id'])}
           <tr 
-            on:click={(e) => selectArticle(article, e)} 
-            class="hover:bg-primary-500/20 cursor-pointer {$selectedArticle && $selectedArticle['o:id'] === article['o:id'] ? 'bg-primary-500/30' : ''}"
             title="Cliquez pour voir les détails"
+            onclick={(event) => selectArticle(article, event)} 
           >
-            <td class="text-white">{article['o:title'] ?? 'N/A'}</td>
-            <td class="text-white">{article.journal_source ?? 'N/A'}</td>
-            <td class="text-white">{formatDate(article.publication_date)}</td>
+            <td>{article['o:title']}</td>
+            <td>{article.journal_source}</td>
+            <td>{formatDate(article.publication_date)}</td>
             <td>
               <span class="badge {getCentralityClass(article.sentiment_analysis?.centralite_islam_musulmans)}">
-                {article.sentiment_analysis?.centralite_islam_musulmans ?? 'Non abordé'}
+                {article.sentiment_analysis?.centralite_islam_musulmans || 'N/A'}
               </span>
             </td>
             <td>
               <span class="badge {getPolarityClass(article.sentiment_analysis?.polarite)}">
-                {article.sentiment_analysis?.polarite ?? 'N/A'}
+                {article.sentiment_analysis?.polarite || 'N/A'}
               </span>
             </td>
             <td>
               <span class="badge {getSubjectivityClass(article.sentiment_analysis?.subjectivite_score)}">
-                {article.sentiment_analysis?.subjectivite_score ?? 'N/A'}
+                {article.sentiment_analysis?.subjectivite_score || 'N/A'}
               </span>
             </td>
           </tr>
@@ -330,4 +335,4 @@
     background-color: rgba(100, 116, 139, 0.2) !important;
     color: #94A3B8 !important;
   }
-</style> 
+</style>

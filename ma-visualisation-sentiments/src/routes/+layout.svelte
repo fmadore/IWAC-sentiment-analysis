@@ -7,7 +7,8 @@
   import MinimizeIcon from '@lucide/svelte/icons/minimize';
   import { onMount } from 'svelte';
 
-  let isFullscreen = false;
+  let { children } = $props();
+  let isFullscreen = $state(false);
 
   function toggleFullscreen() {
     if (!document.fullscreenElement) {
@@ -49,7 +50,7 @@
       <div class="flex-1 flex justify-end">
         <button
           class="btn-icon variant-ghost-surface self-center"
-          on:click={toggleFullscreen}
+          onclick={toggleFullscreen}
           title={isFullscreen ? "Quitter le mode plein écran" : "Passer en plein écran"}
         >
           {#if isFullscreen}
@@ -67,7 +68,7 @@
   {/snippet}
 </AppBar>
 
-<slot />
+{@render children()}
 
 <style>
   :global(.app-bar) {
@@ -93,4 +94,4 @@
   :global(.btn-icon:hover) {
     background-color: rgba(255, 255, 255, 0.1);
   }
-</style> 
+</style>

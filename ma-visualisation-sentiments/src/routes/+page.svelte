@@ -16,24 +16,24 @@
     SubjectivityChart,
     selectedArticle
   } from '$lib';
-  import type { DatasetInfo } from '$lib'; // Importer DatasetInfo
-  import ArticleTable from '$lib/components/ArticleTable.svelte'; // Import ArticleTable
-  import ArticleDetail from '$lib/components/ArticleDetail.svelte'; // Import ArticleDetail
-  import AnalysisInfo from '$lib/components/AnalysisInfo.svelte'; // Import AnalysisInfo
-  import CentralityFilter from '$lib/components/ui/CentralityFilter.svelte'; // Import CentralityFilter
+  import type { DatasetInfo, Article } from '$lib'; // Assuming Article type is available in $lib, adjust if not.
+  import ArticleTable from '$lib/components/ArticleTable.svelte';
+  import ArticleDetail from '$lib/components/ArticleDetail.svelte';
+  import AnalysisInfo from '$lib/components/AnalysisInfo.svelte';
+  import CentralityFilter from '$lib/components/ui/CentralityFilter.svelte';
   import { Navigation } from '@skeletonlabs/skeleton-svelte';
-  // Importons les icônes nécessaires
   import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
   import TableIcon from '@lucide/svelte/icons/table';
-  import TrendingUpIcon from '@lucide/svelte/icons/trending-up'; // Nouvelle icône
+  import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
   import InfoIcon from '@lucide/svelte/icons/info';
   import XIcon from '@lucide/svelte/icons/x';
 
-  export let data: PageData; // Données du `load` de +page.ts
+  let { data }: { data: PageData } = $props(); // Changed to $props()
 
-  let activeView = 'charts'; // Vue active par défaut
-  let showDetailsSidebar = false; // État du panneau de détails
-  let detailsPosition = { x: 0, y: 0 }; // Position du panneau de détails
+  let activeView = $state('charts');
+  let showDetailsSidebar = $state(false);
+  let detailedArticle = $state<Article | null>(null);
+  let detailsPosition = $state({ x: 0, y: 0 });
 
   onMount(() => {
     if (data.availableDatasets) {
@@ -42,29 +42,57 @@
   });
 
   // Gérer l'affichage des détails
-  function handleShowDetails(event: CustomEvent) {
+  function handleShowDetails(details: { article: Article, position: {x: number, y: number}}) { // Changed parameter type
+    detailedArticle = details.article; // Use details.article
     showDetailsSidebar = true;
-    detailsPosition = event.detail.position;
+    detailsPosition = details.position; // Use details.position
   }
 
-  // Fermer le panneau de détails
   function closeDetails() {
     showDetailsSidebar = false;
+    detailedArticle = null;
   }
 
-  selectedDatasetId.subscribe(async (id: string | null) => {
-    if (id) {
-      const selectedInfo = $availableDatasetsStore.find((d: DatasetInfo) => d.id === id);
-      if (selectedInfo) {
-        isLoadingDataset.set(true);
+  // Removed selectedDatasetId.subscribe block
+
+  $effect(() => {
+    const performAsyncLoad = async () => {
+      const id = $selectedDatasetId; // Reactive read of selectedDatasetId store
+      const datasets = $availableDatasetsStore; // Reactive read of availableDatasetsStore
+
+      if (id) {
+        const selectedInfo = datasets.find((d: DatasetInfo) => d.id === id);
+        if (selectedInfo) {
+          isLoadingDataset.set(true);
+          selectedArticle.set(null); // Clear legacy store if still used elsewhere
+          detailedArticle = null;    // Clear local state for the detail view
+
+          try {
+            const articles = await loadDatasetArticles(selectedInfo.filePath, selectedInfo.id, fetch);
+            currentDatasetArticles.set(articles);
+          } catch (error) {
+            console.error("Failed to load dataset articles:", error);
+            currentDatasetArticles.set([]); // Set to empty on error
+          } finally {
+            isLoadingDataset.set(false);
+          }
+        } else {
+          // Case: id is set, but no matching dataset info found (e.g., if datasets is empty or id is stale)
+          currentDatasetArticles.set([]);
+          selectedArticle.set(null);
+          detailedArticle = null;
+          // isLoadingDataset is not set to true in this path, so no need to set it to false here.
+        }
+      } else { // No dataset selected (id is null)
+        currentDatasetArticles.set([]);
         selectedArticle.set(null);
-        currentDatasetArticles.set(await loadDatasetArticles(selectedInfo.filePath, selectedInfo.id, fetch));
-        isLoadingDataset.set(false);
+        detailedArticle = null;
       }
-    } else {
-      currentDatasetArticles.set([]);
-      selectedArticle.set(null);
-    }
+    };
+
+    performAsyncLoad();
+
+    // No cleanup function needed here, so we don't return anything.
   });
 </script>
 
@@ -127,7 +155,7 @@
           {:else if activeView === 'table'}
             <div class="w-full card variant-glass p-6">
               <h2 class="h3 mb-4 text-white">Liste des articles</h2>
-              <ArticleTable on:showDetails={handleShowDetails} />
+              <ArticleTable onShowDetails={handleShowDetails} />
             </div>
           {/if}
         </div>
@@ -146,18 +174,18 @@
     style="max-height: {Math.min(window.innerHeight - 50, 800)}px;">
     <div class="details-header">
       <h2 class="h3 m-0 text-white">Détails de l'Article</h2>
-      <button class="btn-icon variant-soft-surface" on:click={closeDetails} title="Fermer">
+      <button class="btn-icon variant-soft-surface" onclick={closeDetails} title="Fermer">
         <XIcon size={20} />
       </button>
     </div>
     <div class="details-content">
-      <ArticleDetail />
+      <ArticleDetail article={detailedArticle} />
     </div>
   </div>
   <button 
     class="modal-backdrop" 
-    on:click={closeDetails}
-    on:keydown={(e) => e.key === 'Escape' && closeDetails()}
+    onclick={closeDetails}
+    onkeydown={(e) => e.key === 'Escape' && closeDetails()}
     aria-label="Fermer les détails"
     role="dialog"
   ></button>
