@@ -6,7 +6,7 @@
 <div class="card variant-glass p-4">
   <h2 class="h3 mb-3 text-white">À propos de l'analyse</h2>
   
-  <p class="mb-4 text-white">Cette visualisation présente une analyse des sentiments concernant la représentation de l'islam et des musulmans dans la presse d'Afrique de l'Ouest francophone.</p>
+  <p class="mb-4 text-white">Cette visualisation présente une analyse automatisée des sentiments concernant la représentation de l'islam et des musulmans dans la presse d'Afrique de l'Ouest francophone. Les résultats ont été générés par un grand modèle de langage (LLM) guidé par un prompt spécifiquement conçu pour cette tâche. Chaque article a été analysé selon trois dimensions complémentaires :</p>
   
   <div class="accordion">
     <div class="accordion-item">
@@ -66,6 +66,19 @@
             <li><span class="chip variant-ghost">Marginal</span> - L'islam et/ou les musulmans sont brièvement mentionnés de manière anecdotique</li>
             <li><span class="chip variant-ghost">Non abordé</span> - L'article ne traite pas du tout de l'islam ou des musulmans</li>
           </ul>
+        </div>
+      {/if}
+    </div>
+    
+    <div class="accordion-item">
+      <h3 class="h5">
+        <button class="accordion-header" onclick={() => openSections = openSections.includes('limites') ? openSections.filter(s => s !== 'limites') : [...openSections, 'limites']}>
+          Limites et précautions
+        </button>
+      </h3>
+      {#if openSections.includes('limites')}
+        <div class="accordion-content p-3">
+          <p class="text-white">Cette analyse automatisée constitue un outil d'aide à la recherche. Les résultats peuvent nécessiter une validation humaine pour les cas complexes ou ambigus. Les justifications fournies par l'IA permettent d'évaluer la pertinence de chaque classification.</p>
         </div>
       {/if}
     </div>
