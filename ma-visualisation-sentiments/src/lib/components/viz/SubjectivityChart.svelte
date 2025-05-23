@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Chart } from 'svelte-echarts';
-  import { onDestroy } from 'svelte';
+  import { get } from 'svelte/store';
 
   // ECharts core and modules for tree-shaking
   import { init, use } from 'echarts/core';
@@ -27,7 +27,7 @@
   import { filteredArticles } from '$lib';
   import type { Article } from '$lib';
 
-  let options: EChartsOption = {};
+  let options = $state<EChartsOption>({});
 
   // Libellés de subjectivité avec correspondance des scores
   const subjectivityLabels = ['Factuel', 'Plutôt factuel', 'Mixte', 'Plutôt subjectif', 'Subjectif', 'Non applicable'];
@@ -68,12 +68,13 @@
     return newspaperColorPalette[index % newspaperColorPalette.length];
   }
 
-  const unsubscribe = filteredArticles.subscribe(($articles: Article[]) => {
+  $effect(() => {
+    const articles = get(filteredArticles);
     let articlesAnalyzed = 0;
     const newspaperSubjectivityCounts: Record<string, Record<string, number>> = {};
     const uniqueNewspapers = new Set<string>();
 
-    $articles.forEach((article: Article) => {
+    articles.forEach((article: Article) => {
       if (article.sentiment_analysis?.subjectivite_score !== undefined) {
         const subjectivityScore = article.sentiment_analysis.subjectivite_score;
         const subjectivityKey = getSubjectivityLabel(subjectivityScore);
@@ -213,9 +214,6 @@
     };
   });
 
-  onDestroy(() => {
-    unsubscribe();
-  });
 </script>
 
 {#if $filteredArticles.length > 0}
@@ -224,4 +222,4 @@
   </div>
 {:else}
   <p class="text-center py-8 text-white/80">Aucun article ne correspond aux filtres actuels, ou aucun corpus n'est chargé.</p>
-{/if} 
+{/if}
