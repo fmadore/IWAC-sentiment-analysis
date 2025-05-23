@@ -29,7 +29,7 @@
   import { filteredArticles } from '$lib';
   import type { Article } from '$lib';
 
-  let options: EChartsOption = {};
+  let options: EChartsOption = $state({});
 
   // Exemple de données pour ECharts (sera dynamique)
   const polarityLabels = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif', 'Non applicable'];
@@ -198,4 +198,4 @@
   </div>
 {:else}
   <p class="text-center py-8 text-white/80">Aucun article ne correspond aux filtres actuels, ou aucun corpus n'est chargé.</p>
-{/if} 
+{/if}
