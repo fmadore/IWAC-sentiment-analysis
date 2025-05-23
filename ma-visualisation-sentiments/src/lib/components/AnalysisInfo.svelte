@@ -1,6 +1,6 @@
 <script lang="ts">
   // Définir le type pour les sections ouvertes comme un tableau de chaînes
-  let openSections: string[] = [];
+  let openSections = $state<string[]>([]);
 </script>
 
 <div class="card variant-glass p-4">
@@ -11,7 +11,7 @@
   <div class="accordion">
     <div class="accordion-item">
       <h3 class="h5">
-        <button class="accordion-header" on:click={() => openSections = openSections.includes('polarite') ? openSections.filter(s => s !== 'polarite') : [...openSections, 'polarite']}>
+        <button class="accordion-header" onclick={() => openSections = openSections.includes('polarite') ? openSections.filter(s => s !== 'polarite') : [...openSections, 'polarite']}>
           Polarité
         </button>
       </h3>
@@ -32,7 +32,7 @@
     
     <div class="accordion-item">
       <h3 class="h5">
-        <button class="accordion-header" on:click={() => openSections = openSections.includes('subjectivite') ? openSections.filter(s => s !== 'subjectivite') : [...openSections, 'subjectivite']}>
+        <button class="accordion-header" onclick={() => openSections = openSections.includes('subjectivite') ? openSections.filter(s => s !== 'subjectivite') : [...openSections, 'subjectivite']}>
           Subjectivité
         </button>
       </h3>
@@ -52,7 +52,7 @@
     
     <div class="accordion-item">
       <h3 class="h5">
-        <button class="accordion-header" on:click={() => openSections = openSections.includes('centralite') ? openSections.filter(s => s !== 'centralite') : [...openSections, 'centralite']}>
+        <button class="accordion-header" onclick={() => openSections = openSections.includes('centralite') ? openSections.filter(s => s !== 'centralite') : [...openSections, 'centralite']}>
           Centralité
         </button>
       </h3>
@@ -112,4 +112,4 @@
     background: rgba(0, 0, 0, 0.2);
     color: white;
   }
-</style> 
+</style>
