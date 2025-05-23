@@ -18,4 +18,4 @@
   <p class="text-sm text-white opacity-80">
     Sélectionnez un corpus pour afficher les articles correspondants.
   </p>
-</div> 
+</div>

@@ -1,6 +1,5 @@
 <!-- Composant JournalFilter.svelte --> 
 <script lang="ts">
-  import { onDestroy } from 'svelte';
   import { currentDatasetArticles, journalFilters } from '$lib/stores.ts';
   import type { Article } from '$lib/types/data';
 
@@ -8,15 +7,11 @@
   export const class_name = '';
   
   // Variables locales
-  let journals: string[] = [];
-  let selectedJournals: string[] = [];
-
-  // Souscrire aux changements du dataset
-  const unsubscribe = currentDatasetArticles.subscribe(value => {
-    // Extraire les journaux uniques
-    journals = [...new Set(value.map(article => article.journal_source).filter(Boolean))] as string[];
-    journals.sort(); // Trier par ordre alphabétique
-  });
+  let selectedJournals = $state<string[]>([]);
+  let journals = $derived([...new Set(
+    ($currentDatasetArticles as Article[]).map(article => article.journal_source)
+                                       .filter((name): name is string => !!name)
+  )].sort((a, b) => a.localeCompare(b)));
 
   // Fonction pour appliquer le filtre
   function applyFilter() {
@@ -32,9 +27,6 @@
     applyFilter();
   }
 
-  onDestroy(() => {
-    unsubscribe();
-  });
 </script>
 
 <div class="card variant-glass p-4">
@@ -44,7 +36,7 @@
     {#each journals as journal}
       <button 
         class="chip variant-soft-primary {selectedJournals.includes(journal) ? 'ring-2 ring-primary-500' : ''}" 
-        on:click={() => toggleJournal(journal)}
+        onclick={() => toggleJournal(journal)}
       >
         {journal}
       </button>
@@ -54,7 +46,7 @@
   {#if selectedJournals.length > 0}
     <button 
       class="btn btn-sm variant-soft-surface mt-3" 
-      on:click={() => {selectedJournals = []; applyFilter();}}
+      onclick={() => {selectedJournals = []; applyFilter();}}
     >
       Effacer sélection
     </button>
@@ -75,4 +67,4 @@
     opacity: 0.9;
     transform: translateY(-1px);
   }
-</style> 
+</style>

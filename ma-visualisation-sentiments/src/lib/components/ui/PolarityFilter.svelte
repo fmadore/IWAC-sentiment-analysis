@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { writable } from 'svelte/store';
   import { polarityFilters } from '$lib/stores.ts';
 
   const polarityOptions = [
@@ -11,7 +10,7 @@
     { value: 'Non applicable', label: 'Non applicable', class: 'variant-ghost' }
   ];
   
-  let selectedPolarities: string[] = [];
+  let selectedPolarities = $state<string[]>([]);
   
   function updateSelection() {
     polarityFilters.set(selectedPolarities);
@@ -39,7 +38,7 @@
     {#each polarityOptions as option}
       <button 
         class="chip {option.class} {selectedPolarities.includes(option.value) ? 'ring-2 ring-primary-500' : ''}" 
-        on:click={() => togglePolarity(option.value)}
+        onclick={() => togglePolarity(option.value)}
       >
         {option.label}
       </button>
@@ -49,7 +48,7 @@
   {#if selectedPolarities.length > 0}
     <button 
       class="btn btn-sm variant-soft-surface mt-3" 
-      on:click={clearSelection}
+      onclick={clearSelection}
     >
       Effacer sélection
     </button>
@@ -69,4 +68,4 @@
     opacity: 0.9;
     transform: translateY(-1px);
   }
-</style> 
+</style>

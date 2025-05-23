@@ -1,6 +1,5 @@
 <!-- Composant SentimentCriteriaFilter.svelte --> 
 <script lang="ts">
-  import { writable } from 'svelte/store';
   import { polarityFilters, subjectivityFilters } from '$lib/stores.ts';
 
   // Polarité options
@@ -13,8 +12,8 @@
     { value: 'Non applicable', class: 'variant-ghost' }
   ];
 
-  let selectedPolarities: string[] = [];
-  let selectedScores: number[] = [];
+  let selectedPolarities = $state<string[]>([]);
+  let selectedScores = $state<number[]>([]);
   
   // Mettre à jour les stores quand la sélection change
   function updatePolaritySelection() {
@@ -53,7 +52,7 @@
       {#each polarityOptions as option}
         <button 
           class="chip {option.class} {selectedPolarities.includes(option.value) ? 'ring-2 ring-primary-500' : ''}" 
-          on:click={() => togglePolarity(option.value)}
+          onclick={() => togglePolarity(option.value)}
         >
           {option.value}
         </button>
@@ -67,7 +66,7 @@
       {#each [1, 2, 3, 4, 5] as score}
         <button 
           class="chip {score <= 2 ? 'variant-soft-success' : score <= 4 ? 'variant-soft-warning' : 'variant-soft-error'} {selectedScores.includes(score) ? 'ring-2 ring-primary-500' : ''}" 
-          on:click={() => toggleScore(score)}
+          onclick={() => toggleScore(score)}
         >
           {score}
         </button>
@@ -89,4 +88,4 @@
     opacity: 0.9;
     transform: translateY(-1px);
   }
-</style> 
+</style>

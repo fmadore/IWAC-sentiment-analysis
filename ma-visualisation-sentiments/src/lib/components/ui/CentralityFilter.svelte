@@ -10,7 +10,7 @@
     { value: 'Non abordé', label: 'Non abordé' }
   ];
 
-  let selectedCentralities: string[] = [];
+  let selectedCentralities: string[] = $state([]);
 
   // Mettre à jour le store quand la sélection change
   function toggleCentrality(centrality: string) {
@@ -35,7 +35,7 @@
     {#each centralityOptions as option}
       <button 
         class="chip {option.value === 'Très central' ? 'variant-filled-tertiary' : option.value === 'Central' ? 'variant-soft-tertiary' : option.value === 'Secondaire' ? 'variant-soft-surface' : 'variant-ghost'} {selectedCentralities.includes(option.value) ? 'ring-2 ring-primary-500' : ''}" 
-        on:click={() => toggleCentrality(option.value)}
+        onclick={() => toggleCentrality(option.value)}
       >
         {option.label}
       </button>
@@ -45,7 +45,7 @@
   {#if selectedCentralities.length > 0}
     <button 
       class="btn btn-sm variant-soft-surface mt-3" 
-      on:click={clearSelection}
+      onclick={clearSelection}
     >
       Effacer sélection
     </button>
@@ -65,4 +65,4 @@
     opacity: 0.9;
     transform: translateY(-1px);
   }
-</style> 
+</style>

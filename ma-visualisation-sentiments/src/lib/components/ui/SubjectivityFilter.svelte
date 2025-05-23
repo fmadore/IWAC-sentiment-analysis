@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { writable } from 'svelte/store';
   import { subjectivityFilters } from '$lib/stores.ts';
 
   const scores = [1, 2, 3, 4, 5];
-  let selectedScores: number[] = [];
+  let selectedScores = $state<number[]>([]);
   
   function updateSubjectivitySelection() {
     subjectivityFilters.set(selectedScores);
@@ -31,7 +30,7 @@
     {#each scores as score}
       <button 
         class="chip {score === 1 ? 'variant-filled-success' : score === 2 ? 'variant-soft-success' : score === 3 ? 'variant-soft-primary' : score === 4 ? 'variant-soft-error' : 'variant-filled-error'} {selectedScores.includes(score) ? 'ring-2 ring-primary-500' : ''}" 
-        on:click={() => toggleScore(score)}
+        onclick={() => toggleScore(score)}
       >
         {score}
       </button>
@@ -41,7 +40,7 @@
   {#if selectedScores.length > 0}
     <button 
       class="btn btn-sm variant-soft-surface mt-3" 
-      on:click={clearSelection}
+      onclick={clearSelection}
     >
       Effacer sélection
     </button>
@@ -82,4 +81,4 @@
     font-size: 0.75rem;
     border-radius: 9999px;
   }
-</style> 
+</style>
