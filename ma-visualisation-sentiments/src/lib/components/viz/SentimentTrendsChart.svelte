@@ -26,7 +26,7 @@
   import { filteredArticles } from '$lib';
   import type { Article } from '$lib';
 
-  let options: EChartsOption = {};
+  let options: EChartsOption = $state({});
 
   const polarityLabels = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif'] as const;
   type PolarityType = typeof polarityLabels[number];
@@ -184,4 +184,4 @@
   </div>
 {:else}
   <p class="text-center py-8 text-white/80">Aucun article ne correspond aux filtres actuels, ou aucun corpus n'est chargé pour afficher les tendances.</p>
-{/if} 
+{/if}
