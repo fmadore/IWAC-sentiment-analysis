@@ -363,10 +363,11 @@
       <tbody>
         {#each paginatedArticles as article (article['o:id'])}
           <tr 
+            class="article-row"
             title="Cliquez pour voir les détails"
             onclick={(event) => selectArticle(article, event)} 
           >
-            <td>{article['o:title']}</td>
+            <td class="article-title">{article['o:title']}</td>
             <td>{article.journal_source}</td>
             <td>{formatDate(article.publication_date)}</td>
             <td>
@@ -442,6 +443,27 @@
     padding: 0.75rem 1rem;
     text-align: left;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Styles pour les lignes d'articles cliquables */
+  .article-row {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .article-row:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .article-title {
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+
+  .article-title:hover {
+    color: #60A5FA;
+    text-decoration: underline;
+    font-weight: 500;
   }
   
   th {
