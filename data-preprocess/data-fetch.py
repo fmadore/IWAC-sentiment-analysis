@@ -1,6 +1,7 @@
 from datasets import load_dataset
 import os
 import json
+from tqdm import tqdm
 
 print(f"\n{'='*50}")
 print(f"Loading config: articles")
@@ -17,7 +18,8 @@ print(dataset['train'][0])  # View first example
 
 # Convert to list of dictionaries with the specified mapping
 data_list = []
-for item in dataset['train']:
+print(f"\nProcessing {len(dataset['train'])} records...")
+for item in tqdm(dataset['train'], desc="Processing articles"):
     mapped_item = {
         "o:id": item.get("o:id"),
         "o:title": item.get("title"),
