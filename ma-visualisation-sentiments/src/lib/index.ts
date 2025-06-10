@@ -1,5 +1,4 @@
 // Reexport your entry components here
-export { default as DatasetSelector } from './components/ui/DatasetSelector.svelte';
 export { default as JournalFilter } from './components/ui/JournalFilter.svelte';
 export { default as SentimentCriteriaFilter } from './components/ui/SentimentCriteriaFilter.svelte';
 export { default as PolarityFilter } from './components/ui/PolarityFilter.svelte';

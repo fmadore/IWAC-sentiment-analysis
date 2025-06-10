@@ -2,12 +2,9 @@
   import type { PageData } from './$types.js';
   import { onMount } from 'svelte';
   import { 
-    availableDatasets as availableDatasetsStore, 
-    selectedDatasetId, 
     currentDatasetArticles, 
     isLoadingDataset, 
     loadDatasetArticles, 
-    DatasetSelector, 
     JournalFilter as JournalFilterComponent, 
     PolarityFilter,
     SubjectivityFilter,
@@ -16,7 +13,7 @@
     SubjectivityChart,
     selectedArticle
   } from '$lib';
-  import type { DatasetInfo, Article } from '$lib'; // Assuming Article type is available in $lib, adjust if not.
+  import type { Article } from '$lib';
   import ArticleTable from '$lib/components/ArticleTable.svelte';
   import ArticleDetail from '$lib/components/ArticleDetail.svelte';
   import AnalysisInfo from '$lib/components/AnalysisInfo.svelte';
@@ -25,75 +22,40 @@
   import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
   import TableIcon from '@lucide/svelte/icons/table';
   import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
-  import InfoIcon from '@lucide/svelte/icons/info';
   import XIcon from '@lucide/svelte/icons/x';
-
-  let { data }: { data: PageData } = $props(); // Changed to $props()
 
   let activeView = $state('charts');
   let showDetailsSidebar = $state(false);
   let detailedArticle = $state<Article | null>(null);
   let detailsPosition = $state({ x: 0, y: 0 });
 
-  onMount(() => {
-    if (data.availableDatasets) {
-      availableDatasetsStore.set(data.availableDatasets);
+  onMount(async () => {
+    // Charger automatiquement le fichier iwac_articles.json
+    isLoadingDataset.set(true);
+    selectedArticle.set(null);
+    
+    try {
+      const articles = await loadDatasetArticles('/data/iwac_articles.json', 'iwac_articles', fetch);
+      currentDatasetArticles.set(articles);
+    } catch (error) {
+      console.error("Failed to load IWAC articles:", error);
+      currentDatasetArticles.set([]);
+    } finally {
+      isLoadingDataset.set(false);
     }
   });
 
   // Gérer l'affichage des détails
-  function handleShowDetails(details: { article: Article, position: {x: number, y: number}}) { // Changed parameter type
-    detailedArticle = details.article; // Use details.article
+  function handleShowDetails(details: { article: Article, position: {x: number, y: number}}) {
+    detailedArticle = details.article;
     showDetailsSidebar = true;
-    detailsPosition = details.position; // Use details.position
+    detailsPosition = details.position;
   }
 
   function closeDetails() {
     showDetailsSidebar = false;
     detailedArticle = null;
   }
-
-  // Removed selectedDatasetId.subscribe block
-
-  $effect(() => {
-    const performAsyncLoad = async () => {
-      const id = $selectedDatasetId; // Reactive read of selectedDatasetId store
-      const datasets = $availableDatasetsStore; // Reactive read of availableDatasetsStore
-
-      if (id) {
-        const selectedInfo = datasets.find((d: DatasetInfo) => d.id === id);
-        if (selectedInfo) {
-          isLoadingDataset.set(true);
-          selectedArticle.set(null); // Clear legacy store if still used elsewhere
-          detailedArticle = null;    // Clear local state for the detail view
-
-          try {
-            const articles = await loadDatasetArticles(selectedInfo.filePath, selectedInfo.id, fetch);
-            currentDatasetArticles.set(articles);
-          } catch (error) {
-            console.error("Failed to load dataset articles:", error);
-            currentDatasetArticles.set([]); // Set to empty on error
-          } finally {
-            isLoadingDataset.set(false);
-          }
-        } else {
-          // Case: id is set, but no matching dataset info found (e.g., if datasets is empty or id is stale)
-          currentDatasetArticles.set([]);
-          selectedArticle.set(null);
-          detailedArticle = null;
-          // isLoadingDataset is not set to true in this path, so no need to set it to false here.
-        }
-      } else { // No dataset selected (id is null)
-        currentDatasetArticles.set([]);
-        selectedArticle.set(null);
-        detailedArticle = null;
-      }
-    };
-
-    performAsyncLoad();
-
-    // No cleanup function needed here, so we don't return anything.
-  });
 </script>
 
 <main class="container max-w-6xl mx-auto p-4 md:p-6 mt-6">
@@ -101,12 +63,8 @@
     <AnalysisInfo />
   </div>
 
-  <div class="flex justify-between items-center mb-6">
-    <DatasetSelector />
-  </div>
-
   {#if $isLoadingDataset}
-    <div class="alert variant-filled-warning p-4 mb-6">Chargement des données du corpus...</div>
+    <div class="alert variant-filled-warning p-4 mb-6">Chargement des données du corpus IWAC...</div>
   {:else if $currentDatasetArticles.length > 0}
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       <JournalFilterComponent />
@@ -161,10 +119,8 @@
         </div>
       </div>
     </div>
-  {:else if $selectedDatasetId && !$isLoadingDataset}
-    <div class="alert variant-filled-error p-4 mb-6">Aucun article trouvé pour ce corpus ou le corpus est vide.</div>
   {:else}
-    <div class="alert variant-filled-primary p-4 mb-6">Veuillez sélectionner un corpus pour commencer.</div>
+    <div class="alert variant-filled-error p-4 mb-6">Erreur lors du chargement du corpus IWAC ou le corpus est vide.</div>
   {/if}
 </main>
 

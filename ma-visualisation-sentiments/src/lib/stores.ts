@@ -1,13 +1,7 @@
 // Stores Svelte pour la gestion d'état 
 import { writable, derived } from 'svelte/store';
-import type { Article, DatasetInfo } from './types/data';
+import type { Article } from './types/data';
 import { base } from '$app/paths';
-
-// Store pour la liste des datasets disponibles
-export const availableDatasets = writable<DatasetInfo[]>([]);
-
-// Store pour l'ID du dataset sélectionné
-export const selectedDatasetId = writable<string | null>(null);
 
 // Store pour les articles du dataset actuel
 export const currentDatasetArticles = writable<Article[]>([]);
