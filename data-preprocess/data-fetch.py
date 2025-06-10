@@ -21,14 +21,15 @@ data_list = []
 print(f"\nProcessing {len(dataset['train'])} records...")
 for item in tqdm(dataset['train'], desc="Processing articles"):
     mapped_item = {
-        "o:id": item.get("o:id"),
+        "o:id": int(item.get("o:id")) if item.get("o:id") is not None else None,
         "o:title": item.get("title"),
         "Newspaper": item.get("newspaper"),
+        "Country": item.get("country"),
         "dcterms:date": item.get("pub_date"),
         "sentiment_analysis": {
             "centralite_islam_musulmans": item.get("gemini_centralite_islam_musulmans"),
             "centralite_justification": item.get("gemini_centralite_justification"),
-            "subjectivite_score": item.get("gemini_subjectivite_score"),
+            "subjectivite_score": int(item.get("gemini_subjectivite_score")) if item.get("gemini_subjectivite_score") is not None else None,
             "subjectivite_justification": item.get("gemini_subjectivite_justification"),
             "polarite": item.get("gemini_polarite"),
             "polarite_justification": item.get("gemini_polarite_justification")
@@ -41,7 +42,7 @@ output_dir = os.path.join(os.path.dirname(__file__), "..", "ma-visualisation-sen
 os.makedirs(output_dir, exist_ok=True)
 
 # Save as JSON file
-json_filename = "iwac_articles_sentiment_analysis.json"
+json_filename = "iwac_articles.json"
 json_path = os.path.join(output_dir, json_filename)
 
 print(f"\nSaving articles dataset to JSON file: {json_path}")
