@@ -11,6 +11,8 @@
   $effect(() => {
     const unsubscribe = filteredArticles.subscribe(value => {
       articles = value;
+      // Réinitialiser à la première page quand les articles changent (filtres appliqués)
+      currentPage = 1;
     });
     return unsubscribe; // Cleanup subscription
   });
@@ -18,6 +20,14 @@
   // Variables pour le tri
   let sortColumn = $state<string>('titre');
   let sortDirection = $state<'asc' | 'desc'>('asc');
+
+  // Variables pour la pagination
+  let currentPage = $state<number>(1);
+  let itemsPerPage = $state<number>(50); // 50 articles par page par défaut
+  let itemsPerPageOptions = [25, 50, 100, 200];
+  
+  // Référence pour le conteneur du tableau
+  let tableContainerRef = $state<HTMLElement | undefined>();
 
   // État pour le tooltip/popup - These seem unused in the provided snippet, but will be converted if used elsewhere in the full component
   let showDetails = $state(false);
@@ -138,6 +148,8 @@
       sortColumn = column;
       sortDirection = 'asc';
     }
+    // Réinitialiser à la première page après un tri
+    currentPage = 1;
   }
 
   // Fonction pour trier les articles
@@ -186,10 +198,144 @@
     }
   }));
 
+  // Calculs pour la pagination
+  const totalItems = $derived(sortedArticles.length);
+  const totalPages = $derived(Math.ceil(totalItems / itemsPerPage));
+  const startIndex = $derived((currentPage - 1) * itemsPerPage);
+  const endIndex = $derived(Math.min(startIndex + itemsPerPage, totalItems));
+  
+  // Articles paginés
+  const paginatedArticles = $derived(sortedArticles.slice(startIndex, endIndex));
+
+  // Fonction pour faire défiler vers le haut du tableau
+  function scrollToTop() {
+    if (tableContainerRef) {
+      tableContainerRef.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }
+  }
+
+  // Fonctions de navigation
+  function goToPage(page: number) {
+    if (page >= 1 && page <= totalPages) {
+      currentPage = page;
+      // Faire défiler vers le haut après changement de page
+      setTimeout(scrollToTop, 100);
+    }
+  }
+
+  function previousPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      setTimeout(scrollToTop, 100);
+    }
+  }
+
+  function nextPage() {
+    if (currentPage < totalPages) {
+      currentPage++;
+      setTimeout(scrollToTop, 100);
+    }
+  }
+
+  function changeItemsPerPage(newItemsPerPage: number) {
+    itemsPerPage = newItemsPerPage;
+    currentPage = 1; // Réinitialiser à la première page
+    setTimeout(scrollToTop, 100);
+  }
+
+  // Générer les numéros de pages à afficher
+  const visiblePages = $derived.by(() => {
+    const pages: number[] = [];
+    const maxVisiblePages = 7;
+    
+    if (totalPages <= maxVisiblePages) {
+      // Afficher toutes les pages si le nombre total est petit
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Logique pour afficher les pages avec ellipses
+      const halfVisible = Math.floor(maxVisiblePages / 2);
+      let startPage = Math.max(1, currentPage - halfVisible);
+      let endPage = Math.min(totalPages, currentPage + halfVisible);
+      
+      // Ajuster si on est près du début ou de la fin
+      if (currentPage <= halfVisible) {
+        endPage = Math.min(totalPages, maxVisiblePages);
+      } else if (currentPage > totalPages - halfVisible) {
+        startPage = Math.max(1, totalPages - maxVisiblePages + 1);
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+    }
+    
+    return pages;
+  });
+
   // onDestroy is no longer needed for the store subscription as $effect handles cleanup
 </script>
 
 {#if articles.length > 0}
+  <!-- Informations et contrôles de pagination (en haut) -->
+  <div bind:this={tableContainerRef} class="pagination-info mb-4">
+    <!-- Première ligne : Informations et sélecteur -->
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-3">
+      <span class="text-sm text-white">
+        Affichage de {startIndex + 1} à {endIndex} sur {totalItems} articles
+      </span>
+      <div class="flex items-center gap-2">
+        <label for="items-per-page" class="text-sm text-white">Articles par page:</label>
+        <select 
+          id="items-per-page"
+          bind:value={itemsPerPage}
+          onchange={(e) => changeItemsPerPage(Number((e.target as HTMLSelectElement)?.value))}
+          class="select select-sm bg-surface-700 text-white border-surface-500"
+        >
+          {#each itemsPerPageOptions as option}
+            <option value={option}>{option}</option>
+          {/each}
+        </select>
+      </div>
+    </div>
+    
+    <!-- Deuxième ligne : Navigation de pagination centrée -->
+    <div class="flex justify-center">
+      <div class="pagination-controls flex items-center gap-2">
+        <button 
+          class="btn btn-sm variant-soft-surface" 
+          onclick={previousPage}
+          disabled={currentPage === 1}
+          title="Page précédente"
+        >
+          ←
+        </button>
+        
+        {#each visiblePages as page}
+          <button 
+            class="btn btn-sm {page === currentPage ? 'variant-filled-primary' : 'variant-soft-surface'}"
+            onclick={() => goToPage(page)}
+          >
+            {page}
+          </button>
+        {/each}
+        
+        <button 
+          class="btn btn-sm variant-soft-surface" 
+          onclick={nextPage}
+          disabled={currentPage === totalPages}
+          title="Page suivante"
+        >
+          →
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div class="table-container card variant-glass">
     <table class="table">
       <thead>
@@ -215,7 +361,7 @@
         </tr>
       </thead>
       <tbody>
-        {#each sortedArticles as article (article['o:id'])}
+        {#each paginatedArticles as article (article['o:id'])}
           <tr 
             title="Cliquez pour voir les détails"
             onclick={(event) => selectArticle(article, event)} 
@@ -243,13 +389,40 @@
       </tbody>
     </table>
   </div>
+
+  <!-- Navigation de pagination (en bas) -->
+  <div class="pagination-bottom mt-4 flex items-center justify-center">
+    <div class="pagination-controls flex items-center gap-2">
+      <button 
+        class="btn btn-sm variant-soft-surface" 
+        onclick={previousPage}
+        disabled={currentPage === 1}
+        title="Page précédente"
+      >
+        ← Précédent
+      </button>
+      
+      <span class="text-sm text-white px-4">
+        Page {currentPage} sur {totalPages}
+      </span>
+      
+      <button 
+        class="btn btn-sm variant-soft-surface" 
+        onclick={nextPage}
+        disabled={currentPage === totalPages}
+        title="Page suivante"
+      >
+        Suivant →
+      </button>
+    </div>
+  </div>
 {:else}
   <p class="text-center py-8 text-white">Aucun article à afficher avec les filtres actuels.</p>
 {/if}
 
 <style>
   .table-container {
-    max-height: 400px;
+    max-height: 600px;
     overflow-y: auto;
   }
   
@@ -287,6 +460,62 @@
   
   .sortable-header:hover {
     background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Styles pour la pagination */
+  .pagination-info {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .pagination-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .pagination-controls button {
+    min-width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pagination-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .select-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+  }
+
+  /* Responsive design pour la pagination */
+  @media (max-width: 768px) {
+    .pagination-info {
+      padding: 0.75rem;
+    }
+    
+    .pagination-info > div:first-child {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    
+    .pagination-controls {
+      gap: 0.25rem;
+    }
+    
+    .pagination-controls button {
+      min-width: 2.25rem;
+      height: 2.25rem;
+      font-size: 0.875rem;
+    }
   }
 
   /* Classes spécifiques pour les polarités */
