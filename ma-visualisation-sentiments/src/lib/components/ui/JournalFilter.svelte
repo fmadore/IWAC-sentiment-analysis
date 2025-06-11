@@ -1,17 +1,13 @@
 <!-- Composant JournalFilter.svelte --> 
 <script lang="ts">
-  import { currentDatasetArticles, journalFilters } from '$lib/stores.ts';
-  import type { Article } from '$lib/types/data';
+  import { availableJournals, journalFilters } from '$lib/stores.ts';
 
   // Propriété pour référence externe, pas pour l'injection de propriété
   export const class_name = '';
   
   // Variables locales
   let selectedJournals = $state<string[]>([]);
-  let journals = $derived([...new Set(
-    ($currentDatasetArticles as Article[]).map(article => article.journal_source)
-                                       .filter((name): name is string => !!name)
-  )].sort((a, b) => a.localeCompare(b)));
+  let journals = $derived($availableJournals);
 
   // Fonction pour appliquer le filtre
   function applyFilter() {

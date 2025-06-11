@@ -13,19 +13,28 @@ export const selectedArticle = writable<Article | null>(null);
 export const isLoadingDataset = writable<boolean>(false);
 
 // Stores pour les filtres
+export const countryFilters = writable<string[]>([]);
 export const journalFilters = writable<string[]>([]);
 export const polarityFilters = writable<string[]>([]);
 export const subjectivityFilters = writable<number[]>([]);
 export const centralityFilters = writable<string[]>([]);
 
-// Store dérivé pour les articles filtrés
+// Store dérivé pour les articles filtrés avec logique hiérarchique pays -> journaux
 export const filteredArticles = derived(
-  [currentDatasetArticles, journalFilters, polarityFilters, subjectivityFilters, centralityFilters],
-  ([articles, journals, polarities, subjectivities, centralities]) => {
+  [currentDatasetArticles, countryFilters, journalFilters, polarityFilters, subjectivityFilters, centralityFilters],
+  ([articles, countries, journals, polarities, subjectivities, centralities]) => {
     return articles.filter(article => {
-      // Filtre par journal
-      if (journals.length > 0 && !journals.includes(article.journal_source || '')) {
+      // Filtre par pays (prioritaire)
+      if (countries.length > 0 && !countries.includes(article.Country || '')) {
         return false;
+      }
+
+      // Filtre par journal (mais seulement parmi les journaux des pays sélectionnés)
+      if (journals.length > 0) {
+        const journalSource = article.journal_source || article.Newspaper || '';
+        if (!journals.includes(journalSource)) {
+          return false;
+        }
       }
 
       // Filtre par polarité
@@ -51,6 +60,25 @@ export const filteredArticles = derived(
 
       return true;
     });
+  }
+);
+
+// Store dérivé pour les journaux disponibles basé sur les pays sélectionnés
+export const availableJournals = derived(
+  [currentDatasetArticles, countryFilters],
+  ([articles, countries]) => {
+    let filteredArticles = articles;
+    
+    // Si des pays sont sélectionnés, filtrer d'abord par pays
+    if (countries.length > 0) {
+      filteredArticles = articles.filter(article => countries.includes(article.Country || ''));
+    }
+    
+    // Extraire les journaux uniques des articles filtrés par pays
+    return [...new Set(
+      filteredArticles.map(article => article.journal_source || article.Newspaper)
+                      .filter((name): name is string => !!name)
+    )].sort((a, b) => a.localeCompare(b));
   }
 );
 
@@ -92,6 +120,9 @@ function mapArticleProperties(item: any, datasetId: string): Article {
     'o:title': item['o:title'],
     // Mapper les noms de propriétés qui peuvent varier
     journal_source: item.journal_source || item.Newspaper || item.display_title || 'N/A',
+    // Keep the original Newspaper and Country fields from JSON
+    Newspaper: item.Newspaper,
+    Country: item.Country,
     publication_date: item.publication_date || item['dcterms:date'] || 'N/A',
     sentiment_analysis: item.sentiment_analysis || null,
     dataset_id: datasetId,

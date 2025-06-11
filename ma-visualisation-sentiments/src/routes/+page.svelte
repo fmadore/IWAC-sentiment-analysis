@@ -5,6 +5,7 @@
     currentDatasetArticles, 
     isLoadingDataset, 
     loadDatasetArticles, 
+    CountryFilter,
     JournalFilter as JournalFilterComponent, 
     PolarityFilter,
     SubjectivityFilter,
@@ -66,7 +67,8 @@
   {#if $isLoadingDataset}
     <div class="alert variant-filled-warning p-4 mb-6">Chargement des données du corpus IWAC...</div>
   {:else if $currentDatasetArticles.length > 0}
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+      <CountryFilter />
       <JournalFilterComponent />
       <PolarityFilter />
       <SubjectivityFilter />

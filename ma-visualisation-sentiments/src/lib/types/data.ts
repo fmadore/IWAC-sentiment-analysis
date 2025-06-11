@@ -14,6 +14,8 @@ export interface Article {
   'o:id': number | string;
   'o:title'?: string;
   journal_source?: string;
+  Newspaper?: string; // Field from the JSON data
+  Country?: string; // Field from the JSON data
   publication_date?: string; // YYYY-MM-DD
   // ... autres champs Omeka que vous souhaitez utiliser ...
   sentiment_analysis: SentimentAnalysis | null;

@@ -17,8 +17,11 @@ export async function fetchDataset(filePath: string, datasetId: string, appFetch
             // Spread known fields first to allow specific overrides
             'o:id': rawArticle['o:id'],
             'o:title': rawArticle['o:title'],
-            // Map display_title from JSON to journal_source in Article type
-            journal_source: rawArticle['display_title'] || rawArticle.journal_source,
+            // Map display_title from JSON to journal_source in Article type, also handle Newspaper field
+            journal_source: rawArticle['display_title'] || rawArticle.journal_source || rawArticle.Newspaper,
+            // Keep the original Newspaper and Country fields from JSON
+            Newspaper: rawArticle.Newspaper,
+            Country: rawArticle.Country,
             // Transform dcterms:date to publication_date
             publication_date: rawArticle['dcterms:date'], 
             sentiment_analysis: rawArticle.sentiment_analysis,
