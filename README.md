@@ -1,6 +1,6 @@
 # Visualisation d'analyse de sentiments
 
-Cette application SvelteKit est conçue pour visualiser les résultats d'analyses de sentiments effectuées sur des corpus d'articles de presse. Elle permet de charger et d'explorer le corpus [Collection Islam Afrique de l'Ouest (IWAC)](https://islam.zmo.de/s/afrique_ouest/page/accueil), de filtrer les articles selon divers critères (pays, journal, polarité, score de subjectivité, centralité) et d'afficher les répartitions de sentiments sous forme de graphiques interactifs.
+Cette application SvelteKit est conçue pour visualiser les résultats d'analyses de sentiments effectuées sur des corpus d'articles de presse. Elle permet de charger et d'explorer le corpus [*Collection Islam Afrique de l'Ouest* (IWAC)](https://islam.zmo.de/s/afrique_ouest/page/accueil), de filtrer les articles selon divers critères (pays, journal, polarité, score de subjectivité, centralité) et d'afficher les répartitions de sentiments sous forme de graphiques interactifs.
 
 ## Objectif
 
