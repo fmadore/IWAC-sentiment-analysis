@@ -51,10 +51,10 @@
 
 </script>
 
-<div class="card variant-glass p-4">
+<div class="card variant-glass p-4 hover-lift">
   <div class="flex items-center justify-between mb-4">
     <h3 class="h4 text-white">Journal</h3>
-    <span class="text-sm text-surface-300">({journals.length})</span>
+    <span class="text-sm text-white/60">({journals.length})</span>
   </div>
   
   <!-- Barre de recherche -->
@@ -65,12 +65,12 @@
           type="text" 
           placeholder="Rechercher un journal..." 
           bind:value={searchTerm}
-          class="input input-sm w-full pr-8 bg-surface-700 border-surface-600 text-white placeholder-surface-400"
+          class="input input-sm w-full pr-8 glass-medium text-white placeholder-white/40"
         />
         {#if searchTerm}
           <button 
             onclick={clearSearch}
-            class="absolute right-2 top-1/2 transform -translate-y-1/2 text-surface-400 hover:text-white"
+            class="absolute right-2 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white transition-colors"
           >
             ✕
           </button>
@@ -81,7 +81,7 @@
   
   <!-- Compteur de résultats -->
   {#if searchTerm}
-    <div class="text-sm text-surface-300 mb-2">
+    <div class="text-sm text-white/70 mb-2">
       {filteredJournals.length} journal{filteredJournals.length !== 1 ? 's' : ''} trouvé{filteredJournals.length !== 1 ? 's' : ''}
     </div>
   {/if}
@@ -90,7 +90,7 @@
   <div class="flex flex-wrap gap-2 mb-2">
     {#each displayedJournals as journal}
       <button 
-        class="chip variant-soft-primary {selectedJournals.includes(journal) ? 'ring-2 ring-primary-500' : ''}" 
+        class="chip hover-lift variant-soft-primary {selectedJournals.includes(journal) ? 'ring-2 ring-primary-500 hover-glow' : ''}" 
         onclick={() => toggleJournal(journal)}
       >
         {journal}
@@ -101,7 +101,7 @@
   <!-- Bouton "Voir plus/moins" -->
   {#if hasMoreJournals && !searchTerm}
     <button 
-      class="btn btn-sm variant-ghost-surface mb-2" 
+      class="btn btn-sm variant-ghost-surface mb-2 hover-lift" 
       onclick={toggleShowAll}
     >
       {showAll ? `Voir moins (${INITIAL_DISPLAY_COUNT})` : `Voir plus (+${filteredJournals.length - INITIAL_DISPLAY_COUNT})`}
@@ -111,7 +111,7 @@
   <!-- Bouton effacer sélection -->
   {#if selectedJournals.length > 0}
     <button 
-      class="btn btn-sm variant-soft-surface mt-1" 
+      class="btn btn-sm variant-soft-surface mt-1 hover-lift" 
       onclick={() => {selectedJournals = []; applyFilter();}}
     >
       Effacer sélection ({selectedJournals.length})
@@ -121,28 +121,39 @@
 
 <style>
   .chip {
-    padding: 0.25rem 0.5rem;
+    padding: 0.25rem 0.75rem;
     font-size: 0.75rem;
+    font-weight: 500;
     border-radius: 9999px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all var(--transition-normal);
     white-space: nowrap;
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
   }
   
   .chip:hover {
-    opacity: 0.9;
     transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .chip.hover-glow {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
   }
   
   .input {
-    border-radius: 0.5rem;
+    border-radius: var(--radius-md);
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
-    transition: all 0.2s;
+    transition: all var(--transition-normal);
   }
   
   .input:focus {
-    outline: 2px solid rgb(var(--color-primary-500));
-    outline-offset: 2px;
+    outline: none;
+    border-color: rgba(59, 130, 246, 0.5);
+    box-shadow: 
+      0 0 0 3px rgba(59, 130, 246, 0.1),
+      var(--shadow-md);
   }
 </style>

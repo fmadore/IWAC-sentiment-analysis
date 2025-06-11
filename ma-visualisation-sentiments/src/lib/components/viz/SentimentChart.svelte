@@ -46,6 +46,7 @@
   let isMobile = $state(false);
   let chartContainer = $state<HTMLDivElement>();
   let chartType = $state<'bar' | 'pie'>('bar');
+  let isLoading = $state(true);
 
   onMount(() => {
     const checkMobile = () => {
@@ -54,6 +55,11 @@
     
     checkMobile();
     window.addEventListener('resize', checkMobile);
+    
+    // Simulate loading delay for smooth transition
+    setTimeout(() => {
+      isLoading = false;
+    }, 300);
     
     return () => {
       window.removeEventListener('resize', checkMobile);

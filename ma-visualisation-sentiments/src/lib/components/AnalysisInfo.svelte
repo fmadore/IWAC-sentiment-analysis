@@ -121,11 +121,6 @@
                 Voir le prompt complet
               </button>
             </div>
-            
-            <div>
-              <h4 class="h6 mb-2 text-white font-semibold">Reproductibilité scientifique</h4>
-              <p class="text-white text-sm">Le code source complet, incluant le prompt exact et les paramètres de configuration, est disponible dans le dépôt du projet. Cette transparence permet la reproduction et la validation des résultats par la communauté scientifique.</p>
-            </div>
           </div>
         </div>
       {/if}

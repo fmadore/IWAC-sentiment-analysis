@@ -85,43 +85,43 @@
 </script>
 
 {#if article}
-  <div class="space-y-6 p-2">
-    <h3 class="h3 text-white">{article['o:title'] ?? 'Titre non disponible'}</h3>
+  <div class="space-y-6">
+    <h3 class="h3 text-white text-balance">{article['o:title'] ?? 'Titre non disponible'}</h3>
     
-    <div class="grid grid-cols-2 gap-3">
-      <div class="card variant-soft-surface p-3">
-        <span class="text-sm uppercase font-bold opacity-75">Journal</span>
-        <p class="text-white mt-1">{getJournalName(article)}</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="card variant-glass glass-light p-4 hover-lift-sm">
+        <span class="text-xs uppercase font-bold opacity-75 text-white/60">Journal</span>
+        <p class="text-white mt-2 font-medium">{getJournalName(article)}</p>
       </div>
-      <div class="card variant-soft-surface p-3">
-        <span class="text-sm uppercase font-bold opacity-75">Date de publication</span>
-        <p class="text-white mt-1">{formatDate(article.publication_date)}</p>
+      <div class="card variant-glass glass-light p-4 hover-lift-sm">
+        <span class="text-xs uppercase font-bold opacity-75 text-white/60">Date de publication</span>
+        <p class="text-white mt-2 font-medium">{formatDate(article.publication_date)}</p>
       </div>
     </div>
 
-    <div class="card variant-soft-surface p-3">
-      <span class="text-sm uppercase font-bold opacity-75">Lien vers l'article complet</span>
-      <p class="text-white mt-1">
-        <a href={getArticleUrl(article['o:id'])} target="_blank" class="anchor">
-          Consulter l'article original
+    <div class="card variant-glass glass-light p-4 hover-lift-sm">
+      <span class="text-xs uppercase font-bold opacity-75 text-white/60">Lien vers l'article complet</span>
+      <p class="text-white mt-2">
+        <a href={getArticleUrl(article['o:id'])} target="_blank" class="anchor hover-glow focus-ring">
+          Consulter l'article original →
         </a>
       </p>
     </div>
     
     {#if article.sentiment_analysis}
       <!-- Centralité -->
-      <div class="card variant-soft-surface p-4">
-        <div class="flex items-center mb-3">
-          <span class="badge {getCentralityClass(article.sentiment_analysis.centralite_islam_musulmans)}">
+      <div class="card variant-glass glass-medium p-5 hover-lift-sm border-gradient">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+          <span class="badge badge-lg {getCentralityClass(article.sentiment_analysis.centralite_islam_musulmans)} hover-glow">
             {article.sentiment_analysis.centralite_islam_musulmans ?? 'Non abordé'}
           </span>
-          <span class="ml-2 text-sm uppercase font-bold opacity-75">Centralité de l'islam/musulmans</span>
+          <span class="text-sm uppercase font-bold opacity-75 text-white/80">Centralité de l'islam/musulmans</span>
         </div>
         
         {#if article.sentiment_analysis.centralite_justification}
-          <div class="mt-3">
-            <span class="text-sm uppercase font-bold opacity-75">Justification</span>
-            <blockquote class="mt-1 card variant-ghost p-3">
+          <div class="mt-4">
+            <span class="text-xs uppercase font-bold opacity-75 text-white/60 mb-2 block">Justification</span>
+            <blockquote class="card variant-glass glass-light p-4 border-l-4 border-l-blue-400/50 italic text-white/90 leading-relaxed">
               {article.sentiment_analysis.centralite_justification}
             </blockquote>
           </div>
@@ -129,18 +129,18 @@
       </div>
       
       <!-- Polarité -->
-      <div class="card variant-soft-surface p-4">
-        <div class="flex items-center mb-3">
-          <span class="badge {getPolarityClass(article.sentiment_analysis.polarite)}">
+      <div class="card variant-glass glass-medium p-5 hover-lift-sm border-gradient">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+          <span class="badge badge-lg {getPolarityClass(article.sentiment_analysis.polarite)} hover-glow">
             {article.sentiment_analysis.polarite}
           </span>
-          <span class="ml-2 text-sm uppercase font-bold opacity-75">Polarité</span>
+          <span class="text-sm uppercase font-bold opacity-75 text-white/80">Polarité</span>
         </div>
         
         {#if article.sentiment_analysis.polarite_justification}
-          <div class="mt-3">
-            <span class="text-sm uppercase font-bold opacity-75">Justification</span>
-            <blockquote class="mt-1 card variant-ghost p-3">
+          <div class="mt-4">
+            <span class="text-xs uppercase font-bold opacity-75 text-white/60 mb-2 block">Justification</span>
+            <blockquote class="card variant-glass glass-light p-4 border-l-4 border-l-purple-400/50 italic text-white/90 leading-relaxed">
               {article.sentiment_analysis.polarite_justification}
             </blockquote>
           </div>
@@ -148,50 +148,99 @@
       </div>
       
       <!-- Subjectivité -->
-      <div class="card variant-soft-surface p-4">
-        <div class="flex items-center mb-3">
-          <span class="badge {getSubjectivityClass(article.sentiment_analysis.subjectivite_score)}">
+      <div class="card variant-glass glass-medium p-5 hover-lift-sm border-gradient">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+          <span class="badge badge-lg {getSubjectivityClass(article.sentiment_analysis.subjectivite_score)} hover-glow">
             {article.sentiment_analysis.subjectivite_score}
           </span>
-          <span class="ml-2 text-sm uppercase font-bold opacity-75">Score de Subjectivité</span>
+          <span class="text-sm uppercase font-bold opacity-75 text-white/80">Score de Subjectivité</span>
         </div>
         
         {#if article.sentiment_analysis.subjectivite_justification}
-          <div class="mt-3">
-            <span class="text-sm uppercase font-bold opacity-75">Justification</span>
-            <blockquote class="mt-1 card variant-ghost p-3">
+          <div class="mt-4">
+            <span class="text-xs uppercase font-bold opacity-75 text-white/60 mb-2 block">Justification</span>
+            <blockquote class="card variant-glass glass-light p-4 border-l-4 border-l-green-400/50 italic text-white/90 leading-relaxed">
               {article.sentiment_analysis.subjectivite_justification}
             </blockquote>
           </div>
         {/if}
       </div>
     {:else}
-      <div class="card variant-ghost p-4 text-center">
-        <p class="text-white">Les données d'analyse des sentiments ne sont pas disponibles pour cet article.</p>
+      <div class="card variant-glass glass-light p-6 text-center hover-lift-sm">
+        <p class="text-white/80 text-balance">Les données d'analyse des sentiments ne sont pas disponibles pour cet article.</p>
       </div>
     {/if}
   </div>
 {:else}
-  <div class="card variant-ghost p-6 flex items-center justify-center min-h-[200px]">
-    <p class="text-white text-center">Sélectionnez un article dans le tableau pour voir les détails.</p>
+  <div class="card variant-glass glass-light p-8 flex flex-col items-center justify-center min-h-[300px] text-center hover-lift-sm">
+    <div class="mb-4 opacity-50">
+      <svg class="w-16 h-16 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    </div>
+    <h4 class="h4 text-white/80 mb-2">Aucun article sélectionné</h4>
+    <p class="text-white/60 text-balance max-w-md">Sélectionnez un article dans le tableau pour voir ses détails d'analyse des sentiments.</p>
   </div>
 {/if}
 
 <style>
   .badge {
-    padding: 0.25rem 0.5rem;
+    padding: 0.375rem 0.75rem;
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 600;
     border-radius: 9999px;
+    transition: all var(--transition-fast);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .badge-lg {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
   }
   
   .anchor {
-    color: #3B82F6;
-    text-decoration: underline;
-    transition: color 0.2s;
+    color: #60A5FA;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all var(--transition-normal);
+    border-bottom: 1px solid rgba(96, 165, 250, 0.3);
+    padding-bottom: 1px;
   }
   
   .anchor:hover {
-    color: #60A5FA;
+    color: #93C5FD;
+    border-bottom-color: rgba(147, 197, 253, 0.6);
+    transform: translateY(-1px);
+  }
+  
+  /* Enhanced blockquote styling */
+  blockquote {
+    position: relative;
+    font-style: italic;
+    line-height: 1.6;
+  }
+  
+  blockquote::before {
+    content: '"';
+    position: absolute;
+    top: -0.5rem;
+    left: -0.5rem;
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.2);
+    font-family: serif;
+  }
+  
+  /* Mobile responsive adjustments */
+  @media (max-width: 640px) {
+    .badge-lg {
+      padding: 0.375rem 0.75rem;
+      font-size: 0.75rem;
+    }
+    
+    blockquote {
+      font-size: 0.875rem;
+      padding: 0.75rem;
+    }
   }
 </style>

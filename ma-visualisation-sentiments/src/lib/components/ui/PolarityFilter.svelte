@@ -31,13 +31,13 @@
   }
 </script>
 
-<div class="card variant-glass p-4">
+<div class="card variant-glass p-4 hover-lift">
   <h3 class="h4 mb-4 text-white">Polarité</h3>
   
   <div class="flex flex-wrap gap-2">
     {#each polarityOptions as option}
       <button 
-        class="chip {option.class} {selectedPolarities.includes(option.value) ? 'ring-2 ring-primary-500' : ''}" 
+        class="chip hover-lift {option.class} {selectedPolarities.includes(option.value) ? 'ring-2 ring-primary-500 hover-glow' : ''}" 
         onclick={() => togglePolarity(option.value)}
       >
         {option.label}
@@ -47,7 +47,7 @@
 
   {#if selectedPolarities.length > 0}
     <button 
-      class="btn btn-sm variant-soft-surface mt-3" 
+      class="btn btn-sm variant-soft-surface mt-3 hover-lift" 
       onclick={clearSelection}
     >
       Effacer sélection
@@ -57,15 +57,23 @@
 
 <style>
   .chip {
-    padding: 0.25rem 0.5rem;
+    padding: 0.25rem 0.75rem;
     font-size: 0.75rem;
+    font-weight: 500;
     border-radius: 9999px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all var(--transition-normal);
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
   }
   
   .chip:hover {
-    opacity: 0.9;
     transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .chip.hover-glow {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
   }
 </style>

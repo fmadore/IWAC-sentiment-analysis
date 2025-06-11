@@ -23,13 +23,13 @@
   }
 </script>
 
-<div class="card variant-glass p-4">
+<div class="card variant-glass p-4 hover-lift">
   <h3 class="h4 mb-4 text-white">Score de subjectivité</h3>
   
   <div class="flex flex-wrap gap-2">
     {#each scores as score}
       <button 
-        class="chip {score === 1 ? 'variant-filled-success' : score === 2 ? 'variant-soft-success' : score === 3 ? 'variant-soft-primary' : score === 4 ? 'variant-soft-error' : 'variant-filled-error'} {selectedScores.includes(score) ? 'ring-2 ring-primary-500' : ''}" 
+        class="chip hover-lift {score === 1 ? 'variant-filled-success' : score === 2 ? 'variant-soft-success' : score === 3 ? 'variant-soft-primary' : score === 4 ? 'variant-soft-error' : 'variant-filled-error'} {selectedScores.includes(score) ? 'ring-2 ring-primary-500 hover-glow' : ''}" 
         onclick={() => toggleScore(score)}
       >
         {score}
@@ -39,23 +39,23 @@
 
   {#if selectedScores.length > 0}
     <button 
-      class="btn btn-sm variant-soft-surface mt-3" 
+      class="btn btn-sm variant-soft-surface mt-3 hover-lift" 
       onclick={clearSelection}
     >
       Effacer sélection
     </button>
   {/if}
   
-  <div class="mt-2 text-sm text-white">
-    <div class="flex gap-2 items-center mt-1">
+  <div class="mt-3 text-sm text-white/80 space-y-2">
+    <div class="flex gap-2 items-center">
       <span class="badge variant-soft-success">1-2</span>
       <span>Plutôt objectif</span>
     </div>
-    <div class="flex gap-2 items-center mt-1">
+    <div class="flex gap-2 items-center">
       <span class="badge variant-soft-primary">3</span>
       <span>Subjectivité mixte</span>
     </div>
-    <div class="flex gap-2 items-center mt-1">
+    <div class="flex gap-2 items-center">
       <span class="badge variant-soft-error">4-5</span>
       <span>Plutôt/très subjectif</span>
     </div>
@@ -64,21 +64,31 @@
 
 <style>
   .chip {
-    padding: 0.25rem 0.5rem;
+    padding: 0.25rem 0.75rem;
     font-size: 0.75rem;
+    font-weight: 500;
     border-radius: 9999px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all var(--transition-normal);
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
   }
   
   .chip:hover {
-    opacity: 0.9;
     transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .chip.hover-glow {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
   }
   
   .badge {
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
+    font-weight: 500;
     border-radius: 9999px;
+    transition: all var(--transition-fast);
   }
 </style>
