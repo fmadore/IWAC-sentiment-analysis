@@ -67,7 +67,7 @@
   {#if $isLoadingDataset}
     <div class="alert variant-filled-warning p-4 mb-6">Chargement des données du corpus IWAC...</div>
   {:else if $currentDatasetArticles.length > 0}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 filters-grid">
       <CountryFilter />
       <JournalFilterComponent />
       <PolarityFilter />
@@ -219,6 +219,13 @@
     height: 2.5rem;
     border-radius: 9999px;
     cursor: pointer;
+  }
+  
+  /* Styles pour la grille de filtres */
+  .filters-grid :global(.card) {
+    height: fit-content;
+    min-height: 120px;
+    align-self: start;
   }
   
   /* Media queries pour la responsivité */

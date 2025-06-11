@@ -29,7 +29,7 @@
 </script>
 
 <div class="card variant-glass p-4">
-  <h3 class="h4 mb-3 text-white">Centralité de l'islam/musulmans</h3>
+  <h3 class="h4 mb-3 text-white leading-tight">Centralité de l'islam / musulmans</h3>
   
   <div class="flex flex-wrap gap-2 mb-2">
     {#each centralityOptions as option}

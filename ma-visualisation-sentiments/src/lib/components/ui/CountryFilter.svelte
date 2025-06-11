@@ -42,7 +42,7 @@
 <div class="card variant-glass p-4">
   <h3 class="h4 mb-4 text-white">Pays</h3>
   
-  <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-1">
+  <div class="flex flex-wrap gap-2">
     {#each countries as country}
       <button 
         class="chip variant-soft-secondary {selectedCountries.includes(country) ? 'ring-2 ring-primary-500' : ''}" 
