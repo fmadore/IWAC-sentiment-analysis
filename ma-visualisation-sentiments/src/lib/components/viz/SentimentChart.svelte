@@ -4,7 +4,7 @@
 
   // ECharts core and modules for tree-shaking
   import { init, use } from 'echarts/core';
-  import { BarChart } from 'echarts/charts';
+  import { BarChart, PieChart, SunburstChart } from 'echarts/charts';
   import {
     TitleComponent,
     TooltipComponent,
@@ -22,6 +22,8 @@
     GridComponent,
     LegendComponent,
     BarChart,
+    PieChart,
+    SunburstChart,
     CanvasRenderer
   ]);
 
@@ -44,6 +46,7 @@
 
   let isMobile = $state(false);
   let chartContainer = $state<HTMLDivElement>();
+  let chartType = $state<'bar' | 'pie' | 'sunburst'>('bar');
 
   onMount(() => {
     const checkMobile = () => {
@@ -83,139 +86,299 @@
 
     const newspaperList = Array.from(uniqueNewspapers);
 
-    const seriesData: SeriesOption[] = newspaperList.map(journal => {
+    if (chartType === 'pie') {
+      // Pie chart: agrégation globale par polarité
+      const totalByPolarity: Record<string, number> = {};
+      polarityLabels.forEach(label => {
+        totalByPolarity[label] = 0;
+        newspaperList.forEach(journal => {
+          totalByPolarity[label] += newspaperPolarityCounts[journal]?.[label] || 0;
+        });
+      });
+
+      const pieData = polarityLabels
+        .filter(label => totalByPolarity[label] > 0)
+        .map(label => ({
+          name: label,
+          value: totalByPolarity[label],
+          itemStyle: { color: polarityColors[label as keyof typeof polarityColors] }
+        }));
+
       return {
-        name: journal,
-        type: 'bar',
-        stack: 'total',
-        emphasis: {
-          focus: 'series'
-        },
-        data: polarityLabels.map(label => newspaperPolarityCounts[journal]?.[label] || 0)
-        // ECharts will assign colors automatically. If specific colors are needed per newspaper:
-        // itemStyle: { color: getNewspaperColor(journal) }
-      };
-    });
-
-    return {
-      title: {
-        text: `Distribution de la polarité par journal (${articlesAnalyzed} articles analysés)`,
-        left: 'center',
-        textStyle: {
-          color: '#fff',
-          fontWeight: 'bold',
-          fontSize: isMobile ? 12 : 16
-        }
-      },
-      tooltip: {
-        trigger: 'axis',
-        triggerOn: 'mousemove',
-        enterable: true,
-        axisPointer: {
-          type: 'shadow'
-        },
-        confine: true,
-        textStyle: {
-          color: '#333',
-          fontSize: isMobile ? 10 : 12
-        },
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        borderColor: 'rgba(255, 255, 255, 0.4)',
-        borderWidth: 1,
-        formatter: function (params: any) {
-          if (!Array.isArray(params) || params.length === 0) {
-            return '';
+        title: {
+          text: `Distribution globale de la polarité (${articlesAnalyzed} articles)`,
+          left: 'center',
+          textStyle: {
+            color: '#fff',
+            fontWeight: 'bold',
+            fontSize: isMobile ? 12 : 16
           }
-          const sortedParams = params.slice().sort((a: any, b: any) => b.value - a.value);
-          
-          let listItemsHtml = '';
-          let total = 0;
-          
-          sortedParams.forEach((param: any) => {
-            if (param.value > 0) { 
-              listItemsHtml += `${param.marker} ${param.seriesName}: ${param.value}<br/>`;
+        },
+        tooltip: {
+          trigger: 'item',
+          formatter: '{a} <br/>{b}: {c} ({d}%)',
+          textStyle: {
+            color: '#333',
+            fontSize: isMobile ? 10 : 12
+          },
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          borderColor: 'rgba(255, 255, 255, 0.4)',
+          borderWidth: 1
+        },
+        legend: {
+          orient: 'vertical',
+          left: 'left',
+          textStyle: {
+            color: '#fff',
+            fontSize: isMobile ? 10 : 12
+          }
+        },
+        series: [{
+          name: 'Polarité',
+          type: 'pie',
+          radius: ['40%', '70%'],
+          center: ['60%', '50%'],
+          data: pieData,
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
             }
-            total += param.value; // Total should include all, even if not displayed due to future limits
-          });
+          }
+        }]
+      } as EChartsOption;
+    } else if (chartType === 'sunburst') {
+      // Sunburst chart: hiérarchie journal -> polarité
+      const sunburstData = newspaperList.map(journal => {
+        const children = polarityLabels
+          .filter(label => (newspaperPolarityCounts[journal]?.[label] || 0) > 0)
+          .map(label => ({
+            name: label,
+            value: newspaperPolarityCounts[journal]?.[label] || 0,
+            itemStyle: { color: polarityColors[label as keyof typeof polarityColors] }
+          }));
 
-          // Wrap the list in a scrollable div
-          const scrollableListHtml = `
-            <div style="max-height: ${isMobile ? '150px' : '200px'}; overflow-y: auto; margin-bottom: 5px;">
-              ${listItemsHtml}
-            </div>`;
-          
-          let tooltipHtml = `${params[0].axisValueLabel}<br/>`;
-          tooltipHtml += scrollableListHtml;
-          tooltipHtml += `<strong>Total: ${total}</strong>`;
-          
-          return tooltipHtml;
-        }
-      },
-      legend: {
-        data: newspaperList,
-        top: isMobile ? '12%' : '8%',
-        textStyle: {
-          color: '#fff',
-          fontSize: isMobile ? 10 : 12
-        },
-        type: 'scroll', // Added for better handling of many newspapers
-        orient: isMobile ? 'vertical' : 'horizontal',
-        left: isMobile ? 'right' : 'center',
-        itemWidth: isMobile ? 12 : 25,
-        itemHeight: isMobile ? 8 : 14
-      },
-      grid: {
-        left: isMobile ? '5%' : '3%',
-        right: isMobile ? '25%' : '4%',
-        bottom: isMobile ? '5%' : '3%',
-        top: isMobile ? '25%' : '18%', // Adjust top if legend takes more space
-        containLabel: true
-      },
-      xAxis: {
-        type: 'category',
-        data: polarityLabels,
-        axisTick: {
-          alignWithLabel: true
-        },
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.5)'
+        const totalForJournal = children.reduce((sum, child) => sum + child.value, 0);
+        
+        return {
+          name: journal,
+          value: totalForJournal,
+          children: children
+        };
+      }).filter(item => item.value > 0);
+
+      return {
+        title: {
+          text: `Distribution hiérarchique par journal (${articlesAnalyzed} articles)`,
+          left: 'center',
+          textStyle: {
+            color: '#fff',
+            fontWeight: 'bold',
+            fontSize: isMobile ? 12 : 16
           }
         },
-        axisLabel: {
-          color: '#fff',
-          rotate: isMobile ? 45 : 30,
-          fontSize: isMobile ? 9 : 11,
-          interval: 0 // Show all labels
-        }
-      },
-      yAxis: {
-        type: 'value',
-        minInterval: 1, // Force integer intervals
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.5)'
+        tooltip: {
+          trigger: 'item',
+          formatter: function(params: any) {
+            if (params.treePathInfo && params.treePathInfo.length > 1) {
+              return `${params.treePathInfo[0].name} - ${params.name}: ${params.value}`;
+            }
+            return `${params.name}: ${params.value}`;
+          },
+          textStyle: {
+            color: '#333',
+            fontSize: isMobile ? 10 : 12
+          },
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          borderColor: 'rgba(255, 255, 255, 0.4)',
+          borderWidth: 1
+        },
+        series: [{
+          type: 'sunburst',
+          data: sunburstData,
+          radius: [0, '90%'],
+          center: ['50%', '50%'],
+          sort: undefined,
+          emphasis: {
+            focus: 'ancestor'
+          },
+          levels: [{}, {
+            r0: '15%',
+            r: '35%',
+            itemStyle: {
+              borderWidth: 2
+            },
+            label: {
+              rotate: 'tangential'
+            }
+          }, {
+            r0: '35%',
+            r: '70%',
+            label: {
+              align: 'right'
+            }
+          }]
+        }]
+      } as EChartsOption;
+    } else {
+      // Bar chart (original)
+      const seriesData: SeriesOption[] = newspaperList.map(journal => {
+        return {
+          name: journal,
+          type: 'bar',
+          stack: 'total',
+          emphasis: {
+            focus: 'series'
+          },
+          data: polarityLabels.map(label => newspaperPolarityCounts[journal]?.[label] || 0)
+          // ECharts will assign colors automatically. If specific colors are needed per newspaper:
+          // itemStyle: { color: getNewspaperColor(journal) }
+        };
+      });
+
+      return {
+        title: {
+          text: `Distribution de la polarité par journal (${articlesAnalyzed} articles analysés)`,
+          left: 'center',
+          textStyle: {
+            color: '#fff',
+            fontWeight: 'bold',
+            fontSize: isMobile ? 12 : 16
           }
         },
-        splitLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.1)'
+        tooltip: {
+          trigger: 'axis',
+          triggerOn: 'mousemove',
+          enterable: true,
+          axisPointer: {
+            type: 'shadow'
+          },
+          confine: true,
+          textStyle: {
+            color: '#333',
+            fontSize: isMobile ? 10 : 12
+          },
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          borderColor: 'rgba(255, 255, 255, 0.4)',
+          borderWidth: 1,
+          formatter: function (params: any) {
+            if (!Array.isArray(params) || params.length === 0) {
+              return '';
+            }
+            const sortedParams = params.slice().sort((a: any, b: any) => b.value - a.value);
+            
+            let listItemsHtml = '';
+            let total = 0;
+            
+            sortedParams.forEach((param: any) => {
+              if (param.value > 0) { 
+                listItemsHtml += `${param.marker} ${param.seriesName}: ${param.value}<br/>`;
+              }
+              total += param.value; // Total should include all, even if not displayed due to future limits
+            });
+
+            // Wrap the list in a scrollable div
+            const scrollableListHtml = `
+              <div style="max-height: ${isMobile ? '150px' : '200px'}; overflow-y: auto; margin-bottom: 5px;">
+                ${listItemsHtml}
+              </div>`;
+            
+            let tooltipHtml = `${params[0].axisValueLabel}<br/>`;
+            tooltipHtml += scrollableListHtml;
+            tooltipHtml += `<strong>Total: ${total}</strong>`;
+            
+            return tooltipHtml;
           }
         },
-        axisLabel: {
-          color: '#fff',
-          fontSize: isMobile ? 9 : 11,
-          formatter: function (value: number) {
-            return Math.floor(value).toString(); // Ensure only whole numbers are displayed
+        legend: {
+          data: newspaperList,
+          top: isMobile ? '12%' : '8%',
+          textStyle: {
+            color: '#fff',
+            fontSize: isMobile ? 10 : 12
+          },
+          type: 'scroll', // Added for better handling of many newspapers
+          orient: isMobile ? 'vertical' : 'horizontal',
+          left: isMobile ? 'right' : 'center',
+          itemWidth: isMobile ? 12 : 25,
+          itemHeight: isMobile ? 8 : 14
+        },
+        grid: {
+          left: isMobile ? '5%' : '3%',
+          right: isMobile ? '25%' : '4%',
+          bottom: isMobile ? '5%' : '3%',
+          top: isMobile ? '25%' : '18%', // Adjust top if legend takes more space
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          data: polarityLabels,
+          axisTick: {
+            alignWithLabel: true
+          },
+          axisLine: {
+            lineStyle: {
+              color: 'rgba(255, 255, 255, 0.5)'
+            }
+          },
+          axisLabel: {
+            color: '#fff',
+            rotate: isMobile ? 45 : 30,
+            fontSize: isMobile ? 9 : 11,
+            interval: 0 // Show all labels
           }
-        }
-      },
-      series: seriesData
-    } as EChartsOption;
+        },
+        yAxis: {
+          type: 'value',
+          minInterval: 1, // Force integer intervals
+          axisLine: {
+            lineStyle: {
+              color: 'rgba(255, 255, 255, 0.5)'
+            }
+          },
+          splitLine: {
+            lineStyle: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            }
+          },
+          axisLabel: {
+            color: '#fff',
+            fontSize: isMobile ? 9 : 11,
+            formatter: function (value: number) {
+              return Math.floor(value).toString(); // Ensure only whole numbers are displayed
+            }
+          }
+        },
+        series: seriesData
+      } as EChartsOption;
+    }
   });
 </script>
 
 {#if $filteredArticles.length > 0}
+  <!-- Boutons de sélection du type de graphique -->
+  <div class="flex flex-wrap gap-2 mb-4 justify-center">
+    <button 
+      class="btn btn-sm {chartType === 'bar' ? 'variant-filled-primary' : 'variant-soft-surface'}"
+      onclick={() => chartType = 'bar'}
+    >
+      📊 Barres
+    </button>
+    <button 
+      class="btn btn-sm {chartType === 'pie' ? 'variant-filled-primary' : 'variant-soft-surface'}"
+      onclick={() => chartType = 'pie'}
+    >
+      🥧 Camembert
+    </button>
+    <button 
+      class="btn btn-sm {chartType === 'sunburst' ? 'variant-filled-primary' : 'variant-soft-surface'}"
+      onclick={() => chartType = 'sunburst'}
+    >
+      ☀️ Rayons
+    </button>
+  </div>
+
   <div 
     bind:this={chartContainer}
     style="height: {isMobile ? '350px' : '450px'}; position: relative;" 

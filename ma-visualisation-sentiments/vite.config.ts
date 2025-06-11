@@ -11,7 +11,11 @@ export default defineConfig({
 			'@lucide/svelte/icons/minimize',
 			'@lucide/svelte/icons/maximize',
 			'@lucide/svelte/icons/table',
-			'@lucide/svelte/icons/info'
+			'@lucide/svelte/icons/info',
+			'@lucide/svelte/icons/scatter-chart',
+			'@lucide/svelte/icons/area-chart',
+			'@lucide/svelte/icons/activity',
+			'@lucide/svelte/icons/menu'
 		]
 	}
 });

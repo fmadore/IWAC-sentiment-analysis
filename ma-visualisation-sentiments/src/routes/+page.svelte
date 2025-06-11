@@ -12,6 +12,9 @@
     SentimentChart,
     SentimentTrendsChart,
     SubjectivityChart,
+    CorrelationChart,
+    VolumeChart,
+    CentralityHeatmap,
     selectedArticle
   } from '$lib';
   import type { Article } from '$lib';
@@ -25,6 +28,9 @@
   import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
   import XIcon from '@lucide/svelte/icons/x';
   import MenuIcon from '@lucide/svelte/icons/menu';
+  import ScatterChartIcon from '@lucide/svelte/icons/scatter-chart';
+  import AreaChartIcon from '@lucide/svelte/icons/area-chart';
+  import ActivityIcon from '@lucide/svelte/icons/activity';
 
   let activeView = $state('charts');
   let showDetailsSidebar = $state(false);
@@ -113,7 +119,10 @@
         <div class="flex items-center justify-between p-4 border-b border-white/10 md:hidden">
           <h2 class="text-lg font-semibold text-white">
             {#if activeView === 'charts'}Graphiques
-            {:else if activeView === 'trends'}Tendances  
+            {:else if activeView === 'trends'}Tendances
+            {:else if activeView === 'correlation'}Corrélation
+            {:else if activeView === 'volume'}Volume
+            {:else if activeView === 'heatmap'}Heatmap
             {:else if activeView === 'table'}Tableau
             {/if}
           </h2>
@@ -154,29 +163,53 @@
                 </div>
                 
                 <!-- Navigation Options -->
-                <div class="grid grid-cols-3 gap-3">
+                <div class="grid grid-cols-2 gap-3">
                   <button
                     class="nav-option {activeView === 'charts' ? 'active' : ''}"
                     onclick={() => handleViewChange('charts')}
                   >
-                    <ChartIcon size={24} />
-                    <span class="text-sm font-medium">Graphiques</span>
+                    <ChartIcon size={20} />
+                    <span class="text-xs font-medium">Graphiques</span>
                   </button>
                   
                   <button
                     class="nav-option {activeView === 'trends' ? 'active' : ''}"
                     onclick={() => handleViewChange('trends')}
                   >
-                    <TrendingUpIcon size={24} />
-                    <span class="text-sm font-medium">Tendances</span>
+                    <TrendingUpIcon size={20} />
+                    <span class="text-xs font-medium">Tendances</span>
+                  </button>
+                  
+                  <button
+                    class="nav-option {activeView === 'correlation' ? 'active' : ''}"
+                    onclick={() => handleViewChange('correlation')}
+                  >
+                    <ScatterChartIcon size={20} />
+                    <span class="text-xs font-medium">Corrélation</span>
+                  </button>
+                  
+                  <button
+                    class="nav-option {activeView === 'volume' ? 'active' : ''}"
+                    onclick={() => handleViewChange('volume')}
+                  >
+                    <AreaChartIcon size={20} />
+                    <span class="text-xs font-medium">Volume</span>
+                  </button>
+                  
+                  <button
+                    class="nav-option {activeView === 'heatmap' ? 'active' : ''}"
+                    onclick={() => handleViewChange('heatmap')}
+                  >
+                    <ActivityIcon size={20} />
+                    <span class="text-xs font-medium">Heatmap</span>
                   </button>
                   
                   <button
                     class="nav-option {activeView === 'table' ? 'active' : ''}"
                     onclick={() => handleViewChange('table')}
                   >
-                    <TableIcon size={24} />
-                    <span class="text-sm font-medium">Tableau</span>
+                    <TableIcon size={20} />
+                    <span class="text-xs font-medium">Tableau</span>
                   </button>
                 </div>
               </div>
@@ -199,6 +232,15 @@
               <Navigation.Tile id="trends" label="Tendances">
                 <TrendingUpIcon />
               </Navigation.Tile>
+              <Navigation.Tile id="correlation" label="Corrélation">
+                <ScatterChartIcon />
+              </Navigation.Tile>
+              <Navigation.Tile id="volume" label="Volume">
+                <AreaChartIcon />
+              </Navigation.Tile>
+              <Navigation.Tile id="heatmap" label="Heatmap">
+                <ActivityIcon />
+              </Navigation.Tile>
               <Navigation.Tile id="table" label="Tableau">
                 <TableIcon />
               </Navigation.Tile>
@@ -220,6 +262,18 @@
           {:else if activeView === 'trends'}
             <div class="card variant-glass p-3 sm:p-6">
               <SentimentTrendsChart />
+            </div>
+          {:else if activeView === 'correlation'}
+            <div class="card variant-glass p-3 sm:p-6">
+              <CorrelationChart />
+            </div>
+          {:else if activeView === 'volume'}
+            <div class="card variant-glass p-3 sm:p-6">
+              <VolumeChart />
+            </div>
+          {:else if activeView === 'heatmap'}
+            <div class="card variant-glass p-3 sm:p-6">
+              <CentralityHeatmap />
             </div>
           {:else if activeView === 'table'}
             <div class="w-full card variant-glass p-3 sm:p-6">
