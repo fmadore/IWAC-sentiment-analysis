@@ -1,6 +1,11 @@
 import type { Article, Dataset } from './types/data.ts';
 import { base } from '$app/paths';
 
+// Fonction utilitaire pour obtenir le nom du journal de manière cohérente
+export function getJournalName(article: Article): string {
+  return article.journal_source || article.Newspaper || 'Inconnu';
+}
+
 // Fonction pour charger un dataset spécifique (peut être appelée depuis un composant)
 export async function fetchDataset(filePath: string, datasetId: string, appFetch = fetch): Promise<Dataset> {
     try {

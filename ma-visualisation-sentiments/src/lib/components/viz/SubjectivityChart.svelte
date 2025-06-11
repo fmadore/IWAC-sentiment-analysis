@@ -26,6 +26,7 @@
 
   import { filteredArticles } from '$lib';
   import type { Article } from '$lib';
+  import { getJournalName } from '$lib/utils';
 
   let options = $state<EChartsOption>({});
 
@@ -78,7 +79,7 @@
       if (article.sentiment_analysis?.subjectivite_score !== undefined) {
         const subjectivityScore = article.sentiment_analysis.subjectivite_score;
         const subjectivityKey = getSubjectivityLabel(subjectivityScore);
-        const journal = article.journal_source || 'Inconnu'; // Handle undefined journal
+        const journal = getJournalName(article); // Use the utility function
         uniqueNewspapers.add(journal);
 
         if (!newspaperSubjectivityCounts[journal]) {

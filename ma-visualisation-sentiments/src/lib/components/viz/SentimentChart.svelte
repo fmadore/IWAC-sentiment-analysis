@@ -28,6 +28,7 @@
 
   import { filteredArticles } from '$lib';
   import type { Article } from '$lib';
+  import { getJournalName } from '$lib/utils';
 
   let options: EChartsOption = $state({});
 
@@ -52,7 +53,7 @@
     $articles.forEach((article: Article) => {
       if (article.sentiment_analysis?.polarite) {
         const polarityKey = article.sentiment_analysis.polarite as string;
-        const journal = article.journal_source || 'Inconnu'; // Handle undefined journal
+        const journal = getJournalName(article); // Use the utility function
         uniqueNewspapers.add(journal);
 
         if (!newspaperPolarityCounts[journal]) {

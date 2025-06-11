@@ -2,6 +2,7 @@
   import { onDestroy } from 'svelte'; // createEventDispatcher will be removed
   import { filteredArticles, selectedArticle } from '$lib/stores';
   import type { Article } from '$lib/types/data';
+  import { getJournalName } from '$lib/utils';
 
   // Props - for event dispatching
   let { onShowDetails }: { onShowDetails: (details: { article: Article, position: {x: number, y: number} }) => void } = $props();
@@ -163,8 +164,8 @@
         valB = b['o:title'] || '';
         break;
       case 'journal':
-        valA = a.journal_source || '';
-        valB = b.journal_source || '';
+        valA = getJournalName(a);
+        valB = getJournalName(b);
         break;
       case 'date':
         valA = a.publication_date ? new Date(a.publication_date).getTime() : 0;
@@ -368,7 +369,7 @@
             onclick={(event) => selectArticle(article, event)} 
           >
             <td class="article-title">{article['o:title']}</td>
-            <td>{article.journal_source}</td>
+            <td>{getJournalName(article)}</td>
             <td>{formatDate(article.publication_date)}</td>
             <td>
               <span class="badge {getCentralityClass(article.sentiment_analysis?.centralite_islam_musulmans)}">

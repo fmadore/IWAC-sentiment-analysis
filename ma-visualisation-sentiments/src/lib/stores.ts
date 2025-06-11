@@ -2,6 +2,7 @@
 import { writable, derived } from 'svelte/store';
 import type { Article } from './types/data';
 import { base } from '$app/paths';
+import { getJournalName } from './utils';
 
 // Store pour les articles du dataset actuel
 export const currentDatasetArticles = writable<Article[]>([]);
@@ -31,8 +32,8 @@ export const filteredArticles = derived(
 
       // Filtre par journal (mais seulement parmi les journaux des pays sélectionnés)
       if (journals.length > 0) {
-        const journalSource = article.journal_source || article.Newspaper || '';
-        if (!journals.includes(journalSource)) {
+        const journalName = getJournalName(article);
+        if (!journals.includes(journalName)) {
           return false;
         }
       }
@@ -76,7 +77,7 @@ export const availableJournals = derived(
     
     // Extraire les journaux uniques des articles filtrés par pays
     return [...new Set(
-      filteredArticles.map(article => article.journal_source || article.Newspaper)
+      filteredArticles.map(article => getJournalName(article))
                       .filter((name): name is string => !!name)
     )].sort((a, b) => a.localeCompare(b));
   }

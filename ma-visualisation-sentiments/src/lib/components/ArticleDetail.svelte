@@ -1,6 +1,7 @@
 <script lang="ts">
   // import { selectedArticle } from '$lib/stores'; // Removed store import
   import type { Article } from '$lib/types/data';
+  import { getJournalName } from '$lib/utils';
 
   // Props: Accept article as a prop
   let { article }: { article: Article | null } = $props();
@@ -90,7 +91,7 @@
     <div class="grid grid-cols-2 gap-3">
       <div class="card variant-soft-surface p-3">
         <span class="text-sm uppercase font-bold opacity-75">Journal</span>
-        <p class="text-white mt-1">{article.journal_source ?? 'Source non disponible'}</p>
+        <p class="text-white mt-1">{getJournalName(article)}</p>
       </div>
       <div class="card variant-soft-surface p-3">
         <span class="text-sm uppercase font-bold opacity-75">Date de publication</span>
