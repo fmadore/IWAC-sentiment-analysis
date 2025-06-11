@@ -1,8 +1,6 @@
 <!-- Composant SentimentChart.svelte (sera adapté pour ECharts) --> 
 <script lang="ts">
   import { Chart } from 'svelte-echarts';
-  // import * as echarts from 'echarts'; // No longer importing the echarts namespace
-  import { onDestroy } from 'svelte';
 
   // ECharts core and modules for tree-shaking
   import { init, use } from 'echarts/core';
@@ -30,8 +28,6 @@
   import type { Article } from '$lib';
   import { getJournalName } from '$lib/utils';
 
-  let options: EChartsOption = $state({});
-
   // Exemple de données pour ECharts (sera dynamique)
   const polarityLabels = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif', 'Non applicable'];
   
@@ -45,12 +41,14 @@
     'Non applicable': '#a5a5a5'  // Gris
   };
 
-  const unsubscribe = filteredArticles.subscribe(($articles: Article[]) => {
+  // Use $derived for proper reactivity in Svelte 5
+  let options = $derived.by(() => {
+    const articles = $filteredArticles; // Direct reactive dependency
     let articlesAnalyzed = 0;
     const newspaperPolarityCounts: Record<string, Record<string, number>> = {};
     const uniqueNewspapers = new Set<string>();
 
-    $articles.forEach((article: Article) => {
+    articles.forEach((article: Article) => {
       if (article.sentiment_analysis?.polarite) {
         const polarityKey = article.sentiment_analysis.polarite as string;
         const journal = getJournalName(article); // Use the utility function
@@ -82,7 +80,7 @@
       };
     });
 
-    options = {
+    return {
       title: {
         text: `Distribution de la polarité par journal (${articlesAnalyzed} articles analysés)`,
         left: 'center',
@@ -189,11 +187,7 @@
         }
       },
       series: seriesData
-    };
-  });
-
-  onDestroy(() => {
-    unsubscribe();
+    } as EChartsOption;
   });
 </script>
 

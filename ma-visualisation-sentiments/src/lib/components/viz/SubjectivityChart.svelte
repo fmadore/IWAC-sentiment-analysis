@@ -1,6 +1,5 @@
 <script lang="ts">
   import { Chart } from 'svelte-echarts';
-  import { get } from 'svelte/store';
 
   // ECharts core and modules for tree-shaking
   import { init, use } from 'echarts/core';
@@ -27,8 +26,6 @@
   import { filteredArticles } from '$lib';
   import type { Article } from '$lib';
   import { getJournalName } from '$lib/utils';
-
-  let options = $state<EChartsOption>({});
 
   // Libellés de subjectivité avec correspondance des scores
   const subjectivityLabels = ['Factuel', 'Plutôt factuel', 'Mixte', 'Plutôt subjectif', 'Subjectif', 'Non applicable'];
@@ -69,8 +66,9 @@
     return newspaperColorPalette[index % newspaperColorPalette.length];
   }
 
-  $effect(() => {
-    const articles = get(filteredArticles);
+  // Use $derived for proper reactivity in Svelte 5
+  let options = $derived.by(() => {
+    const articles = $filteredArticles; // Direct reactive dependency
     let articlesAnalyzed = 0;
     const newspaperSubjectivityCounts: Record<string, Record<string, number>> = {};
     const uniqueNewspapers = new Set<string>();
@@ -109,7 +107,7 @@
       };
     });
 
-    options = {
+    return {
       title: {
         text: `Distribution de la subjectivité par journal (${articlesAnalyzed} articles analysés)`,
         left: 'center',
@@ -216,7 +214,7 @@
         }
       },
       series: seriesData
-    };
+    } as EChartsOption;
   });
 
 </script>

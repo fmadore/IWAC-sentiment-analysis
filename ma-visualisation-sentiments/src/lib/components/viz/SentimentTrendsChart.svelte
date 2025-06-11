@@ -1,6 +1,5 @@
 <script lang="ts">
   import { Chart } from 'svelte-echarts';
-  import { onDestroy } from 'svelte';
   import { init, use } from 'echarts/core';
   import { LineChart } from 'echarts/charts';
   import {
@@ -26,8 +25,6 @@
   import { filteredArticles } from '$lib';
   import type { Article } from '$lib';
 
-  let options: EChartsOption = $state({});
-
   const polarityLabels = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif'] as const;
   type PolarityType = typeof polarityLabels[number];
 
@@ -40,11 +37,13 @@
     'Très négatif': '#d63031'   // Rouge foncé
   };
 
-  const unsubscribe = filteredArticles.subscribe(($articles: Article[]) => {
+  // Use $derived for proper reactivity in Svelte 5
+  let options = $derived.by(() => {
+    const articles = $filteredArticles; // Direct reactive dependency
     const yearlyData: Record<string, Record<PolarityType, number>> = {};
     let articlesAnalyzed = 0;
 
-    $articles.forEach((article: Article) => {
+    articles.forEach((article: Article) => {
       if (article.publication_date && article.sentiment_analysis?.polarite) {
         const year = article.publication_date.substring(0, 4);
         const polarity = article.sentiment_analysis.polarite as PolarityType;
@@ -79,7 +78,7 @@
       smooth: true
     }));
 
-    options = {
+    return {
       title: {
         text: `Tendance des sentiments par année (${articlesAnalyzed} articles analysés)`,
         left: 'center',
@@ -174,11 +173,7 @@
           end: 100
         }
       ]
-    };
-  });
-
-  onDestroy(() => {
-    unsubscribe();
+    } as EChartsOption;
   });
 </script>
 
