@@ -24,13 +24,13 @@
   import CentralityFilter from '$lib/components/ui/CentralityFilter.svelte';
   import { Navigation } from '@skeletonlabs/skeleton-svelte';
   import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
-  import TableIcon from '@lucide/svelte/icons/table';
-  import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
-  import XIcon from '@lucide/svelte/icons/x';
-  import MenuIcon from '@lucide/svelte/icons/menu';
-  import ScatterChartIcon from '@lucide/svelte/icons/scatter-chart';
-  import AreaChartIcon from '@lucide/svelte/icons/area-chart';
-  import ActivityIcon from '@lucide/svelte/icons/activity';
+import TableIcon from '@lucide/svelte/icons/table';
+import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
+import XIcon from '@lucide/svelte/icons/x';
+import MenuIcon from '@lucide/svelte/icons/menu';
+import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
+import AreaChartIcon from '@lucide/svelte/icons/area-chart';
+import ActivityIcon from '@lucide/svelte/icons/activity';
 
   let activeView = $state('charts');
   let showDetailsSidebar = $state(false);
@@ -120,7 +120,7 @@
           <h2 class="text-lg font-semibold text-white">
             {#if activeView === 'charts'}Graphiques
             {:else if activeView === 'trends'}Tendances
-            {:else if activeView === 'correlation'}Corrélation
+            {:else if activeView === 'correlation'}Distribution
             {:else if activeView === 'volume'}Volume
             {:else if activeView === 'heatmap'}Heatmap
             {:else if activeView === 'table'}Tableau
@@ -184,8 +184,8 @@
                     class="nav-option {activeView === 'correlation' ? 'active' : ''}"
                     onclick={() => handleViewChange('correlation')}
                   >
-                    <ScatterChartIcon size={20} />
-                    <span class="text-xs font-medium">Corrélation</span>
+                    <BarChart3Icon size={20} />
+                    <span class="text-xs font-medium">Distribution</span>
                   </button>
                   
                   <button
@@ -232,8 +232,8 @@
               <Navigation.Tile id="trends" label="Tendances">
                 <TrendingUpIcon />
               </Navigation.Tile>
-              <Navigation.Tile id="correlation" label="Corrélation">
-                <ScatterChartIcon />
+              <Navigation.Tile id="correlation" label="Distribution">
+                <BarChart3Icon />
               </Navigation.Tile>
               <Navigation.Tile id="volume" label="Volume">
                 <AreaChartIcon />

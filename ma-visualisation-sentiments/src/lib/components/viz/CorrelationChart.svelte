@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Chart } from 'svelte-echarts';
   import { init, use } from 'echarts/core';
-  import { ScatterChart } from 'echarts/charts';
+  import { BarChart } from 'echarts/charts';
   import {
     TitleComponent,
     TooltipComponent,
@@ -17,7 +17,7 @@
     TooltipComponent,
     GridComponent,
     LegendComponent,
-    ScatterChart,
+    BarChart,
     CanvasRenderer
   ]);
 
@@ -25,22 +25,36 @@
   import type { Article } from '$lib';
   import { getJournalName } from '$lib/utils';
 
-  // Mapping des polarités vers des valeurs numériques
-  const polarityToNumber = {
-    'Très négatif': -2,
-    'Négatif': -1,
-    'Neutre': 0,
-    'Positif': 1,
-    'Très positif': 2,
-    'Non applicable': null
+  // Ordre des polarités pour l'affichage
+  const polarityOrder = [
+    'Très négatif',
+    'Négatif', 
+    'Neutre',
+    'Positif',
+    'Très positif',
+    'Non applicable'
+  ];
+
+  // Ordre des scores de subjectivité
+  const subjectivityOrder = [1, 2, 3, 4, 5];
+
+  // Labels descriptifs pour les scores de subjectivité
+  const subjectivityLabels = {
+    1: 'Très objectif',
+    2: 'Plutôt objectif', 
+    3: 'Mixte',
+    4: 'Plutôt subjectif',
+    5: 'Très subjectif'
   };
 
-  // Définition des couleurs pour les journaux
-  const journalColors = [
-    '#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', 
-    '#1abc9c', '#d35400', '#c0392b', '#16a085', '#8e44ad',
-    '#27ae60', '#2980b9', '#f1c40f', '#e67e22', '#6c5ce7'
-  ];
+  // Couleurs pour les scores de subjectivité
+  const subjectivityColors = {
+    1: '#3498db', // Bleu - Très objectif
+    2: '#2ecc71', // Vert - Plutôt objectif
+    3: '#f39c12', // Orange - Mixte
+    4: '#e74c3c', // Rouge - Plutôt subjectif
+    5: '#9b59b6'  // Violet - Très subjectif
+  };
 
   let isMobile = $state(false);
   let chartContainer = $state<HTMLDivElement>();
@@ -60,42 +74,42 @@
 
   let options = $derived.by(() => {
     const articles = $filteredArticles;
-    const journalData: Record<string, Array<[number, number, string]>> = {};
+    
+    // Structure: polarité -> subjectivité -> count
+    const data: Record<string, Record<number, number>> = {};
     let articlesAnalyzed = 0;
 
+    // Initialiser la structure de données
+    polarityOrder.forEach(polarity => {
+      data[polarity] = {};
+      subjectivityOrder.forEach(subj => {
+        data[polarity][subj] = 0;
+      });
+    });
+
+    // Compter les articles
     articles.forEach((article: Article) => {
       if (article.sentiment_analysis?.polarite && 
           article.sentiment_analysis?.subjectivite_score !== undefined) {
         
-        const polarityValue = polarityToNumber[article.sentiment_analysis.polarite as keyof typeof polarityToNumber];
-        const subjectivityValue = article.sentiment_analysis.subjectivite_score;
+        const polarity = article.sentiment_analysis.polarite;
+        const subjectivity = article.sentiment_analysis.subjectivite_score;
         
-        if (polarityValue !== null && subjectivityValue !== null) {
-          const journal = getJournalName(article);
-          
-          if (!journalData[journal]) {
-            journalData[journal] = [];
-          }
-          
-          journalData[journal].push([
-            polarityValue, 
-            subjectivityValue, 
-            article['o:title'] || 'Sans titre'
-          ]);
+        if (data[polarity] && subjectivity !== null && subjectivity >= 1 && subjectivity <= 5) {
+          data[polarity][subjectivity]++;
           articlesAnalyzed++;
         }
       }
     });
 
-    const journalList = Object.keys(journalData);
-    const series = journalList.map((journal, index) => ({
-      name: journal,
-      type: 'scatter' as 'scatter',
-      data: journalData[journal],
+    // Créer les séries pour chaque score de subjectivité
+    const series = subjectivityOrder.map(subjScore => ({
+      name: subjectivityLabels[subjScore as keyof typeof subjectivityLabels],
+      type: 'bar' as 'bar',
+      data: polarityOrder.map(polarity => data[polarity][subjScore]),
       itemStyle: {
-        color: journalColors[index % journalColors.length]
+        color: subjectivityColors[subjScore as keyof typeof subjectivityColors]
       },
-      symbolSize: isMobile ? 6 : 8,
       emphasis: {
         focus: 'series' as 'series'
       }
@@ -103,7 +117,7 @@
 
     return {
       title: {
-        text: `Corrélation Polarité vs Subjectivité (${articlesAnalyzed} articles)`,
+        text: `Distribution Polarité × Subjectivité (${articlesAnalyzed} articles)`,
         left: 'center',
         textStyle: {
           color: '#fff',
@@ -112,20 +126,21 @@
         }
       },
       tooltip: {
-        trigger: 'item',
+        trigger: 'axis',
+        axisPointer: {
+          type: 'shadow'
+        },
         formatter: function(params: any) {
-          const [polarity, subjectivity, title] = params.data;
-          const polarityLabels = {
-            '-2': 'Très négatif',
-            '-1': 'Négatif',
-            '0': 'Neutre',
-            '1': 'Positif',
-            '2': 'Très positif'
-          };
-                     return `<strong>${params.seriesName}</strong><br/>
-                   Polarité: ${polarityLabels[String(polarity) as keyof typeof polarityLabels]}<br/>
-                   Subjectivité: ${subjectivity}<br/>
-                   <em>${title.length > 50 ? title.substring(0, 50) + '...' : title}</em>`;
+          let result = `<strong>${params[0].name}</strong><br/>`;
+          let total = 0;
+          params.forEach((param: any) => {
+            if (param.value > 0) {
+              result += `${param.seriesName}: ${param.value} articles<br/>`;
+              total += param.value;
+            }
+          });
+          result += `<strong>Total: ${total} articles</strong>`;
+          return result;
         },
         textStyle: {
           color: '#333',
@@ -136,7 +151,7 @@
         borderWidth: 1
       },
       legend: {
-        data: journalList,
+        data: subjectivityOrder.map(s => subjectivityLabels[s as keyof typeof subjectivityLabels]),
         top: isMobile ? '12%' : '8%',
         textStyle: {
           color: '#fff',
@@ -149,31 +164,18 @@
       grid: {
         left: isMobile ? '10%' : '8%',
         right: isMobile ? '25%' : '8%',
-        bottom: isMobile ? '15%' : '12%',
-        top: isMobile ? '25%' : '18%',
+        bottom: isMobile ? '25%' : '20%',
+        top: isMobile ? '30%' : '20%',
         containLabel: true
       },
       xAxis: {
-        type: 'value',
-        name: 'Polarité',
-        nameLocation: 'middle',
-        nameGap: 30,
-        min: -2.5,
-        max: 2.5,
-        interval: 1,
+        type: 'category',
+        data: polarityOrder,
         axisLabel: {
           color: '#fff',
-          fontSize: isMobile ? 9 : 11,
-          formatter: function(value: number) {
-            const labels = {
-              '-2': 'Très négatif',
-              '-1': 'Négatif',
-              '0': 'Neutre',
-              '1': 'Positif',
-              '2': 'Très positif'
-            };
-                         return labels[String(value) as keyof typeof labels] || '';
-          }
+          fontSize: isMobile ? 8 : 10,
+          interval: 0,
+          rotate: isMobile ? 45 : 0
         },
         axisLine: {
           lineStyle: {
@@ -181,23 +183,14 @@
           }
         },
         splitLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.1)'
-          }
-        },
-        nameTextStyle: {
-          color: '#fff',
-          fontSize: isMobile ? 10 : 12
+          show: false
         }
       },
       yAxis: {
         type: 'value',
-        name: 'Subjectivité',
+        name: 'Nombre d\'articles',
         nameLocation: 'middle',
-        nameGap: 40,
-        min: 0.5,
-        max: 5.5,
-        interval: 1,
+        nameGap: 50,
         axisLabel: {
           color: '#fff',
           fontSize: isMobile ? 9 : 11
@@ -225,11 +218,11 @@
 {#if $filteredArticles.length > 0}
   <div 
     bind:this={chartContainer}
-    style="height: {isMobile ? '400px' : '500px'}; position: relative;" 
+    style="height: {isMobile ? '450px' : '500px'}; position: relative;" 
     class="bg-surface-900/50 rounded-lg p-1 sm:p-2"
   >
     <Chart {init} {options} />
   </div>
 {:else}
-  <p class="text-center py-8 text-white/80 text-sm sm:text-base">Aucun article ne correspond aux filtres actuels pour afficher la corrélation.</p>
+  <p class="text-center py-8 text-white/80 text-sm sm:text-base">Aucun article ne correspond aux filtres actuels pour afficher la distribution.</p>
 {/if} 

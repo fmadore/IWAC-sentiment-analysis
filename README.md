@@ -24,7 +24,7 @@ Le projet est structuré comme une application SvelteKit typique :
                 -   `SentimentChart.svelte`: Affiche la distribution de polarité par journal avec options barres/camembert.
                 -   `SubjectivityChart.svelte`: Affiche la distribution de subjectivité par journal avec options barres/camembert.
                 -   `SentimentTrendsChart.svelte`: Affiche l'évolution des sentiments au fil du temps avec zoom interactif.
-                -   `CorrelationChart.svelte`: Graphique de corrélation entre polarité et subjectivité par journal.
+                -   `CorrelationChart.svelte`: Graphique de distribution croisée entre polarité et subjectivité.
                 -   `VolumeChart.svelte`: Volume d'articles par pays au fil du temps (aires empilées/lignes).
                 -   `CentralityHeatmap.svelte`: Heatmap de la centralité moyenne par pays et année.
             -   `AnalysisInfo.svelte`: Fournit des informations explicatives sur la méthodologie d'analyse.
@@ -79,10 +79,11 @@ L'application propose une suite complète de visualisations interactives pour ex
 - **Navigation interactive** : Zoom et défilement pour explorer les périodes
 - **Lignes lissées** : Visualisation claire des tendances à long terme
 
-### 3. **Correlation** - Relations entre dimensions
-- **Scatter plot** : Corrélation entre polarité (-2 à +2) et subjectivité (1-5)
-- **Codage couleur** : Points colorés par journal pour identifier les patterns
-- **Tooltips informatifs** : Détails des articles au survol
+### 3. **Distribution** - Relations entre dimensions
+- **Graphique en barres groupées** : Distribution croisée entre polarité et subjectivité
+- **Catégories de polarité** : Très négatif, Négatif, Neutre, Positif, Très positif, Non applicable
+- **Niveaux de subjectivité** : Très objectif, Plutôt objectif, Mixte, Plutôt subjectif, Très subjectif
+- **Tooltips informatifs** : Nombre d'articles par catégorie et totaux
 
 ### 4. **Volume** - Activité médiatique
 - **Volume par pays** : Nombre d'articles publiés par pays au fil du temps
@@ -136,7 +137,7 @@ De plus, le store expose la fonction :
     - **Barres** : Graphique à barres empilées détaillé par journal  
     - **Camembert** : Vue d'ensemble globale de la distribution de subjectivité
 -   **`SentimentTrendsChart.svelte`**: Utilise ECharts pour afficher un graphique linéaire montrant l'évolution des sentiments au fil du temps (par année) avec zoom interactif et navigation.
--   **`CorrelationChart.svelte`**: Graphique de dispersion (scatter plot) montrant la corrélation entre polarité et subjectivité, avec points colorés par journal et tooltips informatifs.
+-   **`CorrelationChart.svelte`**: Graphique en barres groupées montrant la distribution croisée entre polarité et subjectivité, avec labels descriptifs et tooltips informatifs.
 -   **`VolumeChart.svelte`**: Visualise le volume d'articles par pays au fil du temps avec deux modes :
     - **Aires empilées** : Vue cumulative du volume par pays
     - **Lignes** : Évolution individuelle de chaque pays
@@ -156,7 +157,7 @@ De plus, le store expose la fonction :
     -   Propose six vues différentes via un menu de navigation latéral (desktop) ou modal (mobile):
       - **Charts**: Graphiques de distribution de polarité et subjectivité (barres/camembert)
       - **Trends**: Évolution des sentiments au fil du temps
-      - **Correlation**: Corrélation entre polarité et subjectivité par journal
+      - **Distribution**: Distribution croisée entre polarité et subjectivité
       - **Volume**: Volume d'articles par pays au fil du temps
       - **Heatmap**: Heatmap de centralité par pays et année
       - **Table**: Articles dans un tableau interactif
