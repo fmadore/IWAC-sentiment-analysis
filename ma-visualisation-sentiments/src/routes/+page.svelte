@@ -32,22 +32,13 @@ import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
 import AreaChartIcon from '@lucide/svelte/icons/area-chart';
 import ActivityIcon from '@lucide/svelte/icons/activity';
 
+  // État de l'application
   let activeView = $state('charts');
+  let detailedArticle: Article | null = $state(null);
   let showDetailsSidebar = $state(false);
-  let detailedArticle = $state<Article | null>(null);
   let detailsPosition = $state({ x: 0, y: 0 });
-  let isMobileSidebarOpen = $state(false);
-  let isMobile = $state(false);
 
   onMount(() => {
-    // Check if we're on mobile
-    const checkMobile = () => {
-      isMobile = window.innerWidth < 768; // md breakpoint
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
     // Charger automatiquement le fichier iwac_articles.json
     const loadData = async () => {
       isLoadingDataset.set(true);
@@ -65,10 +56,6 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
     };
 
     loadData();
-
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-    };
   });
 
   // Gérer l'affichage des détails
@@ -83,16 +70,8 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
     detailedArticle = null;
   }
 
-  function toggleMobileSidebar() {
-    isMobileSidebarOpen = !isMobileSidebarOpen;
-  }
-
   function handleViewChange(value: string) {
     activeView = value;
-    // Close mobile sidebar when a view is selected
-    if (isMobile) {
-      isMobileSidebarOpen = false;
-    }
   }
 </script>
 
@@ -114,141 +93,117 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
     </div>
 
     <div class="card variant-glass mb-4 sm:mb-6 overflow-hidden">
-      <!-- Mobile Header with Menu Toggle -->
-      {#if isMobile}
-        <div class="flex items-center justify-between p-4 border-b border-white/10 md:hidden">
-          <h2 class="text-lg font-semibold text-white">
-            {#if activeView === 'charts'}Graphiques
-            {:else if activeView === 'trends'}Tendances
-            {:else if activeView === 'correlation'}Distribution
-            {:else if activeView === 'volume'}Volume
-            {:else if activeView === 'heatmap'}Heatmap
-            {:else if activeView === 'table'}Tableau
-            {/if}
-          </h2>
-          <button 
-            class="btn-icon variant-soft-surface"
-            onclick={toggleMobileSidebar}
-            title="Menu"
-          >
-            <MenuIcon size={20} />
-          </button>
-        </div>
-      {/if}
-
-      <!-- Layout: Mobile uses conditional rendering, Desktop uses grid -->
-      <div class="md:grid md:grid-cols-[auto_1fr]">
-        <!-- Mobile Sidebar Overlay -->
-        {#if isMobile && isMobileSidebarOpen}
-          <div class="fixed inset-0 z-50 md:hidden">
-            <!-- Backdrop -->
-            <button 
-              class="absolute inset-0 bg-black/50 border-0 p-0 cursor-pointer" 
-              onclick={toggleMobileSidebar}
-              onkeydown={(e) => e.key === 'Escape' && toggleMobileSidebar()}
-              aria-label="Fermer le menu"
-            ></button>
-            <!-- Mobile Bottom Sheet Navigation -->
-            <div class="absolute bottom-0 left-0 right-0 bg-surface-900 rounded-t-xl shadow-2xl border-t border-white/10 animate-slide-up">
-              <div class="p-4">
-                <div class="flex items-center justify-between mb-4">
-                  <h3 class="text-white font-semibold text-lg">Navigation</h3>
-                  <button 
-                    class="btn-icon variant-soft-surface"
-                    onclick={toggleMobileSidebar}
-                    aria-label="Fermer le menu"
-                  >
-                    <XIcon size={20} />
-                  </button>
-                </div>
-                
-                <!-- Navigation Options -->
-                <div class="grid grid-cols-2 gap-3">
-                  <button
-                    class="nav-option {activeView === 'charts' ? 'active' : ''}"
-                    onclick={() => handleViewChange('charts')}
-                  >
-                    <ChartIcon size={20} />
-                    <span class="text-xs font-medium">Graphiques</span>
-                  </button>
-                  
-                  <button
-                    class="nav-option {activeView === 'trends' ? 'active' : ''}"
-                    onclick={() => handleViewChange('trends')}
-                  >
-                    <TrendingUpIcon size={20} />
-                    <span class="text-xs font-medium">Tendances</span>
-                  </button>
-                  
-                  <button
-                    class="nav-option {activeView === 'correlation' ? 'active' : ''}"
-                    onclick={() => handleViewChange('correlation')}
-                  >
-                    <BarChart3Icon size={20} />
-                    <span class="text-xs font-medium">Distribution</span>
-                  </button>
-                  
-                  <button
-                    class="nav-option {activeView === 'volume' ? 'active' : ''}"
-                    onclick={() => handleViewChange('volume')}
-                  >
-                    <AreaChartIcon size={20} />
-                    <span class="text-xs font-medium">Volume</span>
-                  </button>
-                  
-                  <button
-                    class="nav-option {activeView === 'heatmap' ? 'active' : ''}"
-                    onclick={() => handleViewChange('heatmap')}
-                  >
-                    <ActivityIcon size={20} />
-                    <span class="text-xs font-medium">Heatmap</span>
-                  </button>
-                  
-                  <button
-                    class="nav-option {activeView === 'table' ? 'active' : ''}"
-                    onclick={() => handleViewChange('table')}
-                  >
-                    <TableIcon size={20} />
-                    <span class="text-xs font-medium">Tableau</span>
-                  </button>
-                </div>
-              </div>
-            </div>
+      <!-- Navigation horizontale en haut -->
+      <div class="navigation-top-bar">
+        <!-- Navigation Desktop -->
+        <div class="hidden md:flex items-center justify-center">
+          <div class="flex space-x-2">
+            <button
+              class="nav-tab {activeView === 'charts' ? 'active' : ''}"
+              onclick={() => handleViewChange('charts')}
+            >
+              <ChartIcon size={20} />
+              <span>Graphiques</span>
+            </button>
+            
+            <button
+              class="nav-tab {activeView === 'trends' ? 'active' : ''}"
+              onclick={() => handleViewChange('trends')}
+            >
+              <TrendingUpIcon size={20} />
+              <span>Tendances</span>
+            </button>
+            
+            <button
+              class="nav-tab {activeView === 'correlation' ? 'active' : ''}"
+              onclick={() => handleViewChange('correlation')}
+            >
+              <BarChart3Icon size={20} />
+              <span>Distribution</span>
+            </button>
+            
+            <button
+              class="nav-tab {activeView === 'volume' ? 'active' : ''}"
+              onclick={() => handleViewChange('volume')}
+            >
+              <AreaChartIcon size={20} />
+              <span>Volume</span>
+            </button>
+            
+            <button
+              class="nav-tab {activeView === 'heatmap' ? 'active' : ''}"
+              onclick={() => handleViewChange('heatmap')}
+            >
+              <ActivityIcon size={20} />
+              <span>Heatmap</span>
+            </button>
+            
+            <button
+              class="nav-tab {activeView === 'table' ? 'active' : ''}"
+              onclick={() => handleViewChange('table')}
+            >
+              <TableIcon size={20} />
+              <span>Tableau</span>
+            </button>
           </div>
-        {/if}
-
-        <!-- Desktop Sidebar -->
-        <div class="hidden md:block">
-          <Navigation.Rail 
-            value={activeView} 
-            onValueChange={handleViewChange}
-            background="bg-primary-500/10"
-            padding="p-2"
-          >
-            {#snippet tiles()}
-              <Navigation.Tile id="charts" label="Graphiques">
-                <ChartIcon />
-              </Navigation.Tile>
-              <Navigation.Tile id="trends" label="Tendances">
-                <TrendingUpIcon />
-              </Navigation.Tile>
-              <Navigation.Tile id="correlation" label="Distribution">
-                <BarChart3Icon />
-              </Navigation.Tile>
-              <Navigation.Tile id="volume" label="Volume">
-                <AreaChartIcon />
-              </Navigation.Tile>
-              <Navigation.Tile id="heatmap" label="Heatmap">
-                <ActivityIcon />
-              </Navigation.Tile>
-              <Navigation.Tile id="table" label="Tableau">
-                <TableIcon />
-              </Navigation.Tile>
-            {/snippet}
-          </Navigation.Rail>
         </div>
 
-        <!-- Content Area -->
+        <!-- Navigation Mobile -->
+        <div class="md:hidden">
+          <div class="flex items-center space-x-2 overflow-x-auto pb-2">
+            <button
+              class="nav-tab-mobile {activeView === 'charts' ? 'active' : ''}"
+              onclick={() => handleViewChange('charts')}
+            >
+              <ChartIcon size={18} />
+              <span class="text-xs">Graphiques</span>
+            </button>
+            
+            <button
+              class="nav-tab-mobile {activeView === 'trends' ? 'active' : ''}"
+              onclick={() => handleViewChange('trends')}
+            >
+              <TrendingUpIcon size={18} />
+              <span class="text-xs">Tendances</span>
+            </button>
+            
+            <button
+              class="nav-tab-mobile {activeView === 'correlation' ? 'active' : ''}"
+              onclick={() => handleViewChange('correlation')}
+            >
+              <BarChart3Icon size={18} />
+              <span class="text-xs">Distribution</span>
+            </button>
+            
+            <button
+              class="nav-tab-mobile {activeView === 'volume' ? 'active' : ''}"
+              onclick={() => handleViewChange('volume')}
+            >
+              <AreaChartIcon size={18} />
+              <span class="text-xs">Volume</span>
+            </button>
+            
+            <button
+              class="nav-tab-mobile {activeView === 'heatmap' ? 'active' : ''}"
+              onclick={() => handleViewChange('heatmap')}
+            >
+              <ActivityIcon size={18} />
+              <span class="text-xs">Heatmap</span>
+            </button>
+            
+            <button
+              class="nav-tab-mobile {activeView === 'table' ? 'active' : ''}"
+              onclick={() => handleViewChange('table')}
+            >
+              <TableIcon size={18} />
+              <span class="text-xs">Tableau</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Area -->
+      <div class="w-full">
         <div class="p-3 sm:p-6">
           {#if activeView === 'charts'}
             <div class="space-y-4 sm:space-y-6">
@@ -382,40 +337,64 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
       transform: translateY(0);
     }
   }
-
-  .animate-slide-up {
-    animation: slideUp 0.3s ease-out;
+  
+  /* Amélioration des tuiles de navigation Skeleton */
+  :global(.navigation-rail-custom .nav-tile) {
+    padding: 1.25rem 1rem !important;
+    border-radius: 0.75rem !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    margin-bottom: 0.75rem !important;
+    min-height: 90px !important;
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
+    text-align: center !important;
   }
-
-  .nav-option {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 1rem;
-    border-radius: 0.75rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
-    transition: all 0.2s ease;
-    min-height: 80px;
+  
+  :global(.navigation-rail-custom .nav-tile:hover) {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    color: white !important;
   }
-
-  .nav-option:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
+  
+  :global(.navigation-rail-custom .nav-tile[data-selected="true"]) {
+    background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4) !important;
+    transform: translateY(-1px) !important;
   }
-
-  .nav-option.active {
-    background: linear-gradient(135deg, #3B82F6, #8B5CF6);
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  
+  :global(.navigation-rail-custom .nav-tile[data-selected="true"]:hover) {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5) !important;
   }
-
-  .nav-option.active:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+  
+  /* Amélioration des icônes dans la navigation */
+  :global(.navigation-rail-custom .nav-tile svg) {
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+    margin-bottom: 0.5rem;
+  }
+  
+  :global(.navigation-rail-custom .nav-tile:hover svg) {
+    opacity: 1;
+  }
+  
+  :global(.navigation-rail-custom .nav-tile[data-selected="true"] svg) {
+    opacity: 1;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  }
+  
+  /* Amélioration du texte des labels */
+  :global(.navigation-rail-custom .nav-tile .nav-tile-label) {
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
+    line-height: 1.2 !important;
   }
   
   .btn-icon {
@@ -448,5 +427,102 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
     .details-content {
       padding: 0.5rem;
     }
+  }
+
+  /* Styles pour la navigation horizontale en haut */
+  .navigation-top-bar {
+    background: rgba(30, 41, 59, 0.8);
+    backdrop-filter: blur(8px);
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+  }
+  
+  /* Navigation tabs desktop */
+  .nav-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 500;
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+  
+  .nav-tab:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    color: white;
+  }
+  
+  .nav-tab.active {
+    background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+    transform: translateY(-1px);
+  }
+  
+  .nav-tab.active:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+  }
+  
+  /* Navigation tabs mobile */
+  .nav-tab-mobile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 500;
+    white-space: nowrap;
+    min-width: 80px;
+    flex-shrink: 0;
+  }
+  
+  .nav-tab-mobile:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+  
+  .nav-tab-mobile.active {
+    background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+  }
+  
+  /* Amélioration des icônes dans les tabs */
+  .nav-tab :global(svg),
+  .nav-tab-mobile :global(svg) {
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+  }
+  
+  .nav-tab:hover :global(svg),
+  .nav-tab-mobile:hover :global(svg) {
+    opacity: 1;
+  }
+  
+  .nav-tab.active :global(svg),
+  .nav-tab-mobile.active :global(svg) {
+    opacity: 1;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
   }
 </style>
