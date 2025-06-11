@@ -21,9 +21,12 @@ Le projet est structuré comme une application SvelteKit typique :
                 -   `CentralityFilter.svelte`: Permet de filtrer les articles par centralité de l'islam/musulmans.
                 -   `SentimentCriteriaFilter.svelte`: Version alternative qui combine les filtres de polarité et subjectivité.
             -   `viz/`: Composants pour la visualisation des données.
-                -   `SentimentChart.svelte`: Affiche la distribution de polarité par journal en utilisant ECharts.
-                -   `SubjectivityChart.svelte`: Affiche la distribution de subjectivité par journal.
-                -   `SentimentTrendsChart.svelte`: Affiche l'évolution des sentiments au fil du temps.
+                -   `SentimentChart.svelte`: Affiche la distribution de polarité par journal avec options barres/camembert.
+                -   `SubjectivityChart.svelte`: Affiche la distribution de subjectivité par journal avec options barres/camembert.
+                -   `SentimentTrendsChart.svelte`: Affiche l'évolution des sentiments au fil du temps avec zoom interactif.
+                -   `CorrelationChart.svelte`: Graphique de corrélation entre polarité et subjectivité par journal.
+                -   `VolumeChart.svelte`: Volume d'articles par pays au fil du temps (aires empilées/lignes).
+                -   `CentralityHeatmap.svelte`: Heatmap de la centralité moyenne par pays et année.
             -   `AnalysisInfo.svelte`: Fournit des informations explicatives sur la méthodologie d'analyse.
             -   `ArticleTable.svelte`: Affiche les articles dans un tableau interactif avec tri, pagination et sélection.
             -   `ArticleDetail.svelte`: Affiche les détails d'un article sélectionné.
@@ -61,6 +64,41 @@ Consultez `src/lib/types/data.ts` pour la structure détaillée des objets `Arti
 
 Le script `data-preprocess/data-fetch.py` permet de récupérer les données depuis le dataset Hugging Face ["fmadore/iwac-newspaper-articles"](https://huggingface.co/datasets/fmadore/iwac-newspaper-articles) et de les transformer au format attendu par l'application.
 
+## Visualisations disponibles
+
+L'application propose une suite complète de visualisations interactives pour explorer les données d'analyse de sentiment :
+
+### 1. **Charts** - Distributions de sentiment
+- **Graphiques de polarité** : Distribution des sentiments (Très positif → Très négatif) par journal
+- **Graphiques de subjectivité** : Distribution des scores de subjectivité (1-5) par journal
+- **Modes de visualisation** : Basculer entre barres détaillées et camemberts globaux
+- **Couleurs cohérentes** : Gradations logiques (vert foncé → rouge foncé) correspondant aux filtres
+
+### 2. **Trends** - Évolution temporelle
+- **Tendances des sentiments** : Évolution des polarités au fil des années
+- **Navigation interactive** : Zoom et défilement pour explorer les périodes
+- **Lignes lissées** : Visualisation claire des tendances à long terme
+
+### 3. **Correlation** - Relations entre dimensions
+- **Scatter plot** : Corrélation entre polarité (-2 à +2) et subjectivité (1-5)
+- **Codage couleur** : Points colorés par journal pour identifier les patterns
+- **Tooltips informatifs** : Détails des articles au survol
+
+### 4. **Volume** - Activité médiatique
+- **Volume par pays** : Nombre d'articles publiés par pays au fil du temps
+- **Modes d'affichage** : Aires empilées (vue cumulative) ou lignes (vue individuelle)
+- **Identification des pics** : Repérage des périodes d'activité médiatique intense
+
+### 5. **Heatmap** - Centralité géographique et temporelle
+- **Centralité par pays/année** : Intensité de la couverture de l'islam/musulmans
+- **Échelle de couleurs** : Du bleu (faible centralité) au rouge (forte centralité)
+- **Patterns spatio-temporels** : Identification des tendances géographiques et historiques
+
+### 6. **Table** - Exploration détaillée
+- **Tableau interactif** : Liste complète des articles avec tri et pagination
+- **Vue mobile adaptée** : Cartes responsives pour petits écrans
+- **Détails d'articles** : Modal avec métadonnées complètes et justifications d'analyse
+
 ## Gestion d'état (`stores.ts`)
 
 L'application utilise les stores Svelte pour gérer l'état global :
@@ -91,9 +129,18 @@ De plus, le store expose la fonction :
 
 ### Composants de visualisation
 
--   **`SentimentChart.svelte`**: Utilise ECharts pour afficher un graphique à barres empilées de la distribution des polarités par journal, avec support mobile et tooltips interactifs.
--   **`SubjectivityChart.svelte`**: Utilise ECharts pour afficher un graphique à barres empilées de la distribution des scores de subjectivité par journal.
--   **`SentimentTrendsChart.svelte`**: Utilise ECharts pour afficher un graphique linéaire montrant l'évolution des sentiments au fil du temps (par année) avec zoom et navigation.
+-   **`SentimentChart.svelte`**: Utilise ECharts pour afficher la distribution des polarités par journal. Propose deux modes de visualisation :
+    - **Barres** : Graphique à barres empilées détaillé par journal
+    - **Camembert** : Vue d'ensemble globale de la distribution des polarités
+-   **`SubjectivityChart.svelte`**: Utilise ECharts pour afficher la distribution des scores de subjectivité par journal. Propose deux modes de visualisation :
+    - **Barres** : Graphique à barres empilées détaillé par journal  
+    - **Camembert** : Vue d'ensemble globale de la distribution de subjectivité
+-   **`SentimentTrendsChart.svelte`**: Utilise ECharts pour afficher un graphique linéaire montrant l'évolution des sentiments au fil du temps (par année) avec zoom interactif et navigation.
+-   **`CorrelationChart.svelte`**: Graphique de dispersion (scatter plot) montrant la corrélation entre polarité et subjectivité, avec points colorés par journal et tooltips informatifs.
+-   **`VolumeChart.svelte`**: Visualise le volume d'articles par pays au fil du temps avec deux modes :
+    - **Aires empilées** : Vue cumulative du volume par pays
+    - **Lignes** : Évolution individuelle de chaque pays
+-   **`CentralityHeatmap.svelte`**: Heatmap interactive montrant la centralité moyenne de l'islam/musulmans par pays et année, avec échelle de couleurs intuitive.
 
 ### Composants d'affichage et d'information
 
@@ -106,10 +153,13 @@ De plus, le store expose la fonction :
 -   `+page.ts`: Fonction de chargement simplifiée qui ne charge plus de manifest externe.
 -   `+page.svelte`:
     -   Charge automatiquement le corpus IWAC au démarrage de l'application.
-    -   Propose trois vues différentes via un menu de navigation latéral (desktop) ou modal (mobile):
-      - **Graphiques**: Affiche les graphiques de distribution de polarité et de subjectivité
-      - **Tendances**: Affiche l'évolution des sentiments au fil du temps
-      - **Tableau**: Affiche les articles dans un tableau interactif
+    -   Propose six vues différentes via un menu de navigation latéral (desktop) ou modal (mobile):
+      - **Charts**: Graphiques de distribution de polarité et subjectivité (barres/camembert)
+      - **Trends**: Évolution des sentiments au fil du temps
+      - **Correlation**: Corrélation entre polarité et subjectivité par journal
+      - **Volume**: Volume d'articles par pays au fil du temps
+      - **Heatmap**: Heatmap de centralité par pays et année
+      - **Table**: Articles dans un tableau interactif
     -   Inclut un système de filtrage hiérarchique (Pays → Journaux → Critères de sentiment)
     -   Gère l'affichage des détails d'articles dans un modal responsive
     -   Interface entièrement responsive avec navigation mobile optimisée
