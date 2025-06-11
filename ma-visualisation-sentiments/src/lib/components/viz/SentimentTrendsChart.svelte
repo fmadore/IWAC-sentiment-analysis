@@ -29,13 +29,13 @@
   const polarityLabels = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif'] as const;
   type PolarityType = typeof polarityLabels[number];
 
-  // Définition des couleurs harmonisées avec le SentimentChart
+  // Définition des couleurs avec gradations logiques
   const polarityColors: Record<PolarityType, string> = {
-    'Très positif': '#00b894',  // Vert foncé
-    'Positif': '#55efc4',       // Vert clair
-    'Neutre': '#74b9ff',        // Bleu clair
-    'Négatif': '#ff7675',       // Rouge clair
-    'Très négatif': '#d63031'   // Rouge foncé
+    'Très positif': '#059669',    // Vert foncé (plus intense)
+    'Positif': '#10B981',         // Vert moyen
+    'Neutre': '#3B82F6',          // Bleu
+    'Négatif': '#EF4444',         // Rouge moyen
+    'Très négatif': '#DC2626'     // Rouge foncé (plus intense)
   };
 
   let isMobile = $state(false);

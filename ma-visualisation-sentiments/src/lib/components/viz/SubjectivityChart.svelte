@@ -3,7 +3,7 @@
 
   // ECharts core and modules for tree-shaking
   import { init, use } from 'echarts/core';
-  import { BarChart, PieChart, SunburstChart } from 'echarts/charts';
+  import { BarChart, PieChart } from 'echarts/charts';
   import {
     TitleComponent,
     TooltipComponent,
@@ -22,7 +22,6 @@
     LegendComponent,
     BarChart,
     PieChart,
-    SunburstChart,
     CanvasRenderer
   ]);
 
@@ -47,14 +46,14 @@
     }
   }
   
-  // Définition des couleurs harmonisées pour les niveaux de subjectivité
+  // Définition des couleurs avec gradations logiques pour la subjectivité
   const subjectivityColors: Record<string, string> = {
-    'Factuel': '#0984e3',       // Bleu foncé
-    'Plutôt factuel': '#74b9ff', // Bleu clair
-    'Mixte': '#a29bfe',         // Violet clair
-    'Plutôt subjectif': '#ffeaa7', // Jaune clair
-    'Subjectif': '#fdcb6e',     // Jaune/Orange
-    'Non applicable': '#a5a5a5'  // Gris
+    'Factuel': '#059669',       // Score 1 - Vert foncé (très objectif)
+    'Plutôt factuel': '#10B981', // Score 2 - Vert moyen (plutôt objectif)
+    'Mixte': '#3B82F6',         // Score 3 - Bleu (neutre/mixte)
+    'Plutôt subjectif': '#EF4444', // Score 4 - Rouge moyen (plutôt subjectif)
+    'Subjectif': '#DC2626',     // Score 5 - Rouge foncé (très subjectif)
+    'Non applicable': '#9CA3AF'  // Gris neutre
   };
 
   // Palette de couleurs pour les journaux
@@ -71,7 +70,7 @@
 
   let isMobile = $state(false);
   let chartContainer = $state<HTMLDivElement>();
-  let chartType = $state<'bar' | 'pie' | 'sunburst'>('bar');
+  let chartType = $state<'bar' | 'pie'>('bar');
 
   onMount(() => {
     const checkMobile = () => {
@@ -174,79 +173,7 @@
           }
         }]
       } as EChartsOption;
-    } else if (chartType === 'sunburst') {
-      // Sunburst chart: hiérarchie journal -> subjectivité
-      const sunburstData = newspaperList.map(journal => {
-        const children = subjectivityLabels
-          .filter(label => (newspaperSubjectivityCounts[journal]?.[label] || 0) > 0)
-          .map(label => ({
-            name: label,
-            value: newspaperSubjectivityCounts[journal]?.[label] || 0,
-            itemStyle: { color: subjectivityColors[label] }
-          }));
-
-        const totalForJournal = children.reduce((sum, child) => sum + child.value, 0);
-        
-        return {
-          name: journal,
-          value: totalForJournal,
-          children: children
-        };
-      }).filter(item => item.value > 0);
-
-      return {
-        title: {
-          text: `Distribution hiérarchique de la subjectivité (${articlesAnalyzed} articles)`,
-          left: 'center',
-          textStyle: {
-            color: '#fff',
-            fontWeight: 'bold',
-            fontSize: isMobile ? 12 : 16
-          }
-        },
-        tooltip: {
-          trigger: 'item',
-          formatter: function(params: any) {
-            if (params.treePathInfo && params.treePathInfo.length > 1) {
-              return `${params.treePathInfo[0].name} - ${params.name}: ${params.value}`;
-            }
-            return `${params.name}: ${params.value}`;
-          },
-          textStyle: {
-            color: '#333',
-            fontSize: isMobile ? 10 : 12
-          },
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
-          borderColor: 'rgba(255, 255, 255, 0.4)',
-          borderWidth: 1
-        },
-        series: [{
-          type: 'sunburst',
-          data: sunburstData,
-          radius: [0, '90%'],
-          center: ['50%', '50%'],
-          sort: undefined,
-          emphasis: {
-            focus: 'ancestor'
-          },
-          levels: [{}, {
-            r0: '15%',
-            r: '35%',
-            itemStyle: {
-              borderWidth: 2
-            },
-            label: {
-              rotate: 'tangential'
-            }
-          }, {
-            r0: '35%',
-            r: '70%',
-            label: {
-              align: 'right'
-            }
-          }]
-        }]
-      } as EChartsOption;
+    
     } else {
       // Bar chart (original)
       const seriesData: SeriesOption[] = newspaperList.map((journal, index) => {
@@ -398,12 +325,7 @@
     >
       🥧 Camembert
     </button>
-    <button 
-      class="btn btn-sm {chartType === 'sunburst' ? 'variant-filled-primary' : 'variant-soft-surface'}"
-      onclick={() => chartType = 'sunburst'}
-    >
-      ☀️ Rayons
-    </button>
+
   </div>
 
   <div 

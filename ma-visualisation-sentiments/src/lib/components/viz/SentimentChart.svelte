@@ -4,7 +4,7 @@
 
   // ECharts core and modules for tree-shaking
   import { init, use } from 'echarts/core';
-  import { BarChart, PieChart, SunburstChart } from 'echarts/charts';
+  import { BarChart, PieChart } from 'echarts/charts';
   import {
     TitleComponent,
     TooltipComponent,
@@ -23,7 +23,6 @@
     LegendComponent,
     BarChart,
     PieChart,
-    SunburstChart,
     CanvasRenderer
   ]);
 
@@ -34,19 +33,19 @@
   // Exemple de données pour ECharts (sera dynamique)
   const polarityLabels = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif', 'Non applicable'];
   
-  // Définition des couleurs harmonisées avec le thème de l'application
+  // Définition des couleurs avec gradations logiques
   const polarityColors = {
-    'Très positif': '#00b894',  // Vert foncé
-    'Positif': '#55efc4',       // Vert clair
-    'Neutre': '#74b9ff',        // Bleu clair
-    'Négatif': '#ff7675',       // Rouge clair
-    'Très négatif': '#d63031',  // Rouge foncé
-    'Non applicable': '#a5a5a5'  // Gris
+    'Très positif': '#059669',    // Vert foncé (plus intense)
+    'Positif': '#10B981',         // Vert moyen
+    'Neutre': '#3B82F6',          // Bleu
+    'Négatif': '#EF4444',         // Rouge moyen
+    'Très négatif': '#DC2626',    // Rouge foncé (plus intense)
+    'Non applicable': '#9CA3AF'   // Gris neutre
   };
 
   let isMobile = $state(false);
   let chartContainer = $state<HTMLDivElement>();
-  let chartType = $state<'bar' | 'pie' | 'sunburst'>('bar');
+  let chartType = $state<'bar' | 'pie'>('bar');
 
   onMount(() => {
     const checkMobile = () => {
@@ -148,79 +147,7 @@
           }
         }]
       } as EChartsOption;
-    } else if (chartType === 'sunburst') {
-      // Sunburst chart: hiérarchie journal -> polarité
-      const sunburstData = newspaperList.map(journal => {
-        const children = polarityLabels
-          .filter(label => (newspaperPolarityCounts[journal]?.[label] || 0) > 0)
-          .map(label => ({
-            name: label,
-            value: newspaperPolarityCounts[journal]?.[label] || 0,
-            itemStyle: { color: polarityColors[label as keyof typeof polarityColors] }
-          }));
-
-        const totalForJournal = children.reduce((sum, child) => sum + child.value, 0);
-        
-        return {
-          name: journal,
-          value: totalForJournal,
-          children: children
-        };
-      }).filter(item => item.value > 0);
-
-      return {
-        title: {
-          text: `Distribution hiérarchique par journal (${articlesAnalyzed} articles)`,
-          left: 'center',
-          textStyle: {
-            color: '#fff',
-            fontWeight: 'bold',
-            fontSize: isMobile ? 12 : 16
-          }
-        },
-        tooltip: {
-          trigger: 'item',
-          formatter: function(params: any) {
-            if (params.treePathInfo && params.treePathInfo.length > 1) {
-              return `${params.treePathInfo[0].name} - ${params.name}: ${params.value}`;
-            }
-            return `${params.name}: ${params.value}`;
-          },
-          textStyle: {
-            color: '#333',
-            fontSize: isMobile ? 10 : 12
-          },
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
-          borderColor: 'rgba(255, 255, 255, 0.4)',
-          borderWidth: 1
-        },
-        series: [{
-          type: 'sunburst',
-          data: sunburstData,
-          radius: [0, '90%'],
-          center: ['50%', '50%'],
-          sort: undefined,
-          emphasis: {
-            focus: 'ancestor'
-          },
-          levels: [{}, {
-            r0: '15%',
-            r: '35%',
-            itemStyle: {
-              borderWidth: 2
-            },
-            label: {
-              rotate: 'tangential'
-            }
-          }, {
-            r0: '35%',
-            r: '70%',
-            label: {
-              align: 'right'
-            }
-          }]
-        }]
-      } as EChartsOption;
+    
     } else {
       // Bar chart (original)
       const seriesData: SeriesOption[] = newspaperList.map(journal => {
@@ -371,12 +298,7 @@
     >
       🥧 Camembert
     </button>
-    <button 
-      class="btn btn-sm {chartType === 'sunburst' ? 'variant-filled-primary' : 'variant-soft-surface'}"
-      onclick={() => chartType = 'sunburst'}
-    >
-      ☀️ Rayons
-    </button>
+
   </div>
 
   <div 
