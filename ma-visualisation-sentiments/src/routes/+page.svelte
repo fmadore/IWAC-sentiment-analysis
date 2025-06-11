@@ -224,8 +224,11 @@
   /* Styles pour la grille de filtres */
   .filters-grid :global(.card) {
     height: fit-content;
-    min-height: 120px;
     align-self: start;
+  }
+  
+  .filters-grid {
+    align-items: start;
   }
   
   /* Media queries pour la responsivité */
