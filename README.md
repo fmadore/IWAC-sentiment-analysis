@@ -1,12 +1,12 @@
-# Visualisation d'Analyse de Sentiments
+# Visualisation d'analyse de sentiments
 
-Cette application SvelteKit est conçue pour visualiser les résultats d'analyses de sentiments effectuées sur des corpus d'articles de presse. Elle permet de charger et d'explorer le corpus IWAC (Islam in West African Francophone Press), de filtrer les articles selon divers critères (pays, journal, polarité, score de subjectivité, centralité) et d'afficher les répartitions de sentiments sous forme de graphiques interactifs.
+Cette application SvelteKit est conçue pour visualiser les résultats d'analyses de sentiments effectuées sur des corpus d'articles de presse. Elle permet de charger et d'explorer le corpus [Collection Islam Afrique de l'Ouest (IWAC)](https://islam.zmo.de/s/afrique_ouest/page/accueil), de filtrer les articles selon divers critères (pays, journal, polarité, score de subjectivité, centralité) et d'afficher les répartitions de sentiments sous forme de graphiques interactifs.
 
 ## Objectif
 
 L'objectif principal est de fournir une interface interactive pour explorer et comprendre les tendances de sentiments dans la couverture médiatique de l'islam et des musulmans dans la presse d'Afrique de l'Ouest francophone.
 
-## Structure du Projet
+## Structure du projet
 
 Le projet est structuré comme une application SvelteKit typique :
 
@@ -51,17 +51,17 @@ Le projet est structuré comme une application SvelteKit typique :
 
 ## Données
 
-### Format des Données
+### Format des données
 
 L'application charge automatiquement le corpus IWAC depuis le fichier `static/data/iwac_articles.json`. Ce fichier contient une liste d'objets `Article`, où chaque article inclut des métadonnées (titre, journal, pays, date) et un objet `sentiment_analysis` contenant les résultats de l'analyse (polarité, subjectivité, centralité, etc.).
 
 Consultez `src/lib/types/data.ts` pour la structure détaillée des objets `Article` et `SentimentAnalysis`.
 
-### Préparation des Données
+### Préparation des données
 
-Le script `data-preprocess/data-fetch.py` permet de récupérer les données depuis le dataset Hugging Face "fmadore/iwac-newspaper-articles" et de les transformer au format attendu par l'application.
+Le script `data-preprocess/data-fetch.py` permet de récupérer les données depuis le dataset Hugging Face ["fmadore/iwac-newspaper-articles"](https://huggingface.co/datasets/fmadore/iwac-newspaper-articles) et de les transformer au format attendu par l'application.
 
-## Gestion d'État (`stores.ts`)
+## Gestion d'état (`stores.ts`)
 
 L'application utilise les stores Svelte pour gérer l'état global :
 
@@ -79,7 +79,7 @@ L'application utilise les stores Svelte pour gérer l'état global :
 De plus, le store expose la fonction :
 -   `loadDatasetArticles`: Fonction pour charger un dataset depuis un fichier JSON.
 
-## Composants Clés
+## Composants clés
 
 ### Composants de filtrage
 
@@ -101,7 +101,7 @@ De plus, le store expose la fonction :
 -   **`ArticleDetail.svelte`**: Affiche les détails complets d'un article sélectionné, y compris ses métadonnées et les résultats d'analyse avec justifications.
 -   **`AnalysisInfo.svelte`**: Fournit des informations explicatives détaillées sur la méthodologie d'analyse (polarité, subjectivité, centralité) sous forme d'accordéon.
 
-## Page Principale (`+page.svelte` et `+page.ts`)
+## Page principale (`+page.svelte` et `+page.ts`)
 
 -   `+page.ts`: Fonction de chargement simplifiée qui ne charge plus de manifest externe.
 -   `+page.svelte`:
@@ -146,7 +146,7 @@ Prérequis : Node.js et npm installés.
     npm run preview
     ```
 
-## Scripts Utiles
+## Scripts utiles
 
 -   `npm run dev`: Lance le serveur de développement.
 -   `npm run build`: Construit l'application pour la production.
@@ -155,7 +155,7 @@ Prérequis : Node.js et npm installés.
 -   `npm run lint`: Exécute ESLint pour vérifier les erreurs de style de code.
 -   `npm run format`: Exécute Prettier pour formater le code.
 
-## Préparation des Données
+## Préparation des données
 
 Pour mettre à jour les données du corpus IWAC :
 
