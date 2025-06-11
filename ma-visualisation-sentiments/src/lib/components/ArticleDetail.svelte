@@ -191,12 +191,20 @@
     border-radius: 9999px;
     transition: all var(--transition-fast);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: default;
+  }
+  
+  .badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.2);
   }
   
   .badge-lg {
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
     font-weight: 600;
+    cursor: default;
   }
   
   .anchor {
@@ -231,6 +239,57 @@
     font-family: serif;
   }
   
+  /* Hover effects for cards */
+  :global(.hover-lift-sm:hover) {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 10px 25px -5px rgba(0, 0, 0, 0.3),
+      0 10px 10px -5px rgba(0, 0, 0, 0.1),
+      0 0 20px rgba(59, 130, 246, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  :global(.border-gradient) {
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  :global(.border-gradient::before) {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    background: linear-gradient(135deg, 
+      rgba(59, 130, 246, 0.3), 
+      rgba(139, 92, 246, 0.3), 
+      rgba(236, 72, 153, 0.3)
+    );
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity var(--transition-normal);
+  }
+  
+  :global(.border-gradient:hover::before) {
+    opacity: 1;
+  }
+  
+  /* Ensure proper cursor behavior */
+  :global(.card) {
+    cursor: default;
+  }
+  
+  :global(.card *) {
+    cursor: inherit;
+  }
+  
+  /* Override cursor for clickable elements */
+  :global(.anchor) {
+    cursor: pointer !important;
+  }
+  
   /* Mobile responsive adjustments */
   @media (max-width: 640px) {
     .badge-lg {
@@ -241,6 +300,11 @@
     blockquote {
       font-size: 0.875rem;
       padding: 0.75rem;
+    }
+    
+    /* Reduce hover effects on mobile */
+    :global(.hover-lift-sm:hover) {
+      transform: translateY(-1px);
     }
   }
 </style>
