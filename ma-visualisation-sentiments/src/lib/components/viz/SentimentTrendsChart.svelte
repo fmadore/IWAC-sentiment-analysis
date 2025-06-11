@@ -133,6 +133,7 @@
       },
       yAxis: {
         type: 'value',
+        minInterval: 1,
         axisLine: {
           lineStyle: {
             color: 'rgba(255, 255, 255, 0.5)'
@@ -144,7 +145,10 @@
           }
         },
         axisLabel: {
-          color: '#fff'
+          color: '#fff',
+          formatter: function (value: number) {
+            return Math.floor(value).toString();
+          }
         }
       },
       series: series,

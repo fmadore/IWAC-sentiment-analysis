@@ -197,6 +197,7 @@
       },
       yAxis: {
         type: 'value',
+        minInterval: 1, // Force integer intervals
         axisLine: {
           lineStyle: {
             color: 'rgba(255, 255, 255, 0.5)'
@@ -208,7 +209,10 @@
           }
         },
         axisLabel: {
-          color: '#fff'
+          color: '#fff',
+          formatter: function (value: number) {
+            return Math.floor(value).toString(); // Ensure only whole numbers are displayed
+          }
         }
       },
       series: seriesData
