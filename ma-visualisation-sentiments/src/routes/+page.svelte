@@ -24,26 +24,45 @@
   import TableIcon from '@lucide/svelte/icons/table';
   import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
   import XIcon from '@lucide/svelte/icons/x';
+  import MenuIcon from '@lucide/svelte/icons/menu';
 
   let activeView = $state('charts');
   let showDetailsSidebar = $state(false);
   let detailedArticle = $state<Article | null>(null);
   let detailsPosition = $state({ x: 0, y: 0 });
+  let isMobileSidebarOpen = $state(false);
+  let isMobile = $state(false);
 
-  onMount(async () => {
-    // Charger automatiquement le fichier iwac_articles.json
-    isLoadingDataset.set(true);
-    selectedArticle.set(null);
+  onMount(() => {
+    // Check if we're on mobile
+    const checkMobile = () => {
+      isMobile = window.innerWidth < 768; // md breakpoint
+    };
     
-    try {
-      const articles = await loadDatasetArticles('/data/iwac_articles.json', 'iwac_articles', fetch);
-      currentDatasetArticles.set(articles);
-    } catch (error) {
-      console.error("Failed to load IWAC articles:", error);
-      currentDatasetArticles.set([]);
-    } finally {
-      isLoadingDataset.set(false);
-    }
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    // Charger automatiquement le fichier iwac_articles.json
+    const loadData = async () => {
+      isLoadingDataset.set(true);
+      selectedArticle.set(null);
+      
+      try {
+        const articles = await loadDatasetArticles('/data/iwac_articles.json', 'iwac_articles', fetch);
+        currentDatasetArticles.set(articles);
+      } catch (error) {
+        console.error("Failed to load IWAC articles:", error);
+        currentDatasetArticles.set([]);
+      } finally {
+        isLoadingDataset.set(false);
+      }
+    };
+
+    loadData();
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
   });
 
   // Gérer l'affichage des détails
@@ -57,17 +76,30 @@
     showDetailsSidebar = false;
     detailedArticle = null;
   }
+
+  function toggleMobileSidebar() {
+    isMobileSidebarOpen = !isMobileSidebarOpen;
+  }
+
+  function handleViewChange(value: string) {
+    activeView = value;
+    // Close mobile sidebar when a view is selected
+    if (isMobile) {
+      isMobileSidebarOpen = false;
+    }
+  }
 </script>
 
-<main class="container max-w-6xl mx-auto p-4 md:p-6 mt-6">
-  <div class="mb-6">
+<main class="container max-w-6xl mx-auto p-2 sm:p-4 md:p-6 mt-2 sm:mt-6">
+  <div class="mb-4 sm:mb-6">
     <AnalysisInfo />
   </div>
 
   {#if $isLoadingDataset}
-    <div class="alert variant-filled-warning p-4 mb-6">Chargement des données du corpus IWAC...</div>
+    <div class="alert variant-filled-warning p-4 mb-4 sm:mb-6">Chargement des données du corpus IWAC...</div>
   {:else if $currentDatasetArticles.length > 0}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 filters-grid">
+    <!-- Filters - Stack on mobile -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4 mb-4 sm:mb-6 filters-grid">
       <CountryFilter />
       <JournalFilterComponent />
       <PolarityFilter />
@@ -75,45 +107,122 @@
       <CentralityFilter />
     </div>
 
-    <div class="card variant-glass mb-6 overflow-hidden">
-      <div class="grid grid-cols-[auto_1fr]">
-        <!-- Menu de navigation latéral -->
-        <Navigation.Rail 
-          value={activeView} 
-          onValueChange={(value) => activeView = value}
-          background="bg-primary-500/10"
-          padding="p-2"
-        >
-          {#snippet tiles()}
-            <Navigation.Tile id="charts" label="Graphiques">
-              <ChartIcon />
-            </Navigation.Tile>
-            <Navigation.Tile id="trends" label="Tendances">
-              <TrendingUpIcon />
-            </Navigation.Tile>
-            <Navigation.Tile id="table" label="Tableau">
-              <TableIcon />
-            </Navigation.Tile>
-          {/snippet}
-        </Navigation.Rail>
+    <div class="card variant-glass mb-4 sm:mb-6 overflow-hidden">
+      <!-- Mobile Header with Menu Toggle -->
+      {#if isMobile}
+        <div class="flex items-center justify-between p-4 border-b border-white/10 md:hidden">
+          <h2 class="text-lg font-semibold text-white">
+            {#if activeView === 'charts'}Graphiques
+            {:else if activeView === 'trends'}Tendances  
+            {:else if activeView === 'table'}Tableau
+            {/if}
+          </h2>
+          <button 
+            class="btn-icon variant-soft-surface"
+            onclick={toggleMobileSidebar}
+            title="Menu"
+          >
+            <MenuIcon size={20} />
+          </button>
+        </div>
+      {/if}
 
-        <!-- Contenu associé au menu -->
-        <div class="p-6">
+      <!-- Layout: Mobile uses conditional rendering, Desktop uses grid -->
+      <div class="md:grid md:grid-cols-[auto_1fr]">
+        <!-- Mobile Sidebar Overlay -->
+        {#if isMobile && isMobileSidebarOpen}
+          <div class="fixed inset-0 z-50 md:hidden">
+            <!-- Backdrop -->
+            <button 
+              class="absolute inset-0 bg-black/50 border-0 p-0 cursor-pointer" 
+              onclick={toggleMobileSidebar}
+              onkeydown={(e) => e.key === 'Escape' && toggleMobileSidebar()}
+              aria-label="Fermer le menu"
+            ></button>
+            <!-- Mobile Bottom Sheet Navigation -->
+            <div class="absolute bottom-0 left-0 right-0 bg-surface-900 rounded-t-xl shadow-2xl border-t border-white/10 animate-slide-up">
+              <div class="p-4">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-white font-semibold text-lg">Navigation</h3>
+                  <button 
+                    class="btn-icon variant-soft-surface"
+                    onclick={toggleMobileSidebar}
+                    aria-label="Fermer le menu"
+                  >
+                    <XIcon size={20} />
+                  </button>
+                </div>
+                
+                <!-- Navigation Options -->
+                <div class="grid grid-cols-3 gap-3">
+                  <button
+                    class="nav-option {activeView === 'charts' ? 'active' : ''}"
+                    onclick={() => handleViewChange('charts')}
+                  >
+                    <ChartIcon size={24} />
+                    <span class="text-sm font-medium">Graphiques</span>
+                  </button>
+                  
+                  <button
+                    class="nav-option {activeView === 'trends' ? 'active' : ''}"
+                    onclick={() => handleViewChange('trends')}
+                  >
+                    <TrendingUpIcon size={24} />
+                    <span class="text-sm font-medium">Tendances</span>
+                  </button>
+                  
+                  <button
+                    class="nav-option {activeView === 'table' ? 'active' : ''}"
+                    onclick={() => handleViewChange('table')}
+                  >
+                    <TableIcon size={24} />
+                    <span class="text-sm font-medium">Tableau</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        {/if}
+
+        <!-- Desktop Sidebar -->
+        <div class="hidden md:block">
+          <Navigation.Rail 
+            value={activeView} 
+            onValueChange={handleViewChange}
+            background="bg-primary-500/10"
+            padding="p-2"
+          >
+            {#snippet tiles()}
+              <Navigation.Tile id="charts" label="Graphiques">
+                <ChartIcon />
+              </Navigation.Tile>
+              <Navigation.Tile id="trends" label="Tendances">
+                <TrendingUpIcon />
+              </Navigation.Tile>
+              <Navigation.Tile id="table" label="Tableau">
+                <TableIcon />
+              </Navigation.Tile>
+            {/snippet}
+          </Navigation.Rail>
+        </div>
+
+        <!-- Content Area -->
+        <div class="p-3 sm:p-6">
           {#if activeView === 'charts'}
-            <div class="space-y-6">
-              <div class="card variant-glass p-6">
+            <div class="space-y-4 sm:space-y-6">
+              <div class="card variant-glass p-3 sm:p-6">
                 <SentimentChart />
               </div>
-              <div class="card variant-glass p-6">
+              <div class="card variant-glass p-3 sm:p-6">
                 <SubjectivityChart />
               </div>
             </div>
           {:else if activeView === 'trends'}
-            <div class="card variant-glass p-6">
+            <div class="card variant-glass p-3 sm:p-6">
               <SentimentTrendsChart />
             </div>
           {:else if activeView === 'table'}
-            <div class="w-full card variant-glass p-6">
+            <div class="w-full card variant-glass p-3 sm:p-6">
               <h2 class="h3 mb-4 text-white">Liste des articles</h2>
               <ArticleTable onShowDetails={handleShowDetails} />
             </div>
@@ -122,7 +231,7 @@
       </div>
     </div>
   {:else}
-    <div class="alert variant-filled-error p-4 mb-6">Erreur lors du chargement du corpus IWAC ou le corpus est vide.</div>
+    <div class="alert variant-filled-error p-4 mb-4 sm:mb-6">Erreur lors du chargement du corpus IWAC ou le corpus est vide.</div>
   {/if}
 </main>
 
@@ -209,6 +318,50 @@
   @keyframes fadeIn {
     from { opacity: 0; transform: translate(-50%, -45%); }
     to { opacity: 1; transform: translate(-50%, -50%); }
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .nav-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    transition: all 0.2s ease;
+    min-height: 80px;
+  }
+
+  .nav-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .nav-option.active {
+    background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+
+  .nav-option.active:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
   }
   
   .btn-icon {

@@ -43,8 +43,8 @@
       </div>
       <div class="flex-1 flex justify-center">
         <div class="flex flex-col items-center">
-          <span class="text-white text-2xl font-bold">Analyse de sentiments</span>
-          <span class="text-white/80 text-sm">Visualisation et exploration des données d'articles</span>
+          <span class="text-white text-lg sm:text-2xl font-bold">Analyse de sentiments</span>
+          <span class="text-white/80 text-xs sm:text-sm hidden sm:block">Visualisation et exploration des données d'articles</span>
         </div>
       </div>
       <div class="flex-1 flex justify-end">

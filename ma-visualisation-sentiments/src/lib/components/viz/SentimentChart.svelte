@@ -13,6 +13,7 @@
   } from 'echarts/components';
   import { CanvasRenderer } from 'echarts/renderers';
   import type { EChartsOption, SeriesOption } from 'echarts'; // Main EChartsOption and SeriesOption
+  import { onMount } from 'svelte';
 
   // Register the required components
   use([
@@ -40,6 +41,22 @@
     'Très négatif': '#d63031',  // Rouge foncé
     'Non applicable': '#a5a5a5'  // Gris
   };
+
+  let isMobile = $state(false);
+  let chartContainer = $state<HTMLDivElement>();
+
+  onMount(() => {
+    const checkMobile = () => {
+      isMobile = window.innerWidth < 768;
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  });
 
   // Use $derived for proper reactivity in Svelte 5
   let options = $derived.by(() => {
@@ -87,7 +104,7 @@
         textStyle: {
           color: '#fff',
           fontWeight: 'bold',
-          fontSize: 16
+          fontSize: isMobile ? 12 : 16
         }
       },
       tooltip: {
@@ -99,7 +116,8 @@
         },
         confine: true,
         textStyle: {
-          color: '#333'
+          color: '#333',
+          fontSize: isMobile ? 10 : 12
         },
         backgroundColor: 'rgba(255, 255, 255, 0.9)',
         borderColor: 'rgba(255, 255, 255, 0.4)',
@@ -122,7 +140,7 @@
 
           // Wrap the list in a scrollable div
           const scrollableListHtml = `
-            <div style="max-height: 200px; overflow-y: auto; margin-bottom: 5px;">
+            <div style="max-height: ${isMobile ? '150px' : '200px'}; overflow-y: auto; margin-bottom: 5px;">
               ${listItemsHtml}
             </div>`;
           
@@ -135,18 +153,22 @@
       },
       legend: {
         data: newspaperList,
-        top: '8%',
+        top: isMobile ? '12%' : '8%',
         textStyle: {
-          color: '#fff'
+          color: '#fff',
+          fontSize: isMobile ? 10 : 12
         },
         type: 'scroll', // Added for better handling of many newspapers
-        orient: 'horizontal'
+        orient: isMobile ? 'vertical' : 'horizontal',
+        left: isMobile ? 'right' : 'center',
+        itemWidth: isMobile ? 12 : 25,
+        itemHeight: isMobile ? 8 : 14
       },
       grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '3%',
-        top: '18%', // Adjust top if legend takes more space
+        left: isMobile ? '5%' : '3%',
+        right: isMobile ? '25%' : '4%',
+        bottom: isMobile ? '5%' : '3%',
+        top: isMobile ? '25%' : '18%', // Adjust top if legend takes more space
         containLabel: true
       },
       xAxis: {
@@ -162,8 +184,9 @@
         },
         axisLabel: {
           color: '#fff',
-          rotate: 30,
-          fontSize: 11
+          rotate: isMobile ? 45 : 30,
+          fontSize: isMobile ? 9 : 11,
+          interval: 0 // Show all labels
         }
       },
       yAxis: {
@@ -181,6 +204,7 @@
         },
         axisLabel: {
           color: '#fff',
+          fontSize: isMobile ? 9 : 11,
           formatter: function (value: number) {
             return Math.floor(value).toString(); // Ensure only whole numbers are displayed
           }
@@ -192,9 +216,13 @@
 </script>
 
 {#if $filteredArticles.length > 0}
-  <div style="height:450px; position: relative;" class="bg-surface-900/50 rounded-lg p-2">
+  <div 
+    bind:this={chartContainer}
+    style="height: {isMobile ? '350px' : '450px'}; position: relative;" 
+    class="bg-surface-900/50 rounded-lg p-1 sm:p-2"
+  >
     <Chart {init} {options} />
   </div>
 {:else}
-  <p class="text-center py-8 text-white/80">Aucun article ne correspond aux filtres actuels, ou aucun corpus n'est chargé.</p>
+  <p class="text-center py-8 text-white/80 text-sm sm:text-base">Aucun article ne correspond aux filtres actuels, ou aucun corpus n'est chargé.</p>
 {/if}

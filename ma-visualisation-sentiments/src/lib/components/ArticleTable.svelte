@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy } from 'svelte'; // createEventDispatcher will be removed
+  import { onDestroy, onMount } from 'svelte'; // createEventDispatcher will be removed
   import { filteredArticles, selectedArticle } from '$lib/stores';
   import type { Article } from '$lib/types/data';
   import { getJournalName } from '$lib/utils';
@@ -8,6 +8,8 @@
   let { onShowDetails }: { onShowDetails: (details: { article: Article, position: {x: number, y: number} }) => void } = $props();
 
   let articles = $state<Article[]>([]);
+  let isMobile = $state(false);
+  
   // Update articles when filteredArticles changes
   $effect(() => {
     const unsubscribe = filteredArticles.subscribe(value => {
@@ -16,6 +18,19 @@
       currentPage = 1;
     });
     return unsubscribe; // Cleanup subscription
+  });
+
+  onMount(() => {
+    const checkMobile = () => {
+      isMobile = window.innerWidth < 768;
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
   });
 
   // Variables pour le tri
@@ -285,12 +300,12 @@
   <!-- Informations et contrôles de pagination (en haut) -->
   <div bind:this={tableContainerRef} class="pagination-info mb-4">
     <!-- Première ligne : Informations et sélecteur -->
-    <div class="flex flex-wrap items-center justify-between gap-4 mb-3">
-      <span class="text-sm text-white">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 mb-3">
+      <span class="text-xs sm:text-sm text-white">
         Affichage de {startIndex + 1} à {endIndex} sur {totalItems} articles
       </span>
       <div class="flex items-center gap-2">
-        <label for="items-per-page" class="text-sm text-white">Articles par page:</label>
+        <label for="items-per-page" class="text-xs sm:text-sm text-white whitespace-nowrap">Articles par page:</label>
         <select 
           id="items-per-page"
           bind:value={itemsPerPage}
@@ -306,14 +321,14 @@
     
     <!-- Deuxième ligne : Navigation de pagination centrée -->
     <div class="flex justify-center">
-      <div class="pagination-controls flex items-center gap-2">
+      <div class="pagination-controls flex items-center gap-1 sm:gap-2">
         <button 
           class="btn btn-sm variant-soft-surface" 
           onclick={previousPage}
           disabled={currentPage === 1}
           title="Page précédente"
         >
-          ←
+          {isMobile ? '←' : '←'}
         </button>
         
         {#each visiblePages as page}
@@ -331,66 +346,141 @@
           disabled={currentPage === totalPages}
           title="Page suivante"
         >
-          →
+          {isMobile ? '→' : '→'}
         </button>
       </div>
     </div>
   </div>
 
-  <div class="table-container card variant-glass">
-    <table class="table">
-      <thead>
-        <tr class="bg-surface-800">
-          <th class="text-white sortable-header" onclick={() => sortBy('titre')}>
-            Titre {sortColumn === 'titre' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
-          </th>
-          <th class="text-white sortable-header" onclick={() => sortBy('journal')}>
-            Journal {sortColumn === 'journal' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
-          </th>
-          <th class="text-white sortable-header" onclick={() => sortBy('date')}>
-            Date {sortColumn === 'date' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
-          </th>
-          <th class="text-white sortable-header" onclick={() => sortBy('centralite')}>
-            Centralité {sortColumn === 'centralite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
-          </th>
-          <th class="text-white sortable-header" onclick={() => sortBy('polarite')}>
-            Polarité {sortColumn === 'polarite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
-          </th>
-          <th class="text-white sortable-header" onclick={() => sortBy('subjectivite')}>
-            Subjectivité {sortColumn === 'subjectivite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each paginatedArticles as article (article['o:id'])}
-          <tr 
-            class="article-row"
-            title="Cliquez pour voir les détails"
-            onclick={(event) => selectArticle(article, event)} 
-          >
-            <td class="article-title">{article['o:title']}</td>
-            <td>{getJournalName(article)}</td>
-            <td>{formatDate(article.publication_date)}</td>
-            <td>
-              <span class="badge {getCentralityClass(article.sentiment_analysis?.centralite_islam_musulmans)}">
-                {article.sentiment_analysis?.centralite_islam_musulmans || 'N/A'}
-              </span>
-            </td>
-            <td>
-              <span class="badge {getPolarityClass(article.sentiment_analysis?.polarite)}">
-                {article.sentiment_analysis?.polarite || 'N/A'}
-              </span>
-            </td>
-            <td>
-              <span class="badge {getSubjectivityClass(article.sentiment_analysis?.subjectivite_score)}">
-                {article.sentiment_analysis?.subjectivite_score || 'N/A'}
-              </span>
-            </td>
+  <!-- Mobile Card View -->
+  {#if isMobile}
+    <!-- Mobile Sort Controls -->
+    <div class="mobile-sort-controls mb-4 p-3 card variant-glass">
+      <div class="flex items-center gap-2">
+        <label for="mobile-sort-select" class="text-xs text-white whitespace-nowrap">Trier par:</label>
+        <select 
+          id="mobile-sort-select"
+          bind:value={sortColumn}
+          onchange={() => currentPage = 1}
+          class="select select-sm bg-surface-700 text-white border-surface-500 flex-1"
+        >
+          <option value="titre">Titre</option>
+          <option value="journal">Journal</option>
+          <option value="date">Date</option>
+          <option value="centralite">Centralité</option>
+          <option value="polarite">Polarité</option>
+          <option value="subjectivite">Subjectivité</option>
+        </select>
+        <button 
+          class="btn btn-sm variant-soft-surface"
+          onclick={() => { sortDirection = sortDirection === 'asc' ? 'desc' : 'asc'; currentPage = 1; }}
+          title="Inverser l'ordre de tri"
+        >
+          {sortDirection === 'asc' ? '↑' : '↓'}
+        </button>
+      </div>
+    </div>
+
+    <div class="mobile-cards space-y-3">
+      {#each paginatedArticles as article (article['o:id'])}
+        <button 
+          class="mobile-card card variant-glass p-4 cursor-pointer hover:bg-surface-800/50 transition-colors w-full text-left border-0"
+          onclick={(event) => selectArticle(article, event)}
+          onkeydown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              const mouseEvent = new MouseEvent('click', {
+                clientX: 0,
+                clientY: 0,
+                bubbles: true
+              });
+              selectArticle(article, mouseEvent);
+            }
+          }}
+          aria-label="Voir les détails de l'article: {article['o:title']}"
+        >
+          <div class="mb-2">
+            <h3 class="text-sm font-semibold text-white line-clamp-2 mb-1">
+              {article['o:title']}
+            </h3>
+            <div class="flex items-center gap-2 text-xs text-white/70">
+              <span>{getJournalName(article)}</span>
+              <span>•</span>
+              <span>{formatDate(article.publication_date)}</span>
+            </div>
+          </div>
+          
+          <div class="flex flex-wrap gap-2">
+            <span class="badge badge-sm {getCentralityClass(article.sentiment_analysis?.centralite_islam_musulmans)}">
+              {article.sentiment_analysis?.centralite_islam_musulmans || 'N/A'}
+            </span>
+            <span class="badge badge-sm {getPolarityClass(article.sentiment_analysis?.polarite)}">
+              {article.sentiment_analysis?.polarite || 'N/A'}
+            </span>
+            <span class="badge badge-sm {getSubjectivityClass(article.sentiment_analysis?.subjectivite_score)}">
+              Subj: {article.sentiment_analysis?.subjectivite_score || 'N/A'}
+            </span>
+          </div>
+        </button>
+      {/each}
+    </div>
+  {:else}
+    <!-- Desktop Table View -->
+    <div class="table-container card variant-glass">
+      <table class="table">
+        <thead>
+          <tr class="bg-surface-800">
+            <th class="text-white sortable-header" onclick={() => sortBy('titre')}>
+              Titre {sortColumn === 'titre' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+            </th>
+            <th class="text-white sortable-header" onclick={() => sortBy('journal')}>
+              Journal {sortColumn === 'journal' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+            </th>
+            <th class="text-white sortable-header" onclick={() => sortBy('date')}>
+              Date {sortColumn === 'date' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+            </th>
+            <th class="text-white sortable-header" onclick={() => sortBy('centralite')}>
+              Centralité {sortColumn === 'centralite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+            </th>
+            <th class="text-white sortable-header" onclick={() => sortBy('polarite')}>
+              Polarité {sortColumn === 'polarite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+            </th>
+            <th class="text-white sortable-header" onclick={() => sortBy('subjectivite')}>
+              Subjectivité {sortColumn === 'subjectivite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+            </th>
           </tr>
-        {/each}
-      </tbody>
-    </table>
-  </div>
+        </thead>
+        <tbody>
+          {#each paginatedArticles as article (article['o:id'])}
+            <tr 
+              class="article-row"
+              title="Cliquez pour voir les détails"
+              onclick={(event) => selectArticle(article, event)} 
+            >
+              <td class="article-title">{article['o:title']}</td>
+              <td>{getJournalName(article)}</td>
+              <td>{formatDate(article.publication_date)}</td>
+              <td>
+                <span class="badge {getCentralityClass(article.sentiment_analysis?.centralite_islam_musulmans)}">
+                  {article.sentiment_analysis?.centralite_islam_musulmans || 'N/A'}
+                </span>
+              </td>
+              <td>
+                <span class="badge {getPolarityClass(article.sentiment_analysis?.polarite)}">
+                  {article.sentiment_analysis?.polarite || 'N/A'}
+                </span>
+              </td>
+              <td>
+                <span class="badge {getSubjectivityClass(article.sentiment_analysis?.subjectivite_score)}">
+                  {article.sentiment_analysis?.subjectivite_score || 'N/A'}
+                </span>
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+  {/if}
 
   <!-- Navigation de pagination (en bas) -->
   <div class="pagination-bottom mt-4 flex items-center justify-center">
@@ -518,16 +608,35 @@
     border-radius: 0.375rem;
   }
 
+  /* Mobile card styles */
+  .mobile-cards {
+    max-height: 600px;
+    overflow-y: auto;
+  }
+
+  .mobile-card {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .badge-sm {
+    padding: 0.125rem 0.375rem;
+    font-size: 0.625rem;
+    font-weight: 500;
+    border-radius: 9999px;
+  }
+
   /* Responsive design pour la pagination */
   @media (max-width: 768px) {
     .pagination-info {
-      padding: 0.75rem;
-    }
-    
-    .pagination-info > div:first-child {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 1rem;
+      padding: 0.5rem;
     }
     
     .pagination-controls {
@@ -535,8 +644,40 @@
     }
     
     .pagination-controls button {
-      min-width: 2.25rem;
-      height: 2.25rem;
+      min-width: 2rem;
+      height: 2rem;
+      font-size: 0.75rem;
+      padding: 0.25rem;
+    }
+
+    .table-container {
+      max-height: 500px;
+    }
+
+    th, td {
+      padding: 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .badge {
+      padding: 0.125rem 0.375rem;
+      font-size: 0.625rem;
+    }
+  }
+
+  /* Extra small screens */
+  @media (max-width: 480px) {
+    .pagination-controls button {
+      min-width: 1.75rem;
+      height: 1.75rem;
+      font-size: 0.625rem;
+    }
+
+    .mobile-card {
+      padding: 0.75rem;
+    }
+
+    .mobile-card h3 {
       font-size: 0.875rem;
     }
   }

@@ -11,6 +11,7 @@
   } from 'echarts/components';
   import { CanvasRenderer } from 'echarts/renderers';
   import type { EChartsOption } from 'echarts';
+  import { onMount } from 'svelte';
 
   use([
     TitleComponent,
@@ -36,6 +37,22 @@
     'Négatif': '#ff7675',       // Rouge clair
     'Très négatif': '#d63031'   // Rouge foncé
   };
+
+  let isMobile = $state(false);
+  let chartContainer = $state<HTMLDivElement>();
+
+  onMount(() => {
+    const checkMobile = () => {
+      isMobile = window.innerWidth < 768;
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  });
 
   // Use $derived for proper reactivity in Svelte 5
   let options = $derived.by(() => {
@@ -69,12 +86,12 @@
       data: years.map(year => yearlyData[year][polarity] || 0),
       color: polarityColors[polarity],
       lineStyle: {
-        width: 3,
+        width: isMobile ? 2 : 3,
         shadowColor: 'rgba(0, 0, 0, 0.3)',
-        shadowBlur: 10,
-        shadowOffsetY: 5
+        shadowBlur: isMobile ? 5 : 10,
+        shadowOffsetY: isMobile ? 2 : 5
       },
-      symbolSize: 8,
+      symbolSize: isMobile ? 6 : 8,
       smooth: true
     }));
 
@@ -85,7 +102,7 @@
         textStyle: {
           color: '#fff',
           fontWeight: 'bold',
-          fontSize: 16
+          fontSize: isMobile ? 12 : 16
         }
       },
       tooltip: {
@@ -97,7 +114,8 @@
           }
         },
         textStyle: {
-          color: '#333'
+          color: '#333',
+          fontSize: isMobile ? 10 : 12
         },
         backgroundColor: 'rgba(255, 255, 255, 0.9)',
         borderColor: 'rgba(255, 255, 255, 0.4)',
@@ -105,16 +123,21 @@
       },
       legend: {
         data: [...polarityLabels],
-        top: '8%',
+        top: isMobile ? '12%' : '8%',
         textStyle: {
-          color: '#fff'
-        }
+          color: '#fff',
+          fontSize: isMobile ? 10 : 12
+        },
+        orient: isMobile ? 'vertical' : 'horizontal',
+        left: isMobile ? 'right' : 'center',
+        itemWidth: isMobile ? 12 : 25,
+        itemHeight: isMobile ? 8 : 14
       },
       grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '12%',
-        top: '18%',
+        left: isMobile ? '5%' : '3%',
+        right: isMobile ? '25%' : '4%',
+        bottom: isMobile ? '15%' : '12%',
+        top: isMobile ? '25%' : '18%',
         containLabel: true
       },
       xAxis: {
@@ -127,7 +150,9 @@
           }
         },
         axisLabel: {
-          color: '#fff'
+          color: '#fff',
+          fontSize: isMobile ? 9 : 11,
+          rotate: isMobile ? 45 : 0
         }
       },
       yAxis: {
@@ -145,6 +170,7 @@
         },
         axisLabel: {
           color: '#fff',
+          fontSize: isMobile ? 9 : 11,
           formatter: function (value: number) {
             return Math.floor(value).toString();
           }
@@ -156,9 +182,11 @@
           type: 'slider',
           start: 0,
           end: 100,
-          bottom: '2%',
+          bottom: isMobile ? '5%' : '2%',
+          height: isMobile ? 15 : 20,
           textStyle: {
-            color: '#fff'
+            color: '#fff',
+            fontSize: isMobile ? 8 : 10
           },
           borderColor: 'rgba(255, 255, 255, 0.3)',
           fillerColor: 'rgba(120, 160, 255, 0.2)',
@@ -178,9 +206,13 @@
 </script>
 
 {#if $filteredArticles.length > 0}
-  <div style="height:500px; position: relative;" class="bg-surface-900/50 rounded-lg p-2">
+  <div 
+    bind:this={chartContainer}
+    style="height: {isMobile ? '400px' : '500px'}; position: relative;" 
+    class="bg-surface-900/50 rounded-lg p-1 sm:p-2"
+  >
     <Chart {init} {options} />
   </div>
 {:else}
-  <p class="text-center py-8 text-white/80">Aucun article ne correspond aux filtres actuels, ou aucun corpus n'est chargé pour afficher les tendances.</p>
+  <p class="text-center py-8 text-white/80 text-sm sm:text-base">Aucun article ne correspond aux filtres actuels, ou aucun corpus n'est chargé pour afficher les tendances.</p>
 {/if}
