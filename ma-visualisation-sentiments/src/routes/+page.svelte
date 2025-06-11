@@ -518,6 +518,7 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
     white-space: nowrap;
     position: relative;
     overflow: hidden;
+    cursor: pointer;
   }
   
   .nav-tab::before {
