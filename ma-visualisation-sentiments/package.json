@@ -40,7 +40,6 @@
 		"@skeletonlabs/tw-plugin": "^0.4.1",
 		"@sveltejs/adapter-auto": "^6.0.0",
 		"@sveltejs/adapter-static": "^3.0.8",
-		"@sveltejs/kit": "^2.16.0",
 		"@sveltejs/package": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
 		"@tailwindcss/postcss": "^4.1.7",
@@ -54,7 +53,6 @@
 		"prettier": "^3.4.2",
 		"prettier-plugin-svelte": "^3.3.3",
 		"publint": "^0.3.2",
-		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
 		"tailwindcss": "^4.1.7",
 		"typescript": "^5.0.0",
@@ -65,6 +63,7 @@
 		"svelte"
 	],
 	"dependencies": {
+		"@sveltejs/kit": "^2.16.0",
 		"@lucide/svelte": "^0.511.0",
 		"@skeletonlabs/skeleton-svelte": "^1.2.2",
 		"echarts": "^5.6.0",

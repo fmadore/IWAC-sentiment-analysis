@@ -29,13 +29,13 @@
 <AppBar
   background="bg-transparent"
   shadow=""
-  padding=""
+  padding="p-0"
   classes="sticky top-0 z-10 app-header"
 >
   {#snippet headline()}
-    <div class="header-container">
+    <div class="flex items-center justify-between w-full px-4 py-3">
       <!-- Logo/Brand Section -->
-      <div class="header-brand">
+      <div class="flex items-center gap-4">
         <div class="brand-icon">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect width="32" height="32" rx="8" fill="url(#gradient)" />
@@ -76,25 +76,7 @@
 </AppBar>
 
 <style>
-  /* Header Container */
-  .header-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    min-height: 2.5rem;
-    gap: 1rem;
-    padding: 0.5rem 1rem;
-  }
-
   /* Brand Section */
-  .header-brand {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-shrink: 0;
-  }
-
   .brand-icon {
     display: flex;
     align-items: center;
@@ -159,8 +141,6 @@
     line-height: 1.3;
     max-width: 280px;
   }
-
-
 
   /* Actions Section */
   .header-actions {
@@ -294,12 +274,6 @@
 
   /* Responsive Design */
   @media (max-width: 640px) {
-    .header-container {
-      gap: 0.5rem;
-      min-height: 2.25rem;
-      padding: 0.4rem 0.75rem;
-    }
-
     .brand-icon {
       width: 2rem;
       height: 2rem;
@@ -321,11 +295,6 @@
   }
 
   @media (max-width: 480px) {
-    .header-container {
-      min-height: 2rem;
-      padding: 0.3rem 0.5rem;
-    }
-
     .brand-icon {
       width: 1.75rem;
       height: 1.75rem;
@@ -365,10 +334,6 @@
 
   /* Large screens enhancement */
   @media (min-width: 1025px) {
-    .header-container {
-      gap: 1.5rem;
-    }
-
     .brand-title {
       font-size: 1.375rem;
     }
