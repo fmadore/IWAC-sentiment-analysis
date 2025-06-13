@@ -873,6 +873,37 @@ html {
   :global(.tablet-hidden) {
     display: none !important;
   }
+  
+  /* Responsive card titles */
+  :global(.card .h4) {
+    font-size: 1.1rem !important;
+    line-height: 1.4 !important;
+  }
+  
+  :global(.card .h3) {
+    font-size: 1.2rem !important;
+    line-height: 1.4 !important;
+  }
+}
+
+/* Medium screen adjustments (768px - 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  :global(.card) {
+    padding: 0.875rem !important;
+  }
+  
+  :global(.card .h4) {
+    font-size: 1rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  :global(.gap-2) {
+    gap: 0.375rem !important;
+  }
+  
+  :global(.gap-4) {
+    gap: 0.75rem !important;
+  }
 }
 
 /* Desktop responsive utilities */

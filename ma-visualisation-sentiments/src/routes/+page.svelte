@@ -83,8 +83,8 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
   {#if $isLoadingDataset}
     <div class="alert variant-filled-warning p-4 mb-4 sm:mb-6">Chargement des données du corpus IWAC...</div>
   {:else if $currentDatasetArticles.length > 0}
-    <!-- Filters - Stack on mobile -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4 mb-4 sm:mb-6 filters-grid">
+    <!-- Filters - Improved responsive grid -->
+    <div class="filters-grid-responsive mb-4 sm:mb-6">
       <CountryFilter />
       <JournalFilterComponent />
       <PolarityFilter />
@@ -421,18 +421,45 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
   }
   
   /* Enhanced Filter Grid Styles */
-  .filters-grid :global(.card) {
+  .filters-grid-responsive {
+    display: grid;
+    gap: 0.5rem;
+    align-items: start;
+    
+    /* Mobile: 1 column */
+    grid-template-columns: 1fr;
+    
+    /* Small tablets: 2 columns */
+    @media (min-width: 640px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+    
+    /* Medium tablets: 3 columns */
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    
+    /* Large tablets/small desktop: 4 columns */
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    
+    /* Desktop: 5 columns */
+    @media (min-width: 1280px) {
+      grid-template-columns: repeat(5, 1fr);
+    }
+  }
+  
+  .filters-grid-responsive :global(.card) {
     height: fit-content;
     align-self: start;
     transition: all var(--transition-normal);
+    min-width: 0; /* Permet aux cartes de se rétrécir si nécessaire */
   }
   
-  .filters-grid :global(.card:hover) {
+  .filters-grid-responsive :global(.card:hover) {
     transform: translateY(-2px);
-  }
-  
-  .filters-grid {
-    align-items: start;
   }
   
   /* Enhanced Mobile Responsiveness */

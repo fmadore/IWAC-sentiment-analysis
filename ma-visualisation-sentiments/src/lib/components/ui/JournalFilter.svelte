@@ -53,7 +53,7 @@
 
 <div class="card variant-glass p-4 hover-lift">
   <div class="flex items-center justify-between mb-4">
-    <h3 class="h4 text-white">Journal</h3>
+    <h3 class="h4 text-white responsive-title">Journal</h3>
     <span class="text-sm text-white/60">({journals.length})</span>
   </div>
   
@@ -131,6 +131,17 @@
     border: 1px solid transparent;
     position: relative;
     overflow: hidden;
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      padding: 0.2rem 0.6rem;
+      font-size: 0.7rem;
+    }
+    
+    @media (max-width: 480px) {
+      padding: 0.15rem 0.5rem;
+      font-size: 0.65rem;
+    }
   }
   
   .chip:hover {
@@ -147,6 +158,12 @@
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
     transition: all var(--transition-normal);
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      padding: 0.4rem 0.6rem;
+      font-size: 0.8rem;
+    }
   }
   
   .input:focus {
@@ -155,5 +172,18 @@
     box-shadow: 
       0 0 0 3px rgba(59, 130, 246, 0.1),
       var(--shadow-md);
+  }
+  
+  /* Responsive title adjustments */
+  .responsive-title {
+    @media (max-width: 768px) {
+      font-size: 1rem !important;
+      margin-bottom: 0.75rem !important;
+    }
+    
+    @media (max-width: 480px) {
+      font-size: 0.9rem !important;
+      margin-bottom: 0.5rem !important;
+    }
   }
 </style>

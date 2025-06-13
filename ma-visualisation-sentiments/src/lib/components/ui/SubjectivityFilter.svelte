@@ -24,7 +24,7 @@
 </script>
 
 <div class="card variant-glass p-4 hover-lift">
-  <h3 class="h4 mb-4 text-white">Score de subjectivité</h3>
+  <h3 class="h4 mb-4 text-white responsive-title">Score de subjectivité</h3>
   
   <div class="flex flex-wrap gap-2">
     {#each scores as score}
@@ -73,6 +73,30 @@
     border: 1px solid transparent;
     position: relative;
     overflow: hidden;
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      padding: 0.2rem 0.6rem;
+      font-size: 0.7rem;
+    }
+    
+    @media (max-width: 480px) {
+      padding: 0.15rem 0.5rem;
+      font-size: 0.65rem;
+    }
+  }
+  
+  /* Responsive title adjustments */
+  .responsive-title {
+    @media (max-width: 768px) {
+      font-size: 1rem !important;
+      margin-bottom: 0.75rem !important;
+    }
+    
+    @media (max-width: 480px) {
+      font-size: 0.9rem !important;
+      margin-bottom: 0.5rem !important;
+    }
   }
   
   .chip:hover {
@@ -90,5 +114,16 @@
     font-weight: 500;
     border-radius: 9999px;
     transition: all var(--transition-fast);
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      padding: 0.2rem 0.4rem;
+      font-size: 0.7rem;
+    }
+    
+    @media (max-width: 480px) {
+      padding: 0.15rem 0.35rem;
+      font-size: 0.65rem;
+    }
   }
 </style>

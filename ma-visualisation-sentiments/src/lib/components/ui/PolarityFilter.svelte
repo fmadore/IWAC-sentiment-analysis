@@ -32,7 +32,7 @@
 </script>
 
 <div class="card variant-glass p-4 hover-lift">
-  <h3 class="h4 mb-4 text-white">Polarité</h3>
+  <h3 class="h4 mb-4 text-white responsive-title">Polarité</h3>
   
   <div class="flex flex-wrap gap-2">
     {#each polarityOptions as option}
@@ -66,6 +66,17 @@
     border: 1px solid transparent;
     position: relative;
     overflow: hidden;
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      padding: 0.2rem 0.6rem;
+      font-size: 0.7rem;
+    }
+    
+    @media (max-width: 480px) {
+      padding: 0.15rem 0.5rem;
+      font-size: 0.65rem;
+    }
   }
   
   .chip:hover {
@@ -75,5 +86,18 @@
   
   .chip.hover-glow {
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  
+  /* Responsive title adjustments */
+  .responsive-title {
+    @media (max-width: 768px) {
+      font-size: 1rem !important;
+      margin-bottom: 0.75rem !important;
+    }
+    
+    @media (max-width: 480px) {
+      font-size: 0.9rem !important;
+      margin-bottom: 0.5rem !important;
+    }
   }
 </style>
