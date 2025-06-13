@@ -109,7 +109,7 @@
       }
     });
 
-    const newspaperList = Array.from(uniqueNewspapers);
+    const newspaperList = Array.from(uniqueNewspapers).sort();
 
     if (chartType === 'pie') {
       // Pie chart: agrégation globale par subjectivité
@@ -131,8 +131,9 @@
 
       return {
         title: {
-          text: `Distribution globale de la subjectivité (${articlesAnalyzed} articles)`,
+          text: `Distribution globale de la subjectivité (${articlesAnalyzed.toLocaleString('fr-FR')} articles)`,
           left: 'center',
+          top: '2%',
           textStyle: {
             color: '#fff',
             fontWeight: 'bold',
@@ -151,12 +152,17 @@
           borderWidth: 1
         },
         legend: {
-          orient: 'vertical',
-          left: 'left',
+          bottom: isMobile ? '5%' : undefined,
+          top: isMobile ? undefined : '8%',
           textStyle: {
             color: '#fff',
             fontSize: isMobile ? 10 : 12
-          }
+          },
+          type: 'scroll',
+          orient: 'horizontal',
+          left: 'center',
+          itemWidth: isMobile ? 12 : 25,
+          itemHeight: isMobile ? 8 : 14
         },
         series: [{
           name: 'Subjectivité',
@@ -193,12 +199,16 @@
 
       return {
         title: {
-          text: `Distribution de la subjectivité par journal (${articlesAnalyzed} articles analysés)`,
+          text: isMobile 
+            ? `Subjectivité par journal\n(${articlesAnalyzed.toLocaleString('fr-FR')} articles analysés)`
+            : `Distribution de la subjectivité par journal (${articlesAnalyzed.toLocaleString('fr-FR')} articles analysés)`,
           left: 'center',
+          top: '1%',
           textStyle: {
             color: '#fff',
             fontWeight: 'bold',
-            fontSize: isMobile ? 12 : 16
+            fontSize: isMobile ? 11 : 16,
+            lineHeight: isMobile ? 16 : 20
           }
         },
         tooltip: {
@@ -247,22 +257,23 @@
         },
         legend: {
           data: newspaperList,
-          top: isMobile ? '12%' : '8%',
+          bottom: isMobile ? '8%' : undefined,
+          top: isMobile ? undefined : '8%',
           textStyle: {
             color: '#fff',
             fontSize: isMobile ? 10 : 12
           },
           type: 'scroll',
-          orient: isMobile ? 'vertical' : 'horizontal',
-          left: isMobile ? 'right' : 'center',
+          orient: 'horizontal',
+          left: 'center',
           itemWidth: isMobile ? 12 : 25,
           itemHeight: isMobile ? 8 : 14
         },
         grid: {
           left: isMobile ? '5%' : '3%',
-          right: isMobile ? '25%' : '4%',
-          bottom: isMobile ? '5%' : '3%',
-          top: isMobile ? '25%' : '18%',
+          right: isMobile ? '5%' : '4%',
+          bottom: isMobile ? '25%' : '3%',
+          top: isMobile ? '18%' : '18%',
           containLabel: true
         },
         xAxis: {
@@ -314,13 +325,13 @@
   <!-- Boutons de sélection du type de graphique -->
   <div class="flex flex-wrap gap-2 mb-4 justify-center">
     <button 
-      class="btn btn-sm hover-lift {chartType === 'bar' ? 'variant-filled-primary' : 'variant-soft-surface'}"
+      class="btn btn-sm hover-lift transition-all duration-200 {chartType === 'bar' ? 'variant-filled-primary shadow-lg scale-105' : 'variant-soft-surface hover:variant-soft-primary'}"
       onclick={() => chartType = 'bar'}
     >
       📊 Barres
     </button>
     <button 
-      class="btn btn-sm hover-lift {chartType === 'pie' ? 'variant-filled-primary' : 'variant-soft-surface'}"
+      class="btn btn-sm hover-lift transition-all duration-200 {chartType === 'pie' ? 'variant-filled-primary shadow-lg scale-105' : 'variant-soft-surface hover:variant-soft-primary'}"
       onclick={() => chartType = 'pie'}
     >
       🥧 Camembert
