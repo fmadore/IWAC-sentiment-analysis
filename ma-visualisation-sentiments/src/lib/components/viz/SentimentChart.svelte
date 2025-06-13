@@ -148,8 +148,13 @@
           name: 'Polarité',
           type: 'pie',
           radius: ['40%', '70%'],
-          center: ['60%', '50%'],
+          center: ['50%', '50%'],
           data: pieData,
+          label: {
+            color: '#fff',
+            fontSize: isMobile ? 10 : 12,
+            fontWeight: 'normal'
+          },
           emphasis: {
             itemStyle: {
               shadowBlur: 10,

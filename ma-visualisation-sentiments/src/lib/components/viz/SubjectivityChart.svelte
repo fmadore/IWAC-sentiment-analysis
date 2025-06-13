@@ -152,24 +152,19 @@
           borderWidth: 1
         },
         legend: {
-          bottom: isMobile ? '5%' : undefined,
-          top: isMobile ? undefined : '8%',
-          textStyle: {
-            color: '#fff',
-            fontSize: isMobile ? 10 : 12
-          },
-          type: 'scroll',
-          orient: 'horizontal',
-          left: 'center',
-          itemWidth: isMobile ? 12 : 25,
-          itemHeight: isMobile ? 8 : 14
+          show: false // Hide legend for pie chart to avoid confusion
         },
         series: [{
           name: 'Subjectivité',
           type: 'pie',
           radius: ['40%', '70%'],
-          center: ['60%', '50%'],
+          center: ['50%', '50%'],
           data: pieData,
+          label: {
+            color: '#fff',
+            fontSize: isMobile ? 10 : 12,
+            fontWeight: 'normal'
+          },
           emphasis: {
             itemStyle: {
               shadowBlur: 10,
