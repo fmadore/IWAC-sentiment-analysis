@@ -27,9 +27,9 @@
 </script>
 
 <AppBar
-  background="bg-gradient-to-r from-primary-700 to-tertiary-700"
-  shadow="shadow-xl"
-  padding="py-4 px-4 sm:px-6"
+  background="bg-transparent"
+  shadow=""
+  padding=""
   classes="sticky top-0 z-10 app-header"
 >
   {#snippet headline()}
@@ -82,8 +82,9 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    min-height: 3rem;
+    min-height: 2.5rem;
     gap: 1rem;
+    padding: 0.5rem 1rem;
   }
 
   /* Brand Section */
@@ -101,17 +102,40 @@
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 0.75rem;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .brand-icon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+      rgba(255, 255, 255, 0.1) 0%, 
+      rgba(255, 255, 255, 0.05) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
 
   .brand-icon:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 
+      0 8px 25px rgba(0, 0, 0, 0.15),
+      0 0 20px rgba(59, 130, 246, 0.1);
+  }
+
+  .brand-icon:hover::before {
+    opacity: 1;
   }
 
   .brand-text {
@@ -153,9 +177,9 @@
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 0.75rem;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     color: white;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -170,19 +194,40 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
     transition: left 0.5s ease;
+  }
+
+  .fullscreen-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+      rgba(255, 255, 255, 0.1) 0%, 
+      rgba(255, 255, 255, 0.05) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
 
   .fullscreen-btn:hover::before {
     left: 100%;
   }
 
+  .fullscreen-btn:hover::after {
+    opacity: 1;
+  }
+
   .fullscreen-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 
+      0 8px 25px rgba(0, 0, 0, 0.15),
+      0 0 20px rgba(59, 130, 246, 0.1);
   }
 
   .fullscreen-btn:active {
@@ -200,21 +245,59 @@
 
   /* Global App Header Styles */
   :global(.app-header) {
-    background-image: 
-      linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%),
-      linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(30, 41, 59, 0.85);
+    backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     box-shadow: 
-      0 4px 6px -1px rgba(0, 0, 0, 0.1),
-      0 2px 4px -1px rgba(0, 0, 0, 0.06),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      0 8px 32px rgba(0, 0, 0, 0.12),
+      0 2px 8px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    position: relative;
+    padding: 0 !important;
+  }
+
+  /* Force override any Skeleton AppBar default padding */
+  :global(.app-header > *) {
+    padding: 0 !important;
+  }
+
+  :global(.app-header::before) {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, 
+      transparent, 
+      rgba(59, 130, 246, 0.4), 
+      rgba(139, 92, 246, 0.4), 
+      transparent
+    );
+  }
+
+  :global(.app-header::after) {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+      rgba(59, 130, 246, 0.08) 0%, 
+      rgba(139, 92, 246, 0.06) 50%,
+      rgba(16, 185, 129, 0.04) 100%
+    );
+    pointer-events: none;
+    z-index: -1;
   }
 
   /* Responsive Design */
   @media (max-width: 640px) {
     .header-container {
       gap: 0.5rem;
+      min-height: 2.25rem;
+      padding: 0.4rem 0.75rem;
     }
 
     .brand-icon {
@@ -239,7 +322,8 @@
 
   @media (max-width: 480px) {
     .header-container {
-      min-height: 2.5rem;
+      min-height: 2rem;
+      padding: 0.3rem 0.5rem;
     }
 
     .brand-icon {

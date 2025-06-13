@@ -75,7 +75,7 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
   }
 </script>
 
-<main class="container max-w-6xl mx-auto p-2 sm:p-4 md:p-6 mt-2 sm:mt-6">
+<main class="main-container container max-w-6xl mx-auto p-2 sm:p-4 md:p-6">
   <div class="mb-4 sm:mb-6">
     <AnalysisInfo />
   </div>
@@ -667,5 +667,25 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
   .nav-tab-mobile.active :global(svg) {
     opacity: 1;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  }
+
+  /* Main Container Spacing Optimization */
+  .main-container {
+    margin-top: 0;
+    padding-top: 0.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .main-container {
+      margin-top: 0;
+      padding-top: 0.75rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .main-container {
+      margin-top: 0;
+      padding-top: 1rem;
+    }
   }
 </style>
