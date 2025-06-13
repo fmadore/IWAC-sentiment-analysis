@@ -94,12 +94,12 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
 
     <div class="card variant-glass mb-4 sm:mb-6 overflow-hidden hover-lift">
       <!-- Navigation horizontale en haut -->
-      <div class="navigation-container">
+      <div class="navigation-container glass-medium">
         <!-- Navigation Desktop -->
         <div class="hidden md:flex items-center justify-center">
           <div class="flex space-x-3">
             <button
-              class="nav-tab {activeView === 'charts' ? 'active' : ''}"
+              class="nav-tab hover-lift {activeView === 'charts' ? 'active' : ''}"
               onclick={() => handleViewChange('charts')}
             >
               <ChartIcon size={20} />
@@ -107,7 +107,7 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
             </button>
             
             <button
-              class="nav-tab {activeView === 'trends' ? 'active' : ''}"
+              class="nav-tab hover-lift {activeView === 'trends' ? 'active' : ''}"
               onclick={() => handleViewChange('trends')}
             >
               <TrendingUpIcon size={20} />
@@ -115,7 +115,7 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
             </button>
             
             <button
-              class="nav-tab {activeView === 'correlation' ? 'active' : ''}"
+              class="nav-tab hover-lift {activeView === 'correlation' ? 'active' : ''}"
               onclick={() => handleViewChange('correlation')}
             >
               <BarChart3Icon size={20} />
@@ -123,7 +123,7 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
             </button>
             
             <button
-              class="nav-tab {activeView === 'volume' ? 'active' : ''}"
+              class="nav-tab hover-lift {activeView === 'volume' ? 'active' : ''}"
               onclick={() => handleViewChange('volume')}
             >
               <AreaChartIcon size={20} />
@@ -131,7 +131,7 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
             </button>
             
             <button
-              class="nav-tab {activeView === 'heatmap' ? 'active' : ''}"
+              class="nav-tab hover-lift {activeView === 'heatmap' ? 'active' : ''}"
               onclick={() => handleViewChange('heatmap')}
             >
               <ActivityIcon size={20} />
@@ -139,7 +139,7 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
             </button>
             
             <button
-              class="nav-tab {activeView === 'table' ? 'active' : ''}"
+              class="nav-tab hover-lift {activeView === 'table' ? 'active' : ''}"
               onclick={() => handleViewChange('table')}
             >
               <TableIcon size={20} />
@@ -152,7 +152,7 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
         <div class="md:hidden">
           <div class="flex items-center space-x-3 overflow-x-auto pb-2 scrollbar-hide">
             <button
-              class="nav-tab-mobile {activeView === 'charts' ? 'active' : ''}"
+              class="nav-tab-mobile hover-lift-sm {activeView === 'charts' ? 'active' : ''}"
               onclick={() => handleViewChange('charts')}
             >
               <ChartIcon size={18} />
@@ -160,7 +160,7 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
             </button>
             
             <button
-              class="nav-tab-mobile {activeView === 'trends' ? 'active' : ''}"
+              class="nav-tab-mobile hover-lift-sm {activeView === 'trends' ? 'active' : ''}"
               onclick={() => handleViewChange('trends')}
             >
               <TrendingUpIcon size={18} />
@@ -168,7 +168,7 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
             </button>
             
             <button
-              class="nav-tab-mobile {activeView === 'correlation' ? 'active' : ''}"
+              class="nav-tab-mobile hover-lift-sm {activeView === 'correlation' ? 'active' : ''}"
               onclick={() => handleViewChange('correlation')}
             >
               <BarChart3Icon size={18} />
@@ -176,7 +176,7 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
             </button>
             
             <button
-              class="nav-tab-mobile {activeView === 'volume' ? 'active' : ''}"
+              class="nav-tab-mobile hover-lift-sm {activeView === 'volume' ? 'active' : ''}"
               onclick={() => handleViewChange('volume')}
             >
               <AreaChartIcon size={18} />
@@ -184,7 +184,7 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
             </button>
             
             <button
-              class="nav-tab-mobile {activeView === 'heatmap' ? 'active' : ''}"
+              class="nav-tab-mobile hover-lift-sm {activeView === 'heatmap' ? 'active' : ''}"
               onclick={() => handleViewChange('heatmap')}
             >
               <ActivityIcon size={18} />
@@ -192,7 +192,7 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
             </button>
             
             <button
-              class="nav-tab-mobile {activeView === 'table' ? 'active' : ''}"
+              class="nav-tab-mobile hover-lift-sm {activeView === 'table' ? 'active' : ''}"
               onclick={() => handleViewChange('table')}
             >
               <TableIcon size={18} />

@@ -213,13 +213,13 @@
   <!-- Boutons de sélection du type de graphique -->
   <div class="flex flex-wrap gap-2 mb-4 justify-center">
     <button 
-      class="btn btn-sm {chartType === 'area' ? 'variant-filled-primary' : 'variant-soft-surface'}"
+      class="btn btn-sm hover-lift {chartType === 'area' ? 'variant-filled-primary' : 'variant-soft-surface'}"
       onclick={() => chartType = 'area'}
     >
       📈 Aires empilées
     </button>
     <button 
-      class="btn btn-sm {chartType === 'line' ? 'variant-filled-primary' : 'variant-soft-surface'}"
+      class="btn btn-sm hover-lift {chartType === 'line' ? 'variant-filled-primary' : 'variant-soft-surface'}"
       onclick={() => chartType = 'line'}
     >
       📊 Lignes
@@ -229,7 +229,7 @@
   <div 
     bind:this={chartContainer}
     style="height: {isMobile ? '400px' : '500px'}; position: relative;" 
-    class="bg-surface-900/50 rounded-lg p-1 sm:p-2"
+    class="chart-container glass-medium rounded-lg p-2 sm:p-4"
   >
     <Chart {init} {options} />
   </div>

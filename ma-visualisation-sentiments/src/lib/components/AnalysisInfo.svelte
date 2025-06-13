@@ -250,12 +250,18 @@ Assurez-vous que votre réponse est uniquement le JSON structuré demandé, sans
     font-size: 0.75rem;
     border-radius: 9999px;
     display: inline-block;
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
+    transition: all var(--transition-fast);
   }
   
   .accordion {
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-lg);
     overflow: hidden;
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
   }
   
   .accordion-item {
@@ -273,16 +279,21 @@ Assurez-vous que votre réponse est uniquement le JSON structuré demandé, sans
     background: rgba(255, 255, 255, 0.05);
     color: white;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all var(--transition-normal);
+    border: none;
+    font-size: inherit;
+    font-family: inherit;
   }
   
   .accordion-header:hover {
     background: rgba(255, 255, 255, 0.1);
+    transform: translateX(4px);
   }
   
   .accordion-content {
     background: rgba(0, 0, 0, 0.2);
     color: white;
+    backdrop-filter: blur(8px);
   }
   
   .h6 {
@@ -299,6 +310,7 @@ Assurez-vous que votre réponse est uniquement le JSON structuré demandé, sans
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -309,13 +321,14 @@ Assurez-vous que votre réponse est uniquement le JSON structuré demandé, sans
   .modal-content {
     background: rgba(15, 23, 42, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.75rem;
+    border-radius: var(--radius-xl);
     max-width: 90vw;
     max-height: 90vh;
     width: 800px;
     display: flex;
     flex-direction: column;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-2xl);
   }
   
   .modal-header {
@@ -324,21 +337,30 @@ Assurez-vous que votre réponse est uniquement le JSON structuré demandé, sans
     align-items: center;
     padding: 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
   }
   
   .btn-close {
-    background: none;
-    border: none;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     color: white;
     font-size: 1.5rem;
     cursor: pointer;
     padding: 0.25rem;
-    border-radius: 0.25rem;
-    transition: background 0.2s;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-normal);
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .btn-close:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--glass-hover-bg);
+    border-color: var(--glass-hover-border);
+    transform: translateY(-1px);
   }
   
   .modal-body {
@@ -356,9 +378,10 @@ Assurez-vous que votre réponse est uniquement le JSON structuré demandé, sans
   
   .prompt-container {
     background: rgba(0, 0, 0, 0.3);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-md);
     padding: 1rem;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
   }
   
   .prompt-text {
@@ -373,11 +396,14 @@ Assurez-vous que votre réponse est uniquement le JSON structuré demandé, sans
   
   .btn {
     padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
+    border-radius: var(--radius-md);
     border: none;
     cursor: pointer;
     font-weight: 500;
-    transition: all 0.2s;
+    transition: all var(--transition-normal);
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
   }
   
   .variant-soft-primary {
@@ -388,14 +414,19 @@ Assurez-vous que votre réponse est uniquement le JSON structuré demandé, sans
   
   .variant-soft-primary:hover {
     background: rgba(59, 130, 246, 0.3);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
   }
   
   .variant-filled-primary {
-    background: #3b82f6;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
     color: white;
+    border: none;
   }
   
   .variant-filled-primary:hover {
-    background: #2563eb;
+    background: linear-gradient(135deg, #2563EB, #7C3AED);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
   }
 </style>

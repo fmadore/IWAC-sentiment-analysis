@@ -314,13 +314,13 @@
   <!-- Boutons de sélection du type de graphique -->
   <div class="flex flex-wrap gap-2 mb-4 justify-center">
     <button 
-      class="btn btn-sm {chartType === 'bar' ? 'variant-filled-primary' : 'variant-soft-surface'}"
+      class="btn btn-sm hover-lift {chartType === 'bar' ? 'variant-filled-primary' : 'variant-soft-surface'}"
       onclick={() => chartType = 'bar'}
     >
       📊 Barres
     </button>
     <button 
-      class="btn btn-sm {chartType === 'pie' ? 'variant-filled-primary' : 'variant-soft-surface'}"
+      class="btn btn-sm hover-lift {chartType === 'pie' ? 'variant-filled-primary' : 'variant-soft-surface'}"
       onclick={() => chartType = 'pie'}
     >
       🥧 Camembert
@@ -331,10 +331,10 @@
   <div 
     bind:this={chartContainer}
     style="height: {isMobile ? '350px' : '450px'}; position: relative;" 
-    class="bg-surface-900/50 rounded-lg p-1 sm:p-2"
+    class="chart-container glass-medium rounded-lg p-2 sm:p-4"
   >
     <Chart {init} {options} />
   </div>
 {:else}
-  <p class="text-center py-8 text-white/80 text-sm sm:text-base">Aucun article ne correspond aux filtres actuels, ou aucun corpus n'est chargé pour afficher la subjectivité.</p>
+  <p class="text-center py-8 text-white/80 text-sm sm:text-base">Aucun article ne correspond aux filtres actuels, ou aucun corpus n'est chargé.</p>
 {/if}

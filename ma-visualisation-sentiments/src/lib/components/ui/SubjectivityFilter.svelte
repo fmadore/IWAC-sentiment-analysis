@@ -73,6 +73,8 @@
     border: 1px solid transparent;
     position: relative;
     overflow: hidden;
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
     
     /* Responsive adjustments */
     @media (max-width: 768px) {
@@ -84,6 +86,18 @@
       padding: 0.15rem 0.5rem;
       font-size: 0.65rem;
     }
+  }
+  
+  .chip::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    opacity: 0;
+    transition: opacity var(--transition-normal);
   }
   
   /* Responsive title adjustments */
@@ -100,12 +114,23 @@
   }
   
   .chip:hover {
+    background: var(--glass-hover-bg);
+    border-color: var(--glass-hover-border);
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
   }
   
+  .chip:hover::before {
+    opacity: 1;
+  }
+  
   .chip.hover-glow {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+    box-shadow: 
+      var(--shadow-lg),
+      0 0 20px rgba(59, 130, 246, 0.3);
   }
   
   .badge {
@@ -114,6 +139,9 @@
     font-weight: 500;
     border-radius: 9999px;
     transition: all var(--transition-fast);
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
     
     /* Responsive adjustments */
     @media (max-width: 768px) {

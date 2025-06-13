@@ -261,11 +261,32 @@ html {
   border: 1px solid transparent;
   position: relative;
   overflow: hidden;
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+}
+
+/* Global chip enhancement */
+:global(.chip::before), :global(.badge::before) {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  opacity: 0;
+  transition: opacity var(--transition-normal);
 }
 
 :global(.chip:hover), :global(.badge:hover) {
+  background: var(--glass-hover-bg);
+  border-color: var(--glass-hover-border);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
+}
+
+:global(.chip:hover::before), :global(.badge:hover::before) {
+  opacity: 1;
 }
 
 /* Chip/Badge Size Variants */
@@ -280,18 +301,20 @@ html {
 }
 
 /* Enhanced Chip States */
-:global(.chip-selected) {
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-  color: white;
+:global(.chip-selected), :global(.hover-glow) {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)) !important;
+  color: white !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
   box-shadow: 
     var(--shadow-md),
-    0 0 15px rgba(59, 130, 246, 0.3);
+    0 0 15px rgba(59, 130, 246, 0.3) !important;
 }
 
-:global(.chip-selected:hover) {
+:global(.chip-selected:hover), :global(.hover-glow:hover) {
   box-shadow: 
     var(--shadow-lg),
-    0 0 25px rgba(59, 130, 246, 0.4);
+    0 0 25px rgba(59, 130, 246, 0.4) !important;
+  transform: translateY(-2px) !important;
 }
 
 /* =============================================================================
@@ -337,8 +360,8 @@ html {
    NAVIGATION SYSTEM
    ============================================================================= */
 
-/* Navigation Container */
-.navigation-container {
+/* Enhanced Navigation Container */
+:global(.navigation-container) {
   background: rgba(30, 41, 59, 0.9);
   backdrop-filter: blur(20px);
   border-radius: var(--radius-xl);
@@ -349,7 +372,7 @@ html {
   overflow: hidden;
 }
 
-.navigation-container::before {
+:global(.navigation-container::before) {
   content: '';
   position: absolute;
   top: 0;
@@ -359,8 +382,8 @@ html {
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
 }
 
-/* Navigation Tabs */
-.nav-tab, .nav-tab-mobile {
+/* Enhanced Navigation Tabs */
+:global(.nav-tab), :global(.nav-tab-mobile) {
   position: relative;
   border-radius: var(--radius-md);
   background: var(--glass-bg);
@@ -372,11 +395,10 @@ html {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
   cursor: pointer;
 }
 
-.nav-tab::before, .nav-tab-mobile::before {
+:global(.nav-tab::before), :global(.nav-tab-mobile::before) {
   content: '';
   position: absolute;
   top: 0;
@@ -388,41 +410,47 @@ html {
   transition: opacity var(--transition-normal);
 }
 
-.nav-tab:hover, .nav-tab-mobile:hover {
+:global(.nav-tab:hover), :global(.nav-tab-mobile:hover) {
   background: var(--glass-hover-bg);
   border-color: var(--glass-hover-border);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
   color: white;
+  box-shadow: var(--shadow-lg);
 }
 
-.nav-tab:hover::before, .nav-tab-mobile:hover::before {
+:global(.nav-tab:hover::before), :global(.nav-tab-mobile:hover::before) {
   opacity: 1;
 }
 
-.nav-tab.active, .nav-tab-mobile.active {
-  background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
-  border-color: rgba(255, 255, 255, 0.3);
-  color: white;
+:global(.nav-tab.active), :global(.nav-tab-mobile.active) {
+  background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
   box-shadow: 
     0 8px 32px rgba(59, 130, 246, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
-.nav-tab.active:hover, .nav-tab-mobile.active:hover {
-  transform: translateY(-3px);
+:global(.nav-tab.active:hover), :global(.nav-tab-mobile.active:hover) {
   box-shadow: 
     0 12px 40px rgba(59, 130, 246, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Mobile Navigation Enhancements */
-.nav-tab-mobile {
+/* Desktop Navigation Tabs */
+:global(.nav-tab) {
+  padding: 0.75rem 1.25rem;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+/* Mobile Navigation Tabs */
+:global(.nav-tab-mobile) {
   padding: 0.5rem 0.75rem;
   min-width: fit-content;
   white-space: nowrap;
   flex-shrink: 0;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 /* =============================================================================
@@ -586,6 +614,7 @@ html {
    TABLE ENHANCEMENTS
    ============================================================================= */
 
+/* Enhanced Table System */
 :global(.table-container) {
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -593,6 +622,17 @@ html {
   background: var(--glass-bg);
   backdrop-filter: blur(16px);
   box-shadow: var(--shadow-lg);
+}
+
+:global(.table-container::before) {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  z-index: 1;
 }
 
 :global(.table) {

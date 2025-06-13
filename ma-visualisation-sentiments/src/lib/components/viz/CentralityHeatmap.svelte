@@ -224,7 +224,7 @@
   <div 
     bind:this={chartContainer}
     style="height: {isMobile ? '500px' : '600px'}; position: relative;" 
-    class="bg-surface-900/50 rounded-lg p-1 sm:p-2"
+    class="chart-container glass-medium rounded-lg p-2 sm:p-4"
   >
     <Chart {init} {options} />
   </div>
