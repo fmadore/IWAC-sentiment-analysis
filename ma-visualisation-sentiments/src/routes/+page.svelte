@@ -580,6 +580,7 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
     flex-shrink: 0;
     position: relative;
     overflow: hidden;
+    cursor: pointer;
   }
   
   .nav-tab-mobile::before {
