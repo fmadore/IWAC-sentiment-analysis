@@ -13,13 +13,16 @@ Le projet est structuré comme une application SvelteKit typique :
 -   `src/`
     -   `lib/`: Contient la logique principale de l'application.
         -   `components/`: Composants Svelte réutilisables.
-            -   `ui/`: Composants pour l'interface utilisateur (filtres).
+            -   `ui/`: Composants pour l'interface utilisateur.
+                -   `AppHeader.svelte`: En-tête de l'application avec branding et bouton plein écran.
                 -   `CountryFilter.svelte`: Permet de filtrer les articles par pays (filtre hiérarchique principal).
                 -   `JournalFilter.svelte`: Permet de filtrer les articles par source (nom du journal), avec recherche et pagination.
                 -   `PolarityFilter.svelte`: Permet de filtrer les articles par polarité du sentiment.
                 -   `SubjectivityFilter.svelte`: Permet de filtrer les articles par score de subjectivité (1-5).
                 -   `CentralityFilter.svelte`: Permet de filtrer les articles par centralité de l'islam/musulmans.
                 -   `SentimentCriteriaFilter.svelte`: Version alternative qui combine les filtres de polarité et subjectivité.
+                -   `ChartExporter.svelte`: Module d'export de graphiques avec options de format et qualité.
+                -   `ChartWrapper.svelte`: Wrapper pour faciliter l'intégration des graphiques avec le système d'export.
             -   `viz/`: Composants pour la visualisation des données.
                 -   `SentimentChart.svelte`: Affiche la distribution de polarité par journal avec options barres/camembert.
                 -   `SubjectivityChart.svelte`: Affiche la distribution de subjectivité par journal avec options barres/camembert.
@@ -100,6 +103,23 @@ L'application propose une suite complète de visualisations interactives pour ex
 - **Vue mobile adaptée** : Cartes responsives pour petits écrans
 - **Détails d'articles** : Modal avec métadonnées complètes et justifications d'analyse
 
+## Fonctionnalités d'export
+
+L'application inclut un système complet d'export de graphiques permettant de télécharger les visualisations avec les filtres appliqués :
+
+### **ChartExporter** - Module d'export avancé
+- **Formats multiples** : PNG, JPEG, SVG
+- **Qualités variables** : Basse (800x600), Moyenne (1200x900), Haute (1920x1440)
+- **Informations contextuelles** : Inclusion automatique des filtres actifs, nombre d'articles, date d'export
+- **Interface intuitive** : Modal avec aperçu des paramètres et options configurables
+- **Noms de fichiers intelligents** : Génération automatique avec type de graphique, nombre d'articles et timestamp
+
+### **ChartWrapper** - Intégration simplifiée
+- **Wrapper universel** : Facilite l'ajout du système d'export à tous les graphiques
+- **Gestion automatique** : Détection et transmission de l'instance ECharts
+- **Interface cohérente** : Bouton d'export standardisé avec titre du graphique
+- **Responsive** : Adaptation automatique aux différentes tailles d'écran
+
 ## Gestion d'état (`stores.ts`)
 
 L'application utilise les stores Svelte pour gérer l'état global :
@@ -120,6 +140,14 @@ De plus, le store expose la fonction :
 
 ## Composants clés
 
+### Composants d'interface utilisateur
+
+-   **`AppHeader.svelte`**: En-tête moderne de l'application avec :
+    - **Branding élégant** : Logo avec dégradé et animations subtiles
+    - **Mode plein écran** : Bouton pour basculer en mode plein écran avec icônes dynamiques
+    - **Design responsive** : Adaptation automatique aux différentes tailles d'écran
+    - **Effets visuels** : Glassmorphism, animations hover et transitions fluides
+
 ### Composants de filtrage
 
 -   **`CountryFilter.svelte`**: Permet de sélectionner un ou plusieurs pays. Ce filtre est hiérarchique et influence la liste des journaux disponibles.
@@ -127,6 +155,20 @@ De plus, le store expose la fonction :
 -   **`PolarityFilter.svelte`**: Permet de filtrer les articles selon leur polarité (Très positif, Positif, Neutre, Négatif, Très négatif, Non applicable).
 -   **`SubjectivityFilter.svelte`**: Permet de filtrer les articles selon leur score de subjectivité (échelle de 1 à 5) avec légende explicative.
 -   **`CentralityFilter.svelte`**: Permet de filtrer les articles selon la centralité du sujet islam/musulmans (Très central, Central, Secondaire, Marginal, Non abordé).
+
+### Composants d'export
+
+-   **`ChartExporter.svelte`**: Module complet d'export de graphiques avec :
+    - **Interface modal** : Configuration intuitive des paramètres d'export
+    - **Formats multiples** : Support PNG, JPEG et SVG
+    - **Qualités ajustables** : Trois niveaux de résolution (basse, moyenne, haute)
+    - **Métadonnées automatiques** : Ajout des informations de filtrage et contexte
+    - **Accessibilité** : Respect des standards ARIA et navigation clavier
+-   **`ChartWrapper.svelte`**: Wrapper facilitant l'intégration de l'export avec :
+    - **Intégration transparente** : Ajout automatique du bouton d'export
+    - **Gestion d'état** : Détection automatique de l'instance ECharts
+    - **Interface unifiée** : Design cohérent pour tous les graphiques
+    - **Gestion d'erreurs** : Affichage approprié en cas d'absence de données
 
 ### Composants de visualisation
 
@@ -165,6 +207,65 @@ De plus, le store expose la fonction :
     -   Gère l'affichage des détails d'articles dans un modal responsive
     -   Interface entièrement responsive avec navigation mobile optimisée
     -   Gère l'affichage des messages de chargement ou d'absence de données.
+
+## Utilisation du système d'export
+
+### Pour les utilisateurs finaux
+
+1. **Accéder à l'export** : Chaque graphique dispose d'un bouton "Télécharger" dans son en-tête
+2. **Configurer l'export** : 
+   - Choisir le format (PNG, JPEG, SVG)
+   - Sélectionner la qualité (Basse, Moyenne, Haute)
+   - Activer/désactiver l'inclusion des informations de filtres
+3. **Télécharger** : Le fichier est automatiquement généré avec un nom descriptif
+
+### Pour les développeurs
+
+#### Utilisation avec ChartWrapper (recommandé)
+```svelte
+<script>
+  import { ChartWrapper } from '$lib';
+  
+  // Vos options ECharts
+  let options = $derived.by(() => {
+    // Logique de génération des options
+    return { /* options ECharts */ };
+  });
+</script>
+
+<ChartWrapper
+  {options}
+  chartType="sentiment"
+  chartTitle="Distribution des sentiments"
+  height="500px"
+  hasData={$filteredArticles.length > 0}
+/>
+```
+
+#### Utilisation directe de ChartExporter
+```svelte
+<script>
+  import { ChartExporter } from '$lib';
+  import { Chart } from 'svelte-echarts';
+  
+  let chartInstance: ECharts | null = null;
+  
+  function handleChartReady(chart: ECharts) {
+    chartInstance = chart;
+  }
+</script>
+
+<div class="flex justify-between items-center mb-4">
+  <h3>Mon Graphique</h3>
+  <ChartExporter 
+    chartType="sentiment"
+    chartTitle="Mon Graphique"
+    {chartInstance}
+  />
+</div>
+
+<Chart {options} onReady={handleChartReady} />
+```
 
 ## Développement
 
@@ -221,6 +322,26 @@ Pour mettre à jour les données du corpus IWAC :
     ```
     
     Ce script récupère automatiquement les données depuis le dataset Hugging Face et génère le fichier `iwac_articles.json` dans le bon format.
+
+## Technologies utilisées
+
+### Frontend
+- **Svelte 5** : Framework JavaScript moderne avec runes pour la réactivité
+- **SvelteKit** : Framework full-stack pour Svelte avec SSG
+- **TypeScript** : Typage statique pour une meilleure robustesse
+- **Tailwind CSS** : Framework CSS utilitaire pour le styling
+- **Skeleton UI** : Composants UI pour Svelte avec thème sombre
+
+### Visualisations
+- **ECharts** : Bibliothèque de graphiques interactifs haute performance
+- **svelte-echarts** : Wrapper Svelte pour ECharts
+- **Canvas API** : Pour l'ajout de métadonnées aux exports d'images
+
+### Outils de développement
+- **Vite** : Build tool rapide et moderne
+- **ESLint** : Linting pour la qualité du code
+- **Prettier** : Formatage automatique du code
+- **PostCSS** : Traitement CSS avancé
 
 ## Déploiement
 
