@@ -50,11 +50,11 @@
         <div class="accordion-content p-3">
           <p class="mb-2">La subjectivité (note de 1 à 5) évalue le degré d'objectivité/subjectivité de l'article dans sa manière de représenter l'islam et/ou les musulmans :</p>
           <ul class="list-disc ml-5 space-y-1">
-            <li><span class="chip variant-filled-success">1</span> - Très objectif - Rapporte des faits vérifiables sans exprimer d'opinions personnelles</li>
-            <li><span class="chip variant-soft-success">2</span> - Plutôt objectif - Principalement factuel mais peut contenir des traces subtiles d'opinions</li>
-            <li><span class="chip variant-soft-primary">3</span> - Mixte - Contient un mélange équilibré de faits et d'opinions ou présente plusieurs points de vue</li>
-            <li><span class="chip variant-soft-error">4</span> - Plutôt subjectif - Exprime clairement des opinions ou des jugements même s'il s'appuie sur certains faits</li>
-            <li><span class="chip variant-filled-error">5</span> - Très subjectif - Fortement biaisé, exprime des opinions et des émotions intenses avec peu de présentation objective</li>
+            <li><span class="chip variant-filled-success">1</span> <strong>Très objectif</strong> - Rapporte des faits vérifiables sans exprimer d'opinions personnelles</li>
+            <li><span class="chip variant-soft-success">2</span> <strong>Plutôt objectif</strong> - Principalement factuel mais peut contenir des traces subtiles d'opinions</li>
+            <li><span class="chip variant-soft-primary">3</span> <strong>Mixte</strong> - Contient un mélange équilibré de faits et d'opinions ou présente plusieurs points de vue</li>
+            <li><span class="chip variant-soft-error">4</span> <strong>Plutôt subjectif</strong> - Exprime clairement des opinions ou des jugements même s'il s'appuie sur certains faits</li>
+            <li><span class="chip variant-filled-error">5</span> <strong>Très subjectif</strong> - Fortement biaisé, exprime des opinions et des émotions intenses avec peu de présentation objective</li>
           </ul>
         </div>
       {/if}
@@ -70,11 +70,11 @@
         <div class="accordion-content p-3">
           <p class="mb-2">La centralité évalue l'importance du sujet de l'islam et des musulmans dans l'article :</p>
           <ul class="list-disc ml-5 space-y-1">
-            <li><span class="chip variant-filled-tertiary">Très central</span> - L'article est principalement ou entièrement consacré à l'islam et/ou aux musulmans</li>
-            <li><span class="chip variant-soft-tertiary">Central</span> - L'islam et/ou les musulmans sont un des sujets principaux de l'article</li>
-            <li><span class="chip variant-soft-surface">Secondaire</span> - L'islam et/ou les musulmans sont mentionnés ou discutés, mais ne constituent pas le focus principal</li>
-            <li><span class="chip variant-ghost">Marginal</span> - L'islam et/ou les musulmans sont brièvement mentionnés de manière anecdotique</li>
-            <li><span class="chip variant-ghost">Non abordé</span> - L'article ne traite pas du tout de l'islam ou des musulmans</li>
+            <li><span class="chip variant-filled-tertiary">Très central</span> L'article est principalement ou entièrement consacré à l'islam et/ou aux musulmans</li>
+            <li><span class="chip variant-soft-tertiary">Central</span> L'islam et/ou les musulmans sont un des sujets principaux de l'article</li>
+            <li><span class="chip variant-soft-surface">Secondaire</span> L'islam et/ou les musulmans sont mentionnés ou discutés, mais ne constituent pas le focus principal</li>
+            <li><span class="chip variant-ghost">Marginal</span> L'islam et/ou les musulmans sont brièvement mentionnés de manière anecdotique</li>
+            <li><span class="chip variant-ghost">Non abordé</span> L'article ne traite pas du tout de l'islam ou des musulmans</li>
           </ul>
         </div>
       {/if}
@@ -91,13 +91,13 @@
           <div class="space-y-4">
             <div>
               <h4 class="h6 mb-2 text-white font-semibold">Modèle utilisé</h4>
-              <p class="mb-2 text-white">L'analyse a été réalisée avec <span class="chip variant-soft-secondary">Gemini 2.5 Flash Preview</span> (modèle : gemini-2.5-flash-preview-05-20), un grand modèle de langage développé par Google. Ce modèle a été choisi pour son excellent rapport qualité-prix, offrant des performances satisfaisantes pour l'analyse de texte en français à un coût accessible pour la recherche académique.</p>
+              <p class="mb-2 text-white">L'analyse a été réalisée avec <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:text-blue-200 underline" style="cursor: pointer !important;"><span class="chip variant-soft-secondary">Gemini 2.5 Flash Preview</span></a>, un grand modèle de langage développé par Google. Ce modèle a été choisi pour son excellent rapport qualité-prix, offrant des performances satisfaisantes pour l'analyse de texte en français à un coût accessible.</p>
             </div>
             
             <div>
               <h4 class="h6 mb-2 text-white font-semibold">Configuration technique</h4>
               <ul class="list-disc ml-5 space-y-1 text-white text-sm">
-                <li>Température : 0.2 (pour une sortie déterministe et cohérente)</li>
+                <li>Température : 0.2 (pour une sortie déterministe)</li>
                 <li>Format de sortie : JSON structuré avec validation Pydantic</li>
                 <li>Système de cache pour éviter les analyses redondantes</li>
                 <li>Gestion automatique des erreurs avec tentatives multiples</li>
