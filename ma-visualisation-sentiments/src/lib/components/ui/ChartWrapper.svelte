@@ -71,12 +71,9 @@
 
 {#if hasData}
   <div class="chart-container-wrapper">
-    <!-- En-tête avec titre et bouton d'export -->
+    <!-- Bouton d'export seulement -->
     {#if showExporter}
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold text-white">
-          {chartTitle}
-        </h3>
+      <div class="flex justify-end mb-2">
         <ChartExporter 
           {chartType}
           {chartTitle}
@@ -85,11 +82,11 @@
       </div>
     {/if}
 
-    <!-- Conteneur du graphique -->
+    <!-- Conteneur du graphique sans style -->
     <div 
       bind:this={chartContainer}
       style="height: {height}; position: relative;" 
-      class="chart-container glass-medium rounded-lg p-2 sm:p-4"
+      class="chart-container"
     >
       <Chart 
         {init} 
@@ -98,7 +95,7 @@
     </div>
   </div>
 {:else}
-  <div class="chart-container glass-medium rounded-lg p-8 text-center">
+  <div class="empty-chart-container p-8 text-center">
     <div class="text-white/60 mb-4">
       <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
@@ -115,9 +112,10 @@
     width: 100%;
   }
 
-  .glass-medium {
+  .empty-chart-container {
     background: rgba(30, 30, 46, 0.8);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
   }
 </style> 
