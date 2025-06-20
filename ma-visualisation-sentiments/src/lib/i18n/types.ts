@@ -145,6 +145,26 @@ export interface Translations {
   analysis: {
     title: string;
     methodology: string;
+    methodologyAiModel: string;
+    modelUsed: string;
+    modelDescription: string;
+    modelDetails: string;
+    technicalConfiguration: string;
+    temperatureConfig: string;
+    outputFormat: string;
+    cacheSystem: string;
+    errorHandling: string;
+    analysisPrompt: string;
+    promptDescription: string;
+    promptFeature1: string;
+    promptFeature2: string;
+    promptFeature3: string;
+    promptFeature4: string;
+    promptFeature5: string;
+    viewFullPrompt: string;
+    limitationsTitle: string;
+    limitationsDescription: string;
+    notApplicableNote: string;
     polaritySection: string;
     subjectivitySection: string;
     centralitySection: string;
