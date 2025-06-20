@@ -194,6 +194,19 @@ export const en: Translations = {
     urlCopied: 'URL copied to clipboard'
   },
 
+  // Export
+  export: {
+    exportCSV: 'Export CSV',
+    downloadCSV: 'Download data as CSV',
+    exporting: 'Exporting',
+    noDataToExport: 'No data to export',
+    exportError: 'Error exporting data',
+    polarityJustification: 'Polarity justification',
+    subjectivityJustification: 'Subjectivity justification',
+    centralityJustification: 'Centrality justification',
+    articleId: 'Article ID'
+  },
+
   // Common
   common: {
     yes: 'Yes',

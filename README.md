@@ -26,6 +26,15 @@ L'application prend désormais en charge le partage et la mise en signet de vues
 - **Effacement rapide** : Bouton pour supprimer tous les filtres actifs
 - **Persistance de la langue** : La langue sélectionnée est incluse dans l'URL
 
+### 📊 **Export de données CSV**
+L'application permet désormais d'exporter les données filtrées :
+- **Export intelligent** : Exporte uniquement les articles correspondant aux filtres actifs
+- **Format complet** : Inclut toutes les métadonnées et analyses de sentiment
+- **Multilingue** : Les en-têtes et valeurs sont traduits selon la langue sélectionnée
+- **Justifications incluses** : Exporte les justifications d'analyse pour validation
+- **Nommage automatique** : Fichiers nommés avec date et heure pour traçabilité
+- **Interface intuitive** : Bouton accessible depuis la vue tableau avec compteur d'articles
+
 ### **Exemples d'URLs avec langue**
 ```
 # Vue graphiques en français (par défaut)
@@ -185,6 +194,14 @@ De plus, le store expose la fonction :
     - **Visibilité conditionnelle** : Apparaît uniquement quand des filtres sont actifs
     - **Design distinctif** : Style rouge avec icône de filtre barré
     - **Feedback visuel** : Animations et effets hover
+    - **Responsive** : Version icône seule sur mobile
+
+-   **`CSVExportButton.svelte`**: Bouton d'export CSV avec :
+    - **Export intelligent** : Télécharge les articles filtrés au format CSV
+    - **Traduction automatique** : En-têtes et valeurs traduites selon la langue active
+    - **Données complètes** : Inclut métadonnées, analyses et justifications
+    - **État visuel** : Indicateur de progression et compteur d'articles
+    - **Design cohérent** : Style vert avec animations et effets glassmorphism
     - **Responsive** : Version icône seule sur mobile
 
 ### Composants de filtrage

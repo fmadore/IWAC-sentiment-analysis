@@ -198,6 +198,19 @@ export interface Translations {
     urlCopied: string;
   };
 
+  // Export
+  export: {
+    exportCSV: string;
+    downloadCSV: string;
+    exporting: string;
+    noDataToExport: string;
+    exportError: string;
+    polarityJustification: string;
+    subjectivityJustification: string;
+    centralityJustification: string;
+    articleId: string;
+  };
+
   // Common
   common: {
     yes: string;

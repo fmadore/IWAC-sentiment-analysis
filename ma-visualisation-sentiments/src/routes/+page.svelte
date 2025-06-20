@@ -30,6 +30,7 @@
   import AnalysisInfo from '$lib/components/AnalysisInfo.svelte';
   import CentralityFilter from '$lib/components/ui/CentralityFilter.svelte';
   import ClearFiltersButton from '$lib/components/ui/ClearFiltersButton.svelte';
+  import CSVExportButton from '$lib/components/ui/CSVExportButton.svelte';
   import { initializeURLState, updateURL } from '$lib/urlState';
   import { Navigation } from '@skeletonlabs/skeleton-svelte';
   import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
@@ -284,7 +285,10 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
             </div>
           {:else if activeView === 'table'}
             <div class="w-full card variant-glass p-3 sm:p-6 hover-lift">
-              <h2 class="h3 mb-4 text-white text-gradient">{$t.table.title}</h2>
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                <h2 class="h3 m-0 text-white text-gradient">{$t.table.title}</h2>
+                <CSVExportButton />
+              </div>
               <ArticleTable onShowDetails={handleShowDetails} />
             </div>
           {/if}

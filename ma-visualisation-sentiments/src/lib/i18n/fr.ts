@@ -194,6 +194,19 @@ export const fr: Translations = {
     urlCopied: 'URL copiée dans le presse-papiers'
   },
 
+  // Export
+  export: {
+    exportCSV: 'Exporter CSV',
+    downloadCSV: 'Télécharger les données au format CSV',
+    exporting: 'Export en cours',
+    noDataToExport: 'Aucune donnée à exporter',
+    exportError: 'Erreur lors de l\'export des données',
+    polarityJustification: 'Justification polarité',
+    subjectivityJustification: 'Justification subjectivité',
+    centralityJustification: 'Justification centralité',
+    articleId: 'ID article'
+  },
+
   // Common
   common: {
     yes: 'Oui',
