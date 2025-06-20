@@ -5,6 +5,7 @@ export { default as JournalFilter } from './components/ui/JournalFilter.svelte';
 export { default as SentimentCriteriaFilter } from './components/ui/SentimentCriteriaFilter.svelte';
 export { default as PolarityFilter } from './components/ui/PolarityFilter.svelte';
 export { default as SubjectivityFilter } from './components/ui/SubjectivityFilter.svelte';
+export { default as ClearFiltersButton } from './components/ui/ClearFiltersButton.svelte';
 export { default as SentimentChart } from './components/viz/SentimentChart.svelte';
 export { default as SentimentTrendsChart } from './components/viz/SentimentTrendsChart.svelte';
 export { default as CorrelationChart } from './components/viz/CorrelationChart.svelte';

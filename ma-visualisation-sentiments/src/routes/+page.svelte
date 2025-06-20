@@ -28,7 +28,8 @@
   import ArticleDetail from '$lib/components/ArticleDetail.svelte';
   import AnalysisInfo from '$lib/components/AnalysisInfo.svelte';
   import CentralityFilter from '$lib/components/ui/CentralityFilter.svelte';
-  import { initializeURLState, updateURL, clearAllFilters } from '$lib/urlState';
+  import ClearFiltersButton from '$lib/components/ui/ClearFiltersButton.svelte';
+  import { initializeURLState, updateURL } from '$lib/urlState';
   import { Navigation } from '@skeletonlabs/skeleton-svelte';
   import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
 import TableIcon from '@lucide/svelte/icons/table';
@@ -46,14 +47,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
   let showDetailsSidebar = $state(false);
   let detailsPosition = $state({ x: 0, y: 0 });
 
-  // Track if we have any active filters
-  let hasActiveFilters = $derived(
-    $countryFilters.length > 0 ||
-    $journalFilters.length > 0 ||
-    $polarityFilters.length > 0 ||
-    $subjectivityFilters.length > 0 ||
-    $centralityFilters.length > 0
-  );
+
 
   onMount(() => {
     // Initialize URL state management first
@@ -132,18 +126,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
     </div>
 
     <!-- Clear filters button positioned right after filters -->
-    {#if hasActiveFilters}
-      <div class="flex items-center justify-center mb-4 sm:mb-6">
-        <button
-          class="btn btn-sm variant-soft-error hover-lift clear-filters-btn"
-          onclick={clearAllFilters}
-          title="Effacer tous les filtres"
-        >
-          <FilterXIcon size={16} />
-          <span class="ml-2">Effacer tous les filtres</span>
-        </button>
-      </div>
-    {/if}
+    <ClearFiltersButton />
 
     <div class="card variant-glass mb-4 sm:mb-6 overflow-hidden hover-lift">
       <!-- Navigation horizontale en haut -->
@@ -743,81 +726,5 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
     }
   }
 
-  /* Clear Filters Button Styling */
-  :global(.clear-filters-btn) {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.1)) !important;
-    border: 1px solid rgba(239, 68, 68, 0.3) !important;
-    color: #ef4444 !important;
-    font-weight: 600 !important;
-    padding: 0.75rem 1.5rem !important;
-    border-radius: var(--radius-lg) !important;
-    backdrop-filter: blur(12px) !important;
-    box-shadow: 
-      0 4px 12px rgba(239, 68, 68, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-    transition: all var(--transition-normal) !important;
-    position: relative !important;
-    overflow: hidden !important;
-  }
 
-  :global(.clear-filters-btn::before) {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transition: left 0.5s ease;
-  }
-
-  :global(.clear-filters-btn:hover) {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(220, 38, 38, 0.15)) !important;
-    border-color: rgba(239, 68, 68, 0.5) !important;
-    color: #dc2626 !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 
-      0 8px 25px rgba(239, 68, 68, 0.25),
-      inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-  }
-
-  :global(.clear-filters-btn:hover::before) {
-    left: 100%;
-  }
-
-  :global(.clear-filters-btn:active) {
-    transform: translateY(0) !important;
-    box-shadow: 
-      0 2px 8px rgba(239, 68, 68, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-  }
-
-  :global(.clear-filters-btn svg) {
-    transition: transform var(--transition-normal) !important;
-  }
-
-  :global(.clear-filters-btn:hover svg) {
-    transform: scale(1.1) rotate(5deg) !important;
-  }
-
-  /* Responsive adjustments for clear button */
-  @media (max-width: 640px) {
-    :global(.clear-filters-btn) {
-      padding: 0.6rem 1.2rem !important;
-      font-size: 0.875rem !important;
-    }
-  }
-
-  @media (max-width: 480px) {
-    :global(.clear-filters-btn span) {
-      display: none !important;
-    }
-    
-    :global(.clear-filters-btn) {
-      padding: 0.6rem !important;
-      border-radius: 50% !important;
-      width: 2.5rem !important;
-      height: 2.5rem !important;
-    }
-  }
 </style>
