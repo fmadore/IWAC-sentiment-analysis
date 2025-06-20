@@ -15,4 +15,5 @@ export { default as SubjectivityChart } from './components/viz/SubjectivityChart
 // Reexport stores and utils
 export * from './stores.ts';
 export * from './utils.ts';
+export * from './urlState.ts';
 export * from './types/data.ts'; // Also re-exporting types for convenience

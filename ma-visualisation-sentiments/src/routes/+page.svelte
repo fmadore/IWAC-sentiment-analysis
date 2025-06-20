@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { PageData } from './$types.js';
   import { onMount } from 'svelte';
+  import { page } from '$app/stores';
   import { 
     currentDatasetArticles, 
     isLoadingDataset, 
@@ -15,13 +16,19 @@
     CorrelationChart,
     VolumeChart,
     CentralityHeatmap,
-    selectedArticle
+    selectedArticle,
+    countryFilters,
+    journalFilters,
+    polarityFilters,
+    subjectivityFilters,
+    centralityFilters
   } from '$lib';
   import type { Article } from '$lib';
   import ArticleTable from '$lib/components/ArticleTable.svelte';
   import ArticleDetail from '$lib/components/ArticleDetail.svelte';
   import AnalysisInfo from '$lib/components/AnalysisInfo.svelte';
   import CentralityFilter from '$lib/components/ui/CentralityFilter.svelte';
+  import { initializeURLState, updateURL, clearAllFilters } from '$lib/urlState';
   import { Navigation } from '@skeletonlabs/skeleton-svelte';
   import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
 import TableIcon from '@lucide/svelte/icons/table';
@@ -31,6 +38,7 @@ import MenuIcon from '@lucide/svelte/icons/menu';
 import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
 import AreaChartIcon from '@lucide/svelte/icons/area-chart';
 import ActivityIcon from '@lucide/svelte/icons/activity';
+import FilterXIcon from '@lucide/svelte/icons/filter-x';
 
   // État de l'application
   let activeView = $state('charts');
@@ -38,7 +46,22 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
   let showDetailsSidebar = $state(false);
   let detailsPosition = $state({ x: 0, y: 0 });
 
+  // Track if we have any active filters
+  let hasActiveFilters = $derived(
+    $countryFilters.length > 0 ||
+    $journalFilters.length > 0 ||
+    $polarityFilters.length > 0 ||
+    $subjectivityFilters.length > 0 ||
+    $centralityFilters.length > 0
+  );
+
   onMount(() => {
+    // Initialize URL state management first
+    const urlView = initializeURLState();
+    if (urlView) {
+      activeView = urlView;
+    }
+
     // Charger automatiquement le fichier iwac_articles.json
     const loadData = async () => {
       isLoadingDataset.set(true);
@@ -56,6 +79,21 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
     };
 
     loadData();
+
+    // Subscribe to store changes to update URL
+    const unsubscribeCountry = countryFilters.subscribe(() => updateURL(activeView));
+    const unsubscribeJournal = journalFilters.subscribe(() => updateURL(activeView));
+    const unsubscribePolarity = polarityFilters.subscribe(() => updateURL(activeView));
+    const unsubscribeSubjectivity = subjectivityFilters.subscribe(() => updateURL(activeView));
+    const unsubscribeCentrality = centralityFilters.subscribe(() => updateURL(activeView));
+
+    return () => {
+      unsubscribeCountry();
+      unsubscribeJournal();
+      unsubscribePolarity();
+      unsubscribeSubjectivity();
+      unsubscribeCentrality();
+    };
   });
 
   // Gérer l'affichage des détails
@@ -72,6 +110,7 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
 
   function handleViewChange(value: string) {
     activeView = value;
+    updateURL(activeView);
   }
 </script>
 
@@ -95,6 +134,20 @@ import ActivityIcon from '@lucide/svelte/icons/activity';
     <div class="card variant-glass mb-4 sm:mb-6 overflow-hidden hover-lift">
       <!-- Navigation horizontale en haut -->
       <div class="navigation-container glass-medium">
+        <!-- Action buttons -->
+        {#if hasActiveFilters}
+          <div class="flex items-center justify-start mb-4">
+            <button
+              class="btn btn-sm variant-soft-error hover-lift"
+              onclick={clearAllFilters}
+              title="Effacer tous les filtres"
+            >
+              <FilterXIcon size={16} />
+              <span class="hidden sm:inline">Effacer filtres</span>
+            </button>
+          </div>
+        {/if}
+
         <!-- Navigation Desktop -->
         <div class="hidden md:flex items-center justify-center">
           <div class="flex space-x-3">

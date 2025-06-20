@@ -182,6 +182,18 @@ De plus, le store expose la fonction :
 
 
 
+## Nouvelles fonctionnalités
+
+### 🔗 **Routage basé sur l'URL** 
+L'application prend désormais en charge le partage et la mise en signet de vues spécifiques :
+- **URLs partageables** : Partagez des vues filtrées avec des collègues
+- **Synchronisation automatique** : Les filtres et vues sont reflétés dans l'URL
+- **Navigation naturelle** : Utilisez les boutons précédent/suivant du navigateur
+- **Bouton de partage** : Copiez l'URL actuelle en un clic
+- **Effacement rapide** : Bouton pour supprimer tous les filtres
+
+Consultez le [Guide du routage URL](./URL_ROUTING_GUIDE.md) pour plus de détails.
+
 ## Développement
 
 Prérequis : Node.js et npm installés.
