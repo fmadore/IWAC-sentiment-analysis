@@ -18,3 +18,6 @@ export * from './stores.ts';
 export * from './utils.ts';
 export * from './urlState.ts';
 export * from './types/data.ts'; // Also re-exporting types for convenience
+
+// Reexport i18n
+export * from './i18n/index.ts';

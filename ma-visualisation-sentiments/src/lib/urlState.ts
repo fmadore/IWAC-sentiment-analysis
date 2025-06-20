@@ -9,6 +9,7 @@ import {
   subjectivityFilters, 
   centralityFilters 
 } from './stores';
+import { currentLanguage, type Language, LANGUAGES, initializeLanguage } from './i18n/index.js';
 
 // Types for URL state
 export interface URLState {
@@ -18,6 +19,7 @@ export interface URLState {
   polarities?: string[];
   subjectivities?: number[];
   centralities?: string[];
+  lang?: Language;
 }
 
 // Valid views that can be set in URL
@@ -30,7 +32,8 @@ const URL_PARAMS = {
   journals: 'journals', 
   polarities: 'polarities',
   subjectivities: 'subjectivities',
-  centralities: 'centralities'
+  centralities: 'centralities',
+  lang: 'lang'
 } as const;
 
 /**
@@ -43,6 +46,12 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
   const view = searchParams.get(URL_PARAMS.view);
   if (view && VALID_VIEWS.includes(view)) {
     state.view = view;
+  }
+
+  // Parse language
+  const lang = searchParams.get(URL_PARAMS.lang) as Language;
+  if (lang && lang in LANGUAGES) {
+    state.lang = lang;
   }
 
   // Parse array parameters
@@ -86,6 +95,10 @@ export function buildURLSearchParams(state: URLState): URLSearchParams {
     params.set(URL_PARAMS.view, state.view);
   }
 
+  if (state.lang && state.lang in LANGUAGES) {
+    params.set(URL_PARAMS.lang, state.lang);
+  }
+
   if (state.countries && state.countries.length > 0) {
     params.set(URL_PARAMS.countries, state.countries.join(','));
   }
@@ -118,7 +131,8 @@ export function getCurrentState(): URLState {
     journals: get(journalFilters),
     polarities: get(polarityFilters),
     subjectivities: get(subjectivityFilters),
-    centralities: get(centralityFilters)
+    centralities: get(centralityFilters),
+    lang: get(currentLanguage)
   };
 }
 
@@ -126,6 +140,9 @@ export function getCurrentState(): URLState {
  * Apply URL state to application stores
  */
 export function applyURLState(state: URLState): string | undefined {
+  // Initialize language first (this handles URL lang, localStorage, and browser detection)
+  initializeLanguage(state.lang);
+
   if (state.countries) {
     countryFilters.set(state.countries);
   }
@@ -182,8 +199,6 @@ export function initializeURLState(): string | undefined {
   
   return applyURLState(urlState);
 }
-
-
 
 /**
  * Clear all filters and update URL

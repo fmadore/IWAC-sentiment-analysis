@@ -3,6 +3,8 @@
   import FullscreenIcon from '@lucide/svelte/icons/maximize';
   import MinimizeIcon from '@lucide/svelte/icons/minimize';
   import { onMount } from 'svelte';
+  import { t } from '$lib/i18n';
+  import LanguageSwitcher from './LanguageSwitcher.svelte';
 
   let isFullscreen = $state(false);
 
@@ -49,18 +51,19 @@
           </svg>
         </div>
         <div class="brand-text">
-          <span class="brand-title">Analyse de sentiments</span>
-          <span class="brand-subtitle hidden sm:block">Visualisation et exploration des données d'articles</span>
+          <span class="brand-title">{$t.appTitle}</span>
+          <span class="brand-subtitle hidden sm:block">{$t.appSubtitle}</span>
         </div>
       </div>
 
       <!-- Actions Section -->
       <div class="header-actions">
+        <LanguageSwitcher />
         <button
           class="fullscreen-btn"
           onclick={toggleFullscreen}
-          title={isFullscreen ? "Quitter le mode plein écran" : "Passer en plein écran"}
-          aria-label={isFullscreen ? "Quitter le mode plein écran" : "Passer en plein écran"}
+          title={isFullscreen ? $t.exitFullscreen : $t.enterFullscreen}
+          aria-label={isFullscreen ? $t.exitFullscreen : $t.enterFullscreen}
         >
           <div class="btn-content">
             {#if isFullscreen}

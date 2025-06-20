@@ -29,9 +29,14 @@
   import { filteredArticles } from '$lib';
   import type { Article } from '$lib';
   import { getJournalName } from '$lib/utils';
+  import { t, currentLanguage } from '$lib/i18n';
+  import { getSentimentLabels, formatNumber, getLocale } from '$lib/i18n/utils';
 
-  // Exemple de données pour ECharts (sera dynamique)
-  const polarityLabels = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif', 'Non applicable'];
+  // Get polarity labels in current language
+  let polarityLabels = $derived(getSentimentLabels('polarity', $currentLanguage));
+  
+  // French labels for data lookup (data is stored in French)
+  const frenchPolarityLabels = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif', 'Non applicable'];
   
   // Définition des couleurs avec gradations logiques
   const polarityColors = {
@@ -80,7 +85,7 @@
         uniqueNewspapers.add(journal);
 
         if (!newspaperPolarityCounts[journal]) {
-          newspaperPolarityCounts[journal] = Object.fromEntries(polarityLabels.map(l => [l, 0]));
+          newspaperPolarityCounts[journal] = Object.fromEntries(frenchPolarityLabels.map(l => [l, 0]));
         }
         if (newspaperPolarityCounts[journal].hasOwnProperty(polarityKey)) {
           newspaperPolarityCounts[journal][polarityKey]++;
@@ -94,24 +99,25 @@
     if (chartType === 'pie') {
       // Pie chart: agrégation globale par polarité
       const totalByPolarity: Record<string, number> = {};
-      polarityLabels.forEach(label => {
-        totalByPolarity[label] = 0;
+      frenchPolarityLabels.forEach((frenchLabel, index) => {
+        const translatedLabel = polarityLabels[index];
+        totalByPolarity[translatedLabel] = 0;
         newspaperList.forEach(journal => {
-          totalByPolarity[label] += newspaperPolarityCounts[journal]?.[label] || 0;
+          totalByPolarity[translatedLabel] += newspaperPolarityCounts[journal]?.[frenchLabel] || 0;
         });
       });
 
       const pieData = polarityLabels
         .filter(label => totalByPolarity[label] > 0)
-        .map(label => ({
+        .map((label, index) => ({
           name: label,
           value: totalByPolarity[label],
-          itemStyle: { color: polarityColors[label as keyof typeof polarityColors] }
+          itemStyle: { color: polarityColors[frenchPolarityLabels[index] as keyof typeof polarityColors] }
         }));
 
       return {
         title: {
-          text: `Distribution globale de la polarité (${articlesAnalyzed.toLocaleString('fr-FR')} articles)`,
+          text: `${$t.charts.globalDistribution} ${$t.charts.polarityDistribution.toLowerCase()} (${formatNumber(articlesAnalyzed, $currentLanguage)} ${$t.common.articles})`,
           left: 'center',
           top: '2%',
           textStyle: {
@@ -145,7 +151,7 @@
           itemHeight: isMobile ? 8 : 14
         },
         series: [{
-          name: 'Polarité',
+          name: $t.filters.polarity,
           type: 'pie',
           radius: ['40%', '70%'],
           center: ['50%', '50%'],
@@ -175,7 +181,7 @@
           emphasis: {
             focus: 'series'
           },
-          data: polarityLabels.map(label => newspaperPolarityCounts[journal]?.[label] || 0)
+          data: frenchPolarityLabels.map(frenchLabel => newspaperPolarityCounts[journal]?.[frenchLabel] || 0)
           // ECharts will assign colors automatically. If specific colors are needed per newspaper:
           // itemStyle: { color: getNewspaperColor(journal) }
         };
@@ -184,8 +190,8 @@
       return {
         title: {
           text: isMobile 
-            ? `Polarité par journal\n(${articlesAnalyzed.toLocaleString('fr-FR')} articles analysés)`
-            : `Distribution de la polarité par journal (${articlesAnalyzed.toLocaleString('fr-FR')} articles analysés)`,
+            ? `${$t.charts.polarityDistribution} ${$t.charts.byJournal}\n(${formatNumber(articlesAnalyzed, $currentLanguage)} ${$t.charts.articlesAnalyzed})`
+            : `${$t.charts.polarityDistribution} ${$t.charts.byJournal} (${formatNumber(articlesAnalyzed, $currentLanguage)} ${$t.charts.articlesAnalyzed})`,
           left: 'center',
           top: '1%',
           textStyle: {
@@ -312,13 +318,13 @@
       class="btn btn-sm hover-lift transition-all duration-200 {chartType === 'bar' ? 'variant-filled-primary shadow-lg scale-105' : 'variant-soft-surface hover:variant-soft-primary'}"
       onclick={() => chartType = 'bar'}
     >
-      📊 Barres
+      📊 {$t.charts.bars}
     </button>
     <button 
       class="btn btn-sm hover-lift transition-all duration-200 {chartType === 'pie' ? 'variant-filled-primary shadow-lg scale-105' : 'variant-soft-surface hover:variant-soft-primary'}"
       onclick={() => chartType = 'pie'}
     >
-      🥧 Camembert
+      🥧 {$t.charts.pie}
     </button>
 
   </div>
@@ -331,5 +337,5 @@
     <Chart {init} {options} />
   </div>
 {:else}
-  <p class="text-center py-8 text-white/80 text-sm sm:text-base">Aucun article ne correspond aux filtres actuels, ou aucun corpus n'est chargé.</p>
+  <p class="text-center py-8 text-white/80 text-sm sm:text-base">{$t.table.noFilteredArticles}</p>
 {/if}

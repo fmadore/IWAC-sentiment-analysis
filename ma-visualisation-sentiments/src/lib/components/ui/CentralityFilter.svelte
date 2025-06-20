@@ -1,16 +1,27 @@
 <script lang="ts">
   import { centralityFilters } from '$lib/stores';
+  import { t, currentLanguage } from '$lib/i18n';
+  import { translateSentimentValue, getFrenchSentimentValue } from '$lib/i18n/utils';
 
-  // Liste des options de centralité
+  // French values (stored in data) with their translation keys
   const centralityOptions = [
-    { value: 'Très central', label: 'Très central' },
-    { value: 'Central', label: 'Central' },
-    { value: 'Secondaire', label: 'Secondaire' },
-    { value: 'Marginal', label: 'Marginal' },
-    { value: 'Non abordé', label: 'Non abordé' }
+    { value: 'Très central', translationKey: 'centrality.veryCentral' },
+    { value: 'Central', translationKey: 'centrality.central' },
+    { value: 'Secondaire', translationKey: 'centrality.secondary' },
+    { value: 'Marginal', translationKey: 'centrality.marginal' },
+    { value: 'Non abordé', translationKey: 'centrality.notAddressed' }
   ];
 
   let selectedCentralities: string[] = $state([]);
+
+  // Get translated labels for display
+  const translatedOptions = $derived(
+    centralityOptions.map(option => ({
+      value: option.value, // Keep French value for data operations
+      label: translateSentimentValue(option.value, $currentLanguage), // Translated label for display
+      translationKey: option.translationKey
+    }))
+  );
 
   // Mettre à jour le store quand la sélection change
   function toggleCentrality(centrality: string) {
@@ -29,10 +40,10 @@
 </script>
 
 <div class="card variant-glass p-4 hover-lift">
-  <h3 class="h4 mb-3 text-white leading-tight responsive-title">Centralité de l'islam / musulmans</h3>
+  <h3 class="h4 mb-3 text-white leading-tight responsive-title">{$t.analysis.centralitySection}</h3>
   
   <div class="flex flex-wrap gap-2 mb-2">
-    {#each centralityOptions as option}
+    {#each translatedOptions as option}
       <button 
         class="chip hover-lift {option.value === 'Très central' ? 'variant-filled-tertiary' : option.value === 'Central' ? 'variant-soft-tertiary' : option.value === 'Secondaire' ? 'variant-soft-surface' : 'variant-ghost'} {selectedCentralities.includes(option.value) ? 'ring-2 ring-primary-500 hover-glow' : ''}" 
         onclick={() => toggleCentrality(option.value)}
@@ -47,7 +58,7 @@
       class="btn btn-sm variant-soft-surface mt-3 hover-lift" 
       onclick={clearSelection}
     >
-      Effacer sélection
+      {$t.filters.clearAll}
     </button>
   {/if}
 </div>

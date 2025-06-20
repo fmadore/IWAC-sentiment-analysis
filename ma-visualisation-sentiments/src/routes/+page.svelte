@@ -23,6 +23,7 @@
     subjectivityFilters,
     centralityFilters
   } from '$lib';
+  import { t, currentLanguage } from '$lib/i18n';
   import type { Article } from '$lib';
   import ArticleTable from '$lib/components/ArticleTable.svelte';
   import ArticleDetail from '$lib/components/ArticleDetail.svelte';
@@ -56,6 +57,16 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
       activeView = urlView;
     }
 
+    // Update HTML lang attribute when language changes
+    const updateHtmlLang = (lang: string) => {
+      if (typeof document !== 'undefined') {
+        document.documentElement.lang = lang;
+      }
+    };
+
+    // Set initial HTML lang attribute
+    updateHtmlLang($currentLanguage);
+
     // Charger automatiquement le fichier iwac_articles.json
     const loadData = async () => {
       isLoadingDataset.set(true);
@@ -80,6 +91,9 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
     const unsubscribePolarity = polarityFilters.subscribe(() => updateURL(activeView));
     const unsubscribeSubjectivity = subjectivityFilters.subscribe(() => updateURL(activeView));
     const unsubscribeCentrality = centralityFilters.subscribe(() => updateURL(activeView));
+    
+    // Subscribe to language changes to update HTML lang attribute
+    const unsubscribeLanguage = currentLanguage.subscribe(updateHtmlLang);
 
     return () => {
       unsubscribeCountry();
@@ -87,6 +101,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
       unsubscribePolarity();
       unsubscribeSubjectivity();
       unsubscribeCentrality();
+      unsubscribeLanguage();
     };
   });
 
@@ -114,7 +129,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
   </div>
 
   {#if $isLoadingDataset}
-    <div class="alert variant-filled-warning p-4 mb-4 sm:mb-6">Chargement des données du corpus IWAC...</div>
+    <div class="alert variant-filled-warning p-4 mb-4 sm:mb-6">{$t.messages.loadingData}</div>
   {:else if $currentDatasetArticles.length > 0}
     <!-- Filters - Improved responsive grid -->
     <div class="filters-grid-responsive mb-4 sm:mb-6">
@@ -140,7 +155,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
               onclick={() => handleViewChange('charts')}
             >
               <ChartIcon size={20} />
-              <span>Graphiques</span>
+              <span>{$t.nav.charts}</span>
             </button>
             
             <button
@@ -148,7 +163,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
               onclick={() => handleViewChange('trends')}
             >
               <TrendingUpIcon size={20} />
-              <span>Tendances</span>
+              <span>{$t.nav.trends}</span>
             </button>
             
             <button
@@ -156,7 +171,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
               onclick={() => handleViewChange('correlation')}
             >
               <BarChart3Icon size={20} />
-              <span>Distribution</span>
+              <span>{$t.nav.distribution}</span>
             </button>
             
             <button
@@ -164,7 +179,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
               onclick={() => handleViewChange('volume')}
             >
               <AreaChartIcon size={20} />
-              <span>Volume</span>
+              <span>{$t.nav.volume}</span>
             </button>
             
             <button
@@ -172,7 +187,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
               onclick={() => handleViewChange('heatmap')}
             >
               <ActivityIcon size={20} />
-              <span>Heatmap</span>
+              <span>{$t.nav.heatmap}</span>
             </button>
             
             <button
@@ -180,7 +195,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
               onclick={() => handleViewChange('table')}
             >
               <TableIcon size={20} />
-              <span>Tableau</span>
+              <span>{$t.nav.table}</span>
             </button>
           </div>
         </div>
@@ -193,7 +208,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
               onclick={() => handleViewChange('charts')}
             >
               <ChartIcon size={18} />
-              <span class="text-xs">Graphiques</span>
+              <span class="text-xs">{$t.nav.charts}</span>
             </button>
             
             <button
@@ -201,7 +216,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
               onclick={() => handleViewChange('trends')}
             >
               <TrendingUpIcon size={18} />
-              <span class="text-xs">Tendances</span>
+              <span class="text-xs">{$t.nav.trends}</span>
             </button>
             
             <button
@@ -209,7 +224,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
               onclick={() => handleViewChange('correlation')}
             >
               <BarChart3Icon size={18} />
-              <span class="text-xs">Distribution</span>
+              <span class="text-xs">{$t.nav.distribution}</span>
             </button>
             
             <button
@@ -217,7 +232,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
               onclick={() => handleViewChange('volume')}
             >
               <AreaChartIcon size={18} />
-              <span class="text-xs">Volume</span>
+              <span class="text-xs">{$t.nav.volume}</span>
             </button>
             
             <button
@@ -225,7 +240,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
               onclick={() => handleViewChange('heatmap')}
             >
               <ActivityIcon size={18} />
-              <span class="text-xs">Heatmap</span>
+              <span class="text-xs">{$t.nav.heatmap}</span>
             </button>
             
             <button
@@ -233,7 +248,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
               onclick={() => handleViewChange('table')}
             >
               <TableIcon size={18} />
-              <span class="text-xs">Tableau</span>
+              <span class="text-xs">{$t.nav.table}</span>
             </button>
           </div>
         </div>
@@ -269,7 +284,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
             </div>
           {:else if activeView === 'table'}
             <div class="w-full card variant-glass p-3 sm:p-6 hover-lift">
-              <h2 class="h3 mb-4 text-white text-gradient">Liste des articles</h2>
+              <h2 class="h3 mb-4 text-white text-gradient">{$t.table.title}</h2>
               <ArticleTable onShowDetails={handleShowDetails} />
             </div>
           {/if}
@@ -277,7 +292,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
       </div>
     </div>
   {:else}
-    <div class="alert variant-filled-error p-4 mb-4 sm:mb-6">Erreur lors du chargement du corpus IWAC ou le corpus est vide.</div>
+    <div class="alert variant-filled-error p-4 mb-4 sm:mb-6">{$t.messages.noData}</div>
   {/if}
 </main>
 
@@ -312,12 +327,12 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
         
         <!-- Header with gradient accent -->
         <div class="details-header glass-medium">
-          <h2 class="h3 m-0 text-white text-gradient-primary">Détails de l'Article</h2>
+          <h2 class="h3 m-0 text-white text-gradient-primary">{$t.article.details}</h2>
           <button 
             class="btn-icon variant-soft-surface hover-glow focus-ring" 
             onclick={closeDetails} 
-            title="Fermer"
-            aria-label="Fermer les détails"
+            title={$t.common.close}
+            aria-label={$t.common.close}
           >
             <XIcon size={20} />
           </button>

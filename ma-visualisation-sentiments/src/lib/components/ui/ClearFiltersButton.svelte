@@ -8,6 +8,7 @@
     subjectivityFilters,
     centralityFilters
   } from '$lib/stores';
+  import { t } from '$lib/i18n';
 
   // Track if we have any active filters
   let hasActiveFilters = $derived(
@@ -28,10 +29,10 @@
     <button
       class="clear-filters-btn"
       onclick={handleClearFilters}
-      title="Effacer tous les filtres"
+      title={$t.filters.clearAllFilters}
     >
       <FilterXIcon size={16} />
-      <span class="button-text">Effacer tous les filtres</span>
+      <span class="button-text">{$t.filters.clearAllFilters}</span>
     </button>
   </div>
 {/if}

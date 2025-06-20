@@ -1,26 +1,40 @@
 <script lang="ts">
   import { polarityFilters } from '$lib/stores.ts';
+  import { t, currentLanguage } from '$lib/i18n';
+  import { getSentimentLabels, getFrenchSentimentValue } from '$lib/i18n/utils';
 
-  const polarityOptions = [
-    { value: 'Très positif', label: 'Très positif', class: 'variant-filled-success' },
-    { value: 'Positif', label: 'Positif', class: 'variant-soft-success' },
-    { value: 'Neutre', label: 'Neutre', class: 'variant-soft-primary' },
-    { value: 'Négatif', label: 'Négatif', class: 'variant-soft-error' },
-    { value: 'Très négatif', label: 'Très négatif', class: 'variant-filled-error' },
-    { value: 'Non applicable', label: 'Non applicable', class: 'variant-ghost' }
+  // French values for data storage
+  const frenchPolarityOptions = [
+    { value: 'Très positif', class: 'variant-filled-success' },
+    { value: 'Positif', class: 'variant-soft-success' },
+    { value: 'Neutre', class: 'variant-soft-primary' },
+    { value: 'Négatif', class: 'variant-soft-error' },
+    { value: 'Très négatif', class: 'variant-filled-error' },
+    { value: 'Non applicable', class: 'variant-ghost' }
   ];
+
+  // Get translated labels
+  let polarityLabels = $derived(getSentimentLabels('polarity', $currentLanguage));
+  
+  // Create options with translated labels
+  let polarityOptions = $derived(frenchPolarityOptions.map((option, index) => ({
+    ...option,
+    label: polarityLabels[index]
+  })));
   
   let selectedPolarities = $state<string[]>([]);
   
   function updateSelection() {
-    polarityFilters.set(selectedPolarities);
+    // Convert translated values back to French for data filtering
+    const frenchValues = selectedPolarities.map(label => getFrenchSentimentValue(label));
+    polarityFilters.set(frenchValues);
   }
   
-  function togglePolarity(polarity: string) {
-    if (selectedPolarities.includes(polarity)) {
-      selectedPolarities = selectedPolarities.filter(p => p !== polarity);
+  function togglePolarity(translatedLabel: string) {
+    if (selectedPolarities.includes(translatedLabel)) {
+      selectedPolarities = selectedPolarities.filter(p => p !== translatedLabel);
     } else {
-      selectedPolarities = [...selectedPolarities, polarity];
+      selectedPolarities = [...selectedPolarities, translatedLabel];
     }
     updateSelection();
   }
@@ -32,13 +46,13 @@
 </script>
 
 <div class="card variant-glass p-4 hover-lift">
-  <h3 class="h4 mb-4 text-white responsive-title">Polarité</h3>
+  <h3 class="h4 mb-4 text-white responsive-title">{$t.filters.polarity}</h3>
   
   <div class="flex flex-wrap gap-2">
     {#each polarityOptions as option}
       <button 
-        class="chip hover-lift {option.class} {selectedPolarities.includes(option.value) ? 'ring-2 ring-primary-500 hover-glow' : ''}" 
-        onclick={() => togglePolarity(option.value)}
+        class="chip hover-lift {option.class} {selectedPolarities.includes(option.label) ? 'ring-2 ring-primary-500 hover-glow' : ''}" 
+        onclick={() => togglePolarity(option.label)}
       >
         {option.label}
       </button>
@@ -50,7 +64,7 @@
       class="btn btn-sm variant-soft-surface mt-3 hover-lift" 
       onclick={clearSelection}
     >
-      Effacer sélection
+      {$t.filters.clearAll}
     </button>
   {/if}
 </div>
