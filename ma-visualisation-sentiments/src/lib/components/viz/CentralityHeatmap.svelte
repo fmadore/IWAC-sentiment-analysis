@@ -64,6 +64,9 @@
     const articles = $filteredArticles;
     const countryYearCentrality: Record<string, Record<string, { total: number, count: number }>> = {};
     let articlesAnalyzed = 0;
+    
+    // Get current translations to use in tooltip
+    const currentTranslations = $t;
 
     articles.forEach((article: Article) => {
       if (article.publication_date && 
@@ -114,9 +117,8 @@
           heatmapData.push([yearIndex, countryIndex, avgCentrality]);
           maxValue = Math.max(maxValue, avgCentrality);
           minValue = Math.min(minValue, avgCentrality);
-        } else {
-          heatmapData.push([yearIndex, countryIndex, 0]);
         }
+        // Don't push any data point when there are no articles - this will leave the cell empty
       });
     });
 
@@ -133,14 +135,26 @@
       tooltip: {
         position: 'top',
         formatter: function(params: any) {
+          // Check if params.data exists and has valid data
+          if (!params.data || params.data.length < 3) {
+            return `<strong>${currentTranslations.messages.noData}</strong>`;
+          }
+          
           const [yearIndex, countryIndex, value] = params.data;
           const year = years[yearIndex];
           const country = countries[countryIndex];
+          
+          // Check if this cell has meaningful data (value > 0 means there are articles)
+          if (value === 0 || value === undefined || value === null) {
+            return `<strong>${country} - ${year}</strong><br/>
+                    ${currentTranslations.messages.noData}`;
+          }
+          
           const centralityLabel = centralityLabels[Math.round(value)] || 'N/A';
           
           return `<strong>${country} - ${year}</strong><br/>
-                  ${$t.filters.averageCentrality}: ${value.toFixed(2)}<br/>
-                  ${$t.filters.level}: ${centralityLabel}`;
+                  ${currentTranslations.filters.averageCentrality}: ${value.toFixed(2)}<br/>
+                  ${currentTranslations.filters.level}: ${centralityLabel}`;
         },
         textStyle: {
           color: '#333',
@@ -213,7 +227,7 @@
         ]
       },
       series: [{
-        name: $t.filters.centrality,
+        name: currentTranslations.filters.centrality,
         type: 'heatmap',
         data: heatmapData,
         label: {
