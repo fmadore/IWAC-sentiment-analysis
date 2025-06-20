@@ -35,7 +35,12 @@ export const fr: Translations = {
     selectedJournals: 'Journaux sélectionnés',
     selectedPolarities: 'Polarités sélectionnées',
     selectedSubjectivities: 'Subjectivités sélectionnées',
-    selectedCentralities: 'Centralités sélectionnées'
+    selectedCentralities: 'Centralités sélectionnées',
+    sentimentCriteria: 'Critères d\'analyse des sentiments',
+    subjectivityScore: 'Score de subjectivité',
+    ratherObjective: 'Plutôt objectif',
+    mixedSubjectivity: 'Subjectivité mixte',
+    ratherVerySubjective: 'Plutôt/très subjectif'
   },
 
   // Sentiment labels
@@ -100,7 +105,8 @@ export const fr: Translations = {
     itemsPerPage: 'Éléments par page',
     showingItems: 'Affichage de',
     noArticles: 'Aucun article disponible',
-    noFilteredArticles: 'Aucun article ne correspond aux filtres sélectionnés'
+    noFilteredArticles: 'Aucun article ne correspond aux filtres sélectionnés',
+    articleTitle: 'Titre'
   },
 
   // Article details
@@ -111,7 +117,15 @@ export const fr: Translations = {
     polarityJustification: 'Justification de la polarité',
     subjectivityJustification: 'Justification de la subjectivité',
     centralityJustification: 'Justification de la centralité',
-    close: 'Fermer'
+    close: 'Fermer',
+    titleNotAvailable: 'Titre non disponible',
+    publicationDate: 'Date de publication',
+    linkToFullArticle: 'Lien vers l\'article complet',
+    consultOriginalArticle: 'Consulter l\'article original →',
+    noAnalysisData: 'Les données d\'analyse des sentiments ne sont pas disponibles pour cet article.',
+    noArticleSelected: 'Aucun article sélectionné',
+    selectArticlePrompt: 'Sélectionnez un article dans le tableau pour voir ses détails d\'analyse des sentiments.',
+    justification: 'Justification'
   },
 
   // Analysis info
@@ -168,6 +182,11 @@ export const fr: Translations = {
     none: 'Aucun',
     total: 'Total',
     articles: 'articles',
-    article: 'article'
+    article: 'article',
+    viewMore: 'Voir plus',
+    viewLess: 'Voir moins',
+    previous: 'Précédent',
+    next: 'Suivant',
+    sortBy: 'Trier par'
   }
 }; 

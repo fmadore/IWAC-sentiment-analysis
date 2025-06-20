@@ -20,22 +20,27 @@ export const en: Translations = {
   // Filters
   filters: {
     country: 'Country',
-    journal: 'Journal',
+    journal: 'Newspaper',
     polarity: 'Polarity',
     subjectivity: 'Subjectivity',
     centrality: 'Centrality',
     clearAll: 'Clear all',
     clearAllFilters: 'Clear all filters',
-    searchJournals: 'Search journals...',
+    searchJournals: 'Search newspapers...',
     showingJournals: 'Showing',
     of: 'of',
     selectAll: 'Select all',
     deselectAll: 'Deselect all',
     selectedCountries: 'Selected countries',
-    selectedJournals: 'Selected journals',
+    selectedJournals: 'Selected newspapers',
     selectedPolarities: 'Selected polarities',
     selectedSubjectivities: 'Selected subjectivities',
-    selectedCentralities: 'Selected centralities'
+    selectedCentralities: 'Selected centralities',
+    sentimentCriteria: 'Sentiment analysis criteria',
+    subjectivityScore: 'Subjectivity score',
+    ratherObjective: 'Rather objective',
+    mixedSubjectivity: 'Mixed subjectivity',
+    ratherVerySubjective: 'Rather/very subjective'
   },
 
   // Sentiment labels
@@ -77,7 +82,7 @@ export const en: Translations = {
     centralityHeatmap: 'Centrality heatmap',
     articlesAnalyzed: 'articles analyzed',
     globalDistribution: 'Global distribution',
-    byJournal: 'by journal',
+    byJournal: 'by newspaper',
     byYear: 'by year',
     stackedAreas: 'Stacked areas',
     lines: 'Lines',
@@ -89,7 +94,7 @@ export const en: Translations = {
   table: {
     title: 'Articles',
     country: 'Country',
-    journal: 'Journal',
+    journal: 'Newspaper',
     date: 'Date',
     polarity: 'Polarity',
     subjectivity: 'Subjectivity',
@@ -100,7 +105,8 @@ export const en: Translations = {
     itemsPerPage: 'Items per page',
     showingItems: 'Showing',
     noArticles: 'No articles available',
-    noFilteredArticles: 'No articles match the selected filters'
+    noFilteredArticles: 'No articles match the selected filters',
+    articleTitle: 'Title'
   },
 
   // Article details
@@ -111,7 +117,15 @@ export const en: Translations = {
     polarityJustification: 'Polarity justification',
     subjectivityJustification: 'Subjectivity justification',
     centralityJustification: 'Centrality justification',
-    close: 'Close'
+    close: 'Close',
+    titleNotAvailable: 'Title not available',
+    publicationDate: 'Publication date',
+    linkToFullArticle: 'Link to full article',
+    consultOriginalArticle: 'View original article →',
+    noAnalysisData: 'Sentiment analysis data is not available for this article.',
+    noArticleSelected: 'No article selected',
+    selectArticlePrompt: 'Select an article from the table to view its sentiment analysis details.',
+    justification: 'Justification'
   },
 
   // Analysis info
@@ -168,6 +182,11 @@ export const en: Translations = {
     none: 'None',
     total: 'Total',
     articles: 'articles',
-    article: 'article'
+    article: 'article',
+    viewMore: 'View more',
+    viewLess: 'View less',
+    previous: 'Previous',
+    next: 'Next',
+    sortBy: 'Sort by'
   }
 }; 

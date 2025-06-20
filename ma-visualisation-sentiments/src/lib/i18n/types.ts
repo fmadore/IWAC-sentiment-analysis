@@ -60,6 +60,11 @@ export interface Translations {
     selectedPolarities: string;
     selectedSubjectivities: string;
     selectedCentralities: string;
+    sentimentCriteria: string;
+    subjectivityScore: string;
+    ratherObjective: string;
+    mixedSubjectivity: string;
+    ratherVerySubjective: string;
   };
 
   // Sentiment labels
@@ -105,6 +110,7 @@ export interface Translations {
     showingItems: string;
     noArticles: string;
     noFilteredArticles: string;
+    articleTitle: string;
   };
 
   // Article details
@@ -116,6 +122,14 @@ export interface Translations {
     subjectivityJustification: string;
     centralityJustification: string;
     close: string;
+    titleNotAvailable: string;
+    publicationDate: string;
+    linkToFullArticle: string;
+    consultOriginalArticle: string;
+    noAnalysisData: string;
+    noArticleSelected: string;
+    selectArticlePrompt: string;
+    justification: string;
   };
 
   // Analysis info
@@ -173,5 +187,10 @@ export interface Translations {
     total: string;
     articles: string;
     article: string;
+    viewMore: string;
+    viewLess: string;
+    previous: string;
+    next: string;
+    sortBy: string;
   };
 } 

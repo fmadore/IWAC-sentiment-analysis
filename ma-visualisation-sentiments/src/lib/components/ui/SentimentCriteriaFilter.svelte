@@ -1,8 +1,10 @@
 <!-- Composant SentimentCriteriaFilter.svelte --> 
 <script lang="ts">
   import { polarityFilters, subjectivityFilters } from '$lib/stores.ts';
+  import { t, currentLanguage } from '$lib/i18n';
+  import { translateSentimentValue } from '$lib/i18n/utils';
 
-  // Polarité options
+  // Polarité options (French values for data operations)
   const polarityOptions = [
     { value: 'Très positif', class: 'variant-filled-success' },
     { value: 'Positif', class: 'variant-soft-success' },
@@ -11,6 +13,15 @@
     { value: 'Très négatif', class: 'variant-filled-error' },
     { value: 'Non applicable', class: 'variant-ghost' }
   ];
+
+  // Get translated polarity options for display
+  const translatedPolarityOptions = $derived(
+    polarityOptions.map(option => ({
+      value: option.value, // Keep French value for data operations
+      label: translateSentimentValue(option.value, $currentLanguage), // Translated label for display
+      class: option.class
+    }))
+  );
 
   let selectedPolarities = $state<string[]>([]);
   let selectedScores = $state<number[]>([]);
@@ -44,24 +55,24 @@
 </script>
 
 <div class="card variant-glass p-4 hover-lift">
-  <h3 class="h4 mb-4 text-white responsive-title">Critères d'analyse des sentiments</h3>
+  <h3 class="h4 mb-4 text-white responsive-title">{$t.filters.sentimentCriteria}</h3>
   
   <div class="mb-4">
-    <h4 class="h5 mb-2 text-white responsive-subtitle">Polarité</h4>
+    <h4 class="h5 mb-2 text-white responsive-subtitle">{$t.analysis.polaritySection}</h4>
     <div class="flex flex-wrap gap-2">
-      {#each polarityOptions as option}
+      {#each translatedPolarityOptions as option}
         <button 
           class="chip {option.class} {selectedPolarities.includes(option.value) ? 'ring-2 ring-primary-500 hover-glow' : ''}" 
           onclick={() => togglePolarity(option.value)}
         >
-          {option.value}
+          {option.label}
         </button>
       {/each}
     </div>
   </div>
   
   <div>
-    <h4 class="h5 mb-2 text-white responsive-subtitle">Score de subjectivité</h4>
+    <h4 class="h5 mb-2 text-white responsive-subtitle">{$t.filters.subjectivityScore}</h4>
     <div class="flex flex-wrap gap-2">
       {#each [1, 2, 3, 4, 5] as score}
         <button 

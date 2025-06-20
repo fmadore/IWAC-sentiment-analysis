@@ -10,7 +10,29 @@
 -->
 <script lang="ts">
   import { currentDatasetArticles, countryFilters } from '$lib/stores.ts';
+  import { t, currentLanguage } from '$lib/i18n';
   import type { Article } from '$lib/types/data';
+
+  // Country name translations
+  const countryTranslations: Record<string, Record<string, string>> = {
+    'Bénin': {
+      'fr': 'Bénin',
+      'en': 'Benin'
+    },
+    'Benin': {
+      'fr': 'Bénin', 
+      'en': 'Benin'
+    }
+  };
+
+  // Function to translate country name
+  function translateCountryName(country: string): string {
+    const translation = countryTranslations[country];
+    if (translation) {
+      return translation[$currentLanguage] || country;
+    }
+    return country;
+  }
 
   // Variables locales
   let selectedCountries = $state<string[]>([]);
@@ -18,6 +40,14 @@
     ($currentDatasetArticles as Article[]).map(article => article.Country)
                                        .filter((country): country is string => !!country)
   )].sort((a, b) => a.localeCompare(b)));
+
+  // Get countries with translated labels for display
+  const translatedCountries = $derived(
+    countries.map(country => ({
+      value: country, // Keep original value for data operations
+      label: translateCountryName(country) // Translated label for display
+    }))
+  );
 
   // Fonction pour appliquer le filtre
   function applyFilter() {
@@ -40,15 +70,15 @@
 </script>
 
 <div class="card variant-glass p-4 hover-lift">
-  <h3 class="h4 mb-4 text-white responsive-title">Pays</h3>
+  <h3 class="h4 mb-4 text-white responsive-title">{$t.filters.country}</h3>
   
   <div class="flex flex-wrap gap-2">
-    {#each countries as country}
+    {#each translatedCountries as country}
       <button 
-        class="chip hover-lift variant-soft-secondary {selectedCountries.includes(country) ? 'ring-2 ring-primary-500 hover-glow' : ''}" 
-        onclick={() => toggleCountry(country)}
+        class="chip hover-lift variant-soft-secondary {selectedCountries.includes(country.value) ? 'ring-2 ring-primary-500 hover-glow' : ''}" 
+        onclick={() => toggleCountry(country.value)}
       >
-        {country}
+        {country.label}
       </button>
     {/each}
   </div>
@@ -58,7 +88,7 @@
       class="btn btn-sm variant-soft-surface mt-3 hover-lift" 
       onclick={clearSelection}
     >
-      Effacer sélection
+      {$t.filters.clearAll}
     </button>
   {/if}
 </div>

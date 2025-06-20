@@ -1,5 +1,6 @@
 <script lang="ts">
   import { subjectivityFilters } from '$lib/stores.ts';
+  import { t } from '$lib/i18n';
 
   const scores = [1, 2, 3, 4, 5];
   let selectedScores = $state<number[]>([]);
@@ -24,7 +25,7 @@
 </script>
 
 <div class="card variant-glass p-4 hover-lift">
-  <h3 class="h4 mb-4 text-white responsive-title">Score de subjectivité</h3>
+  <h3 class="h4 mb-4 text-white responsive-title">{$t.filters.subjectivityScore}</h3>
   
   <div class="flex flex-wrap gap-2">
     {#each scores as score}
@@ -42,22 +43,22 @@
       class="btn btn-sm variant-soft-surface mt-3 hover-lift" 
       onclick={clearSelection}
     >
-      Effacer sélection
+      {$t.filters.clearAll}
     </button>
   {/if}
   
   <div class="mt-3 text-sm text-white/80 space-y-2">
     <div class="flex gap-2 items-center">
       <span class="badge variant-soft-success">1-2</span>
-      <span>Plutôt objectif</span>
+      <span>{$t.filters.ratherObjective}</span>
     </div>
     <div class="flex gap-2 items-center">
       <span class="badge variant-soft-primary">3</span>
-      <span>Subjectivité mixte</span>
+      <span>{$t.filters.mixedSubjectivity}</span>
     </div>
     <div class="flex gap-2 items-center">
       <span class="badge variant-soft-error">4-5</span>
-      <span>Plutôt/très subjectif</span>
+      <span>{$t.filters.ratherVerySubjective}</span>
     </div>
   </div>
 </div>

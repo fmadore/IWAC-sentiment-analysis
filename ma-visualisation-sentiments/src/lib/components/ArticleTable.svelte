@@ -3,6 +3,8 @@
   import { filteredArticles, selectedArticle } from '$lib/stores';
   import type { Article } from '$lib/types/data';
   import { getJournalName } from '$lib/utils';
+  import { t, currentLanguage } from '$lib/i18n';
+  import { translateSentimentValue } from '$lib/i18n/utils';
 
   // Props - for event dispatching
   let { onShowDetails }: { onShowDetails: (details: { article: Article, position: {x: number, y: number} }) => void } = $props();
@@ -142,8 +144,9 @@
         return dateStr;
       }
       
-      // Formater la date au format localisé (jour/mois/année)
-      return date.toLocaleDateString('fr-FR', {
+      // Formater la date au format localisé selon la langue courante
+      const locale = $currentLanguage === 'en' ? 'en-US' : 'fr-FR';
+      return date.toLocaleDateString(locale, {
         day: 'numeric',
         month: 'long',
         year: 'numeric'
@@ -302,10 +305,10 @@
     <!-- Première ligne : Informations et sélecteur -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 mb-3">
       <span class="text-xs sm:text-sm text-white">
-        Affichage de {startIndex + 1} à {endIndex} sur {totalItems} articles
+        {$t.table.showingItems} {startIndex + 1} à {endIndex} sur {totalItems} {$t.common.articles}
       </span>
       <div class="flex items-center gap-2">
-        <label for="items-per-page" class="text-xs sm:text-sm text-white whitespace-nowrap">Articles par page:</label>
+        <label for="items-per-page" class="text-xs sm:text-sm text-white whitespace-nowrap">{$t.table.itemsPerPage}:</label>
         <select 
           id="items-per-page"
           bind:value={itemsPerPage}
@@ -326,7 +329,7 @@
           class="btn btn-sm variant-soft-surface" 
           onclick={previousPage}
           disabled={currentPage === 1}
-          title="Page précédente"
+          title={$t.common.previous || 'Previous page'}
         >
           {isMobile ? '←' : '←'}
         </button>
@@ -344,7 +347,7 @@
           class="btn btn-sm variant-soft-surface" 
           onclick={nextPage}
           disabled={currentPage === totalPages}
-          title="Page suivante"
+          title={$t.common.next || 'Next page'}
         >
           {isMobile ? '→' : '→'}
         </button>
@@ -357,24 +360,24 @@
     <!-- Mobile Sort Controls -->
     <div class="mobile-sort-controls mb-4 p-3 card variant-glass">
       <div class="flex items-center gap-2">
-        <label for="mobile-sort-select" class="text-xs text-white whitespace-nowrap">Trier par:</label>
+        <label for="mobile-sort-select" class="text-xs text-white whitespace-nowrap">{$t.common.sortBy}:</label>
         <select 
           id="mobile-sort-select"
           bind:value={sortColumn}
           onchange={() => currentPage = 1}
           class="select select-sm bg-surface-700 text-white border-surface-500 flex-1"
         >
-          <option value="titre">Titre</option>
-          <option value="journal">Journal</option>
-          <option value="date">Date</option>
-          <option value="centralite">Centralité</option>
-          <option value="polarite">Polarité</option>
-          <option value="subjectivite">Subjectivité</option>
+          <option value="titre">{$t.table.articleTitle}</option>
+          <option value="journal">{$t.filters.journal}</option>
+          <option value="date">{$t.table.date}</option>
+          <option value="centralite">{$t.table.centrality}</option>
+          <option value="polarite">{$t.table.polarity}</option>
+          <option value="subjectivite">{$t.table.subjectivity}</option>
         </select>
         <button 
           class="btn btn-sm variant-soft-surface"
           onclick={() => { sortDirection = sortDirection === 'asc' ? 'desc' : 'asc'; currentPage = 1; }}
-          title="Inverser l'ordre de tri"
+          title={$t.table.sortBy}
         >
           {sortDirection === 'asc' ? '↑' : '↓'}
         </button>
@@ -397,7 +400,7 @@
               selectArticle(article, mouseEvent);
             }
           }}
-          aria-label="Voir les détails de l'article: {article['o:title']}"
+          aria-label="{$t.table.viewDetails}: {article['o:title']}"
         >
           <div class="mb-2">
             <h3 class="text-sm font-semibold text-white line-clamp-2 mb-1">
@@ -412,13 +415,13 @@
           
           <div class="flex flex-wrap gap-2">
             <span class="badge badge-sm {getCentralityClass(article.sentiment_analysis?.centralite_islam_musulmans)}">
-              {article.sentiment_analysis?.centralite_islam_musulmans || 'N/A'}
+              {translateSentimentValue(article.sentiment_analysis?.centralite_islam_musulmans, $currentLanguage) || 'N/A'}
             </span>
             <span class="badge badge-sm {getPolarityClass(article.sentiment_analysis?.polarite)}">
-              {article.sentiment_analysis?.polarite || 'N/A'}
+              {translateSentimentValue(article.sentiment_analysis?.polarite, $currentLanguage) || 'N/A'}
             </span>
             <span class="badge badge-sm {getSubjectivityClass(article.sentiment_analysis?.subjectivite_score)}">
-              Subj: {article.sentiment_analysis?.subjectivite_score || 'N/A'}
+              {$t.table.subjectivity}: {article.sentiment_analysis?.subjectivite_score || 'N/A'}
             </span>
           </div>
         </button>
@@ -431,22 +434,22 @@
         <thead>
           <tr class="bg-surface-800">
             <th class="text-white sortable-header" onclick={() => sortBy('titre')}>
-              Titre {sortColumn === 'titre' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+              {$t.table.articleTitle} {sortColumn === 'titre' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
             </th>
             <th class="text-white sortable-header" onclick={() => sortBy('journal')}>
-              Journal {sortColumn === 'journal' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+              {$t.filters.journal} {sortColumn === 'journal' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
             </th>
             <th class="text-white sortable-header" onclick={() => sortBy('date')}>
-              Date {sortColumn === 'date' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+              {$t.table.date} {sortColumn === 'date' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
             </th>
             <th class="text-white sortable-header" onclick={() => sortBy('centralite')}>
-              Centralité {sortColumn === 'centralite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+              {$t.table.centrality} {sortColumn === 'centralite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
             </th>
             <th class="text-white sortable-header" onclick={() => sortBy('polarite')}>
-              Polarité {sortColumn === 'polarite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+              {$t.table.polarity} {sortColumn === 'polarite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
             </th>
             <th class="text-white sortable-header" onclick={() => sortBy('subjectivite')}>
-              Subjectivité {sortColumn === 'subjectivite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+              {$t.table.subjectivity} {sortColumn === 'subjectivite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
             </th>
           </tr>
         </thead>
@@ -454,7 +457,7 @@
           {#each paginatedArticles as article (article['o:id'])}
             <tr 
               class="article-row"
-              title="Cliquez pour voir les détails"
+              title={$t.table.viewDetails}
               onclick={(event) => selectArticle(article, event)} 
             >
               <td class="article-title">{article['o:title']}</td>
@@ -462,12 +465,12 @@
               <td>{formatDate(article.publication_date)}</td>
               <td>
                 <span class="badge {getCentralityClass(article.sentiment_analysis?.centralite_islam_musulmans)}">
-                  {article.sentiment_analysis?.centralite_islam_musulmans || 'N/A'}
+                  {translateSentimentValue(article.sentiment_analysis?.centralite_islam_musulmans, $currentLanguage) || 'N/A'}
                 </span>
               </td>
               <td>
                 <span class="badge {getPolarityClass(article.sentiment_analysis?.polarite)}">
-                  {article.sentiment_analysis?.polarite || 'N/A'}
+                  {translateSentimentValue(article.sentiment_analysis?.polarite, $currentLanguage) || 'N/A'}
                 </span>
               </td>
               <td>
@@ -489,9 +492,9 @@
         class="btn btn-sm variant-soft-surface" 
         onclick={previousPage}
         disabled={currentPage === 1}
-        title="Page précédente"
+        title={$t.common.previous}
       >
-        ← Précédent
+        ← {$t.common.previous}
       </button>
       
       <span class="text-sm text-white px-4">
@@ -502,14 +505,14 @@
         class="btn btn-sm variant-soft-surface" 
         onclick={nextPage}
         disabled={currentPage === totalPages}
-        title="Page suivante"
+        title={$t.common.next}
       >
-        Suivant →
+        {$t.common.next} →
       </button>
     </div>
   </div>
 {:else}
-  <p class="text-center py-8 text-white">Aucun article à afficher avec les filtres actuels.</p>
+  <p class="text-center py-8 text-white">{$t.table.noFilteredArticles}</p>
 {/if}
 
 <style>

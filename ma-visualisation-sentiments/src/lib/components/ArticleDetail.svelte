@@ -2,6 +2,8 @@
   // import { selectedArticle } from '$lib/stores'; // Removed store import
   import type { Article } from '$lib/types/data';
   import { getJournalName } from '$lib/utils';
+  import { t, currentLanguage } from '$lib/i18n';
+  import { translateSentimentValue } from '$lib/i18n/utils';
 
   // Props: Accept article as a prop
   let { article }: { article: Article | null } = $props();
@@ -55,7 +57,7 @@
 
   // Fonction pour formater les dates
   function formatDate(dateStr: string | null | undefined): string {
-    if (!dateStr) return 'Date non disponible';
+    if (!dateStr) return $t.messages.noData;
     
     try {
       // Gérer différents formats de date possibles
@@ -65,8 +67,9 @@
         return dateStr;
       }
       
-      // Formater la date au format localisé (jour/mois/année)
-      return date.toLocaleDateString('fr-FR', {
+      // Formater la date au format localisé selon la langue courante
+      const locale = $currentLanguage === 'en' ? 'en-US' : 'fr-FR';
+      return date.toLocaleDateString(locale, {
         day: 'numeric',
         month: 'long',
         year: 'numeric'
@@ -86,24 +89,24 @@
 
 {#if article}
   <div class="space-y-6">
-    <h3 class="h3 text-white text-balance">{article['o:title'] ?? 'Titre non disponible'}</h3>
+    <h3 class="h3 text-white text-balance">{article['o:title'] ?? $t.article.titleNotAvailable}</h3>
     
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div class="card variant-glass glass-light p-4 hover-lift-sm">
-        <span class="text-xs uppercase font-bold opacity-75 text-white/60">Journal</span>
+        <span class="text-xs uppercase font-bold opacity-75 text-white/60">{$t.filters.journal}</span>
         <p class="text-white mt-2 font-medium">{getJournalName(article)}</p>
       </div>
       <div class="card variant-glass glass-light p-4 hover-lift-sm">
-        <span class="text-xs uppercase font-bold opacity-75 text-white/60">Date de publication</span>
+        <span class="text-xs uppercase font-bold opacity-75 text-white/60">{$t.article.publicationDate}</span>
         <p class="text-white mt-2 font-medium">{formatDate(article.publication_date)}</p>
       </div>
     </div>
 
     <div class="card variant-glass glass-light p-4 hover-lift-sm">
-      <span class="text-xs uppercase font-bold opacity-75 text-white/60">Lien vers l'article complet</span>
+      <span class="text-xs uppercase font-bold opacity-75 text-white/60">{$t.article.linkToFullArticle}</span>
       <p class="text-white mt-2">
         <a href={getArticleUrl(article['o:id'])} target="_blank" class="anchor hover-glow focus-ring">
-          Consulter l'article original →
+          {$t.article.consultOriginalArticle}
         </a>
       </p>
     </div>
@@ -113,14 +116,14 @@
       <div class="card variant-glass glass-medium p-5 hover-lift-sm border-gradient">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
           <span class="badge badge-lg {getCentralityClass(article.sentiment_analysis.centralite_islam_musulmans)} hover-glow">
-            {article.sentiment_analysis.centralite_islam_musulmans ?? 'Non abordé'}
+            {translateSentimentValue(article.sentiment_analysis.centralite_islam_musulmans, $currentLanguage) ?? translateSentimentValue('Non abordé', $currentLanguage)}
           </span>
-          <span class="text-sm uppercase font-bold opacity-75 text-white/80">Centralité de l'islam/musulmans</span>
+          <span class="text-sm uppercase font-bold opacity-75 text-white/80">{$t.analysis.centralitySection}</span>
         </div>
         
         {#if article.sentiment_analysis.centralite_justification}
           <div class="mt-4">
-            <span class="text-xs uppercase font-bold opacity-75 text-white/60 mb-2 block">Justification</span>
+            <span class="text-xs uppercase font-bold opacity-75 text-white/60 mb-2 block">{$t.article.justification}</span>
             <blockquote class="card variant-glass glass-light p-4 border-l-4 border-l-blue-400/50 italic text-white/90 leading-relaxed">
               {article.sentiment_analysis.centralite_justification}
             </blockquote>
@@ -132,14 +135,14 @@
       <div class="card variant-glass glass-medium p-5 hover-lift-sm border-gradient">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
           <span class="badge badge-lg {getPolarityClass(article.sentiment_analysis.polarite)} hover-glow">
-            {article.sentiment_analysis.polarite}
+            {translateSentimentValue(article.sentiment_analysis.polarite, $currentLanguage)}
           </span>
-          <span class="text-sm uppercase font-bold opacity-75 text-white/80">Polarité</span>
+          <span class="text-sm uppercase font-bold opacity-75 text-white/80">{$t.analysis.polaritySection}</span>
         </div>
         
         {#if article.sentiment_analysis.polarite_justification}
           <div class="mt-4">
-            <span class="text-xs uppercase font-bold opacity-75 text-white/60 mb-2 block">Justification</span>
+            <span class="text-xs uppercase font-bold opacity-75 text-white/60 mb-2 block">{$t.article.justification}</span>
             <blockquote class="card variant-glass glass-light p-4 border-l-4 border-l-purple-400/50 italic text-white/90 leading-relaxed">
               {article.sentiment_analysis.polarite_justification}
             </blockquote>
@@ -153,12 +156,12 @@
           <span class="badge badge-lg {getSubjectivityClass(article.sentiment_analysis.subjectivite_score)} hover-glow">
             {article.sentiment_analysis.subjectivite_score}
           </span>
-          <span class="text-sm uppercase font-bold opacity-75 text-white/80">Score de Subjectivité</span>
+          <span class="text-sm uppercase font-bold opacity-75 text-white/80">{$t.filters.subjectivityScore}</span>
         </div>
         
         {#if article.sentiment_analysis.subjectivite_justification}
           <div class="mt-4">
-            <span class="text-xs uppercase font-bold opacity-75 text-white/60 mb-2 block">Justification</span>
+            <span class="text-xs uppercase font-bold opacity-75 text-white/60 mb-2 block">{$t.article.justification}</span>
             <blockquote class="card variant-glass glass-light p-4 border-l-4 border-l-green-400/50 italic text-white/90 leading-relaxed">
               {article.sentiment_analysis.subjectivite_justification}
             </blockquote>
@@ -167,7 +170,7 @@
       </div>
     {:else}
       <div class="card variant-glass glass-light p-6 text-center hover-lift-sm">
-        <p class="text-white/80 text-balance">Les données d'analyse des sentiments ne sont pas disponibles pour cet article.</p>
+        <p class="text-white/80 text-balance">{$t.article.noAnalysisData}</p>
       </div>
     {/if}
   </div>
@@ -178,8 +181,8 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
     </div>
-    <h4 class="h4 text-white/80 mb-2">Aucun article sélectionné</h4>
-    <p class="text-white/60 text-balance max-w-md">Sélectionnez un article dans le tableau pour voir ses détails d'analyse des sentiments.</p>
+    <h4 class="h4 text-white/80 mb-2">{$t.article.noArticleSelected}</h4>
+    <p class="text-white/60 text-balance max-w-md">{$t.article.selectArticlePrompt}</p>
   </div>
 {/if}
 

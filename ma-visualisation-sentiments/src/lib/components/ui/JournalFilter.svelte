@@ -1,6 +1,7 @@
 <!-- Composant JournalFilter.svelte --> 
 <script lang="ts">
   import { availableJournals, journalFilters } from '$lib/stores.ts';
+  import { t } from '$lib/i18n';
 
   // Propriété pour référence externe, pas pour l'injection de propriété
   export const class_name = '';
@@ -53,7 +54,7 @@
 
 <div class="card variant-glass p-4 hover-lift">
   <div class="flex items-center justify-between mb-4">
-    <h3 class="h4 text-white responsive-title">Journal</h3>
+    <h3 class="h4 text-white responsive-title">{$t.filters.journal}</h3>
     <span class="text-sm text-white/60">({journals.length})</span>
   </div>
   
@@ -63,7 +64,7 @@
       <div class="relative">
         <input 
           type="text" 
-          placeholder="Rechercher un journal..." 
+          placeholder={$t.filters.searchJournals}
           bind:value={searchTerm}
           class="input input-sm w-full pr-8 glass-medium text-white placeholder-white/40"
         />
@@ -82,7 +83,7 @@
   <!-- Compteur de résultats -->
   {#if searchTerm}
     <div class="text-sm text-white/70 mb-2">
-      {filteredJournals.length} journal{filteredJournals.length !== 1 ? 's' : ''} trouvé{filteredJournals.length !== 1 ? 's' : ''}
+      {$t.filters.showingJournals} {filteredJournals.length} {$t.filters.of} {journals.length}
     </div>
   {/if}
   
@@ -104,7 +105,7 @@
       class="btn btn-sm variant-ghost-surface mb-2 hover-lift" 
       onclick={toggleShowAll}
     >
-      {showAll ? `Voir moins (${INITIAL_DISPLAY_COUNT})` : `Voir plus (+${filteredJournals.length - INITIAL_DISPLAY_COUNT})`}
+      {showAll ? `${$t.common.viewLess} (${INITIAL_DISPLAY_COUNT})` : `${$t.common.viewMore} (+${filteredJournals.length - INITIAL_DISPLAY_COUNT})`}
     </button>
   {/if}
 
@@ -114,7 +115,7 @@
       class="btn btn-sm variant-soft-surface mt-1 hover-lift" 
       onclick={() => {selectedJournals = []; applyFilter();}}
     >
-      Effacer sélection ({selectedJournals.length})
+      {$t.filters.clearAll} ({selectedJournals.length})
     </button>
   {/if}
 </div>
