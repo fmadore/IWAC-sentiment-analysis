@@ -14,6 +14,11 @@
 
   let selectedCentralities: string[] = $state([]);
 
+  // Sync local state with store values
+  $effect(() => {
+    selectedCentralities = $centralityFilters;
+  });
+
   // Get translated labels for display
   const translatedOptions = $derived(
     centralityOptions.map(option => ({

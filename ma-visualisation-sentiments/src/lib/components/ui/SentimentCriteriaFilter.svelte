@@ -26,6 +26,15 @@
   let selectedPolarities = $state<string[]>([]);
   let selectedScores = $state<number[]>([]);
   
+  // Sync local state with store values
+  $effect(() => {
+    selectedPolarities = $polarityFilters;
+  });
+  
+  $effect(() => {
+    selectedScores = $subjectivityFilters;
+  });
+  
   // Mettre à jour les stores quand la sélection change
   function updatePolaritySelection() {
     polarityFilters.set(selectedPolarities);

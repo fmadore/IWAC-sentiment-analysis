@@ -5,6 +5,11 @@
   const scores = [1, 2, 3, 4, 5];
   let selectedScores = $state<number[]>([]);
   
+  // Sync local state with store values
+  $effect(() => {
+    selectedScores = $subjectivityFilters;
+  });
+  
   function updateSubjectivitySelection() {
     subjectivityFilters.set(selectedScores);
   }

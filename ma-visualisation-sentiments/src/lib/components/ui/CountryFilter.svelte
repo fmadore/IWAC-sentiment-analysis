@@ -41,6 +41,11 @@
                                        .filter((country): country is string => !!country)
   )].sort((a, b) => a.localeCompare(b)));
 
+  // Sync local state with store values
+  $effect(() => {
+    selectedCountries = $countryFilters;
+  });
+
   // Get countries with translated labels for display
   const translatedCountries = $derived(
     countries.map(country => ({

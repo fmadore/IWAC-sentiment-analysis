@@ -11,6 +11,11 @@
   let searchTerm = $state('');
   let showAll = $state(false);
   const INITIAL_DISPLAY_COUNT = 8;
+
+  // Sync local state with store values
+  $effect(() => {
+    selectedJournals = $journalFilters;
+  });
   
   let journals = $derived($availableJournals);
   

@@ -24,6 +24,18 @@
   
   let selectedPolarities = $state<string[]>([]);
   
+  // Sync local state with store values when language or store changes
+  $effect(() => {
+    // Convert French store values to translated labels for UI
+    const storeValues = $polarityFilters;
+    selectedPolarities = storeValues.map(frenchValue => {
+      // Find the index of the French value
+      const index = frenchPolarityOptions.findIndex(option => option.value === frenchValue);
+      // Return the corresponding translated label
+      return index >= 0 ? polarityLabels[index] : frenchValue;
+    });
+  });
+  
   function updateSelection() {
     // Convert translated values back to French for data filtering
     const frenchValues = selectedPolarities.map(label => getFrenchSentimentValue(label));
