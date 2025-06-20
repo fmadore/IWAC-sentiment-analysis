@@ -6,6 +6,40 @@ Cette application SvelteKit est conçue pour visualiser les résultats d'analyse
 
 L'objectif principal est de fournir une interface interactive pour explorer et comprendre les tendances de sentiments dans la couverture médiatique de l'islam et des musulmans dans la presse d'Afrique de l'Ouest francophone.
 
+## Nouvelles fonctionnalités
+
+### 🌐 **Interface multilingue (Français/Anglais)**
+L'application prend désormais en charge deux langues :
+- **Français** : Langue par défaut, adaptée au corpus francophone
+- **Anglais** : Interface complète traduite pour un usage international
+- **Sélecteur de langue** : Bouton élégant dans l'en-tête avec globe et menu déroulant
+- **Persistance** : La langue choisie est sauvegardée et synchronisée avec l'URL
+- **Traduction intelligente** : Les valeurs de sentiment sont traduites automatiquement
+- **Détection automatique** : Détection de la langue du navigateur au premier accès
+
+### 🔗 **Routage basé sur l'URL** 
+L'application prend désormais en charge le partage et la mise en signet de vues spécifiques :
+- **URLs partageables** : Partagez des vues filtrées avec des collègues
+- **Synchronisation automatique** : Les filtres, vues et langue sont reflétés dans l'URL
+- **Navigation naturelle** : Utilisez les boutons précédent/suivant du navigateur
+- **Bouton de partage** : Copiez l'URL actuelle en un clic avec feedback visuel
+- **Effacement rapide** : Bouton pour supprimer tous les filtres actifs
+- **Persistance de la langue** : La langue sélectionnée est incluse dans l'URL
+
+### **Exemples d'URLs avec langue**
+```
+# Vue graphiques en français (par défaut)
+https://fmadore.github.io/IWAC-sentiment-analysis/?view=charts&countries=Sénégal
+
+# Vue tendances en anglais
+https://fmadore.github.io/IWAC-sentiment-analysis/?view=trends&lang=en&polarities=Positive
+
+# Heatmap avec filtres et langue
+https://fmadore.github.io/IWAC-sentiment-analysis/?view=heatmap&lang=en&centralities=Central,Very%20central
+```
+
+Consultez le [Guide du routage URL](./URL_ROUTING_GUIDE.md) pour plus de détails.
+
 ## Structure du projet
 
 Le projet est structuré comme une application SvelteKit typique :
@@ -14,12 +48,14 @@ Le projet est structuré comme une application SvelteKit typique :
     -   `lib/`: Contient la logique principale de l'application.
         -   `components/`: Composants Svelte réutilisables.
             -   `ui/`: Composants pour l'interface utilisateur.
-                -   `AppHeader.svelte`: En-tête de l'application avec branding et bouton plein écran.
+                -   `AppHeader.svelte`: En-tête de l'application avec branding, sélecteur de langue et bouton plein écran.
+                -   `LanguageSwitcher.svelte`: Composant de sélection de langue avec interface élégante.
                 -   `CountryFilter.svelte`: Permet de filtrer les articles par pays (filtre hiérarchique principal).
                 -   `JournalFilter.svelte`: Permet de filtrer les articles par source (nom du journal), avec recherche et pagination.
                 -   `PolarityFilter.svelte`: Permet de filtrer les articles par polarité du sentiment.
                 -   `SubjectivityFilter.svelte`: Permet de filtrer les articles par score de subjectivité (1-5).
                 -   `CentralityFilter.svelte`: Permet de filtrer les articles par centralité de l'islam/musulmans.
+                -   `ClearFiltersButton.svelte`: Bouton pour effacer tous les filtres actifs.
                 -   `SentimentCriteriaFilter.svelte`: Version alternative qui combine les filtres de polarité et subjectivité.
 
             -   `viz/`: Composants pour la visualisation des données.
@@ -32,7 +68,14 @@ Le projet est structuré comme une application SvelteKit typique :
             -   `AnalysisInfo.svelte`: Fournit des informations explicatives sur la méthodologie d'analyse.
             -   `ArticleTable.svelte`: Affiche les articles dans un tableau interactif avec tri, pagination et sélection.
             -   `ArticleDetail.svelte`: Affiche les détails d'un article sélectionné.
+        -   `i18n/`: Système d'internationalisation.
+            -   `index.ts`: Configuration principale et stores de langue.
+            -   `fr.ts`: Traductions françaises (langue par défaut).
+            -   `en.ts`: Traductions anglaises complètes.
+            -   `utils.ts`: Utilitaires de traduction pour les valeurs de sentiment.
+            -   `types.ts`: Types TypeScript pour les traductions.
         -   `stores.ts`: Stores Svelte pour la gestion d'état global de l'application.
+        -   `urlState.ts`: Gestion de l'état URL et synchronisation des filtres.
         -   `utils.ts`: Fonctions utilitaires pour le chargement et la transformation des données.
         -   `types/data.ts`: Définitions TypeScript pour les structures de données.
         -   `index.ts`: Réexportation des composants, stores et types pour une importation simplifiée.
@@ -102,8 +145,6 @@ L'application propose une suite complète de visualisations interactives pour ex
 - **Vue mobile adaptée** : Cartes responsives pour petits écrans
 - **Détails d'articles** : Modal avec métadonnées complètes et justifications d'analyse
 
-
-
 ## Gestion d'état (`stores.ts`)
 
 L'application utilise les stores Svelte pour gérer l'état global :
@@ -128,19 +169,33 @@ De plus, le store expose la fonction :
 
 -   **`AppHeader.svelte`**: En-tête moderne de l'application avec :
     - **Branding élégant** : Logo avec dégradé et animations subtiles
+    - **Sélecteur de langue** : Menu déroulant avec globe et langues disponibles
     - **Mode plein écran** : Bouton pour basculer en mode plein écran avec icônes dynamiques
     - **Design responsive** : Adaptation automatique aux différentes tailles d'écran
     - **Effets visuels** : Glassmorphism, animations hover et transitions fluides
 
+-   **`LanguageSwitcher.svelte`**: Composant de sélection de langue avec :
+    - **Interface intuitive** : Icône globe avec menu déroulant élégant
+    - **Langues supportées** : Français et Anglais avec noms natifs
+    - **État visuel** : Indication de la langue active avec coche
+    - **Animations fluides** : Transitions et effets hover sophistiqués
+    - **Responsive** : Adaptation mobile avec tailles réduites
+
+-   **`ClearFiltersButton.svelte`**: Bouton pour effacer tous les filtres avec :
+    - **Visibilité conditionnelle** : Apparaît uniquement quand des filtres sont actifs
+    - **Design distinctif** : Style rouge avec icône de filtre barré
+    - **Feedback visuel** : Animations et effets hover
+    - **Responsive** : Version icône seule sur mobile
+
 ### Composants de filtrage
 
--   **`CountryFilter.svelte`**: Permet de sélectionner un ou plusieurs pays. Ce filtre est hiérarchique et influence la liste des journaux disponibles.
+Tous les composants de filtrage supportent désormais la traduction automatique des valeurs :
+
+-   **`CountryFilter.svelte`**: Permet de sélectionner un ou plusieurs pays. Ce filtre est hiérarchique et influence la liste des journaux disponibles. Les noms de pays sont traduits (ex: Bénin/Benin).
 -   **`JournalFilter.svelte`**: Permet de filtrer les articles par journal, avec fonctionnalités de recherche, pagination et affichage du nombre de journaux disponibles.
--   **`PolarityFilter.svelte`**: Permet de filtrer les articles selon leur polarité (Très positif, Positif, Neutre, Négatif, Très négatif, Non applicable).
--   **`SubjectivityFilter.svelte`**: Permet de filtrer les articles selon leur score de subjectivité (échelle de 1 à 5) avec légende explicative.
--   **`CentralityFilter.svelte`**: Permet de filtrer les articles selon la centralité du sujet islam/musulmans (Très central, Central, Secondaire, Marginal, Non abordé).
-
-
+-   **`PolarityFilter.svelte`**: Permet de filtrer les articles selon leur polarité avec traduction automatique des valeurs (Très positif/Very positive, etc.).
+-   **`SubjectivityFilter.svelte`**: Permet de filtrer les articles selon leur score de subjectivité (échelle de 1 à 5) avec légende explicative traduite.
+-   **`CentralityFilter.svelte`**: Permet de filtrer les articles selon la centralité du sujet islam/musulmans avec traduction des niveaux (Très central/Very central, etc.).
 
 ### Composants de visualisation
 
@@ -168,6 +223,7 @@ De plus, le store expose la fonction :
 -   `+page.ts`: Fonction de chargement simplifiée qui ne charge plus de manifest externe.
 -   `+page.svelte`:
     -   Charge automatiquement le corpus IWAC au démarrage de l'application.
+    -   Initialise la langue depuis l'URL ou les préférences utilisateur.
     -   Propose six vues différentes via un menu de navigation latéral (desktop) ou modal (mobile):
       - **Charts**: Graphiques de distribution de polarité et subjectivité (barres/camembert)
       - **Trends**: Évolution des sentiments au fil du temps
@@ -176,23 +232,47 @@ De plus, le store expose la fonction :
       - **Heatmap**: Heatmap de centralité par pays et année
       - **Table**: Articles dans un tableau interactif
     -   Inclut un système de filtrage hiérarchique (Pays → Journaux → Critères de sentiment)
+    -   Synchronise tous les filtres et la langue avec l'URL en temps réel
     -   Gère l'affichage des détails d'articles dans un modal responsive
     -   Interface entièrement responsive avec navigation mobile optimisée
     -   Gère l'affichage des messages de chargement ou d'absence de données.
 
+## Système d'internationalisation
 
+L'application intègre un système complet de gestion multilingue :
 
-## Nouvelles fonctionnalités
+### **Langues supportées**
+- **Français** (fr) : Langue par défaut, adaptée au corpus francophone
+- **Anglais** (en) : Interface complète traduite
 
-### 🔗 **Routage basé sur l'URL** 
-L'application prend désormais en charge le partage et la mise en signet de vues spécifiques :
-- **URLs partageables** : Partagez des vues filtrées avec des collègues
-- **Synchronisation automatique** : Les filtres et vues sont reflétés dans l'URL
-- **Navigation naturelle** : Utilisez les boutons précédent/suivant du navigateur
-- **Bouton de partage** : Copiez l'URL actuelle en un clic
-- **Effacement rapide** : Bouton pour supprimer tous les filtres
+### **Fonctionnalités**
+- **Traduction complète** : Interface, labels, messages et descriptions
+- **Valeurs de sentiment** : Traduction automatique des polarités, centralités et niveaux de subjectivité
+- **Persistance** : Langue sauvegardée dans localStorage et URL
+- **Détection automatique** : Langue du navigateur détectée au premier accès
+- **Synchronisation URL** : La langue est incluse dans l'URL partageable
 
-Consultez le [Guide du routage URL](./URL_ROUTING_GUIDE.md) pour plus de détails.
+### **Architecture technique**
+- **Stores réactifs** : `currentLanguage` et `t` pour les traductions
+- **Types stricts** : Interface TypeScript pour toutes les traductions
+- **Utilitaires** : Fonctions de traduction pour les valeurs de données
+- **Composants adaptatifs** : Tous les composants s'adaptent automatiquement
+
+Consultez le [Guide d'internationalisation](./ma-visualisation-sentiments/I18N_GUIDE.md) pour plus de détails sur l'implémentation.
+
+### **Avantages de l'interface multilingue**
+
+#### **Pour la recherche internationale**
+- **Accessibilité** : Interface en anglais pour les chercheurs internationaux
+- **Collaboration** : Facilite les projets de recherche multi-institutionnels
+- **Publications** : Intégration dans des articles académiques anglophones
+- **Conférences** : Présentation dans des contextes internationaux
+
+#### **Pour l'usage local**
+- **Langue native** : Interface en français pour les utilisateurs francophones
+- **Contexte culturel** : Terminologie adaptée au contexte ouest-africain
+- **Formation** : Facilite l'apprentissage pour les étudiants locaux
+- **Appropriation** : Meilleure compréhension des concepts d'analyse
 
 ## Développement
 
@@ -234,6 +314,15 @@ Prérequis : Node.js et npm installés.
 -   `npm run lint`: Exécute ESLint pour vérifier les erreurs de style de code.
 -   `npm run format`: Exécute Prettier pour formater le code.
 
+### **Tests des fonctionnalités multilingues**
+
+Pour tester les fonctionnalités d'internationalisation :
+
+1. **Test des langues** : Changez la langue via le sélecteur dans l'en-tête
+2. **Test URL** : Ajoutez `?lang=en` ou `?lang=fr` à l'URL
+3. **Test persistance** : Rechargez la page et vérifiez que la langue est conservée
+4. **Test responsive** : Vérifiez l'affichage mobile du sélecteur de langue
+
 ## Préparation des données
 
 Pour mettre à jour les données du corpus IWAC :
@@ -259,10 +348,21 @@ Pour mettre à jour les données du corpus IWAC :
 - **Tailwind CSS** : Framework CSS utilitaire pour le styling
 - **Skeleton UI** : Composants UI pour Svelte avec thème sombre
 
+### Internationalisation
+- **Stores Svelte** : Gestion réactive de la langue courante
+- **Types TypeScript** : Interface stricte pour les traductions
+- **Détection automatique** : Support de la langue du navigateur
+- **Persistance** : localStorage et synchronisation URL
+
 ### Visualisations
 - **ECharts** : Bibliothèque de graphiques interactifs haute performance
 - **svelte-echarts** : Wrapper Svelte pour ECharts
 - **Canvas API** : Pour l'ajout de métadonnées aux exports d'images
+
+### Routage et état
+- **URL State Management** : Synchronisation automatique filtres ↔ URL
+- **Web Share API** : Partage natif sur appareils mobiles
+- **History API** : Navigation naturelle avec boutons navigateur
 
 ### Outils de développement
 - **Vite** : Build tool rapide et moderne
