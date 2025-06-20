@@ -65,6 +65,14 @@ export interface Translations {
     ratherObjective: string;
     mixedSubjectivity: string;
     ratherVerySubjective: string;
+    averageCentrality: string;
+    level: string;
+    veryObjectiveScore: string;
+    ratherObjectiveScore: string;
+    mixedScore: string;
+    ratherSubjectiveScore: string;
+    verySubjectiveScore: string;
+    numberOfArticles: string;
   };
 
   // Sentiment labels
@@ -92,6 +100,7 @@ export interface Translations {
     lines: string;
     bars: string;
     pie: string;
+    polaritySubjectivityDistribution: string;
   };
 
   // Table

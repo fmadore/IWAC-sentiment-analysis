@@ -25,8 +25,10 @@
 
   import { filteredArticles } from '$lib';
   import type { Article } from '$lib';
+  import { t, currentLanguage } from '$lib/i18n';
+  import { formatNumber } from '$lib/i18n/utils';
 
-  // Palette de couleurs pour les pays
+  // Color palette for countries
   const countryColors = [
     '#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', 
     '#1abc9c', '#d35400', '#c0392b', '#16a085', '#8e44ad',
@@ -52,6 +54,8 @@
 
   let options = $derived.by(() => {
     const articles = $filteredArticles;
+    const currentT = $t; // Capture current translations for reactive updates
+    const currentLang = $currentLanguage; // Capture current language for reactive updates
     const countryYearData: Record<string, Record<string, number>> = {};
     let articlesAnalyzed = 0;
 
@@ -102,7 +106,7 @@
 
     return {
       title: {
-        text: `Volume d'articles par pays (${articlesAnalyzed} articles)`,
+        text: `${currentT.charts.volumeByCountry} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.common.articles})`,
         left: 'center',
         textStyle: {
           color: '#fff',
@@ -124,7 +128,31 @@
         },
         backgroundColor: 'rgba(255, 255, 255, 0.9)',
         borderColor: 'rgba(255, 255, 255, 0.4)',
-        borderWidth: 1
+        borderWidth: 1,
+        formatter: function (params: any) {
+          if (!Array.isArray(params) || params.length === 0) {
+            return '';
+          }
+          
+          let tooltipHtml = `<strong>${params[0].axisValue}</strong><br/>`;
+          let total = 0;
+          
+          // Sort by value in descending order
+          const sortedParams = params.slice().sort((a: any, b: any) => b.value - a.value);
+          
+          sortedParams.forEach((param: any) => {
+            if (param.value > 0) {
+              tooltipHtml += `${param.marker} ${param.seriesName}: ${param.value}<br/>`;
+            }
+            total += param.value;
+          });
+          
+          if (total > 0) {
+            tooltipHtml += `<strong>${currentT.common.total}: ${total}</strong>`;
+          }
+          
+          return tooltipHtml;
+        }
       },
       legend: {
         data: countries,
@@ -216,13 +244,13 @@
       class="btn btn-sm hover-lift {chartType === 'area' ? 'variant-filled-primary' : 'variant-soft-surface'}"
       onclick={() => chartType = 'area'}
     >
-      📈 Aires empilées
+      📈 {$t.charts.stackedAreas}
     </button>
     <button 
       class="btn btn-sm hover-lift {chartType === 'line' ? 'variant-filled-primary' : 'variant-soft-surface'}"
       onclick={() => chartType = 'line'}
     >
-      📊 Lignes
+      📊 {$t.charts.lines}
     </button>
   </div>
 
@@ -234,5 +262,5 @@
     <Chart {init} {options} />
   </div>
 {:else}
-  <p class="text-center py-8 text-white/80 text-sm sm:text-base">Aucun article ne correspond aux filtres actuels pour afficher le volume.</p>
+  <p class="text-center py-8 text-white/80 text-sm sm:text-base">{$t.table.noFilteredArticles}</p>
 {/if} 

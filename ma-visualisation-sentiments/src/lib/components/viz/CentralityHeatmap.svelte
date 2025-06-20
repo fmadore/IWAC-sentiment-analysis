@@ -23,8 +23,10 @@
 
   import { filteredArticles } from '$lib';
   import type { Article } from '$lib';
+  import { t, currentLanguage } from '$lib/i18n';
+  import { translateSentimentValue } from '$lib/i18n/utils';
 
-  // Mapping des centralités vers des valeurs numériques
+  // Mapping des centralités vers des valeurs numériques (toujours en français pour les données)
   const centralityToNumber = {
     'Non abordé': 0,
     'Marginal': 1,
@@ -32,6 +34,15 @@
     'Central': 3,
     'Très central': 4
   };
+
+  // Labels de centralité traduits
+  const centralityLabels = $derived([
+    translateSentimentValue('Non abordé', $currentLanguage),
+    translateSentimentValue('Marginal', $currentLanguage),
+    translateSentimentValue('Secondaire', $currentLanguage),
+    translateSentimentValue('Central', $currentLanguage),
+    translateSentimentValue('Très central', $currentLanguage)
+  ]);
 
   let isMobile = $state(false);
   let chartContainer = $state<HTMLDivElement>();
@@ -111,7 +122,7 @@
 
     return {
       title: {
-        text: `Centralité moyenne de l'islam/musulmans par pays et année (${articlesAnalyzed} articles)`,
+        text: `${$t.charts.centralityHeatmap} (${articlesAnalyzed} ${$t.charts.articlesAnalyzed})`,
         left: 'center',
         textStyle: {
           color: '#fff',
@@ -125,12 +136,11 @@
           const [yearIndex, countryIndex, value] = params.data;
           const year = years[yearIndex];
           const country = countries[countryIndex];
-          const centralityLabels = ['Non abordé', 'Marginal', 'Secondaire', 'Central', 'Très central'];
           const centralityLabel = centralityLabels[Math.round(value)] || 'N/A';
           
           return `<strong>${country} - ${year}</strong><br/>
-                  Centralité moyenne: ${value.toFixed(2)}<br/>
-                  Niveau: ${centralityLabel}`;
+                  ${$t.filters.averageCentrality}: ${value.toFixed(2)}<br/>
+                  ${$t.filters.level}: ${centralityLabel}`;
         },
         textStyle: {
           color: '#333',
@@ -193,17 +203,17 @@
         inRange: {
           color: ['#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffcc', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
         },
-        text: ['Très central', 'Non abordé'],
+        text: [centralityLabels[4], centralityLabels[0]], // Très central, Non abordé
         pieces: [
-          { min: 0, max: 0.5, label: 'Non abordé', color: '#313695' },
-          { min: 0.5, max: 1.5, label: 'Marginal', color: '#4575b4' },
-          { min: 1.5, max: 2.5, label: 'Secondaire', color: '#74add1' },
-          { min: 2.5, max: 3.5, label: 'Central', color: '#fdae61' },
-          { min: 3.5, max: 4, label: 'Très central', color: '#d73027' }
+          { min: 0, max: 0.5, label: centralityLabels[0], color: '#313695' },
+          { min: 0.5, max: 1.5, label: centralityLabels[1], color: '#4575b4' },
+          { min: 1.5, max: 2.5, label: centralityLabels[2], color: '#74add1' },
+          { min: 2.5, max: 3.5, label: centralityLabels[3], color: '#fdae61' },
+          { min: 3.5, max: 4, label: centralityLabels[4], color: '#d73027' }
         ]
       },
       series: [{
-        name: 'Centralité',
+        name: $t.filters.centrality,
         type: 'heatmap',
         data: heatmapData,
         label: {
@@ -229,5 +239,5 @@
     <Chart {init} {options} />
   </div>
 {:else}
-  <p class="text-center py-8 text-white/80 text-sm sm:text-base">Aucun article ne correspond aux filtres actuels pour afficher la heatmap de centralité.</p>
+  <p class="text-center py-8 text-white/80 text-sm sm:text-base">{$t.table.noFilteredArticles}</p>
 {/if} 

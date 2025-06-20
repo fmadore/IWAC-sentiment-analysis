@@ -25,17 +25,23 @@
 
   import { filteredArticles } from '$lib';
   import type { Article } from '$lib';
+  import { t, currentLanguage } from '$lib/i18n';
+  import { getSentimentLabels, formatNumber } from '$lib/i18n/utils';
 
-  const polarityLabels = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif'] as const;
-  type PolarityType = typeof polarityLabels[number];
+  // Get polarity labels in current language
+  let polarityLabels = $derived(getSentimentLabels('polarity', $currentLanguage));
+  
+  // French labels for data lookup (data is stored in French)
+  const frenchPolarityLabels = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif'] as const;
+  type PolarityType = typeof frenchPolarityLabels[number];
 
-  // Définition des couleurs avec gradations logiques
+  // Color definitions with logical gradations
   const polarityColors: Record<PolarityType, string> = {
-    'Très positif': '#059669',    // Vert foncé (plus intense)
-    'Positif': '#10B981',         // Vert moyen
-    'Neutre': '#3B82F6',          // Bleu
-    'Négatif': '#EF4444',         // Rouge moyen
-    'Très négatif': '#DC2626'     // Rouge foncé (plus intense)
+    'Très positif': '#059669',    // Dark green (more intense)
+    'Positif': '#10B981',         // Medium green
+    'Neutre': '#3B82F6',          // Blue
+    'Négatif': '#EF4444',         // Medium red
+    'Très négatif': '#DC2626'     // Dark red (more intense)
   };
 
   let isMobile = $state(false);
@@ -57,6 +63,8 @@
   // Use $derived for proper reactivity in Svelte 5
   let options = $derived.by(() => {
     const articles = $filteredArticles; // Direct reactive dependency
+    const currentT = $t; // Capture current translations for reactive updates
+    const currentLang = $currentLanguage; // Capture current language for reactive updates
     const yearlyData: Record<string, Record<PolarityType, number>> = {};
     let articlesAnalyzed = 0;
 
@@ -65,9 +73,9 @@
         const year = article.publication_date.substring(0, 4);
         const polarity = article.sentiment_analysis.polarite as PolarityType;
 
-        if (polarityLabels.includes(polarity)) {
+        if (frenchPolarityLabels.includes(polarity)) {
           if (!yearlyData[year]) {
-            yearlyData[year] = Object.fromEntries(polarityLabels.map(l => [l, 0])) as Record<PolarityType, number>;
+            yearlyData[year] = Object.fromEntries(frenchPolarityLabels.map(l => [l, 0])) as Record<PolarityType, number>;
           }
           yearlyData[year][polarity]++;
           articlesAnalyzed++;
@@ -77,14 +85,14 @@
 
     const years = Object.keys(yearlyData).sort();
 
-    const series = polarityLabels.map(polarity => ({
-      name: polarity,
+    const series = frenchPolarityLabels.map((frenchPolarity, index) => ({
+      name: polarityLabels[index], // Use translated label for display
       type: 'line' as 'line',
       emphasis: {
         focus: 'series' as 'series'
       },
-      data: years.map(year => yearlyData[year][polarity] || 0),
-      color: polarityColors[polarity],
+      data: years.map(year => yearlyData[year][frenchPolarity] || 0),
+      color: polarityColors[frenchPolarity],
       lineStyle: {
         width: isMobile ? 2 : 3,
         shadowColor: 'rgba(0, 0, 0, 0.3)',
@@ -97,7 +105,7 @@
 
     return {
       title: {
-        text: `Tendance des sentiments par année (${articlesAnalyzed} articles analysés)`,
+        text: `${currentT.charts.sentimentTrends} ${currentT.charts.byYear} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.charts.articlesAnalyzed})`,
         left: 'center',
         textStyle: {
           color: '#fff',
@@ -119,10 +127,31 @@
         },
         backgroundColor: 'rgba(255, 255, 255, 0.9)',
         borderColor: 'rgba(255, 255, 255, 0.4)',
-        borderWidth: 1
+        borderWidth: 1,
+        formatter: function (params: any) {
+          if (!Array.isArray(params) || params.length === 0) {
+            return '';
+          }
+          
+          let tooltipHtml = `<strong>${params[0].axisValue}</strong><br/>`;
+          let total = 0;
+          
+          params.forEach((param: any) => {
+            if (param.value > 0) {
+              tooltipHtml += `${param.marker} ${param.seriesName}: ${param.value}<br/>`;
+            }
+            total += param.value;
+          });
+          
+          if (total > 0) {
+            tooltipHtml += `<strong>${currentT.common.total}: ${total}</strong>`;
+          }
+          
+          return tooltipHtml;
+        }
       },
       legend: {
-        data: [...polarityLabels],
+        data: polarityLabels,
         top: isMobile ? '12%' : '8%',
         textStyle: {
           color: '#fff',
@@ -214,5 +243,5 @@
     <Chart {init} {options} />
   </div>
 {:else}
-  <p class="text-center py-8 text-white/80 text-sm sm:text-base">Aucun article ne correspond aux filtres actuels, ou aucun corpus n'est chargé pour afficher les tendances.</p>
+  <p class="text-center py-8 text-white/80 text-sm sm:text-base">{$t.table.noFilteredArticles}</p>
 {/if}

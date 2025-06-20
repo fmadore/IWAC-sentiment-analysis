@@ -28,11 +28,16 @@
   import { filteredArticles } from '$lib';
   import type { Article } from '$lib';
   import { getJournalName } from '$lib/utils';
+  import { t, currentLanguage } from '$lib/i18n';
+  import { getSentimentLabels, formatNumber } from '$lib/i18n/utils';
 
-  // Libellés de subjectivité avec correspondance des scores
-  const subjectivityLabels = ['Factuel', 'Plutôt factuel', 'Mixte', 'Plutôt subjectif', 'Subjectif', 'Non applicable'];
+  // Get subjectivity labels in current language
+  let subjectivityLabels = $derived(getSentimentLabels('subjectivity', $currentLanguage));
   
-  // Fonction qui convertit le score numérique en libellé
+  // French labels for data lookup (data is stored in French)
+  const frenchSubjectivityLabels = ['Factuel', 'Plutôt factuel', 'Mixte', 'Plutôt subjectif', 'Subjectif', 'Non applicable'];
+  
+  // Function that converts numeric score to French label (for data operations)
   function getSubjectivityLabel(score: number | null): string {
     if (score === null || score === undefined) return 'Non applicable';
     
@@ -46,17 +51,17 @@
     }
   }
   
-  // Définition des couleurs avec gradations logiques pour la subjectivité
+  // Color definitions with logical gradations for subjectivity
   const subjectivityColors: Record<string, string> = {
-    'Factuel': '#059669',       // Score 1 - Vert foncé (très objectif)
-    'Plutôt factuel': '#10B981', // Score 2 - Vert moyen (plutôt objectif)
-    'Mixte': '#3B82F6',         // Score 3 - Bleu (neutre/mixte)
-    'Plutôt subjectif': '#EF4444', // Score 4 - Rouge moyen (plutôt subjectif)
-    'Subjectif': '#DC2626',     // Score 5 - Rouge foncé (très subjectif)
-    'Non applicable': '#9CA3AF'  // Gris neutre
+    'Factuel': '#059669',       // Score 1 - Dark green (very objective)
+    'Plutôt factuel': '#10B981', // Score 2 - Medium green (rather objective)
+    'Mixte': '#3B82F6',         // Score 3 - Blue (neutral/mixed)
+    'Plutôt subjectif': '#EF4444', // Score 4 - Medium red (rather subjective)
+    'Subjectif': '#DC2626',     // Score 5 - Dark red (very subjective)
+    'Non applicable': '#9CA3AF'  // Neutral gray
   };
 
-  // Palette de couleurs pour les journaux
+  // Color palette for newspapers
   const newspaperColorPalette = [
     '#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', 
     '#1abc9c', '#d35400', '#c0392b', '#16a085', '#8e44ad',
@@ -64,7 +69,7 @@
   ];
 
   function getNewspaperColor(journal: string, index: number): string {
-    // Générer une couleur basée sur le nom du journal ou utiliser une couleur de la palette
+    // Generate a color based on the journal name or use a color from the palette
     return newspaperColorPalette[index % newspaperColorPalette.length];
   }
 
@@ -88,6 +93,8 @@
   // Use $derived for proper reactivity in Svelte 5
   let options = $derived.by(() => {
     const articles = $filteredArticles; // Direct reactive dependency
+    const currentT = $t; // Capture current translations for reactive updates
+    const currentLang = $currentLanguage; // Capture current language for reactive updates
     let articlesAnalyzed = 0;
     const newspaperSubjectivityCounts: Record<string, Record<string, number>> = {};
     const uniqueNewspapers = new Set<string>();
@@ -100,7 +107,7 @@
         uniqueNewspapers.add(journal);
 
         if (!newspaperSubjectivityCounts[journal]) {
-          newspaperSubjectivityCounts[journal] = Object.fromEntries(subjectivityLabels.map(l => [l, 0]));
+          newspaperSubjectivityCounts[journal] = Object.fromEntries(frenchSubjectivityLabels.map(l => [l, 0]));
         }
         if (Object.prototype.hasOwnProperty.call(newspaperSubjectivityCounts[journal], subjectivityKey)) {
           newspaperSubjectivityCounts[journal][subjectivityKey]++;
@@ -112,26 +119,27 @@
     const newspaperList = Array.from(uniqueNewspapers).sort();
 
     if (chartType === 'pie') {
-      // Pie chart: agrégation globale par subjectivité
+      // Pie chart: global aggregation by subjectivity
       const totalBySubjectivity: Record<string, number> = {};
-      subjectivityLabels.forEach(label => {
-        totalBySubjectivity[label] = 0;
+      frenchSubjectivityLabels.forEach((frenchLabel, index) => {
+        const translatedLabel = subjectivityLabels[index];
+        totalBySubjectivity[translatedLabel] = 0;
         newspaperList.forEach(journal => {
-          totalBySubjectivity[label] += newspaperSubjectivityCounts[journal]?.[label] || 0;
+          totalBySubjectivity[translatedLabel] += newspaperSubjectivityCounts[journal]?.[frenchLabel] || 0;
         });
       });
 
       const pieData = subjectivityLabels
-        .filter(label => totalBySubjectivity[label] > 0)
-        .map(label => ({
+        .filter((label, index) => totalBySubjectivity[label] > 0)
+        .map((label, index) => ({
           name: label,
           value: totalBySubjectivity[label],
-          itemStyle: { color: subjectivityColors[label] }
+          itemStyle: { color: subjectivityColors[frenchSubjectivityLabels[index]] }
         }));
 
       return {
         title: {
-          text: `Distribution globale de la subjectivité (${articlesAnalyzed.toLocaleString('fr-FR')} articles)`,
+          text: `${currentT.charts.globalDistribution} ${currentT.charts.subjectivityDistribution.toLowerCase()} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.common.articles})`,
           left: 'center',
           top: '2%',
           textStyle: {
@@ -142,7 +150,15 @@
         },
         tooltip: {
           trigger: 'item',
-          formatter: '{a} <br/>{b}: {c} ({d}%)',
+          formatter: function(params: any) {
+            if (Array.isArray(params)) {
+              return params.map(param => 
+                `${param.marker} ${param.seriesName}: ${param.value} (${param.percent}%)`
+              ).join('<br/>');
+            } else {
+              return `${params.marker} ${params.seriesName}<br/>${params.name}: ${params.value} (${params.percent}%)`;
+            }
+          },
           textStyle: {
             color: '#333',
             fontSize: isMobile ? 10 : 12
@@ -155,7 +171,7 @@
           show: false // Hide legend for pie chart to avoid confusion
         },
         series: [{
-          name: 'Subjectivité',
+          name: currentT.filters.subjectivity,
           type: 'pie',
           radius: ['40%', '70%'],
           center: ['50%', '50%'],
@@ -185,7 +201,7 @@
           emphasis: {
             focus: 'series'
           },
-          data: subjectivityLabels.map(label => newspaperSubjectivityCounts[journal]?.[label] || 0),
+          data: frenchSubjectivityLabels.map(frenchLabel => newspaperSubjectivityCounts[journal]?.[frenchLabel] || 0),
           itemStyle: {
             color: getNewspaperColor(journal, index)
           }
@@ -195,8 +211,8 @@
       return {
         title: {
           text: isMobile 
-            ? `Subjectivité par journal\n(${articlesAnalyzed.toLocaleString('fr-FR')} articles analysés)`
-            : `Distribution de la subjectivité par journal (${articlesAnalyzed.toLocaleString('fr-FR')} articles analysés)`,
+            ? `${currentT.charts.subjectivityDistribution} ${currentT.charts.byJournal}\n(${formatNumber(articlesAnalyzed, currentLang)} ${currentT.charts.articlesAnalyzed})`
+            : `${currentT.charts.subjectivityDistribution} ${currentT.charts.byJournal} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.charts.articlesAnalyzed})`,
           left: 'center',
           top: '1%',
           textStyle: {
@@ -245,7 +261,7 @@
             
             let tooltipHtml = `${params[0].axisValueLabel}<br/>`;
             tooltipHtml += scrollableListHtml;
-            tooltipHtml += `<strong>Total: ${total}</strong>`;
+            tooltipHtml += `<strong>${currentT.common.total}: ${total}</strong>`;
             
             return tooltipHtml;
           }
@@ -317,19 +333,19 @@
 </script>
 
 {#if $filteredArticles.length > 0}
-  <!-- Boutons de sélection du type de graphique -->
+  <!-- Chart type selection buttons -->
   <div class="flex flex-wrap gap-2 mb-4 justify-center">
     <button 
       class="btn btn-sm hover-lift transition-all duration-200 {chartType === 'bar' ? 'variant-filled-primary shadow-lg scale-105' : 'variant-soft-surface hover:variant-soft-primary'}"
       onclick={() => chartType = 'bar'}
     >
-      📊 Barres
+      📊 {$t.charts.bars}
     </button>
     <button 
       class="btn btn-sm hover-lift transition-all duration-200 {chartType === 'pie' ? 'variant-filled-primary shadow-lg scale-105' : 'variant-soft-surface hover:variant-soft-primary'}"
       onclick={() => chartType = 'pie'}
     >
-      🥧 Camembert
+      🥧 {$t.charts.pie}
     </button>
 
   </div>
@@ -342,5 +358,5 @@
     <Chart {init} {options} />
   </div>
 {:else}
-  <p class="text-center py-8 text-white/80 text-sm sm:text-base">Aucun article ne correspond aux filtres actuels, ou aucun corpus n'est chargé.</p>
+  <p class="text-center py-8 text-white/80 text-sm sm:text-base">{$t.table.noFilteredArticles}</p>
 {/if}

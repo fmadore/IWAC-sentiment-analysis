@@ -1,4 +1,4 @@
-<!-- Composant SentimentChart.svelte (sera adapté pour ECharts) --> 
+<!-- SentimentChart.svelte component with ECharts integration --> 
 <script lang="ts">
   import { Chart } from 'svelte-echarts';
 
@@ -38,14 +38,14 @@
   // French labels for data lookup (data is stored in French)
   const frenchPolarityLabels = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif', 'Non applicable'];
   
-  // Définition des couleurs avec gradations logiques
+  // Color definitions with logical gradations
   const polarityColors = {
-    'Très positif': '#059669',    // Vert foncé (plus intense)
-    'Positif': '#10B981',         // Vert moyen
-    'Neutre': '#3B82F6',          // Bleu
-    'Négatif': '#EF4444',         // Rouge moyen
-    'Très négatif': '#DC2626',    // Rouge foncé (plus intense)
-    'Non applicable': '#9CA3AF'   // Gris neutre
+    'Très positif': '#059669',    // Dark green (more intense)
+    'Positif': '#10B981',         // Medium green
+    'Neutre': '#3B82F6',          // Blue
+    'Négatif': '#EF4444',         // Medium red
+    'Très négatif': '#DC2626',    // Dark red (more intense)
+    'Non applicable': '#9CA3AF'   // Neutral gray
   };
 
   let isMobile = $state(false);
@@ -74,6 +74,8 @@
   // Use $derived for proper reactivity in Svelte 5
   let options = $derived.by(() => {
     const articles = $filteredArticles; // Direct reactive dependency
+    const currentT = $t; // Capture current translations for reactive updates
+    const currentLang = $currentLanguage; // Capture current language for reactive updates
     let articlesAnalyzed = 0;
     const newspaperPolarityCounts: Record<string, Record<string, number>> = {};
     const uniqueNewspapers = new Set<string>();
@@ -117,7 +119,7 @@
 
       return {
         title: {
-          text: `${$t.charts.globalDistribution} ${$t.charts.polarityDistribution.toLowerCase()} (${formatNumber(articlesAnalyzed, $currentLanguage)} ${$t.common.articles})`,
+          text: `${currentT.charts.globalDistribution} ${currentT.charts.polarityDistribution.toLowerCase()} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.common.articles})`,
           left: 'center',
           top: '2%',
           textStyle: {
@@ -128,7 +130,15 @@
         },
         tooltip: {
           trigger: 'item',
-          formatter: '{a} <br/>{b}: {c} ({d}%)',
+          formatter: function(params: any) {
+            if (Array.isArray(params)) {
+              return params.map(param => 
+                `${param.marker} ${param.seriesName}: ${param.value} (${param.percent}%)`
+              ).join('<br/>');
+            } else {
+              return `${params.marker} ${params.seriesName}<br/>${params.name}: ${params.value} (${params.percent}%)`;
+            }
+          },
           textStyle: {
             color: '#333',
             fontSize: isMobile ? 10 : 12
@@ -151,7 +161,7 @@
           itemHeight: isMobile ? 8 : 14
         },
         series: [{
-          name: $t.filters.polarity,
+          name: currentT.filters.polarity,
           type: 'pie',
           radius: ['40%', '70%'],
           center: ['50%', '50%'],
@@ -190,8 +200,8 @@
       return {
         title: {
           text: isMobile 
-            ? `${$t.charts.polarityDistribution} ${$t.charts.byJournal}\n(${formatNumber(articlesAnalyzed, $currentLanguage)} ${$t.charts.articlesAnalyzed})`
-            : `${$t.charts.polarityDistribution} ${$t.charts.byJournal} (${formatNumber(articlesAnalyzed, $currentLanguage)} ${$t.charts.articlesAnalyzed})`,
+            ? `${currentT.charts.polarityDistribution} ${currentT.charts.byJournal}\n(${formatNumber(articlesAnalyzed, currentLang)} ${currentT.charts.articlesAnalyzed})`
+            : `${currentT.charts.polarityDistribution} ${currentT.charts.byJournal} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.charts.articlesAnalyzed})`,
           left: 'center',
           top: '1%',
           textStyle: {
@@ -240,7 +250,7 @@
             
             let tooltipHtml = `${params[0].axisValueLabel}<br/>`;
             tooltipHtml += scrollableListHtml;
-            tooltipHtml += `<strong>Total: ${total}</strong>`;
+            tooltipHtml += `<strong>${currentT.common.total}: ${total}</strong>`;
             
             return tooltipHtml;
           }
@@ -312,7 +322,7 @@
 </script>
 
 {#if $filteredArticles.length > 0}
-  <!-- Boutons de sélection du type de graphique -->
+  <!-- Chart type selection buttons -->
   <div class="flex flex-wrap gap-2 mb-4 justify-center">
     <button 
       class="btn btn-sm hover-lift transition-all duration-200 {chartType === 'bar' ? 'variant-filled-primary shadow-lg scale-105' : 'variant-soft-surface hover:variant-soft-primary'}"

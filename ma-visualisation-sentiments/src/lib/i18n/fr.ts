@@ -40,7 +40,15 @@ export const fr: Translations = {
     subjectivityScore: 'Score de subjectivité',
     ratherObjective: 'Plutôt objectif',
     mixedSubjectivity: 'Subjectivité mixte',
-    ratherVerySubjective: 'Plutôt/très subjectif'
+    ratherVerySubjective: 'Plutôt/très subjectif',
+    averageCentrality: 'Centralité moyenne',
+    level: 'Niveau',
+    veryObjectiveScore: 'Très objectif',
+    ratherObjectiveScore: 'Plutôt objectif',
+    mixedScore: 'Mixte',
+    ratherSubjectiveScore: 'Plutôt subjectif',
+    verySubjectiveScore: 'Très subjectif',
+    numberOfArticles: 'Nombre d\'articles'
   },
 
   // Sentiment labels
@@ -87,7 +95,8 @@ export const fr: Translations = {
     stackedAreas: 'Aires empilées',
     lines: 'Lignes',
     bars: 'Barres',
-    pie: 'Camembert'
+    pie: 'Camembert',
+    polaritySubjectivityDistribution: 'Distribution Polarité × Subjectivité'
   },
 
   // Table

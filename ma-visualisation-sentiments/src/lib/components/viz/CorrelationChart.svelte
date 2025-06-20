@@ -24,8 +24,10 @@
   import { filteredArticles } from '$lib';
   import type { Article } from '$lib';
   import { getJournalName } from '$lib/utils';
+  import { t, currentLanguage } from '$lib/i18n';
+  import { translateSentimentValue } from '$lib/i18n/utils';
 
-  // Ordre des polarités pour l'affichage
+  // Ordre des polarités pour l'affichage (French values for data operations)
   const polarityOrder = [
     'Très négatif',
     'Négatif', 
@@ -35,17 +37,22 @@
     'Non applicable'
   ];
 
+  // Reactive translated polarity labels for display
+  let translatedPolarityLabels = $derived(
+    polarityOrder.map(polarity => translateSentimentValue(polarity, $currentLanguage))
+  );
+
   // Ordre des scores de subjectivité
   const subjectivityOrder = [1, 2, 3, 4, 5];
 
-  // Labels descriptifs pour les scores de subjectivité
-  const subjectivityLabels = {
-    1: 'Très objectif',
-    2: 'Plutôt objectif', 
-    3: 'Mixte',
-    4: 'Plutôt subjectif',
-    5: 'Très subjectif'
-  };
+  // Reactive subjectivity labels that update with language changes
+  let subjectivityLabels = $derived({
+    1: $t.filters.veryObjectiveScore,
+    2: $t.filters.ratherObjectiveScore,
+    3: $t.filters.mixedScore,
+    4: $t.filters.ratherSubjectiveScore,
+    5: $t.filters.verySubjectiveScore
+  });
 
   // Couleurs pour les scores de subjectivité
   const subjectivityColors = {
@@ -117,7 +124,7 @@
 
     return {
       title: {
-        text: `Distribution Polarité × Subjectivité (${articlesAnalyzed} articles)`,
+        text: `${$t.charts.polaritySubjectivityDistribution} (${articlesAnalyzed} ${$t.common.articles})`,
         left: 'center',
         textStyle: {
           color: '#fff',
@@ -135,11 +142,11 @@
           let total = 0;
           params.forEach((param: any) => {
             if (param.value > 0) {
-              result += `${param.seriesName}: ${param.value} articles<br/>`;
+              result += `${param.seriesName}: ${param.value} ${$t.common.articles}<br/>`;
               total += param.value;
             }
           });
-          result += `<strong>Total: ${total} articles</strong>`;
+          result += `<strong>Total: ${total} ${$t.common.articles}</strong>`;
           return result;
         },
         textStyle: {
@@ -170,7 +177,7 @@
       },
       xAxis: {
         type: 'category',
-        data: polarityOrder,
+        data: translatedPolarityLabels,
         axisLabel: {
           color: '#fff',
           fontSize: isMobile ? 8 : 10,
@@ -188,7 +195,7 @@
       },
       yAxis: {
         type: 'value',
-        name: 'Nombre d\'articles',
+        name: $t.filters.numberOfArticles,
         nameLocation: 'middle',
         nameGap: 50,
         axisLabel: {
@@ -224,5 +231,5 @@
     <Chart {init} {options} />
   </div>
 {:else}
-  <p class="text-center py-8 text-white/80 text-sm sm:text-base">Aucun article ne correspond aux filtres actuels pour afficher la distribution.</p>
+  <p class="text-center py-8 text-white/80 text-sm sm:text-base">{$t.table.noFilteredArticles}</p>
 {/if} 
