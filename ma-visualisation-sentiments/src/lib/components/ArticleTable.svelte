@@ -5,6 +5,7 @@
   import { getJournalName } from '$lib/utils';
   import { t, currentLanguage } from '$lib/i18n';
   import { translateSentimentValue } from '$lib/i18n/utils';
+  import DatasetBadge from './ui/DatasetBadge.svelte';
 
   // Props - for event dispatching
   let { onShowDetails }: { onShowDetails: (details: { article: Article, position: {x: number, y: number} }) => void } = $props();
@@ -300,6 +301,11 @@
 </script>
 
 {#if articles.length > 0}
+  <!-- Dataset badge -->
+  <div class="mb-4">
+    <DatasetBadge size="sm" />
+  </div>
+  
   <!-- Informations et contrôles de pagination (en haut) -->
   <div bind:this={tableContainerRef} class="pagination-info mb-4">
     <!-- Première ligne : Informations et sélecteur -->

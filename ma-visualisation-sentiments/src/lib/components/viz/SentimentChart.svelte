@@ -31,6 +31,7 @@
   import { getJournalName } from '$lib/utils';
   import { t, currentLanguage } from '$lib/i18n';
   import { getSentimentLabels, formatNumber, getLocale } from '$lib/i18n/utils';
+  import DatasetBadge from '../ui/DatasetBadge.svelte';
 
   // Get polarity labels in current language
   let polarityLabels = $derived(getSentimentLabels('polarity', $currentLanguage));
@@ -322,21 +323,24 @@
 </script>
 
 {#if $filteredArticles.length > 0}
-  <!-- Chart type selection buttons -->
-  <div class="flex flex-wrap gap-2 mb-4 justify-center">
-    <button 
-      class="btn btn-sm hover-lift transition-all duration-200 {chartType === 'bar' ? 'variant-filled-primary shadow-lg scale-105' : 'variant-soft-surface hover:variant-soft-primary'}"
-      onclick={() => chartType = 'bar'}
-    >
-      📊 {$t.charts.bars}
-    </button>
-    <button 
-      class="btn btn-sm hover-lift transition-all duration-200 {chartType === 'pie' ? 'variant-filled-primary shadow-lg scale-105' : 'variant-soft-surface hover:variant-soft-primary'}"
-      onclick={() => chartType = 'pie'}
-    >
-      🥧 {$t.charts.pie}
-    </button>
-
+  <!-- Dataset badge and Chart type selection buttons -->
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+    <DatasetBadge size="sm" />
+    
+    <div class="flex flex-wrap gap-2 justify-center">
+      <button 
+        class="btn btn-sm hover-lift transition-all duration-200 {chartType === 'bar' ? 'variant-filled-primary shadow-lg scale-105' : 'variant-soft-surface hover:variant-soft-primary'}"
+        onclick={() => chartType = 'bar'}
+      >
+        📊 {$t.charts.bars}
+      </button>
+      <button 
+        class="btn btn-sm hover-lift transition-all duration-200 {chartType === 'pie' ? 'variant-filled-primary shadow-lg scale-105' : 'variant-soft-surface hover:variant-soft-primary'}"
+        onclick={() => chartType = 'pie'}
+      >
+        🥧 {$t.charts.pie}
+      </button>
+    </div>
   </div>
 
   <div 

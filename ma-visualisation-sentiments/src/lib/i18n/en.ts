@@ -14,7 +14,8 @@ export const en: Translations = {
     distribution: 'Distribution',
     volume: 'Volume',
     heatmap: 'Heatmap',
-    table: 'Table'
+    table: 'Table',
+    comparison: 'Comparison'
   },
 
   // Filters
@@ -48,7 +49,10 @@ export const en: Translations = {
     mixedScore: 'Mixed',
     ratherSubjectiveScore: 'Rather subjective',
     verySubjectiveScore: 'Very subjective',
-    numberOfArticles: 'Number of articles'
+    numberOfArticles: 'Number of articles',
+    polarityRange: 'Polarity range',
+    centralityLevel: 'Centrality level',
+    reset: 'Reset'
   },
 
   // Sentiment labels
@@ -229,6 +233,44 @@ export const en: Translations = {
     viewLess: 'View less',
     previous: 'Previous',
     next: 'Next',
-    sortBy: 'Sort by'
+    sortBy: 'Sort by',
+    of: 'of',
+    tableView: 'Table',
+    cardView: 'Cards'
+  },
+
+  // Datasets
+  datasets: {
+    selectModel: 'Select Model',
+    availableModels: 'Available Models',
+    comparisonMode: 'Comparison Mode',
+    compareModels: 'Compare Models'
+  },
+  
+  // Comparison
+  comparison: {
+    filterByDiscrepancy: 'Filter by Discrepancy',
+    differenceRange: 'Difference Range',
+    quickFilters: 'Quick Filters',
+    pointDifference: 'point difference',
+    pointsDifference: 'points difference',
+    compareDimensions: 'Compare Dimensions',
+    polarity: 'Polarity',
+    subjectivity: 'Subjectivity',
+    centrality: 'Centrality',
+    totalDiscrepancy: 'Total Discrepancy',
+    totalDiscrepancies: 'Total Discrepancies',
+    articlesWithDifferences: 'Articles with Differences',
+    averageDiscrepancy: 'Average Discrepancy',
+    pointsPerArticle: 'Points per Article',
+    totalArticles: 'Total Articles',
+    articlesAnalyzed: 'Articles analyzed',
+    highConflicts: 'High Conflicts',
+    significantDifferences: 'Significant differences',
+    breakdownByDimension: 'Breakdown by Dimension',
+    enableComparisonMode: 'Enable Comparison Mode',
+    enableComparisonDescription: 'Click the comparison button in the dataset picker to compare ChatGPT and Gemini analyses.',
+    noDiscrepancies: 'No Discrepancies Found',
+    adjustFilters: 'Try adjusting your filters to see articles with differences between models.'
   }
 }; 

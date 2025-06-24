@@ -26,6 +26,7 @@
   import { getJournalName } from '$lib/utils';
   import { t, currentLanguage } from '$lib/i18n';
   import { translateSentimentValue } from '$lib/i18n/utils';
+  import DatasetBadge from '../ui/DatasetBadge.svelte';
 
   // Ordre des polarités pour l'affichage (French values for data operations)
   const polarityOrder = [
@@ -223,6 +224,10 @@
 </script>
 
 {#if $filteredArticles.length > 0}
+  <div class="mb-4">
+    <DatasetBadge size="sm" />
+  </div>
+  
   <div 
     bind:this={chartContainer}
     style="height: {isMobile ? '450px' : '500px'}; position: relative;" 

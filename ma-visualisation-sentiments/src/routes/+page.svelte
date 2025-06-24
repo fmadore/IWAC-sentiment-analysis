@@ -5,7 +5,10 @@
   import { 
     currentDatasetArticles, 
     isLoadingDataset, 
-    loadDatasetArticles, 
+    loadDatasetArticles,
+    loadAllDatasets,
+    selectedDataset,
+    datasetArticles,
     CountryFilter,
     JournalFilter as JournalFilterComponent, 
     PolarityFilter,
@@ -16,6 +19,7 @@
     CorrelationChart,
     VolumeChart,
     CentralityHeatmap,
+    ComparisonView,
     selectedArticle,
     countryFilters,
     journalFilters,
@@ -34,14 +38,15 @@
   import { initializeURLState, updateURL } from '$lib/urlState';
   import { Navigation } from '@skeletonlabs/skeleton-svelte';
   import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
-import TableIcon from '@lucide/svelte/icons/table';
-import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
-import XIcon from '@lucide/svelte/icons/x';
-import MenuIcon from '@lucide/svelte/icons/menu';
-import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
-import AreaChartIcon from '@lucide/svelte/icons/area-chart';
-import ActivityIcon from '@lucide/svelte/icons/activity';
-import FilterXIcon from '@lucide/svelte/icons/filter-x';
+  import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
+  import XIcon from '@lucide/svelte/icons/x';
+  import MenuIcon from '@lucide/svelte/icons/menu';
+  import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
+  import AreaChartIcon from '@lucide/svelte/icons/area-chart';
+  import ActivityIcon from '@lucide/svelte/icons/activity';
+  import FilterXIcon from '@lucide/svelte/icons/filter-x';
+  import GitCompareIcon from '@lucide/svelte/icons/git-compare';
+  import TableIcon from '@lucide/svelte/icons/table';
 
   // État de l'application
   let activeView = $state('charts');
@@ -49,7 +54,8 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
   let showDetailsSidebar = $state(false);
   let detailsPosition = $state({ x: 0, y: 0 });
 
-
+  // Get articles for the current dataset
+  let currentArticles = $derived($datasetArticles[$selectedDataset] || []);
 
   onMount(() => {
     // Initialize URL state management first
@@ -68,17 +74,20 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
     // Set initial HTML lang attribute
     updateHtmlLang($currentLanguage);
 
-    // Charger automatiquement le fichier iwac_articles.json
+    // Load all datasets at startup
     const loadData = async () => {
       isLoadingDataset.set(true);
       selectedArticle.set(null);
       
       try {
-        const articles = await loadDatasetArticles('/data/iwac_articles.json', 'iwac_articles', fetch);
+        // Load all available datasets
+        await loadAllDatasets(fetch);
+        
+        // For backward compatibility, also set currentDatasetArticles
+        const articles = $datasetArticles[$selectedDataset] || [];
         currentDatasetArticles.set(articles);
       } catch (error) {
-        console.error("Failed to load IWAC articles:", error);
-        currentDatasetArticles.set([]);
+        console.error("Failed to load datasets:", error);
       } finally {
         isLoadingDataset.set(false);
       }
@@ -96,6 +105,12 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
     // Subscribe to language changes to update HTML lang attribute
     const unsubscribeLanguage = currentLanguage.subscribe(updateHtmlLang);
 
+    // Subscribe to dataset changes to update currentDatasetArticles
+    const unsubscribeDataset = selectedDataset.subscribe(datasetId => {
+      const articles = $datasetArticles[datasetId] || [];
+      currentDatasetArticles.set(articles);
+    });
+
     return () => {
       unsubscribeCountry();
       unsubscribeJournal();
@@ -103,6 +118,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
       unsubscribeSubjectivity();
       unsubscribeCentrality();
       unsubscribeLanguage();
+      unsubscribeDataset();
     };
   });
 
@@ -131,7 +147,7 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
 
   {#if $isLoadingDataset}
     <div class="alert variant-filled-warning p-4 mb-4 sm:mb-6">{$t.messages.loadingData}</div>
-  {:else if $currentDatasetArticles.length > 0}
+  {:else if currentArticles.length > 0}
     <!-- Filters - Improved responsive grid -->
     <div class="filters-grid-responsive mb-4 sm:mb-6">
       <CountryFilter />
@@ -198,6 +214,14 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
               <TableIcon size={20} />
               <span>{$t.nav.table}</span>
             </button>
+            
+            <button
+              class="nav-tab hover-lift {activeView === 'comparison' ? 'active' : ''}"
+              onclick={() => handleViewChange('comparison')}
+            >
+              <GitCompareIcon size={20} />
+              <span>{$t.nav.comparison || 'Compare'}</span>
+            </button>
           </div>
         </div>
 
@@ -251,6 +275,14 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
               <TableIcon size={18} />
               <span class="text-xs">{$t.nav.table}</span>
             </button>
+            
+            <button
+              class="nav-tab-mobile hover-lift-sm {activeView === 'comparison' ? 'active' : ''}"
+              onclick={() => handleViewChange('comparison')}
+            >
+              <GitCompareIcon size={18} />
+              <span class="text-xs">{$t.nav.comparison || 'Compare'}</span>
+            </button>
           </div>
         </div>
       </div>
@@ -291,6 +323,8 @@ import FilterXIcon from '@lucide/svelte/icons/filter-x';
               </div>
               <ArticleTable onShowDetails={handleShowDetails} />
             </div>
+          {:else if activeView === 'comparison'}
+            <ComparisonView />
           {/if}
         </div>
       </div>

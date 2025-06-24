@@ -27,6 +27,7 @@
   import type { Article } from '$lib';
   import { t, currentLanguage } from '$lib/i18n';
   import { getSentimentLabels, formatNumber } from '$lib/i18n/utils';
+  import DatasetBadge from '../ui/DatasetBadge.svelte';
 
   // Get polarity labels in current language
   let polarityLabels = $derived(getSentimentLabels('polarity', $currentLanguage));
@@ -235,6 +236,10 @@
 </script>
 
 {#if $filteredArticles.length > 0}
+  <div class="mb-4">
+    <DatasetBadge size="sm" />
+  </div>
+  
   <div 
     bind:this={chartContainer}
     style="height: {isMobile ? '400px' : '500px'}; position: relative;" 

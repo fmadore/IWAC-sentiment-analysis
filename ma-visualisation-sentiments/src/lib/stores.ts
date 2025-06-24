@@ -1,6 +1,6 @@
 // Stores Svelte pour la gestion d'état 
 import { writable, derived } from 'svelte/store';
-import type { Article } from './types/data';
+import type { Article, DatasetOption, ComparisonData, DiscrepancyFilter, SentimentAnalysis, DiscrepancyInfo } from './types/data';
 import { base } from '$app/paths';
 import { getJournalName } from './utils';
 
@@ -20,10 +20,35 @@ export const polarityFilters = writable<string[]>([]);
 export const subjectivityFilters = writable<number[]>([]);
 export const centralityFilters = writable<string[]>([]);
 
+// New stores for dataset management
+export const availableDatasets = writable<DatasetOption[]>([
+  { id: 'chatgpt', name: 'ChatGPT Analysis', file: '/data/iwac_articles_chatgpt.json', icon: '🤖', color: '#10a37f' },
+  { id: 'gemini', name: 'Gemini Analysis', file: '/data/iwac_articles_gemini.json', icon: '✨', color: '#8e75b2' }
+]);
+
+export const selectedDataset = writable<string>('chatgpt');
+export const comparisonMode = writable<boolean>(false);
+export const datasetArticles = writable<Record<string, Article[]>>({});
+export const comparisonDatasets = writable<ComparisonData[] | null>(null);
+
+// Store for discrepancy filters
+export const discrepancyFilters = writable<DiscrepancyFilter>({
+  minDifference: 0,
+  maxDifference: 5,
+  dimensions: ['polarity', 'subjectivity', 'centrality']
+});
+
 // Store dérivé pour les articles filtrés avec logique hiérarchique pays -> journaux
 export const filteredArticles = derived(
-  [currentDatasetArticles, countryFilters, journalFilters, polarityFilters, subjectivityFilters, centralityFilters],
-  ([articles, countries, journals, polarities, subjectivities, centralities]) => {
+  [datasetArticles, selectedDataset, countryFilters, journalFilters, polarityFilters, subjectivityFilters, centralityFilters, comparisonMode],
+  ([datasets, currentDataset, countries, journals, polarities, subjectivities, centralities, isComparison]) => {
+    // In comparison mode, we don't filter by dataset
+    if (isComparison) {
+      return [];
+    }
+    
+    const articles = datasets[currentDataset] || [];
+    
     return articles.filter(article => {
       // Filtre par pays (prioritaire)
       if (countries.length > 0 && !countries.includes(article.Country || '')) {
@@ -66,8 +91,18 @@ export const filteredArticles = derived(
 
 // Store dérivé pour les journaux disponibles basé sur les pays sélectionnés
 export const availableJournals = derived(
-  [currentDatasetArticles, countryFilters],
-  ([articles, countries]) => {
+  [datasetArticles, selectedDataset, countryFilters, comparisonMode],
+  ([datasets, currentDataset, countries, isComparison]) => {
+    // In comparison mode, combine journals from both datasets
+    let articles: Article[] = [];
+    
+    if (isComparison) {
+      // Combine articles from both datasets
+      articles = [...(datasets['chatgpt'] || []), ...(datasets['gemini'] || [])];
+    } else {
+      articles = datasets[currentDataset] || [];
+    }
+    
     let filteredArticles = articles;
     
     // Si des pays sont sélectionnés, filtrer d'abord par pays
@@ -113,6 +148,61 @@ export const loadDatasetArticles = async (filePath: string, datasetId: string, f
   }
 };
 
+// New function to load a specific dataset into the datasetArticles store
+export const loadSpecificDataset = async (datasetId: string, fetchFunction: (url: string) => Promise<Response>): Promise<void> => {
+  isLoadingDataset.set(true);
+  
+  try {
+    // Get dataset info
+    const datasets = await new Promise<DatasetOption[]>(resolve => {
+      availableDatasets.subscribe(value => {
+        resolve(value);
+      })();
+    });
+    
+    const dataset = datasets.find(d => d.id === datasetId);
+    if (!dataset) {
+      throw new Error(`Dataset ${datasetId} not found`);
+    }
+    
+    // Load the dataset
+    const articles = await loadDatasetArticles(dataset.file, datasetId, fetchFunction);
+    
+    // Update the datasetArticles store
+    datasetArticles.update(current => ({
+      ...current,
+      [datasetId]: articles
+    }));
+    
+    // For backward compatibility, also update currentDatasetArticles if this is the selected dataset
+    const currentSelected = await new Promise<string>(resolve => {
+      selectedDataset.subscribe(value => {
+        resolve(value);
+      })();
+    });
+    
+    if (currentSelected === datasetId) {
+      currentDatasetArticles.set(articles);
+    }
+  } finally {
+    isLoadingDataset.set(false);
+  }
+};
+
+// Function to load all available datasets
+export const loadAllDatasets = async (fetchFunction: (url: string) => Promise<Response>): Promise<void> => {
+  const datasets = await new Promise<DatasetOption[]>(resolve => {
+    availableDatasets.subscribe(value => {
+      resolve(value);
+    })();
+  });
+  
+  // Load all datasets in parallel
+  await Promise.all(
+    datasets.map(dataset => loadSpecificDataset(dataset.id, fetchFunction))
+  );
+};
+
 // Fonction utilitaire pour mapper les propriétés des articles depuis différents formats
 function mapArticleProperties(item: any, datasetId: string): Article {
   return {
@@ -130,4 +220,189 @@ function mapArticleProperties(item: any, datasetId: string): Article {
     // Conserver toutes les propriétés originales
     ...item
   };
-} 
+}
+
+// Derived store for comparison data
+export const comparisonData = derived(
+  [datasetArticles, comparisonMode],
+  ([$datasets, $isComparison]) => {
+    if (!$isComparison || !$datasets['chatgpt'] || !$datasets['gemini']) {
+      return [];
+    }
+    
+    // Create a map for quick lookup
+    const geminiMap = new Map($datasets['gemini'].map(article => [article['o:id'], article]));
+    
+    // Build comparison data
+    const comparisons: ComparisonData[] = [];
+    
+    $datasets['chatgpt'].forEach(chatgptArticle => {
+      const geminiArticle = geminiMap.get(chatgptArticle['o:id']);
+      
+      if (geminiArticle) {
+        const discrepancies = calculateDiscrepancies(
+          chatgptArticle.sentiment_analysis,
+          geminiArticle.sentiment_analysis
+        );
+        
+        comparisons.push({
+          article: chatgptArticle,
+          chatgpt: chatgptArticle.sentiment_analysis || null,
+          gemini: geminiArticle.sentiment_analysis || null,
+          discrepancies
+        });
+      }
+    });
+    
+    return comparisons;
+  }
+);
+
+// Helper function to calculate discrepancies
+function calculateDiscrepancies(
+  chatgpt: SentimentAnalysis | null | undefined,
+  gemini: SentimentAnalysis | null | undefined
+): DiscrepancyInfo {
+  if (!chatgpt || !gemini) {
+    return {
+      polarityDiff: 0,
+      subjectivityDiff: 0,
+      centralityDiff: 0,
+      totalDiff: 0,
+      hasConflict: false
+    };
+  }
+  
+  // Map polarity values to numeric scores
+  const polarityScores: Record<string, number> = {
+    'Très positif': 5,
+    'Positif': 4,
+    'Neutre': 3,
+    'Négatif': 2,
+    'Très négatif': 1,
+    'Non applicable': 0
+  };
+  
+  // Map centrality values to numeric scores
+  const centralityScores: Record<string, number> = {
+    'Très central': 5,
+    'Central': 4,
+    'Secondaire': 3,
+    'Marginal': 2,
+    'Non abordé': 1
+  };
+  
+  const polarityDiff = Math.abs(
+    (polarityScores[chatgpt.polarite || 'Non applicable'] || 0) -
+    (polarityScores[gemini.polarite || 'Non applicable'] || 0)
+  );
+  
+  const subjectivityDiff = Math.abs(
+    (chatgpt.subjectivite_score || 0) -
+    (gemini.subjectivite_score || 0)
+  );
+  
+  const centralityDiff = Math.abs(
+    (centralityScores[chatgpt.centralite_islam_musulmans || 'Non abordé'] || 0) -
+    (centralityScores[gemini.centralite_islam_musulmans || 'Non abordé'] || 0)
+  );
+  
+  const totalDiff = polarityDiff + subjectivityDiff + centralityDiff;
+  
+  // Check for significant conflicts (e.g., opposite polarities)
+  const hasConflict = 
+    (polarityDiff >= 3) || // Very different polarities
+    (subjectivityDiff >= 3) || // Very different subjectivity
+    (centralityDiff >= 3); // Very different centrality
+  
+  return {
+    polarityDiff,
+    subjectivityDiff,
+    centralityDiff,
+    totalDiff,
+    hasConflict
+  };
+}
+
+// Filtered comparisons based on discrepancy filters
+export const filteredComparisons = derived(
+  [comparisonData, discrepancyFilters, countryFilters, journalFilters],
+  ([$comparisons, $filters, $countries, $journals]) => {
+    return $comparisons.filter(comparison => {
+      // Apply country filter
+      if ($countries.length > 0 && !$countries.includes(comparison.article.Country || '')) {
+        return false;
+      }
+      
+      // Apply journal filter
+      const journalName = getJournalName(comparison.article);
+      if ($journals.length > 0 && !$journals.includes(journalName)) {
+        return false;
+      }
+      
+      // Apply discrepancy filters
+      const disc = comparison.discrepancies;
+      
+      // Check total difference range
+      if (disc.totalDiff < $filters.minDifference || disc.totalDiff > $filters.maxDifference) {
+        return false;
+      }
+      
+      // Check selected dimensions
+      let hasRelevantDiff = false;
+      if ($filters.dimensions.includes('polarity') && disc.polarityDiff > 0) hasRelevantDiff = true;
+      if ($filters.dimensions.includes('subjectivity') && disc.subjectivityDiff > 0) hasRelevantDiff = true;
+      if ($filters.dimensions.includes('centrality') && disc.centralityDiff > 0) hasRelevantDiff = true;
+      
+      return hasRelevantDiff;
+    });
+  }
+);
+
+// Comparison statistics
+export const comparisonStatistics = derived(
+  filteredComparisons,
+  ($comparisons) => {
+    if ($comparisons.length === 0) {
+      return {
+        totalArticles: 0,
+        totalDiscrepancies: 0,
+        averageDiscrepancy: 0,
+        polarityConflicts: 0,
+        subjectivityConflicts: 0,
+        centralityConflicts: 0,
+        highConflictArticles: 0
+      };
+    }
+    
+    const stats = $comparisons.reduce((acc, comp) => {
+      const disc = comp.discrepancies;
+      
+      acc.totalDiscrepancies += disc.totalDiff > 0 ? 1 : 0;
+      acc.totalDiffSum += disc.totalDiff;
+      acc.polarityConflicts += disc.polarityDiff > 0 ? 1 : 0;
+      acc.subjectivityConflicts += disc.subjectivityDiff > 0 ? 1 : 0;
+      acc.centralityConflicts += disc.centralityDiff > 0 ? 1 : 0;
+      acc.highConflictArticles += disc.hasConflict ? 1 : 0;
+      
+      return acc;
+    }, {
+      totalDiscrepancies: 0,
+      totalDiffSum: 0,
+      polarityConflicts: 0,
+      subjectivityConflicts: 0,
+      centralityConflicts: 0,
+      highConflictArticles: 0
+    });
+    
+    return {
+      totalArticles: $comparisons.length,
+      totalDiscrepancies: stats.totalDiscrepancies,
+      averageDiscrepancy: stats.totalDiffSum / $comparisons.length,
+      polarityConflicts: stats.polarityConflicts,
+      subjectivityConflicts: stats.subjectivityConflicts,
+      centralityConflicts: stats.centralityConflicts,
+      highConflictArticles: stats.highConflictArticles
+    };
+  }
+); 

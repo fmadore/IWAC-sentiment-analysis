@@ -5,6 +5,7 @@
   import { onMount } from 'svelte';
   import { t } from '$lib/i18n';
   import LanguageSwitcher from './LanguageSwitcher.svelte';
+  import DatasetPicker from './DatasetPicker.svelte';
 
   let isFullscreen = $state(false);
 
@@ -56,8 +57,16 @@
         </div>
       </div>
 
+      <!-- Center Section with Dataset Picker -->
+      <div class="center-section hidden md:flex items-center justify-center flex-1">
+        <DatasetPicker />
+      </div>
+
       <!-- Actions Section -->
       <div class="header-actions">
+        <div class="md:hidden">
+          <DatasetPicker />
+        </div>
         <LanguageSwitcher />
         <button
           class="fullscreen-btn"
@@ -375,5 +384,10 @@
     .brand-subtitle {
       color: rgba(255, 255, 255, 0.9);
     }
+  }
+
+  /* Center section styles */
+  .center-section {
+    padding: 0 1rem;
   }
 </style> 

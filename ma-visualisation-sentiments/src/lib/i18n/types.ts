@@ -39,6 +39,7 @@ export interface Translations {
     volume: string;
     heatmap: string;
     table: string;
+    comparison: string;
   };
 
   // Filters
@@ -73,6 +74,9 @@ export interface Translations {
     ratherSubjectiveScore: string;
     verySubjectiveScore: string;
     numberOfArticles: string;
+    polarityRange: string;
+    centralityLevel: string;
+    reset: string;
   };
 
   // Sentiment labels
@@ -234,5 +238,43 @@ export interface Translations {
     previous: string;
     next: string;
     sortBy: string;
+    of: string;
+    tableView: string;
+    cardView: string;
+  };
+
+  // Datasets
+  datasets: {
+    selectModel: string;
+    availableModels: string;
+    comparisonMode: string;
+    compareModels: string;
+  };
+  
+  // Comparison
+  comparison: {
+    filterByDiscrepancy: string;
+    differenceRange: string;
+    quickFilters: string;
+    pointDifference: string;
+    pointsDifference: string;
+    compareDimensions: string;
+    polarity: string;
+    subjectivity: string;
+    centrality: string;
+    totalDiscrepancy: string;
+    totalDiscrepancies: string;
+    articlesWithDifferences: string;
+    averageDiscrepancy: string;
+    pointsPerArticle: string;
+    totalArticles: string;
+    articlesAnalyzed: string;
+    highConflicts: string;
+    significantDifferences: string;
+    breakdownByDimension: string;
+    enableComparisonMode: string;
+    enableComparisonDescription: string;
+    noDiscrepancies: string;
+    adjustFilters: string;
   };
 } 

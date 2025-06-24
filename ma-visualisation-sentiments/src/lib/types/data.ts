@@ -29,4 +29,43 @@ export interface DatasetInfo { // Pour le manifest
     id: string; // Nom du fichier sans .json
     name: string; // Nom lisible pour l'utilisateur (par ex., titre de l'item Omeka)
     filePath: string; // Chemin vers le fichier JSON
+}
+
+// New types for multi-dataset support
+export interface DatasetOption {
+  id: string;
+  name: string;
+  file: string;
+  icon?: string;
+  color?: string;
+}
+
+export interface ComparisonData {
+  article: Article;
+  chatgpt: SentimentAnalysis | null;
+  gemini: SentimentAnalysis | null;
+  discrepancies: DiscrepancyInfo;
+}
+
+export interface DiscrepancyInfo {
+  polarityDiff: number;
+  subjectivityDiff: number;
+  centralityDiff: number;
+  totalDiff: number;
+  hasConflict: boolean;
+}
+
+export interface DiscrepancyFilter {
+  minDifference: number;
+  maxDifference: number;
+  dimensions: ('polarity' | 'subjectivity' | 'centrality')[];
+}
+
+export interface ComparisonStatistics {
+  totalArticles: number;
+  totalDiscrepancies: number;
+  averageDiscrepancy: number;
+  polarityConflicts: number;
+  subjectivityConflicts: number;
+  centralityConflicts: number;
 } 

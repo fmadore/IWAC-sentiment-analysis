@@ -25,6 +25,7 @@
   import type { Article } from '$lib';
   import { t, currentLanguage } from '$lib/i18n';
   import { translateSentimentValue } from '$lib/i18n/utils';
+  import DatasetBadge from '../ui/DatasetBadge.svelte';
 
   // Mapping des centralités vers des valeurs numériques (toujours en français pour les données)
   const centralityToNumber = {
@@ -245,6 +246,10 @@
 </script>
 
 {#if $filteredArticles.length > 0}
+  <div class="mb-4">
+    <DatasetBadge size="sm" />
+  </div>
+  
   <div 
     bind:this={chartContainer}
     style="height: {isMobile ? '500px' : '600px'}; position: relative;" 

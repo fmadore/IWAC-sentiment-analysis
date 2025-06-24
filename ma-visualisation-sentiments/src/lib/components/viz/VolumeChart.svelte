@@ -27,6 +27,7 @@
   import type { Article } from '$lib';
   import { t, currentLanguage } from '$lib/i18n';
   import { formatNumber } from '$lib/i18n/utils';
+  import DatasetBadge from '../ui/DatasetBadge.svelte';
 
   // Color palette for countries
   const countryColors = [
@@ -238,20 +239,24 @@
 </script>
 
 {#if $filteredArticles.length > 0}
-  <!-- Boutons de sélection du type de graphique -->
-  <div class="flex flex-wrap gap-2 mb-4 justify-center">
-    <button 
-      class="btn btn-sm hover-lift {chartType === 'area' ? 'variant-filled-primary' : 'variant-soft-surface'}"
-      onclick={() => chartType = 'area'}
-    >
-      📈 {$t.charts.stackedAreas}
-    </button>
-    <button 
-      class="btn btn-sm hover-lift {chartType === 'line' ? 'variant-filled-primary' : 'variant-soft-surface'}"
-      onclick={() => chartType = 'line'}
-    >
-      📊 {$t.charts.lines}
-    </button>
+  <!-- Dataset badge and chart type selection buttons -->
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+    <DatasetBadge size="sm" />
+    
+    <div class="flex flex-wrap gap-2 justify-center">
+      <button 
+        class="btn btn-sm hover-lift {chartType === 'area' ? 'variant-filled-primary' : 'variant-soft-surface'}"
+        onclick={() => chartType = 'area'}
+      >
+        📈 {$t.charts.stackedAreas}
+      </button>
+      <button 
+        class="btn btn-sm hover-lift {chartType === 'line' ? 'variant-filled-primary' : 'variant-soft-surface'}"
+        onclick={() => chartType = 'line'}
+      >
+        📊 {$t.charts.lines}
+      </button>
+    </div>
   </div>
 
   <div 

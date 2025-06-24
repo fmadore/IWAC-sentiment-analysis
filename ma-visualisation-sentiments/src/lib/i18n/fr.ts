@@ -13,8 +13,9 @@ export const fr: Translations = {
     trends: 'Tendances',
     distribution: 'Distribution',
     volume: 'Volume',
-    heatmap: 'Heatmap',
-    table: 'Tableau'
+    heatmap: 'Carte de chaleur',
+    table: 'Tableau',
+    comparison: 'Comparaison'
   },
 
   // Filters
@@ -48,7 +49,10 @@ export const fr: Translations = {
     mixedScore: 'Mixte',
     ratherSubjectiveScore: 'Plutôt subjectif',
     verySubjectiveScore: 'Très subjectif',
-    numberOfArticles: 'Nombre d\'articles'
+    numberOfArticles: 'Nombre d\'articles',
+    polarityRange: 'Plage de polarité',
+    centralityLevel: 'Niveau de centralité',
+    reset: 'Réinitialiser'
   },
 
   // Sentiment labels
@@ -229,6 +233,44 @@ export const fr: Translations = {
     viewLess: 'Voir moins',
     previous: 'Précédent',
     next: 'Suivant',
-    sortBy: 'Trier par'
+    sortBy: 'Trier par',
+    of: 'sur',
+    tableView: 'Tableau',
+    cardView: 'Cartes'
+  },
+
+  // Datasets
+  datasets: {
+    selectModel: 'Sélectionner le modèle',
+    availableModels: 'Modèles disponibles',
+    comparisonMode: 'Mode comparaison',
+    compareModels: 'Comparer les modèles'
+  },
+  
+  // Comparison
+  comparison: {
+    filterByDiscrepancy: 'Filtrer par divergence',
+    differenceRange: 'Plage de différence',
+    quickFilters: 'Filtres rapides',
+    pointDifference: 'point de différence',
+    pointsDifference: 'points de différence',
+    compareDimensions: 'Comparer les dimensions',
+    polarity: 'Polarité',
+    subjectivity: 'Subjectivité',
+    centrality: 'Centralité',
+    totalDiscrepancy: 'Divergence totale',
+    totalDiscrepancies: 'Divergences totales',
+    articlesWithDifferences: 'Articles avec différences',
+    averageDiscrepancy: 'Divergence moyenne',
+    pointsPerArticle: 'Points par article',
+    totalArticles: 'Total des articles',
+    articlesAnalyzed: 'Articles analysés',
+    highConflicts: 'Conflits élevés',
+    significantDifferences: 'Différences significatives',
+    breakdownByDimension: 'Répartition par dimension',
+    enableComparisonMode: 'Activer le mode comparaison',
+    enableComparisonDescription: 'Cliquez sur le bouton de comparaison dans le sélecteur de dataset pour comparer les analyses ChatGPT et Gemini.',
+    noDiscrepancies: 'Aucune divergence trouvée',
+    adjustFilters: 'Essayez d\'ajuster vos filtres pour voir les articles avec des différences entre les modèles.'
   }
 }; 
