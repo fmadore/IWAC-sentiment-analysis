@@ -1,5 +1,6 @@
 <script lang="ts">
   import { t, currentLanguage } from '$lib/i18n';
+  import { selectedDataset, comparisonMode } from '$lib/stores';
   
   // Define the type for open sections as an array of strings
   let openSections = $state<string[]>([]);
@@ -105,7 +106,60 @@
           <div class="space-y-4">
             <div>
               <h4 class="h6 mb-2 text-white font-semibold">{$t.analysis.modelUsed}</h4>
-              <p class="mb-2 text-white">{$t.analysis.modelDescription} <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:text-blue-200 underline" style="cursor: pointer !important;"><span class="chip variant-soft-secondary">Gemini 2.5 Flash</span></a>{$t.analysis.modelDetails}</p>
+              {#if $comparisonMode}
+                <p class="mb-2 text-white">
+                  {$currentLanguage === 'en' ? 'The analysis uses two large language models (LLMs) to provide comparative insights:' : 'L\'analyse utilise deux grands modèles de langage (LLM) pour fournir des insights comparatifs :'}
+                </p>
+                <div class="model-grid mb-3">
+                  <div class="model-card">
+                    <div class="model-header">
+                      <span class="model-icon">🤖</span>
+                      <span class="model-name">ChatGPT (GPT-4.1 Mini)</span>
+                    </div>
+                    <p class="model-description">
+                      {$currentLanguage === 'en' ? 'OpenAI\'s efficient model with 1M token context window, released April 2025. Features enhanced reasoning and cost-effectiveness.' : 'Modèle efficace d\'OpenAI avec une fenêtre de contexte de 1M tokens, publié en avril 2025. Offre un raisonnement amélioré et une efficacité économique.'}
+                    </p>
+                  </div>
+                  <div class="model-card">
+                    <div class="model-header">
+                      <span class="model-icon">✨</span>
+                      <span class="model-name">Gemini 2.5 Flash</span>
+                    </div>
+                    <p class="model-description">
+                      {$currentLanguage === 'en' ? 'Google\'s fast multimodal model optimized for diverse tasks with enhanced performance and efficiency.' : 'Modèle multimodal rapide de Google optimisé pour diverses tâches avec des performances et une efficacité améliorées.'}
+                    </p>
+                  </div>
+                </div>
+                <p class="mb-2 text-white text-sm">
+                  {$currentLanguage === 'en' ? 'Use the dataset picker in the header to switch between models or enable comparison mode to analyze differences in their outputs.' : 'Utilisez le sélecteur de jeu de données dans l\'en-tête pour basculer entre les modèles ou activer le mode comparaison pour analyser les différences dans leurs sorties.'}
+                </p>
+              {:else}
+                <p class="mb-2 text-white">
+                  {$selectedDataset === 'chatgpt' 
+                    ? ($currentLanguage === 'en' 
+                      ? 'The analysis was performed using ' 
+                      : 'L\'analyse a été réalisée avec ')
+                    : ($currentLanguage === 'en' 
+                      ? 'The analysis was performed using ' 
+                      : 'L\'analyse a été réalisée avec ')}
+                  
+                  {#if $selectedDataset === 'chatgpt'}
+                    <a href="https://platform.openai.com/docs/models/gpt-4.1-mini" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:text-blue-200 underline" style="cursor: pointer !important;">
+                      <span class="chip variant-soft-primary">GPT-4.1 Mini</span>
+                    </a>
+                    {$currentLanguage === 'en' 
+                      ? ', OpenAI\'s efficient model with a 1 million token context window and enhanced reasoning capabilities, released in April 2025.' 
+                      : ', le modèle efficace d\'OpenAI avec une fenêtre de contexte de 1 million de tokens et des capacités de raisonnement améliorées, publié en avril 2025.'}
+                  {:else}
+                    <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:text-blue-200 underline" style="cursor: pointer !important;">
+                      <span class="chip variant-soft-secondary">Gemini 2.5 Flash</span>
+                    </a>
+                    {$currentLanguage === 'en' 
+                      ? ', Google\'s fast multimodal model optimized for diverse tasks with enhanced performance and efficiency.' 
+                      : ', le modèle multimodal rapide de Google optimisé pour diverses tâches avec des performances et une efficacité améliorées.'}
+                  {/if}
+                </p>
+              {/if}
             </div>
             
             <div>
@@ -115,18 +169,31 @@
                 <li>{$t.analysis.outputFormat}</li>
                 <li>{$t.analysis.cacheSystem}</li>
                 <li>{$t.analysis.errorHandling}</li>
+                {#if $comparisonMode}
+                  <li>{$currentLanguage === 'en' ? 'Parallel processing: Both models analyze the same articles independently' : 'Traitement parallèle : Les deux modèles analysent les mêmes articles de manière indépendante'}</li>
+                  <li>{$currentLanguage === 'en' ? 'Discrepancy detection: Automatic identification of differences in sentiment analysis' : 'Détection des divergences : Identification automatique des différences dans l\'analyse de sentiment'}</li>
+                {/if}
               </ul>
             </div>
             
             <div>
               <h4 class="h6 mb-2 text-white font-semibold">{$t.analysis.analysisPrompt}</h4>
-              <p class="mb-2 text-white text-sm">{$t.analysis.promptDescription}</p>
+              <p class="mb-2 text-white text-sm">
+                {$comparisonMode 
+                  ? ($currentLanguage === 'en' 
+                    ? 'Both models use the same standardized prompt to ensure consistent analysis criteria across different AI systems:'
+                    : 'Les deux modèles utilisent le même prompt standardisé pour assurer des critères d\'analyse cohérents entre les différents systèmes d\'IA :')
+                  : $t.analysis.promptDescription}
+              </p>
               <ul class="list-disc ml-5 space-y-1 text-white text-sm">
                 <li>{$t.analysis.promptFeature1}</li>
                 <li>{$t.analysis.promptFeature2}</li>
                 <li>{$t.analysis.promptFeature3}</li>
                 <li>{$t.analysis.promptFeature4}</li>
                 <li>{$t.analysis.promptFeature5}</li>
+                {#if $comparisonMode}
+                  <li>{$currentLanguage === 'en' ? 'Identical prompt ensures fair comparison between models' : 'Le prompt identique assure une comparaison équitable entre les modèles'}</li>
+                {/if}
               </ul>
               <button 
                 class="btn variant-soft-primary mt-3 text-sm"
@@ -148,7 +215,19 @@
       </h3>
       {#if openSections.includes('limites')}
         <div class="accordion-content p-3">
-          <p class="text-white">{$t.analysis.limitationsDescription}</p>
+          <p class="text-white mb-3">{$t.analysis.limitationsDescription}</p>
+          {#if $comparisonMode}
+            <div class="comparison-limitations">
+              <h4 class="h6 mb-2 text-white font-semibold">
+                {$currentLanguage === 'en' ? 'Comparison Mode Considerations' : 'Considérations du mode comparaison'}
+              </h4>
+              <ul class="list-disc ml-5 space-y-1 text-white text-sm">
+                <li>{$currentLanguage === 'en' ? 'Model differences may reflect varying training data, architectures, and optimization objectives rather than inherent accuracy' : 'Les différences entre modèles peuvent refléter des données d\'entraînement, des architectures et des objectifs d\'optimisation variables plutôt qu\'une précision inhérente'}</li>
+                <li>{$currentLanguage === 'en' ? 'Neither model should be considered a ground truth; discrepancies highlight areas requiring human expert review' : 'Aucun modèle ne doit être considéré comme une vérité absolue ; les divergences soulignent les domaines nécessitant un examen d\'expert humain'}</li>
+                <li>{$currentLanguage === 'en' ? 'Comparison results are most valuable when used to identify patterns and trends rather than definitive judgments' : 'Les résultats de comparaison sont plus utiles pour identifier des motifs et tendances que pour des jugements définitifs'}</li>
+              </ul>
+            </div>
+          {/if}
         </div>
       {/if}
     </div>
@@ -513,5 +592,58 @@ Assurez-vous que votre réponse est uniquement le JSON structuré demandé, sans
     background: linear-gradient(135deg, #2563EB, #7C3AED);
     transform: translateY(-1px);
     box-shadow: var(--shadow-lg);
+  }
+
+  /* Model comparison styles */
+  .model-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  @media (max-width: 640px) {
+    .model-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .model-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    backdrop-filter: blur(8px);
+    transition: all var(--transition-normal);
+  }
+
+  .model-card:hover {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .model-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .model-icon {
+    font-size: 1.25rem;
+  }
+
+  .model-name {
+    font-weight: 600;
+    color: white;
+    font-size: 0.875rem;
+  }
+
+  .model-description {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.4;
+    margin: 0;
   }
 </style>
