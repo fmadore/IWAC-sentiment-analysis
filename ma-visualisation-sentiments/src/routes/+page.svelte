@@ -9,6 +9,7 @@
     loadAllDatasets,
     selectedDataset,
     datasetArticles,
+    comparisonMode,
     CountryFilter,
     JournalFilter as JournalFilterComponent, 
     PolarityFilter,
@@ -111,6 +112,19 @@
       currentDatasetArticles.set(articles);
     });
 
+    // Subscribe to comparison mode changes to automatically switch views
+    const unsubscribeComparison = comparisonMode.subscribe(isComparison => {
+      if (isComparison && activeView !== 'comparison') {
+        // When enabling comparison mode, switch to comparison view
+        activeView = 'comparison';
+        updateURL(activeView);
+      } else if (!isComparison && activeView === 'comparison') {
+        // When disabling comparison mode, switch back to charts view
+        activeView = 'charts';
+        updateURL(activeView);
+      }
+    });
+
     return () => {
       unsubscribeCountry();
       unsubscribeJournal();
@@ -119,6 +133,7 @@
       unsubscribeCentrality();
       unsubscribeLanguage();
       unsubscribeDataset();
+      unsubscribeComparison();
     };
   });
 
