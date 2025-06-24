@@ -1,6 +1,6 @@
 <script lang="ts">
   import { filteredComparisons, selectedArticle } from '$lib/stores';
-  import { t } from '$lib/i18n';
+  import { t, currentLanguage } from '$lib/i18n';
   import { translateSentimentValue } from '$lib/i18n/utils';
   import { getJournalName } from '$lib/utils';
   import type { ComparisonData } from '$lib/types/data';
@@ -170,12 +170,12 @@
               </td>
               <td class="text-center">
                 <span class="badge badge-sm {comparison.chatgpt?.polarite ? `variant-soft-${comparison.chatgpt.polarite.includes('positif') ? 'success' : comparison.chatgpt.polarite.includes('Neutre') ? 'primary' : 'error'}` : 'variant-ghost'}">
-                  {translateSentimentValue(comparison.chatgpt?.polarite, $t.currentLanguage) || 'N/A'}
+                  {translateSentimentValue(comparison.chatgpt?.polarite, $currentLanguage) || 'N/A'}
                 </span>
               </td>
               <td class="text-center">
                 <span class="badge badge-sm {comparison.gemini?.polarite ? `variant-soft-${comparison.gemini.polarite.includes('positif') ? 'success' : comparison.gemini.polarite.includes('Neutre') ? 'primary' : 'error'}` : 'variant-ghost'}">
-                  {translateSentimentValue(comparison.gemini?.polarite, $t.currentLanguage) || 'N/A'}
+                  {translateSentimentValue(comparison.gemini?.polarite, $currentLanguage) || 'N/A'}
                 </span>
               </td>
               <td class="text-center">
@@ -190,12 +190,12 @@
               </td>
               <td class="text-center">
                 <span class="badge badge-sm variant-soft-tertiary">
-                  {translateSentimentValue(comparison.chatgpt?.centralite_islam_musulmans, $t.currentLanguage) || 'N/A'}
+                  {translateSentimentValue(comparison.chatgpt?.centralite_islam_musulmans, $currentLanguage) || 'N/A'}
                 </span>
               </td>
               <td class="text-center">
                 <span class="badge badge-sm variant-soft-tertiary">
-                  {translateSentimentValue(comparison.gemini?.centralite_islam_musulmans, $t.currentLanguage) || 'N/A'}
+                  {translateSentimentValue(comparison.gemini?.centralite_islam_musulmans, $currentLanguage) || 'N/A'}
                 </span>
               </td>
               <td class="text-center">
@@ -212,10 +212,19 @@
     <!-- Card View -->
     <div class="cards-grid">
       {#each paginatedComparisons as comparison}
-        <div 
-          class="comparison-card card variant-glass p-4 hover-lift cursor-pointer"
-          onclick={() => selectComparison(comparison)}
-        >
+                 <div 
+           class="comparison-card card variant-glass p-4 hover-lift cursor-pointer"
+           onclick={() => selectComparison(comparison)}
+           onkeydown={(e) => {
+             if (e.key === 'Enter' || e.key === ' ') {
+               e.preventDefault();
+               selectComparison(comparison);
+             }
+           }}
+           role="button"
+           tabindex="0"
+           aria-label="View comparison details for {comparison.article['o:title']}"
+         >
           <!-- Header -->
           <div class="mb-3">
             <h3 class="text-white font-semibold line-clamp-2 mb-1">{comparison.article['o:title']}</h3>
@@ -228,21 +237,21 @@
             <div class="comparison-row">
               <span class="dimension-label">{$t.comparison?.polarity || 'Polarity'}</span>
               <div class="values-grid">
-                <div class="value-cell">
-                  <span class="model-label">ChatGPT</span>
-                  <span class="badge badge-sm variant-soft-primary">
-                    {translateSentimentValue(comparison.chatgpt?.polarite, $t.currentLanguage) || 'N/A'}
-                  </span>
-                </div>
-                <div class="diff-indicator {getDiffClass(comparison.discrepancies.polarityDiff)}">
-                  {comparison.discrepancies.polarityDiff > 0 ? `±${comparison.discrepancies.polarityDiff}` : '='}
-                </div>
-                <div class="value-cell">
-                  <span class="model-label">Gemini</span>
-                  <span class="badge badge-sm variant-soft-primary">
-                    {translateSentimentValue(comparison.gemini?.polarite, $t.currentLanguage) || 'N/A'}
-                  </span>
-                </div>
+                                 <div class="value-cell">
+                   <span class="model-label">ChatGPT</span>
+                   <span class="badge badge-sm variant-soft-primary">
+                     {translateSentimentValue(comparison.chatgpt?.polarite, $currentLanguage) || 'N/A'}
+                   </span>
+                 </div>
+                 <div class="diff-indicator {getDiffClass(comparison.discrepancies.polarityDiff)}">
+                   {comparison.discrepancies.polarityDiff > 0 ? `±${comparison.discrepancies.polarityDiff}` : '='}
+                 </div>
+                 <div class="value-cell">
+                   <span class="model-label">Gemini</span>
+                   <span class="badge badge-sm variant-soft-primary">
+                     {translateSentimentValue(comparison.gemini?.polarite, $currentLanguage) || 'N/A'}
+                   </span>
+                 </div>
               </div>
             </div>
             
@@ -272,21 +281,21 @@
             <div class="comparison-row">
               <span class="dimension-label">{$t.comparison?.centrality || 'Centrality'}</span>
               <div class="values-grid">
-                <div class="value-cell">
-                  <span class="model-label">ChatGPT</span>
-                  <span class="badge badge-sm variant-soft-tertiary text-xs">
-                    {translateSentimentValue(comparison.chatgpt?.centralite_islam_musulmans, $t.currentLanguage) || 'N/A'}
-                  </span>
-                </div>
-                <div class="diff-indicator {getDiffClass(comparison.discrepancies.centralityDiff)}">
-                  {comparison.discrepancies.centralityDiff > 0 ? `±${comparison.discrepancies.centralityDiff}` : '='}
-                </div>
-                <div class="value-cell">
-                  <span class="model-label">Gemini</span>
-                  <span class="badge badge-sm variant-soft-tertiary text-xs">
-                    {translateSentimentValue(comparison.gemini?.centralite_islam_musulmans, $t.currentLanguage) || 'N/A'}
-                  </span>
-                </div>
+                                 <div class="value-cell">
+                   <span class="model-label">ChatGPT</span>
+                   <span class="badge badge-sm variant-soft-tertiary text-xs">
+                     {translateSentimentValue(comparison.chatgpt?.centralite_islam_musulmans, $currentLanguage) || 'N/A'}
+                   </span>
+                 </div>
+                 <div class="diff-indicator {getDiffClass(comparison.discrepancies.centralityDiff)}">
+                   {comparison.discrepancies.centralityDiff > 0 ? `±${comparison.discrepancies.centralityDiff}` : '='}
+                 </div>
+                 <div class="value-cell">
+                   <span class="model-label">Gemini</span>
+                   <span class="badge badge-sm variant-soft-tertiary text-xs">
+                     {translateSentimentValue(comparison.gemini?.centralite_islam_musulmans, $currentLanguage) || 'N/A'}
+                   </span>
+                 </div>
               </div>
             </div>
           </div>
