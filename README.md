@@ -6,45 +6,43 @@ Cette application SvelteKit est conçue pour visualiser les résultats d'analyse
 
 L'objectif principal est de fournir une interface interactive pour explorer et comprendre les tendances de sentiments dans la couverture médiatique de l'islam et des musulmans dans la presse d'Afrique de l'Ouest francophone.
 
-## Nouvelles fonctionnalités
+## Fonctionnalités
 
-### 🌐 **Interface multilingue (Français/Anglais)**
-L'application prend désormais en charge deux langues :
-- **Français** : Langue par défaut, adaptée au corpus francophone
-- **Anglais** : Interface complète traduite pour un usage international
-- **Sélecteur de langue** : Bouton élégant dans l'en-tête avec globe et menu déroulant
-- **Persistance** : La langue choisie est sauvegardée et synchronisée avec l'URL
-- **Traduction intelligente** : Les valeurs de sentiment sont traduites automatiquement
-- **Détection automatique** : Détection de la langue du navigateur au premier accès
+### Mode de comparaison ChatGPT vs Gemini
+Analyse comparative des résultats entre les deux modèles :
+- Comparaison côte à côte des analyses de sentiment
+- Calcul automatique des divergences entre modèles
+- Filtres avancés par niveau de désaccord
+- Statistiques détaillées sur les convergences et conflits
+- Export CSV incluant les données des deux modèles
 
-### 🔗 **Routage basé sur l'URL** 
-L'application prend désormais en charge le partage et la mise en signet de vues spécifiques :
-- **URLs partageables** : Partagez des vues filtrées avec des collègues
-- **Synchronisation automatique** : Les filtres, vues et langue sont reflétés dans l'URL
-- **Navigation naturelle** : Utilisez les boutons précédent/suivant du navigateur
-- **Bouton de partage** : Copiez l'URL actuelle en un clic avec feedback visuel
-- **Effacement rapide** : Bouton pour supprimer tous les filtres actifs
-- **Persistance de la langue** : La langue sélectionnée est incluse dans l'URL
+### Interface multilingue
+Support du français et de l'anglais avec traduction automatique des valeurs de sentiment et synchronisation URL.
 
-### 📊 **Export de données CSV**
-L'application permet désormais d'exporter les données filtrées :
-- **Export intelligent** : Exporte uniquement les articles correspondant aux filtres actifs
-- **Format complet** : Inclut toutes les métadonnées et analyses de sentiment
-- **Multilingue** : Les en-têtes et valeurs sont traduits selon la langue sélectionnée
-- **Justifications incluses** : Exporte les justifications d'analyse pour validation
-- **Nommage automatique** : Fichiers nommés avec date et heure pour traçabilité
-- **Interface intuitive** : Bouton accessible depuis la vue tableau avec compteur d'articles
+### Filtrage et export
+- Filtrage hiérarchique par pays, journal et critères de sentiment
+- URLs partageables avec état des filtres
+- Export CSV des données filtrées avec métadonnées complètes
 
-### **Exemples d'URLs avec langue**
+### **Exemples d'URLs fonctionnels**
 ```
-# Vue graphiques en français (par défaut)
-https://fmadore.github.io/IWAC-sentiment-analysis/?view=charts&countries=Sénégal
+# Vue graphiques avec filtre par pays
+https://fmadore.github.io/IWAC-sentiment-analysis/?view=charts&countries=Togo
 
-# Vue tendances en anglais
-https://fmadore.github.io/IWAC-sentiment-analysis/?view=trends&lang=en&polarities=Positive
+# Vue tendances en anglais avec polarité positive
+https://fmadore.github.io/IWAC-sentiment-analysis/?view=trends&lang=en&polarities=Positif
 
-# Heatmap avec filtres et langue
-https://fmadore.github.io/IWAC-sentiment-analysis/?view=heatmap&lang=en&centralities=Central,Very%20central
+# Mode comparaison avec filtres de divergence
+https://fmadore.github.io/IWAC-sentiment-analysis/?view=comparison&compare=true&diffMin=2&diffMax=5
+
+# Heatmap avec centralité spécifique
+https://fmadore.github.io/IWAC-sentiment-analysis/?view=heatmap&centralities=Central,Très%20central
+
+# Tableau avec filtres multiples
+https://fmadore.github.io/IWAC-sentiment-analysis/?view=table&countries=Mali&subjectivities=1,2
+
+# Comparaison de modèles
+https://fmadore.github.io/IWAC-sentiment-analysis/?view=comparison&compare=true&dataset=chatgpt
 ```
 
 Consultez le [Guide du routage URL](./URL_ROUTING_GUIDE.md) pour plus de détails.
@@ -65,8 +63,11 @@ Le projet est structuré comme une application SvelteKit typique :
                 -   `SubjectivityFilter.svelte`: Permet de filtrer les articles par score de subjectivité (1-5).
                 -   `CentralityFilter.svelte`: Permet de filtrer les articles par centralité de l'islam/musulmans.
                 -   `ClearFiltersButton.svelte`: Bouton pour effacer tous les filtres actifs.
+                -   `ComparisonCSVExportButton.svelte`: Export CSV spécialisé pour les données de comparaison.
+                -   `DiscrepancyFilter.svelte`: Filtres avancés pour le mode comparaison (seuils, dimensions).
+                -   `DatasetPicker.svelte`: Sélecteur de dataset avec support du mode comparaison.
+                -   `DatasetBadge.svelte`: Badge indiquant le dataset actuel ou le mode comparaison.
                 -   `SentimentCriteriaFilter.svelte`: Version alternative qui combine les filtres de polarité et subjectivité.
-
             -   `viz/`: Composants pour la visualisation des données.
                 -   `SentimentChart.svelte`: Affiche la distribution de polarité par journal avec options barres/camembert.
                 -   `SubjectivityChart.svelte`: Affiche la distribution de subjectivité par journal avec options barres/camembert.
@@ -77,6 +78,10 @@ Le projet est structuré comme une application SvelteKit typique :
             -   `AnalysisInfo.svelte`: Fournit des informations explicatives sur la méthodologie d'analyse.
             -   `ArticleTable.svelte`: Affiche les articles dans un tableau interactif avec tri, pagination et sélection.
             -   `ArticleDetail.svelte`: Affiche les détails d'un article sélectionné.
+            -   `ComparisonView.svelte`: Interface principale du mode comparaison avec statistiques et filtres.
+            -   `ComparisonTable.svelte`: Tableau de comparaison avec visualisation des divergences entre modèles.
+            -   `ComparisonDetail.svelte`: Vue détaillée d'une comparaison article par article.
+            -   `ComparisonStats.svelte`: Statistiques et métriques du mode comparaison.
         -   `i18n/`: Système d'internationalisation.
             -   `index.ts`: Configuration principale et stores de langue.
             -   `fr.ts`: Traductions françaises (langue par défaut).
@@ -97,8 +102,9 @@ Le projet est structuré comme une application SvelteKit typique :
     -   `app.d.ts`: Déclarations de types globaux pour l'application.
     -   `app.postcss`: Styles CSS globaux et configuration Tailwind.
 -   `static/`: Contient les fichiers statiques.
-    -   `data/`: **Emplacement pour le fichier de données JSON du corpus IWAC.**
-        -   `iwac_articles.json`: Le fichier JSON contenant les articles du corpus IWAC avec leurs analyses de sentiment.
+    -   `data/`: **Fichiers de données JSON du corpus IWAC.**
+        -   `iwac_articles_chatgpt.json`: Articles analysés par ChatGPT
+        -   `iwac_articles_gemini.json`: Articles analysés par Gemini
 -   `data-preprocess/`: Scripts de préparation des données.
     -   `data-fetch.py`: Script Python pour récupérer et transformer les données depuis le dataset Hugging Face.
 -   `package.json`: Définit les dépendances du projet et les scripts npm.
@@ -110,9 +116,15 @@ Le projet est structuré comme une application SvelteKit typique :
 
 ### Format des données
 
-L'application charge automatiquement le corpus IWAC depuis le fichier `static/data/iwac_articles.json`. Ce fichier contient une liste d'objets `Article`, où chaque article inclut des métadonnées (titre, journal, pays, date) et un objet `sentiment_analysis` contenant les résultats de l'analyse (polarité, subjectivité, centralité, etc.).
+L'application charge automatiquement le corpus IWAC depuis les fichiers JSON situés dans `static/data/` :
+- `iwac_articles_chatgpt.json`: Articles analysés par ChatGPT
+- `iwac_articles_gemini.json`: Articles analysés par Gemini
 
-Consultez `src/lib/types/data.ts` pour la structure détaillée des objets `Article` et `SentimentAnalysis`.
+Chaque fichier contient une liste d'objets `Article`, où chaque article inclut des métadonnées (titre, journal, pays, date) et un objet `sentiment_analysis` contenant les résultats de l'analyse (polarité, subjectivité, centralité, etc.).
+
+Le mode comparaison utilise les deux datasets simultanément pour identifier et analyser les divergences entre les analyses des deux modèles.
+
+Consultez `src/lib/types/data.ts` pour la structure détaillée des objets `Article`, `SentimentAnalysis` et `ComparisonData`.
 
 ### Préparation des données
 
@@ -154,6 +166,15 @@ L'application propose une suite complète de visualisations interactives pour ex
 - **Vue mobile adaptée** : Cartes responsives pour petits écrans
 - **Détails d'articles** : Modal avec métadonnées complètes et justifications d'analyse
 
+### 7. **Comparison** - Analyse comparative des modèles
+- **Tableau de comparaison** : Visualisation côte à côte des analyses ChatGPT vs Gemini
+- **Calcul automatique des divergences** : Quantification des différences par dimension
+- **Filtres de divergence** : Seuils personnalisables pour explorer les conflits
+- **Statistiques détaillées** : Métriques sur les convergences et divergences
+- **Codes couleur** : Identification visuelle rapide des niveaux de conflit
+- **Vue détaillée** : Analyse approfondie article par article avec justifications
+- **Export spécialisé** : CSV incluant les données des deux modèles et leurs différences
+
 ## Gestion d'état (`stores.ts`)
 
 L'application utilise les stores Svelte pour gérer l'état global :
@@ -168,6 +189,14 @@ L'application utilise les stores Svelte pour gérer l'état global :
 -   `centralityFilters`: Un tableau des niveaux de centralité sélectionnés pour le filtrage.
 -   `filteredArticles`: Un store dérivé qui contient les articles après application de tous les filtres actifs.
 -   `availableJournals`: Un store dérivé qui liste les journaux disponibles selon les pays sélectionnés.
+
+**Stores spécifiques au mode comparaison :**
+-   `comparisonMode`: Booléen indiquant si le mode comparaison est actif.
+-   `selectedComparison`: Comparaison actuellement sélectionnée pour affichage détaillé.
+-   `discrepancyFilters`: Filtres pour les seuils de divergence et dimensions à comparer.
+-   `comparisonData`: Store dérivé contenant les données de comparaison entre ChatGPT et Gemini.
+-   `filteredComparisons`: Store dérivé avec les comparaisons après application des filtres.
+-   `comparisonStatistics`: Store dérivé avec les statistiques et métriques de comparaison.
 
 De plus, le store expose la fonction :
 -   `loadDatasetArticles`: Fonction pour charger un dataset depuis un fichier JSON.
@@ -204,6 +233,27 @@ De plus, le store expose la fonction :
     - **Design cohérent** : Style vert avec animations et effets glassmorphism
     - **Responsive** : Version icône seule sur mobile
 
+-   **`ComparisonCSVExportButton.svelte`**: Export CSV spécialisé pour les comparaisons avec :
+    - **Données duales** : Inclut les analyses ChatGPT et Gemini côte à côte
+    - **Calculs de divergence** : Différences quantifiées par dimension
+    - **Filtrage intelligent** : Exporte uniquement les comparaisons filtrées
+    - **Format structuré** : Colonnes organisées pour analyse comparative
+    - **Style distinctif** : Design violet pour différenciation visuelle
+
+-   **`DatasetPicker.svelte`**: Sélecteur de dataset et mode comparaison avec :
+    - **Sélection de modèle** : Choix entre ChatGPT, Gemini ou mode comparaison
+    - **Interface élégante** : Menu déroulant avec icônes et animations
+    - **État visuel** : Indication claire du mode actuel
+    - **Basculement automatique** : Activation/désactivation du mode comparaison
+    - **Responsive** : Adaptation mobile optimisée
+
+-   **`DiscrepancyFilter.svelte`**: Filtres avancés pour le mode comparaison avec :
+    - **Seuils de divergence** : Curseurs pour définir les plages de différence
+    - **Sélection de dimensions** : Choix des critères à comparer (polarité, subjectivité, centralité)
+    - **Filtres rapides** : Boutons prédéfinis pour les cas d'usage courants
+    - **Exclusion intelligente** : Option pour exclure les articles "Non applicable"
+    - **Interface intuitive** : Tooltips explicatifs et feedback visuel
+
 ### Composants de filtrage
 
 Tous les composants de filtrage supportent désormais la traduction automatique des valeurs :
@@ -233,7 +283,34 @@ Tous les composants de filtrage supportent désormais la traduction automatique 
 
 -   **`ArticleTable.svelte`**: Affiche un tableau des articles filtrés avec possibilité de tri, pagination avancée, et vue mobile adaptée sous forme de cartes.
 -   **`ArticleDetail.svelte`**: Affiche les détails complets d'un article sélectionné, y compris ses métadonnées et les résultats d'analyse avec justifications.
--   **`AnalysisInfo.svelte`**: Fournit des informations explicatives détaillées sur la méthodologie d'analyse (polarité, subjectivité, centralité) sous forme d'accordéon.
+-   **`AnalysisInfo.svelte`**: Fournit des informations explicatives détaillées sur la méthodologie d'analyse (polarité, subjectivité, centralité) sous forme d'accordéon. S'adapte automatiquement au mode comparaison pour expliquer les différences entre modèles.
+
+### Composants de comparaison
+
+-   **`ComparisonView.svelte`**: Interface principale du mode comparaison avec :
+    - **Activation conditionnelle** : Guide l'utilisateur pour activer le mode comparaison
+    - **Navigation fluide** : Basculement entre vue liste et vue détaillée
+    - **Intégration des filtres** : Filtres de divergence et statistiques intégrés
+    - **État centralisé** : Gestion cohérente de l'état de comparaison
+
+-   **`ComparisonTable.svelte`**: Tableau de comparaison avancé avec :
+    - **Visualisation côte à côte** : Colonnes ChatGPT et Gemini pour chaque dimension
+    - **Codes couleur des divergences** : Identification visuelle des niveaux de conflit
+    - **Tri intelligent** : Tri par divergence totale, date ou titre
+    - **Vue adaptative** : Tableau desktop et cartes mobile
+    - **Sélection interactive** : Clic pour voir les détails de comparaison
+
+-   **`ComparisonDetail.svelte`**: Vue détaillée de comparaison avec :
+    - **Analyse approfondie** : Justifications complètes des deux modèles
+    - **Métadonnées d'article** : Informations contextuelles complètes
+    - **Différences mises en évidence** : Visualisation claire des divergences
+    - **Navigation intuitive** : Bouton de retour vers la liste
+
+-   **`ComparisonStats.svelte`**: Statistiques de comparaison avec :
+    - **Métriques globales** : Nombre total d'articles et de divergences
+    - **Répartition par dimension** : Conflits par polarité, subjectivité, centralité
+    - **Indicateurs visuels** : Graphiques et barres de progression
+    - **Mise à jour dynamique** : Recalcul automatique selon les filtres
 
 ## Page principale (`+page.svelte` et `+page.ts`)
 
@@ -241,15 +318,17 @@ Tous les composants de filtrage supportent désormais la traduction automatique 
 -   `+page.svelte`:
     -   Charge automatiquement le corpus IWAC au démarrage de l'application.
     -   Initialise la langue depuis l'URL ou les préférences utilisateur.
-    -   Propose six vues différentes via un menu de navigation latéral (desktop) ou modal (mobile):
+    -   Propose sept vues différentes via un menu de navigation latéral (desktop) ou modal (mobile):
       - **Charts**: Graphiques de distribution de polarité et subjectivité (barres/camembert)
       - **Trends**: Évolution des sentiments au fil du temps
       - **Distribution**: Distribution croisée entre polarité et subjectivité
       - **Volume**: Volume d'articles par pays au fil du temps
       - **Heatmap**: Heatmap de centralité par pays et année
       - **Table**: Articles dans un tableau interactif
+      - **Comparison**: Mode comparaison ChatGPT vs Gemini avec analyse des divergences
     -   Inclut un système de filtrage hiérarchique (Pays → Journaux → Critères de sentiment)
-    -   Synchronise tous les filtres et la langue avec l'URL en temps réel
+    -   Gère automatiquement l'activation/désactivation du mode comparaison selon la vue
+    -   Synchronise tous les filtres, la langue et le mode comparaison avec l'URL en temps réel
     -   Gère l'affichage des détails d'articles dans un modal responsive
     -   Interface entièrement responsive avec navigation mobile optimisée
     -   Gère l'affichage des messages de chargement ou d'absence de données.
@@ -277,19 +356,79 @@ L'application intègre un système complet de gestion multilingue :
 
 Consultez le [Guide d'internationalisation](./ma-visualisation-sentiments/I18N_GUIDE.md) pour plus de détails sur l'implémentation.
 
-### **Avantages de l'interface multilingue**
+## Mode de comparaison ChatGPT vs Gemini
 
-#### **Pour la recherche internationale**
-- **Accessibilité** : Interface en anglais pour les chercheurs internationaux
-- **Collaboration** : Facilite les projets de recherche multi-institutionnels
-- **Publications** : Intégration dans des articles académiques anglophones
-- **Conférences** : Présentation dans des contextes internationaux
+### **Qu'est-ce que le mode comparaison ?**
 
-#### **Pour l'usage local**
-- **Langue native** : Interface en français pour les utilisateurs francophones
-- **Contexte culturel** : Terminologie adaptée au contexte ouest-africain
-- **Formation** : Facilite l'apprentissage pour les étudiants locaux
-- **Appropriation** : Meilleure compréhension des concepts d'analyse
+Le mode comparaison est une fonctionnalité avancée qui permet d'analyser les différences entre les analyses de sentiment effectuées par ChatGPT et Gemini sur le même corpus d'articles. Cette approche comparative offre des insights précieux sur :
+
+- **La cohérence inter-modèles** : Identifier où les modèles convergent ou divergent
+- **Les biais potentiels** : Détecter les patterns de désaccord systématiques
+- **La fiabilité des analyses** : Évaluer la robustesse des résultats
+- **Les cas complexes** : Repérer les articles nécessitant une expertise humaine
+
+### **Comment activer le mode comparaison ?**
+
+1. **Via le sélecteur de dataset** : Cliquez sur le bouton de comparaison dans le DatasetPicker
+2. **Via la navigation** : Sélectionnez la vue "Comparison" dans le menu latéral
+3. **Via l'URL** : Ajoutez `?compare=true` à l'URL
+
+### **Fonctionnalités du mode comparaison**
+
+#### **Calcul automatique des divergences**
+- **Polarité** : Différence entre les évaluations de sentiment (0-4 points)
+- **Subjectivité** : Écart entre les scores d'objectivité (0-4 points)  
+- **Centralité** : Différence dans l'évaluation de la centralité de l'islam (0-4 points)
+- **Score total** : Somme des divergences sur toutes les dimensions
+
+#### **Filtres avancés de divergence**
+- **Seuils personnalisables** : Définir des plages de différence (ex: 2-5 points)
+- **Filtres rapides** : Boutons prédéfinis (1 point, 2 points, 3+ points)
+- **Sélection de dimensions** : Analyser une ou plusieurs dimensions spécifiques
+- **Exclusion intelligente** : Masquer les articles "Non applicable" qui créent des divergences artificielles
+
+#### **Visualisations spécialisées**
+- **Tableau comparatif** : Vue côte à côte des analyses avec codes couleur
+- **Statistiques détaillées** : Métriques sur les convergences et divergences
+- **Vue détaillée** : Analyse approfondie article par article avec justifications
+- **Export comparatif** : CSV incluant les données des deux modèles
+
+#### **Codes couleur des divergences**
+- **🟢 Vert (0 points)** : Accord parfait entre les modèles
+- **🟡 Jaune (1 point)** : Divergence mineure
+- **🟠 Orange (2 points)** : Divergence modérée
+- **🔴 Rouge (3+ points)** : Divergence majeure nécessitant attention
+
+### **Cas d'usage du mode comparaison**
+
+#### **Pour les chercheurs**
+- **Validation croisée** : Vérifier la robustesse des analyses automatiques
+- **Identification des biais** : Détecter les patterns de désaccord systématiques
+- **Sélection d'échantillons** : Identifier les articles nécessitant une annotation manuelle
+- **Évaluation de qualité** : Mesurer la fiabilité des analyses LLM
+
+#### **Pour l'analyse de contenu**
+- **Articles controversés** : Repérer les contenus générant des interprétations divergentes
+- **Nuances culturelles** : Identifier les cas où le contexte influence l'analyse
+- **Complexité narrative** : Détecter les articles avec des sentiments mixtes ou ambigus
+- **Évolution temporelle** : Analyser si les divergences varient selon les périodes
+
+### **Métriques et statistiques**
+
+Le mode comparaison fournit des métriques détaillées :
+- **Taux de convergence** : Pourcentage d'articles avec accord parfait
+- **Divergence moyenne** : Score moyen de désaccord
+- **Répartition par dimension** : Conflits spécifiques à chaque critère
+- **Articles à haute divergence** : Identification des cas problématiques
+
+### **Limitations et considérations**
+
+- **Aucun modèle comme référence** : Ni ChatGPT ni Gemini ne doit être considéré comme vérité absolue
+- **Divergences != erreurs** : Les désaccords peuvent refléter des perspectives légitimes différentes
+- **Contexte nécessaire** : L'interprétation des divergences nécessite une expertise du domaine
+- **Complémentarité** : Les résultats sont plus utiles pour identifier des tendances que pour des jugements définitifs
+
+
 
 ## Développement
 
@@ -331,14 +470,7 @@ Prérequis : Node.js et npm installés.
 -   `npm run lint`: Exécute ESLint pour vérifier les erreurs de style de code.
 -   `npm run format`: Exécute Prettier pour formater le code.
 
-### **Tests des fonctionnalités multilingues**
 
-Pour tester les fonctionnalités d'internationalisation :
-
-1. **Test des langues** : Changez la langue via le sélecteur dans l'en-tête
-2. **Test URL** : Ajoutez `?lang=en` ou `?lang=fr` à l'URL
-3. **Test persistance** : Rechargez la page et vérifiez que la langue est conservée
-4. **Test responsive** : Vérifiez l'affichage mobile du sélecteur de langue
 
 ## Préparation des données
 
