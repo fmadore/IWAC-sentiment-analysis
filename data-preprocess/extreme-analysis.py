@@ -574,9 +574,9 @@ def main():
     print(f"""
 The generated JSON files contain:
 
-1. GLOBAL ANALYSIS:
-   - 'subject': Top {top_n} subject keywords across all articles
-   - 'spatial': Top {top_n} spatial keywords across all articles
+ 1. GLOBAL ANALYSIS:
+    - 'subject': Top 50 subject keywords across all articles
+    - 'spatial': Top 50 spatial keywords across all articles
    
 2. FACET DISTRIBUTION:
    - 'by_country': Number of articles per country
