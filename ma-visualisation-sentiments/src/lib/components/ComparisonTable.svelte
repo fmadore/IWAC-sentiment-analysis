@@ -434,6 +434,24 @@
   .sortable-header:hover {
     background-color: rgba(255, 255, 255, 0.1);
   }
+
+  /* Ensure all clickable elements have pointer cursor */
+  .comparison-card {
+    cursor: pointer;
+  }
+
+  .comparison-card:hover {
+    cursor: pointer;
+  }
+
+  /* Table rows */
+  tbody tr {
+    cursor: pointer;
+  }
+
+  tbody tr:hover {
+    cursor: pointer;
+  }
   
   .cards-grid {
     display: grid;
@@ -489,11 +507,21 @@
     font-size: 0.75rem;
     font-weight: 500;
     border-radius: 9999px;
+    cursor: inherit; /* Inherit cursor from parent */
   }
   
   .badge-lg {
     padding: 0.375rem 0.75rem;
     font-size: 0.875rem;
+    cursor: inherit; /* Inherit cursor from parent */
+  }
+
+  .badge-sm {
+    padding: 0.125rem 0.375rem;
+    font-size: 0.625rem;
+    font-weight: 500;
+    border-radius: 9999px;
+    cursor: inherit; /* Inherit cursor from parent */
   }
   
   .line-clamp-2 {
@@ -524,11 +552,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
   }
 
   .pagination-controls button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  .pagination-controls button:not(:disabled):hover {
+    cursor: pointer;
   }
 
   .select-sm {
@@ -543,6 +576,34 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  /* View controls and other buttons */
+  .view-controls button {
+    cursor: pointer;
+  }
+
+  .view-controls button:disabled {
+    cursor: not-allowed;
+  }
+
+  /* Select elements */
+  select {
+    cursor: pointer;
+  }
+
+  /* Ensure all buttons have pointer cursor */
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  /* Labels for form elements */
+  label {
+    cursor: pointer;
   }
 
   /* Responsive adjustments */
