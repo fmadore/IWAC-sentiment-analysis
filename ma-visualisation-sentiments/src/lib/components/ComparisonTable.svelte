@@ -7,6 +7,7 @@
   import ArrowUpDownIcon from '@lucide/svelte/icons/arrow-up-down';
   import LayoutGridIcon from '@lucide/svelte/icons/layout-grid';
   import TableIcon from '@lucide/svelte/icons/table';
+  import ComparisonCSVExportButton from './ui/ComparisonCSVExportButton.svelte';
   
   let viewMode = $state<'table' | 'cards'>('table');
   let sortBy = $state<'discrepancy' | 'date' | 'title'>('discrepancy');
@@ -142,6 +143,12 @@
 </script>
 
 <div class="comparison-table-container">
+  <!-- Header with title and export button -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+    <h2 class="h3 m-0 text-white text-gradient">{$t.datasets?.compareModels || 'Model Comparison'}</h2>
+    <ComparisonCSVExportButton />
+  </div>
+
   <!-- Controls and Pagination Info -->
   <div class="controls-section mb-4">
     <!-- First row: View controls and results info -->
@@ -530,6 +537,14 @@
     border-radius: 0.375rem;
   }
   
+  /* Text gradient styling */
+  .text-gradient {
+    background: linear-gradient(135deg, #60A5FA, #A78BFA, #F472B6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
   /* Responsive adjustments */
   @media (max-width: 640px) {
     .cards-grid {
