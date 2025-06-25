@@ -6,7 +6,7 @@
   import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
   import GitCompareArrowsIcon from '@lucide/svelte/icons/git-compare-arrows';
   
-  const stats = $comparisonStatistics;
+  const stats = $derived($comparisonStatistics);
 </script>
 
 <div class="stats-grid">

@@ -276,5 +276,7 @@ export interface Translations {
     enableComparisonDescription: string;
     noDiscrepancies: string;
     adjustFilters: string;
+    excludeNonApplicable: string;
+    excludeNonApplicableDescription: string;
   };
 } 

@@ -35,7 +35,8 @@ export const comparisonDatasets = writable<ComparisonData[] | null>(null);
 export const discrepancyFilters = writable<DiscrepancyFilter>({
   minDifference: 0,
   maxDifference: 5,
-  dimensions: ['polarity', 'subjectivity', 'centrality']
+  dimensions: ['polarity', 'subjectivity', 'centrality'],
+  excludeNonApplicable: false
 });
 
 // Store for the currently selected comparison
@@ -342,6 +343,17 @@ export const filteredComparisons = derived(
       if ($journals.length > 0 && !$journals.includes(journalName)) {
         return false;
       }
+
+      // Filter out articles where one model marked centrality as "Non applicable" or "Non abordé"
+      if ($filters.excludeNonApplicable) {
+        const chatgptCentrality = comparison.chatgpt?.centralite_islam_musulmans;
+        const geminiCentrality = comparison.gemini?.centralite_islam_musulmans;
+        
+        if (chatgptCentrality === 'Non applicable' || chatgptCentrality === 'Non abordé' ||
+            geminiCentrality === 'Non applicable' || geminiCentrality === 'Non abordé') {
+          return false;
+        }
+      }
       
       // Apply discrepancy filters
       const disc = comparison.discrepancies;
@@ -351,7 +363,12 @@ export const filteredComparisons = derived(
         return false;
       }
       
-      // Check selected dimensions
+      // Check selected dimensions - if no dimensions are selected, show all
+      if ($filters.dimensions.length === 0) {
+        return true;
+      }
+      
+      // Check if there's a difference in any of the selected dimensions
       let hasRelevantDiff = false;
       if ($filters.dimensions.includes('polarity') && disc.polarityDiff > 0) hasRelevantDiff = true;
       if ($filters.dimensions.includes('subjectivity') && disc.subjectivityDiff > 0) hasRelevantDiff = true;
@@ -364,7 +381,7 @@ export const filteredComparisons = derived(
 
 // Comparison statistics
 export const comparisonStatistics = derived(
-  filteredComparisons,
+  comparisonData,
   ($comparisons) => {
     if ($comparisons.length === 0) {
       return {

@@ -59,6 +59,7 @@ export interface DiscrepancyFilter {
   minDifference: number;
   maxDifference: number;
   dimensions: ('polarity' | 'subjectivity' | 'centrality')[];
+  excludeNonApplicable: boolean;
 }
 
 export interface ComparisonStatistics {

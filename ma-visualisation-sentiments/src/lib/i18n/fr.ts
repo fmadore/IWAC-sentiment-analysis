@@ -271,6 +271,8 @@ export const fr: Translations = {
     enableComparisonMode: 'Activer le mode comparaison',
     enableComparisonDescription: 'Cliquez sur le bouton de comparaison dans le sélecteur de dataset pour comparer les analyses ChatGPT et Gemini.',
     noDiscrepancies: 'Aucune divergence trouvée',
-    adjustFilters: 'Essayez d\'ajuster vos filtres pour voir les articles avec des différences entre les modèles.'
+    adjustFilters: 'Essayez d\'ajuster vos filtres pour voir les articles avec des différences entre les modèles.',
+    excludeNonApplicable: 'Exclure les articles "Non applicable"',
+    excludeNonApplicableDescription: 'Masquer les articles où un modèle a marqué la centralité comme "Non applicable", ce qui crée des divergences artificiellement élevées.'
   }
 }; 

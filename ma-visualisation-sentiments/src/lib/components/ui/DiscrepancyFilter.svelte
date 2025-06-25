@@ -7,6 +7,7 @@
   let minDiff = $state(0);
   let maxDiff = $state(5);
   let selectedDimensions = $state<string[]>(['polarity', 'subjectivity', 'centrality']);
+  let excludeNonApplicable = $state(false);
   
   // Sync with store
   $effect(() => {
@@ -14,13 +15,15 @@
     minDiff = filters.minDifference;
     maxDiff = filters.maxDifference;
     selectedDimensions = [...filters.dimensions];
+    excludeNonApplicable = filters.excludeNonApplicable;
   });
   
   function updateFilters() {
     discrepancyFilters.set({
       minDifference: minDiff,
       maxDifference: maxDiff,
-      dimensions: selectedDimensions as ('polarity' | 'subjectivity' | 'centrality')[]
+      dimensions: selectedDimensions as ('polarity' | 'subjectivity' | 'centrality')[],
+      excludeNonApplicable: excludeNonApplicable
     });
   }
   
@@ -43,6 +46,12 @@
     minDiff = 0;
     maxDiff = 5;
     selectedDimensions = ['polarity', 'subjectivity', 'centrality'];
+    excludeNonApplicable = false;
+    updateFilters();
+  }
+
+  function toggleExcludeNonApplicable() {
+    excludeNonApplicable = !excludeNonApplicable;
     updateFilters();
   }
 </script>
@@ -135,7 +144,7 @@
   </div>
   
   <!-- Dimension Filters -->
-  <div>
+  <div class="mb-4">
     <span class="text-sm text-white/60 mb-2 block">{$t.comparison?.compareDimensions || 'Compare Dimensions'}:</span>
     <div class="flex flex-wrap gap-2">
       <button
@@ -157,6 +166,23 @@
         {$t.analysis?.centralitySection || 'Centrality'}
       </button>
     </div>
+  </div>
+
+  <!-- Non-Applicable Filter -->
+  <div>
+    <div class="flex items-center justify-between">
+      <span class="text-sm text-white/60">{$t.comparison?.excludeNonApplicable || 'Exclude "Non Applicable" Articles'}:</span>
+      <button
+        class="toggle-switch {excludeNonApplicable ? 'active' : ''}"
+        onclick={toggleExcludeNonApplicable}
+        aria-label="Toggle exclude non-applicable articles"
+      >
+        <div class="toggle-thumb"></div>
+      </button>
+    </div>
+    <p class="text-xs text-white/50 mt-1">
+      {$t.comparison?.excludeNonApplicableDescription || 'Hide articles where one model marked centrality as "Non applicable", which creates artificially high discrepancies.'}
+    </p>
   </div>
 </div>
 
@@ -275,6 +301,47 @@
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
   }
+
+  /* Toggle switch styles */
+  .toggle-switch {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    outline: none;
+  }
+
+  .toggle-switch:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .toggle-switch.active {
+    background: var(--accent-primary);
+  }
+
+  .toggle-switch.active:hover {
+    background: var(--accent-secondary);
+  }
+
+  .toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .toggle-switch.active .toggle-thumb {
+    transform: translateX(20px);
+  }
   
   /* Responsive adjustments */
   @media (max-width: 640px) {
@@ -285,6 +352,20 @@
     .chip {
       padding: 0.2rem 0.6rem;
       font-size: 0.7rem;
+    }
+
+    .toggle-switch {
+      width: 40px;
+      height: 22px;
+    }
+
+    .toggle-thumb {
+      width: 18px;
+      height: 18px;
+    }
+
+    .toggle-switch.active .toggle-thumb {
+      transform: translateX(18px);
     }
   }
 </style>

@@ -271,6 +271,8 @@ export const en: Translations = {
     enableComparisonMode: 'Enable Comparison Mode',
     enableComparisonDescription: 'Click the comparison button in the dataset picker to compare ChatGPT and Gemini analyses.',
     noDiscrepancies: 'No Discrepancies Found',
-    adjustFilters: 'Try adjusting your filters to see articles with differences between models.'
+    adjustFilters: 'Try adjusting your filters to see articles with differences between models.',
+    excludeNonApplicable: 'Exclude "Non Applicable" Articles',
+    excludeNonApplicableDescription: 'Hide articles where one model marked centrality as "Non applicable", which creates artificially high discrepancies.'
   }
 }; 
