@@ -112,18 +112,7 @@
       currentDatasetArticles.set(articles);
     });
 
-    // Subscribe to comparison mode changes to automatically switch views
-    const unsubscribeComparison = comparisonMode.subscribe(isComparison => {
-      if (isComparison && activeView !== 'comparison') {
-        // When enabling comparison mode, switch to comparison view
-        activeView = 'comparison';
-        updateURL(activeView);
-      } else if (!isComparison && activeView === 'comparison') {
-        // When disabling comparison mode, switch back to charts view
-        activeView = 'charts';
-        updateURL(activeView);
-      }
-    });
+    // Note: Comparison mode is now controlled by the navigation tabs directly
 
     return () => {
       unsubscribeCountry();
@@ -133,7 +122,6 @@
       unsubscribeCentrality();
       unsubscribeLanguage();
       unsubscribeDataset();
-      unsubscribeComparison();
     };
   });
 
@@ -152,9 +140,17 @@
   function handleViewChange(value: string) {
     activeView = value;
     
-    // Automatically enable comparison mode when switching to comparison view
-    if (value === 'comparison' && !$comparisonMode) {
-      comparisonMode.set(true);
+    // Automatically manage comparison mode based on view
+    if (value === 'comparison') {
+      // Enable comparison mode when switching to comparison view
+      if (!$comparisonMode) {
+        comparisonMode.set(true);
+      }
+    } else {
+      // Disable comparison mode when switching away from comparison view
+      if ($comparisonMode) {
+        comparisonMode.set(false);
+      }
     }
     
     updateURL(activeView);

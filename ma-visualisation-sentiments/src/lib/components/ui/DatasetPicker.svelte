@@ -1,20 +1,12 @@
 <script lang="ts">
-  import { selectedDataset, availableDatasets, comparisonMode } from '$lib/stores';
+  import { selectedDataset, availableDatasets } from '$lib/stores';
   import { t } from '$lib/i18n';
   import DatabaseIcon from '@lucide/svelte/icons/database';
-  import GitCompareIcon from '@lucide/svelte/icons/git-compare';
 
   let isOpen = $state(false);
 
   function selectDataset(datasetId: string) {
-    if (!$comparisonMode) {
-      selectedDataset.set(datasetId);
-    }
-    isOpen = false;
-  }
-
-  function toggleComparison() {
-    comparisonMode.update(v => !v);
+    selectedDataset.set(datasetId);
     isOpen = false;
   }
 
@@ -40,18 +32,14 @@
   <button
     class="picker-button glass-medium"
     onclick={() => isOpen = !isOpen}
-    aria-label={$t.datasets?.selectModel || 'Select dataset'}
+    aria-label={$t.datasets?.selectModel || 'Select model'}
     aria-expanded={isOpen}
     aria-haspopup={true}
   >
     <div class="button-content">
       <DatabaseIcon size={18} />
       <span class="picker-label">
-        {#if $comparisonMode}
-          {$t.datasets?.comparisonMode || 'Comparison Mode'}
-        {:else}
-          {$availableDatasets.find(d => d.id === $selectedDataset)?.name || 'Select Dataset'}
-        {/if}
+        {$availableDatasets.find(d => d.id === $selectedDataset)?.name || 'Select Dataset'}
       </span>
       <svg
         class="chevron {isOpen ? 'rotate-180' : ''}"
@@ -72,32 +60,16 @@
         <span class="section-label">{$t.datasets?.availableModels || 'Available Models'}</span>
         {#each $availableDatasets as dataset}
           <button
-            class="menu-item {$selectedDataset === dataset.id && !$comparisonMode ? 'active' : ''}"
+            class="menu-item {$selectedDataset === dataset.id ? 'active' : ''}"
             onclick={() => selectDataset(dataset.id)}
-            disabled={$comparisonMode}
           >
             <span class="dataset-icon">{dataset.icon}</span>
             <span class="dataset-name">{dataset.name}</span>
-            {#if $selectedDataset === dataset.id && !$comparisonMode}
+            {#if $selectedDataset === dataset.id}
               <div class="check-mark">✓</div>
             {/if}
           </button>
         {/each}
-      </div>
-      
-      <div class="menu-divider"></div>
-      
-      <div class="menu-section">
-        <button
-          class="menu-item comparison-item {$comparisonMode ? 'active' : ''}"
-          onclick={toggleComparison}
-        >
-          <GitCompareIcon size={18} />
-          <span class="comparison-label">{$t.datasets?.compareModels || 'Compare Models'}</span>
-          {#if $comparisonMode}
-            <div class="check-mark">✓</div>
-          {/if}
-        </button>
       </div>
     </div>
   {/if}
@@ -263,29 +235,7 @@
     font-size: 1rem;
   }
 
-  .menu-divider {
-    height: 1px;
-    background: rgba(255, 255, 255, 0.1);
-    margin: 0.25rem 0.5rem;
-  }
 
-  .comparison-item {
-    position: relative;
-  }
-
-  .comparison-item.active {
-    background: rgba(139, 92, 246, 0.2);
-    color: #A78BFA;
-  }
-
-  .comparison-item.active:hover {
-    background: rgba(139, 92, 246, 0.3);
-  }
-
-  .comparison-label {
-    flex: 1;
-    text-align: left;
-  }
 
   /* Responsive Design */
   @media (max-width: 640px) {
