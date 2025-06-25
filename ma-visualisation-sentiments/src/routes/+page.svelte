@@ -151,6 +151,12 @@
 
   function handleViewChange(value: string) {
     activeView = value;
+    
+    // Automatically enable comparison mode when switching to comparison view
+    if (value === 'comparison' && !$comparisonMode) {
+      comparisonMode.set(true);
+    }
+    
     updateURL(activeView);
   }
 </script>
