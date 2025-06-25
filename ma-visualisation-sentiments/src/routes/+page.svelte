@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { PageData } from './$types.js';
   import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
   import { page } from '$app/stores';
   import { 
     currentDatasetArticles, 
@@ -106,13 +107,23 @@
     // Subscribe to language changes to update HTML lang attribute
     const unsubscribeLanguage = currentLanguage.subscribe(updateHtmlLang);
 
-    // Subscribe to dataset changes to update currentDatasetArticles
+    // Subscribe to dataset changes to update currentDatasetArticles and URL
     const unsubscribeDataset = selectedDataset.subscribe(datasetId => {
       const articles = $datasetArticles[datasetId] || [];
       currentDatasetArticles.set(articles);
+      
+      // Only update URL if browser is available
+      if (browser) {
+        updateURL(activeView);
+      }
     });
 
-    // Note: Comparison mode is now controlled by the navigation tabs directly
+    // Subscribe to comparison mode changes to update URL
+    const unsubscribeComparison = comparisonMode.subscribe(() => {
+      if (browser) {
+        updateURL(activeView);
+      }
+    });
 
     return () => {
       unsubscribeCountry();
@@ -122,6 +133,7 @@
       unsubscribeCentrality();
       unsubscribeLanguage();
       unsubscribeDataset();
+      unsubscribeComparison();
     };
   });
 

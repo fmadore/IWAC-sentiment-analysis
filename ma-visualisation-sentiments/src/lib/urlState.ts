@@ -148,11 +148,11 @@ export function buildURLSearchParams(state: URLState): URLSearchParams {
     params.set(URL_PARAMS.compare, 'true');
   }
 
-  if (state.diffMin) {
+  if (state.diffMin !== undefined && state.compare === true) {
     params.set(URL_PARAMS.diffMin, state.diffMin.toString());
   }
 
-  if (state.diffMax) {
+  if (state.diffMax !== undefined && state.compare === true) {
     params.set(URL_PARAMS.diffMax, state.diffMax.toString());
   }
 
@@ -184,18 +184,26 @@ export function buildURLSearchParams(state: URLState): URLSearchParams {
  */
 export function getCurrentState(): URLState {
   const filters = get(discrepancyFilters);
-  return {
+  const isComparisonMode = get(comparisonMode);
+  
+  const state: URLState = {
     countries: get(countryFilters),
     journals: get(journalFilters),
     polarities: get(polarityFilters),
     subjectivities: get(subjectivityFilters),
     centralities: get(centralityFilters),
     lang: get(currentLanguage),
-    dataset: get(selectedDataset),
-    compare: get(comparisonMode),
-    diffMin: filters.minDifference,
-    diffMax: filters.maxDifference
+    dataset: get(selectedDataset)
   };
+  
+  // Only include comparison-related parameters when in comparison mode
+  if (isComparisonMode) {
+    state.compare = true;
+    state.diffMin = filters.minDifference;
+    state.diffMax = filters.maxDifference;
+  }
+  
+  return state;
 }
 
 /**
