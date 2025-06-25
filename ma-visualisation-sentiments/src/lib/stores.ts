@@ -381,11 +381,14 @@ export const filteredComparisons = derived(
 
 // Comparison statistics
 export const comparisonStatistics = derived(
-  comparisonData,
-  ($comparisons) => {
-    if ($comparisons.length === 0) {
+  [comparisonData, filteredComparisons],
+  ([$allComparisons, $filteredComparisons]) => {
+    // Total articles always comes from the full dataset
+    const totalArticles = $allComparisons.length;
+    
+    if ($filteredComparisons.length === 0) {
       return {
-        totalArticles: 0,
+        totalArticles,
         totalDiscrepancies: 0,
         averageDiscrepancy: 0,
         polarityConflicts: 0,
@@ -395,7 +398,8 @@ export const comparisonStatistics = derived(
       };
     }
     
-    const stats = $comparisons.reduce((acc, comp) => {
+    // Other statistics come from the filtered data
+    const stats = $filteredComparisons.reduce((acc, comp) => {
       const disc = comp.discrepancies;
       
       acc.totalDiscrepancies += disc.totalDiff > 0 ? 1 : 0;
@@ -416,9 +420,9 @@ export const comparisonStatistics = derived(
     });
     
     return {
-      totalArticles: $comparisons.length,
+      totalArticles, // Always the full corpus size
       totalDiscrepancies: stats.totalDiscrepancies,
-      averageDiscrepancy: stats.totalDiffSum / $comparisons.length,
+      averageDiscrepancy: stats.totalDiffSum / $filteredComparisons.length,
       polarityConflicts: stats.polarityConflicts,
       subjectivityConflicts: stats.subjectivityConflicts,
       centralityConflicts: stats.centralityConflicts,
