@@ -16,6 +16,7 @@ export { default as CorrelationChart } from './components/viz/CorrelationChart.s
 export { default as VolumeChart } from './components/viz/VolumeChart.svelte';
 export { default as CentralityHeatmap } from './components/viz/CentralityHeatmap.svelte';
 export { default as SubjectivityChart } from './components/viz/SubjectivityChart.svelte';
+export { default as KeywordFrequencyChart } from './components/viz/KeywordFrequencyChart.svelte';
 
 // Main components
 export { default as ArticleTable } from './components/ArticleTable.svelte';
@@ -31,6 +32,8 @@ export * from './stores.ts';
 export * from './utils.ts';
 export * from './urlState.ts';
 export * from './types/data.ts'; // Also re-exporting types for convenience
+export * from './types/extremeAnalysis.ts';
+export * from './utils/extremeAnalysis.ts';
 
 // Reexport i18n
 export * from './i18n/index.ts';

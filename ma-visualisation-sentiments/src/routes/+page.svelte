@@ -9,6 +9,7 @@
     loadDatasetArticles,
     loadCurrentDataset,
     loadComparisonDatasets,
+    loadCurrentExtremeAnalysis,
     selectedDataset,
     datasetArticles,
     comparisonMode,
@@ -23,6 +24,7 @@
     VolumeChart,
     CentralityHeatmap,
     ComparisonView,
+    KeywordFrequencyChart,
     selectedArticle,
     countryFilters,
     journalFilters,
@@ -51,6 +53,7 @@
   import FilterXIcon from '@lucide/svelte/icons/filter-x';
   import GitCompareIcon from '@lucide/svelte/icons/git-compare';
   import TableIcon from '@lucide/svelte/icons/table';
+  import FlameIcon from '@lucide/svelte/icons/flame';
 
   // État de l'application
   let activeView = $state('charts');
@@ -179,6 +182,16 @@
       } finally {
         isLoadingDataset.set(false);
       }
+    } else if (value === 'extremes') {
+      // Load extreme analysis data if not already loaded
+      isLoadingDataset.set(true);
+      try {
+        await loadCurrentExtremeAnalysis(fetch);
+      } catch (error) {
+        console.error("Failed to load extreme analysis data:", error);
+      } finally {
+        isLoadingDataset.set(false);
+      }
     } else {
       // Disable comparison mode when switching away from comparison view
       if ($comparisonMode) {
@@ -293,6 +306,14 @@
               <GitCompareIcon size={20} />
               <span>{$t.nav.comparison || 'Compare'}</span>
             </button>
+            
+            <button
+              class="nav-tab hover-lift {activeView === 'extremes' ? 'active' : ''}"
+              onclick={() => handleViewChange('extremes')}
+            >
+              <FlameIcon size={20} />
+              <span>{$t.nav.extremes}</span>
+            </button>
           </div>
         </div>
 
@@ -354,6 +375,14 @@
               <GitCompareIcon size={18} />
               <span class="text-xs">{$t.nav.comparison || 'Compare'}</span>
             </button>
+            
+            <button
+              class="nav-tab-mobile hover-lift-sm {activeView === 'extremes' ? 'active' : ''}"
+              onclick={() => handleViewChange('extremes')}
+            >
+              <FlameIcon size={18} />
+              <span class="text-xs">{$t.nav.extremes}</span>
+            </button>
           </div>
         </div>
       </div>
@@ -396,6 +425,14 @@
             </div>
           {:else if activeView === 'comparison'}
             <ComparisonView />
+          {:else if activeView === 'extremes'}
+            <div class="space-y-4 sm:space-y-6">
+              <div class="card variant-glass p-3 sm:p-6 hover-lift">
+                <h2 class="h3 mb-2 text-white text-gradient">{$t.extremeAnalysis.title}</h2>
+                <p class="text-sm text-surface-400 mb-4">{$t.extremeAnalysis.subtitle}</p>
+                <KeywordFrequencyChart />
+              </div>
+            </div>
           {/if}
         </div>
       </div>

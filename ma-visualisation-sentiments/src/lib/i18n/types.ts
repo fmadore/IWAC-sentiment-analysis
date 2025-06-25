@@ -40,6 +40,7 @@ export interface Translations {
     heatmap: string;
     table: string;
     comparison: string;
+    extremes: string;
   };
 
   // Filters
@@ -283,5 +284,41 @@ export interface Translations {
     subjectivityExplanation: string;
     centralityExplanation: string;
     dimensionsNote: string;
+  };
+
+  // Extreme Analysis
+  extremeAnalysis: {
+    title: string;
+    subtitle: string;
+    keywordFrequency: string;
+    keywordsByFacet: string;
+    topKeywords: string;
+    associatedArticles: string;
+    articleCount: string;
+    selectCategory: string;
+    selectKeywordType: string;
+    subjectKeywords: string;
+    spatialKeywords: string;
+    byCountry: string;
+    byNewspaper: string;
+    showMore: string;
+    showLess: string;
+    noData: string;
+    categories: {
+      subjectivityHigh: string;
+      subjectivityLow: string;
+      polarityNegative: string;
+      polarityPositive: string;
+      centralityHigh: string;
+      centralityLow: string;
+    };
+    descriptions: {
+      subjectivityHigh: string;
+      subjectivityLow: string;
+      polarityNegative: string;
+      polarityPositive: string;
+      centralityHigh: string;
+      centralityLow: string;
+    };
   };
 } 

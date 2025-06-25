@@ -15,7 +15,8 @@ export const fr: Translations = {
     volume: 'Volume',
     heatmap: 'Carte de chaleur',
     table: 'Tableau',
-    comparison: 'Comparaison'
+    comparison: 'Comparaison',
+    extremes: 'Analyses extrêmes'
   },
 
   // Filters
@@ -279,5 +280,41 @@ export const fr: Translations = {
     subjectivityExplanation: 'Différences objectivité vs. opinion (échelle 1-5)',
     centralityExplanation: 'Importance de l\'Islam/Musulmans dans l\'article',
     dimensionsNote: 'Astuce : Sélectionnez une seule dimension pour concentrer votre analyse sur des types spécifiques de désaccords. Les scores de divergence seront recalculés selon votre sélection.'
+  },
+
+  // Extreme Analysis
+  extremeAnalysis: {
+    title: 'Analyse des extrêmes lexicaux',
+    subtitle: 'Exploration des mots-clés associés aux sentiments extrêmes',
+    keywordFrequency: 'Fréquence des mots-clés',
+    keywordsByFacet: 'Mots-clés par facette',
+    topKeywords: 'Mots-clés les plus fréquents',
+    associatedArticles: 'Articles associés',
+    articleCount: 'Nombre d\'articles',
+    selectCategory: 'Sélectionner une catégorie',
+    selectKeywordType: 'Type de mots-clés',
+    subjectKeywords: 'Mots-clés sujet',
+    spatialKeywords: 'Mots-clés spatiaux',
+    byCountry: 'Par pays',
+    byNewspaper: 'Par journal',
+    showMore: 'Voir plus',
+    showLess: 'Voir moins',
+    noData: 'Aucune donnée disponible pour cette sélection',
+    categories: {
+      subjectivityHigh: 'Subjectivité élevée (4-5)',
+      subjectivityLow: 'Subjectivité faible (1-2)',
+      polarityNegative: 'Polarité très négative',
+      polarityPositive: 'Polarité très positive',
+      centralityHigh: 'Très central',
+      centralityLow: 'Pas central'
+    },
+    descriptions: {
+      subjectivityHigh: 'Articles avec opinions marquées et émotions fortes',
+      subjectivityLow: 'Articles factuels et informatifs',
+      polarityNegative: 'Articles avec sentiment très négatif',
+      polarityPositive: 'Articles avec sentiment très positif',
+      centralityHigh: 'Islam/musulmans au cœur du sujet',
+      centralityLow: 'Mention périphérique de l\'islam/musulmans'
+    }
   }
 }; 

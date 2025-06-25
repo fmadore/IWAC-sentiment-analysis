@@ -20,7 +20,7 @@ export interface URLState {
   countries?: string[];
   journals?: string[];
   polarities?: string[];
-  subjectivities?: number[];
+  subjectivities?: string[];
   centralities?: string[];
   lang?: Language;
   dataset?: string;
@@ -30,7 +30,7 @@ export interface URLState {
 }
 
 // Valid views that can be set in URL
-const VALID_VIEWS = ['charts', 'trends', 'correlation', 'volume', 'heatmap', 'table', 'comparison'];
+const VALID_VIEWS = ['charts', 'trends', 'correlation', 'volume', 'heatmap', 'table', 'comparison', 'extremes'];
 const VALID_DATASETS = ['chatgpt', 'gemini'];
 
 // URL parameter names
@@ -113,9 +113,7 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
 
   const subjectivities = searchParams.get(URL_PARAMS.subjectivities);
   if (subjectivities) {
-    state.subjectivities = subjectivities.split(',')
-      .map(s => parseInt(s, 10))
-      .filter(n => !isNaN(n) && n >= 1 && n <= 5);
+    state.subjectivities = subjectivities.split(',').filter(Boolean);
   }
 
   const centralities = searchParams.get(URL_PARAMS.centralities);

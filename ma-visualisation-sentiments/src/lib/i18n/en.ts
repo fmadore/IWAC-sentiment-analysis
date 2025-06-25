@@ -15,7 +15,8 @@ export const en: Translations = {
     volume: 'Volume',
     heatmap: 'Heatmap',
     table: 'Table',
-    comparison: 'Comparison'
+    comparison: 'Comparison',
+    extremes: 'Extreme Analysis'
   },
 
   // Filters
@@ -279,5 +280,41 @@ export const en: Translations = {
     subjectivityExplanation: 'Objectivity vs. opinion differences (1-5 scale)',
     centralityExplanation: 'How central Islam/Muslims are to the article',
     dimensionsNote: 'Tip: Select only one dimension to focus your analysis on specific types of disagreements. Discrepancy scores will be recalculated based on your selection.'
+  },
+
+  // Extreme Analysis
+  extremeAnalysis: {
+    title: 'Lexical Extremes Analysis',
+    subtitle: 'Explore keywords associated with extreme sentiments',
+    keywordFrequency: 'Keyword Frequency',
+    keywordsByFacet: 'Keywords by Facet',
+    topKeywords: 'Top Keywords',
+    associatedArticles: 'Associated Articles',
+    articleCount: 'Article Count',
+    selectCategory: 'Select Category',
+    selectKeywordType: 'Keyword Type',
+    subjectKeywords: 'Subject Keywords',
+    spatialKeywords: 'Spatial Keywords',
+    byCountry: 'By Country',
+    byNewspaper: 'By Newspaper',
+    showMore: 'Show More',
+    showLess: 'Show Less',
+    noData: 'No data available for this selection',
+    categories: {
+      subjectivityHigh: 'High Subjectivity (4-5)',
+      subjectivityLow: 'Low Subjectivity (1-2)',
+      polarityNegative: 'Very Negative Polarity',
+      polarityPositive: 'Very Positive Polarity',
+      centralityHigh: 'Very Central',
+      centralityLow: 'Not Central'
+    },
+    descriptions: {
+      subjectivityHigh: 'Articles with strong opinions and emotions',
+      subjectivityLow: 'Factual and informative articles',
+      polarityNegative: 'Articles with very negative sentiment',
+      polarityPositive: 'Articles with very positive sentiment',
+      centralityHigh: 'Islam/Muslims at the heart of the subject',
+      centralityLow: 'Peripheral mention of Islam/Muslims'
+    }
   }
 }; 

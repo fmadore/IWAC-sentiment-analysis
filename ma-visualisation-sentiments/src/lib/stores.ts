@@ -1,6 +1,8 @@
 // Stores Svelte pour la gestion d'état 
 import { writable, derived } from 'svelte/store';
 import type { Article, DatasetOption, ComparisonData, DiscrepancyFilter, SentimentAnalysis, DiscrepancyInfo } from './types/data';
+import type { ExtremeAnalysisData } from './types/extremeAnalysis';
+import { loadExtremeAnalysisData } from './utils/extremeAnalysis';
 import { base } from '$app/paths';
 import { getJournalName } from './utils';
 
@@ -30,6 +32,18 @@ export const selectedDataset = writable<string>('chatgpt');
 export const comparisonMode = writable<boolean>(false);
 export const datasetArticles = writable<Record<string, Article[]>>({});
 export const comparisonDatasets = writable<ComparisonData[] | null>(null);
+
+// Store for extreme analysis data
+export const extremeAnalysisData = writable<Record<string, ExtremeAnalysisData | null>>({
+  chatgpt: null,
+  gemini: null
+});
+
+// Current extreme analysis data (derived from extremeAnalysisData and selectedDataset)
+export const currentExtremeAnalysis = derived(
+  [extremeAnalysisData, selectedDataset],
+  ([$extremeAnalysisData, $selectedDataset]) => $extremeAnalysisData[$selectedDataset] || null
+);
 
 // Store to track which datasets have been loaded to avoid duplicate loading
 // Store for discrepancy filters
@@ -124,7 +138,7 @@ export const availableJournals = derived(
 );
 
 // Fonction pour charger un dataset, renommée pour éviter les conflits avec utils.ts
-export const loadDatasetArticles = async (filePath: string, datasetId: string, fetchFunction: (url: string) => Promise<Response>): Promise<Article[]> => {
+export const loadDatasetArticles = async (filePath: string, datasetId: string, fetchFunction: typeof fetch): Promise<Article[]> => {
   try {
     const resolvedPath = filePath.startsWith('http') ? filePath : `${base}${filePath}`;
     const response = await fetchFunction(resolvedPath);
@@ -154,7 +168,7 @@ export const loadDatasetArticles = async (filePath: string, datasetId: string, f
 };
 
 // New function to load a specific dataset into the datasetArticles store
-export const loadSpecificDataset = async (datasetId: string, fetchFunction: (url: string) => Promise<Response>): Promise<void> => {
+export const loadSpecificDataset = async (datasetId: string, fetchFunction: typeof fetch): Promise<void> => {
   isLoadingDataset.set(true);
   
   try {
@@ -195,7 +209,7 @@ export const loadSpecificDataset = async (datasetId: string, fetchFunction: (url
 };
 
 // Function to load all available datasets
-export const loadAllDatasets = async (fetchFunction: (url: string) => Promise<Response>): Promise<void> => {
+export const loadAllDatasets = async (fetchFunction: typeof fetch): Promise<void> => {
   const datasets = await new Promise<DatasetOption[]>(resolve => {
     availableDatasets.subscribe(value => {
       resolve(value);
@@ -209,7 +223,7 @@ export const loadAllDatasets = async (fetchFunction: (url: string) => Promise<Re
 };
 
 // Function to load only the currently selected dataset (lazy loading)
-export const loadCurrentDataset = async (fetchFunction: (url: string) => Promise<Response>): Promise<void> => {
+export const loadCurrentDataset = async (fetchFunction: typeof fetch): Promise<void> => {
   const currentDatasetId = await new Promise<string>(resolve => {
     selectedDataset.subscribe(value => {
       resolve(value);
@@ -242,7 +256,7 @@ export const loadCurrentDataset = async (fetchFunction: (url: string) => Promise
 };
 
 // Function to ensure comparison datasets are loaded (only when needed)
-export const loadComparisonDatasets = async (fetchFunction: (url: string) => Promise<Response>): Promise<void> => {
+export const loadComparisonDatasets = async (fetchFunction: typeof fetch): Promise<void> => {
   const currentDatasets = await new Promise<Record<string, Article[]>>(resolve => {
     datasetArticles.subscribe(value => {
       resolve(value);
@@ -264,6 +278,41 @@ export const loadComparisonDatasets = async (fetchFunction: (url: string) => Pro
     await Promise.all(
       datasetsToLoad.map(datasetId => loadSpecificDataset(datasetId, fetchFunction))
     );
+  }
+};
+
+// Function to load extreme analysis data for the current dataset
+export const loadCurrentExtremeAnalysis = async (fetchFunction: typeof fetch): Promise<void> => {
+  const currentDatasetId = await new Promise<string>(resolve => {
+    selectedDataset.subscribe(value => {
+      resolve(value);
+    })();
+  });
+  
+  // Check if extreme analysis is already loaded
+  const currentExtremeData = await new Promise<Record<string, ExtremeAnalysisData | null>>(resolve => {
+    extremeAnalysisData.subscribe(value => {
+      resolve(value);
+    })();
+  });
+  
+  if (currentExtremeData[currentDatasetId]) {
+    // Already loaded
+    return;
+  }
+  
+  try {
+    const data = await loadExtremeAnalysisData(currentDatasetId as 'chatgpt' | 'gemini', fetchFunction);
+    extremeAnalysisData.update(current => ({
+      ...current,
+      [currentDatasetId]: data
+    }));
+  } catch (error) {
+    console.error(`Failed to load extreme analysis data for ${currentDatasetId}:`, error);
+    extremeAnalysisData.update(current => ({
+      ...current,
+      [currentDatasetId]: null
+    }));
   }
 };
 
