@@ -33,6 +33,7 @@
   let chartContainer: HTMLDivElement;
   let chartInstance: ECharts | null = null;
   let isContainerReady = $state(false);
+  let resizeCleanup: (() => void) | null = null;
   
   // Derived data
   let categoryData = $derived(() => {
@@ -58,6 +59,19 @@
         try {
           chartInstance = init(chartContainer);
           isContainerReady = true;
+          
+          // Add window resize listener
+          const handleResize = () => {
+            if (chartInstance) {
+              chartInstance.resize();
+            }
+          };
+          window.addEventListener('resize', handleResize);
+          
+          // Store cleanup function
+          resizeCleanup = () => {
+            window.removeEventListener('resize', handleResize);
+          };
         } catch (error) {
           console.error('Failed to create chart instance:', error);
         }
@@ -68,6 +82,9 @@
   onDestroy(() => {
     if (chartInstance) {
       chartInstance.dispose();
+    }
+    if (resizeCleanup) {
+      resizeCleanup();
     }
   });
 
@@ -123,8 +140,8 @@
         }
       },
       grid: {
-        left: '40%', // Even more space for labels
-        right: '10%',
+        left: '35%', // Space for labels but not too much
+        right: '5%', // Use more of the available width
         top: 60,
         bottom: 40,
         containLabel: true
@@ -216,6 +233,9 @@
     
     // Set the options on the chart instance
     chartInstance.setOption(options);
+    
+    // Ensure chart resizes to fill container
+    chartInstance.resize();
   }
 
   function adjustBrightness(color: string, percent: number): string {
@@ -316,26 +336,22 @@
   <!-- Category description -->
   {#if selectedCategory}
     {@const descriptionKey = selectedCategory.replace('_extreme', '').replace('polarity_very_', 'polarity').replace('centrality_', 'centrality') as keyof typeof $t.extremeAnalysis.descriptions}
-    <div class="category-description">
-      <p class="text-sm text-surface-400">
-        {$t.extremeAnalysis.descriptions[descriptionKey]}
-      </p>
-    </div>
+    {@const description = $t.extremeAnalysis.descriptions[descriptionKey]}
+    {#if description && description.trim()}
+      <div class="category-description">
+        <p class="text-sm text-surface-400">
+          {description}
+        </p>
+      </div>
+    {/if}
   {/if}
 
   <!-- Chart -->
   <div 
     bind:this={chartContainer}
     class="chart-container" 
-    style="min-height: {chartHeight}px;"
-  >
-    <!-- Loading message only shows when container is not ready -->
-    {#if !isContainerReady}
-      <div class="no-data-message">
-        <p>{$t.messages.loading}</p>
-      </div>
-    {/if}
-  </div>
+    style="min-height: {chartHeight}px; height: {chartHeight}px;"
+  ></div>
 
   <!-- Statistics -->
   {#if categoryData()}
@@ -465,21 +481,6 @@
 
   /* Ensure ECharts canvas fills the container properly */
   .chart-container > div {
-    width: 100% !important;
-    height: 100% !important;
-  }
-
-  .no-data-message {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 1.125rem;
-  }
-
-  /* Ensure Chart component takes full width */
-  .chart-container :global(.svelte-echarts-container) {
     width: 100% !important;
     height: 100% !important;
   }
