@@ -35,6 +35,7 @@
   import ArticleTable from '$lib/components/ArticleTable.svelte';
   import ArticleDetail from '$lib/components/ArticleDetail.svelte';
   import AnalysisInfo from '$lib/components/AnalysisInfo.svelte';
+  import SEOHead from '$lib/components/SEOHead.svelte';
   import CentralityFilter from '$lib/components/ui/CentralityFilter.svelte';
   import ClearFiltersButton from '$lib/components/ui/ClearFiltersButton.svelte';
   import CSVExportButton from '$lib/components/ui/CSVExportButton.svelte';
@@ -188,6 +189,9 @@
     updateURL(activeView);
   }
 </script>
+
+<!-- Dynamic SEO Head -->
+<SEOHead view={activeView} comparisonMode={$comparisonMode} />
 
 <main class="main-container container max-w-6xl mx-auto p-2 sm:p-4 md:p-6">
   <div class="mb-4 sm:mb-6">

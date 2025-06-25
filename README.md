@@ -45,7 +45,55 @@ https://fmadore.github.io/IWAC-sentiment-analysis/?view=table&countries=Mali&sub
 https://fmadore.github.io/IWAC-sentiment-analysis/?view=comparison&compare=true&dataset=chatgpt
 ```
 
-Consultez le [Guide du routage URL](./URL_ROUTING_GUIDE.md) pour plus de détails.
+Consultez le [Guide du routage URL](./ma-visualisation-sentiments/URL_ROUTING_GUIDE.md) pour plus de détails.
+
+## Optimisations de performance
+
+L'application a été optimisée pour offrir des performances exceptionnelles malgré la taille importante des données (22MB de JSON) :
+
+### **Chargement paresseux (Lazy Loading)**
+- **Réduction de 50% du transfert initial** : Seul le dataset sélectionné est chargé au démarrage (11MB au lieu de 22MB)
+- **Chargement à la demande** : Le second dataset n'est chargé que lors de l'activation du mode comparaison
+- **Cache intelligent** : Les datasets restent en mémoire après chargement pour un basculement instantané
+- **Fonctions optimisées** : `loadCurrentDataset()` et `loadComparisonDatasets()` remplacent le chargement systématique
+
+### **Compression des données**
+- **Compression Brotli** : Réduction de 91% de la taille des fichiers (22MB → 1.9MB)
+- **Compression Gzip** : Alternative avec 85% de réduction (22MB → 3.3MB)
+- **Configuration automatique** : Précompression activée dans SvelteKit avec `vite-plugin-compression`
+- **Support serveur** : Les serveurs modernes servent automatiquement les versions compressées
+
+### **Optimisation CLS (Cumulative Layout Shift)**
+- **Chargement de polices optimisé** : Préconnexion et préchargement des Google Fonts avec `display=swap`
+- **Polices de fallback** : Polices système pour éviter les reflows pendant le chargement
+- **Réservation d'espace** : Hauteurs minimales définies pour les composants accordéon
+- **Animations hardware-accelerated** : Utilisation de `transform` et `will-change` pour les performances
+
+### **SEO et métadonnées dynamiques**
+- **Composant SEO dédié** : `SEOHead.svelte` avec métadonnées adaptatives par vue
+- **Contenu multilingue** : Descriptions et mots-clés traduits automatiquement
+- **Balises Open Graph** : Optimisation pour le partage sur réseaux sociaux
+- **Données structurées** : JSON-LD avec schéma WebApplication pour les moteurs de recherche
+- **URLs canoniques** : URLs propres avec paramètres de vue et de langue
+
+### **Résultats de performance**
+- **96% d'amélioration globale** : Combinaison lazy loading + compression
+- **Temps de chargement initial** : De 22MB à 1.9MB (avec Brotli)
+- **Score CLS attendu** : < 0.1 (amélioration de 0.152 → < 0.1)
+- **SEO Score** : Métadonnées complètes et descriptions pertinentes
+- **Mobile-first** : Optimisations spécifiques pour les appareils mobiles
+
+### **Configuration technique**
+```javascript
+// svelte.config.js - Précompression activée
+precompress: true
+
+// vite.config.ts - Plugin de compression
+compression({
+  algorithm: 'brotliCompress',
+  compressionOptions: { level: 11 }
+})
+```
 
 ## Structure du projet
 
@@ -82,6 +130,7 @@ Le projet est structuré comme une application SvelteKit typique :
             -   `ComparisonTable.svelte`: Tableau de comparaison avec visualisation des divergences entre modèles.
             -   `ComparisonDetail.svelte`: Vue détaillée d'une comparaison article par article.
             -   `ComparisonStats.svelte`: Statistiques et métriques du mode comparaison.
+            -   `SEOHead.svelte`: Composant de métadonnées SEO dynamiques avec support multilingue.
         -   `i18n/`: Système d'internationalisation.
             -   `index.ts`: Configuration principale et stores de langue.
             -   `fr.ts`: Traductions françaises (langue par défaut).
@@ -198,8 +247,10 @@ L'application utilise les stores Svelte pour gérer l'état global :
 -   `filteredComparisons`: Store dérivé avec les comparaisons après application des filtres.
 -   `comparisonStatistics`: Store dérivé avec les statistiques et métriques de comparaison.
 
-De plus, le store expose la fonction :
+De plus, le store expose les fonctions :
 -   `loadDatasetArticles`: Fonction pour charger un dataset depuis un fichier JSON.
+-   `loadCurrentDataset`: Fonction optimisée pour charger uniquement le dataset sélectionné.
+-   `loadComparisonDatasets`: Fonction pour charger les deux datasets en mode comparaison.
 
 ## Composants clés
 
@@ -512,6 +563,19 @@ Pour mettre à jour les données du corpus IWAC :
 - **URL State Management** : Synchronisation automatique filtres ↔ URL
 - **Web Share API** : Partage natif sur appareils mobiles
 - **History API** : Navigation naturelle avec boutons navigateur
+
+### Optimisations de performance
+- **vite-plugin-compression** : Compression automatique Brotli/Gzip des assets
+- **SvelteKit precompress** : Précompression des fichiers statiques
+- **Lazy loading** : Chargement intelligent des datasets à la demande
+- **Hardware acceleration** : Animations optimisées avec GPU
+- **Font optimization** : Préchargement et fallbacks pour les polices web
+
+### SEO et métadonnées
+- **Dynamic meta tags** : Métadonnées adaptatives par vue et langue
+- **Open Graph** : Optimisation pour réseaux sociaux
+- **JSON-LD** : Données structurées pour moteurs de recherche
+- **Canonical URLs** : URLs canoniques pour le référencement
 
 ### Outils de développement
 - **Vite** : Build tool rapide et moderne

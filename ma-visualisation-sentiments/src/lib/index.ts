@@ -24,6 +24,7 @@ export { default as AnalysisInfo } from './components/AnalysisInfo.svelte';
 export { default as ComparisonView } from './components/ComparisonView.svelte';
 export { default as ComparisonTable } from './components/ComparisonTable.svelte';
 export { default as ComparisonStats } from './components/ComparisonStats.svelte';
+export { default as SEOHead } from './components/SEOHead.svelte';
 
 // Reexport stores and utils
 export * from './stores.ts';
