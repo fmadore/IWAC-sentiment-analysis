@@ -7,7 +7,8 @@
     currentDatasetArticles, 
     isLoadingDataset, 
     loadDatasetArticles,
-    loadAllDatasets,
+    loadCurrentDataset,
+    loadComparisonDatasets,
     selectedDataset,
     datasetArticles,
     comparisonMode,
@@ -76,20 +77,16 @@
     // Set initial HTML lang attribute
     updateHtmlLang($currentLanguage);
 
-    // Load all datasets at startup
+    // Load only the current dataset at startup (lazy loading)
     const loadData = async () => {
       isLoadingDataset.set(true);
       selectedArticle.set(null);
       
       try {
-        // Load all available datasets
-        await loadAllDatasets(fetch);
-        
-        // For backward compatibility, also set currentDatasetArticles
-        const articles = $datasetArticles[$selectedDataset] || [];
-        currentDatasetArticles.set(articles);
+        // Load only the currently selected dataset
+        await loadCurrentDataset(fetch);
       } catch (error) {
-        console.error("Failed to load datasets:", error);
+        console.error("Failed to load dataset:", error);
       } finally {
         isLoadingDataset.set(false);
       }
@@ -107,10 +104,23 @@
     // Subscribe to language changes to update HTML lang attribute
     const unsubscribeLanguage = currentLanguage.subscribe(updateHtmlLang);
 
-    // Subscribe to dataset changes to update currentDatasetArticles and URL
-    const unsubscribeDataset = selectedDataset.subscribe(datasetId => {
-      const articles = $datasetArticles[datasetId] || [];
-      currentDatasetArticles.set(articles);
+    // Subscribe to dataset changes to load new dataset and update URL
+    const unsubscribeDataset = selectedDataset.subscribe(async (datasetId) => {
+      // Load the new dataset if not already loaded
+      const currentDatasets = $datasetArticles;
+      if (!currentDatasets[datasetId] || currentDatasets[datasetId].length === 0) {
+        isLoadingDataset.set(true);
+        try {
+          await loadCurrentDataset(fetch);
+        } catch (error) {
+          console.error("Failed to load dataset:", error);
+        } finally {
+          isLoadingDataset.set(false);
+        }
+      } else {
+        // Dataset already loaded, just update currentDatasetArticles
+        currentDatasetArticles.set(currentDatasets[datasetId]);
+      }
       
       // Only update URL if browser is available
       if (browser) {
@@ -149,7 +159,7 @@
     detailedArticle = null;
   }
 
-  function handleViewChange(value: string) {
+  async function handleViewChange(value: string) {
     activeView = value;
     
     // Automatically manage comparison mode based on view
@@ -157,6 +167,16 @@
       // Enable comparison mode when switching to comparison view
       if (!$comparisonMode) {
         comparisonMode.set(true);
+      }
+      
+      // Load comparison datasets if not already loaded
+      isLoadingDataset.set(true);
+      try {
+        await loadComparisonDatasets(fetch);
+      } catch (error) {
+        console.error("Failed to load comparison datasets:", error);
+      } finally {
+        isLoadingDataset.set(false);
       }
     } else {
       // Disable comparison mode when switching away from comparison view

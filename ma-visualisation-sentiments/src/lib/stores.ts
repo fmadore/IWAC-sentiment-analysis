@@ -7,17 +7,17 @@ import { getJournalName } from './utils';
 // Store pour les articles du dataset actuel
 export const currentDatasetArticles = writable<Article[]>([]);
 
-// Store pour l'article actuellement sélectionné
-export const selectedArticle = writable<Article | null>(null);
-
-// Store pour l'état de chargement
+// Store pour indiquer si un dataset est en cours de chargement
 export const isLoadingDataset = writable<boolean>(false);
+
+// Store pour l'article sélectionné
+export const selectedArticle = writable<Article | null>(null);
 
 // Stores pour les filtres
 export const countryFilters = writable<string[]>([]);
 export const journalFilters = writable<string[]>([]);
 export const polarityFilters = writable<string[]>([]);
-export const subjectivityFilters = writable<number[]>([]);
+export const subjectivityFilters = writable<string[]>([]);
 export const centralityFilters = writable<string[]>([]);
 
 // New stores for dataset management
@@ -31,6 +31,7 @@ export const comparisonMode = writable<boolean>(false);
 export const datasetArticles = writable<Record<string, Article[]>>({});
 export const comparisonDatasets = writable<ComparisonData[] | null>(null);
 
+// Store to track which datasets have been loaded to avoid duplicate loading
 // Store for discrepancy filters
 export const discrepancyFilters = writable<DiscrepancyFilter>({
   minDifference: 0,
@@ -78,7 +79,7 @@ export const filteredArticles = derived(
         if (score === null || score === undefined) {
           return false;
         }
-        if (!subjectivities.includes(score)) {
+        if (!subjectivities.includes(score.toString())) {
           return false;
         }
       }
@@ -205,6 +206,65 @@ export const loadAllDatasets = async (fetchFunction: (url: string) => Promise<Re
   await Promise.all(
     datasets.map(dataset => loadSpecificDataset(dataset.id, fetchFunction))
   );
+};
+
+// Function to load only the currently selected dataset (lazy loading)
+export const loadCurrentDataset = async (fetchFunction: (url: string) => Promise<Response>): Promise<void> => {
+  const currentDatasetId = await new Promise<string>(resolve => {
+    selectedDataset.subscribe(value => {
+      resolve(value);
+    })();
+  });
+  
+  // Check if dataset is already loaded
+  const currentDatasets = await new Promise<Record<string, Article[]>>(resolve => {
+    datasetArticles.subscribe(value => {
+      resolve(value);
+    })();
+  });
+  
+  if (currentDatasets[currentDatasetId] && currentDatasets[currentDatasetId].length > 0) {
+    // Dataset already loaded, just update currentDatasetArticles
+    currentDatasetArticles.set(currentDatasets[currentDatasetId]);
+    return;
+  }
+  
+  // Load only the current dataset
+  await loadSpecificDataset(currentDatasetId, fetchFunction);
+  
+  // Update currentDatasetArticles
+  const updatedDatasets = await new Promise<Record<string, Article[]>>(resolve => {
+    datasetArticles.subscribe(value => {
+      resolve(value);
+    })();
+  });
+  currentDatasetArticles.set(updatedDatasets[currentDatasetId] || []);
+};
+
+// Function to ensure comparison datasets are loaded (only when needed)
+export const loadComparisonDatasets = async (fetchFunction: (url: string) => Promise<Response>): Promise<void> => {
+  const currentDatasets = await new Promise<Record<string, Article[]>>(resolve => {
+    datasetArticles.subscribe(value => {
+      resolve(value);
+    })();
+  });
+  
+  const datasetsToLoad: string[] = [];
+  
+  // Check which datasets need to be loaded
+  if (!currentDatasets['chatgpt'] || currentDatasets['chatgpt'].length === 0) {
+    datasetsToLoad.push('chatgpt');
+  }
+  if (!currentDatasets['gemini'] || currentDatasets['gemini'].length === 0) {
+    datasetsToLoad.push('gemini');
+  }
+  
+  if (datasetsToLoad.length > 0) {
+    // Load only the missing datasets in parallel
+    await Promise.all(
+      datasetsToLoad.map(datasetId => loadSpecificDataset(datasetId, fetchFunction))
+    );
+  }
 };
 
 // Fonction utilitaire pour mapper les propriétés des articles depuis différents formats
