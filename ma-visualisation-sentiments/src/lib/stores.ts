@@ -38,6 +38,9 @@ export const discrepancyFilters = writable<DiscrepancyFilter>({
   dimensions: ['polarity', 'subjectivity', 'centrality']
 });
 
+// Store for the currently selected comparison
+export const selectedComparison = writable<ComparisonData | null>(null);
+
 // Store dérivé pour les articles filtrés avec logique hiérarchique pays -> journaux
 export const filteredArticles = derived(
   [datasetArticles, selectedDataset, countryFilters, journalFilters, polarityFilters, subjectivityFilters, centralityFilters, comparisonMode],

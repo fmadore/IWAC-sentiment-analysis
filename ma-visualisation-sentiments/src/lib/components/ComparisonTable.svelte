@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { filteredComparisons, selectedArticle } from '$lib/stores';
+  import { filteredComparisons, selectedComparison } from '$lib/stores';
   import { t, currentLanguage } from '$lib/i18n';
   import { translateSentimentValue } from '$lib/i18n/utils';
   import { getJournalName } from '$lib/utils';
@@ -15,7 +15,8 @@
   
   // Pagination
   let currentPage = $state(1);
-  let itemsPerPage = $state(50);
+  let itemsPerPage = $state(25);
+  let itemsPerPageOptions = [10, 25, 50, 100];
   
   // Check mobile on mount
   $effect(() => {
@@ -69,6 +70,51 @@
   const startIndex = $derived((currentPage - 1) * itemsPerPage);
   const endIndex = $derived(Math.min(startIndex + itemsPerPage, totalItems));
   const paginatedComparisons = $derived(sortedComparisons.slice(startIndex, endIndex));
+
+  // Pagination functions
+  function goToPage(page: number) {
+    if (page >= 1 && page <= totalPages) {
+      currentPage = page;
+    }
+  }
+
+  function previousPage() {
+    if (currentPage > 1) {
+      currentPage--;
+    }
+  }
+
+  function nextPage() {
+    if (currentPage < totalPages) {
+      currentPage++;
+    }
+  }
+
+  function changeItemsPerPage(newItemsPerPage: number) {
+    itemsPerPage = newItemsPerPage;
+    currentPage = 1; // Reset to first page
+  }
+
+  // Generate visible page numbers
+  const visiblePages = $derived.by(() => {
+    const pages: number[] = [];
+    const maxVisible = isMobile ? 3 : 5;
+    const half = Math.floor(maxVisible / 2);
+    
+    let start = Math.max(1, currentPage - half);
+    let end = Math.min(totalPages, start + maxVisible - 1);
+    
+    // Adjust start if we're near the end
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+    
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    
+    return pages;
+  });
   
   function formatDate(dateStr: string | null | undefined): string {
     if (!dateStr) return 'N/A';
@@ -91,36 +137,88 @@
   }
   
   function selectComparison(comparison: ComparisonData) {
-    selectedArticle.set(comparison.article);
+    selectedComparison.set(comparison);
   }
 </script>
 
 <div class="comparison-table-container">
-  <!-- Controls -->
-  <div class="controls-section mb-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-    <!-- View Mode Toggle -->
-    <div class="view-controls flex gap-2">
-      <button
-        class="btn btn-sm {viewMode === 'table' ? 'variant-filled-primary' : 'variant-soft-surface'}"
-        onclick={() => viewMode = 'table'}
-        disabled={isMobile}
-      >
-        <TableIcon size={16} />
-        <span>{$t.common?.tableView || 'Table'}</span>
-      </button>
-      <button
-        class="btn btn-sm {viewMode === 'cards' ? 'variant-filled-primary' : 'variant-soft-surface'}"
-        onclick={() => viewMode = 'cards'}
-      >
-        <LayoutGridIcon size={16} />
-        <span>{$t.common?.cardView || 'Cards'}</span>
-      </button>
+  <!-- Controls and Pagination Info -->
+  <div class="controls-section mb-4">
+    <!-- First row: View controls and results info -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-3">
+      <!-- View Mode Toggle -->
+      <div class="view-controls flex gap-2">
+        <button
+          class="btn btn-sm {viewMode === 'table' ? 'variant-filled-primary' : 'variant-soft-surface'}"
+          onclick={() => viewMode = 'table'}
+          disabled={isMobile}
+        >
+          <TableIcon size={16} />
+          <span>{$t.common?.tableView || 'Table'}</span>
+        </button>
+        <button
+          class="btn btn-sm {viewMode === 'cards' ? 'variant-filled-primary' : 'variant-soft-surface'}"
+          onclick={() => viewMode = 'cards'}
+        >
+          <LayoutGridIcon size={16} />
+          <span>{$t.common?.cardView || 'Cards'}</span>
+        </button>
+      </div>
+      
+      <!-- Results info and items per page -->
+      <div class="flex items-center gap-4">
+        <div class="text-sm text-white/60">
+          {$t.table?.showingItems || 'Showing'} {startIndex + 1}-{endIndex} {$t.common?.of || 'of'} {totalItems}
+        </div>
+        <div class="flex items-center gap-2">
+          <label for="items-per-page" class="text-sm text-white whitespace-nowrap">{$t.table?.itemsPerPage || 'Items per page'}:</label>
+          <select 
+            id="items-per-page"
+            bind:value={itemsPerPage}
+            onchange={(e) => changeItemsPerPage(Number((e.target as HTMLSelectElement)?.value))}
+            class="select select-sm bg-surface-700 text-white border-surface-500"
+          >
+            {#each itemsPerPageOptions as option}
+              <option value={option}>{option}</option>
+            {/each}
+          </select>
+        </div>
+      </div>
     </div>
     
-    <!-- Results info -->
-    <div class="text-sm text-white/60">
-      {$t.table?.showingItems || 'Showing'} {startIndex + 1}-{endIndex} {$t.common?.of || 'of'} {totalItems}
-    </div>
+    <!-- Second row: Pagination controls -->
+    {#if totalPages > 1}
+      <div class="flex justify-center">
+        <div class="pagination-controls flex items-center gap-2">
+          <button 
+            class="btn btn-sm variant-soft-surface" 
+            onclick={previousPage}
+            disabled={currentPage === 1}
+            title={$t.common?.previous || 'Previous page'}
+          >
+            ← {isMobile ? '' : ($t.common?.previous || 'Previous')}
+          </button>
+          
+          {#each visiblePages as page}
+            <button 
+              class="btn btn-sm {page === currentPage ? 'variant-filled-primary' : 'variant-soft-surface'}"
+              onclick={() => goToPage(page)}
+            >
+              {page}
+            </button>
+          {/each}
+          
+          <button 
+            class="btn btn-sm variant-soft-surface" 
+            onclick={nextPage}
+            disabled={currentPage === totalPages}
+            title={$t.common?.next || 'Next page'}
+          >
+            {isMobile ? '' : ($t.common?.next || 'Next')} →
+          </button>
+        </div>
+      </div>
+    {/if}
   </div>
   
   {#if viewMode === 'table' && !isMobile}
@@ -311,31 +409,7 @@
       {/each}
     </div>
   {/if}
-  
-  <!-- Pagination -->
-  {#if totalPages > 1}
-    <div class="pagination-controls mt-6 flex items-center justify-center gap-2">
-      <button 
-        class="btn btn-sm variant-soft-surface"
-        onclick={() => currentPage = Math.max(1, currentPage - 1)}
-        disabled={currentPage === 1}
-      >
-        {$t.common?.previous || 'Previous'}
-      </button>
-      
-      <span class="text-sm text-white/60 px-4">
-        {currentPage} / {totalPages}
-      </span>
-      
-      <button 
-        class="btn btn-sm variant-soft-surface"
-        onclick={() => currentPage = Math.min(totalPages, currentPage + 1)}
-        disabled={currentPage === totalPages}
-      >
-        {$t.common?.next || 'Next'}
-      </button>
-    </div>
-  {/if}
+
 </div>
 
 <style>
@@ -422,6 +496,39 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+
+  /* Pagination styles */
+  .controls-section {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .pagination-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .pagination-controls button {
+    min-width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pagination-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .select-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+  }
   
   /* Responsive adjustments */
   @media (max-width: 640px) {
@@ -431,6 +538,21 @@
     
     .comparison-card {
       padding: 0.75rem;
+    }
+
+    .controls-section {
+      padding: 0.75rem;
+    }
+    
+    .pagination-controls {
+      gap: 0.25rem;
+    }
+    
+    .pagination-controls button {
+      min-width: 2rem;
+      height: 2rem;
+      font-size: 0.75rem;
+      padding: 0.25rem;
     }
   }
 </style>

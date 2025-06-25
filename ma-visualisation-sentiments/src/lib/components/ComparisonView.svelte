@@ -1,12 +1,19 @@
 <script lang="ts">
-  import { filteredComparisons, comparisonMode } from '$lib/stores';
+  import { filteredComparisons, comparisonMode, selectedComparison } from '$lib/stores';
   import DiscrepancyFilter from './ui/DiscrepancyFilter.svelte';
   import ComparisonTable from './ComparisonTable.svelte';
   import ComparisonStats from './ComparisonStats.svelte';
+  import ComparisonDetail from './ComparisonDetail.svelte';
   import { t } from '$lib/i18n';
   import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
+  import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
   
   const hasData = $derived($filteredComparisons.length > 0);
+  const showDetail = $derived($selectedComparison !== null);
+
+  function goBackToList() {
+    selectedComparison.set(null);
+  }
 </script>
 
 <div class="comparison-view">
@@ -18,6 +25,23 @@
       <p class="text-white/60 max-w-md mx-auto">
         {$t.comparison?.enableComparisonDescription || 'Click the comparison button in the dataset picker to compare ChatGPT and Gemini analyses.'}
       </p>
+    </div>
+  {:else if showDetail}
+    <!-- Detailed Comparison View -->
+    <div class="detail-view">
+      <!-- Back button -->
+      <div class="mb-6">
+        <button 
+          class="btn variant-soft-surface gap-2" 
+          onclick={goBackToList}
+        >
+          <ArrowLeftIcon size={16} />
+          {$t.common?.viewLess || 'Back to List'}
+        </button>
+      </div>
+      
+      <!-- Detailed comparison -->
+      <ComparisonDetail comparison={$selectedComparison} />
     </div>
   {:else}
     <!-- Stats Overview -->

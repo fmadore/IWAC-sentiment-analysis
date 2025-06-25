@@ -230,7 +230,7 @@ export const en: Translations = {
     articles: 'articles',
     article: 'article',
     viewMore: 'View more',
-    viewLess: 'View less',
+    viewLess: 'Back to List',
     previous: 'Previous',
     next: 'Next',
     sortBy: 'Sort by',

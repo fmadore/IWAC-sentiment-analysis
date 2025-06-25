@@ -230,7 +230,7 @@ export const fr: Translations = {
     articles: 'articles',
     article: 'article',
     viewMore: 'Voir plus',
-    viewLess: 'Voir moins',
+    viewLess: 'Retour à la liste',
     previous: 'Précédent',
     next: 'Suivant',
     sortBy: 'Trier par',
