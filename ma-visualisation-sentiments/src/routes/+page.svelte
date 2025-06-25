@@ -823,24 +823,7 @@
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
   }
   
-  /* Navigation tabs desktop */
-  .nav-tab {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.25rem;
-    border-radius: var(--radius-md);
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    color: rgba(255, 255, 255, 0.9);
-    transition: all var(--transition-normal);
-    font-weight: 500;
-    font-size: 0.875rem;
-    white-space: nowrap;
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-  }
+  /* Navigation tabs desktop - removed unused .nav-tab */
 
   /* Compact navigation tabs for better space usage */
   .nav-tab-compact {
@@ -862,7 +845,6 @@
     min-width: fit-content;
   }
   
-  .nav-tab::before,
   .nav-tab-compact::before {
     content: '';
     position: absolute;
@@ -875,7 +857,6 @@
     transition: opacity var(--transition-normal);
   }
   
-  .nav-tab:hover,
   .nav-tab-compact:hover {
     background: var(--glass-hover-bg);
     border-color: var(--glass-hover-border);
@@ -884,12 +865,10 @@
     color: white;
   }
   
-  .nav-tab:hover::before,
   .nav-tab-compact:hover::before {
     opacity: 1;
   }
   
-  .nav-tab.active,
   .nav-tab-compact.active {
     background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
     border-color: rgba(255, 255, 255, 0.3);
@@ -900,7 +879,6 @@
     transform: translateY(-1px);
   }
   
-  .nav-tab.active:hover,
   .nav-tab-compact.active:hover {
     transform: translateY(-3px);
     box-shadow: 
@@ -971,18 +949,15 @@
   }
   
   /* Enhanced icon styles */
-  .nav-tab :global(svg),
   .nav-tab-mobile :global(svg) {
     opacity: 0.9;
     transition: opacity var(--transition-fast);
   }
   
-  .nav-tab:hover :global(svg),
   .nav-tab-mobile:hover :global(svg) {
     opacity: 1;
   }
   
-  .nav-tab.active :global(svg),
   .nav-tab-mobile.active :global(svg) {
     opacity: 1;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));

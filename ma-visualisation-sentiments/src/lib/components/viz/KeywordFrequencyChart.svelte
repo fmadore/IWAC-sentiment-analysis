@@ -479,11 +479,7 @@
     flex-direction: column;
   }
 
-  /* Ensure ECharts canvas fills the container properly */
-  .chart-container > div {
-    width: 100% !important;
-    height: 100% !important;
-  }
+
 
   .statistics-row {
     display: flex;
