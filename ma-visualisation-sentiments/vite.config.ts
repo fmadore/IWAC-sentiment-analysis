@@ -1,8 +1,33 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
+import compression from 'vite-plugin-compression';
 
 export default defineConfig({
-	plugins: [sveltekit()],
+	plugins: [
+		sveltekit(),
+		// Add gzip compression for static assets
+		compression({
+			algorithm: 'gzip',
+			ext: '.gz',
+			threshold: 1024, // Only compress files larger than 1KB
+			compressionOptions: {
+				level: 9 // Maximum compression
+			},
+			filter: /\.(js|mjs|json|css|html|svg)$/i, // Include JSON files
+			verbose: true
+		}),
+		// Add brotli compression for even better compression
+		compression({
+			algorithm: 'brotliCompress',
+			ext: '.br',
+			threshold: 1024,
+			compressionOptions: {
+				level: 11 // Maximum brotli compression
+			},
+			filter: /\.(js|mjs|json|css|html|svg)$/i,
+			verbose: true
+		})
+	],
 	optimizeDeps: {
 		exclude: [
 			'@lucide/svelte/icons/x',

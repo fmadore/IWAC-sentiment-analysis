@@ -19,7 +19,7 @@ const config = {
 			pages: 'build',
 			assets: 'build',
 			fallback: '404.html', // '200.html' or '404.html' - consider adding this if you use client-side routing extensively and need a fallback for direct URL access.
-			precompress: false,
+			precompress: true,
 			strict: true
 		}),
 		paths: {
