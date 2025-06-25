@@ -43,8 +43,11 @@
   // Calculate dynamic chart height based on number of keywords
   let chartHeight = $derived(() => {
     // Base height + (number of keywords * spacing per keyword)
-    // Minimum 450px, with ~40px per keyword for better spacing
-    return Math.max(450, showTopN * 40 + 120);
+    // Minimum 500px, with ~50px per keyword for better spacing
+    // For larger numbers of keywords, we need more space
+    const baseHeight = 180; // Space for title, margins, etc.
+    const keywordHeight = showTopN <= 15 ? 45 : 55; // More space for many keywords
+    return Math.max(500, showTopN * keywordHeight + baseHeight);
   });
 
   onMount(() => {
@@ -148,12 +151,13 @@
         data: reversedData.map(item => item.keyword),
         axisLabel: {
           color: 'rgba(255, 255, 255, 0.9)',
-          fontSize: 11,
+          fontSize: showTopN > 20 ? 10 : 11, // Smaller font for many keywords
           interval: 0,
           formatter: (value: string) => {
-            // Even shorter truncation for better fit
-            if (value.length > 20) {
-              return value.substring(0, 18) + '...';
+            // Adjust truncation based on number of keywords
+            const maxLength = showTopN > 20 ? 16 : 20;
+            if (value.length > maxLength) {
+              return value.substring(0, maxLength - 2) + '...';
             }
             return value;
           },
@@ -175,7 +179,7 @@
       },
       series: [{
         type: 'bar',
-        barWidth: '60%', // Control bar width for better spacing
+        barWidth: showTopN > 20 ? '50%' : '60%', // Thinner bars for many keywords
         data: reversedData.map(item => ({
           value: item.count,
           itemStyle: {
@@ -325,6 +329,7 @@
     class="chart-container" 
     style="min-height: {chartHeight}px;"
   >
+    <!-- Loading message only shows when container is not ready -->
     {#if !isContainerReady}
       <div class="no-data-message">
         <p>{$t.messages.loading}</p>
@@ -456,6 +461,12 @@
     width: 100%;
     display: flex;
     flex-direction: column;
+  }
+
+  /* Ensure ECharts canvas fills the container properly */
+  .chart-container > div {
+    width: 100% !important;
+    height: 100% !important;
   }
 
   .no-data-message {
