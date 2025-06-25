@@ -51,17 +51,9 @@
     // Use a timeout to ensure DOM is fully rendered and styled
     setTimeout(() => {
       if (chartContainer) {
-        console.log('Container dimensions:', {
-          clientWidth: chartContainer.clientWidth,
-          clientHeight: chartContainer.clientHeight,
-          offsetWidth: chartContainer.offsetWidth,
-          offsetHeight: chartContainer.offsetHeight
-        });
-        
         // Initialize ECharts instance directly
         try {
           chartInstance = init(chartContainer);
-          console.log('Chart instance created successfully');
           isContainerReady = true;
         } catch (error) {
           console.error('Failed to create chart instance:', error);
