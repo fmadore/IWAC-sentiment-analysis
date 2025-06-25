@@ -41,7 +41,7 @@
         </button>
       </h3>
       {#if openSections.includes('polarite')}
-        <div class="accordion-content p-3">
+        <div class="accordion-content p-3" style="min-height: 200px;">
           <p class="mb-2">{$t.analysis.polarityDescription}</p>
           <ul class="list-disc ml-5 space-y-1">
             <li><span class="chip variant-filled-success">{$t.sentiment.veryPositive}</span> - {$t.analysis.veryPositiveDesc}</li>
@@ -62,7 +62,7 @@
         </button>
       </h3>
       {#if openSections.includes('subjectivite')}
-        <div class="accordion-content p-3">
+        <div class="accordion-content p-3" style="min-height: 180px;">
           <p class="mb-2">{$t.analysis.subjectivityDescription}</p>
           <ul class="list-disc ml-5 space-y-1">
             <li><span class="chip variant-filled-success">1</span> <strong>{$t.subjectivity.factual}</strong> - {$t.analysis.factualDesc}</li>
@@ -82,7 +82,7 @@
         </button>
       </h3>
       {#if openSections.includes('centralite')}
-        <div class="accordion-content p-3">
+        <div class="accordion-content p-3" style="min-height: 160px;">
           <p class="mb-2">{$t.analysis.centralityDescription}</p>
           <ul class="list-disc ml-5 space-y-1">
             <li><span class="chip variant-filled-tertiary">{$t.centrality.veryCentral}</span> {$t.analysis.veryCentralDesc}</li>
@@ -102,7 +102,7 @@
         </button>
       </h3>
       {#if openSections.includes('methodologie')}
-        <div class="accordion-content p-3">
+        <div class="accordion-content p-3" style="min-height: 300px;">
           <div class="space-y-4">
             <div>
               <h4 class="h6 mb-2 text-white font-semibold">{$t.analysis.modelUsed}</h4>
@@ -214,7 +214,7 @@
         </button>
       </h3>
       {#if openSections.includes('limites')}
-        <div class="accordion-content p-3">
+        <div class="accordion-content p-3" style="min-height: 200px;">
           <p class="text-white mb-3">{$t.analysis.limitationsDescription}</p>
           {#if $comparisonMode}
             <div class="comparison-limitations">
@@ -420,6 +420,9 @@ Assurez-vous que votre réponse est uniquement le JSON structuré demandé, sans
     overflow: hidden;
     background: var(--glass-bg);
     backdrop-filter: blur(16px);
+    /* Performance optimizations for CLS prevention */
+    contain: layout style;
+    will-change: auto;
   }
   
   .accordion-item {
@@ -452,6 +455,15 @@ Assurez-vous que votre réponse est uniquement le JSON structuré demandé, sans
     background: rgba(0, 0, 0, 0.2);
     color: white;
     backdrop-filter: blur(8px);
+    /* Prevent layout shift during animations */
+    will-change: height;
+    overflow: hidden;
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Force hardware acceleration */
+    transform: translateZ(0);
+    /* Ensure smooth animations */
+    backface-visibility: hidden;
+    perspective: 1000px;
   }
   
   .h6 {

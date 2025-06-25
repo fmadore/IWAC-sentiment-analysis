@@ -195,7 +195,25 @@
   </div>
 
   {#if $isLoadingDataset}
-    <div class="alert variant-filled-warning p-4 mb-4 sm:mb-6">{$t.messages.loadingData}</div>
+    <div class="loading-container">
+      <!-- Loading skeleton to prevent CLS -->
+      <div class="loading-skeleton h-32 rounded-lg mb-4 sm:mb-6"></div>
+      <div class="alert variant-filled-warning p-4 mb-4 sm:mb-6">{$t.messages.loadingData}</div>
+      
+      <!-- Reserve space for filters -->
+      <div class="filters-skeleton mb-4 sm:mb-6">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+          {#each Array(5) as _}
+            <div class="loading-skeleton h-10 rounded-lg"></div>
+          {/each}
+        </div>
+      </div>
+      
+      <!-- Reserve space for content -->
+      <div class="content-skeleton">
+        <div class="loading-skeleton h-96 rounded-lg"></div>
+      </div>
+    </div>
   {:else if currentArticles.length > 0}
     <!-- Filters - Improved responsive grid -->
     <div class="filters-grid-responsive mb-4 sm:mb-6">
@@ -807,6 +825,30 @@
     opacity: 1;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
   }
+
+  /* CLS prevention and performance optimizations */
+  .loading-container {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  .loading-skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 0.5rem;
+  }
+  
+  @keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  /* Accordion optimization moved to AnalysisInfo.svelte */
 
   /* Main Container Spacing Optimization */
   .main-container {
