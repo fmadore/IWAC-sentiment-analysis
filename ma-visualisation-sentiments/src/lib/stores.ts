@@ -1,5 +1,5 @@
 // Stores Svelte pour la gestion d'état 
-import { writable, derived } from 'svelte/store';
+import { writable, derived, get } from 'svelte/store';
 import type { Article, DatasetOption, ComparisonData, DiscrepancyFilter, SentimentAnalysis, DiscrepancyInfo } from './types/data';
 import type { ExtremeAnalysisData } from './types/extremeAnalysis';
 import { loadExtremeAnalysisData } from './utils/extremeAnalysis';
@@ -283,23 +283,19 @@ export const loadComparisonDatasets = async (fetchFunction: typeof fetch): Promi
 
 // Function to load extreme analysis data for the current dataset
 export const loadCurrentExtremeAnalysis = async (fetchFunction: typeof fetch): Promise<void> => {
-  const currentDatasetId = await new Promise<string>(resolve => {
-    selectedDataset.subscribe(value => {
-      resolve(value);
-    })();
-  });
+  // Get current dataset ID using get() helper
+  const currentDatasetId = get(selectedDataset);
   
-  // Check if extreme analysis is already loaded
-  const currentExtremeData = await new Promise<Record<string, ExtremeAnalysisData | null>>(resolve => {
-    extremeAnalysisData.subscribe(value => {
-      resolve(value);
-    })();
-  });
+  // Check if extreme analysis is already loaded using get() helper
+  const currentExtremeData = get(extremeAnalysisData);
   
   if (currentExtremeData[currentDatasetId]) {
     // Already loaded
+    console.log(`Extreme analysis for ${currentDatasetId} already loaded`);
     return;
   }
+  
+  console.log(`Loading extreme analysis data for ${currentDatasetId}...`);
   
   try {
     const data = await loadExtremeAnalysisData(currentDatasetId as 'chatgpt' | 'gemini', fetchFunction);
@@ -307,6 +303,7 @@ export const loadCurrentExtremeAnalysis = async (fetchFunction: typeof fetch): P
       ...current,
       [currentDatasetId]: data
     }));
+    console.log(`Successfully loaded extreme analysis data for ${currentDatasetId}`);
   } catch (error) {
     console.error(`Failed to load extreme analysis data for ${currentDatasetId}:`, error);
     extremeAnalysisData.update(current => ({

@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { currentExtremeAnalysis } from '$lib/stores';
   import { t, currentLanguage } from '$lib/i18n';
   import type { ExtremeCategory, KeywordType, ExtremeCategoryAnalysis } from '$lib/types/extremeAnalysis';
   import { getExtremeCategoryConfig, getTopKeywords } from '$lib/utils/extremeAnalysis';
-  import { Chart } from 'svelte-echarts';
   import { init, use } from 'echarts/core';
+  import type { ECharts } from 'echarts/core';
   import { BarChart } from 'echarts/charts';
   import {
     TitleComponent,
@@ -29,26 +29,63 @@
   // Component props
   let selectedCategory = $state<ExtremeCategory>('polarity_very_negative');
   let selectedKeywordType = $state<KeywordType>('subject');
-  let showTopN = $state(15);
+  let showTopN = $state(10);
+  let chartContainer: HTMLDivElement;
+  let chartInstance: ECharts | null = null;
+  let isContainerReady = $state(false);
   
   // Derived data
-  let chartOptions = $state<EChartsOption | null>(null);
   let categoryData = $derived(() => {
     if (!$currentExtremeAnalysis) return null;
     return $currentExtremeAnalysis.analysis[selectedCategory];
   });
 
+  // Calculate dynamic chart height based on number of keywords
+  let chartHeight = $derived(() => {
+    // Base height + (number of keywords * spacing per keyword)
+    // Minimum 450px, with ~40px per keyword for better spacing
+    return Math.max(450, showTopN * 40 + 120);
+  });
+
+  onMount(() => {
+    // Use a timeout to ensure DOM is fully rendered and styled
+    setTimeout(() => {
+      if (chartContainer) {
+        console.log('Container dimensions:', {
+          clientWidth: chartContainer.clientWidth,
+          clientHeight: chartContainer.clientHeight,
+          offsetWidth: chartContainer.offsetWidth,
+          offsetHeight: chartContainer.offsetHeight
+        });
+        
+        // Initialize ECharts instance directly
+        try {
+          chartInstance = init(chartContainer);
+          console.log('Chart instance created successfully');
+          isContainerReady = true;
+        } catch (error) {
+          console.error('Failed to create chart instance:', error);
+        }
+      }
+    }, 100);
+  });
+
+  onDestroy(() => {
+    if (chartInstance) {
+      chartInstance.dispose();
+    }
+  });
+
   // Update chart when data or selection changes
   $effect(() => {
-    const data = categoryData();
-    if (data) {
+    if (isContainerReady && chartInstance && categoryData()) {
       updateChart();
     }
   });
 
   function updateChart() {
     const data = categoryData();
-    if (!data) return;
+    if (!data || !chartInstance) return;
 
     const keywords = selectedKeywordType === 'subject' 
       ? data.subject 
@@ -60,7 +97,7 @@
     // Reverse for horizontal display (highest at top)
     const reversedData = [...topKeywords].reverse();
     
-    chartOptions = {
+    const options = {
       backgroundColor: 'transparent',
       title: {
         text: $t.extremeAnalysis.topKeywords,
@@ -70,7 +107,7 @@
           fontWeight: 'bold'
         },
         left: 'center',
-        top: 10
+        top: 15
       },
       tooltip: {
         trigger: 'axis',
@@ -91,7 +128,7 @@
         }
       },
       grid: {
-        left: '15%',
+        left: '40%', // Even more space for labels
         right: '10%',
         top: 60,
         bottom: 40,
@@ -119,21 +156,34 @@
         data: reversedData.map(item => item.keyword),
         axisLabel: {
           color: 'rgba(255, 255, 255, 0.9)',
-          fontSize: 13,
+          fontSize: 11,
           interval: 0,
           formatter: (value: string) => {
-            // Truncate long keywords
-            return value.length > 25 ? value.substring(0, 25) + '...' : value;
-          }
+            // Even shorter truncation for better fit
+            if (value.length > 20) {
+              return value.substring(0, 18) + '...';
+            }
+            return value;
+          },
+          margin: 15, // More margin for better spacing
+          overflow: 'truncate',
+          width: 150 // Set a fixed width for labels
         },
         axisLine: {
           lineStyle: {
             color: 'rgba(255, 255, 255, 0.2)'
           }
+        },
+        axisTick: {
+          show: false
+        },
+        splitLine: {
+          show: false // Remove horizontal grid lines for cleaner look
         }
       },
       series: [{
         type: 'bar',
+        barWidth: '60%', // Control bar width for better spacing
         data: reversedData.map(item => ({
           value: item.count,
           itemStyle: {
@@ -167,6 +217,9 @@
         animationDelay: (idx: number) => idx * 30
       }]
     };
+    
+    // Set the options on the chart instance
+    chartInstance.setOption(options);
   }
 
   function adjustBrightness(color: string, percent: number): string {
@@ -248,6 +301,20 @@
         </button>
       </div>
     </div>
+
+    <div class="control-group">
+      <label for="keywords-count" class="control-label">
+        {$t.extremeAnalysis.numberOfKeywords || 'Number of Keywords'}
+      </label>
+      <input
+        id="keywords-count"
+        type="number"
+        min="5"
+        max="25"
+        bind:value={showTopN}
+        class="number-input variant-filled-surface"
+      />
+    </div>
   </div>
 
   <!-- Category description -->
@@ -261,19 +328,14 @@
   {/if}
 
   <!-- Chart -->
-  <div class="chart-container">
-    {#if chartOptions}
-      <Chart 
-        {init}
-        options={chartOptions} 
-      />
-    {:else if !$currentExtremeAnalysis}
+  <div 
+    bind:this={chartContainer}
+    class="chart-container" 
+    style="min-height: {chartHeight}px;"
+  >
+    {#if !isContainerReady}
       <div class="no-data-message">
         <p>{$t.messages.loading}</p>
-      </div>
-    {:else}
-      <div class="no-data-message">
-        <p>{$t.extremeAnalysis.noData}</p>
       </div>
     {/if}
   </div>
@@ -298,49 +360,58 @@
   .keyword-frequency-container {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 2rem;
     height: 100%;
+    min-height: 800px;
   }
 
   .controls-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 2rem;
+    gap: 3rem;
     align-items: flex-end;
+    padding-bottom: 1rem;
   }
 
   .control-group {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
     flex: 1;
-    min-width: 250px;
+    min-width: 280px;
   }
 
   .control-label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    margin-bottom: 0.25rem;
   }
 
-  .select {
+  .select, .number-input {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: white;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
     border-radius: 0.5rem;
     transition: all 0.2s ease;
+    font-size: 0.9rem;
+    min-height: 44px;
   }
 
-  .select:hover {
+  .select:hover, .number-input:hover {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.2);
   }
 
-  .select:focus {
+  .select:focus, .number-input:focus {
     outline: none;
     border-color: rgba(59, 130, 246, 0.5);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .number-input {
+    max-width: 120px;
   }
 
   .btn-group {
@@ -352,13 +423,17 @@
   }
 
   .btn {
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1.25rem;
     border-radius: 0;
     border: none;
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     font-weight: 500;
     transition: all 0.2s ease;
     cursor: pointer;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .btn:first-child {
@@ -366,20 +441,29 @@
   }
 
   .category-description {
-    padding: 1rem;
+    padding: 1.25rem;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.5rem;
+    border-radius: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .category-description p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
   }
 
   .chart-container {
     flex: 1;
-    min-height: 600px;
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 0.75rem;
-    padding: 1rem;
+    padding: 1.5rem;
     position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
   }
 
   .no-data-message {
@@ -391,50 +475,114 @@
     font-size: 1.125rem;
   }
 
+  /* Ensure Chart component takes full width */
+  .chart-container :global(.svelte-echarts-container) {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
   .statistics-row {
     display: flex;
-    gap: 2rem;
-    padding: 1rem;
+    gap: 3rem;
+    padding: 1.25rem;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.5rem;
+    border-radius: 0.75rem;
+    margin-top: 0.5rem;
   }
 
   .stat-item {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.75rem;
     align-items: center;
   }
 
   .stat-label {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.95rem;
+    font-weight: 500;
   }
 
   .stat-value {
     color: white;
-    font-weight: 600;
-    font-size: 1rem;
+    font-weight: 700;
+    font-size: 1.1rem;
   }
 
   /* Mobile responsiveness */
   @media (max-width: 768px) {
+    .keyword-frequency-container {
+      gap: 1.5rem;
+      min-height: 600px;
+    }
+
     .controls-row {
       flex-direction: column;
-      gap: 1rem;
+      gap: 1.5rem;
+      padding-bottom: 0.5rem;
     }
 
     .control-group {
       min-width: 100%;
     }
 
+    .control-label {
+      font-size: 0.95rem;
+    }
+
+    .select, .btn, .number-input {
+      font-size: 0.85rem;
+      padding: 0.625rem 1rem;
+      min-height: 40px;
+    }
+
+    .number-input {
+      max-width: 100px;
+    }
+
     .chart-container {
-      min-height: 400px;
+      padding: 1rem;
+    }
+
+    .category-description {
+      padding: 1rem;
+    }
+
+    .category-description p {
+      font-size: 0.9rem;
     }
 
     .statistics-row {
       flex-direction: column;
-      gap: 0.75rem;
+      gap: 1rem;
+      padding: 1rem;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+    }
+
+    .stat-value {
+      font-size: 1rem;
+    }
+  }
+
+  /* Large screens optimization */
+  @media (min-width: 1200px) {
+    .keyword-frequency-container {
+      min-height: 900px;
+    }
+
+    .chart-container {
+      padding: 2rem;
+    }
+
+    .controls-row {
+      gap: 4rem;
+    }
+
+    .control-group {
+      min-width: 320px;
     }
   }
 </style> 

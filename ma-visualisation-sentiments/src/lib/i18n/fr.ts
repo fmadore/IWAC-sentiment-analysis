@@ -293,6 +293,7 @@ export const fr: Translations = {
     articleCount: 'Nombre d\'articles',
     selectCategory: 'Sélectionner une catégorie',
     selectKeywordType: 'Type de mots-clés',
+    numberOfKeywords: 'Nombre de mots-clés',
     subjectKeywords: 'Mots-clés sujet',
     spatialKeywords: 'Mots-clés spatiaux',
     byCountry: 'Par pays',

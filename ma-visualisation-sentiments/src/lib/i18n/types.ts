@@ -297,6 +297,7 @@ export interface Translations {
     articleCount: string;
     selectCategory: string;
     selectKeywordType: string;
+    numberOfKeywords: string;
     subjectKeywords: string;
     spatialKeywords: string;
     byCountry: string;

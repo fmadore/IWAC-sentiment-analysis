@@ -64,6 +64,25 @@
   // Get articles for the current dataset
   let currentArticles = $derived($datasetArticles[$selectedDataset] || []);
 
+  // Reactive statement to handle extreme analysis data loading when dataset changes
+  $effect(() => {
+    if (activeView === 'extremes' && $selectedDataset && browser) {
+      console.log('Loading extreme analysis for dataset:', $selectedDataset);
+      // Set loading state and load extreme analysis data for the current dataset
+      isLoadingDataset.set(true);
+      loadCurrentExtremeAnalysis(fetch)
+        .then(() => {
+          console.log('Extreme analysis loaded successfully for:', $selectedDataset);
+        })
+        .catch(error => {
+          console.error("Failed to load extreme analysis data:", error);
+        })
+        .finally(() => {
+          isLoadingDataset.set(false);
+        });
+    }
+  });
+
   onMount(() => {
     // Initialize URL state management first
     const urlView = initializeURLState();
@@ -249,71 +268,146 @@
       <div class="navigation-container glass-medium">
 
         <!-- Navigation Desktop -->
-        <div class="hidden md:flex items-center justify-center">
-          <div class="flex space-x-3">
+        <div class="hidden lg:flex items-center justify-center">
+          <div class="flex space-x-2">
             <button
-              class="nav-tab hover-lift {activeView === 'charts' ? 'active' : ''}"
+              class="nav-tab-compact hover-lift {activeView === 'charts' ? 'active' : ''}"
               onclick={() => handleViewChange('charts')}
             >
-              <ChartIcon size={20} />
+              <ChartIcon size={18} />
               <span>{$t.nav.charts}</span>
             </button>
             
             <button
-              class="nav-tab hover-lift {activeView === 'trends' ? 'active' : ''}"
+              class="nav-tab-compact hover-lift {activeView === 'trends' ? 'active' : ''}"
               onclick={() => handleViewChange('trends')}
             >
-              <TrendingUpIcon size={20} />
+              <TrendingUpIcon size={18} />
               <span>{$t.nav.trends}</span>
             </button>
             
             <button
-              class="nav-tab hover-lift {activeView === 'correlation' ? 'active' : ''}"
+              class="nav-tab-compact hover-lift {activeView === 'correlation' ? 'active' : ''}"
               onclick={() => handleViewChange('correlation')}
             >
-              <BarChart3Icon size={20} />
+              <BarChart3Icon size={18} />
               <span>{$t.nav.distribution}</span>
             </button>
             
             <button
-              class="nav-tab hover-lift {activeView === 'volume' ? 'active' : ''}"
+              class="nav-tab-compact hover-lift {activeView === 'volume' ? 'active' : ''}"
               onclick={() => handleViewChange('volume')}
             >
-              <AreaChartIcon size={20} />
+              <AreaChartIcon size={18} />
               <span>{$t.nav.volume}</span>
             </button>
             
             <button
-              class="nav-tab hover-lift {activeView === 'heatmap' ? 'active' : ''}"
+              class="nav-tab-compact hover-lift {activeView === 'heatmap' ? 'active' : ''}"
               onclick={() => handleViewChange('heatmap')}
             >
-              <ActivityIcon size={20} />
+              <ActivityIcon size={18} />
               <span>{$t.nav.heatmap}</span>
             </button>
             
             <button
-              class="nav-tab hover-lift {activeView === 'table' ? 'active' : ''}"
+              class="nav-tab-compact hover-lift {activeView === 'table' ? 'active' : ''}"
               onclick={() => handleViewChange('table')}
             >
-              <TableIcon size={20} />
+              <TableIcon size={18} />
               <span>{$t.nav.table}</span>
             </button>
             
             <button
-              class="nav-tab hover-lift {activeView === 'comparison' ? 'active' : ''}"
+              class="nav-tab-compact hover-lift {activeView === 'comparison' ? 'active' : ''}"
               onclick={() => handleViewChange('comparison')}
             >
-              <GitCompareIcon size={20} />
+              <GitCompareIcon size={18} />
               <span>{$t.nav.comparison || 'Compare'}</span>
             </button>
             
             <button
-              class="nav-tab hover-lift {activeView === 'extremes' ? 'active' : ''}"
+              class="nav-tab-compact hover-lift {activeView === 'extremes' ? 'active' : ''}"
               onclick={() => handleViewChange('extremes')}
             >
-              <FlameIcon size={20} />
+              <FlameIcon size={18} />
               <span>{$t.nav.extremes}</span>
             </button>
+          </div>
+        </div>
+
+        <!-- Navigation Medium Desktop (2-row layout) -->
+        <div class="hidden md:flex lg:hidden items-center justify-center">
+          <div class="flex flex-col gap-2">
+            <!-- First row -->
+            <div class="flex space-x-2 justify-center">
+              <button
+                class="nav-tab-compact hover-lift {activeView === 'charts' ? 'active' : ''}"
+                onclick={() => handleViewChange('charts')}
+              >
+                <ChartIcon size={16} />
+                <span class="text-sm">{$t.nav.charts}</span>
+              </button>
+              
+              <button
+                class="nav-tab-compact hover-lift {activeView === 'trends' ? 'active' : ''}"
+                onclick={() => handleViewChange('trends')}
+              >
+                <TrendingUpIcon size={16} />
+                <span class="text-sm">{$t.nav.trends}</span>
+              </button>
+              
+              <button
+                class="nav-tab-compact hover-lift {activeView === 'correlation' ? 'active' : ''}"
+                onclick={() => handleViewChange('correlation')}
+              >
+                <BarChart3Icon size={16} />
+                <span class="text-sm">{$t.nav.distribution}</span>
+              </button>
+              
+              <button
+                class="nav-tab-compact hover-lift {activeView === 'volume' ? 'active' : ''}"
+                onclick={() => handleViewChange('volume')}
+              >
+                <AreaChartIcon size={16} />
+                <span class="text-sm">{$t.nav.volume}</span>
+              </button>
+            </div>
+            
+            <!-- Second row -->
+            <div class="flex space-x-2 justify-center">
+              <button
+                class="nav-tab-compact hover-lift {activeView === 'heatmap' ? 'active' : ''}"
+                onclick={() => handleViewChange('heatmap')}
+              >
+                <ActivityIcon size={16} />
+                <span class="text-sm">{$t.nav.heatmap}</span>
+              </button>
+              
+              <button
+                class="nav-tab-compact hover-lift {activeView === 'table' ? 'active' : ''}"
+                onclick={() => handleViewChange('table')}
+              >
+                <TableIcon size={16} />
+                <span class="text-sm">{$t.nav.table}</span>
+              </button>
+              
+              <button
+                class="nav-tab-compact hover-lift {activeView === 'comparison' ? 'active' : ''}"
+                onclick={() => handleViewChange('comparison')}
+              >
+                <GitCompareIcon size={16} />
+                <span class="text-sm">{$t.nav.comparison || 'Compare'}</span>
+              </button>
+              
+              <button
+                class="nav-tab-compact hover-lift {activeView === 'extremes' ? 'active' : ''}"
+                onclick={() => handleViewChange('extremes')}
+              >
+                <FlameIcon size={16} />
+                <span class="text-sm">{$t.nav.extremes}</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -426,10 +520,12 @@
           {:else if activeView === 'comparison'}
             <ComparisonView />
           {:else if activeView === 'extremes'}
-            <div class="space-y-4 sm:space-y-6">
-              <div class="card variant-glass p-3 sm:p-6 hover-lift">
-                <h2 class="h3 mb-2 text-white text-gradient">{$t.extremeAnalysis.title}</h2>
-                <p class="text-sm text-surface-400 mb-4">{$t.extremeAnalysis.subtitle}</p>
+            <div class="extreme-analysis-view">
+              <div class="card variant-glass p-4 sm:p-6 lg:p-8 hover-lift extreme-analysis-card">
+                <div class="extreme-analysis-header">
+                  <h2 class="h2 mb-3 text-white text-gradient">{$t.extremeAnalysis.title}</h2>
+                  <p class="text-base text-surface-300 mb-6 leading-relaxed">{$t.extremeAnalysis.subtitle}</p>
+                </div>
                 <KeywordFrequencyChart />
               </div>
             </div>
@@ -745,8 +841,29 @@
     overflow: hidden;
     cursor: pointer;
   }
+
+  /* Compact navigation tabs for better space usage */
+  .nav-tab-compact {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.875rem;
+    border-radius: var(--radius-md);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: rgba(255, 255, 255, 0.9);
+    transition: all var(--transition-normal);
+    font-weight: 500;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    min-width: fit-content;
+  }
   
-  .nav-tab::before {
+  .nav-tab::before,
+  .nav-tab-compact::before {
     content: '';
     position: absolute;
     top: 0;
@@ -758,7 +875,8 @@
     transition: opacity var(--transition-normal);
   }
   
-  .nav-tab:hover {
+  .nav-tab:hover,
+  .nav-tab-compact:hover {
     background: var(--glass-hover-bg);
     border-color: var(--glass-hover-border);
     transform: translateY(-2px);
@@ -766,11 +884,13 @@
     color: white;
   }
   
-  .nav-tab:hover::before {
+  .nav-tab:hover::before,
+  .nav-tab-compact:hover::before {
     opacity: 1;
   }
   
-  .nav-tab.active {
+  .nav-tab.active,
+  .nav-tab-compact.active {
     background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
     border-color: rgba(255, 255, 255, 0.3);
     color: white;
@@ -780,7 +900,8 @@
     transform: translateY(-1px);
   }
   
-  .nav-tab.active:hover {
+  .nav-tab.active:hover,
+  .nav-tab-compact.active:hover {
     transform: translateY(-3px);
     box-shadow: 
       0 12px 40px rgba(59, 130, 246, 0.4),
@@ -891,6 +1012,38 @@
   
   /* Accordion optimization moved to AnalysisInfo.svelte */
 
+  /* Extreme Analysis View Styles */
+  .extreme-analysis-view {
+    width: 100%;
+    min-height: calc(100vh - 200px);
+  }
+
+  .extreme-analysis-card {
+    min-height: 850px;
+    width: 100%;
+  }
+
+  .extreme-analysis-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .extreme-analysis-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #FF6B35 0%, #F7931E 50%, #FFD23F 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.75rem;
+  }
+
+  .extreme-analysis-header p {
+    max-width: 800px;
+    line-height: 1.6;
+  }
+
   /* Main Container Spacing Optimization */
   .main-container {
     margin-top: 0;
@@ -902,12 +1055,30 @@
       margin-top: 0;
       padding-top: 0.75rem;
     }
+
+    .extreme-analysis-card {
+      min-height: 900px;
+    }
   }
 
   @media (min-width: 1024px) {
     .main-container {
       margin-top: 0;
       padding-top: 1rem;
+    }
+
+    .extreme-analysis-card {
+      min-height: 950px;
+    }
+
+    .extreme-analysis-header h2 {
+      font-size: 2.25rem;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .extreme-analysis-card {
+      min-height: 1000px;
     }
   }
 
