@@ -407,10 +407,28 @@ export const filteredComparisons = derived(
 
 // Comparison statistics
 export const comparisonStatistics = derived(
-  [comparisonData, filteredComparisons],
-  ([$allComparisons, $filteredComparisons]) => {
-    // Total articles always comes from the full dataset
-    const totalArticles = $allComparisons.length;
+  [comparisonData, filteredComparisons, countryFilters, journalFilters],
+  ([$allComparisons, $filteredComparisons, $countries, $journals]) => {
+    // Calculate total articles after applying country and journal filters
+    let totalArticles = $allComparisons.length;
+    
+    // If country or journal filters are applied, count only articles that match those filters
+    if ($countries.length > 0 || $journals.length > 0) {
+      totalArticles = $allComparisons.filter(comparison => {
+        // Apply country filter
+        if ($countries.length > 0 && !$countries.includes(comparison.article.Country || '')) {
+          return false;
+        }
+        
+        // Apply journal filter
+        const journalName = getJournalName(comparison.article);
+        if ($journals.length > 0 && !$journals.includes(journalName)) {
+          return false;
+        }
+        
+        return true;
+      }).length;
+    }
     
     if ($filteredComparisons.length === 0) {
       return {
@@ -446,7 +464,7 @@ export const comparisonStatistics = derived(
     });
     
     return {
-      totalArticles, // Always the full corpus size
+      totalArticles, // Respects country and journal filters
       totalDiscrepancies: stats.totalDiscrepancies,
       averageDiscrepancy: stats.totalDiffSum / $filteredComparisons.length,
       polarityConflicts: stats.polarityConflicts,
