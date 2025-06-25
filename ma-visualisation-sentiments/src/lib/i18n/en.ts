@@ -273,6 +273,11 @@ export const en: Translations = {
     noDiscrepancies: 'No Discrepancies Found',
     adjustFilters: 'Try adjusting your filters to see articles with differences between models.',
     excludeNonApplicable: 'Exclude "Non Applicable" Articles',
-    excludeNonApplicableDescription: 'Hide articles where one model marked centrality as "Non applicable", which creates artificially high discrepancies.'
+    excludeNonApplicableDescription: 'Hide articles where one model marked centrality as "Non applicable", which creates artificially high discrepancies.',
+    dimensionsExplanation: 'Select which dimensions to analyze for disagreements between models:',
+    polarityExplanation: 'Positive/Negative sentiment differences',
+    subjectivityExplanation: 'Objectivity vs. opinion differences (1-5 scale)',
+    centralityExplanation: 'How central Islam/Muslims are to the article',
+    dimensionsNote: 'Tip: Select only one dimension to focus your analysis on specific types of disagreements. Discrepancy scores will be recalculated based on your selection.'
   }
 }; 

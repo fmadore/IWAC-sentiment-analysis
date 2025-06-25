@@ -278,5 +278,10 @@ export interface Translations {
     adjustFilters: string;
     excludeNonApplicable: string;
     excludeNonApplicableDescription: string;
+    dimensionsExplanation: string;
+    polarityExplanation: string;
+    subjectivityExplanation: string;
+    centralityExplanation: string;
+    dimensionsNote: string;
   };
 } 

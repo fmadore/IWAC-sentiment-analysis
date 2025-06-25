@@ -328,11 +328,42 @@ function calculateDiscrepancies(
   };
 }
 
-// Filtered comparisons based on discrepancy filters
+// Filtered comparisons based on discrepancy filters with dimension-aware scoring
 export const filteredComparisons = derived(
   [comparisonData, discrepancyFilters, countryFilters, journalFilters],
   ([$comparisons, $filters, $countries, $journals]) => {
-    return $comparisons.filter(comparison => {
+    return $comparisons.map(comparison => {
+      // Calculate dimension-aware discrepancy based on selected dimensions
+      const originalDisc = comparison.discrepancies;
+      let filteredDiscrepancy = {
+        polarityDiff: $filters.dimensions.includes('polarity') ? originalDisc.polarityDiff : 0,
+        subjectivityDiff: $filters.dimensions.includes('subjectivity') ? originalDisc.subjectivityDiff : 0,
+        centralityDiff: $filters.dimensions.includes('centrality') ? originalDisc.centralityDiff : 0,
+        totalDiff: 0,
+        hasConflict: false
+      };
+      
+      // If no dimensions selected, use all dimensions
+      if ($filters.dimensions.length === 0) {
+        filteredDiscrepancy = originalDisc;
+      } else {
+        // Recalculate total based on selected dimensions
+        filteredDiscrepancy.totalDiff = filteredDiscrepancy.polarityDiff + 
+                                       filteredDiscrepancy.subjectivityDiff + 
+                                       filteredDiscrepancy.centralityDiff;
+        
+        // Recalculate conflict status based on selected dimensions
+        filteredDiscrepancy.hasConflict = 
+          (filteredDiscrepancy.polarityDiff >= 3) || 
+          (filteredDiscrepancy.subjectivityDiff >= 3) || 
+          (filteredDiscrepancy.centralityDiff >= 3);
+      }
+      
+      return {
+        ...comparison,
+        discrepancies: filteredDiscrepancy
+      };
+    }).filter(comparison => {
       // Apply country filter
       if ($countries.length > 0 && !$countries.includes(comparison.article.Country || '')) {
         return false;
@@ -355,7 +386,7 @@ export const filteredComparisons = derived(
         }
       }
       
-      // Apply discrepancy filters
+      // Apply discrepancy filters using the filtered discrepancy
       const disc = comparison.discrepancies;
       
       // Check total difference range
@@ -363,18 +394,13 @@ export const filteredComparisons = derived(
         return false;
       }
       
-      // Check selected dimensions - if no dimensions are selected, show all
+      // Check if there's any difference in the selected dimensions
       if ($filters.dimensions.length === 0) {
-        return true;
+        return true; // Show all if no dimensions selected
       }
       
-      // Check if there's a difference in any of the selected dimensions
-      let hasRelevantDiff = false;
-      if ($filters.dimensions.includes('polarity') && disc.polarityDiff > 0) hasRelevantDiff = true;
-      if ($filters.dimensions.includes('subjectivity') && disc.subjectivityDiff > 0) hasRelevantDiff = true;
-      if ($filters.dimensions.includes('centrality') && disc.centralityDiff > 0) hasRelevantDiff = true;
-      
-      return hasRelevantDiff;
+      // Only show articles that have differences in the selected dimensions
+      return disc.totalDiff > 0;
     });
   }
 );

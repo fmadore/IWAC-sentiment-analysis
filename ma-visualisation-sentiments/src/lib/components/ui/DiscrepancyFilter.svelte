@@ -145,7 +145,25 @@
   
   <!-- Dimension Filters -->
   <div class="mb-4">
-    <span class="text-sm text-white/60 mb-2 block">{$t.comparison?.compareDimensions || 'Compare Dimensions'}:</span>
+    <div class="flex items-center gap-2 mb-2">
+      <span class="text-sm text-white/60">{$t.comparison?.compareDimensions || 'Compare Dimensions'}:</span>
+      <div class="info-tooltip">
+        <span class="info-icon">ⓘ</span>
+        <div class="tooltip-content">
+          <p class="text-xs text-white/90 mb-2">
+            {$t.comparison?.dimensionsExplanation || 'Select which dimensions to analyze for disagreements between models:'}
+          </p>
+          <ul class="text-xs text-white/80 space-y-1">
+            <li><strong>{$t.analysis?.polaritySection || 'Polarity'}:</strong> {$t.comparison?.polarityExplanation || 'Positive/Negative sentiment differences'}</li>
+            <li><strong>{$t.analysis?.subjectivitySection || 'Subjectivity'}:</strong> {$t.comparison?.subjectivityExplanation || 'Objectivity vs. opinion differences (1-5 scale)'}</li>
+            <li><strong>{$t.analysis?.centralitySection || 'Centrality'}:</strong> {$t.comparison?.centralityExplanation || 'How central Islam/Muslims are to the article'}</li>
+          </ul>
+          <p class="text-xs text-white/70 mt-2 italic">
+            {$t.comparison?.dimensionsNote || 'Tip: Select only one dimension to focus your analysis on specific types of disagreements. Discrepancy scores will be recalculated based on your selection.'}
+          </p>
+        </div>
+      </div>
+    </div>
     <div class="flex flex-wrap gap-2">
       <button
         class="chip hover-lift {selectedDimensions.includes('polarity') ? 'variant-filled-primary hover-glow' : 'variant-soft-surface'}"
@@ -366,6 +384,99 @@
 
     .toggle-switch.active .toggle-thumb {
       transform: translateX(18px);
+    }
+  }
+
+  /* Info tooltip styles */
+  .info-tooltip {
+    position: relative;
+    display: inline-block;
+  }
+
+  .info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    background: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: help;
+    transition: all 0.2s ease;
+  }
+
+  .info-icon:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+  }
+
+  .tooltip-content {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100%);
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 12px;
+    min-width: 320px;
+    max-width: 400px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  .info-tooltip:hover .tooltip-content {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-100%) translateY(-8px);
+  }
+
+  .tooltip-content::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.95);
+  }
+
+  .tooltip-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .tooltip-content li {
+    margin-bottom: 4px;
+  }
+
+  .tooltip-content strong {
+    color: var(--accent-primary);
+  }
+
+  /* Responsive tooltip */
+  @media (max-width: 640px) {
+    .tooltip-content {
+      min-width: 280px;
+      left: 0;
+      transform: translateY(-100%);
+    }
+
+    .info-tooltip:hover .tooltip-content {
+      transform: translateY(-100%) translateY(-8px);
+    }
+
+    .tooltip-content::after {
+      left: 24px;
+      transform: none;
     }
   }
 </style>

@@ -273,6 +273,11 @@ export const fr: Translations = {
     noDiscrepancies: 'Aucune divergence trouvée',
     adjustFilters: 'Essayez d\'ajuster vos filtres pour voir les articles avec des différences entre les modèles.',
     excludeNonApplicable: 'Exclure les articles "Non applicable"',
-    excludeNonApplicableDescription: 'Masquer les articles où un modèle a marqué la centralité comme "Non applicable", ce qui crée des divergences artificiellement élevées.'
+    excludeNonApplicableDescription: 'Masquer les articles où un modèle a marqué la centralité comme "Non applicable", ce qui crée des divergences artificiellement élevées.',
+    dimensionsExplanation: 'Sélectionnez les dimensions à analyser pour les désaccords entre modèles :',
+    polarityExplanation: 'Différences de sentiment positif/négatif',
+    subjectivityExplanation: 'Différences objectivité vs. opinion (échelle 1-5)',
+    centralityExplanation: 'Importance de l\'Islam/Musulmans dans l\'article',
+    dimensionsNote: 'Astuce : Sélectionnez une seule dimension pour concentrer votre analyse sur des types spécifiques de désaccords. Les scores de divergence seront recalculés selon votre sélection.'
   }
 }; 
