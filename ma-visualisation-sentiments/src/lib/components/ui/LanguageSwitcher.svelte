@@ -164,7 +164,7 @@
     position: absolute;
     top: calc(100% + 0.5rem);
     left: 0;
-    right: 0;
+    min-width: 120px;
     background: rgba(30, 41, 59, 0.95);
     backdrop-filter: blur(24px);
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -175,6 +175,7 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
     overflow: hidden;
     animation: dropdownFadeIn 0.2s ease-out;
+    z-index: 1002; /* Ensure dropdown is above everything */
   }
 
   @keyframes dropdownFadeIn {
@@ -252,23 +253,37 @@
 
   @media (max-width: 480px) {
     .language-btn {
-      min-width: 90px;
-      height: 1.75rem;
-      padding: 0 0.375rem;
+      min-width: 2.5rem; /* Just enough for icon + chevron */
+      width: 2.5rem;
+      height: 2rem;
+      padding: 0 0.25rem;
     }
 
     .language-label {
-      font-size: 0.75rem;
+      display: none; /* Hide text on very small screens */
+    }
+
+    .btn-content {
+      gap: 0.25rem; /* Reduce gap when text is hidden */
     }
 
     .btn-content :global(svg) {
-      width: 14px;
-      height: 14px;
+      width: 16px;
+      height: 16px;
+    }
+
+    .dropdown-menu {
+      /* Better mobile positioning */
+      right: 0;
+      left: auto;
+      min-width: 140px;
+      max-width: calc(100vw - 2rem);
     }
 
     .dropdown-item {
-      padding: 0.5rem;
-      font-size: 0.75rem;
+      padding: 0.75rem 0.5rem; /* Better touch targets */
+      font-size: 0.875rem; /* Larger text for readability */
+      min-height: 44px; /* iOS recommended touch target */
     }
   }
 

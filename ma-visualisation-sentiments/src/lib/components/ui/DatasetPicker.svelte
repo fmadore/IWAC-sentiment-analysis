@@ -306,13 +306,18 @@
 
   @media (max-width: 480px) {
     .picker-button {
-      min-width: 120px;
-      height: 2rem; /* Keep reasonable height for very small screens */
-      padding: 0 0.5rem;
+      min-width: 2.5rem; /* Just enough for icon + chevron */
+      width: 2.5rem;
+      height: 2rem;
+      padding: 0 0.25rem;
     }
 
     .picker-label {
-      font-size: 0.75rem;
+      display: none; /* Hide text on very small screens */
+    }
+
+    .button-content {
+      gap: 0.25rem; /* Reduce gap when text is hidden */
     }
 
     .dropdown-menu {

@@ -318,8 +318,8 @@
     }
 
     .fullscreen-btn {
-      width: 1.75rem;
-      height: 1.75rem;
+      width: 2rem; /* Match other buttons */
+      height: 2rem;
     }
 
     .fullscreen-btn :global(svg) {
@@ -329,6 +329,10 @@
 
     .brand-title {
       font-size: 0.9rem;
+    }
+
+    .header-actions {
+      gap: 0.25rem; /* Reduce gap between buttons on very small screens */
     }
   }
 
