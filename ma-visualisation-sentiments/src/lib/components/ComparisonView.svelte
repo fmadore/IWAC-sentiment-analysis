@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { filteredComparisons, comparisonMode, selectedComparison } from '$lib/stores';
+  import { filteredComparisons, comparisonMode, selectedComparison, isLoadingComparison } from '$lib/stores';
   import DiscrepancyFilter from './ui/DiscrepancyFilter.svelte';
   import ComparisonTable from './ComparisonTable.svelte';
   import ComparisonStats from './ComparisonStats.svelte';
@@ -44,29 +44,39 @@
       <ComparisonDetail comparison={$selectedComparison} />
     </div>
   {:else}
-    <!-- Stats Overview -->
-    <div class="stats-section mb-6">
-      <ComparisonStats />
-    </div>
-    
-    <!-- Filters -->
-    <div class="filters-section mb-6">
-      <DiscrepancyFilter />
-    </div>
-    
-    <!-- Results -->
-    {#if hasData}
-      <div class="comparison-content">
-        <ComparisonTable />
+    <!-- Loading state for comparison data -->
+    {#if $isLoadingComparison}
+      <div class="loading-section mb-6">
+        <div class="card variant-glass p-8 text-center">
+          <div class="loading-spinner mb-4"></div>
+          <p class="text-white/80">{$t.messages?.loading || 'Loading comparison data...'}</p>
+        </div>
       </div>
     {:else}
-      <div class="empty-results card variant-glass p-8 text-center">
-        <AlertCircleIcon size={48} class="mx-auto mb-4 text-white/60" />
-        <h3 class="h4 mb-2 text-white">{$t.comparison?.noDiscrepancies || 'No Discrepancies Found'}</h3>
-        <p class="text-white/60 max-w-md mx-auto">
-          {$t.comparison?.adjustFilters || 'Try adjusting your filters to see articles with differences between models.'}
-        </p>
+      <!-- Stats Overview -->
+      <div class="stats-section mb-6">
+        <ComparisonStats />
       </div>
+      
+      <!-- Filters -->
+      <div class="filters-section mb-6">
+        <DiscrepancyFilter />
+      </div>
+      
+      <!-- Results -->
+      {#if hasData}
+        <div class="comparison-content">
+          <ComparisonTable />
+        </div>
+      {:else}
+        <div class="empty-results card variant-glass p-8 text-center">
+          <AlertCircleIcon size={48} class="mx-auto mb-4 text-white/60" />
+          <h3 class="h4 mb-2 text-white">{$t.comparison?.noDiscrepancies || 'No Discrepancies Found'}</h3>
+          <p class="text-white/60 max-w-md mx-auto">
+            {$t.comparison?.adjustFilters || 'Try adjusting your filters to see articles with differences between models.'}
+          </p>
+        </div>
+      {/if}
     {/if}
   {/if}
 </div>
@@ -82,6 +92,21 @@
   .empty-results {
     margin: 2rem auto;
     max-width: 600px;
+  }
+  
+  /* Loading spinner */
+  .loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
   
   /* Responsive adjustments */

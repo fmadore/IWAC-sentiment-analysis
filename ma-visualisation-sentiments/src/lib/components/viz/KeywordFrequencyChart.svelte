@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Chart } from 'svelte-echarts';
   import { onMount } from 'svelte';
-  import { currentExtremeAnalysis, extremeAnalysisData, selectedDataset } from '$lib/stores';
+  import { currentExtremeAnalysis, extremeAnalysisData, selectedDataset, isLoadingExtremeAnalysis } from '$lib/stores';
   import { t, currentLanguage } from '$lib/i18n';
   import type { ExtremeCategory, KeywordType, ExtremeCategoryAnalysis } from '$lib/types/extremeAnalysis';
   import { getExtremeCategoryConfig, getTopKeywords } from '$lib/utils/extremeAnalysis';
@@ -35,11 +35,9 @@
   let showTopN = $state(10);
   let isMobile = $state(false);
   
-  // Loading state
+  // Loading state - use specific loading state for better UX
   let isLoading = $derived(() => {
-    const currentDatasetId = $selectedDataset;
-    const extremeData = $extremeAnalysisData;
-    return !extremeData[currentDatasetId];
+    return $isLoadingExtremeAnalysis || !$currentExtremeAnalysis;
   });
   
   // Derived data

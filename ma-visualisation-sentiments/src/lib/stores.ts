@@ -274,10 +274,17 @@ export const loadComparisonDatasets = async (fetchFunction: typeof fetch): Promi
   }
   
   if (datasetsToLoad.length > 0) {
-    // Load only the missing datasets in parallel
-    await Promise.all(
-      datasetsToLoad.map(datasetId => loadSpecificDataset(datasetId, fetchFunction))
-    );
+    // Use specific loading state for comparison
+    isLoadingComparison.set(true);
+    
+    try {
+      // Load only the missing datasets in parallel
+      await Promise.all(
+        datasetsToLoad.map(datasetId => loadSpecificDataset(datasetId, fetchFunction))
+      );
+    } finally {
+      isLoadingComparison.set(false);
+    }
   }
 };
 
@@ -297,6 +304,9 @@ export const loadCurrentExtremeAnalysis = async (fetchFunction: typeof fetch): P
   
   console.log(`Loading extreme analysis data for ${currentDatasetId}...`);
   
+  // Use specific loading state for extreme analysis
+  isLoadingExtremeAnalysis.set(true);
+  
   try {
     const data = await loadExtremeAnalysisData(currentDatasetId as 'chatgpt' | 'gemini', fetchFunction);
     extremeAnalysisData.update(current => ({
@@ -310,6 +320,8 @@ export const loadCurrentExtremeAnalysis = async (fetchFunction: typeof fetch): P
       ...current,
       [currentDatasetId]: null
     }));
+  } finally {
+    isLoadingExtremeAnalysis.set(false);
   }
 };
 
@@ -579,4 +591,8 @@ export const comparisonStatistics = derived(
       highConflictArticles: stats.highConflictArticles
     };
   }
-); 
+);
+
+// Specific loading states for different data types
+export const isLoadingExtremeAnalysis = writable<boolean>(false);
+export const isLoadingComparison = writable<boolean>(false); 

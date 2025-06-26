@@ -6,6 +6,8 @@
   import { 
     currentDatasetArticles, 
     isLoadingDataset, 
+    isLoadingExtremeAnalysis,
+    isLoadingComparison,
     loadDatasetArticles,
     loadCurrentDataset,
     loadComparisonDatasets,
@@ -68,17 +70,13 @@
   $effect(() => {
     if (activeView === 'extremes' && $selectedDataset && browser) {
       console.log('Loading extreme analysis for dataset:', $selectedDataset);
-      // Set loading state and load extreme analysis data for the current dataset
-      isLoadingDataset.set(true);
+      // Load extreme analysis data for the current dataset (uses specific loading state internally)
       loadCurrentExtremeAnalysis(fetch)
         .then(() => {
           console.log('Extreme analysis loaded successfully for:', $selectedDataset);
         })
         .catch(error => {
           console.error("Failed to load extreme analysis data:", error);
-        })
-        .finally(() => {
-          isLoadingDataset.set(false);
         });
     }
   });
@@ -192,24 +190,18 @@
         comparisonMode.set(true);
       }
       
-      // Load comparison datasets if not already loaded
-      isLoadingDataset.set(true);
+      // Load comparison datasets if not already loaded (uses specific loading state internally)
       try {
         await loadComparisonDatasets(fetch);
       } catch (error) {
         console.error("Failed to load comparison datasets:", error);
-      } finally {
-        isLoadingDataset.set(false);
       }
     } else if (value === 'extremes') {
-      // Load extreme analysis data if not already loaded
-      isLoadingDataset.set(true);
+      // Load extreme analysis data if not already loaded (uses specific loading state internally)
       try {
         await loadCurrentExtremeAnalysis(fetch);
       } catch (error) {
         console.error("Failed to load extreme analysis data:", error);
-      } finally {
-        isLoadingDataset.set(false);
       }
     } else {
       // Disable comparison mode when switching away from comparison view
