@@ -240,6 +240,9 @@ export const loadCurrentDataset = async (fetchFunction: typeof fetch): Promise<v
   if (currentDatasets[currentDatasetId] && currentDatasets[currentDatasetId].length > 0) {
     // Dataset already loaded, just update currentDatasetArticles
     currentDatasetArticles.set(currentDatasets[currentDatasetId]);
+    
+    // Start background prefetching of other datasets
+    prefetchOtherDatasets(currentDatasetId, fetchFunction);
     return;
   }
   
@@ -253,6 +256,58 @@ export const loadCurrentDataset = async (fetchFunction: typeof fetch): Promise<v
     })();
   });
   currentDatasetArticles.set(updatedDatasets[currentDatasetId] || []);
+  
+  // Start background prefetching of other datasets after current one is loaded
+  prefetchOtherDatasets(currentDatasetId, fetchFunction);
+};
+
+// Function to prefetch other datasets in the background for better UX
+const prefetchOtherDatasets = async (currentDatasetId: string, fetchFunction: typeof fetch): Promise<void> => {
+  // Get all available datasets
+  const datasets = await new Promise<DatasetOption[]>(resolve => {
+    availableDatasets.subscribe(value => {
+      resolve(value);
+    })();
+  });
+  
+  // Get currently loaded datasets
+  const currentDatasets = await new Promise<Record<string, Article[]>>(resolve => {
+    datasetArticles.subscribe(value => {
+      resolve(value);
+    })();
+  });
+  
+  // Find datasets that aren't loaded yet (excluding the current one)
+  const datasetsToPreload = datasets
+    .filter(dataset => dataset.id !== currentDatasetId)
+    .filter(dataset => !currentDatasets[dataset.id] || currentDatasets[dataset.id].length === 0)
+    .map(dataset => dataset.id);
+  
+  if (datasetsToPreload.length === 0) {
+    console.log('All datasets already loaded, no prefetching needed');
+    return;
+  }
+  
+  console.log(`Background prefetching datasets: ${datasetsToPreload.join(', ')}`);
+  
+  // Load datasets in background without showing loading indicators
+  // Use a small delay to ensure the UI is responsive after the main dataset loads
+  setTimeout(async () => {
+    try {
+      // Load datasets sequentially to avoid overwhelming the network
+      for (const datasetId of datasetsToPreload) {
+        await loadSpecificDataset(datasetId, fetchFunction);
+        console.log(`Background loaded: ${datasetId}`);
+        
+        // Small delay between datasets to keep UI responsive
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      console.log('Background prefetching completed');
+    } catch (error) {
+      console.warn('Background prefetching failed:', error);
+      // Fail silently - prefetching is an optimization, not critical
+    }
+  }, 500); // 500ms delay to let the UI settle after main dataset load
 };
 
 // Function to ensure comparison datasets are loaded (only when needed)
@@ -274,6 +329,8 @@ export const loadComparisonDatasets = async (fetchFunction: typeof fetch): Promi
   }
   
   if (datasetsToLoad.length > 0) {
+    console.log(`Loading missing comparison datasets: ${datasetsToLoad.join(', ')}`);
+    
     // Use specific loading state for comparison
     isLoadingComparison.set(true);
     
@@ -282,9 +339,12 @@ export const loadComparisonDatasets = async (fetchFunction: typeof fetch): Promi
       await Promise.all(
         datasetsToLoad.map(datasetId => loadSpecificDataset(datasetId, fetchFunction))
       );
+      console.log('Comparison datasets loaded successfully');
     } finally {
       isLoadingComparison.set(false);
     }
+  } else {
+    console.log('All comparison datasets already loaded (likely from background prefetching)');
   }
 };
 

@@ -12,19 +12,27 @@ This caused:
 - High memory usage
 - Poor mobile performance
 
-## Solution: Load-on-Demand Strategy
+## Solution: Load-on-Demand Strategy with Background Prefetching
 
 ### 1. **Dataset Loading Functions**
 
 #### `loadCurrentDataset()`
-- Loads only the currently selected dataset
+- Loads only the currently selected dataset immediately
 - Checks if dataset is already loaded before fetching
+- **NEW**: Starts background prefetching of other datasets after main load
 - Used for initial page load and dataset switching
 
 #### `loadComparisonDatasets()`
 - Loads both ChatGPT and Gemini datasets only when comparison mode is activated
 - Loads missing datasets in parallel
+- **NEW**: Benefits from background prefetching for instant switching
 - Only triggered when user switches to comparison view
+
+#### `prefetchOtherDatasets()` (NEW)
+- Runs in background after initial dataset is loaded
+- Loads remaining datasets without showing loading indicators
+- Uses sequential loading with delays to maintain UI responsiveness
+- Fails silently if network issues occur (optimization, not critical)
 
 ### 2. **Implementation Changes**
 
@@ -60,9 +68,11 @@ await loadCurrentDataset(fetch);
 - No redundant data in memory
 
 #### **User Experience**
-- Instant switching between cached datasets
-- Loading indicators for new data
-- Progressive enhancement approach
+- **Instant switching**: Background prefetching makes dataset switching feel instant
+- **Smart loading**: Critical data loads first, nice-to-have data loads in background
+- **No waiting**: Comparison mode often has data ready thanks to prefetching
+- **Responsive UI**: Sequential background loading doesn't block the interface
+- **Graceful degradation**: Works even if background loading fails
 
 ### 4. **Caching Strategy**
 
@@ -92,12 +102,19 @@ export const loadDatasetChunked = async (datasetId: string, chunkSize = 1000) =>
 
 ## Usage
 
-The lazy loading is now automatic:
+The intelligent loading system is now automatic:
 
-1. **Default behavior**: Only loads the selected dataset
-2. **Dataset switching**: Loads new dataset if not cached
-3. **Comparison mode**: Loads both datasets when comparison view is activated
-4. **Caching**: Previously loaded datasets remain in memory
+1. **Initial load**: Only loads the selected dataset (fast startup)
+2. **Background prefetching**: Other datasets load silently in background
+3. **Dataset switching**: Usually instant thanks to prefetching
+4. **Comparison mode**: Often instant since datasets are pre-loaded
+5. **Caching**: All loaded datasets remain in memory for instant access
+
+### **Timing Strategy**
+- **Immediate**: Load current dataset for fast initial experience
+- **500ms delay**: Start background prefetching after UI settles
+- **100ms intervals**: Sequential loading to maintain responsiveness
+- **Silent failures**: Background loading doesn't interrupt user experience
 
 ## Monitoring
 
