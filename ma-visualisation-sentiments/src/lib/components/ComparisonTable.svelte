@@ -137,6 +137,53 @@
     return 'variant-filled-error';
   }
   
+  // Définition des classes de polarité selon les variantes Skeleton
+  const polarityClasses = {
+    'Très positif': 'variant-filled-success',
+    'Positif': 'variant-soft-success',
+    'Neutre': 'variant-soft-primary',
+    'Négatif': 'variant-soft-error',
+    'Très négatif': 'variant-filled-error',
+    'Non applicable': 'variant-ghost'
+  };
+
+  // Définition des classes de centralité
+  const centralityClasses = {
+    'Très central': 'variant-filled-tertiary',
+    'Central': 'variant-soft-tertiary',
+    'Secondaire': 'variant-soft-surface',
+    'Marginal': 'variant-ghost',
+    'Non abordé': 'variant-ghost'
+  };
+  
+  // Définition des classes de subjectivité
+  const subjectivityClasses = {
+    '1': 'variant-filled-success',
+    '2': 'variant-soft-success',
+    '3': 'variant-soft-primary',
+    '4': 'variant-soft-error',
+    '5': 'variant-filled-error'
+  };
+
+  // Fonction d'aide pour obtenir la classe selon la polarité
+  function getPolarityClass(polarity: string | null | undefined): string {
+    if (!polarity) return 'variant-ghost';
+    return polarityClasses[polarity as keyof typeof polarityClasses] || 'variant-ghost';
+  }
+
+  // Fonction d'aide pour obtenir la classe selon la centralité
+  function getCentralityClass(centrality: string | null | undefined): string {
+    if (!centrality) return 'variant-ghost';
+    return centralityClasses[centrality as keyof typeof centralityClasses] || 'variant-ghost';
+  }
+  
+  // Fonction d'aide pour obtenir la classe selon le score de subjectivité
+  function getSubjectivityClass(score: string | number | null | undefined): string {
+    if (!score) return 'variant-ghost';
+    const scoreStr = String(score);
+    return subjectivityClasses[scoreStr as keyof typeof subjectivityClasses] || 'variant-ghost';
+  }
+  
   function selectComparison(comparison: ComparisonData) {
     selectedComparison.set(comparison);
   }
@@ -274,32 +321,32 @@
                 </div>
               </td>
               <td class="text-center">
-                <span class="badge badge-sm {comparison.chatgpt?.polarite ? `variant-soft-${comparison.chatgpt.polarite.includes('positif') ? 'success' : comparison.chatgpt.polarite.includes('Neutre') ? 'primary' : 'error'}` : 'variant-ghost'}">
+                <span class="badge badge-sm {getPolarityClass(comparison.chatgpt?.polarite)}">
                   {translateSentimentValue(comparison.chatgpt?.polarite, $currentLanguage) || 'N/A'}
                 </span>
               </td>
               <td class="text-center">
-                <span class="badge badge-sm {comparison.gemini?.polarite ? `variant-soft-${comparison.gemini.polarite.includes('positif') ? 'success' : comparison.gemini.polarite.includes('Neutre') ? 'primary' : 'error'}` : 'variant-ghost'}">
+                <span class="badge badge-sm {getPolarityClass(comparison.gemini?.polarite)}">
                   {translateSentimentValue(comparison.gemini?.polarite, $currentLanguage) || 'N/A'}
                 </span>
               </td>
               <td class="text-center">
-                <span class="badge badge-sm variant-soft-primary">
+                <span class="badge badge-sm {getSubjectivityClass(comparison.chatgpt?.subjectivite_score)}">
                   {comparison.chatgpt?.subjectivite_score || 'N/A'}
                 </span>
               </td>
               <td class="text-center">
-                <span class="badge badge-sm variant-soft-primary">
+                <span class="badge badge-sm {getSubjectivityClass(comparison.gemini?.subjectivite_score)}">
                   {comparison.gemini?.subjectivite_score || 'N/A'}
                 </span>
               </td>
               <td class="text-center">
-                <span class="badge badge-sm variant-soft-tertiary">
+                <span class="badge badge-sm {getCentralityClass(comparison.chatgpt?.centralite_islam_musulmans)}">
                   {translateSentimentValue(comparison.chatgpt?.centralite_islam_musulmans, $currentLanguage) || 'N/A'}
                 </span>
               </td>
               <td class="text-center">
-                <span class="badge badge-sm variant-soft-tertiary">
+                <span class="badge badge-sm {getCentralityClass(comparison.gemini?.centralite_islam_musulmans)}">
                   {translateSentimentValue(comparison.gemini?.centralite_islam_musulmans, $currentLanguage) || 'N/A'}
                 </span>
               </td>
@@ -344,7 +391,7 @@
               <div class="values-grid">
                                  <div class="value-cell">
                    <span class="model-label">ChatGPT</span>
-                   <span class="badge badge-sm variant-soft-primary">
+                   <span class="badge badge-sm {getPolarityClass(comparison.chatgpt?.polarite)}">
                      {translateSentimentValue(comparison.chatgpt?.polarite, $currentLanguage) || 'N/A'}
                    </span>
                  </div>
@@ -353,7 +400,7 @@
                  </div>
                  <div class="value-cell">
                    <span class="model-label">Gemini</span>
-                   <span class="badge badge-sm variant-soft-primary">
+                   <span class="badge badge-sm {getPolarityClass(comparison.gemini?.polarite)}">
                      {translateSentimentValue(comparison.gemini?.polarite, $currentLanguage) || 'N/A'}
                    </span>
                  </div>
@@ -366,7 +413,7 @@
               <div class="values-grid">
                 <div class="value-cell">
                   <span class="model-label">ChatGPT</span>
-                  <span class="badge badge-sm variant-soft-secondary">
+                  <span class="badge badge-sm {getSubjectivityClass(comparison.chatgpt?.subjectivite_score)}">
                     {comparison.chatgpt?.subjectivite_score || 'N/A'}
                   </span>
                 </div>
@@ -375,7 +422,7 @@
                 </div>
                 <div class="value-cell">
                   <span class="model-label">Gemini</span>
-                  <span class="badge badge-sm variant-soft-secondary">
+                  <span class="badge badge-sm {getSubjectivityClass(comparison.gemini?.subjectivite_score)}">
                     {comparison.gemini?.subjectivite_score || 'N/A'}
                   </span>
                 </div>
@@ -388,7 +435,7 @@
               <div class="values-grid">
                                  <div class="value-cell">
                    <span class="model-label">ChatGPT</span>
-                   <span class="badge badge-sm variant-soft-tertiary text-xs">
+                   <span class="badge badge-sm {getCentralityClass(comparison.chatgpt?.centralite_islam_musulmans)} text-xs">
                      {translateSentimentValue(comparison.chatgpt?.centralite_islam_musulmans, $currentLanguage) || 'N/A'}
                    </span>
                  </div>
@@ -397,7 +444,7 @@
                  </div>
                  <div class="value-cell">
                    <span class="model-label">Gemini</span>
-                   <span class="badge badge-sm variant-soft-tertiary text-xs">
+                   <span class="badge badge-sm {getCentralityClass(comparison.gemini?.centralite_islam_musulmans)} text-xs">
                      {translateSentimentValue(comparison.gemini?.centralite_islam_musulmans, $currentLanguage) || 'N/A'}
                    </span>
                  </div>

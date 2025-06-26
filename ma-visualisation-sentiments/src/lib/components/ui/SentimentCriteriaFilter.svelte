@@ -24,7 +24,7 @@
   );
 
   let selectedPolarities = $state<string[]>([]);
-  let selectedScores = $state<number[]>([]);
+  let selectedScores = $state<string[]>([]);
   
   // Sync local state with store values
   $effect(() => {
@@ -54,10 +54,11 @@
   }
 
   function toggleScore(score: number) {
-    if (selectedScores.includes(score)) {
-      selectedScores = selectedScores.filter(s => s !== score);
+    const scoreStr = score.toString();
+    if (selectedScores.includes(scoreStr)) {
+      selectedScores = selectedScores.filter(s => s !== scoreStr);
     } else {
-      selectedScores = [...selectedScores, score];
+      selectedScores = [...selectedScores, scoreStr];
     }
     updateSubjectivitySelection();
   }
@@ -85,7 +86,7 @@
     <div class="flex flex-wrap gap-2">
       {#each [1, 2, 3, 4, 5] as score}
         <button 
-          class="chip {score <= 2 ? 'variant-soft-success' : score <= 4 ? 'variant-soft-warning' : 'variant-soft-error'} {selectedScores.includes(score) ? 'ring-2 ring-primary-500 hover-glow' : ''}" 
+          class="chip {score <= 2 ? 'variant-soft-success' : score <= 4 ? 'variant-soft-warning' : 'variant-soft-error'} {selectedScores.includes(score.toString()) ? 'ring-2 ring-primary-500 hover-glow' : ''}" 
           onclick={() => toggleScore(score)}
         >
           {score}

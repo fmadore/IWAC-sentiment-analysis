@@ -3,7 +3,7 @@
   import { t } from '$lib/i18n';
 
   const scores = [1, 2, 3, 4, 5];
-  let selectedScores = $state<number[]>([]);
+  let selectedScores = $state<string[]>([]);
   
   // Sync local state with store values
   $effect(() => {
@@ -15,10 +15,11 @@
   }
   
   function toggleScore(score: number) {
-    if (selectedScores.includes(score)) {
-      selectedScores = selectedScores.filter(s => s !== score);
+    const scoreStr = score.toString();
+    if (selectedScores.includes(scoreStr)) {
+      selectedScores = selectedScores.filter(s => s !== scoreStr);
     } else {
-      selectedScores = [...selectedScores, score];
+      selectedScores = [...selectedScores, scoreStr];
     }
     updateSubjectivitySelection();
   }
@@ -35,7 +36,7 @@
   <div class="flex flex-wrap gap-2">
     {#each scores as score}
       <button 
-        class="chip hover-lift {score === 1 ? 'variant-filled-success' : score === 2 ? 'variant-soft-success' : score === 3 ? 'variant-soft-primary' : score === 4 ? 'variant-soft-error' : 'variant-filled-error'} {selectedScores.includes(score) ? 'ring-2 ring-primary-500 hover-glow' : ''}" 
+        class="chip hover-lift {score === 1 ? 'variant-filled-success' : score === 2 ? 'variant-soft-success' : score === 3 ? 'variant-soft-primary' : score === 4 ? 'variant-soft-error' : 'variant-filled-error'} {selectedScores.includes(score.toString()) ? 'ring-2 ring-primary-500 hover-glow' : ''}" 
         onclick={() => toggleScore(score)}
       >
         {score}
