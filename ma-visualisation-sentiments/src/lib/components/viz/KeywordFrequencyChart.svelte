@@ -1,11 +1,13 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
-  import { currentExtremeAnalysis } from '$lib/stores';
+  import { Chart } from 'svelte-echarts';
+  import { onMount } from 'svelte';
+  import { currentExtremeAnalysis, extremeAnalysisData, selectedDataset } from '$lib/stores';
   import { t, currentLanguage } from '$lib/i18n';
   import type { ExtremeCategory, KeywordType, ExtremeCategoryAnalysis } from '$lib/types/extremeAnalysis';
   import { getExtremeCategoryConfig, getTopKeywords } from '$lib/utils/extremeAnalysis';
+  
+  // ECharts imports
   import { init, use } from 'echarts/core';
-  import type { ECharts } from 'echarts/core';
   import { BarChart } from 'echarts/charts';
   import {
     TitleComponent,
@@ -15,6 +17,7 @@
   } from 'echarts/components';
   import { CanvasRenderer } from 'echarts/renderers';
   import type { EChartsOption } from 'echarts';
+  import DatasetBadge from '../ui/DatasetBadge.svelte';
 
   // Register the required components
   use([
@@ -30,10 +33,14 @@
   let selectedCategory = $state<ExtremeCategory>('polarity_very_negative');
   let selectedKeywordType = $state<KeywordType>('subject');
   let showTopN = $state(10);
-  let chartContainer: HTMLDivElement;
-  let chartInstance: ECharts | null = null;
-  let isContainerReady = $state(false);
-  let resizeCleanup: (() => void) | null = null;
+  let isMobile = $state(false);
+  
+  // Loading state
+  let isLoading = $derived(() => {
+    const currentDatasetId = $selectedDataset;
+    const extremeData = $extremeAnalysisData;
+    return !extremeData[currentDatasetId];
+  });
   
   // Derived data
   let categoryData = $derived(() => {
@@ -41,63 +48,23 @@
     return $currentExtremeAnalysis.analysis[selectedCategory];
   });
 
-  // Calculate dynamic chart height based on number of keywords
-  let chartHeight = $derived(() => {
-    // Base height + (number of keywords * spacing per keyword)
-    // Minimum 500px, with ~50px per keyword for better spacing
-    // For larger numbers of keywords, we need more space
-    const baseHeight = 180; // Space for title, margins, etc.
-    const keywordHeight = showTopN <= 15 ? 45 : 55; // More space for many keywords
-    return Math.max(500, showTopN * keywordHeight + baseHeight);
-  });
-
   onMount(() => {
-    // Use a timeout to ensure DOM is fully rendered and styled
-    setTimeout(() => {
-      if (chartContainer) {
-        // Initialize ECharts instance directly
-        try {
-          chartInstance = init(chartContainer);
-          isContainerReady = true;
-          
-          // Add window resize listener
-          const handleResize = () => {
-            if (chartInstance) {
-              chartInstance.resize();
-            }
-          };
-          window.addEventListener('resize', handleResize);
-          
-          // Store cleanup function
-          resizeCleanup = () => {
-            window.removeEventListener('resize', handleResize);
-          };
-        } catch (error) {
-          console.error('Failed to create chart instance:', error);
-        }
-      }
-    }, 100);
+    const checkMobile = () => {
+      isMobile = window.innerWidth < 768;
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
   });
 
-  onDestroy(() => {
-    if (chartInstance) {
-      chartInstance.dispose();
-    }
-    if (resizeCleanup) {
-      resizeCleanup();
-    }
-  });
-
-  // Update chart when data or selection changes
-  $effect(() => {
-    if (isContainerReady && chartInstance && categoryData()) {
-      updateChart();
-    }
-  });
-
-  function updateChart() {
+  // Chart options
+  let options = $derived.by(() => {
     const data = categoryData();
-    if (!data || !chartInstance) return;
+    if (!data) return null;
 
     const keywords = selectedKeywordType === 'subject' 
       ? data.subject 
@@ -109,13 +76,13 @@
     // Reverse for horizontal display (highest at top)
     const reversedData = [...topKeywords].reverse();
     
-    const options = {
+    return {
       backgroundColor: 'transparent',
       title: {
         text: $t.extremeAnalysis.topKeywords,
         textStyle: {
           color: '#ffffff',
-          fontSize: 16,
+          fontSize: isMobile ? 12 : 16,
           fontWeight: 'bold'
         },
         left: 'center',
@@ -126,10 +93,12 @@
         axisPointer: {
           type: 'shadow'
         },
-        backgroundColor: 'rgba(30, 41, 59, 0.95)',
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        borderColor: 'rgba(255, 255, 255, 0.4)',
+        borderWidth: 1,
         textStyle: {
-          color: '#ffffff'
+          color: '#333',
+          fontSize: isMobile ? 10 : 12
         },
         formatter: (params: any) => {
           const data = params[0];
@@ -140,8 +109,8 @@
         }
       },
       grid: {
-        left: '35%', // Space for labels but not too much
-        right: '5%', // Use more of the available width
+        left: isMobile ? '25%' : '30%',
+        right: isMobile ? '8%' : '10%',
         top: 60,
         bottom: 40,
         containLabel: true
@@ -150,11 +119,11 @@
         type: 'value',
         axisLabel: {
           color: 'rgba(255, 255, 255, 0.7)',
-          fontSize: 12
+          fontSize: isMobile ? 9 : 11
         },
         axisLine: {
           lineStyle: {
-            color: 'rgba(255, 255, 255, 0.2)'
+            color: 'rgba(255, 255, 255, 0.5)'
           }
         },
         splitLine: {
@@ -168,35 +137,34 @@
         data: reversedData.map(item => item.keyword),
         axisLabel: {
           color: 'rgba(255, 255, 255, 0.9)',
-          fontSize: showTopN > 20 ? 10 : 11, // Smaller font for many keywords
+          fontSize: isMobile ? 9 : 11,
           interval: 0,
           formatter: (value: string) => {
-            // Adjust truncation based on number of keywords
-            const maxLength = showTopN > 20 ? 16 : 20;
+            const maxLength = isMobile ? 16 : 20;
             if (value.length > maxLength) {
               return value.substring(0, maxLength - 2) + '...';
             }
             return value;
           },
-          margin: 15, // More margin for better spacing
+          margin: 15,
           overflow: 'truncate',
-          width: 150 // Set a fixed width for labels
+          width: isMobile ? 100 : 150
         },
         axisLine: {
           lineStyle: {
-            color: 'rgba(255, 255, 255, 0.2)'
+            color: 'rgba(255, 255, 255, 0.5)'
           }
         },
         axisTick: {
           show: false
         },
         splitLine: {
-          show: false // Remove horizontal grid lines for cleaner look
+          show: false
         }
       },
       series: [{
         type: 'bar',
-        barWidth: showTopN > 20 ? '50%' : '60%', // Thinner bars for many keywords
+        barWidth: isMobile ? '50%' : '60%',
         data: reversedData.map(item => ({
           value: item.count,
           itemStyle: {
@@ -229,17 +197,10 @@
         animationEasing: 'cubicOut',
         animationDelay: (idx: number) => idx * 30
       }]
-    };
-    
-    // Set the options on the chart instance
-    chartInstance.setOption(options);
-    
-    // Ensure chart resizes to fill container
-    chartInstance.resize();
-  }
+    } as EChartsOption;
+  });
 
   function adjustBrightness(color: string, percent: number): string {
-    // Simple brightness adjustment
     const num = parseInt(color.replace('#', ''), 16);
     const amt = Math.round(2.55 * percent);
     const R = (num >> 16) + amt;
@@ -262,327 +223,469 @@
   }
 </script>
 
-<div class="keyword-frequency-container">
-  <!-- Controls -->
-  <div class="controls-row">
-    <div class="control-group">
-      <label for="category-select" class="control-label">
-        {$t.extremeAnalysis.selectCategory}
-      </label>
-      <select
-        id="category-select"
-        bind:value={selectedCategory}
-        onchange={handleCategoryChange}
-        class="select variant-filled-surface"
-      >
-        <option value="subjectivity_extreme_high">
-          {$t.extremeAnalysis.categories.subjectivityHigh}
-        </option>
-        <option value="subjectivity_extreme_low">
-          {$t.extremeAnalysis.categories.subjectivityLow}
-        </option>
-        <option value="polarity_very_negative">
-          {$t.extremeAnalysis.categories.polarityNegative}
-        </option>
-        <option value="polarity_very_positive">
-          {$t.extremeAnalysis.categories.polarityPositive}
-        </option>
-        <option value="centrality_very_central">
-          {$t.extremeAnalysis.categories.centralityHigh}
-        </option>
-        <option value="centrality_not_central">
-          {$t.extremeAnalysis.categories.centralityLow}
-        </option>
-      </select>
+{#if isLoading()}
+  <!-- Loading State -->
+  <div class="loading-container">
+    <div class="mb-4">
+      <DatasetBadge size="sm" />
     </div>
-
-    <div class="control-group">
-      <span class="control-label" id="keyword-type-label">
-        {$t.extremeAnalysis.selectKeywordType}
-      </span>
-      <div class="btn-group variant-ghost-surface" role="group" aria-labelledby="keyword-type-label">
-        <button
-          class="btn {selectedKeywordType === 'subject' ? 'variant-filled-primary' : 'variant-ghost-surface'}"
-          onclick={() => handleKeywordTypeChange('subject')}
-          aria-pressed={selectedKeywordType === 'subject'}
-        >
-          {$t.extremeAnalysis.subjectKeywords}
-        </button>
-        <button
-          class="btn {selectedKeywordType === 'spatial' ? 'variant-filled-primary' : 'variant-ghost-surface'}"
-          onclick={() => handleKeywordTypeChange('spatial')}
-          aria-pressed={selectedKeywordType === 'spatial'}
-        >
-          {$t.extremeAnalysis.spatialKeywords}
-        </button>
+    
+    <div class="card variant-glass p-4 mb-4">
+      <div class="loading-skeleton" style="height: 200px; border-radius: 0.5rem;"></div>
+    </div>
+    
+    <div class="chart-container glass-medium rounded-lg p-4" style="min-height: 500px;">
+      <div class="flex items-center justify-center h-full">
+        <div class="text-center">
+          <div class="loading-spinner mb-4"></div>
+          <p class="text-white/80">{$t.messages.loading || 'Loading extreme analysis data...'}</p>
+        </div>
       </div>
     </div>
+  </div>
+{:else if $currentExtremeAnalysis && options}
+  <!-- Dataset Badge -->
+  <div class="mb-4">
+    <DatasetBadge size="sm" />
+  </div>
 
-    <div class="control-group">
-      <label for="keywords-count" class="control-label">
-        {$t.extremeAnalysis.numberOfKeywords || 'Number of Keywords'}
-      </label>
-      <input
-        id="keywords-count"
-        type="number"
-        min="5"
-        max="25"
-        bind:value={showTopN}
-        class="number-input variant-filled-surface"
-      />
+  <!-- Controls Card -->
+  <div class="card variant-glass p-4 hover-lift mb-4">
+    <div class="controls-grid">
+      <!-- Category Select -->
+      <div class="control-group">
+        <label for="category-select" class="control-label">
+          {$t.extremeAnalysis.selectCategory}
+        </label>
+        <select
+          id="category-select"
+          bind:value={selectedCategory}
+          onchange={handleCategoryChange}
+          class="select-input glass-medium"
+        >
+          <option value="subjectivity_extreme_high">
+            {$t.extremeAnalysis.categories.subjectivityHigh}
+          </option>
+          <option value="subjectivity_extreme_low">
+            {$t.extremeAnalysis.categories.subjectivityLow}
+          </option>
+          <option value="polarity_very_negative">
+            {$t.extremeAnalysis.categories.polarityNegative}
+          </option>
+          <option value="polarity_very_positive">
+            {$t.extremeAnalysis.categories.polarityPositive}
+          </option>
+          <option value="centrality_very_central">
+            {$t.extremeAnalysis.categories.centralityHigh}
+          </option>
+          <option value="centrality_not_central">
+            {$t.extremeAnalysis.categories.centralityLow}
+          </option>
+        </select>
+      </div>
+
+      <!-- Keyword Type Toggle -->
+      <div class="control-group">
+        <span class="control-label" id="keyword-type-label">
+          {$t.extremeAnalysis.selectKeywordType}
+        </span>
+        <div class="btn-group-toggle">
+          <button
+            class="btn-toggle hover-lift {selectedKeywordType === 'subject' ? 'active' : ''}"
+            onclick={() => handleKeywordTypeChange('subject')}
+            aria-pressed={selectedKeywordType === 'subject'}
+          >
+            {$t.extremeAnalysis.subjectKeywords}
+          </button>
+          <button
+            class="btn-toggle hover-lift {selectedKeywordType === 'spatial' ? 'active' : ''}"
+            onclick={() => handleKeywordTypeChange('spatial')}
+            aria-pressed={selectedKeywordType === 'spatial'}
+          >
+            {$t.extremeAnalysis.spatialKeywords}
+          </button>
+        </div>
+      </div>
+
+      <!-- Keywords Count -->
+      <div class="control-group">
+        <label for="keywords-count" class="control-label">
+          {$t.extremeAnalysis.numberOfKeywords || 'Number of Keywords'}
+        </label>
+        <input
+          id="keywords-count"
+          type="number"
+          min="5"
+          max="25"
+          bind:value={showTopN}
+          class="number-input glass-medium"
+        />
+      </div>
     </div>
   </div>
 
-  <!-- Category description -->
+  <!-- Category Description -->
   {#if selectedCategory}
     {@const descriptionKey = selectedCategory.replace('_extreme', '').replace('polarity_very_', 'polarity').replace('centrality_', 'centrality') as keyof typeof $t.extremeAnalysis.descriptions}
     {@const description = $t.extremeAnalysis.descriptions[descriptionKey]}
     {#if description && description.trim()}
-      <div class="category-description">
-        <p class="text-sm text-surface-400">
+      <div class="card variant-glass p-4 mb-4">
+        <p class="text-sm text-white/80 leading-relaxed">
           {description}
         </p>
       </div>
     {/if}
   {/if}
 
-  <!-- Chart -->
+  <!-- Chart Container -->
   <div 
-    bind:this={chartContainer}
-    class="chart-container" 
-    style="min-height: {chartHeight}px; height: {chartHeight}px;"
-  ></div>
+    style="height: {isMobile ? '400px' : '500px'}; position: relative;" 
+    class="chart-container glass-medium rounded-lg p-2 sm:p-4"
+  >
+    <Chart {init} {options} />
+  </div>
 
-  <!-- Statistics -->
+  <!-- Statistics Card -->
   {#if categoryData()}
     {@const data = categoryData()}
-    <div class="statistics-row">
-      <div class="stat-item">
-        <span class="stat-label">{$t.common.total} {$t.common.articles}:</span>
-        <span class="stat-value">{data?.articles.length || 0}</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">{$t.extremeAnalysis.topKeywords}:</span>
-        <span class="stat-value">{showTopN}</span>
+    <div class="card variant-glass p-4 mt-4">
+      <div class="statistics-row">
+        <div class="stat-item">
+          <span class="stat-label">{$t.common.total} {$t.common.articles}:</span>
+          <span class="stat-value">{data?.articles.length || 0}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">{$t.extremeAnalysis.topKeywords}:</span>
+          <span class="stat-value">{showTopN}</span>
+        </div>
       </div>
     </div>
   {/if}
-</div>
+{:else}
+  <p class="text-center py-8 text-white/80 text-sm sm:text-base">{$t.messages.noData}</p>
+{/if}
 
 <style>
-  .keyword-frequency-container {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    height: 100%;
-    min-height: 800px;
+  .loading-container {
+    animation: fadeIn 0.3s ease-in-out;
   }
 
-  .controls-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 3rem;
+  .loading-skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+  }
+
+  @keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Controls Grid */
+  .controls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
     align-items: flex-end;
-    padding-bottom: 1rem;
   }
 
   .control-group {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    flex: 1;
-    min-width: 280px;
+    gap: 0.5rem;
   }
 
   .control-label {
-    font-size: 1rem;
+    font-size: 0.875rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.95);
-    margin-bottom: 0.25rem;
+    color: rgba(255, 255, 255, 0.9);
   }
 
-  .select, .number-input {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  /* Select Input */
+  .select-input {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     color: white;
-    padding: 0.75rem 1rem;
+    padding: 0.625rem 0.875rem;
     border-radius: 0.5rem;
     transition: all 0.2s ease;
-    font-size: 0.9rem;
-    min-height: 44px;
-  }
-
-  .select:hover, .number-input:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.2);
-  }
-
-  .select:focus, .number-input:focus {
+    font-size: 0.875rem;
+    min-height: 42px;
+    cursor: pointer;
     outline: none;
+  }
+
+  .select-input:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .select-input:focus {
     border-color: rgba(59, 130, 246, 0.5);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   }
 
-  .number-input {
-    max-width: 120px;
+  /* Fix dropdown options styling */
+  .select-input option {
+    background: #1e293b;
+    color: white;
+    padding: 0.5rem;
+    border: none;
   }
 
-  .btn-group {
+  .select-input option:hover {
+    background: #334155;
+  }
+
+  .select-input option:checked {
+    background: #3b82f6;
+    color: white;
+  }
+
+  /* Button Toggle Group */
+  .btn-group-toggle {
     display: flex;
     gap: 0;
     border-radius: 0.5rem;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
   }
 
-  .btn {
-    padding: 0.75rem 1.25rem;
-    border-radius: 0;
+  .btn-toggle {
+    flex: 1;
+    padding: 0.625rem 1rem;
     border: none;
-    font-size: 0.9rem;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.875rem;
     font-weight: 500;
     transition: all 0.2s ease;
     cursor: pointer;
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: relative;
+    overflow: hidden;
   }
 
-  .btn:first-child {
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+  .btn-toggle:not(:last-child) {
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
   }
 
-  .category-description {
-    padding: 1.25rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.75rem;
-    margin-bottom: 0.5rem;
+  .btn-toggle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    opacity: 0;
+    transition: opacity 0.2s ease;
   }
 
-  .category-description p {
-    font-size: 0.95rem;
-    line-height: 1.5;
+  .btn-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+
+  .btn-toggle:hover::before {
+    opacity: 1;
+  }
+
+  .btn-toggle.active {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(139, 92, 246, 0.2));
+    color: white;
+    font-weight: 600;
+  }
+
+  /* Number Input */
+  .number-input {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: white;
+    padding: 0.625rem 0.875rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+    min-height: 42px;
+    max-width: 120px;
+    outline: none;
+  }
+
+  .number-input:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .number-input:focus {
+    border-color: rgba(59, 130, 246, 0.5);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  /* Chrome, Safari, Edge, Opera */
+  .number-input::-webkit-outer-spin-button,
+  .number-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
     margin: 0;
   }
 
-  .chart-container {
-    flex: 1;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    position: relative;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
+  /* Firefox */
+  .number-input[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
   }
 
+  /* Chart Container */
+  .chart-container {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
 
-
+  /* Statistics Row */
   .statistics-row {
     display: flex;
-    gap: 3rem;
-    padding: 1.25rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.75rem;
-    margin-top: 0.5rem;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
   }
 
   .stat-item {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.5rem;
     align-items: center;
   }
 
   .stat-label {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.875rem;
     font-weight: 500;
   }
 
   .stat-value {
     color: white;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1rem;
   }
 
-  /* Mobile responsiveness */
-  @media (max-width: 768px) {
-    .keyword-frequency-container {
-      gap: 1.5rem;
-      min-height: 600px;
-    }
+  /* Glass Effects */
+  :global(.glass-medium) {
+    backdrop-filter: blur(12px);
+  }
 
-    .controls-row {
-      flex-direction: column;
-      gap: 1.5rem;
-      padding-bottom: 0.5rem;
+  /* Hover Lift Effect */
+  :global(.hover-lift) {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  :global(.hover-lift:hover) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Card Styles */
+  :global(.card) {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+  }
+
+  :global(.card:hover) {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  /* Mobile Responsiveness */
+  @media (max-width: 768px) {
+    .controls-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
     }
 
     .control-group {
-      min-width: 100%;
+      width: 100%;
     }
 
     .control-label {
-      font-size: 0.95rem;
+      font-size: 0.8125rem;
     }
 
-    .select, .btn, .number-input {
-      font-size: 0.85rem;
-      padding: 0.625rem 1rem;
-      min-height: 40px;
+    .select-input,
+    .btn-toggle,
+    .number-input {
+      font-size: 0.8125rem;
+      padding: 0.5rem 0.75rem;
+      min-height: 38px;
     }
 
     .number-input {
       max-width: 100px;
     }
 
-    .chart-container {
-      padding: 1rem;
+    .statistics-row {
+      gap: 1.5rem;
     }
 
-    .category-description {
-      padding: 1rem;
+    .stat-label {
+      font-size: 0.8125rem;
     }
 
-    .category-description p {
-      font-size: 0.9rem;
+    .stat-value {
+      font-size: 0.9375rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .controls-grid {
+      gap: 0.75rem;
+    }
+
+    .control-label {
+      font-size: 0.75rem;
+    }
+
+    .select-input,
+    .btn-toggle,
+    .number-input {
+      font-size: 0.75rem;
+      padding: 0.375rem 0.625rem;
+      min-height: 34px;
     }
 
     .statistics-row {
       flex-direction: column;
-      gap: 1rem;
-      padding: 1rem;
+      gap: 0.75rem;
+      align-items: center;
     }
 
-    .stat-label {
-      font-size: 0.9rem;
-    }
-
-    .stat-value {
-      font-size: 1rem;
+    .stat-item {
+      text-align: center;
     }
   }
 
-  /* Large screens optimization */
+  /* Large Screens */
   @media (min-width: 1200px) {
-    .keyword-frequency-container {
-      min-height: 900px;
-    }
-
-    .chart-container {
-      padding: 2rem;
-    }
-
-    .controls-row {
-      gap: 4rem;
-    }
-
-    .control-group {
-      min-width: 320px;
+    .controls-grid {
+      gap: 2rem;
     }
   }
 </style> 
