@@ -435,6 +435,15 @@
     background-color: rgba(255, 255, 255, 0.1);
   }
 
+  /* Sticky table headers */
+  th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: rgb(38, 41, 65); /* Solid color for header */
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+
   /* Ensure all clickable elements have pointer cursor */
   .comparison-card {
     cursor: pointer;
