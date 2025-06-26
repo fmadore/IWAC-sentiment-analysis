@@ -4,37 +4,54 @@
   import DatabaseIcon from '@lucide/svelte/icons/database';
 
   let isOpen = $state(false);
+  let pickerElement: HTMLDivElement;
 
   function selectDataset(datasetId: string) {
     selectedDataset.set(datasetId);
     isOpen = false;
   }
 
-  function handleClickOutside(event: MouseEvent) {
+  function toggleDropdown(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    isOpen = !isOpen;
+  }
+
+  function handleMenuItemClick(event: Event, datasetId: string) {
+    event.preventDefault();
+    event.stopPropagation();
+    selectDataset(datasetId);
+  }
+
+  function handleClickOutside(event: MouseEvent | TouchEvent) {
     const target = event.target as Element;
-    const picker = document.querySelector('.dataset-picker');
-    if (picker && !picker.contains(target)) {
+    if (pickerElement && !pickerElement.contains(target)) {
       isOpen = false;
     }
   }
 
   $effect(() => {
     if (isOpen) {
+      // Add both mouse and touch event listeners for better mobile support
       document.addEventListener('click', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
       return () => {
         document.removeEventListener('click', handleClickOutside);
+        document.removeEventListener('touchstart', handleClickOutside);
       };
     }
   });
 </script>
 
-<div class="dataset-picker">
+<div class="dataset-picker" bind:this={pickerElement}>
   <button
     class="picker-button glass-medium"
-    onclick={() => isOpen = !isOpen}
+    onclick={toggleDropdown}
+    ontouchend={toggleDropdown}
     aria-label={$t.datasets?.selectModel || 'Select model'}
     aria-expanded={isOpen}
     aria-haspopup={true}
+    type="button"
   >
     <div class="button-content">
       <DatabaseIcon size={18} />
@@ -55,14 +72,17 @@
   </button>
 
   {#if isOpen}
-    <div class="dropdown-menu glass-heavy">
+    <div class="dropdown-menu glass-heavy" role="menu" aria-label="Dataset selection menu">
       <div class="menu-section">
         <span class="section-label">{$t.datasets?.availableModels || 'Available Models'}</span>
         {#each $availableDatasets as dataset}
-          <button
-            class="menu-item {$selectedDataset === dataset.id ? 'active' : ''}"
-            onclick={() => selectDataset(dataset.id)}
-          >
+                      <button
+              class="menu-item {$selectedDataset === dataset.id ? 'active' : ''}"
+              onclick={(e) => handleMenuItemClick(e, dataset.id)}
+              ontouchend={(e) => handleMenuItemClick(e, dataset.id)}
+              role="menuitem"
+              tabindex="0"
+            >
             <span class="dataset-icon">{dataset.icon}</span>
             <span class="dataset-name">{dataset.name}</span>
             {#if $selectedDataset === dataset.id}
@@ -78,7 +98,7 @@
 <style>
   .dataset-picker {
     position: relative;
-    z-index: 100;
+    z-index: 1001; /* Higher than LanguageSwitcher (1000) and page modal (999) */
   }
 
   .picker-button {
@@ -97,6 +117,12 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
+    /* Better mobile touch target */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    /* Ensure button is accessible */
+    user-select: none;
+    -webkit-user-select: none;
   }
 
   .picker-button::before {
@@ -156,6 +182,7 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
     overflow: hidden;
     animation: dropdownFadeIn 0.2s ease-out;
+    z-index: 1002; /* Ensure dropdown is above everything */
   }
 
   @keyframes dropdownFadeIn {
@@ -198,6 +225,10 @@
     font-weight: 500;
     border-radius: 0.5rem;
     position: relative;
+    /* Better mobile touch target */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    min-height: 44px; /* iOS recommended minimum touch target */
   }
 
   .menu-item:hover:not(:disabled) {
@@ -241,7 +272,7 @@
   @media (max-width: 640px) {
     .picker-button {
       min-width: 150px;
-      height: 2rem;
+      height: 2.25rem; /* Slightly taller for better touch target */
       padding: 0 0.625rem;
     }
 
@@ -256,11 +287,16 @@
 
     .dropdown-menu {
       min-width: 180px;
+      /* Ensure dropdown doesn't go off-screen on mobile */
+      right: 0;
+      left: auto;
+      max-width: calc(100vw - 2rem);
     }
 
     .menu-item {
-      padding: 0.5rem;
+      padding: 0.75rem 0.5rem; /* Increased padding for better touch targets */
       font-size: 0.8125rem;
+      min-height: 48px; /* Larger touch target on mobile */
     }
 
     .dataset-icon {
@@ -271,7 +307,7 @@
   @media (max-width: 480px) {
     .picker-button {
       min-width: 120px;
-      height: 1.75rem;
+      height: 2rem; /* Keep reasonable height for very small screens */
       padding: 0 0.5rem;
     }
 
@@ -279,9 +315,18 @@
       font-size: 0.75rem;
     }
 
+    .dropdown-menu {
+      /* On very small screens, make dropdown take more space */
+      right: -1rem;
+      left: auto;
+      min-width: 200px;
+      max-width: calc(100vw - 1rem);
+    }
+
     .menu-item {
-      padding: 0.375rem 0.5rem;
+      padding: 0.75rem 0.5rem; /* Keep good touch targets */
       font-size: 0.75rem;
+      min-height: 44px; /* Still maintain minimum touch target */
     }
   }
 

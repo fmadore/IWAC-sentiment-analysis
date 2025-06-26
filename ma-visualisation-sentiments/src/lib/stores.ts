@@ -24,8 +24,8 @@ export const centralityFilters = writable<string[]>([]);
 
 // New stores for dataset management
 export const availableDatasets = writable<DatasetOption[]>([
-  { id: 'chatgpt', name: 'ChatGPT Analysis', file: '/data/iwac_articles_chatgpt.json', icon: '🤖', color: '#10a37f' },
-  { id: 'gemini', name: 'Gemini Analysis', file: '/data/iwac_articles_gemini.json', icon: '✨', color: '#8e75b2' }
+  { id: 'chatgpt', name: 'ChatGPT', file: '/data/iwac_articles_chatgpt.json', icon: '🤖', color: '#10a37f' },
+  { id: 'gemini', name: 'Gemini', file: '/data/iwac_articles_gemini.json', icon: '✨', color: '#8e75b2' }
 ]);
 
 export const selectedDataset = writable<string>('chatgpt');
