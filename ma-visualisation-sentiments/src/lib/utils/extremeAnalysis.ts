@@ -2,6 +2,7 @@
  * Utility functions for extreme analysis data management
  */
 
+import { base } from '$app/paths';
 import type { ExtremeAnalysisData, ExtremeCategoryConfig, ExtremeCategory } from '$lib/types/extremeAnalysis';
 
 /**
@@ -11,7 +12,9 @@ export async function loadExtremeAnalysisData(
   model: 'chatgpt' | 'gemini',
   fetchFunction: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
 ): Promise<ExtremeAnalysisData> {
-  const response = await fetchFunction(`/data/iwac_extreme_analysis_${model}.json`);
+  const filePath = `/data/iwac_extreme_analysis_${model}.json`;
+  const resolvedPath = filePath.startsWith('http') ? filePath : `${base}${filePath}`;
+  const response = await fetchFunction(resolvedPath);
   if (!response.ok) {
     throw new Error(`Failed to load extreme analysis data for ${model}: ${response.statusText}`);
   }
