@@ -51,7 +51,7 @@ export const discrepancyFilters = writable<DiscrepancyFilter>({
   minDifference: 0,
   maxDifference: 5,
   dimensions: ['polarity', 'subjectivity', 'centrality'],
-  excludeNonApplicable: false
+  excludeNonApplicable: true
 });
 
 // Store for the currently selected comparison

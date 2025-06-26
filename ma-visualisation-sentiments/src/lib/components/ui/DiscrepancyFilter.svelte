@@ -7,7 +7,7 @@
   let minDiff = $state(0);
   let maxDiff = $state(5);
   let selectedDimensions = $state<string[]>(['polarity', 'subjectivity', 'centrality']);
-  let excludeNonApplicable = $state(false);
+  let excludeNonApplicable = $state(true);
   
   // Sync with store
   $effect(() => {
@@ -46,7 +46,7 @@
     minDiff = 0;
     maxDiff = 5;
     selectedDimensions = ['polarity', 'subjectivity', 'centrality'];
-    excludeNonApplicable = false;
+    excludeNonApplicable = true;
     updateFilters();
   }
 
