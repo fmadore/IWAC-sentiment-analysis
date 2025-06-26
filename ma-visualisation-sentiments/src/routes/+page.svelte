@@ -81,6 +81,21 @@
     }
   });
 
+  // Reactive statement to handle comparison data loading when comparison mode is enabled
+  $effect(() => {
+    if ($comparisonMode && browser) {
+      console.log('Comparison mode enabled, loading comparison datasets...');
+      // Load comparison datasets if not already loaded (uses specific loading state internally)
+      loadComparisonDatasets(fetch)
+        .then(() => {
+          console.log('Comparison datasets loaded successfully');
+        })
+        .catch(error => {
+          console.error("Failed to load comparison datasets:", error);
+        });
+    }
+  });
+
   onMount(() => {
     // Initialize URL state management first
     const urlView = initializeURLState();
