@@ -179,6 +179,8 @@ Consultez `src/lib/types/data.ts` pour la structure détaillée des objets `Arti
 
 Le script `data-preprocess/data-fetch.py` permet de récupérer les données depuis le dataset Hugging Face ["fmadore/iwac-newspaper-articles"](https://huggingface.co/datasets/fmadore/iwac-newspaper-articles) et de les transformer au format attendu par l'application.
 
+Le script `data-preprocess/extreme-analysis.py` génère une analyse lexicale approfondie des cas extrêmes (subjectivité, polarité, centralité) en identifiant les mots-clés les plus fréquents pour chaque catégorie et modèle. Cette analyse produit des fichiers JSON spécialisés pour la visualisation des patterns lexicaux.
+
 ## Visualisations disponibles
 
 L'application propose une suite complète de visualisations interactives pour explorer les données d'analyse de sentiment :
@@ -223,6 +225,23 @@ L'application propose une suite complète de visualisations interactives pour ex
 - **Codes couleur** : Identification visuelle rapide des niveaux de conflit
 - **Vue détaillée** : Analyse approfondie article par article avec justifications
 - **Export spécialisé** : CSV incluant les données des deux modèles et leurs différences
+
+### 8. **Extremes** - Analyse lexicale des extrêmes
+- **Analyse des mots-clés** : Identification des mots-clés les plus fréquents dans les cas extrêmes
+- **Catégories d'extrêmes** : 
+  - **Subjectivité très élevée** (4-5) : Articles exprimant des opinions marquées sur l'islam/musulmans
+  - **Subjectivité très faible** (1-2) : Articles très objectifs et factuels
+  - **Polarité très négative** : Articles avec portrait extrêmement défavorable
+  - **Polarité très positive** : Articles avec portrait extrêmement favorable  
+  - **Centralité très élevée** : Articles principalement consacrés à l'islam/musulmans
+  - **Centralité marginale** : Articles mentionnant brièvement l'islam/musulmans
+- **Types de mots-clés** :
+  - **Subject** : Mots-clés thématiques (religion, politique, événements)
+  - **Spatial** : Mots-clés géographiques (pays, villes, régions)
+- **Visualisation interactive** : Graphiques horizontaux avec gradients colorés selon la catégorie
+- **Analyse comparative** : Possibilité de comparer les patterns lexicaux entre ChatGPT et Gemini
+- **Filtrage flexible** : Nombre de mots-clés ajustable (5-25) et sélection du type
+- **Statistiques détaillées** : Nombre d'articles par catégorie et répartition géographique
 
 ## Gestion d'état (`stores.ts`)
 
@@ -529,7 +548,7 @@ Pour mettre à jour les données du corpus IWAC :
 
 1.  **Installer les dépendances Python :**
     ```bash
-    pip install datasets tqdm
+    pip install datasets tqdm pandas
     ```
 
 2.  **Exécuter le script de récupération des données :**
@@ -538,6 +557,17 @@ Pour mettre à jour les données du corpus IWAC :
     ```
     
     Ce script récupère automatiquement les données depuis le dataset Hugging Face et génère le fichier `iwac_articles.json` dans le bon format.
+
+3.  **Générer l'analyse des extrêmes lexicaux (optionnel) :**
+    ```bash
+    python data-preprocess/extreme-analysis.py
+    ```
+    
+    Ce script analyse les mots-clés associés aux cas extrêmes de sentiment et génère :
+    - `iwac_extreme_analysis_chatgpt.json` : Analyse lexicale des extrêmes pour ChatGPT
+    - `iwac_extreme_analysis_gemini.json` : Analyse lexicale des extrêmes pour Gemini
+    
+    Ces fichiers permettent d'alimenter la vue "Extremes" avec des insights sur les patterns lexicaux caractéristiques de chaque catégorie de sentiment.
 
 ## Technologies utilisées
 
