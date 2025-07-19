@@ -4,7 +4,7 @@
   import type { Article } from '$lib/types/data';
   import { getJournalName } from '$lib/utils';
   import { t, currentLanguage } from '$lib/i18n';
-  import { translateSentimentValue } from '$lib/i18n/utils';
+  import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
   import DatasetBadge from './ui/DatasetBadge.svelte';
 
   // Props - for event dispatching
@@ -427,7 +427,7 @@
               {translateSentimentValue(article.sentiment_analysis?.polarite, $currentLanguage) || 'N/A'}
             </span>
             <span class="badge badge-sm {getSubjectivityClass(article.sentiment_analysis?.subjectivite_score)}">
-              {$t.table.subjectivity}: {article.sentiment_analysis?.subjectivite_score || 'N/A'}
+              {$t.table.subjectivity}: {translateSubjectivityScore(article.sentiment_analysis?.subjectivite_score, $currentLanguage)}
             </span>
           </div>
         </button>
@@ -481,7 +481,7 @@
               </td>
               <td>
                 <span class="badge {getSubjectivityClass(article.sentiment_analysis?.subjectivite_score)}">
-                  {article.sentiment_analysis?.subjectivite_score || 'N/A'}
+                  {translateSubjectivityScore(article.sentiment_analysis?.subjectivite_score, $currentLanguage)}
                 </span>
               </td>
             </tr>

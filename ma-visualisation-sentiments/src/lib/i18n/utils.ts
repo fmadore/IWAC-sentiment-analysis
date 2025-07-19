@@ -11,19 +11,21 @@ export const SENTIMENT_VALUE_MAP = {
   'Très négatif': 'sentiment.veryNegative',
   'Non applicable': 'sentiment.notApplicable',
   
-  // Subjectivity values
-  'Factuel': 'subjectivity.factual',
-  'Plutôt factuel': 'subjectivity.ratherFactual',
-  'Mixte': 'subjectivity.mixed',
-  'Plutôt subjectif': 'subjectivity.ratherSubjective',
-  'Subjectif': 'subjectivity.subjective',
-  
   // Centrality values
   'Très central': 'centrality.veryCentral',
   'Central': 'centrality.central',
   'Secondaire': 'centrality.secondary',
   'Marginal': 'centrality.marginal',
   'Non abordé': 'centrality.notAddressed'
+} as const;
+
+// Mapping for numeric subjectivity scores to translation keys
+export const SUBJECTIVITY_SCORE_MAP = {
+  1: 'subjectivity.factual',     // Very objective
+  2: 'subjectivity.ratherFactual', // Rather objective  
+  3: 'subjectivity.mixed',       // Mixed
+  4: 'subjectivity.ratherSubjective', // Rather subjective
+  5: 'subjectivity.subjective'   // Very subjective
 } as const;
 
 // Reverse mapping from translation keys to French values (for data storage)
@@ -44,6 +46,21 @@ export function translateSentimentValue(frenchValue: string | null | undefined, 
   
   // If no mapping found, return the original value
   return frenchValue;
+}
+
+/**
+ * Translates a numeric subjectivity score to the current language
+ */
+export function translateSubjectivityScore(score: number | null | undefined, lang?: Language): string {
+  if (score === null || score === undefined) return 'Non applicable';
+  
+  const translationKey = SUBJECTIVITY_SCORE_MAP[score as keyof typeof SUBJECTIVITY_SCORE_MAP];
+  if (translationKey) {
+    return translate(translationKey, lang);
+  }
+  
+  // If no mapping found, return the score as string
+  return score.toString();
 }
 
 /**

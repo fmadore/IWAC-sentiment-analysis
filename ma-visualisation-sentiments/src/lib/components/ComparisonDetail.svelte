@@ -2,7 +2,7 @@
   import type { ComparisonData } from '$lib/types/data';
   import { getJournalName } from '$lib/utils';
   import { t, currentLanguage } from '$lib/i18n';
-  import { translateSentimentValue } from '$lib/i18n/utils';
+  import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
 
   // Props: Accept comparison data as a prop
   let { comparison }: { comparison: ComparisonData | null } = $props();
@@ -261,7 +261,7 @@
           <div class="flex items-center gap-2 mb-3">
             <span class="text-sm font-bold text-white/80">ChatGPT</span>
             <span class="badge badge-sm {getSubjectivityClass(comparison.chatgpt?.subjectivite_score)}">
-              {comparison.chatgpt?.subjectivite_score || 'N/A'}
+              {translateSubjectivityScore(comparison.chatgpt?.subjectivite_score, $currentLanguage)}
             </span>
           </div>
           {#if comparison.chatgpt?.subjectivite_justification}
@@ -278,7 +278,7 @@
           <div class="flex items-center gap-2 mb-3">
             <span class="text-sm font-bold text-white/80">Gemini</span>
             <span class="badge badge-sm {getSubjectivityClass(comparison.gemini?.subjectivite_score)}">
-              {comparison.gemini?.subjectivite_score || 'N/A'}
+              {translateSubjectivityScore(comparison.gemini?.subjectivite_score, $currentLanguage)}
             </span>
           </div>
           {#if comparison.gemini?.subjectivite_justification}

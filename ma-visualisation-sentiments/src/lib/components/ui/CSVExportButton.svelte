@@ -2,7 +2,7 @@
   import { filteredArticles } from '$lib/stores';
   import { getJournalName } from '$lib/utils';
   import { t, currentLanguage } from '$lib/i18n';
-  import { translateSentimentValue } from '$lib/i18n/utils';
+  import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
   import type { Article } from '$lib/types/data';
   import DownloadIcon from '@lucide/svelte/icons/download';
 
@@ -68,7 +68,7 @@
           escapeCSVField(getJournalName(article)),
           escapeCSVField(formatDateForCSV(article.publication_date)),
           escapeCSVField(translateSentimentValue(article.sentiment_analysis?.polarite, $currentLanguage)),
-          escapeCSVField(article.sentiment_analysis?.subjectivite_score?.toString()),
+          escapeCSVField(translateSubjectivityScore(article.sentiment_analysis?.subjectivite_score, $currentLanguage)),
           escapeCSVField(translateSentimentValue(article.sentiment_analysis?.centralite_islam_musulmans, $currentLanguage)),
           escapeCSVField(article.sentiment_analysis?.polarite_justification),
           escapeCSVField(article.sentiment_analysis?.subjectivite_justification),

@@ -17,6 +17,7 @@ Date: 2024
 from datasets import load_dataset
 import os
 import json
+import pandas as pd
 from collections import Counter, defaultdict
 from tqdm import tqdm
 import re
@@ -372,7 +373,7 @@ def analyze_extreme_keywords(dataset, model_prefix, top_n=50):
         
         # Analyser la centralité très faible
         # Articles où l'islam/musulmans sont mentionnés de manière périphérique
-        if centrality == "Pas central":
+        if centrality == "Marginal":
             stats["centrality_not_central_count"] += 1
             # Comptage global des mots-clés
             counters["centrality_not_central_subject"].update(subject_keywords)

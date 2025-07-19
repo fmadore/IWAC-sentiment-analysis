@@ -1,7 +1,7 @@
 <script lang="ts">
   import { filteredComparisons, selectedComparison } from '$lib/stores';
   import { t, currentLanguage } from '$lib/i18n';
-  import { translateSentimentValue } from '$lib/i18n/utils';
+  import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
   import { getJournalName } from '$lib/utils';
   import type { ComparisonData } from '$lib/types/data';
   import ArrowUpDownIcon from '@lucide/svelte/icons/arrow-up-down';
@@ -332,12 +332,12 @@
               </td>
               <td class="text-center">
                 <span class="badge badge-sm {getSubjectivityClass(comparison.chatgpt?.subjectivite_score)}">
-                  {comparison.chatgpt?.subjectivite_score || 'N/A'}
+                  {translateSubjectivityScore(comparison.chatgpt?.subjectivite_score, $currentLanguage)}
                 </span>
               </td>
               <td class="text-center">
                 <span class="badge badge-sm {getSubjectivityClass(comparison.gemini?.subjectivite_score)}">
-                  {comparison.gemini?.subjectivite_score || 'N/A'}
+                  {translateSubjectivityScore(comparison.gemini?.subjectivite_score, $currentLanguage)}
                 </span>
               </td>
               <td class="text-center">
@@ -414,7 +414,7 @@
                 <div class="value-cell">
                   <span class="model-label">ChatGPT</span>
                   <span class="badge badge-sm {getSubjectivityClass(comparison.chatgpt?.subjectivite_score)}">
-                    {comparison.chatgpt?.subjectivite_score || 'N/A'}
+                    {translateSubjectivityScore(comparison.chatgpt?.subjectivite_score, $currentLanguage)}
                   </span>
                 </div>
                 <div class="diff-indicator {getDiffClass(comparison.discrepancies.subjectivityDiff)}">
@@ -423,7 +423,7 @@
                 <div class="value-cell">
                   <span class="model-label">Gemini</span>
                   <span class="badge badge-sm {getSubjectivityClass(comparison.gemini?.subjectivite_score)}">
-                    {comparison.gemini?.subjectivite_score || 'N/A'}
+                    {translateSubjectivityScore(comparison.gemini?.subjectivite_score, $currentLanguage)}
                   </span>
                 </div>
               </div>

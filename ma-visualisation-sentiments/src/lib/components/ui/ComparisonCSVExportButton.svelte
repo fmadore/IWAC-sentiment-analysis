@@ -2,7 +2,7 @@
   import { filteredComparisons } from '$lib/stores';
   import { getJournalName } from '$lib/utils';
   import { t, currentLanguage } from '$lib/i18n';
-  import { translateSentimentValue } from '$lib/i18n/utils';
+  import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
   import type { ComparisonData } from '$lib/types/data';
   import DownloadIcon from '@lucide/svelte/icons/download';
 
@@ -84,7 +84,7 @@
           
           // ChatGPT analysis
           escapeCSVField(translateSentimentValue(comparison.chatgpt?.polarite, $currentLanguage)),
-          escapeCSVField(comparison.chatgpt?.subjectivite_score?.toString()),
+          escapeCSVField(translateSubjectivityScore(comparison.chatgpt?.subjectivite_score, $currentLanguage)),
           escapeCSVField(translateSentimentValue(comparison.chatgpt?.centralite_islam_musulmans, $currentLanguage)),
           escapeCSVField(comparison.chatgpt?.polarite_justification),
           escapeCSVField(comparison.chatgpt?.subjectivite_justification),
@@ -92,7 +92,7 @@
           
           // Gemini analysis
           escapeCSVField(translateSentimentValue(comparison.gemini?.polarite, $currentLanguage)),
-          escapeCSVField(comparison.gemini?.subjectivite_score?.toString()),
+          escapeCSVField(translateSubjectivityScore(comparison.gemini?.subjectivite_score, $currentLanguage)),
           escapeCSVField(translateSentimentValue(comparison.gemini?.centralite_islam_musulmans, $currentLanguage)),
           escapeCSVField(comparison.gemini?.polarite_justification),
           escapeCSVField(comparison.gemini?.subjectivite_justification),

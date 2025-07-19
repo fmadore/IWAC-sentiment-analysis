@@ -3,7 +3,7 @@
   import type { Article } from '$lib/types/data';
   import { getJournalName } from '$lib/utils';
   import { t, currentLanguage } from '$lib/i18n';
-  import { translateSentimentValue } from '$lib/i18n/utils';
+  import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
 
   // Props: Accept article as a prop
   let { article }: { article: Article | null } = $props();
@@ -154,7 +154,7 @@
       <div class="card variant-glass glass-medium p-5 hover-lift-sm border-gradient">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
           <span class="badge badge-lg {getSubjectivityClass(article.sentiment_analysis.subjectivite_score)} hover-glow">
-            {article.sentiment_analysis.subjectivite_score}
+            {translateSubjectivityScore(article.sentiment_analysis.subjectivite_score, $currentLanguage)}
           </span>
           <span class="text-sm uppercase font-bold opacity-75 text-white/80">{$t.filters.subjectivityScore}</span>
         </div>
