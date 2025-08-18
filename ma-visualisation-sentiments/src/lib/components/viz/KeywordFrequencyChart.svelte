@@ -73,6 +73,23 @@
     
     // Reverse for horizontal display (highest at top)
     const reversedData = [...topKeywords].reverse();
+
+    // --- Dynamic left spacing & label width ---
+    // We previously used a percentage (25-30%) which created large unused blank space.
+    // Compute an approximate width needed for the longest label and size the grid and label width accordingly.
+    const longestLabelLength = reversedData.reduce((max, k) => Math.max(max, k.keyword.length), 0);
+    // Average character width heuristic (px). Monitors mobile vs desktop.
+    const avgCharWidth = isMobile ? 6 : 7; // conservative so we don't truncate early
+    const computedLabelWidth = longestLabelLength * avgCharWidth;
+    // Clamp to sensible bounds so extremely long labels don't consume the whole chart.
+    const labelWidth = Math.min(
+      Math.max(computedLabelWidth, isMobile ? 90 : 140),
+      isMobile ? 180 : 260 // slightly reduced max to avoid excessive whitespace
+    );
+    // IMPORTANT: With containLabel=true ECharts already expands the grid area to fit labels.
+    // Previously we added labelWidth to grid.left, effectively doubling the needed space.
+    // Keep a small constant padding only.
+    const baseLeftPadding = isMobile ? 8 : 12; // px
     
     return {
       backgroundColor: 'transparent',
@@ -107,7 +124,8 @@
         }
       },
       grid: {
-        left: isMobile ? '25%' : '30%',
+  // Use pixel value derived above instead of large percentage to reclaim space.
+  left: baseLeftPadding,
         right: isMobile ? '8%' : '10%',
         top: 60,
         bottom: 40,
@@ -137,16 +155,17 @@
           color: 'rgba(255, 255, 255, 0.9)',
           fontSize: isMobile ? 9 : 11,
           interval: 0,
+          // Allow larger labels; only ellipsize if still too long for computed width.
           formatter: (value: string) => {
-            const maxLength = isMobile ? 16 : 20;
-            if (value.length > maxLength) {
-              return value.substring(0, maxLength - 2) + '...';
+            const maxChars = Math.floor(labelWidth / avgCharWidth);
+            if (value.length > maxChars) {
+              return value.slice(0, Math.max(0, maxChars - 2)) + '…';
             }
             return value;
           },
-          margin: 15,
+          margin: 12,
           overflow: 'truncate',
-          width: isMobile ? 100 : 150
+          width: labelWidth
         },
         axisLine: {
           lineStyle: {
