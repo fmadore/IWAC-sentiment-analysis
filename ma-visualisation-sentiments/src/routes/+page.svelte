@@ -43,6 +43,8 @@
   import CentralityFilter from '$lib/components/ui/CentralityFilter.svelte';
   import ClearFiltersButton from '$lib/components/ui/ClearFiltersButton.svelte';
   import CSVExportButton from '$lib/components/ui/CSVExportButton.svelte';
+  import ExtremeAnalysisControls from '$lib/components/ui/ExtremeAnalysisControls.svelte';
+  import DatasetBadge from '$lib/components/ui/DatasetBadge.svelte';
   import { initializeURLState, updateURL } from '$lib/urlState';
   import { Navigation } from '@skeletonlabs/skeleton-svelte';
   import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
@@ -62,6 +64,11 @@
   let detailedArticle: Article | null = $state(null);
   let showDetailsSidebar = $state(false);
   let detailsPosition = $state({ x: 0, y: 0 });
+
+  // État pour les contrôles d'analyse extrême
+  let selectedCategory = $state<import('$lib/types/extremeAnalysis').ExtremeCategory>('polarity_very_negative');
+  let selectedKeywordType = $state<import('$lib/types/extremeAnalysis').KeywordType>('subject');
+  let showTopN = $state(10);
 
   // Get articles for the current dataset
   let currentArticles = $derived($datasetArticles[$selectedDataset] || []);
@@ -227,12 +234,25 @@
     
     updateURL(activeView);
   }
+
+  // Gestionnaires pour les contrôles d'analyse extrême
+  function handleCategoryChange(category: import('$lib/types/extremeAnalysis').ExtremeCategory) {
+    selectedCategory = category;
+  }
+
+  function handleKeywordTypeChange(type: import('$lib/types/extremeAnalysis').KeywordType) {
+    selectedKeywordType = type;
+  }
+
+  function handleTopNChange(value: number) {
+    showTopN = value;
+  }
 </script>
 
 <!-- Dynamic SEO Head -->
 <SEOHead view={activeView} comparisonMode={$comparisonMode} />
 
-<main class="main-container container max-w-6xl mx-auto p-2 sm:p-4 md:p-6">
+<main class="main-container container {activeView === 'extremes' ? 'max-w-7xl' : 'max-w-6xl'} mx-auto p-2 sm:p-4 md:p-6">
   <div class="mb-4 sm:mb-6">
     <AnalysisInfo />
   </div>
@@ -258,14 +278,39 @@
       </div>
     </div>
   {:else if currentArticles.length > 0}
-    <!-- Filters - Improved responsive grid -->
-    <div class="filters-grid-responsive mb-4 sm:mb-6">
-      <CountryFilter />
-      <JournalFilterComponent />
-      <PolarityFilter />
-      <SubjectivityFilter />
-      <CentralityFilter />
-    </div>
+    <!-- Conditional Filters based on active view -->
+    {#if activeView === 'extremes'}
+      <!-- Extreme Analysis View: Show dataset badge, country filter, and analysis controls in optimized layout -->
+      <div class="mb-4">
+        <DatasetBadge size="sm" />
+      </div>
+      
+      <!-- Extreme Analysis Specific Layout -->
+      <div class="extreme-filters-layout mb-4 sm:mb-6">
+        <div class="country-filter-section">
+          <CountryFilter />
+        </div>
+        <div class="analysis-controls-section">
+          <ExtremeAnalysisControls
+            {selectedCategory}
+            {selectedKeywordType}
+            {showTopN}
+            onCategoryChange={handleCategoryChange}
+            onKeywordTypeChange={handleKeywordTypeChange}
+            onTopNChange={handleTopNChange}
+          />
+        </div>
+      </div>
+    {:else}
+      <!-- Default View: Show standard filters -->
+      <div class="filters-grid-responsive mb-4 sm:mb-6">
+        <CountryFilter />
+        <JournalFilterComponent />
+        <PolarityFilter />
+        <SubjectivityFilter />
+        <CentralityFilter />
+      </div>
+    {/if}
 
     <!-- Clear filters button positioned right after filters -->
     <ClearFiltersButton />
@@ -533,7 +578,11 @@
                   <h2 class="h2 mb-3 text-white text-gradient">{$t.extremeAnalysis.title}</h2>
                   <p class="text-base text-surface-300 mb-6 leading-relaxed">{$t.extremeAnalysis.subtitle}</p>
                 </div>
-                <KeywordFrequencyChart />
+                <KeywordFrequencyChart
+                  {selectedCategory}
+                  {selectedKeywordType}
+                  {showTopN}
+                />
               </div>
             </div>
           {/if}
@@ -1055,6 +1104,43 @@
 
     .extreme-analysis-header h2 {
       font-size: 2.25rem;
+    }
+  }
+
+  /* Extreme Analysis Filters Layout */
+  .extreme-filters-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  .country-filter-section {
+    width: 100%;
+  }
+
+  .analysis-controls-section {
+    width: 100%;
+  }
+
+  /* Responsive adjustments for extreme filters */
+  @media (max-width: 1200px) {
+    .extreme-filters-layout {
+      grid-template-columns: 280px 1fr;
+      gap: 1.5rem;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .extreme-filters-layout {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .extreme-filters-layout {
+      gap: 0.75rem;
     }
   }
 

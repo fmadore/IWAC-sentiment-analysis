@@ -2,7 +2,7 @@
 import { writable, derived, get } from 'svelte/store';
 import type { Article, DatasetOption, ComparisonData, DiscrepancyFilter, SentimentAnalysis, DiscrepancyInfo } from './types/data';
 import type { ExtremeAnalysisData } from './types/extremeAnalysis';
-import { loadExtremeAnalysisData } from './utils/extremeAnalysis';
+import { loadExtremeAnalysisData, filterExtremeAnalysisData } from './utils/extremeAnalysis';
 import { base } from '$app/paths';
 import { getJournalName } from './utils';
 
@@ -43,6 +43,14 @@ export const extremeAnalysisData = writable<Record<string, ExtremeAnalysisData |
 export const currentExtremeAnalysis = derived(
   [extremeAnalysisData, selectedDataset],
   ([$extremeAnalysisData, $selectedDataset]) => $extremeAnalysisData[$selectedDataset] || null
+);
+
+// Filtered extreme analysis data that respects country filters only
+export const filteredExtremeAnalysis = derived(
+  [currentExtremeAnalysis, countryFilters],
+  ([$currentExtremeAnalysis, $countryFilters]) => {
+    return filterExtremeAnalysisData($currentExtremeAnalysis, $countryFilters, []);
+  }
 );
 
 // Store to track which datasets have been loaded to avoid duplicate loading
