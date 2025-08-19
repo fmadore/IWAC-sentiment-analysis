@@ -278,43 +278,7 @@
       </div>
     </div>
   {:else if currentArticles.length > 0}
-    <!-- Conditional Filters based on active view -->
-    {#if activeView === 'extremes'}
-      <!-- Extreme Analysis View: Show dataset badge, country filter, and analysis controls in optimized layout -->
-      <div class="mb-4">
-        <DatasetBadge size="sm" />
-      </div>
-      
-      <!-- Extreme Analysis Specific Layout -->
-      <div class="extreme-filters-layout mb-4 sm:mb-6">
-        <div class="country-filter-section">
-          <CountryFilter />
-        </div>
-        <div class="analysis-controls-section">
-          <ExtremeAnalysisControls
-            {selectedCategory}
-            {selectedKeywordType}
-            {showTopN}
-            onCategoryChange={handleCategoryChange}
-            onKeywordTypeChange={handleKeywordTypeChange}
-            onTopNChange={handleTopNChange}
-          />
-        </div>
-      </div>
-    {:else}
-      <!-- Default View: Show standard filters -->
-      <div class="filters-grid-responsive mb-4 sm:mb-6">
-        <CountryFilter />
-        <JournalFilterComponent />
-        <PolarityFilter />
-        <SubjectivityFilter />
-        <CentralityFilter />
-      </div>
-    {/if}
-
-    <!-- Clear filters button positioned right after filters -->
-    <ClearFiltersButton />
-
+    <!-- Navigation Menu - Moved above filters for better hierarchy -->
     <div class="card variant-glass mb-4 sm:mb-6 overflow-hidden hover-lift">
       <!-- Navigation horizontale en haut -->
       <div class="navigation-container glass-medium">
@@ -532,8 +496,47 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Content Area -->
+    <!-- Conditional Filters based on active view -->
+    {#if activeView === 'extremes'}
+      <!-- Extreme Analysis View: Show dataset badge, country filter, and analysis controls in optimized layout -->
+      <div class="mb-4">
+        <DatasetBadge size="sm" />
+      </div>
+      
+      <!-- Extreme Analysis Specific Layout -->
+      <div class="extreme-filters-layout mb-4 sm:mb-6">
+        <div class="country-filter-section">
+          <CountryFilter />
+        </div>
+        <div class="analysis-controls-section">
+          <ExtremeAnalysisControls
+            {selectedCategory}
+            {selectedKeywordType}
+            {showTopN}
+            onCategoryChange={handleCategoryChange}
+            onKeywordTypeChange={handleKeywordTypeChange}
+            onTopNChange={handleTopNChange}
+          />
+        </div>
+      </div>
+    {:else}
+      <!-- Default View: Show standard filters -->
+      <div class="filters-grid-responsive mb-4 sm:mb-6">
+        <CountryFilter />
+        <JournalFilterComponent />
+        <PolarityFilter />
+        <SubjectivityFilter />
+        <CentralityFilter />
+      </div>
+    {/if}
+
+    <!-- Clear filters button positioned right after filters -->
+    <ClearFiltersButton />
+
+    <!-- Content Area -->
+    <div class="card variant-glass mb-4 sm:mb-6 overflow-hidden hover-lift">
       <div class="w-full">
         <div class="p-3 sm:p-6">
           {#if activeView === 'charts'}
