@@ -40,24 +40,12 @@
   import ArticleDetail from '$lib/components/ArticleDetail.svelte';
   import AnalysisInfo from '$lib/components/AnalysisInfo.svelte';
   import SEOHead from '$lib/components/SEOHead.svelte';
-  import CentralityFilter from '$lib/components/ui/CentralityFilter.svelte';
-  import ClearFiltersButton from '$lib/components/ui/ClearFiltersButton.svelte';
+  import FiltersPanel from '$lib/components/layout/FiltersPanel.svelte';
   import CSVExportButton from '$lib/components/ui/CSVExportButton.svelte';
-  import ExtremeAnalysisControls from '$lib/components/ui/ExtremeAnalysisControls.svelte';
-  import DatasetBadge from '$lib/components/ui/DatasetBadge.svelte';
   import { initializeURLState, updateURL } from '$lib/urlState';
   import { Navigation } from '@skeletonlabs/skeleton-svelte';
-  import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
-  import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
   import XIcon from '@lucide/svelte/icons/x';
-  import MenuIcon from '@lucide/svelte/icons/menu';
-  import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
-  import AreaChartIcon from '@lucide/svelte/icons/area-chart';
-  import ActivityIcon from '@lucide/svelte/icons/activity';
-  import FilterXIcon from '@lucide/svelte/icons/filter-x';
-  import GitCompareIcon from '@lucide/svelte/icons/git-compare';
-  import TableIcon from '@lucide/svelte/icons/table';
-  import FlameIcon from '@lucide/svelte/icons/flame';
+  import NavigationTabs from '$lib/components/layout/NavigationTabs.svelte';
 
   // État de l'application
   let activeView = $state('charts');
@@ -278,320 +266,53 @@
       </div>
     </div>
   {:else if currentArticles.length > 0}
-    <!-- Navigation Menu - Moved above filters for better hierarchy -->
-    <div class="card variant-glass mb-4 sm:mb-6 overflow-hidden hover-lift">
-      <!-- Navigation horizontale en haut -->
-      <div class="navigation-container glass-medium">
-
-        <!-- Navigation Desktop -->
-        <div class="hidden lg:flex items-center justify-center">
-          <div class="flex space-x-2">
-            <button
-              class="nav-tab-compact hover-lift {activeView === 'charts' ? 'active' : ''}"
-              onclick={() => handleViewChange('charts')}
-            >
-              <ChartIcon size={18} />
-              <span>{$t.nav.charts}</span>
-            </button>
-            
-            <button
-              class="nav-tab-compact hover-lift {activeView === 'trends' ? 'active' : ''}"
-              onclick={() => handleViewChange('trends')}
-            >
-              <TrendingUpIcon size={18} />
-              <span>{$t.nav.trends}</span>
-            </button>
-            
-            <button
-              class="nav-tab-compact hover-lift {activeView === 'correlation' ? 'active' : ''}"
-              onclick={() => handleViewChange('correlation')}
-            >
-              <BarChart3Icon size={18} />
-              <span>{$t.nav.distribution}</span>
-            </button>
-            
-            <button
-              class="nav-tab-compact hover-lift {activeView === 'volume' ? 'active' : ''}"
-              onclick={() => handleViewChange('volume')}
-            >
-              <AreaChartIcon size={18} />
-              <span>{$t.nav.volume}</span>
-            </button>
-            
-            <button
-              class="nav-tab-compact hover-lift {activeView === 'heatmap' ? 'active' : ''}"
-              onclick={() => handleViewChange('heatmap')}
-            >
-              <ActivityIcon size={18} />
-              <span>{$t.nav.heatmap}</span>
-            </button>
-            
-            <button
-              class="nav-tab-compact hover-lift {activeView === 'table' ? 'active' : ''}"
-              onclick={() => handleViewChange('table')}
-            >
-              <TableIcon size={18} />
-              <span>{$t.nav.table}</span>
-            </button>
-            
-            <button
-              class="nav-tab-compact hover-lift {activeView === 'comparison' ? 'active' : ''}"
-              onclick={() => handleViewChange('comparison')}
-            >
-              <GitCompareIcon size={18} />
-              <span>{$t.nav.comparison || 'Compare'}</span>
-            </button>
-            
-            <button
-              class="nav-tab-compact hover-lift {activeView === 'extremes' ? 'active' : ''}"
-              onclick={() => handleViewChange('extremes')}
-            >
-              <FlameIcon size={18} />
-              <span>{$t.nav.extremes}</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Navigation Medium Desktop (2-row layout) -->
-        <div class="hidden md:flex lg:hidden items-center justify-center">
-          <div class="flex flex-col gap-2">
-            <!-- First row -->
-            <div class="flex space-x-2 justify-center">
-              <button
-                class="nav-tab-compact hover-lift {activeView === 'charts' ? 'active' : ''}"
-                onclick={() => handleViewChange('charts')}
-              >
-                <ChartIcon size={16} />
-                <span class="text-sm">{$t.nav.charts}</span>
-              </button>
-              
-              <button
-                class="nav-tab-compact hover-lift {activeView === 'trends' ? 'active' : ''}"
-                onclick={() => handleViewChange('trends')}
-              >
-                <TrendingUpIcon size={16} />
-                <span class="text-sm">{$t.nav.trends}</span>
-              </button>
-              
-              <button
-                class="nav-tab-compact hover-lift {activeView === 'correlation' ? 'active' : ''}"
-                onclick={() => handleViewChange('correlation')}
-              >
-                <BarChart3Icon size={16} />
-                <span class="text-sm">{$t.nav.distribution}</span>
-              </button>
-              
-              <button
-                class="nav-tab-compact hover-lift {activeView === 'volume' ? 'active' : ''}"
-                onclick={() => handleViewChange('volume')}
-              >
-                <AreaChartIcon size={16} />
-                <span class="text-sm">{$t.nav.volume}</span>
-              </button>
-            </div>
-            
-            <!-- Second row -->
-            <div class="flex space-x-2 justify-center">
-              <button
-                class="nav-tab-compact hover-lift {activeView === 'heatmap' ? 'active' : ''}"
-                onclick={() => handleViewChange('heatmap')}
-              >
-                <ActivityIcon size={16} />
-                <span class="text-sm">{$t.nav.heatmap}</span>
-              </button>
-              
-              <button
-                class="nav-tab-compact hover-lift {activeView === 'table' ? 'active' : ''}"
-                onclick={() => handleViewChange('table')}
-              >
-                <TableIcon size={16} />
-                <span class="text-sm">{$t.nav.table}</span>
-              </button>
-              
-              <button
-                class="nav-tab-compact hover-lift {activeView === 'comparison' ? 'active' : ''}"
-                onclick={() => handleViewChange('comparison')}
-              >
-                <GitCompareIcon size={16} />
-                <span class="text-sm">{$t.nav.comparison || 'Compare'}</span>
-              </button>
-              
-              <button
-                class="nav-tab-compact hover-lift {activeView === 'extremes' ? 'active' : ''}"
-                onclick={() => handleViewChange('extremes')}
-              >
-                <FlameIcon size={16} />
-                <span class="text-sm">{$t.nav.extremes}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Navigation Mobile -->
-        <div class="md:hidden">
-          <div class="flex items-center space-x-3 overflow-x-auto pb-2 scrollbar-hide">
-            <button
-              class="nav-tab-mobile hover-lift-sm {activeView === 'charts' ? 'active' : ''}"
-              onclick={() => handleViewChange('charts')}
-            >
-              <ChartIcon size={18} />
-              <span class="text-xs">{$t.nav.charts}</span>
-            </button>
-            
-            <button
-              class="nav-tab-mobile hover-lift-sm {activeView === 'trends' ? 'active' : ''}"
-              onclick={() => handleViewChange('trends')}
-            >
-              <TrendingUpIcon size={18} />
-              <span class="text-xs">{$t.nav.trends}</span>
-            </button>
-            
-            <button
-              class="nav-tab-mobile hover-lift-sm {activeView === 'correlation' ? 'active' : ''}"
-              onclick={() => handleViewChange('correlation')}
-            >
-              <BarChart3Icon size={18} />
-              <span class="text-xs">{$t.nav.distribution}</span>
-            </button>
-            
-            <button
-              class="nav-tab-mobile hover-lift-sm {activeView === 'volume' ? 'active' : ''}"
-              onclick={() => handleViewChange('volume')}
-            >
-              <AreaChartIcon size={18} />
-              <span class="text-xs">{$t.nav.volume}</span>
-            </button>
-            
-            <button
-              class="nav-tab-mobile hover-lift-sm {activeView === 'heatmap' ? 'active' : ''}"
-              onclick={() => handleViewChange('heatmap')}
-            >
-              <ActivityIcon size={18} />
-              <span class="text-xs">{$t.nav.heatmap}</span>
-            </button>
-            
-            <button
-              class="nav-tab-mobile hover-lift-sm {activeView === 'table' ? 'active' : ''}"
-              onclick={() => handleViewChange('table')}
-            >
-              <TableIcon size={18} />
-              <span class="text-xs">{$t.nav.table}</span>
-            </button>
-            
-            <button
-              class="nav-tab-mobile hover-lift-sm {activeView === 'comparison' ? 'active' : ''}"
-              onclick={() => handleViewChange('comparison')}
-            >
-              <GitCompareIcon size={18} />
-              <span class="text-xs">{$t.nav.comparison || 'Compare'}</span>
-            </button>
-            
-            <button
-              class="nav-tab-mobile hover-lift-sm {activeView === 'extremes' ? 'active' : ''}"
-              onclick={() => handleViewChange('extremes')}
-            >
-              <FlameIcon size={18} />
-              <span class="text-xs">{$t.nav.extremes}</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+  <NavigationTabs activeView={activeView} onChange={handleViewChange} />
 
     <!-- Conditional Filters based on active view -->
-    {#if activeView === 'extremes'}
-      <!-- Extreme Analysis View: Show dataset badge, country filter, and analysis controls in optimized layout -->
-      <div class="mb-4">
-        <DatasetBadge size="sm" />
+  <FiltersPanel
+        {activeView}
+        {selectedCategory}
+        {selectedKeywordType}
+        {showTopN}
+        onCategoryChange={handleCategoryChange}
+        onKeywordTypeChange={handleKeywordTypeChange}
+        onTopNChange={handleTopNChange}
+      />
+
+    {#if activeView === 'charts'}
+      <div class="space-y-4 sm:space-y-6 mb-6">
+        <div class="card variant-glass p-3 sm:p-6 hover-lift chart-container"><SentimentChart /></div>
+        <div class="card variant-glass p-3 sm:p-6 hover-lift chart-container"><SubjectivityChart /></div>
       </div>
-      
-      <!-- Extreme Analysis Specific Layout -->
-      <div class="extreme-filters-layout mb-4 sm:mb-6">
-        <div class="country-filter-section">
-          <CountryFilter />
+    {:else if activeView === 'trends'}
+      <div class="card variant-glass p-3 sm:p-6 hover-lift chart-container mb-6"><SentimentTrendsChart /></div>
+    {:else if activeView === 'correlation'}
+      <div class="card variant-glass p-3 sm:p-6 hover-lift chart-container mb-6"><CorrelationChart /></div>
+    {:else if activeView === 'volume'}
+      <div class="card variant-glass p-3 sm:p-6 hover-lift chart-container mb-6"><VolumeChart /></div>
+    {:else if activeView === 'heatmap'}
+      <div class="card variant-glass p-3 sm:p-6 hover-lift chart-container mb-6"><CentralityHeatmap /></div>
+    {:else if activeView === 'table'}
+      <div class="w-full card variant-glass p-3 sm:p-6 hover-lift mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <h2 class="h3 m-0 text-white text-gradient">{$t.table.title}</h2>
+          <CSVExportButton />
         </div>
-        <div class="analysis-controls-section">
-          <ExtremeAnalysisControls
-            {selectedCategory}
-            {selectedKeywordType}
-            {showTopN}
-            onCategoryChange={handleCategoryChange}
-            onKeywordTypeChange={handleKeywordTypeChange}
-            onTopNChange={handleTopNChange}
-          />
-        </div>
+        <ArticleTable onShowDetails={handleShowDetails} />
       </div>
-    {:else}
-      <!-- Default View: Show standard filters -->
-      <div class="filters-grid-responsive mb-4 sm:mb-6">
-        <CountryFilter />
-        <JournalFilterComponent />
-        <PolarityFilter />
-        <SubjectivityFilter />
-        <CentralityFilter />
+    {:else if activeView === 'comparison'}
+      <ComparisonView />
+    {:else if activeView === 'extremes'}
+      <div class="extreme-analysis-view mb-6">
+        <div class="card variant-glass p-4 sm:p-6 lg:p-8 hover-lift extreme-analysis-card">
+          <div class="extreme-analysis-header">
+            <h2 class="h2 mb-3 text-white text-gradient">{$t.extremeAnalysis.title}</h2>
+            <p class="text-base text-surface-300 mb-6 leading-relaxed">{$t.extremeAnalysis.subtitle}</p>
+          </div>
+          <KeywordFrequencyChart {selectedCategory} {selectedKeywordType} {showTopN} />
+        </div>
       </div>
     {/if}
-
-    <!-- Clear filters button positioned right after filters -->
-    <ClearFiltersButton />
-
-    <!-- Content Area -->
-    <div class="card variant-glass mb-4 sm:mb-6 overflow-hidden hover-lift">
-      <div class="w-full">
-        <div class="p-3 sm:p-6">
-          {#if activeView === 'charts'}
-            <div class="space-y-4 sm:space-y-6">
-              <div class="card variant-glass p-3 sm:p-6 hover-lift chart-container">
-                <SentimentChart />
-              </div>
-              <div class="card variant-glass p-3 sm:p-6 hover-lift chart-container">
-                <SubjectivityChart />
-              </div>
-            </div>
-          {:else if activeView === 'trends'}
-            <div class="card variant-glass p-3 sm:p-6 hover-lift chart-container">
-              <SentimentTrendsChart />
-            </div>
-          {:else if activeView === 'correlation'}
-            <div class="card variant-glass p-3 sm:p-6 hover-lift chart-container">
-              <CorrelationChart />
-            </div>
-          {:else if activeView === 'volume'}
-            <div class="card variant-glass p-3 sm:p-6 hover-lift chart-container">
-              <VolumeChart />
-            </div>
-          {:else if activeView === 'heatmap'}
-            <div class="card variant-glass p-3 sm:p-6 hover-lift chart-container">
-              <CentralityHeatmap />
-            </div>
-          {:else if activeView === 'table'}
-            <div class="w-full card variant-glass p-3 sm:p-6 hover-lift">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                <h2 class="h3 m-0 text-white text-gradient">{$t.table.title}</h2>
-                <CSVExportButton />
-              </div>
-              <ArticleTable onShowDetails={handleShowDetails} />
-            </div>
-          {:else if activeView === 'comparison'}
-            <ComparisonView />
-          {:else if activeView === 'extremes'}
-            <div class="extreme-analysis-view">
-              <div class="card variant-glass p-4 sm:p-6 lg:p-8 hover-lift extreme-analysis-card">
-                <div class="extreme-analysis-header">
-                  <h2 class="h2 mb-3 text-white text-gradient">{$t.extremeAnalysis.title}</h2>
-                  <p class="text-base text-surface-300 mb-6 leading-relaxed">{$t.extremeAnalysis.subtitle}</p>
-                </div>
-                <KeywordFrequencyChart
-                  {selectedCategory}
-                  {selectedKeywordType}
-                  {showTopN}
-                />
-              </div>
-            </div>
-          {/if}
-        </div>
-      </div>
-    </div>
   {:else}
     <div class="alert variant-filled-error p-4 mb-4 sm:mb-6">{$t.messages.noData}</div>
   {/if}
@@ -649,15 +370,7 @@
 {/if}
 
 <style>
-  /* Scrollbar hiding for mobile navigation */
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
+  /* Scrollbar styles moved to NavigationTabs component */
   
   /* Enhanced Modal System with Skeleton UI Integration */
   .modal-backdrop {
@@ -773,47 +486,7 @@
     box-shadow: var(--shadow-md);
   }
   
-  /* Enhanced Filter Grid Styles */
-  .filters-grid-responsive {
-    display: grid;
-    gap: 0.5rem;
-    align-items: start;
-    
-    /* Mobile: 1 column */
-    grid-template-columns: 1fr;
-    
-    /* Small tablets: 2 columns */
-    @media (min-width: 640px) {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
-    }
-    
-    /* Medium tablets: 3 columns */
-    @media (min-width: 768px) {
-      grid-template-columns: repeat(3, 1fr);
-    }
-    
-    /* Large tablets/small desktop: 4 columns */
-    @media (min-width: 1024px) {
-      grid-template-columns: repeat(4, 1fr);
-    }
-    
-    /* Desktop: 5 columns */
-    @media (min-width: 1280px) {
-      grid-template-columns: repeat(5, 1fr);
-    }
-  }
-  
-  .filters-grid-responsive :global(.card) {
-    height: fit-content;
-    align-self: start;
-    transition: all var(--transition-normal);
-    min-width: 0; /* Permet aux cartes de se rétrécir si nécessaire */
-  }
-  
-  .filters-grid-responsive :global(.card:hover) {
-    transform: translateY(-2px);
-  }
+  /* Filters grid & extreme layouts moved to FiltersPanel component */
   
   /* Enhanced Mobile Responsiveness */
   @media (max-width: 768px) {
@@ -859,168 +532,7 @@
     }
   }
 
-  /* Navigation Styles - Using Design System */
-  .navigation-container {
-    background: rgba(30, 41, 59, 0.9);
-    backdrop-filter: blur(20px);
-    border-radius: var(--radius-xl);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: var(--shadow-xl);
-    padding: var(--spacing-lg);
-    margin-bottom: var(--spacing-xl);
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .navigation-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  }
-  
-  /* Navigation tabs desktop - removed unused .nav-tab */
-
-  /* Compact navigation tabs for better space usage */
-  .nav-tab-compact {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.5rem 0.875rem;
-    border-radius: var(--radius-md);
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    color: rgba(255, 255, 255, 0.9);
-    transition: all var(--transition-normal);
-    font-weight: 500;
-    font-size: 0.8125rem;
-    white-space: nowrap;
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-    min-width: fit-content;
-  }
-  
-  .nav-tab-compact::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-    opacity: 0;
-    transition: opacity var(--transition-normal);
-  }
-  
-  .nav-tab-compact:hover {
-    background: var(--glass-hover-bg);
-    border-color: var(--glass-hover-border);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-    color: white;
-  }
-  
-  .nav-tab-compact:hover::before {
-    opacity: 1;
-  }
-  
-  .nav-tab-compact.active {
-    background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
-    border-color: rgba(255, 255, 255, 0.3);
-    color: white;
-    box-shadow: 
-      0 8px 32px rgba(59, 130, 246, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    transform: translateY(-1px);
-  }
-  
-  .nav-tab-compact.active:hover {
-    transform: translateY(-3px);
-    box-shadow: 
-      0 12px 40px rgba(59, 130, 246, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  }
-  
-  /* Navigation tabs mobile */
-  .nav-tab-mobile {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.75rem 1rem;
-    border-radius: var(--radius-md);
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    color: rgba(255, 255, 255, 0.9);
-    transition: all var(--transition-normal);
-    font-weight: 500;
-    white-space: nowrap;
-    min-width: 80px;
-    flex-shrink: 0;
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-  }
-  
-  .nav-tab-mobile::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-    opacity: 0;
-    transition: opacity var(--transition-normal);
-  }
-  
-  .nav-tab-mobile:hover {
-    background: var(--glass-hover-bg);
-    border-color: var(--glass-hover-border);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-    color: white;
-  }
-  
-  .nav-tab-mobile:hover::before {
-    opacity: 1;
-  }
-  
-  .nav-tab-mobile.active {
-    background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
-    border-color: rgba(255, 255, 255, 0.3);
-    color: white;
-    box-shadow: 
-      0 8px 32px rgba(59, 130, 246, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    transform: translateY(-1px);
-  }
-  
-  .nav-tab-mobile.active:hover {
-    transform: translateY(-3px);
-    box-shadow: 
-      0 12px 40px rgba(59, 130, 246, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  }
-  
-  /* Enhanced icon styles */
-  .nav-tab-mobile :global(svg) {
-    opacity: 0.9;
-    transition: opacity var(--transition-fast);
-  }
-  
-  .nav-tab-mobile:hover :global(svg) {
-    opacity: 1;
-  }
-  
-  .nav-tab-mobile.active :global(svg) {
-    opacity: 1;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-  }
+  /* Navigation styles moved to NavigationTabs component */
 
   /* CLS prevention and performance optimizations */
   .loading-container {
@@ -1110,42 +622,7 @@
     }
   }
 
-  /* Extreme Analysis Filters Layout */
-  .extreme-filters-layout {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 2rem;
-    align-items: start;
-  }
-
-  .country-filter-section {
-    width: 100%;
-  }
-
-  .analysis-controls-section {
-    width: 100%;
-  }
-
-  /* Responsive adjustments for extreme filters */
-  @media (max-width: 1200px) {
-    .extreme-filters-layout {
-      grid-template-columns: 280px 1fr;
-      gap: 1.5rem;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    .extreme-filters-layout {
-      grid-template-columns: 1fr;
-      gap: 1rem;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .extreme-filters-layout {
-      gap: 0.75rem;
-    }
-  }
+  /* Extreme filters layout moved to FiltersPanel component */
 
   @media (min-width: 1200px) {
     .extreme-analysis-card {
