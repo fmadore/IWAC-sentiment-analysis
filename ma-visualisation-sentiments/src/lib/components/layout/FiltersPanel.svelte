@@ -24,8 +24,8 @@
 {#if activeView === 'extremes'}
   <div class="mb-4"><DatasetBadge size="sm" /></div>
   <div class="extreme-filters-layout mb-4 sm:mb-6">
-    <div class="country-filter-section"><CountryFilter /></div>
-    <div class="analysis-controls-section">
+    <div class="filter-shell country"><CountryFilter /></div>
+    <div class="filter-shell extreme-controls">
       <ExtremeAnalysisControls
         {selectedCategory}
         {selectedKeywordType}
@@ -37,25 +37,94 @@
     </div>
   </div>
 {:else}
-  <div class="filters-grid-responsive mb-4 sm:mb-6">
-    <CountryFilter />
-    <JournalFilter />
-    <PolarityFilter />
-    <SubjectivityFilter />
-    <CentralityFilter />
+  <div class="filters-grid-responsive masonry mb-4 sm:mb-6">
+    <div class="filter-shell country"><CountryFilter /></div>
+    <div class="filter-shell journal"><JournalFilter /></div>
+    <div class="filter-shell polarity"><PolarityFilter /></div>
+    <div class="filter-shell subjectivity"><SubjectivityFilter /></div>
+    <div class="filter-shell centrality"><CentralityFilter /></div>
   </div>
 {/if}
 <ClearFiltersButton />
 
 <style>
-  .filters-grid-responsive { display:grid;gap:.5rem;align-items:start;grid-template-columns:1fr; }
-  @media (min-width:640px){ .filters-grid-responsive{grid-template-columns:repeat(2,1fr);gap:1rem;} }
-  @media (min-width:768px){ .filters-grid-responsive{grid-template-columns:repeat(3,1fr);} }
-  @media (min-width:1024px){ .filters-grid-responsive{grid-template-columns:repeat(4,1fr);} }
-  @media (min-width:1280px){ .filters-grid-responsive{grid-template-columns:repeat(5,1fr);} }
-  .filters-grid-responsive :global(.card){height:fit-content;align-self:start;transition:all var(--transition-normal);min-width:0;}
-  .extreme-filters-layout{display:grid;grid-template-columns:300px 1fr;gap:2rem;align-items:start;}
-  @media (max-width:1200px){.extreme-filters-layout{grid-template-columns:280px 1fr;gap:1.5rem;}}
-  @media (max-width:1024px){.extreme-filters-layout{grid-template-columns:1fr;gap:1rem;}}
-  @media (max-width:768px){.extreme-filters-layout{gap:.75rem;}}
+  /* Generic filter wrappers ensure consistent grid behavior */
+    /* Equal-height cards only when NOT in masonry mode to allow staggered heights */
+    .filters-grid-responsive:not(.masonry) .filter-shell :global(.card){height:100%;}
+
+  /* Auto-fit responsive grid for standard facets */
+  .filters-grid-responsive { 
+    display:grid; 
+    gap:0.85rem; 
+    align-items:start; 
+    grid-auto-flow:row dense;
+    grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));
+  }
+    /* Base responsive grid (fallback when masonry class absent) */
+    .filters-grid-responsive { 
+      display:grid; 
+      gap:0.85rem; 
+      align-items:start; 
+      grid-auto-flow:row dense;
+      grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));
+    }
+    /* Masonry mode: force block + multi-column; activate from 1024px for earlier benefit */
+    .filters-grid-responsive.masonry { display:block !important; }
+    @media (min-width:1024px){
+      .filters-grid-responsive.masonry { 
+        column-count:2; 
+        column-gap:1.1rem; 
+        column-width:300px; /* fallback for browsers preferring width */
+      }
+    }
+    @media (min-width:1280px){
+      .filters-grid-responsive.masonry { column-count:3; column-gap:1.25rem; column-width:320px; }
+    }
+    @media (min-width:1600px){
+      .filters-grid-responsive.masonry { column-count:4; column-gap:1.5rem; column-width:340px; }
+    }
+    .filters-grid-responsive.masonry .filter-shell { 
+      break-inside:avoid; 
+      -webkit-column-break-inside:avoid; 
+      page-break-inside:avoid; 
+      margin:0 0 1.25rem; 
+      width:100%;
+    }
+    .filters-grid-responsive.masonry .filter-shell :global(.card){
+      height:auto !important; 
+      display:block; 
+      width:100%;
+      transition:all var(--transition-normal);
+    }
+    /* Journal width hint retained for non-masonry grid only */
+    @media (min-width:1200px){
+      .filters-grid-responsive:not(.masonry) .journal{grid-column:span 2;}
+    }
+    @media (min-width:1600px){
+      .filters-grid-responsive:not(.masonry){grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
+      .filters-grid-responsive:not(.masonry) .journal{grid-column:span 2;}
+    }
+    .filters-grid-responsive :global(.card){
+      transition:all var(--transition-normal);
+      min-width:0;
+    }
+
+  /* Extreme layout: fluid first column instead of hard fixed width */
+  .extreme-filters-layout{ 
+    display:grid; 
+    gap:1.5rem; 
+    grid-template-columns:clamp(230px,26%,320px) 1fr; 
+    align-items:start;
+  }
+  @media (max-width:1100px){
+    .extreme-filters-layout{grid-template-columns:clamp(220px,32%,300px) 1fr;gap:1.25rem;}
+  }
+  @media (max-width:900px){
+    .extreme-filters-layout{grid-template-columns:1fr;gap:1rem;}
+    .extreme-filters-layout .extreme-controls :global(.card){height:auto;}
+  }
+  @media (max-width:600px){
+    .filters-grid-responsive{gap:.65rem;}
+    .extreme-filters-layout{gap:.75rem;}
+  }
 </style>
