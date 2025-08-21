@@ -8,7 +8,7 @@ print(f"Loading config: articles")
 print(f"{'='*50}")
 
 # Load the dataset with 'articles' config only
-dataset = load_dataset("fmadore/iwac-newspaper-articles", "articles")
+dataset = load_dataset("fmadore/islam-west-africa-collection", "articles")
 
 # Access the data
 print(f"Dataset info for 'articles':")
