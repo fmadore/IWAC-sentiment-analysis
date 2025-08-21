@@ -469,7 +469,7 @@ def main():
     
     # Charger le dataset depuis Hugging Face
     print("Loading dataset from Hugging Face...")
-    dataset = load_dataset("fmadore/iwac-newspaper-articles", "articles")
+    dataset = load_dataset("fmadore/islam-west-africa-collection", "articles")
     
     print(f"Dataset loaded: {len(dataset['train'])} articles")
     print("This dataset contains articles with sentiment analysis from both ChatGPT and Gemini")
