@@ -2,19 +2,61 @@ from datasets import load_dataset
 import os
 import json
 from tqdm import tqdm
+import pandas as pd
+from huggingface_hub import hf_hub_download
+
+# Helper function to safely convert to int, handling NaN values
+def safe_int_convert(value):
+    if pd.isna(value) or value is None:
+        return None
+    try:
+        return int(float(value))
+    except (ValueError, TypeError):
+        return None
 
 print(f"\n{'='*50}")
 print(f"Loading config: articles")
 print(f"{'='*50}")
 
-# Load the dataset with 'articles' config only
-dataset = load_dataset("fmadore/islam-west-africa-collection", "articles")
+# Try to download the parquet files directly
+try:
+    print("Attempting to download dataset files directly...")
+    
+    # Download the parquet file for articles directly
+    parquet_path = hf_hub_download(
+        repo_id="fmadore/islam-west-africa-collection", 
+        filename="articles/train-00000-of-00001.parquet",
+        repo_type="dataset"
+    )
+    
+    print(f"Downloaded parquet file to: {parquet_path}")
+    
+    # Load with pandas first to see the structure
+    df = pd.read_parquet(parquet_path)
+    print(f"Successfully loaded {len(df)} rows")
+    print(f"Number of columns: {len(df.columns)}")
+    
+    # Convert to list of dictionaries
+    dataset_dict = df.to_dict('records')
+    dataset = {"train": dataset_dict}
+    
+except Exception as e:
+    print(f"Direct download failed: {e}")
+    print("Trying alternative approach...")
+    
+    # Fallback: try to load dataset with ignore_verifications
+    try:
+        dataset = load_dataset("fmadore/islam-west-africa-collection", "articles", verification_mode="no_checks")
+    except Exception as e2:
+        print(f"Alternative approach also failed: {e2}")
+        raise e2
 
 # Access the data
-print(f"Dataset info for 'articles':")
-print(dataset)
-print(f"\nFirst example from 'articles':")
-print(dataset['train'][0])  # View first example
+print(f"Dataset loaded successfully!")
+print(f"Number of articles: {len(dataset['train'])}")
+# Don't print the first example - it's too much data
+# print(f"\nFirst example from 'articles':")
+# print(dataset['train'][0])  # View first example
 
 # Convert to list of dictionaries with Gemini data mapping
 gemini_data_list = []
@@ -25,7 +67,7 @@ print(f"\nProcessing {len(dataset['train'])} records...")
 for item in tqdm(dataset['train'], desc="Processing articles"):
     # Base item structure for both datasets
     base_item = {
-        "o:id": int(item.get("o:id")) if item.get("o:id") is not None else None,
+        "o:id": safe_int_convert(item.get("o:id")),
         "o:title": item.get("title"),
         "Newspaper": item.get("newspaper"),
         "Country": item.get("country"),
@@ -37,7 +79,7 @@ for item in tqdm(dataset['train'], desc="Processing articles"):
     gemini_item["sentiment_analysis"] = {
         "centralite_islam_musulmans": item.get("gemini_centralite_islam_musulmans"),
         "centralite_justification": item.get("gemini_centralite_justification"),
-        "subjectivite_score": int(item.get("gemini_subjectivite_score")) if item.get("gemini_subjectivite_score") is not None else None,
+        "subjectivite_score": safe_int_convert(item.get("gemini_subjectivite_score")),
         "subjectivite_justification": item.get("gemini_subjectivite_justification"),
         "polarite": item.get("gemini_polarite"),
         "polarite_justification": item.get("gemini_polarite_justification")
@@ -49,7 +91,7 @@ for item in tqdm(dataset['train'], desc="Processing articles"):
     chatgpt_item["sentiment_analysis"] = {
         "centralite_islam_musulmans": item.get("chatgpt_centralite_islam_musulmans"),
         "centralite_justification": item.get("chatgpt_centralite_justification"),
-        "subjectivite_score": int(item.get("chatgpt_subjectivite_score")) if item.get("chatgpt_subjectivite_score") is not None else None,
+        "subjectivite_score": safe_int_convert(item.get("chatgpt_subjectivite_score")),
         "subjectivite_justification": item.get("chatgpt_subjectivite_justification"),
         "polarite": item.get("chatgpt_polarite"),
         "polarite_justification": item.get("chatgpt_polarite_justification")
