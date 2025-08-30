@@ -21,6 +21,16 @@ import pandas as pd
 from collections import Counter, defaultdict
 from tqdm import tqdm
 import re
+from huggingface_hub import hf_hub_download
+
+# Helper function to safely convert to int, handling NaN values
+def safe_int_convert(value):
+    if pd.isna(value) or value is None:
+        return None
+    try:
+        return int(float(value))
+    except (ValueError, TypeError):
+        return None
 
 def clean_and_split_keywords(text):
     """
@@ -283,7 +293,8 @@ def analyze_extreme_keywords(dataset, model_prefix, top_n=50):
         
         # Analyser la subjectivité extrême haute (4-5)
         # Articles très subjectifs : opinions marquées, émotions fortes
-        if subjectivity and int(subjectivity) >= 4:
+        subj_score = safe_int_convert(subjectivity)
+        if subj_score and subj_score >= 4:
             stats["subjectivity_high_count"] += 1
             # Comptage global des mots-clés
             counters["subjectivity_high_subject"].update(subject_keywords)
@@ -301,7 +312,7 @@ def analyze_extreme_keywords(dataset, model_prefix, top_n=50):
         
         # Analyser la subjectivité extrême basse (1-2)
         # Articles très objectifs : faits, informations neutres
-        if subjectivity and int(subjectivity) <= 2:
+        if subj_score and subj_score <= 2:
             stats["subjectivity_low_count"] += 1
             # Comptage global des mots-clés
             counters["subjectivity_low_subject"].update(subject_keywords)
@@ -469,7 +480,38 @@ def main():
     
     # Charger le dataset depuis Hugging Face
     print("Loading dataset from Hugging Face...")
-    dataset = load_dataset("fmadore/islam-west-africa-collection", "articles")
+    
+    # Try to download the parquet files directly to avoid schema issues
+    try:
+        print("Attempting to download dataset files directly...")
+        
+        # Download the parquet file for articles directly
+        parquet_path = hf_hub_download(
+            repo_id="fmadore/islam-west-africa-collection", 
+            filename="articles/train-00000-of-00001.parquet",
+            repo_type="dataset"
+        )
+        
+        print(f"Downloaded parquet file to: {parquet_path}")
+        
+        # Load with pandas
+        df = pd.read_parquet(parquet_path)
+        print(f"Successfully loaded {len(df)} rows with {len(df.columns)} columns")
+        
+        # Convert to expected format
+        dataset_dict = df.to_dict('records')
+        dataset = {"train": dataset_dict}
+        
+    except Exception as e:
+        print(f"Direct download failed: {e}")
+        print("Trying alternative approach...")
+        
+        # Fallback: try to load dataset with ignore_verifications
+        try:
+            dataset = load_dataset("fmadore/islam-west-africa-collection", "articles", verification_mode="no_checks")
+        except Exception as e2:
+            print(f"Alternative approach also failed: {e2}")
+            raise e2
     
     print(f"Dataset loaded: {len(dataset['train'])} articles")
     print("This dataset contains articles with sentiment analysis from both ChatGPT and Gemini")
