@@ -2,7 +2,7 @@
   import type { PageData } from './$types.js';
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
   import { 
     currentDatasetArticles, 
     isLoadingDataset, 
@@ -125,57 +125,55 @@
 
     loadData();
 
-    // Subscribe to store changes to update URL
-    const unsubscribeCountry = countryFilters.subscribe(() => updateURL(activeView));
-    const unsubscribeJournal = journalFilters.subscribe(() => updateURL(activeView));
-    const unsubscribePolarity = polarityFilters.subscribe(() => updateURL(activeView));
-    const unsubscribeSubjectivity = subjectivityFilters.subscribe(() => updateURL(activeView));
-    const unsubscribeCentrality = centralityFilters.subscribe(() => updateURL(activeView));
-    
-    // Subscribe to language changes to update HTML lang attribute
-    const unsubscribeLanguage = currentLanguage.subscribe(updateHtmlLang);
-
-    // Subscribe to dataset changes to load new dataset and update URL
-    const unsubscribeDataset = selectedDataset.subscribe(async (datasetId) => {
-      // Load the new dataset if not already loaded
-      const currentDatasets = $datasetArticles;
-      if (!currentDatasets[datasetId] || currentDatasets[datasetId].length === 0) {
-        isLoadingDataset.set(true);
-        try {
-          await loadCurrentDataset(fetch);
-        } catch (error) {
-          console.error("Failed to load dataset:", error);
-        } finally {
-          isLoadingDataset.set(false);
-        }
-      } else {
-        // Dataset already loaded, just update currentDatasetArticles
-        currentDatasetArticles.set(currentDatasets[datasetId]);
-      }
+    // Modern Svelte 5 reactive patterns using $effect instead of store subscriptions
+    // React to filter changes and update URL
+    $effect(() => {
+      // Watch all filter stores and update URL when they change
+      $countryFilters;
+      $journalFilters;
+      $polarityFilters;
+      $subjectivityFilters;
+      $centralityFilters;
+      $comparisonMode;
       
-      // Only update URL if browser is available
       if (browser) {
         updateURL(activeView);
       }
     });
-
-    // Subscribe to comparison mode changes to update URL
-    const unsubscribeComparison = comparisonMode.subscribe(() => {
-      if (browser) {
-        updateURL(activeView);
-      }
+    
+    // React to language changes and update HTML lang attribute
+    $effect(() => {
+      updateHtmlLang($currentLanguage);
     });
 
-    return () => {
-      unsubscribeCountry();
-      unsubscribeJournal();
-      unsubscribePolarity();
-      unsubscribeSubjectivity();
-      unsubscribeCentrality();
-      unsubscribeLanguage();
-      unsubscribeDataset();
-      unsubscribeComparison();
-    };
+    // React to dataset changes to load new dataset and update URL
+    $effect(() => {
+      const datasetId = $selectedDataset;
+      
+      // Handle async operations inside the effect without making the effect itself async
+      (async () => {
+        // Load the new dataset if not already loaded
+        const currentDatasets = $datasetArticles;
+        if (!currentDatasets[datasetId] || currentDatasets[datasetId].length === 0) {
+          isLoadingDataset.set(true);
+          try {
+            await loadCurrentDataset(fetch);
+          } catch (error) {
+            console.error("Failed to load dataset:", error);
+          } finally {
+            isLoadingDataset.set(false);
+          }
+        } else {
+          // Dataset already loaded, just update currentDatasetArticles
+          currentDatasetArticles.set(currentDatasets[datasetId]);
+        }
+        
+        // Only update URL if browser is available
+        if (browser) {
+          updateURL(activeView);
+        }
+      })();
+    });
   });
 
   // Gérer l'affichage des détails
