@@ -5,6 +5,7 @@
   import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
   import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
   import GitCompareArrowsIcon from '@lucide/svelte/icons/git-compare-arrows';
+  import InfoIcon from '@lucide/svelte/icons/info';
   
   const stats = $derived($comparisonStatistics);
 </script>
@@ -23,6 +24,9 @@
     <div class="stat-header">
       <AlertCircleIcon size={24} class="text-yellow-400" />
       <span class="stat-label">{$t.comparison?.totalDiscrepancies || 'Total Discrepancies'}</span>
+      <div class="info-tooltip" title={$t.comparison?.totalDiscrepanciesExplanation || 'Number of articles where ChatGPT and Gemini provide different analyses (any difference > 0 points)'}>
+        <InfoIcon size={14} class="text-white/50 hover:text-white/80 cursor-help" />
+      </div>
     </div>
     <div class="stat-value">{stats.totalDiscrepancies}</div>
     <div class="stat-detail">{$t.comparison?.articlesWithDifferences || 'Articles with differences'}</div>
@@ -32,6 +36,9 @@
     <div class="stat-header">
       <TrendingUpIcon size={24} class="text-green-400" />
       <span class="stat-label">{$t.comparison?.averageDiscrepancy || 'Average Discrepancy'}</span>
+      <div class="info-tooltip" title={$t.comparison?.averageDiscrepancyExplanation || 'Average total difference points per article across all three dimensions (polarity + subjectivity + centrality)'}>
+        <InfoIcon size={14} class="text-white/50 hover:text-white/80 cursor-help" />
+      </div>
     </div>
     <div class="stat-value">{stats.averageDiscrepancy.toFixed(2)}</div>
     <div class="stat-detail">{$t.comparison?.pointsPerArticle || 'Points per article'}</div>
@@ -41,6 +48,9 @@
     <div class="stat-header">
       <BarChart3Icon size={24} class="text-purple-400" />
       <span class="stat-label">{$t.comparison?.highConflicts || 'High Conflicts'}</span>
+      <div class="info-tooltip" title={$t.comparison?.significantDifferencesExplanation || 'Articles where any dimension (polarity, subjectivity, or centrality) differs by 3+ points between ChatGPT and Gemini analyses'}>
+        <InfoIcon size={14} class="text-white/50 hover:text-white/80 cursor-help" />
+      </div>
     </div>
     <div class="stat-value">{stats.highConflictArticles}</div>
     <div class="stat-detail">{$t.comparison?.significantDifferences || 'Significant differences'}</div>
@@ -113,6 +123,12 @@
     align-items: center;
     gap: 0.75rem;
     margin-bottom: 0.75rem;
+  }
+  
+  .info-tooltip {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
   }
   
   .stat-label {

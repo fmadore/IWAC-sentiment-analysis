@@ -276,6 +276,9 @@ export interface Translations {
     articlesAnalyzed: string;
     highConflicts: string;
     significantDifferences: string;
+    significantDifferencesExplanation: string;
+    totalDiscrepanciesExplanation: string;
+    averageDiscrepancyExplanation: string;
     breakdownByDimension: string;
     enableComparisonMode: string;
     enableComparisonDescription: string;
