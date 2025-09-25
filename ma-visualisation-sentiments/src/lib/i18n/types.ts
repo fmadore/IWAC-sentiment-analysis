@@ -154,6 +154,10 @@ export interface Translations {
     modelUsed: string;
     modelDescription: string;
     modelDetails: string;
+  modelSummary: string;
+  modelUsageGuide: string;
+  modelDocsLink: string;
+  modelSpecs: string;
     technicalConfiguration: string;
     temperatureConfig: string;
     outputFormat: string;

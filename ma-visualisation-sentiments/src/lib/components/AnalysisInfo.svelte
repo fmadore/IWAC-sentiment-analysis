@@ -114,10 +114,18 @@
                   <div class="model-card">
                     <div class="model-header">
                       <span class="model-icon">🤖</span>
-                      <span class="model-name">ChatGPT (GPT-4.1 Mini)</span>
+                      <span class="model-name">ChatGPT (GPT-5 mini)</span>
                     </div>
                     <p class="model-description">
-                      {$currentLanguage === 'en' ? 'OpenAI\'s efficient model with 1M token context window, released April 2025. Features enhanced reasoning and cost-effectiveness.' : 'Modèle efficace d\'OpenAI avec une fenêtre de contexte de 1M tokens, publié en avril 2025. Offre un raisonnement amélioré et une efficacité économique.'}
+                      {$currentLanguage === 'en' ? 'OpenAI\'s efficient model with a 400,000-token context window, released August 2025. Enhanced reasoning and cost-effectiveness.' : 'Modèle efficace d\'OpenAI avec une fenêtre de contexte de 400 000 tokens, publié en août 2025. Raisonnement amélioré et coût optimisé.'}
+                    </p>
+                    <p class="model-description">
+                      {$currentLanguage === 'en' 
+                        ? "GPT-5 mini is a faster, more cost-efficient version of GPT-5. It's great for well-defined tasks and precise prompts." 
+                        : "GPT-5 mini est une version plus rapide et économique de GPT-5. Idéal pour des tâches bien définies et des invites précises."}
+                    </p>
+                    <p class="model-description">
+                      <a class="text-blue-300 underline" href="https://platform.openai.com/docs/models/gpt-5-mini" target="_blank" rel="noopener noreferrer">Docs</a>
                     </p>
                   </div>
                   <div class="model-card">
@@ -144,12 +152,15 @@
                       : 'L\'analyse a été réalisée avec ')}
                   
                   {#if $selectedDataset === 'chatgpt'}
-                    <a href="https://platform.openai.com/docs/models/gpt-4.1-mini" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:text-blue-200 underline" style="cursor: pointer !important;">
-                      <span class="chip variant-soft-primary">GPT-4.1 Mini</span>
+                    <a href="https://platform.openai.com/docs/models/gpt-5-mini" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:text-blue-200 underline" style="cursor: pointer !important;">
+                      <span class="chip variant-soft-primary">GPT-5 mini</span>
                     </a>
                     {$currentLanguage === 'en' 
-                      ? ', OpenAI\'s efficient model with a 1 million token context window and enhanced reasoning capabilities, released in April 2025.' 
-                      : ', le modèle efficace d\'OpenAI avec une fenêtre de contexte de 1 million de tokens et des capacités de raisonnement améliorées, publié en avril 2025.'}
+                      ? ', OpenAI\'s efficient model with a 400,000-token context window and enhanced reasoning capabilities, released in August 2025.' 
+                      : ', le modèle efficace d\'OpenAI avec une fenêtre de contexte de 400 000 tokens et des capacités de raisonnement améliorées, publié en août 2025.'}
+                    <span class="block model-description mt-1">{$currentLanguage === 'en' 
+                      ? "GPT-5 mini is a faster, more cost-efficient version of GPT-5. It's great for well-defined tasks and precise prompts." 
+                      : "GPT-5 mini est une version plus rapide et économique de GPT-5. Idéal pour des tâches bien définies et des invites précises."}</span>
                   {:else}
                     <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:text-blue-200 underline" style="cursor: pointer !important;">
                       <span class="chip variant-soft-secondary">Gemini 2.5 Flash</span>
@@ -165,7 +176,11 @@
             <div>
               <h4 class="h6 mb-2 text-white font-semibold">{$t.analysis.technicalConfiguration}</h4>
               <ul class="list-disc ml-5 space-y-1 text-white text-sm">
-                <li>{$t.analysis.temperatureConfig}</li>
+                {#if $comparisonMode}
+                  <li>{($currentLanguage === 'en' ? 'Gemini: ' : 'Gemini : ')}{$t.analysis.temperatureConfig}</li>
+                {:else if $selectedDataset === 'gemini'}
+                  <li>{$t.analysis.temperatureConfig}</li>
+                {/if}
                 <li>{$t.analysis.outputFormat}</li>
                 <li>{$t.analysis.cacheSystem}</li>
                 <li>{$t.analysis.errorHandling}</li>
@@ -173,6 +188,7 @@
                   <li>{$currentLanguage === 'en' ? 'Parallel processing: Both models analyze the same articles independently' : 'Traitement parallèle : Les deux modèles analysent les mêmes articles de manière indépendante'}</li>
                   <li>{$currentLanguage === 'en' ? 'Discrepancy detection: Automatic identification of differences in sentiment analysis' : 'Détection des divergences : Identification automatique des différences dans l\'analyse de sentiment'}</li>
                 {/if}
+                <li>{$currentLanguage === 'en' ? 'API parameters: verbosity="low", reasoning.effort="low"' : 'Paramètres API : verbosity="low", reasoning.effort="low"'}</li>
               </ul>
             </div>
             
