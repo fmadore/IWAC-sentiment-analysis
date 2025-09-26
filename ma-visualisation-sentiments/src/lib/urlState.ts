@@ -14,6 +14,10 @@ import {
   selectedArticle,
   datasetArticles
 } from './stores';
+import { writable } from 'svelte/store';
+
+// Store to track pending article selection from URL
+const pendingArticleSelection = writable<{articleId: string | number, dataset: string} | null>(null);
 import { currentLanguage, type Language, LANGUAGES, initializeLanguage } from './i18n/index.js';
 
 // Types for URL state
@@ -105,6 +109,11 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
     // Try to parse as number first, fallback to string
     const numericId = parseInt(articleId, 10);
     state.articleId = !isNaN(numericId) ? numericId : articleId;
+    
+    // If articleId is present but no view is specified, default to table view
+    if (!state.view) {
+      state.view = 'table';
+    }
   }
 
   // Parse array parameters
@@ -277,7 +286,7 @@ export function applyURLState(state: URLState): string | undefined {
     const allDatasetArticles = get(datasetArticles);
     const articlesForDataset = allDatasetArticles[currentDataset];
     
-    if (articlesForDataset) {
+    if (articlesForDataset && articlesForDataset.length > 0) {
       // Find the article with matching ID
       const targetArticle = articlesForDataset.find(article => 
         article['o:id'] === state.articleId || 
@@ -286,11 +295,21 @@ export function applyURLState(state: URLState): string | undefined {
       
       if (targetArticle) {
         selectedArticle.set(targetArticle);
+        // Clear any pending selection since we found the article
+        pendingArticleSelection.set(null);
+        console.log(`[URL] Selected article from URL: ${targetArticle['o:title']}`);
       } else {
         // Article not found, clear the selection
         selectedArticle.set(null);
-        console.warn(`Article with ID ${state.articleId} not found in dataset ${currentDataset}`);
+        console.warn(`[URL] Article with ID ${state.articleId} not found in dataset ${currentDataset}`);
       }
+    } else {
+      // Dataset not loaded yet, store pending selection
+      pendingArticleSelection.set({
+        articleId: state.articleId,
+        dataset: currentDataset
+      });
+      console.log(`[URL] Will select article ${state.articleId} after dataset ${currentDataset} loads`);
     }
   }
 
@@ -350,7 +369,45 @@ export function clearAllFilters(): void {
  */
 export function clearSelectedArticle(): void {
   selectedArticle.set(null);
+  // Also clear any pending article selection
+  pendingArticleSelection.set(null);
   updateURL(undefined, true);
+}
+
+/**
+ * Clear only the selected article without affecting pending selections or URL
+ */
+export function clearSelectedArticleOnly(): void {
+  selectedArticle.set(null);
+}
+
+/**
+ * Handle pending article selection after dataset is loaded
+ */
+export function handlePendingArticleSelection(): void {
+  const pending = get(pendingArticleSelection);
+  if (!pending) return;
+
+  const allDatasetArticles = get(datasetArticles);
+  const articlesForDataset = allDatasetArticles[pending.dataset];
+  
+  if (articlesForDataset && articlesForDataset.length > 0) {
+    // Find the article with matching ID
+    const targetArticle = articlesForDataset.find(article => 
+      article['o:id'] === pending.articleId || 
+      article['o:id'].toString() === pending.articleId.toString()
+    );
+    
+    if (targetArticle) {
+      selectedArticle.set(targetArticle);
+      console.log(`[URL] Selected article ${pending.articleId} after dataset loading: ${targetArticle['o:title']}`);
+    } else {
+      console.warn(`[URL] Article with ID ${pending.articleId} not found in dataset ${pending.dataset}`);
+    }
+    
+    // Clear the pending selection
+    pendingArticleSelection.set(null);
+  }
 }
 
 /**
@@ -364,5 +421,7 @@ export const urlStateUtils = {
   updateURL,
   initializeURLState,
   clearAllFilters,
+  clearSelectedArticle,
+  handlePendingArticleSelection,
   VALID_VIEWS
 }; 

@@ -42,7 +42,7 @@
   import SEOHead from '$lib/components/SEOHead.svelte';
   import FiltersPanel from '$lib/components/layout/FiltersPanel.svelte';
   import CSVExportButton from '$lib/components/ui/CSVExportButton.svelte';
-  import { initializeURLState, updateURL, clearSelectedArticle } from '$lib/urlState';
+  import { initializeURLState, updateURL, clearSelectedArticle, clearSelectedArticleOnly, handlePendingArticleSelection } from '$lib/urlState';
   import { Navigation } from '@skeletonlabs/skeleton-svelte';
   import XIcon from '@lucide/svelte/icons/x';
   import NavigationTabs from '$lib/components/layout/NavigationTabs.svelte';
@@ -111,11 +111,17 @@
     // Load only the current dataset at startup (lazy loading)
     const loadData = async () => {
       isLoadingDataset.set(true);
-      clearSelectedArticle();
+      // Only clear selected article, not pending selections during initial load
+      clearSelectedArticleOnly();
       
       try {
         // Load only the currently selected dataset
         await loadCurrentDataset(fetch);
+        // Handle any pending article selection from URL after dataset is loaded
+        // Add small delay to ensure store updates are propagated
+        setTimeout(() => {
+          handlePendingArticleSelection();
+        }, 100);
       } catch (error) {
         console.error("Failed to load dataset:", error);
       } finally {
@@ -146,6 +152,17 @@
       updateHtmlLang($currentLanguage);
     });
 
+    // React to selectedArticle changes and show details if article is selected
+    $effect(() => {
+      const article = $selectedArticle;
+      if (article && !detailedArticle) {
+        // Article was selected (likely from URL), show details
+        detailedArticle = article;
+        showDetailsSidebar = true;
+        console.log(`[Article Details] Showing details for article from URL: ${article['o:title']}`);
+      }
+    });
+
     // React to dataset changes to load new dataset and update URL
     $effect(() => {
       const datasetId = $selectedDataset;
@@ -158,6 +175,11 @@
           isLoadingDataset.set(true);
           try {
             await loadCurrentDataset(fetch);
+            // Handle any pending article selection from URL after dataset is loaded
+            // Add small delay to ensure store updates are propagated
+            setTimeout(() => {
+              handlePendingArticleSelection();
+            }, 100);
           } catch (error) {
             console.error("Failed to load dataset:", error);
           } finally {
@@ -166,6 +188,10 @@
         } else {
           // Dataset already loaded, just update currentDatasetArticles
           currentDatasetArticles.set(currentDatasets[datasetId]);
+          // Handle any pending article selection since dataset is already available
+          setTimeout(() => {
+            handlePendingArticleSelection();
+          }, 100);
         }
         
         // Only update URL if browser is available

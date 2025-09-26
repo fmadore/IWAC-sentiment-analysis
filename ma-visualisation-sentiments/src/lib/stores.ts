@@ -265,6 +265,8 @@ export const loadCurrentDataset = async (fetchFunction: typeof fetch): Promise<v
   });
   currentDatasetArticles.set(updatedDatasets[currentDatasetId] || []);
   
+
+  
   // Start background prefetching of other datasets after current one is loaded
   prefetchOtherDatasets(currentDatasetId, fetchFunction);
 };
