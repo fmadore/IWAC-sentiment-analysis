@@ -10,7 +10,9 @@ import {
   centralityFilters,
   selectedDataset,
   comparisonMode,
-  discrepancyFilters
+  discrepancyFilters,
+  selectedArticle,
+  datasetArticles
 } from './stores';
 import { currentLanguage, type Language, LANGUAGES, initializeLanguage } from './i18n/index.js';
 
@@ -27,6 +29,7 @@ export interface URLState {
   compare?: boolean;
   diffMin?: number;
   diffMax?: number;
+  articleId?: string | number;
 }
 
 // Valid views that can be set in URL
@@ -45,7 +48,8 @@ const URL_PARAMS = {
   dataset: 'dataset',
   compare: 'compare',
   diffMin: 'diffMin',
-  diffMax: 'diffMax'
+  diffMax: 'diffMax',
+  articleId: 'articleId'
 } as const;
 
 /**
@@ -93,6 +97,14 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
     if (!isNaN(max) && max >= 0 && max <= 5) {
       state.diffMax = max;
     }
+  }
+
+  // Parse article ID
+  const articleId = searchParams.get(URL_PARAMS.articleId);
+  if (articleId) {
+    // Try to parse as number first, fallback to string
+    const numericId = parseInt(articleId, 10);
+    state.articleId = !isNaN(numericId) ? numericId : articleId;
   }
 
   // Parse array parameters
@@ -154,6 +166,10 @@ export function buildURLSearchParams(state: URLState): URLSearchParams {
     params.set(URL_PARAMS.diffMax, state.diffMax.toString());
   }
 
+  if (state.articleId !== undefined) {
+    params.set(URL_PARAMS.articleId, state.articleId.toString());
+  }
+
   if (state.countries && state.countries.length > 0) {
     params.set(URL_PARAMS.countries, state.countries.join(','));
   }
@@ -183,6 +199,7 @@ export function buildURLSearchParams(state: URLState): URLSearchParams {
 export function getCurrentState(): URLState {
   const filters = get(discrepancyFilters);
   const isComparisonMode = get(comparisonMode);
+  const currentArticle = get(selectedArticle);
   
   const state: URLState = {
     countries: get(countryFilters),
@@ -193,6 +210,11 @@ export function getCurrentState(): URLState {
     lang: get(currentLanguage),
     dataset: get(selectedDataset)
   };
+  
+  // Include selected article ID if there is one
+  if (currentArticle) {
+    state.articleId = currentArticle['o:id'];
+  }
   
   // Only include comparison-related parameters when in comparison mode
   if (isComparisonMode) {
@@ -248,6 +270,30 @@ export function applyURLState(state: URLState): string | undefined {
     });
   }
 
+  // Handle article selection from URL
+  if (state.articleId !== undefined) {
+    // Get the current dataset articles
+    const currentDataset = state.dataset || get(selectedDataset);
+    const allDatasetArticles = get(datasetArticles);
+    const articlesForDataset = allDatasetArticles[currentDataset];
+    
+    if (articlesForDataset) {
+      // Find the article with matching ID
+      const targetArticle = articlesForDataset.find(article => 
+        article['o:id'] === state.articleId || 
+        article['o:id'].toString() === state.articleId?.toString()
+      );
+      
+      if (targetArticle) {
+        selectedArticle.set(targetArticle);
+      } else {
+        // Article not found, clear the selection
+        selectedArticle.set(null);
+        console.warn(`Article with ID ${state.articleId} not found in dataset ${currentDataset}`);
+      }
+    }
+  }
+
   return state.view;
 }
 
@@ -296,6 +342,14 @@ export function clearAllFilters(): void {
   centralityFilters.set([]);
   // Don't reset dataset selection or comparison mode when clearing filters
   
+  updateURL(undefined, true);
+}
+
+/**
+ * Clear selected article and update URL
+ */
+export function clearSelectedArticle(): void {
+  selectedArticle.set(null);
   updateURL(undefined, true);
 }
 

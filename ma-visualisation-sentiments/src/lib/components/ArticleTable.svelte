@@ -5,6 +5,7 @@
   import { t, currentLanguage } from '$lib/i18n';
   import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
   import DatasetBadge from './ui/DatasetBadge.svelte';
+  import { updateURL } from '$lib/urlState';
 
   // Props - for event dispatching
   let { onShowDetails }: { onShowDetails: (details: { article: Article, position: {x: number, y: number} }) => void } = $props();
@@ -57,6 +58,9 @@
 
   function selectArticle(article: Article, event: MouseEvent) {
     selectedArticle.set(article);
+    
+    // Update URL to include the selected article ID
+    updateURL(undefined, true);
     
     // Notifier le parent de montrer les détails via callback prop
     if (onShowDetails) {

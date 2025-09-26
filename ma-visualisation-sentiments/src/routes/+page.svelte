@@ -42,7 +42,7 @@
   import SEOHead from '$lib/components/SEOHead.svelte';
   import FiltersPanel from '$lib/components/layout/FiltersPanel.svelte';
   import CSVExportButton from '$lib/components/ui/CSVExportButton.svelte';
-  import { initializeURLState, updateURL } from '$lib/urlState';
+  import { initializeURLState, updateURL, clearSelectedArticle } from '$lib/urlState';
   import { Navigation } from '@skeletonlabs/skeleton-svelte';
   import XIcon from '@lucide/svelte/icons/x';
   import NavigationTabs from '$lib/components/layout/NavigationTabs.svelte';
@@ -111,7 +111,7 @@
     // Load only the current dataset at startup (lazy loading)
     const loadData = async () => {
       isLoadingDataset.set(true);
-      selectedArticle.set(null);
+      clearSelectedArticle();
       
       try {
         // Load only the currently selected dataset
@@ -186,6 +186,7 @@
   function closeDetails() {
     showDetailsSidebar = false;
     detailedArticle = null;
+    clearSelectedArticle();
   }
 
   async function handleViewChange(value: string) {
