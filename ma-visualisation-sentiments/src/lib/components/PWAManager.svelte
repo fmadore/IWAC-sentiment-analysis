@@ -14,9 +14,10 @@
 		}
 
 		try {
-			// Register service worker
-			registration = (await navigator.serviceWorker.register('/sw.js', {
-				scope: '/'
+			// Register service worker with proper base path for GitHub Pages
+			const basePath = import.meta.env.BASE_URL || '/';
+			registration = (await navigator.serviceWorker.register(`${basePath}sw.js`, {
+				scope: basePath
 			})) as ExtendedServiceWorkerRegistration;
 
 			console.log('Service Worker registered successfully:', registration);

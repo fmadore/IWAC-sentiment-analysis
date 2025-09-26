@@ -5,22 +5,25 @@ const CACHE_NAME = 'iwac-sentiment-analysis-v1';
 const STATIC_CACHE_NAME = 'iwac-static-v1';
 const DATA_CACHE_NAME = 'iwac-data-v1';
 
+// Get base path for GitHub Pages deployment
+const BASE_PATH = self.location.pathname.includes('/IWAC-sentiment-analysis') ? '/IWAC-sentiment-analysis' : '';
+
 // Files to cache immediately on install
 const STATIC_FILES = [
-  '/',
-  '/favicon.png',
-  '/manifest.json',
-  '/browserconfig.xml',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  `${BASE_PATH}/`,
+  `${BASE_PATH}/favicon.png`,
+  `${BASE_PATH}/manifest.json`,
+  `${BASE_PATH}/browserconfig.xml`,
+  `${BASE_PATH}/icons/icon-192x192.png`,
+  `${BASE_PATH}/icons/icon-512x512.png`
 ];
 
 // Data files that should be cached
 const DATA_FILES = [
-  '/data/iwac_articles_chatgpt.json',
-  '/data/iwac_articles_gemini.json',
-  '/data/iwac_extreme_analysis_chatgpt.json',
-  '/data/iwac_extreme_analysis_gemini.json'
+  `${BASE_PATH}/data/iwac_articles_chatgpt.json`,
+  `${BASE_PATH}/data/iwac_articles_gemini.json`,
+  `${BASE_PATH}/data/iwac_extreme_analysis_chatgpt.json`,
+  `${BASE_PATH}/data/iwac_extreme_analysis_gemini.json`
 ];
 
 // Install event - cache static files
