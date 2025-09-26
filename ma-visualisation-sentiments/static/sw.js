@@ -10,6 +10,7 @@ const STATIC_FILES = [
   '/',
   '/favicon.png',
   '/manifest.json',
+  '/browserconfig.xml',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png'
 ];
