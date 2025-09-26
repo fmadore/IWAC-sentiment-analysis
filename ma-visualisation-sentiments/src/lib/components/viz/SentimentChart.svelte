@@ -13,7 +13,6 @@
   } from 'echarts/components';
   import { CanvasRenderer } from 'echarts/renderers';
   import type { EChartsOption, SeriesOption } from 'echarts'; // Main EChartsOption and SeriesOption
-  import { onMount } from 'svelte';
 
   // Register the required components
   use([
@@ -54,7 +53,8 @@
   let chartType = $state<'bar' | 'pie'>('bar');
   let isLoading = $state(true);
 
-  onMount(() => {
+  // Modern Svelte 5 approach using $effect instead of onMount
+  $effect(() => {
     const checkMobile = () => {
       isMobile = window.innerWidth < 768;
     };

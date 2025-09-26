@@ -11,7 +11,6 @@
   } from 'echarts/components';
   import { CanvasRenderer } from 'echarts/renderers';
   import type { EChartsOption } from 'echarts';
-  import { onMount } from 'svelte';
 
   use([
     TitleComponent,
@@ -48,7 +47,8 @@
   let isMobile = $state(false);
   let chartContainer = $state<HTMLDivElement>();
 
-  onMount(() => {
+  // Modern Svelte 5 approach using $effect instead of onMount
+  $effect(() => {
     const checkMobile = () => {
       isMobile = window.innerWidth < 768;
     };
