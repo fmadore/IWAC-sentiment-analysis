@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onDestroy, onMount } from 'svelte'; // createEventDispatcher will be removed
   import { filteredArticles, selectedArticle } from '$lib/stores';
   import type { Article } from '$lib/types/data';
   import { getJournalName } from '$lib/utils';
@@ -23,7 +22,8 @@
     return unsubscribe; // Cleanup subscription
   });
 
-  onMount(() => {
+  // Modern Svelte 5 approach using $effect instead of onMount
+  $effect(() => {
     const checkMobile = () => {
       isMobile = window.innerWidth < 768;
     };
@@ -297,7 +297,6 @@
     return pages;
   });
 
-  // onDestroy is no longer needed for the store subscription as $effect handles cleanup
 </script>
 
 {#if articles.length > 0}
