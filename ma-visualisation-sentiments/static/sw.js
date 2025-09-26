@@ -1,0 +1,268 @@
+// Service Worker for IWAC Sentiment Analysis PWA
+// Provides caching and offline functionality
+
+const CACHE_NAME = 'iwac-sentiment-analysis-v1';
+const STATIC_CACHE_NAME = 'iwac-static-v1';
+const DATA_CACHE_NAME = 'iwac-data-v1';
+
+// Files to cache immediately on install
+const STATIC_FILES = [
+  '/',
+  '/favicon.png',
+  '/manifest.json',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png'
+];
+
+// Data files that should be cached
+const DATA_FILES = [
+  '/data/iwac_articles_chatgpt.json',
+  '/data/iwac_articles_gemini.json',
+  '/data/iwac_extreme_analysis_chatgpt.json',
+  '/data/iwac_extreme_analysis_gemini.json'
+];
+
+// Install event - cache static files
+self.addEventListener('install', (event) => {
+  console.log('[SW] Installing...');
+  
+  event.waitUntil(
+    Promise.all([
+      // Cache static files
+      caches.open(STATIC_CACHE_NAME).then((cache) => {
+        console.log('[SW] Caching static files');
+        return cache.addAll(STATIC_FILES);
+      }),
+      // Cache data files
+      caches.open(DATA_CACHE_NAME).then((cache) => {
+        console.log('[SW] Caching data files');
+        return cache.addAll(DATA_FILES);
+      })
+    ]).then(() => {
+      console.log('[SW] Installation complete');
+      // Skip waiting to activate immediately
+      return self.skipWaiting();
+    })
+  );
+});
+
+// Activate event - clean up old caches
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating...');
+  
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== STATIC_CACHE_NAME && 
+              cacheName !== DATA_CACHE_NAME && 
+              cacheName !== CACHE_NAME) {
+            console.log('[SW] Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => {
+      console.log('[SW] Activation complete');
+      // Take control of all pages immediately
+      return self.clients.claim();
+    })
+  );
+});
+
+// Fetch event - serve from cache when offline
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+  
+  // Skip non-GET requests
+  if (request.method !== 'GET') {
+    return;
+  }
+  
+  // Handle data files with network-first strategy
+  if (DATA_FILES.some(file => url.pathname.includes(file.replace('/data/', '')))) {
+    event.respondWith(
+      networkFirstStrategy(request, DATA_CACHE_NAME)
+    );
+    return;
+  }
+  
+  // Handle static files with cache-first strategy
+  if (STATIC_FILES.some(file => url.pathname === file) || 
+      url.pathname.startsWith('/icons/') ||
+      url.pathname.startsWith('/_app/')) {
+    event.respondWith(
+      cacheFirstStrategy(request, STATIC_CACHE_NAME)
+    );
+    return;
+  }
+  
+  // Handle navigation requests (HTML pages)
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      networkFirstStrategy(request, CACHE_NAME, '/')
+    );
+    return;
+  }
+  
+  // For all other requests, try network first, then cache
+  event.respondWith(
+    networkFirstStrategy(request, CACHE_NAME)
+  );
+});
+
+// Network-first strategy: try network, fallback to cache
+async function networkFirstStrategy(request, cacheName, fallbackUrl = null) {
+  try {
+    // Try network first
+    const networkResponse = await fetch(request);
+    
+    // If successful, update cache and return response
+    if (networkResponse.ok) {
+      const cache = await caches.open(cacheName);
+      cache.put(request, networkResponse.clone());
+      return networkResponse;
+    }
+  } catch (error) {
+    console.log('[SW] Network failed for:', request.url);
+  }
+  
+  // Network failed, try cache
+  const cachedResponse = await caches.match(request);
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+  
+  // If we have a fallback URL (for navigation), try that
+  if (fallbackUrl) {
+    const fallbackResponse = await caches.match(fallbackUrl);
+    if (fallbackResponse) {
+      return fallbackResponse;
+    }
+  }
+  
+  // Return a basic offline page if nothing else works
+  if (request.mode === 'navigate') {
+    return new Response(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>IWAC - Offline</title>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              text-align: center; 
+              padding: 2rem; 
+              background: #0f172a; 
+              color: #e2e8f0;
+            }
+            .container {
+              max-width: 400px;
+              margin: 2rem auto;
+              padding: 2rem;
+              background: #1e293b;
+              border-radius: 8px;
+            }
+            .icon { font-size: 3rem; margin-bottom: 1rem; }
+            h1 { margin-bottom: 1rem; }
+            p { margin-bottom: 1.5rem; line-height: 1.5; }
+            button {
+              background: #3b82f6;
+              color: white;
+              border: none;
+              padding: 0.75rem 1.5rem;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 1rem;
+            }
+            button:hover { background: #2563eb; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="icon">📊</div>
+            <h1>You're Offline</h1>
+            <p>The IWAC Sentiment Analysis app isn't available right now. Check your connection or try again later.</p>
+            <button onclick="window.location.reload()">Try Again</button>
+          </div>
+        </body>
+      </html>
+    `, {
+      headers: { 'Content-Type': 'text/html' }
+    });
+  }
+  
+  // For other requests, return a 404
+  return new Response('Not found', { status: 404 });
+}
+
+// Cache-first strategy: check cache first, fallback to network
+async function cacheFirstStrategy(request, cacheName) {
+  // Try cache first
+  const cachedResponse = await caches.match(request);
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+  
+  // Cache miss, try network
+  try {
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      const cache = await caches.open(cacheName);
+      cache.put(request, networkResponse.clone());
+      return networkResponse;
+    }
+  } catch (error) {
+    console.log('[SW] Network failed for:', request.url);
+  }
+  
+  return new Response('Not found', { status: 404 });
+}
+
+// Background sync for data updates (if supported)
+if ('sync' in self.registration) {
+  self.addEventListener('sync', (event) => {
+    if (event.tag === 'background-sync-data') {
+      event.waitUntil(updateDataCache());
+    }
+  });
+}
+
+// Update data cache in background
+async function updateDataCache() {
+  const cache = await caches.open(DATA_CACHE_NAME);
+  
+  const updatePromises = DATA_FILES.map(async (file) => {
+    try {
+      const response = await fetch(file);
+      if (response.ok) {
+        await cache.put(file, response);
+        console.log('[SW] Updated cache for:', file);
+      }
+    } catch (error) {
+      console.log('[SW] Failed to update cache for:', file);
+    }
+  });
+  
+  await Promise.all(updatePromises);
+}
+
+// Periodic background sync (if supported)
+if ('periodicSync' in self.registration) {
+  self.addEventListener('periodicsync', (event) => {
+    if (event.tag === 'daily-data-sync') {
+      event.waitUntil(updateDataCache());
+    }
+  });
+}
+
+// Listen for messages from the client
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[SW] Received SKIP_WAITING message');
+    self.skipWaiting();
+  }
+});
