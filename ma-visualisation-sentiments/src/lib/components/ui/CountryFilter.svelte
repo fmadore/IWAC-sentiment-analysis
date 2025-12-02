@@ -74,14 +74,16 @@
   }
 </script>
 
-<div class="card variant-glass p-4 hover-lift">
-  <h3 class="h4 mb-4 text-white responsive-title">{$t.filters.country}</h3>
+<div class="filter-card">
+  <h3 class="filter-title">{$t.filters.country}</h3>
   
-  <div class="flex flex-wrap gap-2">
+  <div class="filter-chips">
     {#each translatedCountries as country}
       <button 
-        class="chip hover-lift variant-soft-secondary {selectedCountries.includes(country.value) ? 'ring-2 ring-primary-500 hover-glow' : ''}" 
+        class="filter-chip" 
+        data-selected={selectedCountries.includes(country.value)}
         onclick={() => toggleCountry(country.value)}
+        aria-pressed={selectedCountries.includes(country.value)}
       >
         {country.label}
       </button>
@@ -90,7 +92,7 @@
 
   {#if selectedCountries.length > 0}
     <button 
-      class="btn btn-sm variant-soft-surface mt-3 hover-lift" 
+      class="clear-btn" 
       onclick={clearSelection}
     >
       {$t.filters.clearAll}
@@ -99,74 +101,138 @@
 </div>
 
 <style>
-  .chip {
-    padding: 0.25rem 0.75rem;
-    font-size: 0.75rem;
+  .filter-card {
+    background: color-mix(in oklab, var(--color-surface-900) 85%, transparent);
+    backdrop-filter: blur(16px);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    border-radius: 0.875rem;
+    padding: 1rem;
+    box-shadow: 
+      0 4px 16px color-mix(in oklab, black 8%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 6%, transparent);
+    transition: all var(--timing-normal, 0.2s) ease;
+  }
+
+  .filter-card:hover {
+    border-color: color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+  }
+
+  .filter-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-surface-50);
+    margin: 0 0 0.875rem 0;
+    letter-spacing: -0.01em;
+  }
+
+  .filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 500;
     border-radius: 9999px;
     cursor: pointer;
-    transition: all var(--transition-normal);
     white-space: nowrap;
-    border: 1px solid transparent;
-    position: relative;
-    overflow: hidden;
-    background: var(--glass-bg);
-    backdrop-filter: blur(8px);
-    
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-      padding: 0.2rem 0.6rem;
-      font-size: 0.7rem;
-    }
-    
-    @media (max-width: 480px) {
-      padding: 0.15rem 0.5rem;
-      font-size: 0.65rem;
-    }
+    background: color-mix(in oklab, var(--color-surface-50) 6%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    color: color-mix(in oklab, var(--color-surface-50) 85%, transparent);
+    transition: all var(--timing-fast, 0.15s) ease;
   }
-  
-  .chip::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-    opacity: 0;
-    transition: opacity var(--transition-normal);
-  }
-  
-  .chip:hover {
-    background: var(--glass-hover-bg);
-    border-color: var(--glass-hover-border);
+
+  .filter-chip:hover {
+    background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+    border-color: color-mix(in oklab, var(--color-surface-50) 18%, transparent);
+    color: var(--color-surface-50);
     transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
   }
-  
-  .chip:hover::before {
-    opacity: 1;
-  }
-  
-  .chip.hover-glow {
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-    border-color: rgba(255, 255, 255, 0.3);
+
+  .filter-chip[data-selected="true"] {
+    background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
+    border-color: color-mix(in oklab, var(--color-surface-50) 25%, transparent);
     color: white;
     box-shadow: 
-      var(--shadow-lg),
-      0 0 20px rgba(59, 130, 246, 0.3);
+      0 2px 8px color-mix(in oklab, var(--color-primary-500) 30%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 15%, transparent);
   }
-  
-  /* Responsive title adjustments */
-  .responsive-title {
-    @media (max-width: 768px) {
-      font-size: 1rem !important;
-      margin-bottom: 0.75rem !important;
+
+  .filter-chip[data-selected="true"]:hover {
+    transform: translateY(-1px);
+    box-shadow: 
+      0 4px 12px color-mix(in oklab, var(--color-primary-500) 40%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+  }
+
+  .clear-btn {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+    color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
+    transition: all var(--timing-fast, 0.15s) ease;
+  }
+
+  .clear-btn:hover {
+    background: color-mix(in oklab, var(--color-error-500) 15%, transparent);
+    border-color: color-mix(in oklab, var(--color-error-500) 30%, transparent);
+    color: var(--color-error-400);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .filter-card {
+      padding: 0.875rem;
     }
-    
-    @media (max-width: 480px) {
-      font-size: 0.9rem !important;
-      margin-bottom: 0.5rem !important;
+
+    .filter-title {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .filter-chip {
+      padding: 0.3125rem 0.625rem;
+      font-size: 0.75rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .filter-card {
+      padding: 0.75rem;
+    }
+
+    .filter-title {
+      font-size: 0.8125rem;
+    }
+
+    .filter-chip {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.6875rem;
+    }
+
+    .clear-btn {
+      font-size: 0.6875rem;
+      padding: 0.3125rem 0.625rem;
+    }
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .filter-card,
+    .filter-chip,
+    .clear-btn {
+      transition: none;
     }
   }
 </style> 

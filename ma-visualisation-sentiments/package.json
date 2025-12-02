@@ -1,6 +1,6 @@
 {
 	"name": "iwac-visualisation-sentiments",
-	"version": "3.0.0",
+	"version": "4.0.0",
 	"description": "Interactive SvelteKit application for visualizing sentiment analysis results on the Islam West Africa Collection (IWAC) corpus. Features comparative analysis between ChatGPT and Gemini models, multilingual support (French/English), and comprehensive filtering and export capabilities.",
 	"author": {
 		"name": "Frédérick Madore",

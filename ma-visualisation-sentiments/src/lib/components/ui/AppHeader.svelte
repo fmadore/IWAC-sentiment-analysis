@@ -85,15 +85,14 @@
 </header>
 
 <style>
-  /* App Header Container */
+  /* App Header Container - using modern color-mix */
   .app-header {
-    background: rgba(30, 41, 59, 0.85);
+    background: color-mix(in oklab, var(--color-surface-900) 85%, transparent);
     backdrop-filter: blur(24px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    border-bottom: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
     box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.12),
-      0 2px 8px rgba(0, 0, 0, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      0 4px 24px color-mix(in oklab, black 10%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 8%, transparent);
     position: relative;
   }
 
@@ -105,27 +104,12 @@
     right: 0;
     height: 1px;
     background: linear-gradient(90deg, 
-      transparent, 
-      rgba(59, 130, 246, 0.4), 
-      rgba(139, 92, 246, 0.4), 
-      transparent
+      transparent 10%, 
+      var(--color-primary-500) 40%, 
+      var(--color-secondary-500) 60%, 
+      transparent 90%
     );
-  }
-
-  .app-header::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, 
-      rgba(59, 130, 246, 0.08) 0%, 
-      rgba(139, 92, 246, 0.06) 50%,
-      rgba(16, 185, 129, 0.04) 100%
-    );
-    pointer-events: none;
-    z-index: -1;
+    opacity: 0.5;
   }
 
   /* Header Toolbar - Grid Layout */
@@ -135,6 +119,8 @@
     align-items: center;
     gap: 1rem;
     padding: 0.75rem 1rem;
+    max-width: 1400px;
+    margin: 0 auto;
     position: relative;
     z-index: 1;
   }
@@ -168,42 +154,18 @@
     justify-content: center;
     width: 2.5rem;
     height: 2.5rem;
-    border-radius: 0.75rem;
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
+    border-radius: 0.625rem;
+    background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+    transition: all var(--timing-normal, 0.2s) ease;
     flex-shrink: 0;
   }
 
-  .brand-icon::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, 
-      rgba(255, 255, 255, 0.1) 0%, 
-      rgba(255, 255, 255, 0.05) 100%
-    );
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
   .brand-icon:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.25);
+    background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+    border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
     transform: translateY(-1px);
-    box-shadow: 
-      0 8px 25px rgba(0, 0, 0, 0.15),
-      0 0 20px rgba(59, 130, 246, 0.1);
-  }
-
-  .brand-icon:hover::before {
-    opacity: 1;
+    box-shadow: 0 4px 16px color-mix(in oklab, var(--color-primary-500) 20%, transparent);
   }
 
   .brand-text {
@@ -215,92 +177,50 @@
   .brand-title {
     font-size: 1.25rem;
     font-weight: 700;
-    color: white;
+    color: var(--color-surface-50);
     line-height: 1.2;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.02em;
   }
 
   .brand-subtitle {
     font-size: 0.75rem;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.8);
+    color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
     line-height: 1.3;
     max-width: 280px;
   }
 
-  /* Fullscreen Button */
+  /* Fullscreen Button - using btn-icon pattern */
   .fullscreen-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 0.75rem;
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: white;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.5rem;
+    background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+    color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
+    transition: all var(--timing-normal, 0.2s) ease;
     flex-shrink: 0;
   }
 
-  .fullscreen-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-    transition: left 0.5s ease;
-  }
-
-  .fullscreen-btn::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, 
-      rgba(255, 255, 255, 0.1) 0%, 
-      rgba(255, 255, 255, 0.05) 100%
-    );
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .fullscreen-btn:hover::before {
-    left: 100%;
-  }
-
-  .fullscreen-btn:hover::after {
-    opacity: 1;
-  }
-
   .fullscreen-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.25);
+    background: color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+    border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+    color: var(--color-surface-50);
     transform: translateY(-1px);
-    box-shadow: 
-      0 8px 25px rgba(0, 0, 0, 0.15),
-      0 0 20px rgba(59, 130, 246, 0.1);
   }
 
   .fullscreen-btn:active {
     transform: translateY(0);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   }
 
   .btn-content {
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    z-index: 1;
   }
 
   /* Responsive Design */
@@ -358,16 +278,6 @@
       height: 20px;
     }
 
-    .fullscreen-btn {
-      width: 2rem;
-      height: 2rem;
-    }
-
-    .fullscreen-btn :global(svg) {
-      width: 16px;
-      height: 16px;
-    }
-
     .brand-title {
       font-size: 0.9rem;
     }
@@ -377,22 +287,16 @@
     }
   }
 
-  /* Medium screens optimization */
-  @media (min-width: 641px) and (max-width: 1024px) {
-    .brand-title {
-      font-size: 1.125rem;
-    }
-
-    .brand-subtitle {
-      font-size: 0.6875rem;
-      max-width: 240px;
-    }
-  }
-
   /* Large screens enhancement */
-  @media (min-width: 1025px) {
+  @media (min-width: 1024px) {
     .header-toolbar {
-      padding: 0.75rem 1.5rem;
+      padding: 0.875rem 2rem;
+      gap: 1.5rem;
+    }
+
+    .brand-icon {
+      width: 2.75rem;
+      height: 2.75rem;
     }
 
     .brand-title {
@@ -405,16 +309,11 @@
     }
   }
 
-  /* Animation for smooth transitions */
-  @media (prefers-reduced-motion: no-preference) {
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
     .brand-icon,
     .fullscreen-btn {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .brand-title,
-    .brand-subtitle {
-      transition: color 0.2s ease;
+      transition: none;
     }
   }
 
@@ -423,15 +322,6 @@
     .brand-icon,
     .fullscreen-btn {
       border-width: 2px;
-      border-color: rgba(255, 255, 255, 0.8);
-    }
-
-    .brand-title {
-      color: #ffffff;
-    }
-
-    .brand-subtitle {
-      color: rgba(255, 255, 255, 0.9);
     }
   }
 </style> 

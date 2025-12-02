@@ -14,6 +14,43 @@ This is a **SvelteKit** application for visualizing sentiment analysis results o
 - **Icons**: Lucide Svelte (`@lucide/svelte`)
 - **Build Tool**: Vite 7
 
+## Design Philosophy
+
+This project follows a **modern glass morphism design** with consistent semantic coloring for sentiment analysis data.
+
+### Core Principles
+
+1. **Glass Morphism**: Use frosted glass effects with `backdrop-filter: blur()` and semi-transparent backgrounds via `color-mix(in oklab, ...)`.
+
+2. **Semantic Colors**: Sentiment values (polarity, subjectivity, centrality) have **centralized color definitions** in `app.postcss`. Never hardcode sentiment colors in components.
+
+3. **Data Attributes for State**: Use `data-state="active"` and `data-selected="true"` patterns instead of conditional class concatenation.
+
+4. **Modern CSS**: Prefer `color-mix()`, `oklch()`, CSS custom properties over hardcoded hex values and rgba().
+
+5. **Skeleton UI v4 Presets**: Extend but don't duplicate Skeleton's preset system. Custom presets like `.preset-glass` complement Skeleton's built-in presets.
+
+6. **Micro-interactions**: Subtle `translateY(-1px)` on hover, smooth transitions with timing variables.
+
+### CSS Architecture
+
+```
+app.postcss
+├── CSS Custom Properties (sentiment colors, timing, blur)
+├── Base Styles (html, body, focus)
+├── Glass Presets (.preset-glass, .preset-glass-lg)
+├── Card Enhancements
+├── Button Enhancements
+├── Navigation Tab System (.nav-tab[data-state])
+├── Filter Chip System (.filter-chip[data-selected])
+├── Sentiment Badge System (polarity, subjectivity, centrality)
+├── Form Elements
+├── Table Styling
+├── Modal/Dialog System
+├── Chart Container
+└── Utilities (animations, scrollbar, text)
+```
+
 ## Svelte 5 Runes Patterns
 
 ### ALWAYS use Svelte 5 Runes syntax:
@@ -146,64 +183,147 @@ class Todo {
 
 Always use the defined CSS custom properties from `app.postcss`:
 
+### Animation Timing
 ```css
-/* Spacing */
-var(--spacing-xs)    /* 0.25rem */
-var(--spacing-sm)    /* 0.5rem */
-var(--spacing-md)    /* 1rem */
-var(--spacing-lg)    /* 1.5rem */
-var(--spacing-xl)    /* 2rem */
-var(--spacing-2xl)   /* 3rem */
-
-/* Border Radius */
-var(--radius-sm)     /* 0.5rem */
-var(--radius-md)     /* 0.75rem */
-var(--radius-lg)     /* 1rem */
-var(--radius-xl)     /* 1.25rem */
-
-/* Shadows */
-var(--shadow-sm)
-var(--shadow-md)
-var(--shadow-lg)
-var(--shadow-xl)
-var(--shadow-2xl)
-
-/* Glass Effects */
-var(--glass-bg)           /* rgba(255, 255, 255, 0.08) */
-var(--glass-border)       /* rgba(255, 255, 255, 0.12) */
-var(--glass-hover-bg)     /* rgba(255, 255, 255, 0.12) */
-var(--glass-hover-border) /* rgba(255, 255, 255, 0.2) */
-
-/* Transitions */
-var(--transition-fast)    /* 150ms cubic-bezier(0.4, 0, 0.2, 1) */
-var(--transition-normal)  /* 250ms cubic-bezier(0.4, 0, 0.2, 1) */
-var(--transition-slow)    /* 350ms cubic-bezier(0.4, 0, 0.2, 1) */
-
-/* Accent Colors */
-var(--accent-primary)     /* #3B82F6 */
-var(--accent-secondary)   /* #8B5CF6 */
-var(--accent-tertiary)    /* #10B981 */
+var(--timing-fast)      /* 150ms */
+var(--timing-normal)    /* 250ms */
+var(--timing-slow)      /* 350ms */
+var(--easing-default)   /* cubic-bezier(0.4, 0, 0.2, 1) */
 ```
 
-### Glass Effect Pattern
+### Glass Blur Intensities
+```css
+var(--glass-blur-sm)    /* 8px */
+var(--glass-blur-md)    /* 16px */
+var(--glass-blur-lg)    /* 24px */
+var(--glass-blur-xl)    /* 32px */
+```
+
+### Semantic Sentiment Colors
+
+**CRITICAL**: Always use these CSS variables for sentiment-related colors to ensure consistency across the app.
+
+#### Polarity Colors
+```css
+/* Very Positive - Bright green */
+var(--sentiment-polarity-very-positive)         /* #22C55E */
+var(--sentiment-polarity-very-positive-bg)      /* 20% opacity */
+var(--sentiment-polarity-very-positive-border)  /* 35% opacity */
+
+/* Positive - Softer green */
+var(--sentiment-polarity-positive)              /* #4ADE80 */
+var(--sentiment-polarity-positive-bg)
+var(--sentiment-polarity-positive-border)
+
+/* Neutral - Blue */
+var(--sentiment-polarity-neutral)               /* #3B82F6 */
+var(--sentiment-polarity-neutral-bg)
+var(--sentiment-polarity-neutral-border)
+
+/* Negative - Softer red */
+var(--sentiment-polarity-negative)              /* #F87171 */
+var(--sentiment-polarity-negative-bg)
+var(--sentiment-polarity-negative-border)
+
+/* Very Negative - Bright red */
+var(--sentiment-polarity-very-negative)         /* #EF4444 */
+var(--sentiment-polarity-very-negative-bg)
+var(--sentiment-polarity-very-negative-border)
+
+/* Not Applicable - Gray */
+var(--sentiment-polarity-na)                    /* #6B7280 */
+var(--sentiment-polarity-na-bg)
+var(--sentiment-polarity-na-border)
+```
+
+#### Subjectivity Colors (Score 1-5)
+```css
+/* 1 - Very Objective: Cyan/Teal */
+var(--sentiment-subjectivity-1)                 /* #06B6D4 */
+var(--sentiment-subjectivity-1-bg)
+var(--sentiment-subjectivity-1-border)
+
+/* 2 - Rather Objective: Light blue */
+var(--sentiment-subjectivity-2)                 /* #22D3EE */
+
+/* 3 - Mixed: Purple/Violet */
+var(--sentiment-subjectivity-3)                 /* #8B5CF6 */
+
+/* 4 - Rather Subjective: Orange */
+var(--sentiment-subjectivity-4)                 /* #FB923C */
+
+/* 5 - Very Subjective: Deep orange */
+var(--sentiment-subjectivity-5)                 /* #F97316 */
+```
+
+#### Centrality Colors
+```css
+/* Very Central: Gold/Yellow */
+var(--sentiment-centrality-very-central)        /* #FBBF24 */
+var(--sentiment-centrality-very-central-bg)
+var(--sentiment-centrality-very-central-border)
+
+/* Central: Amber */
+var(--sentiment-centrality-central)             /* #FCD34D */
+
+/* Secondary: Slate/Gray-blue */
+var(--sentiment-centrality-secondary)           /* #94A3B8 */
+
+/* Marginal: Cool gray */
+var(--sentiment-centrality-marginal)            /* #64748B */
+
+/* Not Addressed: Dark gray */
+var(--sentiment-centrality-not-addressed)       /* #475569 */
+```
+
+### Using Sentiment Classes
+
+Use the predefined semantic classes for sentiment badges and filter chips:
 
 ```svelte
-<style>
-  .glass-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    transition: all var(--transition-normal);
-  }
-  
-  .glass-card:hover {
-    background: var(--glass-hover-bg);
-    border-color: var(--glass-hover-border);
-    transform: translateY(-2px);
-  }
-</style>
+<!-- ✅ CORRECT: Use semantic badge classes -->
+<span class="badge sentiment-very-positive">Très positif</span>
+<span class="badge sentiment-neutral">Neutre</span>
+<span class="badge subjectivity-3">3</span>
+<span class="badge centrality-central">Central</span>
+
+<!-- ✅ CORRECT: Use semantic filter chip classes -->
+<button 
+  class="filter-chip polarity-positive" 
+  data-selected={isSelected}
+>
+  Positif
+</button>
+```
+
+### Modern CSS Patterns
+
+Use `color-mix()` for transparent variations:
+```css
+/* ✅ CORRECT: Use color-mix for transparency */
+background: color-mix(in oklab, var(--color-surface-900) 70%, transparent);
+border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+
+/* ❌ WRONG: Don't use rgba with hardcoded values */
+background: rgba(15, 23, 42, 0.7);
+```
+
+Use `data-*` attributes for component states:
+```svelte
+<!-- ✅ CORRECT: Use data attributes for state -->
+<button 
+  class="nav-tab" 
+  data-state={isActive ? "active" : "inactive"}
+>
+  Tab
+</button>
+
+<button 
+  class="filter-chip polarity-positive" 
+  data-selected={isSelected}
+>
+  Filter
+</button>
 ```
 
 ## Icon Usage (Lucide Svelte)

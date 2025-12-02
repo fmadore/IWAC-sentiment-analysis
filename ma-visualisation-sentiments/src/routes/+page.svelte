@@ -305,19 +305,19 @@
 
     {#if activeView === 'charts'}
       <div class="space-y-4 sm:space-y-6 mb-6">
-        <div class="card variant-glass p-3 sm:p-6 hover-lift chart-container"><SentimentChart /></div>
-        <div class="card variant-glass p-3 sm:p-6 hover-lift chart-container"><SubjectivityChart /></div>
+        <div class="chart-card"><SentimentChart /></div>
+        <div class="chart-card"><SubjectivityChart /></div>
       </div>
     {:else if activeView === 'trends'}
-      <div class="card variant-glass p-3 sm:p-6 hover-lift chart-container mb-6"><SentimentTrendsChart /></div>
+      <div class="chart-card mb-6"><SentimentTrendsChart /></div>
     {:else if activeView === 'correlation'}
-      <div class="card variant-glass p-3 sm:p-6 hover-lift chart-container mb-6"><CorrelationChart /></div>
+      <div class="chart-card mb-6"><CorrelationChart /></div>
     {:else if activeView === 'volume'}
-      <div class="card variant-glass p-3 sm:p-6 hover-lift chart-container mb-6"><VolumeChart /></div>
+      <div class="chart-card mb-6"><VolumeChart /></div>
     {:else if activeView === 'heatmap'}
-      <div class="card variant-glass p-3 sm:p-6 hover-lift chart-container mb-6"><CentralityHeatmap /></div>
+      <div class="chart-card mb-6"><CentralityHeatmap /></div>
     {:else if activeView === 'table'}
-      <div class="w-full card variant-glass p-3 sm:p-6 hover-lift mb-6">
+      <div class="w-full chart-card mb-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <h2 class="h3 m-0 text-white text-gradient">{$t.table.title}</h2>
           <CSVExportButton />
@@ -328,7 +328,7 @@
       <ComparisonView />
     {:else if activeView === 'extremes'}
       <div class="extreme-analysis-view mb-6">
-        <div class="card variant-glass p-4 sm:p-6 lg:p-8 hover-lift extreme-analysis-card">
+        <div class="chart-card chart-card-extreme">
           <div class="extreme-analysis-header">
             <h2 class="h2 mb-3 text-white text-gradient">{$t.extremeAnalysis.title}</h2>
             <p class="text-base text-surface-300 mb-6 leading-relaxed">{$t.extremeAnalysis.subtitle}</p>
@@ -394,9 +394,54 @@
 {/if}
 
 <style>
-  /* Scrollbar styles moved to NavigationTabs component */
+  /* Chart Card Styles */
+  .chart-card {
+    background: color-mix(in oklab, var(--color-surface-900) 85%, transparent);
+    backdrop-filter: blur(16px);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    border-radius: 1rem;
+    padding: 0.75rem;
+    box-shadow: 
+      0 4px 24px color-mix(in oklab, black 10%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 6%, transparent);
+    transition: all var(--timing-normal, 0.2s) ease;
+  }
+
+  .chart-card:hover {
+    border-color: color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+    transform: translateY(-2px);
+    box-shadow: 
+      0 8px 32px color-mix(in oklab, black 15%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+  }
+
+  @media (min-width: 640px) {
+    .chart-card {
+      padding: 1.5rem;
+    }
+  }
+
+  /* Extreme Analysis Card */
+  .chart-card-extreme {
+    min-height: 850px;
+    padding: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .chart-card-extreme {
+      padding: 1.5rem;
+      min-height: 900px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .chart-card-extreme {
+      padding: 2rem;
+      min-height: 950px;
+    }
+  }
   
-  /* Enhanced Modal System with Skeleton UI Integration */
+  /* Enhanced Modal System with modern color-mix */
   .modal-backdrop {
     position: fixed;
     top: 0;
@@ -407,8 +452,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--spacing-md);
-    animation: fadeIn var(--transition-normal) ease-out;
+    padding: 1rem;
+    background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
+    backdrop-filter: blur(8px);
+    animation: fadeIn 0.2s ease-out;
   }
   
   .modal-container {
@@ -418,20 +465,22 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    animation: slideUp var(--transition-normal) ease-out;
+    animation: slideUp 0.25s ease-out;
   }
   
   .details-modal {
     width: 100%;
     display: flex;
     flex-direction: column;
-    border-radius: var(--radius-xl);
+    border-radius: 1rem;
     overflow: hidden;
     position: relative;
+    background: color-mix(in oklab, var(--color-surface-900) 90%, transparent);
+    backdrop-filter: blur(24px);
     box-shadow: 
-      var(--shadow-2xl),
-      0 0 40px rgba(59, 130, 246, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+      0 16px 64px color-mix(in oklab, black 30%, transparent),
+      0 0 40px color-mix(in oklab, var(--color-primary-500) 15%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
   }
   
   .details-modal::before {
@@ -443,10 +492,11 @@
     height: 2px;
     background: linear-gradient(90deg, 
       transparent, 
-      rgba(59, 130, 246, 0.6), 
-      rgba(139, 92, 246, 0.6), 
+      var(--color-primary-500), 
+      var(--color-secondary-500), 
       transparent
     );
+    opacity: 0.6;
     z-index: 1;
   }
   
@@ -454,8 +504,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--spacing-lg) var(--spacing-xl);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    background: color-mix(in oklab, var(--color-surface-50) 4%, transparent);
     position: relative;
     z-index: 2;
   }
@@ -463,24 +514,19 @@
   .details-content {
     flex: 1;
     overflow-y: auto;
-    padding: var(--spacing-md);
-    background: rgba(15, 23, 42, 0.3);
-    backdrop-filter: blur(8px);
+    padding: 1rem;
+    background: color-mix(in oklab, var(--color-surface-950) 50%, transparent);
   }
   
   @keyframes fadeIn {
-    from { 
-      opacity: 0; 
-    }
-    to { 
-      opacity: 1; 
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   @keyframes slideUp {
     from { 
       opacity: 0;
-      transform: translateY(30px) scale(0.95); 
+      transform: translateY(20px) scale(0.98); 
     }
     to { 
       opacity: 1;
@@ -489,33 +535,31 @@
   }
   
   /* Enhanced Button Icon Styles */
-  
   .btn-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 9999px;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.5rem;
     cursor: pointer;
-    transition: all var(--transition-normal);
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
+    transition: all var(--timing-normal, 0.2s) ease;
+    background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+    color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
   }
   
   .btn-icon:hover {
-    background: var(--glass-hover-bg);
-    border-color: var(--glass-hover-border);
+    background: color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+    border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+    color: var(--color-surface-50);
     transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
   }
-  
-  /* Filters grid & extreme layouts moved to FiltersPanel component */
   
   /* Enhanced Mobile Responsiveness */
   @media (max-width: 768px) {
     .modal-backdrop {
-      padding: var(--spacing-sm);
+      padding: 0.5rem;
     }
     
     .modal-container {
@@ -524,47 +568,49 @@
     }
     
     .details-modal {
-      border-radius: var(--radius-lg);
+      border-radius: 0.75rem;
       max-height: 95vh !important;
     }
     
     .details-header {
-      padding: var(--spacing-md) var(--spacing-lg);
+      padding: 1rem 1.25rem;
     }
     
     .details-content {
-      padding: var(--spacing-sm);
+      padding: 0.75rem;
     }
   }
   
   @media (max-width: 480px) {
     .modal-backdrop {
-      padding: var(--spacing-xs);
+      padding: 0.25rem;
     }
     
     .details-modal {
-      border-radius: var(--radius-md);
+      border-radius: 0.625rem;
       max-height: 98vh !important;
     }
     
     .details-header {
-      padding: var(--spacing-sm) var(--spacing-md);
+      padding: 0.75rem 1rem;
     }
     
     .details-header .h3 {
-      font-size: 1.25rem;
+      font-size: 1.125rem;
     }
   }
 
-  /* Navigation styles moved to NavigationTabs component */
-
-  /* CLS prevention and performance optimizations */
+  /* Loading skeleton */
   .loading-container {
     animation: fadeIn 0.3s ease-in-out;
   }
   
   .loading-skeleton {
-    background: linear-gradient(90deg, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 75%);
+    background: linear-gradient(90deg, 
+      color-mix(in oklab, var(--color-surface-50) 8%, transparent) 25%, 
+      color-mix(in oklab, var(--color-surface-50) 15%, transparent) 50%, 
+      color-mix(in oklab, var(--color-surface-50) 8%, transparent) 75%
+    );
     background-size: 200% 100%;
     animation: loading 1.5s infinite;
     border-radius: 0.5rem;
@@ -574,33 +620,21 @@
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
   }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  
-  /* Accordion optimization moved to AnalysisInfo.svelte */
 
-  /* Extreme Analysis View Styles */
+  /* Extreme Analysis View */
   .extreme-analysis-view {
     width: 100%;
     min-height: calc(100vh - 200px);
   }
 
-  .extreme-analysis-card {
-    min-height: 850px;
-    width: 100%;
-  }
-
   .extreme-analysis-header {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
     padding-bottom: 1.5rem;
     margin-bottom: 2rem;
   }
 
   .extreme-analysis-header h2 {
-    font-size: 2rem;
+    font-size: 1.75rem;
     font-weight: 700;
     background: linear-gradient(135deg, #FF6B35 0%, #F7931E 50%, #FFD23F 100%);
     -webkit-background-clip: text;
@@ -614,7 +648,13 @@
     line-height: 1.6;
   }
 
-  /* Main Container Spacing Optimization */
+  @media (min-width: 1024px) {
+    .extreme-analysis-header h2 {
+      font-size: 2rem;
+    }
+  }
+
+  /* Main Container */
   .main-container {
     margin-top: 0;
     padding-top: 0.5rem;
@@ -622,37 +662,24 @@
 
   @media (min-width: 640px) {
     .main-container {
-      margin-top: 0;
       padding-top: 0.75rem;
-    }
-
-    .extreme-analysis-card {
-      min-height: 900px;
     }
   }
 
   @media (min-width: 1024px) {
     .main-container {
-      margin-top: 0;
       padding-top: 1rem;
     }
-
-    .extreme-analysis-card {
-      min-height: 950px;
-    }
-
-    .extreme-analysis-header h2 {
-      font-size: 2.25rem;
-    }
   }
 
-  /* Extreme filters layout moved to FiltersPanel component */
-
-  @media (min-width: 1200px) {
-    .extreme-analysis-card {
-      min-height: 1000px;
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .chart-card,
+    .modal-backdrop,
+    .modal-container,
+    .btn-icon {
+      transition: none;
+      animation: none;
     }
   }
-
-
 </style>

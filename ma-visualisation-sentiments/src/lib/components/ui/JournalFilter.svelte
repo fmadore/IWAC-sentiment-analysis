@@ -57,26 +57,27 @@
 
 </script>
 
-<div class="card variant-glass p-4 hover-lift">
-  <div class="flex items-center justify-between mb-4">
-    <h3 class="h4 text-white responsive-title">{$t.filters.journal}</h3>
-    <span class="text-sm text-white/60">({journals.length})</span>
+<div class="filter-card">
+  <div class="filter-header">
+    <h3 class="filter-title">{$t.filters.journal}</h3>
+    <span class="filter-count">({journals.length})</span>
   </div>
   
-  <!-- Barre de recherche -->
+  <!-- Search bar -->
   {#if journals.length > 6}
-    <div class="mb-3">
-      <div class="relative">
+    <div class="search-container">
+      <div class="search-wrapper">
         <input 
           type="text" 
           placeholder={$t.filters.searchJournals}
           bind:value={searchTerm}
-          class="input input-sm w-full pr-8 glass-medium text-white placeholder-white/40"
+          class="search-input"
         />
         {#if searchTerm}
           <button 
             onclick={clearSearch}
-            class="absolute right-2 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+            class="search-clear"
+            aria-label="Clear search"
           >
             ✕
           </button>
@@ -85,39 +86,41 @@
     </div>
   {/if}
   
-  <!-- Compteur de résultats -->
+  <!-- Results counter -->
   {#if searchTerm}
-    <div class="text-sm text-white/70 mb-2">
+    <div class="results-count">
       {$t.filters.showingJournals} {filteredJournals.length} {$t.filters.of} {journals.length}
     </div>
   {/if}
   
-  <!-- Liste des journaux -->
-  <div class="flex flex-wrap gap-2 mb-2">
+  <!-- Journals list -->
+  <div class="filter-chips">
     {#each displayedJournals as journal}
       <button 
-        class="chip hover-lift variant-soft-primary {selectedJournals.includes(journal) ? 'ring-2 ring-primary-500 hover-glow' : ''}" 
+        class="filter-chip" 
+        data-selected={selectedJournals.includes(journal)}
         onclick={() => toggleJournal(journal)}
+        aria-pressed={selectedJournals.includes(journal)}
       >
         {journal}
       </button>
     {/each}
   </div>
   
-  <!-- Bouton "Voir plus/moins" -->
+  <!-- Show more/less button -->
   {#if hasMoreJournals && !searchTerm}
     <button 
-      class="btn btn-sm variant-ghost-surface mb-2 hover-lift" 
+      class="toggle-btn" 
       onclick={toggleShowAll}
     >
       {showAll ? `${$t.common.viewLess} (${INITIAL_DISPLAY_COUNT})` : `${$t.common.viewMore} (+${filteredJournals.length - INITIAL_DISPLAY_COUNT})`}
     </button>
   {/if}
 
-  <!-- Bouton effacer sélection -->
+  <!-- Clear selection button -->
   {#if selectedJournals.length > 0}
     <button 
-      class="btn btn-sm variant-soft-surface mt-1 hover-lift" 
+      class="clear-btn" 
       onclick={() => {selectedJournals = []; applyFilter();}}
     >
       {$t.filters.clearAll} ({selectedJournals.length})
@@ -126,104 +129,231 @@
 </div>
 
 <style>
-  .chip {
-    padding: 0.25rem 0.75rem;
+  .filter-card {
+    background: color-mix(in oklab, var(--color-surface-900) 85%, transparent);
+    backdrop-filter: blur(16px);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    border-radius: 0.875rem;
+    padding: 1rem;
+    box-shadow: 
+      0 4px 16px color-mix(in oklab, black 8%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 6%, transparent);
+    transition: all var(--timing-normal, 0.2s) ease;
+  }
+
+  .filter-card:hover {
+    border-color: color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+  }
+
+  .filter-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.875rem;
+  }
+
+  .filter-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-surface-50);
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .filter-count {
+    font-size: 0.8125rem;
+    color: color-mix(in oklab, var(--color-surface-50) 60%, transparent);
+  }
+
+  .search-container {
+    margin-bottom: 0.75rem;
+  }
+
+  .search-wrapper {
+    position: relative;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+    border-radius: 0.5rem;
+    background: color-mix(in oklab, var(--color-surface-50) 6%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    color: var(--color-surface-50);
+    transition: all var(--timing-fast, 0.15s) ease;
+  }
+
+  .search-input::placeholder {
+    color: color-mix(in oklab, var(--color-surface-50) 40%, transparent);
+  }
+
+  .search-input:hover {
+    border-color: color-mix(in oklab, var(--color-surface-50) 18%, transparent);
+    background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: var(--color-primary-500);
+    background: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary-500) 15%, transparent);
+  }
+
+  .search-clear {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0.25rem;
+    background: none;
+    border: none;
+    color: color-mix(in oklab, var(--color-surface-50) 50%, transparent);
+    cursor: pointer;
+    transition: color var(--timing-fast, 0.15s) ease;
+  }
+
+  .search-clear:hover {
+    color: var(--color-surface-50);
+  }
+
+  .results-count {
     font-size: 0.75rem;
+    color: color-mix(in oklab, var(--color-surface-50) 60%, transparent);
+    margin-bottom: 0.5rem;
+  }
+
+  .filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 500;
     border-radius: 9999px;
     cursor: pointer;
-    transition: all var(--transition-normal);
     white-space: nowrap;
-    border: 1px solid transparent;
-    position: relative;
-    overflow: hidden;
-    background: var(--glass-bg);
-    backdrop-filter: blur(8px);
-    
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-      padding: 0.2rem 0.6rem;
-      font-size: 0.7rem;
-    }
-    
-    @media (max-width: 480px) {
-      padding: 0.15rem 0.5rem;
-      font-size: 0.65rem;
-    }
+    background: color-mix(in oklab, var(--color-surface-50) 6%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    color: color-mix(in oklab, var(--color-surface-50) 85%, transparent);
+    transition: all var(--timing-fast, 0.15s) ease;
   }
-  
-  .chip::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-    opacity: 0;
-    transition: opacity var(--transition-normal);
-  }
-  
-  .chip:hover {
-    background: var(--glass-hover-bg);
-    border-color: var(--glass-hover-border);
+
+  .filter-chip:hover {
+    background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+    border-color: color-mix(in oklab, var(--color-surface-50) 18%, transparent);
+    color: var(--color-surface-50);
     transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
   }
-  
-  .chip:hover::before {
-    opacity: 1;
-  }
-  
-  .chip.hover-glow {
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-    border-color: rgba(255, 255, 255, 0.3);
+
+  .filter-chip[data-selected="true"] {
+    background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
+    border-color: color-mix(in oklab, var(--color-surface-50) 25%, transparent);
     color: white;
     box-shadow: 
-      var(--shadow-lg),
-      0 0 20px rgba(59, 130, 246, 0.3);
+      0 2px 8px color-mix(in oklab, var(--color-primary-500) 30%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 15%, transparent);
   }
-  
-  .input {
-    border-radius: var(--radius-md);
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-    transition: all var(--transition-normal);
-    background: var(--glass-bg);
-    backdrop-filter: blur(8px);
-    border: 1px solid var(--glass-border);
-    
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-      padding: 0.4rem 0.6rem;
-      font-size: 0.8rem;
-    }
-  }
-  
-  .input:focus {
-    outline: none;
-    border-color: rgba(59, 130, 246, 0.5);
-    background: var(--glass-hover-bg);
+
+  .filter-chip[data-selected="true"]:hover {
+    transform: translateY(-1px);
     box-shadow: 
-      0 0 0 3px rgba(59, 130, 246, 0.1),
-      var(--shadow-md);
+      0 4px 12px color-mix(in oklab, var(--color-primary-500) 40%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 20%, transparent);
   }
-  
-  .input:hover {
-    border-color: var(--glass-hover-border);
-    background: var(--glass-hover-bg);
+
+  .toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
+    transition: all var(--timing-fast, 0.15s) ease;
   }
-  
-  /* Responsive title adjustments */
-  .responsive-title {
-    @media (max-width: 768px) {
-      font-size: 1rem !important;
-      margin-bottom: 0.75rem !important;
+
+  .toggle-btn:hover {
+    background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+    border-color: color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+    color: var(--color-surface-50);
+  }
+
+  .clear-btn {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+    color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
+    transition: all var(--timing-fast, 0.15s) ease;
+  }
+
+  .clear-btn:hover {
+    background: color-mix(in oklab, var(--color-error-500) 15%, transparent);
+    border-color: color-mix(in oklab, var(--color-error-500) 30%, transparent);
+    color: var(--color-error-400);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .filter-card {
+      padding: 0.875rem;
     }
-    
-    @media (max-width: 480px) {
-      font-size: 0.9rem !important;
-      margin-bottom: 0.5rem !important;
+
+    .filter-title {
+      font-size: 0.875rem;
+    }
+
+    .filter-chip {
+      padding: 0.3125rem 0.625rem;
+      font-size: 0.75rem;
+    }
+
+    .search-input {
+      padding: 0.4375rem 1.75rem 0.4375rem 0.625rem;
+      font-size: 0.75rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .filter-card {
+      padding: 0.75rem;
+    }
+
+    .filter-title {
+      font-size: 0.8125rem;
+    }
+
+    .filter-chip {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.6875rem;
+    }
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .filter-card,
+    .filter-chip,
+    .search-input,
+    .toggle-btn,
+    .clear-btn {
+      transition: none;
     }
   }
 </style>
