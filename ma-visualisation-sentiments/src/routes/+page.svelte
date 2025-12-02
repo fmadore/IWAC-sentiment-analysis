@@ -270,23 +270,23 @@
   </div>
 
   {#if $isLoadingDataset}
-    <div class="loading-container">
+    <div class="loading-container animate-fade-in">
       <!-- Loading skeleton to prevent CLS -->
-      <div class="loading-skeleton h-32 rounded-lg mb-4 sm:mb-6"></div>
-      <div class="alert variant-filled-warning p-4 mb-4 sm:mb-6">{$t.messages.loadingData}</div>
+      <div class="skeleton h-32 rounded-lg mb-4 sm:mb-6"></div>
+      <div class="alert alert-warning p-4 mb-4 sm:mb-6">{$t.messages.loadingData}</div>
       
       <!-- Reserve space for filters -->
       <div class="filters-skeleton mb-4 sm:mb-6">
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
           {#each Array(5) as _}
-            <div class="loading-skeleton h-10 rounded-lg"></div>
+            <div class="skeleton h-10 rounded-lg"></div>
           {/each}
         </div>
       </div>
       
       <!-- Reserve space for content -->
       <div class="content-skeleton">
-        <div class="loading-skeleton h-96 rounded-lg"></div>
+        <div class="skeleton h-96 rounded-lg"></div>
       </div>
     </div>
   {:else if currentArticles.length > 0}
@@ -338,7 +338,7 @@
       </div>
     {/if}
   {:else}
-    <div class="alert variant-filled-error p-4 mb-4 sm:mb-6">{$t.messages.noData}</div>
+    <div class="alert alert-error p-4 mb-4 sm:mb-6">{$t.messages.noData}</div>
   {/if}
 </main>
 
@@ -368,14 +368,14 @@
       tabindex="-1"
     >
       <!-- Enhanced modal with proper Skeleton classes -->
-      <div class="details-modal card variant-glass hover-lift" 
+      <div class="details-modal preset-glass hover-lift" 
         style="max-height: {Math.min(window.innerHeight - 100, 800)}px;">
         
         <!-- Header with gradient accent -->
-        <div class="details-header glass-medium">
+        <div class="details-header preset-glass-sm">
           <h2 class="h3 m-0 text-white text-gradient-primary">{$t.article.details}</h2>
           <button 
-            class="btn-icon variant-soft-surface hover-glow focus-ring" 
+            class="btn-icon preset-tonal-surface hover-glow" 
             onclick={closeDetails} 
             title={$t.common.close}
             aria-label={$t.common.close}
@@ -394,17 +394,17 @@
 {/if}
 
 <style>
-  /* Chart Card Styles */
+  /* Chart Card Styles - extends global .chart-card from app.postcss */
   .chart-card {
     background: color-mix(in oklab, var(--color-surface-900) 85%, transparent);
-    backdrop-filter: blur(16px);
+    backdrop-filter: blur(var(--glass-blur-md));
     border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
     border-radius: 1rem;
     padding: 0.75rem;
     box-shadow: 
       0 4px 24px color-mix(in oklab, black 10%, transparent),
       inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 6%, transparent);
-    transition: all var(--timing-normal, 0.2s) ease;
+    transition: all var(--timing-normal) var(--easing-default);
   }
 
   .chart-card:hover {
@@ -454,8 +454,8 @@
     justify-content: center;
     padding: 1rem;
     background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
-    backdrop-filter: blur(8px);
-    animation: fadeIn 0.2s ease-out;
+    backdrop-filter: blur(var(--glass-blur-sm));
+    animation: fadeIn var(--timing-normal) var(--easing-default);
   }
   
   .modal-container {
@@ -465,7 +465,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    animation: slideUp 0.25s ease-out;
+    animation: slideUp var(--timing-normal) var(--easing-default);
   }
   
   .details-modal {
@@ -476,7 +476,7 @@
     overflow: hidden;
     position: relative;
     background: color-mix(in oklab, var(--color-surface-900) 90%, transparent);
-    backdrop-filter: blur(24px);
+    backdrop-filter: blur(var(--glass-blur-lg));
     box-shadow: 
       0 16px 64px color-mix(in oklab, black 30%, transparent),
       0 0 40px color-mix(in oklab, var(--color-primary-500) 15%, transparent);
@@ -518,43 +518,7 @@
     background: color-mix(in oklab, var(--color-surface-950) 50%, transparent);
   }
   
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes slideUp {
-    from { 
-      opacity: 0;
-      transform: translateY(20px) scale(0.98); 
-    }
-    to { 
-      opacity: 1;
-      transform: translateY(0) scale(1); 
-    }
-  }
-  
-  /* Enhanced Button Icon Styles */
-  .btn-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    transition: all var(--timing-normal, 0.2s) ease;
-    background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-    border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-    color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
-  }
-  
-  .btn-icon:hover {
-    background: color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-    border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
-    color: var(--color-surface-50);
-    transform: translateY(-1px);
-  }
+  /* Note: @keyframes fadeIn, slideUp and .btn-icon are defined globally in app.postcss */
   
   /* Enhanced Mobile Responsiveness */
   @media (max-width: 768px) {
@@ -598,27 +562,6 @@
     .details-header .h3 {
       font-size: 1.125rem;
     }
-  }
-
-  /* Loading skeleton */
-  .loading-container {
-    animation: fadeIn 0.3s ease-in-out;
-  }
-  
-  .loading-skeleton {
-    background: linear-gradient(90deg, 
-      color-mix(in oklab, var(--color-surface-50) 8%, transparent) 25%, 
-      color-mix(in oklab, var(--color-surface-50) 15%, transparent) 50%, 
-      color-mix(in oklab, var(--color-surface-50) 8%, transparent) 75%
-    );
-    background-size: 200% 100%;
-    animation: loading 1.5s infinite;
-    border-radius: 0.5rem;
-  }
-  
-  @keyframes loading {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
   }
 
   /* Extreme Analysis View */
