@@ -183,17 +183,17 @@
 
 <style>
   .csv-export-btn {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(124, 58, 237, 0.1));
-    border: 1px solid rgba(139, 92, 246, 0.3);
-    color: #8b5cf6;
+    background: linear-gradient(135deg, color-mix(in oklab, var(--color-tertiary-500) 15%, transparent), color-mix(in oklab, var(--color-tertiary-600) 10%, transparent));
+    border: 1px solid color-mix(in oklab, var(--color-tertiary-500) 30%, transparent);
+    color: var(--color-tertiary-500);
     font-weight: 600;
     padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-lg);
-    backdrop-filter: blur(12px);
+    border-radius: 0.75rem;
+    backdrop-filter: blur(var(--glass-blur-md));
     box-shadow: 
-      0 4px 12px rgba(139, 92, 246, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    transition: all var(--transition-normal);
+      0 4px 12px color-mix(in oklab, var(--color-tertiary-500) 15%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    transition: all var(--timing-normal) var(--easing-default);
     position: relative;
     overflow: hidden;
     cursor: pointer;
@@ -211,18 +211,18 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transition: left 0.5s ease;
+    background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--color-surface-50) 10%, transparent), transparent);
+    transition: left var(--timing-slow) ease;
   }
 
   .csv-export-btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(124, 58, 237, 0.15));
-    border-color: rgba(139, 92, 246, 0.5);
-    color: #7c3aed;
+    background: linear-gradient(135deg, color-mix(in oklab, var(--color-tertiary-500) 25%, transparent), color-mix(in oklab, var(--color-tertiary-600) 15%, transparent));
+    border-color: color-mix(in oklab, var(--color-tertiary-500) 50%, transparent);
+    color: var(--color-tertiary-600);
     transform: translateY(-2px);
     box-shadow: 
-      0 8px 25px rgba(139, 92, 246, 0.25),
-      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      0 8px 25px color-mix(in oklab, var(--color-tertiary-500) 25%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 15%, transparent);
   }
 
   .csv-export-btn:hover:not(:disabled)::before {
@@ -232,8 +232,8 @@
   .csv-export-btn:active:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: 
-      0 4px 12px rgba(139, 92, 246, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      0 4px 12px color-mix(in oklab, var(--color-tertiary-500) 20%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 10%, transparent);
   }
 
   .csv-export-btn:disabled {
@@ -243,7 +243,7 @@
   }
 
   .button-text {
-    transition: all var(--transition-fast);
+    transition: all var(--timing-fast) var(--easing-default);
   }
 
   /* Responsive adjustments */

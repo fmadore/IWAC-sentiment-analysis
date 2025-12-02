@@ -19,7 +19,7 @@
 <div class="comparison-view">
   {#if !$comparisonMode}
     <!-- Not in comparison mode -->
-    <div class="empty-state card variant-glass p-8 text-center">
+    <div class="empty-state preset-glass p-8 text-center rounded-xl">
       <AlertCircleIcon size={48} class="mx-auto mb-4 text-white/60" />
       <h3 class="h3 mb-2 text-white">{$t.comparison?.enableComparisonMode || 'Enable Comparison Mode'}</h3>
       <p class="text-white/60 max-w-md mx-auto">
@@ -32,7 +32,7 @@
       <!-- Back button -->
       <div class="mb-6">
         <button 
-          class="btn variant-soft-surface gap-2" 
+          class="btn btn-icon gap-2 px-4" 
           onclick={goBackToList}
         >
           <ArrowLeftIcon size={16} />
@@ -47,7 +47,7 @@
     <!-- Loading state for comparison data -->
     {#if $isLoadingComparison}
       <div class="loading-section mb-6">
-        <div class="card variant-glass p-8 text-center">
+        <div class="preset-glass p-8 text-center rounded-xl">
           <div class="loading-spinner mb-4"></div>
           <p class="text-white/80">{$t.messages?.loading || 'Loading comparison data...'}</p>
         </div>
@@ -69,7 +69,7 @@
           <ComparisonTable />
         </div>
       {:else}
-        <div class="empty-results card variant-glass p-8 text-center">
+        <div class="empty-results preset-glass p-8 text-center rounded-xl">
           <AlertCircleIcon size={48} class="mx-auto mb-4 text-white/60" />
           <h3 class="h4 mb-2 text-white">{$t.comparison?.noDiscrepancies || 'No Discrepancies Found'}</h3>
           <p class="text-white/60 max-w-md mx-auto">
@@ -94,12 +94,12 @@
     max-width: 600px;
   }
   
-  /* Loading spinner */
+  /* Loading spinner - using CSS custom properties */
   .loading-spinner {
     width: 48px;
     height: 48px;
-    border: 3px solid rgba(255, 255, 255, 0.1);
-    border-top-color: rgba(255, 255, 255, 0.8);
+    border: 3px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    border-top-color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: 0 auto;

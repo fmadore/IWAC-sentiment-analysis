@@ -41,14 +41,14 @@
 <style>
   .chart-card {
     background: color-mix(in oklab, var(--color-surface-900) 85%, transparent);
-    backdrop-filter: blur(16px);
+    backdrop-filter: blur(var(--glass-blur-md));
     border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
     border-radius: 1rem;
     box-shadow: 
       0 4px 24px color-mix(in oklab, black 10%, transparent),
       inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 6%, transparent);
     overflow: hidden;
-    transition: all var(--timing-normal, 0.2s) ease;
+    transition: all var(--timing-normal) var(--easing-default);
   }
 
   .chart-card:hover {

@@ -190,15 +190,15 @@
   }
   
   .breakdown-fill.polarity {
-    background: linear-gradient(90deg, #3B82F6, #60A5FA);
+    background: linear-gradient(90deg, var(--sentiment-polarity-neutral), color-mix(in oklab, var(--sentiment-polarity-neutral) 70%, white));
   }
   
   .breakdown-fill.subjectivity {
-    background: linear-gradient(90deg, #8B5CF6, #A78BFA);
+    background: linear-gradient(90deg, var(--sentiment-subjectivity-3), color-mix(in oklab, var(--sentiment-subjectivity-3) 70%, white));
   }
   
   .breakdown-fill.centrality {
-    background: linear-gradient(90deg, #10B981, #34D399);
+    background: linear-gradient(90deg, var(--sentiment-centrality-very-central), var(--sentiment-centrality-central));
   }
   
   .breakdown-info {

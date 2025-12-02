@@ -60,11 +60,11 @@
     gap: 0.5rem;
     border-radius: 9999px;
     font-weight: 500;
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: white;
-    transition: all 0.2s ease;
+    background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+    backdrop-filter: blur(var(--glass-blur-sm));
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+    color: var(--color-surface-50);
+    transition: all var(--timing-fast) var(--easing-default);
     position: relative;
     overflow: hidden;
   }
@@ -77,11 +77,11 @@
     right: 0;
     bottom: 0;
     background: linear-gradient(135deg, 
-      var(--dataset-color, #3B82F6) 0%, 
+      var(--dataset-color, var(--color-primary-500)) 0%, 
       transparent 60%
     );
     opacity: 0.2;
-    transition: opacity 0.2s ease;
+    transition: opacity var(--timing-fast) ease;
   }
   
   .dataset-badge:hover::before {
@@ -89,20 +89,20 @@
   }
   
   .dataset-badge:hover {
-    border-color: rgba(255, 255, 255, 0.25);
+    border-color: color-mix(in oklab, var(--color-surface-50) 25%, transparent);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px color-mix(in oklab, black 15%, transparent);
   }
   
   .comparison-mode {
-    --dataset-color: #8B5CF6;
-    background: rgba(139, 92, 246, 0.15);
-    border-color: rgba(139, 92, 246, 0.3);
+    --dataset-color: var(--color-tertiary-500);
+    background: color-mix(in oklab, var(--color-tertiary-500) 15%, transparent);
+    border-color: color-mix(in oklab, var(--color-tertiary-500) 30%, transparent);
   }
   
   .comparison-mode:hover {
-    background: rgba(139, 92, 246, 0.2);
-    border-color: rgba(139, 92, 246, 0.4);
+    background: color-mix(in oklab, var(--color-tertiary-500) 20%, transparent);
+    border-color: color-mix(in oklab, var(--color-tertiary-500) 40%, transparent);
   }
   
   .dataset-icon {

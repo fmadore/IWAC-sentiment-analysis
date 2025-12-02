@@ -56,21 +56,21 @@
   }
 </script>
 
-<div class="card variant-glass p-4 hover-lift">
-  <div class="flex items-center gap-2 mb-4">
-    <FilterIcon size={20} class="text-white/80" />
-    <h3 class="h4 text-white">{$t.comparison?.filterByDiscrepancy || 'Filter by Discrepancy'}</h3>
+<div class="filter-card">
+  <div class="filter-header">
+    <FilterIcon size={20} class="header-icon" />
+    <h3 class="filter-title">{$t.comparison?.filterByDiscrepancy || 'Filter by Discrepancy'}</h3>
   </div>
   
   <!-- Difference Range -->
-  <div class="mb-6">
-    <div class="flex items-center justify-between mb-3">
-      <label class="text-sm text-white/80 flex items-center gap-2">
+  <div class="filter-section">
+    <div class="section-header">
+      <label class="section-label">
         <SlidersIcon size={16} />
         {$t.comparison?.differenceRange || 'Difference Range'}: {minDiff} - {maxDiff}
       </label>
       <button
-        class="btn btn-sm variant-soft-surface"
+        class="reset-btn"
         onclick={resetFilters}
       >
         {$t.filters?.reset || 'Reset'}
@@ -113,29 +113,33 @@
   </div>
   
   <!-- Quick Filters -->
-  <div class="mb-4">
-    <span class="text-sm text-white/60 mb-2 block">{$t.comparison?.quickFilters || 'Quick Filters'}:</span>
-    <div class="flex flex-wrap gap-2">
+  <div class="filter-section">
+    <span class="section-subtitle">{$t.comparison?.quickFilters || 'Quick Filters'}:</span>
+    <div class="filter-chips">
       <button 
-        class="chip variant-soft-primary hover-lift {minDiff === 1 && maxDiff === 1 ? 'ring-2 ring-primary-500' : ''}"
+        class="filter-chip"
+        data-selected={minDiff === 1 && maxDiff === 1}
         onclick={() => setRange(1, 1)}
       >
         1 {$t.comparison?.pointDifference || 'point difference'}
       </button>
       <button 
-        class="chip variant-soft-primary hover-lift {minDiff === 2 && maxDiff === 2 ? 'ring-2 ring-primary-500' : ''}"
+        class="filter-chip"
+        data-selected={minDiff === 2 && maxDiff === 2}
         onclick={() => setRange(2, 2)}
       >
         2 {$t.comparison?.pointsDifference || 'points difference'}
       </button>
       <button 
-        class="chip variant-soft-primary hover-lift {minDiff === 3 && maxDiff === 5 ? 'ring-2 ring-primary-500' : ''}"
+        class="filter-chip"
+        data-selected={minDiff === 3 && maxDiff === 5}
         onclick={() => setRange(3, 5)}
       >
         3+ {$t.comparison?.pointsDifference || 'points difference'}
       </button>
       <button 
-        class="chip variant-soft-warning hover-lift {minDiff === 0 && maxDiff === 5 ? 'ring-2 ring-warning-500' : ''}"
+        class="filter-chip warning"
+        data-selected={minDiff === 0 && maxDiff === 5}
         onclick={() => setRange(0, 5)}
       >
         {$t.common?.all || 'All'}
@@ -144,41 +148,44 @@
   </div>
   
   <!-- Dimension Filters -->
-  <div class="mb-4">
-    <div class="flex items-center gap-2 mb-2">
-      <span class="text-sm text-white/60">{$t.comparison?.compareDimensions || 'Compare Dimensions'}:</span>
+  <div class="filter-section">
+    <div class="section-header-inline">
+      <span class="section-subtitle">{$t.comparison?.compareDimensions || 'Compare Dimensions'}:</span>
       <div class="info-tooltip">
         <span class="info-icon">ⓘ</span>
         <div class="tooltip-content">
-          <p class="text-xs text-white/90 mb-2">
+          <p class="tooltip-text">
             {$t.comparison?.dimensionsExplanation || 'Select which dimensions to analyze for disagreements between models:'}
           </p>
-          <ul class="text-xs text-white/80 space-y-1">
+          <ul class="tooltip-list">
             <li><strong>{$t.analysis?.polaritySection || 'Polarity'}:</strong> {$t.comparison?.polarityExplanation || 'Positive/Negative sentiment differences'}</li>
             <li><strong>{$t.analysis?.subjectivitySection || 'Subjectivity'}:</strong> {$t.comparison?.subjectivityExplanation || 'Objectivity vs. opinion differences (1-5 scale)'}</li>
             <li><strong>{$t.analysis?.centralitySection || 'Centrality'}:</strong> {$t.comparison?.centralityExplanation || 'How central Islam/Muslims are to the article'}</li>
           </ul>
-          <p class="text-xs text-white/70 mt-2 italic">
+          <p class="tooltip-note">
             {$t.comparison?.dimensionsNote || 'Tip: Select only one dimension to focus your analysis on specific types of disagreements. Discrepancy scores will be recalculated based on your selection.'}
           </p>
         </div>
       </div>
     </div>
-    <div class="flex flex-wrap gap-2">
+    <div class="filter-chips">
       <button
-        class="chip hover-lift {selectedDimensions.includes('polarity') ? 'variant-filled-primary hover-glow' : 'variant-soft-surface'}"
+        class="filter-chip"
+        data-selected={selectedDimensions.includes('polarity')}
         onclick={() => toggleDimension('polarity')}
       >
         {$t.analysis?.polaritySection || 'Polarity'}
       </button>
       <button
-        class="chip hover-lift {selectedDimensions.includes('subjectivity') ? 'variant-filled-primary hover-glow' : 'variant-soft-surface'}"
+        class="filter-chip"
+        data-selected={selectedDimensions.includes('subjectivity')}
         onclick={() => toggleDimension('subjectivity')}
       >
         {$t.analysis?.subjectivitySection || 'Subjectivity'}
       </button>
       <button
-        class="chip hover-lift {selectedDimensions.includes('centrality') ? 'variant-filled-primary hover-glow' : 'variant-soft-surface'}"
+        class="filter-chip"
+        data-selected={selectedDimensions.includes('centrality')}
         onclick={() => toggleDimension('centrality')}
       >
         {$t.analysis?.centralitySection || 'Centrality'}
@@ -187,24 +194,164 @@
   </div>
 
   <!-- Non-Applicable Filter -->
-  <div>
-    <div class="flex items-center justify-between">
-      <span class="text-sm text-white/60">{$t.comparison?.excludeNonApplicable || 'Exclude "Non Applicable" Articles'}:</span>
+  <div class="filter-section">
+    <div class="toggle-row">
+      <span class="section-subtitle">{$t.comparison?.excludeNonApplicable || 'Exclude "Non Applicable" Articles'}:</span>
       <button
-        class="toggle-switch {excludeNonApplicable ? 'active' : ''}"
+        class="toggle-switch"
+        data-active={excludeNonApplicable}
         onclick={toggleExcludeNonApplicable}
         aria-label="Toggle exclude non-applicable articles"
       >
         <div class="toggle-thumb"></div>
       </button>
     </div>
-    <p class="text-xs text-white/50 mt-1">
+    <p class="helper-text">
       {$t.comparison?.excludeNonApplicableDescription || 'Hide articles where one model marked centrality as "Non applicable", which creates artificially high discrepancies.'}
     </p>
   </div>
 </div>
 
 <style>
+  .filter-card {
+    background: color-mix(in oklab, var(--color-surface-900) 85%, transparent);
+    backdrop-filter: blur(var(--glass-blur-md));
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    border-radius: 0.875rem;
+    padding: 1rem;
+    box-shadow: 
+      0 4px 16px color-mix(in oklab, black 8%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 6%, transparent);
+    transition: all var(--timing-normal) var(--easing-default);
+  }
+
+  .filter-card:hover {
+    border-color: color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+  }
+
+  .filter-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .filter-header :global(svg) {
+    color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
+  }
+
+  .filter-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-surface-50);
+    margin: 0;
+  }
+
+  .filter-section {
+    margin-bottom: 1.25rem;
+  }
+
+  .filter-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+
+  .section-header-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
+  }
+
+  .section-subtitle {
+    font-size: 0.875rem;
+    color: color-mix(in oklab, var(--color-surface-50) 60%, transparent);
+  }
+
+  .reset-btn {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+    color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
+    transition: all var(--timing-fast) ease;
+  }
+
+  .reset-btn:hover {
+    background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+    border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+    color: var(--color-surface-50);
+  }
+
+  .filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 9999px;
+    cursor: pointer;
+    white-space: nowrap;
+    background: color-mix(in oklab, var(--color-surface-50) 6%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    color: color-mix(in oklab, var(--color-surface-50) 85%, transparent);
+    transition: all var(--timing-fast) ease;
+  }
+
+  .filter-chip:hover {
+    background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+    border-color: color-mix(in oklab, var(--color-surface-50) 18%, transparent);
+    color: var(--color-surface-50);
+    transform: translateY(-1px);
+  }
+
+  .filter-chip[data-selected="true"] {
+    background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
+    border-color: color-mix(in oklab, var(--color-surface-50) 25%, transparent);
+    color: white;
+    box-shadow: 0 2px 8px color-mix(in oklab, var(--color-primary-500) 30%, transparent);
+  }
+
+  .filter-chip.warning[data-selected="true"] {
+    background: linear-gradient(135deg, var(--color-warning-500) 0%, var(--color-warning-600) 100%);
+    box-shadow: 0 2px 8px color-mix(in oklab, var(--color-warning-500) 30%, transparent);
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .helper-text {
+    font-size: 0.75rem;
+    color: color-mix(in oklab, var(--color-surface-50) 50%, transparent);
+    margin: 0.25rem 0 0 0;
+  }
+
   .range-container {
     position: relative;
     height: 60px;
@@ -217,7 +364,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: rgba(255, 255, 255, 0.1);
+    background: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
     border-radius: 2px;
   }
   
@@ -225,9 +372,9 @@
     position: absolute;
     top: 20px;
     height: 4px;
-    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    background: linear-gradient(90deg, var(--color-primary-500), var(--color-secondary-500));
     border-radius: 2px;
-    transition: all 0.2s ease;
+    transition: all var(--timing-fast) ease;
   }
   
   .range-slider {
@@ -248,16 +395,16 @@
     height: 20px;
     border-radius: 50%;
     background: white;
-    border: 2px solid var(--accent-primary);
+    border: 2px solid var(--color-primary-500);
     cursor: pointer;
     pointer-events: auto;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px color-mix(in oklab, black 30%, transparent);
+    transition: all var(--timing-fast) ease;
   }
   
   .range-slider::-webkit-slider-thumb:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 12px color-mix(in oklab, black 40%, transparent);
   }
   
   .range-slider::-moz-range-thumb {
@@ -265,16 +412,16 @@
     height: 20px;
     border-radius: 50%;
     background: white;
-    border: 2px solid var(--accent-primary);
+    border: 2px solid var(--color-primary-500);
     cursor: pointer;
     pointer-events: auto;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px color-mix(in oklab, black 30%, transparent);
+    transition: all var(--timing-fast) ease;
   }
   
   .range-slider::-moz-range-thumb:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 12px color-mix(in oklab, black 40%, transparent);
   }
   
   .range-min {
@@ -298,26 +445,7 @@
     position: absolute;
     transform: translateX(-50%);
     font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
-  }
-  
-  .chip {
-    padding: 0.25rem 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    border-radius: 9999px;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    border: 1px solid transparent;
-    position: relative;
-    overflow: hidden;
-    background: var(--glass-bg);
-    backdrop-filter: blur(8px);
-  }
-  
-  .chip:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    color: color-mix(in oklab, var(--color-surface-50) 60%, transparent);
   }
 
   /* Toggle switch styles */
@@ -325,24 +453,24 @@
     position: relative;
     width: 44px;
     height: 24px;
-    background: rgba(255, 255, 255, 0.2);
+    background: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
     border-radius: 12px;
     border: none;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--timing-normal) ease;
     outline: none;
   }
 
   .toggle-switch:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: color-mix(in oklab, var(--color-surface-50) 30%, transparent);
   }
 
-  .toggle-switch.active {
-    background: var(--accent-primary);
+  .toggle-switch[data-active="true"] {
+    background: var(--color-primary-500);
   }
 
-  .toggle-switch.active:hover {
-    background: var(--accent-secondary);
+  .toggle-switch[data-active="true"]:hover {
+    background: var(--color-secondary-500);
   }
 
   .toggle-thumb {
@@ -353,23 +481,27 @@
     height: 20px;
     background: white;
     border-radius: 50%;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all var(--timing-normal) ease;
+    box-shadow: 0 2px 4px color-mix(in oklab, black 20%, transparent);
   }
 
-  .toggle-switch.active .toggle-thumb {
+  .toggle-switch[data-active="true"] .toggle-thumb {
     transform: translateX(20px);
   }
   
   /* Responsive adjustments */
   @media (max-width: 640px) {
+    .filter-card {
+      padding: 0.875rem;
+    }
+
     .range-container {
       margin: 0 5px;
     }
     
-    .chip {
-      padding: 0.2rem 0.6rem;
-      font-size: 0.7rem;
+    .filter-chip {
+      padding: 0.3125rem 0.625rem;
+      font-size: 0.6875rem;
     }
 
     .toggle-switch {
@@ -382,7 +514,7 @@
       height: 18px;
     }
 
-    .toggle-switch.active .toggle-thumb {
+    .toggle-switch[data-active="true"] .toggle-thumb {
       transform: translateX(18px);
     }
   }
@@ -399,18 +531,18 @@
     justify-content: center;
     width: 16px;
     height: 16px;
-    background: rgba(255, 255, 255, 0.2);
-    color: rgba(255, 255, 255, 0.8);
+    background: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+    color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
     border-radius: 50%;
     font-size: 11px;
     font-weight: bold;
     cursor: help;
-    transition: all 0.2s ease;
+    transition: all var(--timing-fast) ease;
   }
 
   .info-icon:hover {
-    background: rgba(255, 255, 255, 0.3);
-    color: white;
+    background: color-mix(in oklab, var(--color-surface-50) 30%, transparent);
+    color: var(--color-surface-50);
   }
 
   .tooltip-content {
@@ -418,18 +550,18 @@
     top: -10px;
     left: 50%;
     transform: translateX(-50%) translateY(-100%);
-    background: rgba(0, 0, 0, 0.95);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    padding: 12px;
+    background: color-mix(in oklab, black 95%, transparent);
+    backdrop-filter: blur(var(--glass-blur-md));
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
     min-width: 320px;
     max-width: 400px;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s ease;
+    transition: all var(--timing-normal) ease;
     z-index: 1000;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 32px color-mix(in oklab, black 40%, transparent);
   }
 
   .info-tooltip:hover .tooltip-content {
@@ -445,21 +577,36 @@
     left: 50%;
     transform: translateX(-50%);
     border: 6px solid transparent;
-    border-top-color: rgba(0, 0, 0, 0.95);
+    border-top-color: color-mix(in oklab, black 95%, transparent);
   }
 
-  .tooltip-content ul {
+  .tooltip-text {
+    font-size: 0.75rem;
+    color: color-mix(in oklab, var(--color-surface-50) 90%, transparent);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .tooltip-list {
     list-style: none;
     padding: 0;
     margin: 0;
+    font-size: 0.75rem;
+    color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
   }
 
-  .tooltip-content li {
-    margin-bottom: 4px;
+  .tooltip-list li {
+    margin-bottom: 0.25rem;
   }
 
-  .tooltip-content strong {
-    color: var(--accent-primary);
+  .tooltip-list strong {
+    color: var(--color-primary-400);
+  }
+
+  .tooltip-note {
+    font-size: 0.75rem;
+    color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
+    margin: 0.5rem 0 0 0;
+    font-style: italic;
   }
 
   /* Responsive tooltip */
@@ -477,6 +624,16 @@
     .tooltip-content::after {
       left: 24px;
       transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .filter-card,
+    .filter-chip,
+    .toggle-switch,
+    .toggle-thumb,
+    .range-highlight {
+      transition: none;
     }
   }
 </style>

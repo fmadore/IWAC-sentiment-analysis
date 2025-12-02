@@ -71,14 +71,14 @@
     }
   }
 
-  // Définition des couleurs de polarité pour les badges
+  // Semantic CSS classes for polarity (from app.postcss)
   const polarityColors = {
-    'Très positif': 'variant-filled-success',
-    'Positif': 'variant-soft-success',
-    'Neutre': 'variant-soft-primary',
-    'Négatif': 'variant-soft-error',
-    'Très négatif': 'variant-filled-error',
-    'Non applicable': 'variant-ghost'
+    'Très positif': 'sentiment-very-positive',
+    'Positif': 'sentiment-positive',
+    'Neutre': 'sentiment-neutral',
+    'Négatif': 'sentiment-negative',
+    'Très négatif': 'sentiment-very-negative',
+    'Non applicable': 'sentiment-na'
   };
 
   // Ordre de tri pour les valeurs de polarité
@@ -91,13 +91,13 @@
     'Non applicable': 0
   };
 
-  // Définition des couleurs de centralité
+  // Semantic CSS classes for centrality (from app.postcss)
   const centralityColors = {
-    'Très central': 'variant-filled-tertiary',
-    'Central': 'variant-soft-tertiary',
-    'Secondaire': 'variant-soft-surface',
-    'Marginal': 'variant-ghost',
-    'Non abordé': 'variant-ghost'
+    'Très central': 'centrality-very-central',
+    'Central': 'centrality-central',
+    'Secondaire': 'centrality-secondary',
+    'Marginal': 'centrality-marginal',
+    'Non abordé': 'centrality-not-addressed'
   };
 
   // Ordre de tri pour les valeurs de centralité
@@ -109,13 +109,13 @@
     'Non abordé': 1
   };
   
-  // Définition des classes de subjectivité
+  // Semantic CSS classes for subjectivity (from app.postcss)
   const subjectivityClasses = {
-    '1': 'variant-filled-success',
-    '2': 'variant-soft-success',
-    '3': 'variant-soft-primary',
-    '4': 'variant-soft-error',
-    '5': 'variant-filled-error'
+    '1': 'subjectivity-1',
+    '2': 'subjectivity-2',
+    '3': 'subjectivity-3',
+    '4': 'subjectivity-4',
+    '5': 'subjectivity-5'
   };
 
   // Fonction d'aide pour obtenir la classe selon la polarité
@@ -692,52 +692,5 @@
     .mobile-card h3 {
       font-size: 0.875rem;
     }
-  }
-
-  /* Classes spécifiques pour les polarités */
-  :global(.variant-filled-success) {
-    background-color: #10B981 !important;
-    color: white !important;
-  }
-  
-  :global(.variant-soft-success) {
-    background-color: rgba(16, 185, 129, 0.2) !important;
-    color: #10B981 !important;
-  }
-  
-  :global(.variant-soft-primary) {
-    background-color: rgba(59, 130, 246, 0.2) !important;
-    color: #3B82F6 !important;
-  }
-  
-  :global(.variant-soft-error) {
-    background-color: rgba(239, 68, 68, 0.2) !important;
-    color: #EF4444 !important;
-  }
-  
-  :global(.variant-filled-error) {
-    background-color: #EF4444 !important;
-    color: white !important;
-  }
-  
-  :global(.variant-ghost) {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    color: #E5E7EB !important;
-  }
-
-  /* Classes pour les centralités */
-  :global(.variant-filled-tertiary) {
-    background-color: #8B5CF6 !important;
-    color: white !important;
-  }
-  
-  :global(.variant-soft-tertiary) {
-    background-color: rgba(139, 92, 246, 0.2) !important;
-    color: #8B5CF6 !important;
-  }
-  
-  :global(.variant-soft-surface) {
-    background-color: rgba(100, 116, 139, 0.2) !important;
-    color: #94A3B8 !important;
   }
 </style>

@@ -109,12 +109,12 @@
     height: 2.5rem;
     padding: 0 0.875rem;
     border-radius: 0.75rem;
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: white;
+    background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+    backdrop-filter: blur(var(--glass-blur-md));
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+    color: var(--color-surface-50);
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all var(--timing-normal) var(--easing-default);
     position: relative;
     overflow: hidden;
     /* Better mobile touch target */
@@ -132,8 +132,8 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-    transition: left 0.5s ease;
+    background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--color-surface-50) 15%, transparent), transparent);
+    transition: left var(--timing-slow) ease;
   }
 
   .picker-button:hover::before {
@@ -141,12 +141,12 @@
   }
 
   .picker-button:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.25);
+    background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+    border-color: color-mix(in oklab, var(--color-surface-50) 25%, transparent);
     transform: translateY(-1px);
     box-shadow: 
-      0 8px 25px rgba(0, 0, 0, 0.15),
-      0 0 20px rgba(59, 130, 246, 0.1);
+      0 8px 25px color-mix(in oklab, black 15%, transparent),
+      0 0 20px color-mix(in oklab, var(--color-primary-500) 10%, transparent);
   }
 
   .button-content {
@@ -172,17 +172,17 @@
     top: calc(100% + 0.5rem);
     left: 0;
     min-width: 220px;
-    background: rgba(30, 41, 59, 0.95);
-    backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: color-mix(in oklab, var(--color-surface-900) 95%, transparent);
+    backdrop-filter: blur(var(--glass-blur-lg));
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
     border-radius: 0.75rem;
     box-shadow: 
-      0 20px 40px rgba(0, 0, 0, 0.3),
-      0 8px 16px rgba(0, 0, 0, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      0 20px 40px color-mix(in oklab, black 30%, transparent),
+      0 8px 16px color-mix(in oklab, black 20%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 10%, transparent);
     overflow: hidden;
-    animation: dropdownFadeIn 0.2s ease-out;
-    z-index: 1002; /* Ensure dropdown is above everything */
+    animation: dropdownFadeIn var(--timing-fast) ease-out;
+    z-index: 1002;
   }
 
   @keyframes dropdownFadeIn {
@@ -205,7 +205,7 @@
     padding: 0.5rem 0.75rem;
     font-size: 0.75rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.5);
+    color: color-mix(in oklab, var(--color-surface-50) 50%, transparent);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
@@ -218,9 +218,9 @@
     padding: 0.625rem 0.75rem;
     background: transparent;
     border: none;
-    color: white;
+    color: var(--color-surface-50);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--timing-fast) ease;
     font-size: 0.875rem;
     font-weight: 500;
     border-radius: 0.5rem;
@@ -228,11 +228,11 @@
     /* Better mobile touch target */
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    min-height: 44px; /* iOS recommended minimum touch target */
+    min-height: 44px;
   }
 
   .menu-item:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.1);
+    background: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
   }
 
   .menu-item:disabled {
@@ -241,12 +241,12 @@
   }
 
   .menu-item.active {
-    background: rgba(59, 130, 246, 0.2);
-    color: #60A5FA;
+    background: color-mix(in oklab, var(--color-primary-500) 20%, transparent);
+    color: var(--color-primary-400);
   }
 
   .menu-item.active:hover {
-    background: rgba(59, 130, 246, 0.3);
+    background: color-mix(in oklab, var(--color-primary-500) 30%, transparent);
   }
 
   .dataset-icon {
@@ -261,7 +261,7 @@
   }
 
   .check-mark {
-    color: #10B981;
+    color: var(--color-success-500);
     font-weight: bold;
     font-size: 1rem;
   }
@@ -272,7 +272,7 @@
   @media (max-width: 640px) {
     .picker-button {
       min-width: 150px;
-      height: 2.25rem; /* Slightly taller for better touch target */
+      height: 2.25rem;
       padding: 0 0.625rem;
     }
 
@@ -287,16 +287,15 @@
 
     .dropdown-menu {
       min-width: 180px;
-      /* Ensure dropdown doesn't go off-screen on mobile */
       right: 0;
       left: auto;
       max-width: calc(100vw - 2rem);
     }
 
     .menu-item {
-      padding: 0.75rem 0.5rem; /* Increased padding for better touch targets */
+      padding: 0.75rem 0.5rem;
       font-size: 0.8125rem;
-      min-height: 48px; /* Larger touch target on mobile */
+      min-height: 48px;
     }
 
     .dataset-icon {
@@ -306,22 +305,21 @@
 
   @media (max-width: 480px) {
     .picker-button {
-      min-width: 2.5rem; /* Just enough for icon + chevron */
+      min-width: 2.5rem;
       width: 2.5rem;
       height: 2rem;
       padding: 0 0.25rem;
     }
 
     .picker-label {
-      display: none; /* Hide text on very small screens */
+      display: none;
     }
 
     .button-content {
-      gap: 0.25rem; /* Reduce gap when text is hidden */
+      gap: 0.25rem;
     }
 
     .dropdown-menu {
-      /* On very small screens, make dropdown take more space */
       right: -1rem;
       left: auto;
       min-width: 200px;
@@ -329,9 +327,9 @@
     }
 
     .menu-item {
-      padding: 0.75rem 0.5rem; /* Keep good touch targets */
+      padding: 0.75rem 0.5rem;
       font-size: 0.75rem;
-      min-height: 44px; /* Still maintain minimum touch target */
+      min-height: 44px;
     }
   }
 
@@ -339,12 +337,12 @@
   @media (prefers-contrast: high) {
     .picker-button {
       border-width: 2px;
-      border-color: rgba(255, 255, 255, 0.8);
+      border-color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
     }
 
     .dropdown-menu {
       border-width: 2px;
-      border-color: rgba(255, 255, 255, 0.8);
+      border-color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
     }
   }
 </style>

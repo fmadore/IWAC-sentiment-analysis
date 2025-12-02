@@ -137,32 +137,32 @@
     return 'variant-filled-error';
   }
   
-  // Définition des classes de polarité selon les variantes Skeleton
+  // Semantic CSS classes for polarity (from app.postcss)
   const polarityClasses = {
-    'Très positif': 'variant-filled-success',
-    'Positif': 'variant-soft-success',
-    'Neutre': 'variant-soft-primary',
-    'Négatif': 'variant-soft-error',
-    'Très négatif': 'variant-filled-error',
-    'Non applicable': 'variant-ghost'
+    'Très positif': 'sentiment-very-positive',
+    'Positif': 'sentiment-positive',
+    'Neutre': 'sentiment-neutral',
+    'Négatif': 'sentiment-negative',
+    'Très négatif': 'sentiment-very-negative',
+    'Non applicable': 'sentiment-na'
   };
 
-  // Définition des classes de centralité
+  // Semantic CSS classes for centrality (from app.postcss)
   const centralityClasses = {
-    'Très central': 'variant-filled-tertiary',
-    'Central': 'variant-soft-tertiary',
-    'Secondaire': 'variant-soft-surface',
-    'Marginal': 'variant-ghost',
-    'Non abordé': 'variant-ghost'
+    'Très central': 'centrality-very-central',
+    'Central': 'centrality-central',
+    'Secondaire': 'centrality-secondary',
+    'Marginal': 'centrality-marginal',
+    'Non abordé': 'centrality-not-addressed'
   };
   
-  // Définition des classes de subjectivité
+  // Semantic CSS classes for subjectivity (from app.postcss)
   const subjectivityClasses = {
-    '1': 'variant-filled-success',
-    '2': 'variant-soft-success',
-    '3': 'variant-soft-primary',
-    '4': 'variant-soft-error',
-    '5': 'variant-filled-error'
+    '1': 'subjectivity-1',
+    '2': 'subjectivity-2',
+    '3': 'subjectivity-3',
+    '4': 'subjectivity-4',
+    '5': 'subjectivity-5'
   };
 
   // Fonction d'aide pour obtenir la classe selon la polarité

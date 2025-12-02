@@ -86,12 +86,12 @@
     height: 2.5rem;
     padding: 0 0.75rem;
     border-radius: 0.75rem;
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: white;
+    background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+    backdrop-filter: blur(var(--glass-blur-md));
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+    color: var(--color-surface-50);
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all var(--timing-normal) var(--easing-default);
     position: relative;
     overflow: hidden;
   }
@@ -103,8 +103,8 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-    transition: left 0.5s ease;
+    background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--color-surface-50) 15%, transparent), transparent);
+    transition: left var(--timing-slow) ease;
   }
 
   .language-btn::after {
@@ -115,11 +115,11 @@
     right: 0;
     bottom: 0;
     background: linear-gradient(135deg, 
-      rgba(255, 255, 255, 0.1) 0%, 
-      rgba(255, 255, 255, 0.05) 100%
+      color-mix(in oklab, var(--color-surface-50) 10%, transparent) 0%, 
+      color-mix(in oklab, var(--color-surface-50) 5%, transparent) 100%
     );
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity var(--timing-normal) ease;
   }
 
   .language-btn:hover::before {
@@ -131,17 +131,17 @@
   }
 
   .language-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.25);
+    background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+    border-color: color-mix(in oklab, var(--color-surface-50) 25%, transparent);
     transform: translateY(-1px);
     box-shadow: 
-      0 8px 25px rgba(0, 0, 0, 0.15),
-      0 0 20px rgba(59, 130, 246, 0.1);
+      0 8px 25px color-mix(in oklab, black 15%, transparent),
+      0 0 20px color-mix(in oklab, var(--color-primary-500) 10%, transparent);
   }
 
   .language-btn:active {
     transform: translateY(0);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px color-mix(in oklab, black 10%, transparent);
   }
 
   .btn-content {
@@ -165,17 +165,17 @@
     top: calc(100% + 0.5rem);
     left: 0;
     min-width: 120px;
-    background: rgba(30, 41, 59, 0.95);
-    backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: color-mix(in oklab, var(--color-surface-900) 95%, transparent);
+    backdrop-filter: blur(var(--glass-blur-lg));
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
     border-radius: 0.75rem;
     box-shadow: 
-      0 20px 40px rgba(0, 0, 0, 0.3),
-      0 8px 16px rgba(0, 0, 0, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      0 20px 40px color-mix(in oklab, black 30%, transparent),
+      0 8px 16px color-mix(in oklab, black 20%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 10%, transparent);
     overflow: hidden;
-    animation: dropdownFadeIn 0.2s ease-out;
-    z-index: 1002; /* Ensure dropdown is above everything */
+    animation: dropdownFadeIn var(--timing-fast) ease-out;
+    z-index: 1002;
   }
 
   @keyframes dropdownFadeIn {
@@ -195,26 +195,26 @@
     justify-content: space-between;
     width: 100%;
     padding: 0.75rem;
-    color: white;
+    color: var(--color-surface-50);
     background: transparent;
     border: none;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--timing-fast) ease;
     font-size: 0.875rem;
     font-weight: 500;
   }
 
   .dropdown-item:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
   }
 
   .dropdown-item.active {
-    background: rgba(59, 130, 246, 0.2);
-    color: #60A5FA;
+    background: color-mix(in oklab, var(--color-primary-500) 20%, transparent);
+    color: var(--color-primary-400);
   }
 
   .dropdown-item.active:hover {
-    background: rgba(59, 130, 246, 0.3);
+    background: color-mix(in oklab, var(--color-primary-500) 30%, transparent);
   }
 
   .language-name {
@@ -223,7 +223,7 @@
   }
 
   .check-mark {
-    color: #10B981;
+    color: var(--color-success-500);
     font-weight: bold;
     font-size: 1rem;
   }
@@ -253,18 +253,18 @@
 
   @media (max-width: 480px) {
     .language-btn {
-      min-width: 2.5rem; /* Just enough for icon + chevron */
+      min-width: 2.5rem;
       width: 2.5rem;
       height: 2rem;
       padding: 0 0.25rem;
     }
 
     .language-label {
-      display: none; /* Hide text on very small screens */
+      display: none;
     }
 
     .btn-content {
-      gap: 0.25rem; /* Reduce gap when text is hidden */
+      gap: 0.25rem;
     }
 
     .btn-content :global(svg) {
@@ -273,7 +273,6 @@
     }
 
     .dropdown-menu {
-      /* Better mobile positioning */
       right: 0;
       left: auto;
       min-width: 140px;
@@ -281,9 +280,9 @@
     }
 
     .dropdown-item {
-      padding: 0.75rem 0.5rem; /* Better touch targets */
-      font-size: 0.875rem; /* Larger text for readability */
-      min-height: 44px; /* iOS recommended touch target */
+      padding: 0.75rem 0.5rem;
+      font-size: 0.875rem;
+      min-height: 44px;
     }
   }
 
@@ -291,26 +290,26 @@
   @media (prefers-contrast: high) {
     .language-btn {
       border-width: 2px;
-      border-color: rgba(255, 255, 255, 0.8);
+      border-color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
     }
 
     .dropdown-menu {
       border-width: 2px;
-      border-color: rgba(255, 255, 255, 0.8);
+      border-color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
     }
 
     .dropdown-item.active {
-      background: rgba(59, 130, 246, 0.4);
+      background: color-mix(in oklab, var(--color-primary-500) 40%, transparent);
     }
   }
 
-  /* Animation for smooth transitions */
-  @media (prefers-reduced-motion: no-preference) {
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
     .language-btn,
-    .dropdown-item {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    .dropdown-item,
+    .language-btn::before,
+    .language-btn::after {
+      transition: none;
     }
-
-
   }
 </style> 
