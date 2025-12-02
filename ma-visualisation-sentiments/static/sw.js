@@ -84,6 +84,16 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
+  // Skip requests with unsupported schemes (chrome-extension, etc.)
+  if (!url.protocol.startsWith('http')) {
+    return;
+  }
+  
+  // Skip cross-origin requests that we can't cache
+  if (url.origin !== self.location.origin && !url.hostname.includes('fonts.googleapis.com') && !url.hostname.includes('fonts.gstatic.com')) {
+    return;
+  }
+  
   // Handle data files with network-first strategy
   if (DATA_FILES.some(file => url.pathname.includes(file.replace('/data/', '')))) {
     event.respondWith(
@@ -118,14 +128,19 @@ self.addEventListener('fetch', (event) => {
 
 // Network-first strategy: try network, fallback to cache
 async function networkFirstStrategy(request, cacheName, fallbackUrl = null) {
+  const requestUrl = new URL(request.url);
+  const canCache = requestUrl.protocol.startsWith('http');
+  
   try {
     // Try network first
     const networkResponse = await fetch(request);
     
     // If successful, update cache and return response
-    if (networkResponse.ok) {
+    if (networkResponse.ok && canCache) {
       const cache = await caches.open(cacheName);
       cache.put(request, networkResponse.clone());
+    }
+    if (networkResponse.ok) {
       return networkResponse;
     }
   } catch (error) {
@@ -205,6 +220,9 @@ async function networkFirstStrategy(request, cacheName, fallbackUrl = null) {
 
 // Cache-first strategy: check cache first, fallback to network
 async function cacheFirstStrategy(request, cacheName) {
+  const requestUrl = new URL(request.url);
+  const canCache = requestUrl.protocol.startsWith('http');
+  
   // Try cache first
   const cachedResponse = await caches.match(request);
   if (cachedResponse) {
@@ -214,9 +232,11 @@ async function cacheFirstStrategy(request, cacheName) {
   // Cache miss, try network
   try {
     const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
+    if (networkResponse.ok && canCache) {
       const cache = await caches.open(cacheName);
       cache.put(request, networkResponse.clone());
+    }
+    if (networkResponse.ok) {
       return networkResponse;
     }
   } catch (error) {

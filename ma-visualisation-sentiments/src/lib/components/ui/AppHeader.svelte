@@ -3,6 +3,7 @@
   import FullscreenIcon from '@lucide/svelte/icons/maximize';
   import MinimizeIcon from '@lucide/svelte/icons/minimize';
   import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
   import { t } from '$lib/i18n';
   import LanguageSwitcher from './LanguageSwitcher.svelte';
   import DatasetPicker from './DatasetPicker.svelte';
@@ -22,6 +23,8 @@
   }
 
   onMount(() => {
+    // Set initial fullscreen state
+    isFullscreen = !!document.fullscreenElement;
     // Listen for fullscreen change events
     document.addEventListener('fullscreenchange', () => {
       isFullscreen = !!document.fullscreenElement;
@@ -29,16 +32,11 @@
   });
 </script>
 
-<AppBar
-  background="bg-transparent"
-  shadow=""
-  padding="p-0"
-  classes="sticky top-0 z-10 app-header"
->
-  {#snippet headline()}
-    <div class="flex items-center justify-between w-full px-4 py-3">
-      <!-- Logo/Brand Section -->
-      <div class="flex items-center gap-4">
+<AppBar class="sticky top-0 z-10 app-header bg-transparent">
+  <AppBar.Toolbar class="grid-cols-[auto_1fr_auto] p-0">
+    <AppBar.Lead>
+      <div class="flex items-center gap-4 px-4 py-3">
+        <!-- Logo/Brand Section -->
         <div class="brand-icon">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect width="32" height="32" rx="8" fill="url(#gradient)" />
@@ -56,35 +54,39 @@
           <span class="brand-subtitle hidden sm:block">{$t.appSubtitle}</span>
         </div>
       </div>
-
+    </AppBar.Lead>
+    <AppBar.Headline>
       <!-- Center Section with Dataset Picker -->
       <div class="center-section hidden md:flex items-center justify-center flex-1">
         <DatasetPicker />
       </div>
-
+    </AppBar.Headline>
+    <AppBar.Trail>
       <!-- Actions Section -->
-      <div class="header-actions">
+      <div class="header-actions px-4 py-3">
         <div class="md:hidden">
           <DatasetPicker />
         </div>
         <LanguageSwitcher />
-        <button
-          class="fullscreen-btn"
-          onclick={toggleFullscreen}
-          title={isFullscreen ? $t.exitFullscreen : $t.enterFullscreen}
-          aria-label={isFullscreen ? $t.exitFullscreen : $t.enterFullscreen}
-        >
-          <div class="btn-content">
-            {#if isFullscreen}
-              <MinimizeIcon size={20} />
-            {:else}
-              <FullscreenIcon size={20} />
-            {/if}
-          </div>
-        </button>
+        {#if browser}
+          <button
+            class="fullscreen-btn"
+            onclick={toggleFullscreen}
+            title={isFullscreen ? $t.exitFullscreen : $t.enterFullscreen}
+            aria-label={isFullscreen ? $t.exitFullscreen : $t.enterFullscreen}
+          >
+            <div class="btn-content">
+              {#if isFullscreen}
+                <MinimizeIcon size={20} />
+              {:else}
+                <FullscreenIcon size={20} />
+              {/if}
+            </div>
+          </button>
+        {/if}
       </div>
-    </div>
-  {/snippet}
+    </AppBar.Trail>
+  </AppBar.Toolbar>
 </AppBar>
 
 <style>

@@ -43,7 +43,6 @@
   import FiltersPanel from '$lib/components/layout/FiltersPanel.svelte';
   import CSVExportButton from '$lib/components/ui/CSVExportButton.svelte';
   import { initializeURLState, updateURL, clearSelectedArticle, clearSelectedArticleOnly, handlePendingArticleSelection } from '$lib/urlState';
-  import { Navigation } from '@skeletonlabs/skeleton-svelte';
   import XIcon from '@lucide/svelte/icons/x';
   import NavigationTabs from '$lib/components/layout/NavigationTabs.svelte';
 
