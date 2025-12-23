@@ -293,6 +293,37 @@ export interface Translations {
     dimensionsNote: string;
   };
 
+  // Arbiter
+  arbiter: {
+    title: string;
+    subtitle: string;
+    modelName: string;
+    verdict: string;
+    overallVerdict: string;
+    confidenceLevel: string;
+    confidenceHigh: string;
+    confidenceMedium: string;
+    confidenceLow: string;
+    preferredModel: string;
+    prefersChatGPT: string;
+    prefersGemini: string;
+    prefersBoth: string;
+    prefersNeither: string;
+    arbiterScore: string;
+    arbiterJustification: string;
+    verdictExplanation: string;
+    noArbiterData: string;
+    noArbiterDataDescription: string;
+    polarityVerdict: string;
+    subjectivityVerdict: string;
+    centralityVerdict: string;
+    showArbiterVerdict: string;
+    hideArbiterVerdict: string;
+    loadingArbiter: string;
+    arbiterNotAvailable: string;
+    runArbiterScript: string;
+  };
+
   // Extreme Analysis
   extremeAnalysis: {
     title: string;

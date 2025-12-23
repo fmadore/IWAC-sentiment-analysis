@@ -289,6 +289,37 @@ export const fr: Translations = {
     dimensionsNote: 'Astuce : Sélectionnez une seule dimension pour concentrer votre analyse sur des types spécifiques de désaccords. Les scores de divergence seront recalculés selon votre sélection.'
   },
 
+  // Arbiter
+  arbiter: {
+    title: 'Verdict de l\'arbitre',
+    subtitle: 'Évaluation indépendante par un troisième modèle d\'IA',
+    modelName: 'Gemini 2.5 Pro',
+    verdict: 'Verdict',
+    overallVerdict: 'Verdict général',
+    confidenceLevel: 'Niveau de confiance',
+    confidenceHigh: 'Élevé',
+    confidenceMedium: 'Moyen',
+    confidenceLow: 'Faible',
+    preferredModel: 'Modèle préféré',
+    prefersChatGPT: 'ChatGPT est plus précis',
+    prefersGemini: 'Gemini est plus précis',
+    prefersBoth: 'Les deux sont également précis',
+    prefersNeither: 'Aucun n\'est précis',
+    arbiterScore: 'Score de l\'arbitre',
+    arbiterJustification: 'Justification de l\'arbitre',
+    verdictExplanation: 'Pourquoi cette préférence',
+    noArbiterData: 'Pas de données d\'arbitre',
+    noArbiterDataDescription: 'L\'évaluation de l\'arbitre n\'est pas disponible pour cet article. Exécutez le script d\'évaluation de l\'arbitre pour générer les verdicts.',
+    polarityVerdict: 'Verdict de polarité',
+    subjectivityVerdict: 'Verdict de subjectivité',
+    centralityVerdict: 'Verdict de centralité',
+    showArbiterVerdict: 'Afficher le verdict de l\'arbitre',
+    hideArbiterVerdict: 'Masquer le verdict de l\'arbitre',
+    loadingArbiter: 'Chargement des données de l\'arbitre...',
+    arbiterNotAvailable: 'Évaluation de l\'arbitre non disponible',
+    runArbiterScript: 'Exécutez arbiter-evaluation.py pour générer les évaluations'
+  },
+
   // Extreme Analysis
   extremeAnalysis: {
     title: 'Analyse des extrêmes lexicaux',

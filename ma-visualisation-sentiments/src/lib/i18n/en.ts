@@ -289,6 +289,37 @@ export const en: Translations = {
     dimensionsNote: 'Tip: Select only one dimension to focus your analysis on specific types of disagreements. Discrepancy scores will be recalculated based on your selection.'
   },
 
+  // Arbiter
+  arbiter: {
+    title: 'Arbiter Verdict',
+    subtitle: 'Independent evaluation by a third AI model',
+    modelName: 'Gemini 2.5 Pro',
+    verdict: 'Verdict',
+    overallVerdict: 'Overall Verdict',
+    confidenceLevel: 'Confidence Level',
+    confidenceHigh: 'High',
+    confidenceMedium: 'Medium',
+    confidenceLow: 'Low',
+    preferredModel: 'Preferred Model',
+    prefersChatGPT: 'ChatGPT is more accurate',
+    prefersGemini: 'Gemini is more accurate',
+    prefersBoth: 'Both are equally accurate',
+    prefersNeither: 'Neither is accurate',
+    arbiterScore: 'Arbiter Score',
+    arbiterJustification: 'Arbiter Justification',
+    verdictExplanation: 'Why this preference',
+    noArbiterData: 'No Arbiter Data',
+    noArbiterDataDescription: 'Arbiter evaluation is not available for this article. Run the arbiter evaluation script to generate verdicts.',
+    polarityVerdict: 'Polarity Verdict',
+    subjectivityVerdict: 'Subjectivity Verdict',
+    centralityVerdict: 'Centrality Verdict',
+    showArbiterVerdict: 'Show Arbiter Verdict',
+    hideArbiterVerdict: 'Hide Arbiter Verdict',
+    loadingArbiter: 'Loading arbiter data...',
+    arbiterNotAvailable: 'Arbiter evaluation not available',
+    runArbiterScript: 'Run arbiter-evaluation.py to generate evaluations'
+  },
+
   // Extreme Analysis
   extremeAnalysis: {
     title: 'Lexical Extremes Analysis',

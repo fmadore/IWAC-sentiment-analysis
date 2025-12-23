@@ -68,4 +68,45 @@ export interface ComparisonStatistics {
   polarityConflicts: number;
   subjectivityConflicts: number;
   centralityConflicts: number;
+}
+
+// Arbiter (Gemini 3 Pro) evaluation types
+export interface ArbiterDimensionScore {
+  score: string;  // The arbiter's own score
+  justification: string;  // Why the arbiter chose this score
+  preferred_model: 'model_a' | 'model_b' | 'both' | 'neither';  // Blind assignment
+  verdict_explanation: string;  // Why one model is preferred
+}
+
+export interface ArbiterAnalysis {
+  article_id: string;
+  polarity: ArbiterDimensionScore;
+  subjectivity: ArbiterDimensionScore;
+  centrality: ArbiterDimensionScore;
+  overall_verdict: string;  // General assessment
+  confidence_level: 'high' | 'medium' | 'low';
+  timestamp: string;
+}
+
+export interface ArbiterEvaluationData {
+  metadata: {
+    generated: string;
+    arbiter_model: string;
+    blind_evaluation: boolean;
+    model_a_is_chatgpt: boolean;  // Global key: true = Model A is ChatGPT for ALL articles
+    total_articles: number;
+    successful_evaluations: number;
+    failed_evaluations: number;
+  };
+  evaluations: Array<{
+    article_id: string;
+    arbiter: ArbiterAnalysis;
+    discrepancies: {
+      polarity_diff: number;
+      subjectivity_diff: number;
+      centrality_diff: number;
+      total_diff: number;
+      has_significant_conflict: boolean;
+    };
+  }>;
 } 

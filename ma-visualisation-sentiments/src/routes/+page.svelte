@@ -12,6 +12,7 @@
     loadCurrentDataset,
     loadComparisonDatasets,
     loadCurrentExtremeAnalysis,
+    loadArbiterEvaluations,
     selectedDataset,
     datasetArticles,
     comparisonMode,
@@ -86,6 +87,15 @@
         })
         .catch(error => {
           console.error("Failed to load comparison datasets:", error);
+        });
+      
+      // Also load arbiter evaluations (optional data)
+      loadArbiterEvaluations(fetch)
+        .then(() => {
+          console.log('Arbiter evaluations loaded (if available)');
+        })
+        .catch(error => {
+          console.log('Arbiter evaluations not available:', error);
         });
     }
   });

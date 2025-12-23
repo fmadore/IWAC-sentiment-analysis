@@ -665,4 +665,80 @@ export const comparisonStatistics = derived(
 
 // Specific loading states for different data types
 export const isLoadingExtremeAnalysis = writable<boolean>(false);
-export const isLoadingComparison = writable<boolean>(false); 
+export const isLoadingComparison = writable<boolean>(false);
+
+// ============================================
+// Arbiter (Gemini 3 Pro) Evaluation Stores
+// ============================================
+
+import type { ArbiterEvaluationData, ArbiterAnalysis } from './types/data';
+
+// Store for arbiter evaluation data
+export const arbiterEvaluations = writable<ArbiterEvaluationData | null>(null);
+
+// Store for loading state
+export const isLoadingArbiter = writable<boolean>(false);
+
+// Derived store to get the global blind assignment key
+// This is the SAME for all articles - true means Model A = ChatGPT
+export const arbiterModelAIsChatGPT = derived(
+  arbiterEvaluations,
+  ($arbiterEvaluations) => $arbiterEvaluations?.metadata?.model_a_is_chatgpt ?? true
+);
+
+// Derived store to get arbiter evaluation for a specific article
+export const getArbiterForArticle = derived(
+  arbiterEvaluations,
+  ($arbiterEvaluations) => {
+    return (articleId: string | number): ArbiterAnalysis | null => {
+      if (!$arbiterEvaluations || !$arbiterEvaluations.evaluations) {
+        return null;
+      }
+      
+      const evaluation = $arbiterEvaluations.evaluations.find(
+        e => String(e.article_id) === String(articleId)
+      );
+      
+      return evaluation ? evaluation.arbiter : null;
+    };
+  }
+);
+
+// Helper function to decode blind model assignment to actual model name
+export const decodePreferredModel = (
+  preferredModel: 'model_a' | 'model_b' | 'both' | 'neither',
+  modelAIsChatGPT: boolean
+): 'chatgpt' | 'gemini' | 'both' | 'neither' => {
+  if (preferredModel === 'model_a') {
+    return modelAIsChatGPT ? 'chatgpt' : 'gemini';
+  } else if (preferredModel === 'model_b') {
+    return modelAIsChatGPT ? 'gemini' : 'chatgpt';
+  }
+  return preferredModel; // 'both' or 'neither'
+};
+
+// Function to load arbiter evaluations
+export const loadArbiterEvaluations = async (fetchFunction: typeof fetch): Promise<void> => {
+  isLoadingArbiter.set(true);
+  
+  try {
+    const resolvedPath = `${base}/data/iwac_arbiter_evaluations.json`;
+    const response = await fetchFunction(resolvedPath);
+    
+    if (!response.ok) {
+      console.log('Arbiter evaluations not found (this is optional data)');
+      arbiterEvaluations.set(null);
+      return;
+    }
+    
+    const data = await response.json() as ArbiterEvaluationData;
+    arbiterEvaluations.set(data);
+    console.log(`Loaded ${data.evaluations?.length || 0} arbiter evaluations (blind key: Model A = ${data.metadata?.model_a_is_chatgpt ? 'ChatGPT' : 'Gemini'})`);
+    
+  } catch (error) {
+    console.log('Arbiter evaluations not available:', error);
+    arbiterEvaluations.set(null);
+  } finally {
+    isLoadingArbiter.set(false);
+  }
+}; 
