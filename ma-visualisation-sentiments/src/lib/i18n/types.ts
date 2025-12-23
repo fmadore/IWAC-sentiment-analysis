@@ -328,6 +328,7 @@ export interface Translations {
   extremeAnalysis: {
     title: string;
     subtitle: string;
+    analysisControls: string;
     keywordFrequency: string;
     keywordsByFacet: string;
     topKeywords: string;

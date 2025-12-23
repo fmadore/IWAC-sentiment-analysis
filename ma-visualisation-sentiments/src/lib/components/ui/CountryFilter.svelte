@@ -102,8 +102,8 @@
 
 <style>
   .filter-card {
-    background: color-mix(in oklab, var(--color-surface-900) 85%, transparent);
-    backdrop-filter: blur(var(--glass-blur-md));
+    background: color-mix(in oklab, var(--color-surface-900) 92%, transparent);
+    backdrop-filter: blur(var(--glass-blur-lg));
     border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
     border-radius: 0.875rem;
     padding: 1rem;

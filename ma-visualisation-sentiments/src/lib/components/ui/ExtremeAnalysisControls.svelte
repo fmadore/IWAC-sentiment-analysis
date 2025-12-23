@@ -39,8 +39,8 @@
   }
 </script>
 
-<div class="card variant-glass p-4 hover-lift">
-  <h3 class="h4 mb-4 text-white responsive-title">Contrôles d'analyse</h3>
+<div class="extreme-controls card variant-glass glass-heavy p-3 hover-lift-sm border-gradient">
+  <h3 class="h5 mb-3 text-white responsive-title">{$t.extremeAnalysis.analysisControls}</h3>
   
   <div class="controls-grid">
     <!-- Category Select -->
@@ -117,22 +117,48 @@
 </div>
 
 <style>
+  /* Extreme Controls Styling */
+  .extreme-controls {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .extreme-controls::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, 
+      var(--color-primary-500),
+      var(--color-secondary-500),
+      var(--color-primary-500)
+    );
+    opacity: 0.8;
+  }
+
+  .glass-heavy {
+    background: color-mix(in oklab, var(--color-surface-900) 92%, transparent) !important;
+    backdrop-filter: blur(var(--glass-blur-lg));
+  }
+
   /* Controls Grid */
   .controls-grid {
     display: grid;
     grid-template-columns: 2fr 2fr 1fr;
-    gap: 2rem;
+    gap: 1rem;
     align-items: flex-end;
   }
 
   .control-group {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.375rem;
   }
 
   .control-label {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     font-weight: 600;
     color: color-mix(in oklab, var(--color-surface-50) 90%, transparent);
   }
@@ -142,11 +168,11 @@
     background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
     border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
     color: var(--color-surface-50);
-    padding: 0.625rem 0.875rem;
+    padding: 0.5rem 0.75rem;
     border-radius: 0.5rem;
     transition: all var(--timing-fast) var(--easing-default);
-    font-size: 0.875rem;
-    min-height: 42px;
+    font-size: 0.8125rem;
+    min-height: 38px;
     width: 100%;
     cursor: pointer;
     outline: none;
@@ -191,11 +217,11 @@
 
   .btn-toggle {
     flex: 1;
-    padding: 0.625rem 1rem;
+    padding: 0.5rem 0.875rem;
     border: none;
     background: transparent;
     color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     font-weight: 500;
     transition: all var(--timing-fast) var(--easing-default);
     cursor: pointer;
@@ -239,13 +265,13 @@
     background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
     border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
     color: var(--color-surface-50);
-    padding: 0.625rem 0.875rem;
+    padding: 0.5rem 0.75rem;
     border-radius: 0.5rem;
     transition: all var(--timing-fast) var(--easing-default);
-    font-size: 0.875rem;
-    min-height: 42px;
+    font-size: 0.8125rem;
+    min-height: 38px;
     width: 100%;
-    max-width: 120px;
+    max-width: 100px;
     outline: none;
   }
 

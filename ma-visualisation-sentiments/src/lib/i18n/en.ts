@@ -324,6 +324,7 @@ export const en: Translations = {
   extremeAnalysis: {
     title: 'Lexical Extremes Analysis',
     subtitle: 'Explore keywords associated with extreme sentiments',
+    analysisControls: 'Analysis Controls',
     keywordFrequency: 'Keyword Frequency',
     keywordsByFacet: 'Keywords by Facet',
     topKeywords: 'Top Keywords',
