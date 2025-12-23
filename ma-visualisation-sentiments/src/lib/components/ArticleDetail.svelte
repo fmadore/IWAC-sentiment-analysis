@@ -192,15 +192,15 @@
     font-size: 0.75rem;
     font-weight: 600;
     border-radius: 9999px;
-    transition: all var(--transition-fast);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all var(--timing-fast) var(--easing-default);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
     cursor: default;
   }
   
   .badge:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px color-mix(in oklab, black 20%, transparent);
+    border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
   }
   
   .badge-lg {
@@ -211,17 +211,17 @@
   }
   
   .anchor {
-    color: #60A5FA;
+    color: var(--color-primary-400);
     text-decoration: none;
     font-weight: 500;
-    transition: all var(--transition-normal);
-    border-bottom: 1px solid rgba(96, 165, 250, 0.3);
+    transition: all var(--timing-fast) var(--easing-default);
+    border-bottom: 1px solid color-mix(in oklab, var(--color-primary-400) 30%, transparent);
     padding-bottom: 1px;
   }
   
   .anchor:hover {
-    color: #93C5FD;
-    border-bottom-color: rgba(147, 197, 253, 0.6);
+    color: var(--color-primary-300);
+    border-bottom-color: color-mix(in oklab, var(--color-primary-300) 60%, transparent);
     transform: translateY(-1px);
   }
   
@@ -238,7 +238,7 @@
     top: -0.5rem;
     left: -0.5rem;
     font-size: 2rem;
-    color: rgba(255, 255, 255, 0.2);
+    color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
     font-family: serif;
   }
   
@@ -246,15 +246,15 @@
   :global(.hover-lift-sm:hover) {
     transform: translateY(-2px);
     box-shadow: 
-      0 10px 25px -5px rgba(0, 0, 0, 0.3),
-      0 10px 10px -5px rgba(0, 0, 0, 0.1),
-      0 0 20px rgba(59, 130, 246, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
+      0 10px 25px -5px color-mix(in oklab, black 30%, transparent),
+      0 10px 10px -5px color-mix(in oklab, black 10%, transparent),
+      0 0 20px color-mix(in oklab, var(--color-primary-500) 10%, transparent);
+    border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
   }
   
   :global(.border-gradient) {
     position: relative;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
   }
   
   :global(.border-gradient::before) {
@@ -265,14 +265,14 @@
     right: -1px;
     bottom: -1px;
     background: linear-gradient(135deg, 
-      rgba(59, 130, 246, 0.3), 
-      rgba(139, 92, 246, 0.3), 
-      rgba(236, 72, 153, 0.3)
+      color-mix(in oklab, var(--color-primary-500) 30%, transparent), 
+      color-mix(in oklab, var(--color-secondary-500) 30%, transparent), 
+      color-mix(in oklab, var(--color-tertiary-500) 30%, transparent)
     );
     border-radius: inherit;
     z-index: -1;
     opacity: 0;
-    transition: opacity var(--transition-normal);
+    transition: opacity var(--timing-normal) var(--easing-default);
   }
   
   :global(.border-gradient:hover::before) {
@@ -308,6 +308,16 @@
     /* Reduce hover effects on mobile */
     :global(.hover-lift-sm:hover) {
       transform: translateY(-1px);
+    }
+  }
+  
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .badge,
+    .anchor,
+    :global(.hover-lift-sm),
+    :global(.border-gradient::before) {
+      transition: none;
     }
   }
 </style>

@@ -235,4 +235,11 @@
       padding: 1rem;
     }
   }
+  
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .breakdown-fill {
+      transition: none;
+    }
+  }
 </style>

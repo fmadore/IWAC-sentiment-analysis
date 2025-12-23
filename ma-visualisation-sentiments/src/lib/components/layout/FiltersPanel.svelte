@@ -98,7 +98,7 @@
     height: auto !important; 
     display: block; 
     width: 100%;
-    transition: all var(--timing-normal, 0.2s) ease;
+    transition: all var(--timing-normal) var(--easing-default);
   }
 
   /* Journal width hint for non-masonry grid */
@@ -145,6 +145,13 @@
     }
     .extreme-filters-layout {
       gap: 0.75rem;
+    }
+  }
+  
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .filters-grid-responsive.masonry .filter-shell :global(.filter-card) {
+      transition: none;
     }
   }
 </style>

@@ -545,26 +545,26 @@
   th, td {
     padding: 0.75rem 1rem;
     text-align: left;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
   }
 
   /* Styles pour les lignes d'articles cliquables */
   .article-row {
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color var(--timing-fast) var(--easing-default);
   }
 
   .article-row:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: color-mix(in oklab, var(--color-surface-50) 5%, transparent);
   }
 
   .article-title {
     cursor: pointer;
-    transition: color 0.2s ease;
+    transition: color var(--timing-fast) var(--easing-default);
   }
 
   .article-title:hover {
-    color: #60A5FA;
+    color: var(--color-primary-400);
     text-decoration: underline;
     font-weight: 500;
   }
@@ -573,26 +573,26 @@
     position: sticky;
     top: 0;
     z-index: 1;
-    background-color: rgb(38, 41, 65); /* Couleur solide pour l'en-tête */
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
+    background-color: var(--color-surface-800);
+    box-shadow: 0 1px 0 color-mix(in oklab, var(--color-surface-50) 15%, transparent);
   }
   
   .sortable-header {
     cursor: pointer;
     user-select: none;
-    transition: background-color 0.2s;
+    transition: background-color var(--timing-fast) var(--easing-default);
   }
   
   .sortable-header:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
   }
 
   /* Styles pour la pagination */
   .pagination-info {
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in oklab, var(--color-surface-50) 5%, transparent);
     padding: 1rem;
     border-radius: 0.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
   }
 
   .pagination-controls {
@@ -627,7 +627,7 @@
   }
 
   .mobile-card {
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
   }
 
   .line-clamp-2 {
@@ -691,6 +691,15 @@
 
     .mobile-card h3 {
       font-size: 0.875rem;
+    }
+  }
+  
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .article-row,
+    .article-title,
+    .sortable-header {
+      transition: none;
     }
   }
 </style>

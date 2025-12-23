@@ -115,4 +115,11 @@
       gap: 1rem;
     }
   }
+  
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .loading-spinner {
+      animation: none;
+    }
+  }
 </style>

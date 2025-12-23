@@ -688,4 +688,11 @@
       padding: 0.25rem;
     }
   }
+  
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .sortable-header {
+      transition: none;
+    }
+  }
 </style>

@@ -900,4 +900,18 @@
       padding: 0.75rem;
     }
   }
+  
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .badge,
+    .anchor,
+    .arbiter-header,
+    .arbiter-verdict-panel,
+    .loading-spinner,
+    :global(.hover-lift-sm),
+    :global(.border-gradient::before) {
+      transition: none;
+      animation: none;
+    }
+  }
 </style> 

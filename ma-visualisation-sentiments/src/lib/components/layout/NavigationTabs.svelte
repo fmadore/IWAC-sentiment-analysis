@@ -94,7 +94,7 @@
   /* Navigation Container */
   .nav-container {
     background: color-mix(in oklab, var(--color-surface-900) 90%, transparent);
-    backdrop-filter: blur(20px);
+    backdrop-filter: blur(var(--glass-blur-lg));
     border-radius: 1rem;
     border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
     box-shadow: 
@@ -178,7 +178,7 @@
     font-size: 0.8125rem;
     white-space: nowrap;
     cursor: pointer;
-    transition: all var(--timing-normal, 0.2s) ease;
+    transition: all var(--timing-normal) var(--easing-default);
   }
 
   .nav-tab:hover {
@@ -222,7 +222,7 @@
     min-width: 72px;
     flex-shrink: 0;
     cursor: pointer;
-    transition: all var(--timing-normal, 0.2s) ease;
+    transition: all var(--timing-normal) var(--easing-default);
   }
 
   .nav-tab-mobile:hover {
