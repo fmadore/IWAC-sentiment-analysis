@@ -180,18 +180,18 @@
     
     <!-- Article metadata -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="card variant-glass p-4 hover-lift-sm">
+      <div class="card variant-glass glass-heavy p-4 hover-lift-sm border-gradient">
         <span class="text-xs uppercase font-bold opacity-75 text-white/60">{$t.filters.journal}</span>
         <p class="text-white mt-2 font-medium">{getJournalName(comparison.article)}</p>
       </div>
-      <div class="card variant-glass p-4 hover-lift-sm">
+      <div class="card variant-glass glass-heavy p-4 hover-lift-sm border-gradient">
         <span class="text-xs uppercase font-bold opacity-75 text-white/60">{$t.article.publicationDate}</span>
         <p class="text-white mt-2 font-medium">{formatDate(comparison.article.publication_date)}</p>
       </div>
     </div>
 
     <!-- Link to full article -->
-    <div class="card variant-glass p-4 hover-lift-sm">
+    <div class="card variant-glass glass-heavy p-4 hover-lift-sm border-gradient">
       <span class="text-xs uppercase font-bold opacity-75 text-white/60">{$t.article.linkToFullArticle}</span>
       <p class="text-white mt-2">
         <a href={getArticleUrl(comparison.article['o:id'])} target="_blank" class="anchor hover-glow focus-ring">
@@ -201,7 +201,7 @@
     </div>
 
     <!-- Overall discrepancy summary -->
-    <div class="card variant-glass glass-medium p-5 hover-lift-sm border-gradient">
+    <div class="discrepancy-section card variant-glass glass-heavy p-5 hover-lift-sm border-gradient discrepancy-gradient">
       <div class="flex items-center justify-between mb-4">
         <h4 class="h4 text-white">{$t.comparison.totalDiscrepancy}</h4>
         <span class="badge badge-lg {getDiffBadgeClass(comparison.discrepancies.totalDiff)}">
@@ -231,7 +231,7 @@
     </div>
     
     <!-- Centralité Comparison -->
-    <div class="card variant-glass glass-medium p-5 hover-lift-sm border-gradient">
+    <div class="centrality-section card variant-glass glass-heavy p-5 hover-lift-sm border-gradient centrality-gradient">
       <div class="flex items-center gap-3 mb-4">
         <h4 class="h4 text-white">{$t.analysis.centralitySection}</h4>
         <span class="badge {getDiffBadgeClass(comparison.discrepancies.centralityDiff)}">
@@ -249,7 +249,7 @@
             </span>
           </div>
           {#if comparison.chatgpt?.centralite_justification}
-            <blockquote class="card variant-glass glass-light p-4 border-l-4 border-l-blue-400/50 italic text-white/90 leading-relaxed">
+            <blockquote class="card variant-glass glass-dark p-4 border-l-4 border-l-blue-400/50 italic text-white/90 leading-relaxed">
               {comparison.chatgpt.centralite_justification}
             </blockquote>
           {:else}
@@ -266,7 +266,7 @@
             </span>
           </div>
           {#if comparison.gemini?.centralite_justification}
-            <blockquote class="card variant-glass glass-light p-4 border-l-4 border-l-green-400/50 italic text-white/90 leading-relaxed">
+            <blockquote class="card variant-glass glass-dark p-4 border-l-4 border-l-green-400/50 italic text-white/90 leading-relaxed">
               {comparison.gemini.centralite_justification}
             </blockquote>
           {:else}
@@ -277,7 +277,7 @@
     </div>
     
     <!-- Polarité Comparison -->
-    <div class="card variant-glass glass-medium p-5 hover-lift-sm border-gradient">
+    <div class="polarity-section card variant-glass glass-heavy p-5 hover-lift-sm border-gradient polarity-gradient">
       <div class="flex items-center gap-3 mb-4">
         <h4 class="h4 text-white">{$t.analysis.polaritySection}</h4>
         <span class="badge {getDiffBadgeClass(comparison.discrepancies.polarityDiff)}">
@@ -295,7 +295,7 @@
             </span>
           </div>
           {#if comparison.chatgpt?.polarite_justification}
-            <blockquote class="card variant-glass glass-light p-4 border-l-4 border-l-purple-400/50 italic text-white/90 leading-relaxed">
+            <blockquote class="card variant-glass glass-dark p-4 border-l-4 border-l-purple-400/50 italic text-white/90 leading-relaxed">
               {comparison.chatgpt.polarite_justification}
             </blockquote>
           {:else}
@@ -312,7 +312,7 @@
             </span>
           </div>
           {#if comparison.gemini?.polarite_justification}
-            <blockquote class="card variant-glass glass-light p-4 border-l-4 border-l-purple-400/50 italic text-white/90 leading-relaxed">
+            <blockquote class="card variant-glass glass-dark p-4 border-l-4 border-l-purple-400/50 italic text-white/90 leading-relaxed">
               {comparison.gemini.polarite_justification}
             </blockquote>
           {:else}
@@ -323,7 +323,7 @@
     </div>
     
     <!-- Subjectivité Comparison -->
-    <div class="card variant-glass glass-medium p-5 hover-lift-sm border-gradient">
+    <div class="subjectivity-section card variant-glass glass-heavy p-5 hover-lift-sm border-gradient subjectivity-gradient">
       <div class="flex items-center gap-3 mb-4">
         <h4 class="h4 text-white">{$t.filters.subjectivityScore}</h4>
         <span class="badge {getDiffBadgeClass(comparison.discrepancies.subjectivityDiff)}">
@@ -341,7 +341,7 @@
             </span>
           </div>
           {#if comparison.chatgpt?.subjectivite_justification}
-            <blockquote class="card variant-glass glass-light p-4 border-l-4 border-l-green-400/50 italic text-white/90 leading-relaxed">
+            <blockquote class="card variant-glass glass-dark p-4 border-l-4 border-l-green-400/50 italic text-white/90 leading-relaxed">
               {comparison.chatgpt.subjectivite_justification}
             </blockquote>
           {:else}
@@ -358,7 +358,7 @@
             </span>
           </div>
           {#if comparison.gemini?.subjectivite_justification}
-            <blockquote class="card variant-glass glass-light p-4 border-l-4 border-l-green-400/50 italic text-white/90 leading-relaxed">
+            <blockquote class="card variant-glass glass-dark p-4 border-l-4 border-l-green-400/50 italic text-white/90 leading-relaxed">
               {comparison.gemini.subjectivite_justification}
             </blockquote>
           {:else}
@@ -413,7 +413,7 @@
           </div>
         {:else if arbiterData}
           <!-- Overall Verdict -->
-          <div class="card variant-glass glass-light p-4 mb-4 border-l-4 border-l-amber-400/50">
+          <div class="card variant-glass glass-dark p-4 mb-4 border-l-4 border-l-amber-400/50">
             <div class="flex items-start gap-3">
               <SparklesIcon size={20} class="text-amber-400 mt-1 flex-shrink-0" />
               <div>
@@ -534,7 +534,7 @@
     </div>
   </div>
 {:else}
-  <div class="card variant-glass glass-light p-8 flex flex-col items-center justify-center min-h-[300px] text-center hover-lift-sm">
+  <div class="card variant-glass glass-heavy p-8 flex flex-col items-center justify-center min-h-[300px] text-center hover-lift-sm border-gradient">
     <div class="mb-4 opacity-50">
       <svg class="w-16 h-16 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -608,10 +608,140 @@
   }
 
   .comparison-panel {
-    border: 1px solid color-mix(in oklab, var(--color-surface-50) 5%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 8%, transparent);
     border-radius: 0.5rem;
     padding: 1rem;
-    background: color-mix(in oklab, var(--color-surface-50) 2%, transparent);
+    background: color-mix(in oklab, var(--color-surface-900) 60%, transparent);
+  }
+
+  /* ============================================ */
+  /* Glass Heavy - Darker glass effect */
+  /* ============================================ */
+  
+  .glass-heavy {
+    background: color-mix(in oklab, var(--color-surface-900) 92%, transparent) !important;
+    backdrop-filter: blur(var(--glass-blur-lg));
+  }
+
+  .glass-dark {
+    background: color-mix(in oklab, var(--color-surface-900) 75%, transparent) !important;
+    backdrop-filter: blur(var(--glass-blur-md));
+  }
+
+  /* ============================================ */
+  /* Section Styles with Accent Lines */
+  /* ============================================ */
+
+  /* Discrepancy Section - Red/Orange accent */
+  .discrepancy-section {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .discrepancy-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, 
+      #ef4444, /* red-500 */
+      #f97316, /* orange-500 */
+      #ef4444  /* red-500 */
+    );
+    opacity: 0.8;
+  }
+
+  .discrepancy-gradient {
+    background: linear-gradient(135deg, 
+      color-mix(in oklab, var(--color-surface-900) 92%, transparent),
+      color-mix(in oklab, #ef4444 4%, var(--color-surface-900))
+    ) !important;
+  }
+
+  /* Centrality Section - Gold/Yellow accent */
+  .centrality-section {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .centrality-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, 
+      var(--sentiment-centrality-very-central),
+      var(--sentiment-centrality-central),
+      var(--sentiment-centrality-very-central)
+    );
+    opacity: 0.8;
+  }
+
+  .centrality-gradient {
+    background: linear-gradient(135deg, 
+      color-mix(in oklab, var(--color-surface-900) 92%, transparent),
+      color-mix(in oklab, var(--sentiment-centrality-very-central) 4%, var(--color-surface-900))
+    ) !important;
+  }
+
+  /* Polarity Section - Blue/Green accent */
+  .polarity-section {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .polarity-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, 
+      var(--sentiment-polarity-positive),
+      var(--sentiment-polarity-neutral),
+      var(--sentiment-polarity-negative)
+    );
+    opacity: 0.8;
+  }
+
+  .polarity-gradient {
+    background: linear-gradient(135deg, 
+      color-mix(in oklab, var(--color-surface-900) 92%, transparent),
+      color-mix(in oklab, var(--sentiment-polarity-neutral) 4%, var(--color-surface-900))
+    ) !important;
+  }
+
+  /* Subjectivity Section - Purple/Cyan accent */
+  .subjectivity-section {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .subjectivity-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, 
+      var(--sentiment-subjectivity-1),
+      var(--sentiment-subjectivity-3),
+      var(--sentiment-subjectivity-5)
+    );
+    opacity: 0.8;
+  }
+
+  .subjectivity-gradient {
+    background: linear-gradient(135deg, 
+      color-mix(in oklab, var(--color-surface-900) 92%, transparent),
+      color-mix(in oklab, var(--sentiment-subjectivity-3) 4%, var(--color-surface-900))
+    ) !important;
   }
 
   /* ============================================ */
@@ -640,9 +770,9 @@
 
   .arbiter-gradient {
     background: linear-gradient(135deg, 
-      color-mix(in oklab, var(--color-surface-900) 90%, transparent),
-      color-mix(in oklab, #f59e0b 5%, var(--color-surface-900))
-    );
+      color-mix(in oklab, var(--color-surface-900) 92%, transparent),
+      color-mix(in oklab, #f59e0b 4%, var(--color-surface-900))
+    ) !important;
   }
 
   .arbiter-header {
