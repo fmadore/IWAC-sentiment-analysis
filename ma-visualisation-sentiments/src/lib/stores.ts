@@ -838,6 +838,73 @@ export const decodePreferredModel = (
   return preferredModel; // 'both' or 'neither'
 };
 
+// Derived store for arbiter summary statistics
+export interface ArbiterStatistics {
+  totalEvaluated: number;
+  chatgptPreferred: number;
+  geminiPreferred: number;
+  bothEqual: number;
+  neitherAccurate: number;
+  chatgptPercentage: number;
+  geminiPercentage: number;
+  bothPercentage: number;
+  neitherPercentage: number;
+  hasData: boolean;
+}
+
+export const arbiterStatistics = derived(
+  [arbiterEvaluations, arbiterModelAIsChatGPT],
+  ([$arbiterEvaluations, $modelAIsChatGPT]): ArbiterStatistics => {
+    if (!$arbiterEvaluations || !$arbiterEvaluations.evaluations || $arbiterEvaluations.evaluations.length === 0) {
+      return {
+        totalEvaluated: 0,
+        chatgptPreferred: 0,
+        geminiPreferred: 0,
+        bothEqual: 0,
+        neitherAccurate: 0,
+        chatgptPercentage: 0,
+        geminiPercentage: 0,
+        bothPercentage: 0,
+        neitherPercentage: 0,
+        hasData: false
+      };
+    }
+
+    const counts = {
+      chatgpt: 0,
+      gemini: 0,
+      both: 0,
+      neither: 0
+    };
+
+    // Count preferences across all dimensions (polarity, subjectivity, centrality)
+    for (const evaluation of $arbiterEvaluations.evaluations) {
+      const arbiter = evaluation.arbiter;
+      
+      for (const dimension of ['polarity', 'subjectivity', 'centrality'] as const) {
+        const preferredModel = arbiter[dimension]?.preferred_model as 'model_a' | 'model_b' | 'both' | 'neither';
+        const decoded = decodePreferredModel(preferredModel, $modelAIsChatGPT);
+        counts[decoded]++;
+      }
+    }
+
+    const totalVerdicts = counts.chatgpt + counts.gemini + counts.both + counts.neither;
+
+    return {
+      totalEvaluated: $arbiterEvaluations.evaluations.length,
+      chatgptPreferred: counts.chatgpt,
+      geminiPreferred: counts.gemini,
+      bothEqual: counts.both,
+      neitherAccurate: counts.neither,
+      chatgptPercentage: totalVerdicts > 0 ? (counts.chatgpt / totalVerdicts) * 100 : 0,
+      geminiPercentage: totalVerdicts > 0 ? (counts.gemini / totalVerdicts) * 100 : 0,
+      bothPercentage: totalVerdicts > 0 ? (counts.both / totalVerdicts) * 100 : 0,
+      neitherPercentage: totalVerdicts > 0 ? (counts.neither / totalVerdicts) * 100 : 0,
+      hasData: true
+    };
+  }
+);
+
 // Function to load arbiter evaluations
 export const loadArbiterEvaluations = async (fetchFunction: typeof fetch): Promise<void> => {
   isLoadingArbiter.set(true);

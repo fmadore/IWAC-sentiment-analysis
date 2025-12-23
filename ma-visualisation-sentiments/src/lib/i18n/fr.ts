@@ -292,7 +292,7 @@ export const fr: Translations = {
   // Arbiter
   arbiter: {
     title: 'Verdict de l\'arbitre',
-    subtitle: 'Évaluation indépendante par un troisième modèle d\'IA',
+    subtitle: 'Évaluation aveugle par un troisième modèle d\'IA (identités des modèles masquées)',
     modelName: 'Gemini 3 Pro',
     verdict: 'Verdict',
     overallVerdict: 'Verdict général',
@@ -317,7 +317,16 @@ export const fr: Translations = {
     hideArbiterVerdict: 'Masquer le verdict de l\'arbitre',
     loadingArbiter: 'Chargement des données de l\'arbitre...',
     arbiterNotAvailable: 'Évaluation de l\'arbitre non disponible',
-    runArbiterScript: 'Exécutez arbiter-evaluation.py pour générer les évaluations'
+    runArbiterScript: 'Exécutez arbiter-evaluation.py pour générer les évaluations',
+    // Summary statistics
+    summaryTitle: 'Résumé de l\'arbitre',
+    articlesEvaluated: 'articles évalués',
+    chatgptPreferred: 'ChatGPT préféré',
+    geminiPreferred: 'Gemini préféré',
+    bothEqual: 'Égalité',
+    neitherAccurate: 'Aucun précis',
+    preferred: 'préféré',
+    blindEvaluationNote: 'Évaluation aveugle : les modèles étaient anonymisés pendant l\'évaluation'
   },
 
   // Extreme Analysis

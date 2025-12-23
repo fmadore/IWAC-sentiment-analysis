@@ -172,6 +172,22 @@
       default: return 'variant-ghost';
     }
   }
+  
+  // Decode Model A/B references in text to actual model names (ChatGPT/Gemini)
+  function decodeVerdictText(text: string): string {
+    if (!text) return text;
+    
+    // Determine which model is which based on the blind assignment
+    const modelAName = modelAIsChatGPT ? 'ChatGPT' : 'Gemini';
+    const modelBName = modelAIsChatGPT ? 'Gemini' : 'ChatGPT';
+    
+    // Replace Model A/B references (case insensitive)
+    return text
+      .replace(/Model A/gi, modelAName)
+      .replace(/Model B/gi, modelBName)
+      .replace(/model_a/gi, modelAName)
+      .replace(/model_b/gi, modelBName);
+  }
 </script>
 
 {#if comparison}
@@ -418,7 +434,7 @@
               <SparklesIcon size={20} class="text-amber-400 mt-1 flex-shrink-0" />
               <div>
                 <h5 class="font-semibold text-white mb-2">{$t.arbiter.overallVerdict}</h5>
-                <p class="text-white/90 leading-relaxed">{arbiterData.overall_verdict}</p>
+                <p class="text-white/90 leading-relaxed">{decodeVerdictText(arbiterData.overall_verdict)}</p>
               </div>
             </div>
           </div>
@@ -448,11 +464,11 @@
               <div class="space-y-2">
                 <div>
                   <span class="text-xs uppercase font-bold text-white/50">{$t.arbiter.arbiterJustification}</span>
-                  <p class="text-white/80 text-sm mt-1">{arbiterData.polarity.justification}</p>
+                  <p class="text-white/80 text-sm mt-1">{decodeVerdictText(arbiterData.polarity.justification)}</p>
                 </div>
                 <div>
                   <span class="text-xs uppercase font-bold text-white/50">{$t.arbiter.verdictExplanation}</span>
-                  <p class="text-white/80 text-sm mt-1">{arbiterData.polarity.verdict_explanation}</p>
+                  <p class="text-white/80 text-sm mt-1">{decodeVerdictText(arbiterData.polarity.verdict_explanation)}</p>
                 </div>
               </div>
             </div>
@@ -480,11 +496,11 @@
               <div class="space-y-2">
                 <div>
                   <span class="text-xs uppercase font-bold text-white/50">{$t.arbiter.arbiterJustification}</span>
-                  <p class="text-white/80 text-sm mt-1">{arbiterData.subjectivity.justification}</p>
+                  <p class="text-white/80 text-sm mt-1">{decodeVerdictText(arbiterData.subjectivity.justification)}</p>
                 </div>
                 <div>
                   <span class="text-xs uppercase font-bold text-white/50">{$t.arbiter.verdictExplanation}</span>
-                  <p class="text-white/80 text-sm mt-1">{arbiterData.subjectivity.verdict_explanation}</p>
+                  <p class="text-white/80 text-sm mt-1">{decodeVerdictText(arbiterData.subjectivity.verdict_explanation)}</p>
                 </div>
               </div>
             </div>
@@ -512,11 +528,11 @@
               <div class="space-y-2">
                 <div>
                   <span class="text-xs uppercase font-bold text-white/50">{$t.arbiter.arbiterJustification}</span>
-                  <p class="text-white/80 text-sm mt-1">{arbiterData.centrality.justification}</p>
+                  <p class="text-white/80 text-sm mt-1">{decodeVerdictText(arbiterData.centrality.justification)}</p>
                 </div>
                 <div>
                   <span class="text-xs uppercase font-bold text-white/50">{$t.arbiter.verdictExplanation}</span>
-                  <p class="text-white/80 text-sm mt-1">{arbiterData.centrality.verdict_explanation}</p>
+                  <p class="text-white/80 text-sm mt-1">{decodeVerdictText(arbiterData.centrality.verdict_explanation)}</p>
                 </div>
               </div>
             </div>
@@ -595,15 +611,16 @@
     position: relative;
     font-style: italic;
     line-height: 1.6;
+    padding-left: 1.5rem; /* Make room for the quotation mark */
   }
   
   blockquote::before {
     content: '"';
     position: absolute;
-    top: -0.5rem;
-    left: -0.5rem;
+    top: -0.25rem;
+    left: 0;
     font-size: 2rem;
-    color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+    color: color-mix(in oklab, var(--color-surface-50) 30%, transparent);
     font-family: serif;
   }
 

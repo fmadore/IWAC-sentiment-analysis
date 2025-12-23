@@ -322,6 +322,15 @@ export interface Translations {
     loadingArbiter: string;
     arbiterNotAvailable: string;
     runArbiterScript: string;
+    // Summary statistics
+    summaryTitle: string;
+    articlesEvaluated: string;
+    chatgptPreferred: string;
+    geminiPreferred: string;
+    bothEqual: string;
+    neitherAccurate: string;
+    preferred: string;
+    blindEvaluationNote: string;
   };
 
   // Extreme Analysis

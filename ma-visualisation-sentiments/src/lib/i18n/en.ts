@@ -292,7 +292,7 @@ export const en: Translations = {
   // Arbiter
   arbiter: {
     title: 'Arbiter Verdict',
-    subtitle: 'Independent evaluation by a third AI model',
+    subtitle: 'Blind evaluation by a third AI model (model identities hidden)',
     modelName: 'Gemini 3 Pro',
     verdict: 'Verdict',
     overallVerdict: 'Overall Verdict',
@@ -317,7 +317,16 @@ export const en: Translations = {
     hideArbiterVerdict: 'Hide Arbiter Verdict',
     loadingArbiter: 'Loading arbiter data...',
     arbiterNotAvailable: 'Arbiter evaluation not available',
-    runArbiterScript: 'Run arbiter-evaluation.py to generate evaluations'
+    runArbiterScript: 'Run arbiter-evaluation.py to generate evaluations',
+    // Summary statistics
+    summaryTitle: 'Arbiter Summary',
+    articlesEvaluated: 'articles evaluated',
+    chatgptPreferred: 'ChatGPT Preferred',
+    geminiPreferred: 'Gemini Preferred',
+    bothEqual: 'Both Equal',
+    neitherAccurate: 'Neither Accurate',
+    preferred: 'preferred',
+    blindEvaluationNote: 'Blind evaluation: models were anonymized during evaluation'
   },
 
   // Extreme Analysis
