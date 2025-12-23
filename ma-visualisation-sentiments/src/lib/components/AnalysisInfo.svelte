@@ -151,11 +151,17 @@
                   <div class="model-card">
                     <div class="model-header">
                       <span class="model-icon">✨</span>
-                      <span class="model-name">Gemini 2.5 Flash</span>
+                      <span class="model-name">Gemini 3 Flash</span>
                     </div>
                     <p class="model-description">
-                      {$currentLanguage === 'en' ? 'Google\'s fast multimodal model optimized for diverse tasks with enhanced performance and efficiency.' : 'Modèle multimodal rapide de Google optimisé pour diverses tâches avec des performances et une efficacité améliorées.'}
+                      {$currentLanguage === 'en' ? 'Google\'s latest Flash model with advanced reasoning capabilities and a 1 million token context window, released December 2025.' : 'Le dernier modèle Flash de Google avec des capacités de raisonnement avancées et une fenêtre de contexte de 1 million de tokens, publié en décembre 2025.'}
                     </p>
+                    <p class="model-description">
+                      {$currentLanguage === 'en' 
+                        ? "Gemini 3 Flash is optimized for speed and efficiency while maintaining high-quality outputs for text analysis tasks." 
+                        : "Gemini 3 Flash est optimisé pour la rapidité et l'efficacité tout en maintenant des sorties de haute qualité pour les tâches d'analyse textuelle."}
+                    </p>
+                    <a class="model-link" href="https://ai.google.dev/gemini-api/docs/models#gemini-3-flash" target="_blank" rel="noopener noreferrer">Docs →</a>
                   </div>
                 </div>
                 <p class="section-note">
@@ -182,12 +188,15 @@
                       ? "GPT-5 mini is a faster, more cost-efficient version of GPT-5. It's great for well-defined tasks and precise prompts." 
                       : "GPT-5 mini est une version plus rapide et économique de GPT-5. Idéal pour des tâches bien définies et des invites précises."}</span>
                   {:else}
-                    <a href="https://cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash" target="_blank" rel="noopener noreferrer" class="model-badge gemini">
-                      Gemini 2.5 Flash
+                    <a href="https://ai.google.dev/gemini-api/docs/models#gemini-3-flash" target="_blank" rel="noopener noreferrer" class="model-badge gemini">
+                      Gemini 3 Flash
                     </a>
                     {$currentLanguage === 'en' 
-                      ? ', Google\'s fast multimodal model optimized for diverse tasks with enhanced performance and efficiency.' 
-                      : ', le modèle multimodal rapide de Google optimisé pour diverses tâches avec des performances et une efficacité améliorées.'}
+                      ? ', Google\'s latest Flash model with advanced reasoning capabilities and a 1 million token context window, released December 2025.' 
+                      : ', le dernier modèle Flash de Google avec des capacités de raisonnement avancées et une fenêtre de contexte de 1 million de tokens, publié en décembre 2025.'}
+                    <span class="model-detail">{$currentLanguage === 'en' 
+                      ? "Gemini 3 Flash is optimized for speed and efficiency while maintaining high-quality outputs for text analysis tasks." 
+                      : "Gemini 3 Flash est optimisé pour la rapidité et l'efficacité tout en maintenant des sorties de haute qualité pour les tâches d'analyse textuelle."}</span>
                   {/if}
                 </p>
               {/if}
@@ -208,7 +217,7 @@
                   <li>{$currentLanguage === 'en' ? 'Parallel processing: Both models analyze the same articles independently' : 'Traitement parallèle : Les deux modèles analysent les mêmes articles de manière indépendante'}</li>
                   <li>{$currentLanguage === 'en' ? 'Discrepancy detection: Automatic identification of differences in sentiment analysis' : 'Détection des divergences : Identification automatique des différences dans l\'analyse de sentiment'}</li>
                 {/if}
-                <li>{$currentLanguage === 'en' ? 'API parameters: verbosity="low", reasoning.effort="low"' : 'Paramètres API : verbosity="low", reasoning.effort="low"'}</li>
+                <li>{$currentLanguage === 'en' ? 'API parameters: temperature=0.2, thinking_level="low" (Gemini 3)' : 'Paramètres API : temperature=0.2, thinking_level="low" (Gemini 3)'}</li>
               </ul>
             </div>
             
@@ -318,115 +327,93 @@
         
         <div class="prompt-code-container">
           <pre class="prompt-code">{$currentLanguage === 'en' ? 
-            `You are an expert in sentiment analysis, specialized in studying representations of Islam and Muslims in the media, particularly in Francophone West Africa. Your task is to analyze the provided text from this specific angle and return a structured JSON analysis.
+            `# Sentiment Analysis: Representation of Islam and Muslims in Francophone West African Media
 
-Your analysis must specifically evaluate how Islam and/or Muslims are depicted or represented in the article. Subjectivity and polarity should be judged in relation to this representation. If Islam and Muslims are only a marginal or irrelevant subject in the article, indicate this clearly.
+You are an expert analyst of representations of Islam and Muslims in the media, with a particular focus on Francophone West Africa. Analyze the provided text by evaluating the centrality, subjectivity, and polarity concerning the treatment of Islam and/or Muslims.
 
-For the following article text:
----
-{article_text}
----
+Start by generating a concise checklist (3 to 7 points) listing the conceptual steps needed to complete the evaluation.
 
-Please provide the following information in JSON format respecting the Pydantic SentimentAnalysisOutput schema:
-{
-  "centralite_islam_musulmans": "<Very central | Central | Secondary | Marginal | Not addressed>",
-  "centralite_justification": "<Short justification (1 sentence) explaining the level of centrality of Islam/Muslims in the article>",
-  "subjectivite_score": <score_from_1_to_5_or_null_if_not_addressed>,
-  "subjectivite_justification": "<justification_in_1_2_sentences explaining why this subjectivity score was assigned regarding how the article treats Islam and/or Muslims, or 'Not applicable if the subject is not addressed'>",
-  "polarite": "<Very positive | Positive | Neutral | Negative | Very negative | Not applicable>",
-  "polarite_justification": "<justification_in_1_2_sentences explaining why this polarity was assigned regarding the portrayal of Islam and/or Muslims in the article, or 'Not applicable if the subject is not addressed'>"
-}
+## Instructions
+- All justifications must be in French.
+- Do not complete or invent information if the text is insufficient; be cautious and respond "Not applicable" or "Not addressed" if necessary.
 
-Here are the scales to use:
+After generation, internally verify the consistency of the assigned values (e.g., if centrality = "Not addressed", then subjectivite_score = null and justifications indicate this, etc.). Correct any detected inconsistency before finalizing.
 
-Centrality of Islam and Muslims in the article:
-- Very central: The article is mainly or entirely devoted to Islam and/or Muslims.
-- Central: Islam and/or Muslims are one of the main subjects of the article.
-- Secondary: Islam and/or Muslims are mentioned or discussed but do not constitute the main focus of the article.
-- Marginal: Islam and/or Muslims are briefly mentioned anecdotally or peripherally.
-- Not addressed: The article does not deal with Islam or Muslims at all.
+## Evaluation Scale with Examples
+### Centrality
+Evaluates the importance given to themes related to Islam and Muslims in the article.
+- Very central: Islam/Muslims constitute the main subject of the article.
+- Central: Important theme but shared with other subjects.
+- Secondary: Mentioned significantly but secondary.
+- Marginal: Mentioned briefly or anecdotally.
+- Not addressed: No mention of Islam or Muslims.
 
-Subjectivity (score from 1 to 5) – Evaluate the degree of objectivity/subjectivity of the article IN ITS WAY OF REPRESENTING Islam and/or Muslims (Assign 'null' if 'Not addressed' for centrality):
-1: Very objective (reports verifiable facts about Islam/Muslims without expressing personal opinions or feelings about them, purely informative style on this theme).
-2: Rather objective (mainly factual concerning Islam/Muslims, but may contain subtle traces of opinions or word choices suggesting a limited perspective on this theme).
-3: Mixed (contains a balanced mix of facts and personal opinions/feelings concerning Islam/Muslims, or presents multiple viewpoints on this theme).
-4: Rather subjective (clearly expresses opinions, feelings, or judgments about Islam/Muslims, even if based on some facts to support them).
-5: Very subjective (heavily biased in its representation of Islam/Muslims, expresses intense opinions and emotions about them, with little or no objective presentation of facts, editorial or opinion piece style on this theme).
+### Subjectivity
+Assign a subjectivity score based on the tone and presence of opinions or facts concerning Islam/Muslims in the article.
+1: Very objective – Reports verifiable facts about Islam/Muslims without expressing personal opinions or feelings about them, purely informative style on this theme.
+2: Rather objective – Mainly factual concerning Islam/Muslims, but may contain subtle traces of opinions or word choices suggesting a limited perspective on this theme.
+3: Mixed – Contains a balanced mix of facts and personal opinions/feelings concerning Islam/Muslims, or presents multiple viewpoints on this theme.
+4: Rather subjective – Clearly expresses opinions, feelings, or judgments about Islam/Muslims, even if based on some facts to support them.
+5: Very subjective – Heavily biased in its representation of Islam/Muslims, expresses intense opinions and emotions about them, with little or no objective presentation of facts, editorial or opinion piece style on this theme.
 
-Polarity – Evaluate the general sentiment expressed IN THE ARTICLE TOWARDS Islam and/or Muslims, or concerning their representation (Assign 'Not applicable' if 'Not addressed' for centrality):
+### Polarity
+Evaluates the general sentiment expressed in the article towards Islam and/or Muslims, or concerning their representation.
 - Very positive: The portrayal of Islam/Muslims is extremely favorable, enthusiastic, laudatory.
 - Positive: The portrayal of Islam/Muslims is favorable, optimistic.
 - Neutral: No clear sentiment towards Islam/Muslims or balance between positive and negative aspects in their representation; factual tone without marked emotional charge towards them.
 - Negative: The portrayal of Islam/Muslims is unfavorable, critical, pessimistic.
 - Very negative: The portrayal of Islam/Muslims is extremely unfavorable, alarmist, very critical.
+- Not applicable: The article does not deal with Islam or Muslims.
 
-If centrality is "Not addressed", the "subjectivite_score" must be null, and "polarite", "subjectivite_justification", and "polarite_justification" must be "Not applicable". The JSON must always be valid.
-For example, if "centralite_islam_musulmans" is "Not addressed":
-{
-  "centralite_islam_musulmans": "Not addressed",
-  "centralite_justification": "The article mentions neither Islam nor Muslims.",
-  "subjectivite_score": null,
-  "subjectivite_justification": "Not applicable as the subject is not addressed.",
-  "polarite": "Not applicable",
-  "polarite_justification": "Not applicable as the subject is not addressed."
-}
-
-Make sure your response is only the requested structured JSON, without additional text or formatting before or after the JSON.` 
+- If centrality = "Not addressed", then:
+    - subjectivite_score = null
+    - subjectivite_justification = "Not applicable as the subject is not addressed."
+    - polarite = "Not applicable"
+    - polarite_justification = "Not applicable as the subject is not addressed."` 
             : 
-            `Vous êtes un expert en analyse de sentiments, spécialisé dans l'étude des représentations de l'islam et des musulmans dans les médias, notamment en Afrique de l'Ouest francophone. Votre tâche est d'analyser le texte fourni sous cet angle spécifique et de renvoyer une analyse structurée en JSON.
+            `# Analyse de Sentiment : représentation de l'islam et des musulmans dans les médias d'Afrique de l'Ouest francophone
 
-Votre analyse doit spécifiquement évaluer comment l'islam et/ou les musulmans sont dépeints ou représentés dans l'article. La subjectivité et la polarité doivent être jugées par rapport à cette représentation. Si l'islam et les musulmans ne sont qu'un sujet marginal ou non pertinent dans l'article, indiquez-le clairement.
+Vous êtes un analyste expert des représentations de l'islam et des musulmans dans les médias, avec un focus particulier sur l'Afrique de l'Ouest francophone. Analysez le texte fourni en évaluant la centralité, la subjectivité et la polarité concernant le traitement de l'islam et/ou des musulmans.
 
-Pour le texte de l'article suivant :
----
-{article_text}
----
+Commencez par générer une checklist concise (3 à 7 points) listant les étapes conceptuelles nécessaires pour réaliser l'évaluation.
 
-Veuillez fournir les informations suivantes au format JSON respectant le schéma Pydantic SentimentAnalysisOutput:
-{
-  "centralite_islam_musulmans": "<Très central | Central | Secondaire | Marginal | Non abordé>",
-  "centralite_justification": "<Courte justification (1 phrase) expliquant le niveau de centralité de l'islam/des musulmans dans l'article>",
-  "subjectivite_score": <score_de_1_a_5_ou_null_si_non_aborde>,
-  "subjectivite_justification": "<justification_en_1_2_phrases expliquant pourquoi ce score de subjectivité a été attribué concernant la manière dont l'article traite de l'islam et/ou des musulmans, ou 'Non applicable si le sujet n'est pas abordé'>",
-  "polarite": "<Très positif | Positif | Neutre | Négatif | Très négatif | Non applicable>",
-  "polarite_justification": "<justification_en_1_2_phrases expliquant pourquoi cette polarité a été attribuée en ce qui concerne le portrait de l'islam et/ou des musulmans dans l'article, ou 'Non applicable si le sujet n'est pas abordé'>"
-}
+## Instructions
+- Toutes les justifications doivent être en français.
+- Ne complétez pas ou n'inventez pas d'informations si le texte est insuffisant ; soyez précautionneux et répondez « Non applicable » ou « Non abordé » si nécessaire.
 
-Voici les barèmes à utiliser :
+Après génération, vérifiez en interne la cohérence des valeurs attribuées (ex : si centralité = « Non abordé », alors subjectivite_score = null et les justifications l'indiquent, etc.). Corrigez toute incohérence détectée avant de finaliser.
 
-Centralité de l'islam et des musulmans dans l'article :
-- Très central : L'article est principalement ou entièrement consacré à l'islam et/ou aux musulmans.
-- Central : L'islam et/ou les musulmans sont un des sujets principaux de l'article.
-- Secondaire : L'islam et/ou les musulmans sont mentionnés ou discutés, mais ne constituent pas le focus principal de l'article.
-- Marginal : L'islam et/ou les musulmans sont brièvement mentionnés de manière anecdotique ou périphérique.
-- Non abordé : L'article ne traite pas du tout de l'islam ou des musulmans.
+## Barème d'évaluation avec exemples
+### Centralité
+Évalue l'importance accordée aux thèmes liés à l'islam et aux musulmans dans l'article.
+- Très central : L'islam/musulmans constituent le sujet principal de l'article.
+- Central : Thème important mais partagé avec d'autres sujets.
+- Secondaire : Mentionné de manière significative mais secondaire.
+- Marginal : Évoqué brièvement ou de manière anecdotique.
+- Non abordé : Aucune mention de l'islam ou des musulmans.
 
-Subjectivité (note de 1 à 5) – Évaluez le degré d'objectivité/subjectivité de l'article DANS SA MANIÈRE DE REPRÉSENTER l'islam et/ou les musulmans (Attribuez 'null' si 'Non abordé' pour la centralité) :
-1 : Très objectif (rapporte des faits vérifiables sur l'islam/les musulmans sans exprimer d'opinions ou de sentiments personnels à leur sujet, style purement informatif sur ce thème).
-2 : Plutôt objectif (principalement factuel concernant l'islam/les musulmans, mais peut contenir des traces subtiles d'opinions ou des choix de mots suggérant une perspective limitée sur ce thème).
-3 : Mixte (contient un mélange équilibré de faits et d'opinions/sentiments personnels concernant l'islam/les musulmans, ou présente plusieurs points de vue sur ce thème).
-4 : Plutôt subjectif (exprime clairement des opinions, des sentiments ou des jugements sur l'islam/les musulmans, même s'il s'appuie sur certains faits pour les étayer).
-5 : Très subjectif (fortement biaisé dans sa représentation de l'islam/des musulmans, exprime des opinions et des émotions intenses à leur sujet, avec peu ou pas de présentation objective des faits, style éditorial ou billet d'humeur sur ce thème).
+### Subjectivité
+Attribuez une note de subjectivité en vous appuyant sur le ton et la présence d'opinions ou de faits concernant l'islam/les musulmans dans l'article.
+1 : Très objectif – Rapporte des faits vérifiables sur l'islam/les musulmans sans exprimer d'opinions ou de sentiments personnels à leur sujet, style purement informatif sur ce thème.
+2 : Plutôt objectif – Principalement factuel concernant l'islam/les musulmans, mais peut contenir des traces subtiles d'opinions ou des choix de mots suggérant une perspective limitée sur ce thème.
+3 : Mixte – Contient un mélange équilibré de faits et d'opinions/sentiments personnels concernant l'islam/les musulmans, ou présente plusieurs points de vue sur ce thème.
+4 : Plutôt subjectif – Exprime clairement des opinions, des sentiments ou des jugements sur l'islam/les musulmans, même s'il s'appuie sur certains faits pour les étayer.
+5 : Très subjectif – Fortement biaisé dans sa représentation de l'islam/des musulmans, exprime des opinions et des émotions intenses à leur sujet, avec peu ou pas de présentation objective des faits, style éditorial ou billet d'humeur sur ce thème.
 
-Polarité – Évaluez le sentiment général exprimé DANS L'ARTICLE ENVERS l'islam et/ou les musulmans, ou concernant leur représentation (Attribuez 'Non applicable' si 'Non abordé' pour la centralité) :
+### Polarité
+Évalue le sentiment général exprimé dans l'article envers l'islam et/ou les musulmans, ou concernant leur représentation.
 - Très positif : Le portrait de l'islam/des musulmans est extrêmement favorable, enthousiaste, élogieux.
 - Positif : Le portrait de l'islam/des musulmans est favorable, optimiste.
 - Neutre : Pas de sentiment clair envers l'islam/des musulmans ou équilibre entre aspects positifs et négatifs dans leur représentation ; ton factuel sans charge émotionnelle marquée à leur égard.
 - Négatif : Le portrait de l'islam/des musulmans est défavorable, critique, pessimiste.
 - Très négatif : Le portrait de l'islam/des musulmans est extrêmement défavorable, alarmiste, très critique.
+- Non applicable : L'article ne traite pas de l'islam ou des musulmans.
 
-Si la centralité est "Non abordé", le "subjectivite_score" doit être null, et "polarite", "subjectivite_justification", et "polarite_justification" doivent être "Non applicable". Le JSON doit toujours être valide.
-Par exemple, si "centralite_islam_musulmans" est "Non abordé":
-{
-  "centralite_islam_musulmans": "Non abordé",
-  "centralite_justification": "L'article ne mentionne ni l'islam ni les musulmans.",
-  "subjectivite_score": null,
-  "subjectivite_justification": "Non applicable car le sujet n'est pas abordé.",
-  "polarite": "Non applicable",
-  "polarite_justification": "Non applicable car le sujet n'est pas abordé."
-}
-
-Assurez-vous que votre réponse est uniquement le JSON structuré demandé, sans texte ou formatage supplémentaire avant ou après le JSON.`}</pre>
+- Si centralité = « Non abordé », alors :
+    - subjectivite_score = null
+    - subjectivite_justification = "Non applicable car le sujet n'est pas abordé."
+    - polarite = "Non applicable"
+    - polarite_justification = "Non applicable car le sujet n'est pas abordé."`}</pre>
         </div>
       </div>
       
