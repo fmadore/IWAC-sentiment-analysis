@@ -2,3 +2,5 @@ datasets
 tqdm
 pandas
 huggingface_hub
+google-genai
+pydantic
