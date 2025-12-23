@@ -26,6 +26,15 @@
   import { t, currentLanguage } from '$lib/i18n';
   import { translateSentimentValue } from '$lib/i18n/utils';
   import DatasetBadge from '../ui/DatasetBadge.svelte';
+  
+  // Import centralized chart theme
+  import {
+    centralityColors,
+    getTitleStyle,
+    getTooltipConfig,
+    getAxisLineStyle,
+    getAxisLabelStyle
+  } from '$lib/utils/chartTheme';
 
   // Mapping des centralités vers des valeurs numériques (toujours en français pour les données)
   const centralityToNumber = {
@@ -35,6 +44,15 @@
     'Central': 3,
     'Très central': 4
   };
+  
+  // Heatmap color gradient from not addressed (dark) to very central (bright gold)
+  const heatmapColors = [
+    centralityColors['Non abordé'],
+    centralityColors['Marginal'],
+    centralityColors['Secondaire'],
+    centralityColors['Central'],
+    centralityColors['Très central']
+  ];
 
   // Labels de centralité traduits
   const centralityLabels = $derived([
@@ -123,86 +141,82 @@
       });
     });
 
+    const tooltipConfig = getTooltipConfig(isMobile);
+
     return {
+      backgroundColor: 'transparent',
       title: {
         text: `${$t.charts.centralityHeatmap} (${articlesAnalyzed} ${$t.charts.articlesAnalyzed})`,
         left: 'center',
-        textStyle: {
-          color: '#fff',
-          fontWeight: 'bold',
-          fontSize: isMobile ? 12 : 16
-        }
+        top: '2%',
+        textStyle: getTitleStyle(isMobile)
       },
       tooltip: {
+        ...tooltipConfig,
         position: 'top',
         formatter: function(params: any) {
-          // Check if params.data exists and has valid data
           if (!params.data || params.data.length < 3) {
-            return `<strong>${currentTranslations.messages.noData}</strong>`;
+            return `<div style="font-weight:600;">${currentTranslations.messages.noData}</div>`;
           }
           
           const [yearIndex, countryIndex, value] = params.data;
           const year = years[yearIndex];
           const country = countries[countryIndex];
           
-          // Check if this cell has meaningful data (value > 0 means there are articles)
           if (value === 0 || value === undefined || value === null) {
-            return `<strong>${country} - ${year}</strong><br/>
-                    ${currentTranslations.messages.noData}`;
+            return `<div style="min-width:140px;">
+              <div style="font-weight:600;margin-bottom:4px;">${country} - ${year}</div>
+              <div style="opacity:0.7;">${currentTranslations.messages.noData}</div>
+            </div>`;
           }
           
           const centralityLabel = centralityLabels[Math.round(value)] || 'N/A';
           
-          return `<strong>${country} - ${year}</strong><br/>
-                  ${currentTranslations.filters.averageCentrality}: ${value.toFixed(2)}<br/>
-                  ${currentTranslations.filters.level}: ${centralityLabel}`;
-        },
-        textStyle: {
-          color: '#333',
-          fontSize: isMobile ? 10 : 12
-        },
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        borderColor: 'rgba(255, 255, 255, 0.4)',
-        borderWidth: 1
+          return `<div style="min-width:160px;">
+            <div style="font-weight:600;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.15);">${country} - ${year}</div>
+            <div style="display:flex;justify-content:space-between;padding:2px 0;">
+              <span>${currentTranslations.filters.averageCentrality}:</span>
+              <strong>${value.toFixed(2)}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:2px 0;">
+              <span>${currentTranslations.filters.level}:</span>
+              <strong>${centralityLabel}</strong>
+            </div>
+          </div>`;
+        }
       },
       grid: {
-        height: '60%',
-        top: isMobile ? '20%' : '15%',
-        left: isMobile ? '15%' : '10%',
-        right: isMobile ? '15%' : '10%'
+        height: '55%',
+        top: isMobile ? '18%' : '14%',
+        left: isMobile ? '12%' : '8%',
+        right: isMobile ? '8%' : '6%'
       },
       xAxis: {
         type: 'category',
         data: years,
         splitArea: {
-          show: true
+          show: true,
+          areaStyle: {
+            color: ['rgba(255, 255, 255, 0.02)', 'transparent']
+          }
         },
         axisLabel: {
-          color: '#fff',
-          fontSize: isMobile ? 9 : 11,
+          ...getAxisLabelStyle(isMobile),
           rotate: isMobile ? 45 : 0
         },
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.5)'
-          }
-        }
+        axisLine: getAxisLineStyle()
       },
       yAxis: {
         type: 'category',
         data: countries,
         splitArea: {
-          show: true
-        },
-        axisLabel: {
-          color: '#fff',
-          fontSize: isMobile ? 9 : 11
-        },
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.5)'
+          show: true,
+          areaStyle: {
+            color: ['rgba(255, 255, 255, 0.02)', 'transparent']
           }
-        }
+        },
+        axisLabel: getAxisLabelStyle(isMobile),
+        axisLine: getAxisLineStyle()
       },
       visualMap: {
         min: 0,
@@ -212,19 +226,22 @@
         left: 'center',
         bottom: '5%',
         textStyle: {
-          color: '#fff',
-          fontSize: isMobile ? 10 : 12
+          color: 'rgba(255, 255, 255, 0.85)',
+          fontSize: isMobile ? 10 : 12,
+          fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
         },
+        itemWidth: isMobile ? 15 : 20,
+        itemHeight: isMobile ? 100 : 140,
         inRange: {
-          color: ['#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffcc', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
+          color: heatmapColors
         },
-        text: [centralityLabels[4], centralityLabels[0]], // Très central, Non abordé
+        text: [centralityLabels[4], centralityLabels[0]],
         pieces: [
-          { min: 0, max: 0.5, label: centralityLabels[0], color: '#313695' },
-          { min: 0.5, max: 1.5, label: centralityLabels[1], color: '#4575b4' },
-          { min: 1.5, max: 2.5, label: centralityLabels[2], color: '#74add1' },
-          { min: 2.5, max: 3.5, label: centralityLabels[3], color: '#fdae61' },
-          { min: 3.5, max: 4, label: centralityLabels[4], color: '#d73027' }
+          { min: 0, max: 0.5, label: centralityLabels[0], color: heatmapColors[0] },
+          { min: 0.5, max: 1.5, label: centralityLabels[1], color: heatmapColors[1] },
+          { min: 1.5, max: 2.5, label: centralityLabels[2], color: heatmapColors[2] },
+          { min: 2.5, max: 3.5, label: centralityLabels[3], color: heatmapColors[3] },
+          { min: 3.5, max: 4, label: centralityLabels[4], color: heatmapColors[4] }
         ]
       },
       series: [{
@@ -236,9 +253,16 @@
         },
         emphasis: {
           itemStyle: {
-            shadowBlur: 10,
-            shadowColor: 'rgba(0, 0, 0, 0.5)'
+            shadowBlur: 15,
+            shadowColor: 'rgba(0, 0, 0, 0.4)',
+            borderColor: 'rgba(255, 255, 255, 0.5)',
+            borderWidth: 2
           }
+        },
+        itemStyle: {
+          borderColor: 'rgba(15, 23, 42, 0.8)',
+          borderWidth: 1,
+          borderRadius: 2
         }
       }]
     } as EChartsOption;

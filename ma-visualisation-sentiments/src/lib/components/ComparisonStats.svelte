@@ -114,7 +114,7 @@
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    background: linear-gradient(90deg, var(--color-primary-500), var(--color-secondary-500));
     opacity: 0.8;
   }
   
@@ -133,30 +133,33 @@
   
   .stat-label {
     font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
     font-weight: 500;
   }
   
   .stat-value {
     font-size: 2rem;
     font-weight: 700;
-    color: white;
+    color: var(--color-surface-50);
     line-height: 1.2;
     margin-bottom: 0.25rem;
   }
   
   .stat-detail {
     font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: color-mix(in oklab, var(--color-surface-50) 60%, transparent);
   }
   
   /* Breakdown section */
   .breakdown-section {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(8px);
-    border-radius: var(--radius-lg);
+    background: color-mix(in oklab, var(--color-surface-900) 85%, transparent);
+    backdrop-filter: blur(var(--glass-blur-md));
+    border-radius: 0.875rem;
     padding: 1.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    box-shadow: 
+      0 4px 16px color-mix(in oklab, black 8%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 6%, transparent);
   }
   
   .breakdown-grid {
@@ -174,7 +177,7 @@
   .breakdown-bar {
     position: relative;
     height: 8px;
-    background: rgba(255, 255, 255, 0.1);
+    background: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
     border-radius: 4px;
     overflow: hidden;
   }
@@ -186,7 +189,7 @@
     height: 100%;
     width: var(--progress);
     border-radius: 4px;
-    transition: width 0.5s ease;
+    transition: width var(--timing-slow) var(--easing-default);
   }
   
   .breakdown-fill.polarity {
@@ -209,13 +212,13 @@
   
   .breakdown-label {
     font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
     font-weight: 500;
   }
   
   .breakdown-value {
     font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: color-mix(in oklab, var(--color-surface-50) 60%, transparent);
   }
   
   /* Responsive adjustments */

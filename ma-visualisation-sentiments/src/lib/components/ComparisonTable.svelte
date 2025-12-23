@@ -475,11 +475,11 @@
   .sortable-header {
     cursor: pointer;
     user-select: none;
-    transition: background-color 0.2s;
+    transition: background-color var(--timing-fast) var(--easing-default);
   }
   
   .sortable-header:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
   }
 
   /* Sticky table headers */
@@ -487,8 +487,8 @@
     position: sticky;
     top: 0;
     z-index: 1;
-    background-color: rgb(38, 41, 65); /* Solid color for header */
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
+    background-color: var(--color-surface-800);
+    box-shadow: 0 1px 0 color-mix(in oklab, var(--color-surface-50) 15%, transparent);
   }
 
   /* Ensure all clickable elements have pointer cursor */
@@ -529,7 +529,7 @@
   
   .dimension-label {
     font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: color-mix(in oklab, var(--color-surface-50) 60%, transparent);
     font-weight: 500;
   }
   
@@ -549,7 +549,7 @@
   
   .model-label {
     font-size: 0.625rem;
-    color: rgba(255, 255, 255, 0.5);
+    color: color-mix(in oklab, var(--color-surface-50) 50%, transparent);
   }
   
   .diff-indicator {
@@ -590,10 +590,11 @@
 
   /* Pagination styles */
   .controls-section {
-    background: rgba(255, 255, 255, 0.05);
+    background: color-mix(in oklab, var(--color-surface-50) 5%, transparent);
     padding: 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    backdrop-filter: blur(var(--glass-blur-sm));
   }
 
   .pagination-controls {

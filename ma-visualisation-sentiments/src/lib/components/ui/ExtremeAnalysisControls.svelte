@@ -134,17 +134,17 @@
   .control-label {
     font-size: 0.875rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.9);
+    color: color-mix(in oklab, var(--color-surface-50) 90%, transparent);
   }
 
   /* Select Input */
   .select-input {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: white;
+    background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+    color: var(--color-surface-50);
     padding: 0.625rem 0.875rem;
     border-radius: 0.5rem;
-    transition: all 0.2s ease;
+    transition: all var(--timing-fast) var(--easing-default);
     font-size: 0.875rem;
     min-height: 42px;
     width: 100%;
@@ -153,29 +153,29 @@
   }
 
   .select-input:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.25);
+    background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+    border-color: color-mix(in oklab, var(--color-surface-50) 25%, transparent);
   }
 
   .select-input:focus {
-    border-color: rgba(59, 130, 246, 0.5);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: color-mix(in oklab, var(--color-primary-500) 50%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary-500) 10%, transparent);
   }
 
   /* Fix dropdown options styling */
   .select-input option {
-    background: #1e293b;
-    color: white;
+    background: var(--color-surface-800);
+    color: var(--color-surface-50);
     padding: 0.5rem;
     border: none;
   }
 
   .select-input option:hover {
-    background: #334155;
+    background: var(--color-surface-700);
   }
 
   .select-input option:checked {
-    background: #3b82f6;
+    background: var(--color-primary-500);
     color: white;
   }
 
@@ -185,8 +185,8 @@
     gap: 0;
     border-radius: 0.5rem;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
   }
 
   .btn-toggle {
@@ -194,17 +194,17 @@
     padding: 0.625rem 1rem;
     border: none;
     background: transparent;
-    color: rgba(255, 255, 255, 0.8);
+    color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
     font-size: 0.875rem;
     font-weight: 500;
-    transition: all 0.2s ease;
+    transition: all var(--timing-fast) var(--easing-default);
     cursor: pointer;
     position: relative;
     overflow: hidden;
   }
 
   .btn-toggle:not(:last-child) {
-    border-right: 1px solid rgba(255, 255, 255, 0.15);
+    border-right: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
   }
 
   .btn-toggle::before {
@@ -214,14 +214,14 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    background: linear-gradient(135deg, color-mix(in oklab, var(--color-surface-50) 10%, transparent), color-mix(in oklab, var(--color-surface-50) 5%, transparent));
     opacity: 0;
-    transition: opacity 0.2s ease;
+    transition: opacity var(--timing-fast) var(--easing-default);
   }
 
   .btn-toggle:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
+    background: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    color: var(--color-surface-50);
   }
 
   .btn-toggle:hover::before {
@@ -229,19 +229,19 @@
   }
 
   .btn-toggle.active {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(139, 92, 246, 0.2));
-    color: white;
+    background: linear-gradient(135deg, color-mix(in oklab, var(--color-primary-500) 30%, transparent), color-mix(in oklab, var(--color-secondary-500) 20%, transparent));
+    color: var(--color-surface-50);
     font-weight: 600;
   }
 
   /* Number Input */
   .number-input {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: white;
+    background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+    color: var(--color-surface-50);
     padding: 0.625rem 0.875rem;
     border-radius: 0.5rem;
-    transition: all 0.2s ease;
+    transition: all var(--timing-fast) var(--easing-default);
     font-size: 0.875rem;
     min-height: 42px;
     width: 100%;
@@ -250,13 +250,13 @@
   }
 
   .number-input:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.25);
+    background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+    border-color: color-mix(in oklab, var(--color-surface-50) 25%, transparent);
   }
 
   .number-input:focus {
-    border-color: rgba(59, 130, 246, 0.5);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: color-mix(in oklab, var(--color-primary-500) 50%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary-500) 10%, transparent);
   }
 
   /* Chrome, Safari, Edge, Opera */
@@ -270,35 +270,6 @@
   .number-input[type=number] {
     -moz-appearance: textfield;
     appearance: textfield;
-  }
-
-  /* Glass Effects */
-  :global(.glass-medium) {
-    backdrop-filter: blur(12px);
-  }
-
-  /* Hover Lift Effect */
-  :global(.hover-lift) {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  :global(.hover-lift:hover) {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  }
-
-  /* Card Styles */
-  :global(.card) {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.75rem;
-    transition: all 0.3s ease;
-  }
-
-  :global(.card:hover) {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.15);
   }
 
   /* Responsive title adjustments */

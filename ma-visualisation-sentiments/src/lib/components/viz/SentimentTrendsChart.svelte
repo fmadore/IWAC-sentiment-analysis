@@ -27,6 +27,21 @@
   import { t, currentLanguage } from '$lib/i18n';
   import { getSentimentLabels, formatNumber } from '$lib/i18n/utils';
   import DatasetBadge from '../ui/DatasetBadge.svelte';
+  
+  // Import centralized chart theme
+  import {
+    polarityColors,
+    getTitleStyle,
+    getTooltipConfig,
+    getLegendConfig,
+    getAxisLineStyle,
+    getAxisLabelStyle,
+    getSplitLineStyle,
+    getGridConfig,
+    getDataZoomConfig,
+    getLineSeriesStyle,
+    getEmphasisConfig
+  } from '$lib/utils/chartTheme';
 
   // Get polarity labels in current language
   let polarityLabels = $derived(getSentimentLabels('polarity', $currentLanguage));
@@ -34,15 +49,6 @@
   // French labels for data lookup (data is stored in French)
   const frenchPolarityLabels = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif'] as const;
   type PolarityType = typeof frenchPolarityLabels[number];
-
-  // Color definitions with logical gradations
-  const polarityColors: Record<PolarityType, string> = {
-    'Très positif': '#059669',    // Dark green (more intense)
-    'Positif': '#10B981',         // Medium green
-    'Neutre': '#3B82F6',          // Blue
-    'Négatif': '#EF4444',         // Medium red
-    'Très négatif': '#DC2626'     // Dark red (more intense)
-  };
 
   let isMobile = $state(false);
   let chartContainer = $state<HTMLDivElement>();
@@ -86,151 +92,98 @@
 
     const years = Object.keys(yearlyData).sort();
 
-    const series = frenchPolarityLabels.map((frenchPolarity, index) => ({
-      name: polarityLabels[index], // Use translated label for display
-      type: 'line' as 'line',
-      emphasis: {
-        focus: 'series' as 'series'
-      },
-      data: years.map(year => yearlyData[year][frenchPolarity] || 0),
-      color: polarityColors[frenchPolarity],
-      lineStyle: {
-        width: isMobile ? 2 : 3,
-        shadowColor: 'rgba(0, 0, 0, 0.3)',
-        shadowBlur: isMobile ? 5 : 10,
-        shadowOffsetY: isMobile ? 2 : 5
-      },
-      symbolSize: isMobile ? 6 : 8,
-      smooth: true
-    }));
+    const series = frenchPolarityLabels.map((frenchPolarity, index) => {
+      const color = polarityColors[frenchPolarity as keyof typeof polarityColors];
+      const lineStyle = getLineSeriesStyle(isMobile, color);
+      return {
+        name: polarityLabels[index],
+        type: 'line' as const,
+        emphasis: getEmphasisConfig(),
+        data: years.map(year => yearlyData[year][frenchPolarity] || 0),
+        color,
+        ...lineStyle,
+        smooth: true
+      };
+    });
+
+    const tooltipConfig = getTooltipConfig(isMobile);
 
     return {
+      backgroundColor: 'transparent',
       title: {
         text: `${currentT.charts.sentimentTrends} ${currentT.charts.byYear} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.charts.articlesAnalyzed})`,
         left: 'center',
-        textStyle: {
-          color: '#fff',
-          fontWeight: 'bold',
-          fontSize: isMobile ? 12 : 16
-        }
+        top: '2%',
+        textStyle: getTitleStyle(isMobile)
       },
       tooltip: {
+        ...tooltipConfig,
         trigger: 'axis',
         axisPointer: {
           type: 'cross',
           label: {
-            backgroundColor: 'rgba(70, 70, 70, 0.9)'
+            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            color: 'rgba(255, 255, 255, 0.9)'
+          },
+          crossStyle: {
+            color: 'rgba(255, 255, 255, 0.3)'
           }
         },
-        textStyle: {
-          color: '#333',
-          fontSize: isMobile ? 10 : 12
-        },
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        borderColor: 'rgba(255, 255, 255, 0.4)',
-        borderWidth: 1,
         formatter: function (params: any) {
           if (!Array.isArray(params) || params.length === 0) {
             return '';
           }
           
-          let tooltipHtml = `<strong>${params[0].axisValue}</strong><br/>`;
+          let listHtml = '';
           let total = 0;
           
           params.forEach((param: any) => {
             if (param.value > 0) {
-              tooltipHtml += `${param.marker} ${param.seriesName}: ${param.value}<br/>`;
+              listHtml += `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">
+                <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${param.color};"></span>
+                <span style="flex:1;">${param.seriesName}</span>
+                <strong>${param.value}</strong>
+              </div>`;
             }
             total += param.value;
           });
           
-          if (total > 0) {
-            tooltipHtml += `<strong>${currentT.common.total}: ${total}</strong>`;
-          }
-          
-          return tooltipHtml;
+          return `<div style="min-width:160px;">
+            <div style="font-weight:600;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.15);">${params[0].axisValue}</div>
+            ${listHtml}
+            ${total > 0 ? `<div style="padding-top:6px;margin-top:4px;border-top:1px solid rgba(255,255,255,0.15);font-weight:600;">${currentT.common.total}: ${total}</div>` : ''}
+          </div>`;
         }
       },
       legend: {
+        ...getLegendConfig(isMobile),
         data: polarityLabels,
-        top: isMobile ? '12%' : '8%',
-        textStyle: {
-          color: '#fff',
-          fontSize: isMobile ? 10 : 12
-        },
-        orient: isMobile ? 'vertical' : 'horizontal',
-        left: isMobile ? 'right' : 'center',
-        itemWidth: isMobile ? 12 : 25,
-        itemHeight: isMobile ? 8 : 14
+        top: isMobile ? '12%' : '8%'
       },
-      grid: {
-        left: isMobile ? '5%' : '3%',
-        right: isMobile ? '25%' : '4%',
-        bottom: isMobile ? '15%' : '12%',
-        top: isMobile ? '25%' : '18%',
-        containLabel: true
-      },
+      grid: getGridConfig(isMobile, { hasLegendTop: true, hasDataZoom: true }),
       xAxis: {
         type: 'category',
         boundaryGap: false,
         data: years,
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.5)'
-          }
-        },
+        axisLine: getAxisLineStyle(),
         axisLabel: {
-          color: '#fff',
-          fontSize: isMobile ? 9 : 11,
+          ...getAxisLabelStyle(isMobile),
           rotate: isMobile ? 45 : 0
         }
       },
       yAxis: {
         type: 'value',
         minInterval: 1,
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.5)'
-          }
-        },
-        splitLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.1)'
-          }
-        },
+        axisLine: getAxisLineStyle(),
+        splitLine: getSplitLineStyle(),
         axisLabel: {
-          color: '#fff',
-          fontSize: isMobile ? 9 : 11,
-          formatter: function (value: number) {
-            return Math.floor(value).toString();
-          }
+          ...getAxisLabelStyle(isMobile),
+          formatter: (value: number) => Math.floor(value).toString()
         }
       },
       series: series,
-      dataZoom: [ // Added DataZoom for better navigation with many years
-        {
-          type: 'slider',
-          start: 0,
-          end: 100,
-          bottom: isMobile ? '5%' : '2%',
-          height: isMobile ? 15 : 20,
-          textStyle: {
-            color: '#fff',
-            fontSize: isMobile ? 8 : 10
-          },
-          borderColor: 'rgba(255, 255, 255, 0.3)',
-          fillerColor: 'rgba(120, 160, 255, 0.2)',
-          handleStyle: {
-            color: '#74b9ff',
-            borderColor: '#fff'
-          }
-        },
-        {
-          type: 'inside',
-          start: 0,
-          end: 100
-        }
-      ]
+      dataZoom: getDataZoomConfig(isMobile)
     } as EChartsOption;
   });
 </script>

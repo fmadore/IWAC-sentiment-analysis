@@ -28,13 +28,21 @@
   import { t, currentLanguage } from '$lib/i18n';
   import { formatNumber } from '$lib/i18n/utils';
   import DatasetBadge from '../ui/DatasetBadge.svelte';
-
-  // Color palette for countries
-  const countryColors = [
-    '#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', 
-    '#1abc9c', '#d35400', '#c0392b', '#16a085', '#8e44ad',
-    '#27ae60', '#2980b9', '#f1c40f', '#e67e22', '#6c5ce7'
-  ];
+  
+  // Import centralized chart theme
+  import {
+    seriesColorPalette,
+    getTitleStyle,
+    getTooltipConfig,
+    getLegendConfig,
+    getAxisLineStyle,
+    getAxisLabelStyle,
+    getSplitLineStyle,
+    getGridConfig,
+    getDataZoomConfig,
+    getLineSeriesStyle,
+    getEmphasisConfig
+  } from '$lib/utils/chartTheme';
 
   let isMobile = $state(false);
   let chartContainer = $state<HTMLDivElement>();
@@ -88,152 +96,103 @@
     
     const years = Array.from(allYears).sort();
 
-    const series = countries.map((country, index) => ({
-      name: country,
-      type: 'line' as 'line',
-      stack: chartType === 'area' ? 'total' : undefined,
-      areaStyle: chartType === 'area' ? {} : undefined,
-      emphasis: {
-        focus: 'series' as 'series'
-      },
-      data: years.map(year => countryYearData[country][year] || 0),
-      color: countryColors[index % countryColors.length],
-      lineStyle: {
-        width: isMobile ? 2 : 3
-      },
-      symbolSize: isMobile ? 4 : 6,
-      smooth: true
-    }));
+    const series = countries.map((country, index) => {
+      const color = seriesColorPalette[index % seriesColorPalette.length];
+      const lineStyle = getLineSeriesStyle(isMobile, color);
+      return {
+        name: country,
+        type: 'line' as const,
+        stack: chartType === 'area' ? 'total' : undefined,
+        areaStyle: chartType === 'area' ? {
+          opacity: 0.4
+        } : undefined,
+        emphasis: getEmphasisConfig(),
+        data: years.map(year => countryYearData[country][year] || 0),
+        color,
+        ...lineStyle,
+        smooth: true
+      };
+    });
+
+    const tooltipConfig = getTooltipConfig(isMobile);
 
     return {
+      backgroundColor: 'transparent',
       title: {
         text: `${currentT.charts.volumeByCountry} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.common.articles})`,
         left: 'center',
-        textStyle: {
-          color: '#fff',
-          fontWeight: 'bold',
-          fontSize: isMobile ? 12 : 16
-        }
+        top: '2%',
+        textStyle: getTitleStyle(isMobile)
       },
       tooltip: {
+        ...tooltipConfig,
         trigger: 'axis',
         axisPointer: {
           type: 'cross',
           label: {
-            backgroundColor: 'rgba(70, 70, 70, 0.9)'
+            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            color: 'rgba(255, 255, 255, 0.9)'
+          },
+          crossStyle: {
+            color: 'rgba(255, 255, 255, 0.3)'
           }
         },
-        textStyle: {
-          color: '#333',
-          fontSize: isMobile ? 10 : 12
-        },
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        borderColor: 'rgba(255, 255, 255, 0.4)',
-        borderWidth: 1,
         formatter: function (params: any) {
           if (!Array.isArray(params) || params.length === 0) {
             return '';
           }
           
-          let tooltipHtml = `<strong>${params[0].axisValue}</strong><br/>`;
-          let total = 0;
-          
-          // Sort by value in descending order
           const sortedParams = params.slice().sort((a: any, b: any) => b.value - a.value);
+          let listHtml = '';
+          let total = 0;
           
           sortedParams.forEach((param: any) => {
             if (param.value > 0) {
-              tooltipHtml += `${param.marker} ${param.seriesName}: ${param.value}<br/>`;
+              listHtml += `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">
+                <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${param.color};"></span>
+                <span style="flex:1;">${param.seriesName}</span>
+                <strong>${param.value}</strong>
+              </div>`;
             }
             total += param.value;
           });
           
-          if (total > 0) {
-            tooltipHtml += `<strong>${currentT.common.total}: ${total}</strong>`;
-          }
-          
-          return tooltipHtml;
+          return `<div style="min-width:160px;">
+            <div style="font-weight:600;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.15);">${params[0].axisValue}</div>
+            ${listHtml}
+            ${total > 0 ? `<div style="padding-top:6px;margin-top:4px;border-top:1px solid rgba(255,255,255,0.15);font-weight:600;">${currentT.common.total}: ${total}</div>` : ''}
+          </div>`;
         }
       },
       legend: {
+        ...getLegendConfig(isMobile),
         data: countries,
-        top: isMobile ? '12%' : '8%',
-        textStyle: {
-          color: '#fff',
-          fontSize: isMobile ? 10 : 12
-        },
-        type: 'scroll',
-        orient: isMobile ? 'vertical' : 'horizontal',
-        left: isMobile ? 'right' : 'center'
+        top: isMobile ? '12%' : '8%'
       },
-      grid: {
-        left: isMobile ? '5%' : '3%',
-        right: isMobile ? '25%' : '4%',
-        bottom: isMobile ? '15%' : '12%',
-        top: isMobile ? '25%' : '18%',
-        containLabel: true
-      },
+      grid: getGridConfig(isMobile, { hasLegendTop: true, hasDataZoom: true }),
       xAxis: {
         type: 'category',
         boundaryGap: false,
         data: years,
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.5)'
-          }
-        },
+        axisLine: getAxisLineStyle(),
         axisLabel: {
-          color: '#fff',
-          fontSize: isMobile ? 9 : 11,
+          ...getAxisLabelStyle(isMobile),
           rotate: isMobile ? 45 : 0
         }
       },
       yAxis: {
         type: 'value',
         minInterval: 1,
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.5)'
-          }
-        },
-        splitLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.1)'
-          }
-        },
+        axisLine: getAxisLineStyle(),
+        splitLine: getSplitLineStyle(),
         axisLabel: {
-          color: '#fff',
-          fontSize: isMobile ? 9 : 11,
-          formatter: function (value: number) {
-            return Math.floor(value).toString();
-          }
+          ...getAxisLabelStyle(isMobile),
+          formatter: (value: number) => Math.floor(value).toString()
         }
       },
       series: series,
-      dataZoom: [
-        {
-          type: 'slider',
-          start: 0,
-          end: 100,
-          bottom: isMobile ? '5%' : '2%',
-          height: isMobile ? 15 : 20,
-          textStyle: {
-            color: '#fff',
-            fontSize: isMobile ? 8 : 10
-          },
-          borderColor: 'rgba(255, 255, 255, 0.3)',
-          fillerColor: 'rgba(120, 160, 255, 0.2)',
-          handleStyle: {
-            color: '#74b9ff',
-            borderColor: '#fff'
-          }
-        },
-        {
-          type: 'inside',
-          start: 0,
-          end: 100
-        }
-      ]
+      dataZoom: getDataZoomConfig(isMobile)
     } as EChartsOption;
   });
 </script>

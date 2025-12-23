@@ -12,7 +12,7 @@
     LegendComponent
   } from 'echarts/components';
   import { CanvasRenderer } from 'echarts/renderers';
-  import type { EChartsOption, SeriesOption } from 'echarts'; // Main EChartsOption and SeriesOption
+  import type { EChartsOption, SeriesOption } from 'echarts';
 
   // Register the required components
   use([
@@ -29,24 +29,29 @@
   import type { Article } from '$lib';
   import { getJournalName } from '$lib/utils';
   import { t, currentLanguage } from '$lib/i18n';
-  import { getSentimentLabels, formatNumber, getLocale } from '$lib/i18n/utils';
+  import { getSentimentLabels, formatNumber } from '$lib/i18n/utils';
   import DatasetBadge from '../ui/DatasetBadge.svelte';
+  
+  // Import centralized chart theme
+  import {
+    polarityColors,
+    seriesColorPalette,
+    getTitleStyle,
+    getTooltipConfig,
+    getLegendConfig,
+    getAxisLineStyle,
+    getAxisLabelStyle,
+    getSplitLineStyle,
+    getGridConfig,
+    getPieSeriesStyle,
+    getEmphasisConfig
+  } from '$lib/utils/chartTheme';
 
   // Get polarity labels in current language
   let polarityLabels = $derived(getSentimentLabels('polarity', $currentLanguage));
   
   // French labels for data lookup (data is stored in French)
   const frenchPolarityLabels = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif', 'Non applicable'];
-  
-  // Color definitions with logical gradations
-  const polarityColors = {
-    'Très positif': '#059669',    // Dark green (more intense)
-    'Positif': '#10B981',         // Medium green
-    'Neutre': '#3B82F6',          // Blue
-    'Négatif': '#EF4444',         // Medium red
-    'Très négatif': '#DC2626',    // Dark red (more intense)
-    'Non applicable': '#9CA3AF'   // Neutral gray
-  };
 
   let isMobile = $state(false);
   let chartContainer = $state<HTMLDivElement>();
@@ -118,87 +123,65 @@
           itemStyle: { color: polarityColors[frenchPolarityLabels[index] as keyof typeof polarityColors] }
         }));
 
+      const pieStyle = getPieSeriesStyle(isMobile);
+      const tooltipConfig = getTooltipConfig(isMobile);
+
       return {
+        backgroundColor: 'transparent',
         title: {
           text: `${currentT.charts.globalDistribution} ${currentT.charts.polarityDistribution.toLowerCase()} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.common.articles})`,
           left: 'center',
           top: '2%',
-          textStyle: {
-            color: '#fff',
-            fontWeight: 'bold',
-            fontSize: isMobile ? 12 : 16
-          }
+          textStyle: getTitleStyle(isMobile)
         },
         tooltip: {
+          ...tooltipConfig,
           trigger: 'item',
           formatter: function(params: any) {
             if (Array.isArray(params)) {
               return params.map(param => 
-                `${param.marker} ${param.seriesName}: ${param.value} (${param.percent}%)`
+                `<span style="display:inline-block;margin-right:5px;border-radius:50%;width:10px;height:10px;background-color:${param.color};"></span> ${param.seriesName}: ${param.value} (${param.percent}%)`
               ).join('<br/>');
             } else {
-              return `${params.marker} ${params.seriesName}<br/>${params.name}: ${params.value} (${params.percent}%)`;
+              return `<div style="font-weight:600;margin-bottom:8px;">${params.seriesName}</div>
+                      <span style="display:inline-block;margin-right:5px;border-radius:50%;width:10px;height:10px;background-color:${params.color};"></span> 
+                      ${params.name}: <strong>${formatNumber(params.value, currentLang)}</strong> (${params.percent}%)`;
             }
-          },
-          textStyle: {
-            color: '#333',
-            fontSize: isMobile ? 10 : 12
-          },
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
-          borderColor: 'rgba(255, 255, 255, 0.4)',
-          borderWidth: 1
+          }
         },
         legend: {
+          ...getLegendConfig(isMobile),
           data: newspaperList,
-          top: isMobile ? '12%' : '8%',
-          textStyle: {
-            color: '#fff',
-            fontSize: isMobile ? 10 : 12
-          },
-          type: 'scroll', // Added for better handling of many newspapers
-          orient: isMobile ? 'vertical' : 'horizontal',
-          left: isMobile ? 'right' : 'center',
-          itemWidth: isMobile ? 12 : 25,
-          itemHeight: isMobile ? 8 : 14
+          top: isMobile ? '12%' : '8%'
         },
         series: [{
           name: currentT.filters.polarity,
           type: 'pie',
-          radius: ['40%', '70%'],
-          center: ['50%', '50%'],
-          data: pieData,
-          label: {
-            color: '#fff',
-            fontSize: isMobile ? 10 : 12,
-            fontWeight: 'normal'
-          },
-          emphasis: {
-            itemStyle: {
-              shadowBlur: 10,
-              shadowOffsetX: 0,
-              shadowColor: 'rgba(0, 0, 0, 0.5)'
-            }
-          }
+          ...pieStyle,
+          data: pieData
         }]
       } as EChartsOption;
     
     } else {
       // Bar chart (original)
-      const seriesData: SeriesOption[] = newspaperList.map(journal => {
+      const seriesData: SeriesOption[] = newspaperList.map((journal, index) => {
         return {
           name: journal,
           type: 'bar',
           stack: 'total',
-          emphasis: {
-            focus: 'series'
-          },
-          data: frenchPolarityLabels.map(frenchLabel => newspaperPolarityCounts[journal]?.[frenchLabel] || 0)
-          // ECharts will assign colors automatically. If specific colors are needed per newspaper:
-          // itemStyle: { color: getNewspaperColor(journal) }
+          emphasis: getEmphasisConfig(),
+          data: frenchPolarityLabels.map(frenchLabel => newspaperPolarityCounts[journal]?.[frenchLabel] || 0),
+          itemStyle: {
+            color: seriesColorPalette[index % seriesColorPalette.length],
+            borderRadius: [2, 2, 0, 0]
+          }
         };
       });
 
+      const tooltipConfig = getTooltipConfig(isMobile);
+
       return {
+        backgroundColor: 'transparent',
         title: {
           text: isMobile 
             ? `${currentT.charts.polarityDistribution} ${currentT.charts.byJournal}\n(${formatNumber(articlesAnalyzed, currentLang)} ${currentT.charts.articlesAnalyzed})`
@@ -206,27 +189,22 @@
           left: 'center',
           top: '1%',
           textStyle: {
-            color: '#fff',
-            fontWeight: 'bold',
-            fontSize: isMobile ? 11 : 16,
+            ...getTitleStyle(isMobile),
             lineHeight: isMobile ? 16 : 20
           }
         },
         tooltip: {
+          ...tooltipConfig,
           trigger: 'axis',
           triggerOn: 'mousemove',
           enterable: true,
           axisPointer: {
-            type: 'shadow'
+            type: 'shadow',
+            shadowStyle: {
+              color: 'rgba(59, 130, 246, 0.08)'
+            }
           },
           confine: true,
-          textStyle: {
-            color: '#333',
-            fontSize: isMobile ? 10 : 12
-          },
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
-          borderColor: 'rgba(255, 255, 255, 0.4)',
-          borderWidth: 1,
           formatter: function (params: any) {
             if (!Array.isArray(params) || params.length === 0) {
               return '';
@@ -238,82 +216,56 @@
             
             sortedParams.forEach((param: any) => {
               if (param.value > 0) { 
-                listItemsHtml += `${param.marker} ${param.seriesName}: ${param.value}<br/>`;
+                listItemsHtml += `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">
+                  <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${param.color};"></span>
+                  <span style="flex:1;">${param.seriesName}</span>
+                  <strong>${param.value}</strong>
+                </div>`;
               }
-              total += param.value; // Total should include all, even if not displayed due to future limits
+              total += param.value;
             });
 
-            // Wrap the list in a scrollable div
-            const scrollableListHtml = `
-              <div style="max-height: ${isMobile ? '150px' : '200px'}; overflow-y: auto; margin-bottom: 5px;">
+            return `<div style="min-width:180px;">
+              <div style="font-weight:600;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.15);">${params[0].axisValueLabel}</div>
+              <div style="max-height:${isMobile ? '150px' : '200px'};overflow-y:auto;margin-bottom:8px;">
                 ${listItemsHtml}
-              </div>`;
-            
-            let tooltipHtml = `${params[0].axisValueLabel}<br/>`;
-            tooltipHtml += scrollableListHtml;
-            tooltipHtml += `<strong>${currentT.common.total}: ${total}</strong>`;
-            
-            return tooltipHtml;
+              </div>
+              <div style="padding-top:6px;border-top:1px solid rgba(255,255,255,0.15);font-weight:600;">${currentT.common.total}: ${total}</div>
+            </div>`;
           }
         },
         legend: {
+          ...getLegendConfig(isMobile),
           data: newspaperList,
           bottom: isMobile ? '8%' : undefined,
-          top: isMobile ? undefined : '8%',
-          textStyle: {
-            color: '#fff',
-            fontSize: isMobile ? 10 : 12
-          },
-          type: 'scroll', // Added for better handling of many newspapers
-          orient: 'horizontal',
-          left: 'center',
-          itemWidth: isMobile ? 12 : 25,
-          itemHeight: isMobile ? 8 : 14
+          top: isMobile ? undefined : '8%'
         },
-        grid: {
-          left: isMobile ? '5%' : '3%',
-          right: isMobile ? '5%' : '4%',
-          bottom: isMobile ? '25%' : '3%',
-          top: isMobile ? '18%' : '18%', // Adjust top if legend takes more space
-          containLabel: true
-        },
+        grid: getGridConfig(isMobile, { 
+          hasLegendTop: !isMobile, 
+          legendPosition: isMobile ? 'bottom' : 'top' 
+        }),
         xAxis: {
           type: 'category',
           data: polarityLabels,
           axisTick: {
-            alignWithLabel: true
+            alignWithLabel: true,
+            lineStyle: { color: 'rgba(255, 255, 255, 0.2)' }
           },
-          axisLine: {
-            lineStyle: {
-              color: 'rgba(255, 255, 255, 0.5)'
-            }
-          },
+          axisLine: getAxisLineStyle(),
           axisLabel: {
-            color: '#fff',
+            ...getAxisLabelStyle(isMobile),
             rotate: isMobile ? 45 : 30,
-            fontSize: isMobile ? 9 : 11,
-            interval: 0 // Show all labels
+            interval: 0
           }
         },
         yAxis: {
           type: 'value',
-          minInterval: 1, // Force integer intervals
-          axisLine: {
-            lineStyle: {
-              color: 'rgba(255, 255, 255, 0.5)'
-            }
-          },
-          splitLine: {
-            lineStyle: {
-              color: 'rgba(255, 255, 255, 0.1)'
-            }
-          },
+          minInterval: 1,
+          axisLine: getAxisLineStyle(),
+          splitLine: getSplitLineStyle(),
           axisLabel: {
-            color: '#fff',
-            fontSize: isMobile ? 9 : 11,
-            formatter: function (value: number) {
-              return Math.floor(value).toString(); // Ensure only whole numbers are displayed
-            }
+            ...getAxisLabelStyle(isMobile),
+            formatter: (value: number) => Math.floor(value).toString()
           }
         },
         series: seriesData

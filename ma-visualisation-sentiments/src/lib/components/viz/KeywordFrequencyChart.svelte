@@ -5,6 +5,14 @@
   import { t, currentLanguage } from '$lib/i18n';
   import type { ExtremeCategory, KeywordType, ExtremeCategoryAnalysis } from '$lib/types/extremeAnalysis';
   import { getExtremeCategoryConfig, getTopKeywords } from '$lib/utils/extremeAnalysis';
+  import {
+    getTitleStyle,
+    getTooltipConfig,
+    getAxisLineStyle,
+    getAxisLabelStyle,
+    getSplitLineStyle,
+    adjustBrightness
+  } from '$lib/utils/chartTheme';
   
   // ECharts imports
   import { init, use } from 'echarts/core';
@@ -95,42 +103,40 @@
     // Previously we added labelWidth to grid.left, effectively doubling the needed space.
     // Keep a small constant padding only.
     const baseLeftPadding = isMobile ? 8 : 12; // px
+
+    const tooltipConfig = getTooltipConfig(isMobile);
     
     return {
       backgroundColor: 'transparent',
       title: {
         text: $t.extremeAnalysis.topKeywords,
-        textStyle: {
-          color: '#ffffff',
-          fontSize: isMobile ? 12 : 16,
-          fontWeight: 'bold'
-        },
+        textStyle: getTitleStyle(isMobile),
         left: 'center',
         top: 15
       },
       tooltip: {
+        ...tooltipConfig,
         trigger: 'axis',
         axisPointer: {
-          type: 'shadow'
-        },
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        borderColor: 'rgba(255, 255, 255, 0.4)',
-        borderWidth: 1,
-        textStyle: {
-          color: '#333',
-          fontSize: isMobile ? 10 : 12
+          type: 'shadow',
+          shadowStyle: {
+            color: 'rgba(255, 255, 255, 0.05)'
+          }
         },
         formatter: (params: any) => {
           const data = params[0];
-          return `<div style="padding: 8px;">
-            <div style="font-weight: bold; margin-bottom: 4px;">${data.name}</div>
-            <div>${$t.extremeAnalysis.articleCount}: ${data.value}</div>
+          return `<div style="min-width:140px;">
+            <div style="font-weight:600;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.15);">${data.name}</div>
+            <div style="display:flex;justify-content:space-between;">
+              <span>${$t.extremeAnalysis.articleCount}:</span>
+              <strong>${data.value}</strong>
+            </div>
           </div>`;
         }
       },
       grid: {
-  // Use pixel value derived above instead of large percentage to reclaim space.
-  left: baseLeftPadding,
+        // Use pixel value derived above instead of large percentage to reclaim space.
+        left: baseLeftPadding,
         right: isMobile ? '8%' : '10%',
         top: 60,
         bottom: 40,
@@ -138,27 +144,16 @@
       },
       xAxis: {
         type: 'value',
-        axisLabel: {
-          color: 'rgba(255, 255, 255, 0.7)',
-          fontSize: isMobile ? 9 : 11
-        },
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.5)'
-          }
-        },
-        splitLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.1)'
-          }
-        }
+        axisLabel: getAxisLabelStyle(isMobile),
+        axisLine: getAxisLineStyle(),
+        splitLine: getSplitLineStyle()
       },
       yAxis: {
         type: 'category',
         data: reversedData.map(item => item.keyword),
         axisLabel: {
+          ...getAxisLabelStyle(isMobile),
           color: 'rgba(255, 255, 255, 0.9)',
-          fontSize: isMobile ? 9 : 11,
           interval: 0,
           // Allow larger labels; only ellipsize if still too long for computed width.
           formatter: (value: string) => {
@@ -172,11 +167,7 @@
           overflow: 'truncate',
           width: labelWidth
         },
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.5)'
-          }
-        },
+        axisLine: getAxisLineStyle(),
         axisTick: {
           show: false
         },
@@ -208,10 +199,11 @@
           }
         })),
         emphasis: {
+          focus: 'series' as const,
           itemStyle: {
-            shadowBlur: 10,
-            shadowColor: 'rgba(0, 0, 0, 0.5)',
-            borderColor: 'rgba(255, 255, 255, 0.3)',
+            shadowBlur: 15,
+            shadowColor: 'rgba(0, 0, 0, 0.4)',
+            borderColor: 'rgba(255, 255, 255, 0.4)',
             borderWidth: 1
           }
         },
@@ -221,17 +213,6 @@
       }]
     } as EChartsOption;
   });
-
-  function adjustBrightness(color: string, percent: number): string {
-    const num = parseInt(color.replace('#', ''), 16);
-    const amt = Math.round(2.55 * percent);
-    const R = (num >> 16) + amt;
-    const G = (num >> 8 & 0x00FF) + amt;
-    const B = (num & 0x0000FF) + amt;
-    return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-      (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-      (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
-  }
 </script>
 
 {#if isLoading()}

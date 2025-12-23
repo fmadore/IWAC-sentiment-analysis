@@ -22,10 +22,22 @@
 
   import { filteredArticles } from '$lib';
   import type { Article } from '$lib';
-  import { getJournalName } from '$lib/utils';
   import { t, currentLanguage } from '$lib/i18n';
   import { translateSentimentValue } from '$lib/i18n/utils';
   import DatasetBadge from '../ui/DatasetBadge.svelte';
+  
+  // Import centralized chart theme
+  import {
+    subjectivityColors,
+    getTitleStyle,
+    getTooltipConfig,
+    getLegendConfig,
+    getAxisLineStyle,
+    getAxisLabelStyle,
+    getSplitLineStyle,
+    getGridConfig,
+    getEmphasisConfig
+  } from '$lib/utils/chartTheme';
 
   // Ordre des polarités pour l'affichage (French values for data operations)
   const polarityOrder = [
@@ -53,15 +65,6 @@
     4: $t.filters.ratherSubjectiveScore,
     5: $t.filters.verySubjectiveScore
   });
-
-  // Couleurs pour les scores de subjectivité
-  const subjectivityColors = {
-    1: '#3498db', // Bleu - Très objectif
-    2: '#2ecc71', // Vert - Plutôt objectif
-    3: '#f39c12', // Orange - Mixte
-    4: '#e74c3c', // Rouge - Plutôt subjectif
-    5: '#9b59b6'  // Violet - Très subjectif
-  };
 
   let isMobile = $state(false);
   let chartContainer = $state<HTMLDivElement>();
@@ -113,85 +116,72 @@
     // Créer les séries pour chaque score de subjectivité
     const series = subjectivityOrder.map(subjScore => ({
       name: subjectivityLabels[subjScore as keyof typeof subjectivityLabels],
-      type: 'bar' as 'bar',
+      type: 'bar' as const,
       data: polarityOrder.map(polarity => data[polarity][subjScore]),
       itemStyle: {
-        color: subjectivityColors[subjScore as keyof typeof subjectivityColors]
+        color: subjectivityColors[subjScore as keyof typeof subjectivityColors],
+        borderRadius: [3, 3, 0, 0]
       },
-      emphasis: {
-        focus: 'series' as 'series'
-      }
+      emphasis: getEmphasisConfig()
     }));
 
+    const tooltipConfig = getTooltipConfig(isMobile);
+
     return {
+      backgroundColor: 'transparent',
       title: {
         text: `${$t.charts.polaritySubjectivityDistribution} (${articlesAnalyzed} ${$t.common.articles})`,
         left: 'center',
-        textStyle: {
-          color: '#fff',
-          fontWeight: 'bold',
-          fontSize: isMobile ? 12 : 16
-        }
+        top: '2%',
+        textStyle: getTitleStyle(isMobile)
       },
       tooltip: {
+        ...tooltipConfig,
         trigger: 'axis',
         axisPointer: {
-          type: 'shadow'
+          type: 'shadow',
+          shadowStyle: {
+            color: 'rgba(59, 130, 246, 0.08)'
+          }
         },
         formatter: function(params: any) {
-          let result = `<strong>${params[0].name}</strong><br/>`;
+          let listHtml = '';
           let total = 0;
           params.forEach((param: any) => {
             if (param.value > 0) {
-              result += `${param.seriesName}: ${param.value} ${$t.common.articles}<br/>`;
+              listHtml += `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">
+                <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${param.color};"></span>
+                <span style="flex:1;">${param.seriesName}</span>
+                <strong>${param.value}</strong>
+              </div>`;
               total += param.value;
             }
           });
-          result += `<strong>Total: ${total} ${$t.common.articles}</strong>`;
-          return result;
-        },
-        textStyle: {
-          color: '#333',
-          fontSize: isMobile ? 10 : 12
-        },
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        borderColor: 'rgba(255, 255, 255, 0.4)',
-        borderWidth: 1
+          return `<div style="min-width:180px;">
+            <div style="font-weight:600;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.15);">${params[0].name}</div>
+            ${listHtml}
+            <div style="padding-top:6px;margin-top:4px;border-top:1px solid rgba(255,255,255,0.15);font-weight:600;">Total: ${total} ${$t.common.articles}</div>
+          </div>`;
+        }
       },
       legend: {
+        ...getLegendConfig(isMobile),
         data: subjectivityOrder.map(s => subjectivityLabels[s as keyof typeof subjectivityLabels]),
-        top: isMobile ? '12%' : '8%',
-        textStyle: {
-          color: '#fff',
-          fontSize: isMobile ? 10 : 12
-        },
-        type: 'scroll',
-        orient: isMobile ? 'vertical' : 'horizontal',
-        left: isMobile ? 'right' : 'center'
+        top: isMobile ? '12%' : '8%'
       },
-      grid: {
-        left: isMobile ? '10%' : '8%',
-        right: isMobile ? '25%' : '8%',
-        bottom: isMobile ? '25%' : '20%',
-        top: isMobile ? '30%' : '20%',
-        containLabel: true
-      },
+      grid: getGridConfig(isMobile, { hasLegendTop: true }),
       xAxis: {
         type: 'category',
         data: translatedPolarityLabels,
         axisLabel: {
-          color: '#fff',
-          fontSize: isMobile ? 8 : 10,
+          ...getAxisLabelStyle(isMobile),
           interval: 0,
           rotate: isMobile ? 45 : 0
         },
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.5)'
-          }
-        },
-        splitLine: {
-          show: false
+        axisLine: getAxisLineStyle(),
+        axisTick: {
+          alignWithLabel: true,
+          lineStyle: { color: 'rgba(255, 255, 255, 0.2)' }
         }
       },
       yAxis: {
@@ -199,23 +189,13 @@
         name: $t.filters.numberOfArticles,
         nameLocation: 'middle',
         nameGap: 50,
-        axisLabel: {
-          color: '#fff',
-          fontSize: isMobile ? 9 : 11
-        },
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.5)'
-          }
-        },
-        splitLine: {
-          lineStyle: {
-            color: 'rgba(255, 255, 255, 0.1)'
-          }
-        },
+        axisLabel: getAxisLabelStyle(isMobile),
+        axisLine: getAxisLineStyle(),
+        splitLine: getSplitLineStyle(),
         nameTextStyle: {
-          color: '#fff',
-          fontSize: isMobile ? 10 : 12
+          color: 'rgba(255, 255, 255, 0.85)',
+          fontSize: isMobile ? 10 : 12,
+          fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
         }
       },
       series: series
