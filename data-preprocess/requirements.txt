@@ -4,3 +4,4 @@ pandas
 huggingface_hub
 google-genai
 pydantic
+python-dotenv

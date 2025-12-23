@@ -30,6 +30,16 @@ from typing import Optional, Literal
 from dataclasses import dataclass, asdict
 from huggingface_hub import hf_hub_download
 from pydantic import BaseModel, Field
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+env_path = Path(__file__).parent.parent / '.env'
+if env_path.exists():
+    load_dotenv(env_path)
+    print(f"✓ Loaded environment variables from {env_path}")
+else:
+    print(f"⚠️ No .env file found at {env_path}")
 
 # Google GenAI SDK (new unified SDK)
 try:
