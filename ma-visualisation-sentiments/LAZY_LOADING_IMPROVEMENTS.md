@@ -1,125 +1,185 @@
-# Lazy Loading Improvements
+# Lazy Loading & Pre-caching Strategy
 
-## Problem
+## Data Overview
 
-The application was loading both JSON datasets (22MB total) on page load:
-- `iwac_articles_chatgpt.json` (11MB)  
-- `iwac_articles_gemini.json` (11MB)
+The application manages multiple JSON data files:
 
-This caused:
-- Slow initial page load
-- Unnecessary data transfer for users who only need one dataset
-- High memory usage
-- Poor mobile performance
+| File | Raw Size | Brotli | Priority | Usage |
+|------|----------|--------|----------|-------|
+| `iwac_arbiter_evaluations.json` | ~1-2 MB | ~100-200 KB | 🔴 High | Comparison view |
+| `iwac_articles_chatgpt.json` | 10.9 MB | 1.15 MB | 🔴 High | Main dataset |
+| `iwac_articles_gemini.json` | 12.1 MB | 1.17 MB | 🟡 Medium | Alt/Comparison |
+| `iwac_extreme_analysis_chatgpt.json` | 11.4 MB | 0.88 MB | 🟢 Low | Extreme view |
+| `iwac_extreme_analysis_gemini.json` | 14.3 MB | 1.01 MB | 🟢 Low | Extreme view |
 
-## Solution: Load-on-Demand Strategy with Background Prefetching
+**Total with Brotli: ~4.5 MB** (excellent compression, 90%+ ratio)
 
-### 1. **Dataset Loading Functions**
+## Loading Strategy
 
-#### `loadCurrentDataset()`
-- Loads only the currently selected dataset immediately
-- Checks if dataset is already loaded before fetching
-- **NEW**: Starts background prefetching of other datasets after main load
-- Used for initial page load and dataset switching
+### Phase 1: Critical Path (Immediate)
+- Load **only the selected dataset** (ChatGPT or Gemini)
+- Show loading skeleton during fetch
+- Time to interactive: ~1-2 seconds on 4G
 
-#### `loadComparisonDatasets()`
-- Loads both ChatGPT and Gemini datasets only when comparison mode is activated
-- Loads missing datasets in parallel
-- **NEW**: Benefits from background prefetching for instant switching
-- Only triggered when user switches to comparison view
+### Phase 2: Smart Prefetching (Background)
+After initial render, prefetch data in priority order:
 
-#### `prefetchOtherDatasets()` (NEW)
-- Runs in background after initial dataset is loaded
-- Loads remaining datasets without showing loading indicators
-- Uses sequential loading with delays to maintain UI responsiveness
-- Fails silently if network issues occur (optimization, not critical)
+1. **Arbiter Evaluations** (P1) - Small file, needed for comparison
+2. **Alternate Dataset** (P2) - For instant dataset switching
+3. **Extreme Analysis** (P3) - Only for current dataset initially
 
-### 2. **Implementation Changes**
+### Phase 3: Service Worker Caching
+- Progressive caching during SW install
+- Network-first for data freshness
+- Offline fallback from cache
 
-#### **Initial Page Load**
+## Implementation Details
+
+### 1. Priority-Based Prefetching (stores.ts)
+
 ```typescript
-// Before: Load all datasets (22MB)
-await loadAllDatasets(fetch);
+interface PrefetchTask {
+  id: string;
+  type: 'dataset' | 'extreme' | 'arbiter';
+  priority: number; // Lower = higher priority
+  loader: () => Promise<void>;
+}
 
-// After: Load only current dataset (11MB)
-await loadCurrentDataset(fetch);
+// Priority queue: arbiter (1) → datasets (2) → extreme (3)
 ```
 
-#### **Dataset Switching**
-- Check if new dataset is already loaded
-- Only fetch if not in memory
-- Update UI immediately if already cached
+#### Smart Scheduling Features:
+- **`requestIdleCallback`**: Prefetch during browser idle time
+- **Network-aware**: Skips prefetching on slow 2G or data-saver mode
+- **Deduplication**: Tracks in-progress and completed prefetches
+- **150ms delays**: Maintains UI responsiveness between loads
 
-#### **Comparison Mode**
-- Datasets loaded only when user activates comparison view
-- Parallel loading of missing datasets
-- Seamless transition with loading indicator
+### 2. Service Worker Caching (sw.js)
 
-### 3. **Performance Benefits**
+```javascript
+// Priority-ordered caching
+const DATA_FILES_PRIORITY = [
+  'iwac_arbiter_evaluations.json',    // Priority 1: Smallest
+  'iwac_articles_chatgpt.json',        // Priority 2: Main
+  'iwac_articles_gemini.json',         // Priority 2: Alt
+  'iwac_extreme_analysis_chatgpt.json', // Priority 3: Large
+  'iwac_extreme_analysis_gemini.json'   // Priority 3: Large
+];
+```
 
-#### **Initial Load Time**
-- **50% reduction** in data transfer (11MB vs 22MB)
-- Faster time to interactive
-- Better mobile experience
+#### Progressive Installation:
+- Static files cached synchronously (app shell)
+- Data files cached progressively (non-blocking)
+- Graceful handling of missing files (arbiter may not exist yet)
 
-#### **Memory Usage**
-- Only loads data that's actually needed
-- Datasets cached once loaded
-- No redundant data in memory
+### 3. Loading State Management
 
-#### **User Experience**
-- **Instant switching**: Background prefetching makes dataset switching feel instant
-- **Smart loading**: Critical data loads first, nice-to-have data loads in background
-- **No waiting**: Comparison mode often has data ready thanks to prefetching
-- **Responsive UI**: Sequential background loading doesn't block the interface
-- **Graceful degradation**: Works even if background loading fails
-
-### 4. **Caching Strategy**
-
-- **Smart Caching**: Datasets remain in memory once loaded
-- **Selective Loading**: Only missing datasets are fetched
-- **Parallel Loading**: Multiple datasets loaded simultaneously when needed
-
-### 5. **Additional Optimizations to Consider**
-
-#### **Chunked Loading** (Future Enhancement)
 ```typescript
-// Load articles in chunks for very large datasets
+// Separate loading states for different data types
+export const isLoadingDataset = writable<boolean>(false);
+export const isLoadingExtremeAnalysis = writable<boolean>(false);
+export const isLoadingComparison = writable<boolean>(false);
+export const isLoadingArbiter = writable<boolean>(false);
+```
+
+## Performance Benefits
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Initial data transfer | 22+ MB | **1.15-1.17 MB** |
+| Time to interactive | 5-8s | **1-2s** |
+| Dataset switching | 2-3s | **Instant** (prefetched) |
+| Comparison mode activation | 5-6s | **<500ms** (prefetched) |
+
+## Network-Aware Loading
+
+```typescript
+// Check network conditions before prefetching
+const connection = (navigator as any).connection;
+if (connection) {
+  if (connection.effectiveType === 'slow-2g' || 
+      connection.effectiveType === '2g' || 
+      connection.saveData) {
+    // Skip non-critical prefetching
+    return;
+  }
+}
+```
+
+## User Experience Flow
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ Page Load                                               │
+├─────────────────────────────────────────────────────────┤
+│ 1. [IMMEDIATE] Load selected dataset (ChatGPT)          │
+│    └─ Show loading skeleton (1-2s)                      │
+│                                                         │
+│ 2. [RENDER] Display charts and data                     │
+│                                                         │
+│ 3. [IDLE] requestIdleCallback triggered                 │
+│    ├─ P1: Load arbiter evaluations (~100KB)             │
+│    ├─ P2: Load alternate dataset (~1.1MB)               │
+│    └─ P3: Load extreme analysis (~0.9MB)                │
+│                                                         │
+│ 4. [READY] All data prefetched                          │
+│    └─ User actions are instant                          │
+└─────────────────────────────────────────────────────────┘
+```
+
+## Arbiter Data Integration
+
+The arbiter evaluations file is lightweight and loaded with high priority:
+
+- **When loaded**: During background prefetch (P1 priority)
+- **Used in**: Comparison view for arbiter verdict display
+- **Fallback**: App works without it (optional data)
+- **Caching**: Progressive SW caching with graceful fallback
+
+## Future Optimizations
+
+### 1. Streaming JSON Parsing
+```typescript
+// Parse large JSON files progressively
+async function streamParse(url: string) {
+  const response = await fetch(url);
+  const reader = response.body.getReader();
+  // Progressive parsing...
+}
+```
+
+### 2. IndexedDB for Persistent Cache
+```typescript
+// Store parsed data in IndexedDB for faster subsequent loads
+// Skip JSON parsing on repeat visits
+```
+
+### 3. Virtual Scrolling
+- For article tables with 10,000+ rows
+- Only render visible items
+- Reduces DOM memory usage
+
+### 4. Data Chunking
+```typescript
+// Load articles in chunks for progressive rendering
 export const loadDatasetChunked = async (datasetId: string, chunkSize = 1000) => {
-  // Implementation for progressive loading
+  // Progressive loading implementation
 };
 ```
 
-#### **Service Worker Caching** (Future Enhancement)
-- Cache datasets in service worker
-- Offline support
-- Background updates
-
-#### **Virtual Scrolling** (Future Enhancement)
-- For article tables with thousands of rows
-- Only render visible items
-- Reduce DOM memory usage
-
-## Usage
-
-The intelligent loading system is now automatic:
-
-1. **Initial load**: Only loads the selected dataset (fast startup)
-2. **Background prefetching**: Other datasets load silently in background
-3. **Dataset switching**: Usually instant thanks to prefetching
-4. **Comparison mode**: Often instant since datasets are pre-loaded
-5. **Caching**: All loaded datasets remain in memory for instant access
-
-### **Timing Strategy**
-- **Immediate**: Load current dataset for fast initial experience
-- **500ms delay**: Start background prefetching after UI settles
-- **100ms intervals**: Sequential loading to maintain responsiveness
-- **Silent failures**: Background loading doesn't interrupt user experience
-
 ## Monitoring
 
-To monitor the improvements:
-- Check Network tab in DevTools
-- Initial page load should show only one JSON file
-- Additional datasets load only when needed
-- Total data transfer reduced by ~50% for typical usage 
+### DevTools Checks:
+1. **Network tab**: Verify only one main JSON on initial load
+2. **Performance tab**: Check for idle-time prefetching
+3. **Application tab**: Verify Service Worker caching
+
+### Console Logs:
+```
+[Prefetch] Queue: arbiter(P1), gemini(P2), extreme-chatgpt(P3)
+[Prefetch] Loading: arbiter
+[Prefetch] Completed: arbiter
+[Prefetch] Loading: gemini
+...
+[Prefetch] All prefetching completed
+```

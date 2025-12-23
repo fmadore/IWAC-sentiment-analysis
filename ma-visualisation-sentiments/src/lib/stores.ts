@@ -271,6 +271,27 @@ export const loadCurrentDataset = async (fetchFunction: typeof fetch): Promise<v
   prefetchOtherDatasets(currentDatasetId, fetchFunction);
 };
 
+// ============================================
+// Smart Prefetching with Priority Queue
+// ============================================
+
+/**
+ * Priority-based prefetching that considers:
+ * 1. User's likely next action (comparison mode, extreme analysis)
+ * 2. Data size (smaller files first)
+ * 3. Network conditions (when available)
+ */
+interface PrefetchTask {
+  id: string;
+  type: 'dataset' | 'extreme' | 'arbiter';
+  priority: number; // Lower = higher priority
+  loader: () => Promise<void>;
+}
+
+// Track prefetch state to avoid duplicate requests
+const prefetchingInProgress = new Set<string>();
+const prefetchCompleted = new Set<string>();
+
 // Function to prefetch other datasets in the background for better UX
 const prefetchOtherDatasets = async (currentDatasetId: string, fetchFunction: typeof fetch): Promise<void> => {
   // Get all available datasets
@@ -287,37 +308,137 @@ const prefetchOtherDatasets = async (currentDatasetId: string, fetchFunction: ty
     })();
   });
   
-  // Find datasets that aren't loaded yet (excluding the current one)
-  const datasetsToPreload = datasets
+  // Build priority queue for prefetching
+  const prefetchQueue: PrefetchTask[] = [];
+  
+  // Priority 1: Arbiter evaluations (small file, needed for comparison view)
+  if (!prefetchCompleted.has('arbiter') && !prefetchingInProgress.has('arbiter')) {
+    prefetchQueue.push({
+      id: 'arbiter',
+      type: 'arbiter',
+      priority: 1,
+      loader: async () => {
+        prefetchingInProgress.add('arbiter');
+        try {
+          await loadArbiterEvaluations(fetchFunction);
+          prefetchCompleted.add('arbiter');
+        } finally {
+          prefetchingInProgress.delete('arbiter');
+        }
+      }
+    });
+  }
+  
+  // Priority 2: Other main datasets (for comparison mode)
+  datasets
     .filter(dataset => dataset.id !== currentDatasetId)
     .filter(dataset => !currentDatasets[dataset.id] || currentDatasets[dataset.id].length === 0)
-    .map(dataset => dataset.id);
+    .forEach(dataset => {
+      if (!prefetchingInProgress.has(dataset.id) && !prefetchCompleted.has(dataset.id)) {
+        prefetchQueue.push({
+          id: dataset.id,
+          type: 'dataset',
+          priority: 2,
+          loader: async () => {
+            prefetchingInProgress.add(dataset.id);
+            try {
+              await loadSpecificDataset(dataset.id, fetchFunction);
+              prefetchCompleted.add(dataset.id);
+            } finally {
+              prefetchingInProgress.delete(dataset.id);
+            }
+          }
+        });
+      }
+    });
   
-  if (datasetsToPreload.length === 0) {
-    console.log('All datasets already loaded, no prefetching needed');
+  // Priority 3: Extreme analysis data for current dataset
+  const currentExtremeData = get(extremeAnalysisData);
+  if (!currentExtremeData[currentDatasetId]) {
+    const extremeId = `extreme-${currentDatasetId}`;
+    if (!prefetchingInProgress.has(extremeId) && !prefetchCompleted.has(extremeId)) {
+      prefetchQueue.push({
+        id: extremeId,
+        type: 'extreme',
+        priority: 3,
+        loader: async () => {
+          prefetchingInProgress.add(extremeId);
+          try {
+            await loadCurrentExtremeAnalysis(fetchFunction);
+            prefetchCompleted.add(extremeId);
+          } finally {
+            prefetchingInProgress.delete(extremeId);
+          }
+        }
+      });
+    }
+  }
+  
+  if (prefetchQueue.length === 0) {
+    console.log('[Prefetch] All data already loaded');
     return;
   }
   
-  console.log(`Background prefetching datasets: ${datasetsToPreload.join(', ')}`);
+  // Sort by priority
+  prefetchQueue.sort((a, b) => a.priority - b.priority);
   
-  // Load datasets in background without showing loading indicators
-  // Use a small delay to ensure the UI is responsive after the main dataset loads
-  setTimeout(async () => {
-    try {
-      // Load datasets sequentially to avoid overwhelming the network
-      for (const datasetId of datasetsToPreload) {
-        await loadSpecificDataset(datasetId, fetchFunction);
-        console.log(`Background loaded: ${datasetId}`);
-        
-        // Small delay between datasets to keep UI responsive
-        await new Promise(resolve => setTimeout(resolve, 100));
+  console.log(`[Prefetch] Queue: ${prefetchQueue.map(t => `${t.id}(P${t.priority})`).join(', ')}`);
+  
+  // Execute prefetching with smart delays and network awareness
+  scheduleSmartPrefetch(prefetchQueue);
+};
+
+/**
+ * Smart prefetching scheduler that:
+ * - Waits for idle time using requestIdleCallback when available
+ * - Falls back to setTimeout for older browsers
+ * - Checks network conditions when available
+ * - Adds delays between requests to maintain UI responsiveness
+ */
+const scheduleSmartPrefetch = (queue: PrefetchTask[]): void => {
+  if (queue.length === 0) return;
+  
+  const executeNext = async () => {
+    const task = queue.shift();
+    if (!task) return;
+    
+    // Check network conditions (if available)
+    const connection = (navigator as any).connection;
+    if (connection) {
+      // Skip prefetching on slow connections (2G) or when data saver is enabled
+      if (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g' || connection.saveData) {
+        console.log(`[Prefetch] Skipping ${task.id} - slow network or data saver enabled`);
+        // Still continue with remaining queue
+        if (queue.length > 0) {
+          scheduleSmartPrefetch(queue);
+        }
+        return;
       }
-      console.log('Background prefetching completed');
-    } catch (error) {
-      console.warn('Background prefetching failed:', error);
-      // Fail silently - prefetching is an optimization, not critical
     }
-  }, 500); // 500ms delay to let the UI settle after main dataset load
+    
+    try {
+      console.log(`[Prefetch] Loading: ${task.id}`);
+      await task.loader();
+      console.log(`[Prefetch] Completed: ${task.id}`);
+    } catch (error) {
+      console.warn(`[Prefetch] Failed: ${task.id}`, error);
+    }
+    
+    // Continue with remaining queue after a brief delay
+    if (queue.length > 0) {
+      setTimeout(() => scheduleSmartPrefetch(queue), 150);
+    } else {
+      console.log('[Prefetch] All prefetching completed');
+    }
+  };
+  
+  // Use requestIdleCallback if available for better performance
+  if (typeof requestIdleCallback !== 'undefined') {
+    requestIdleCallback(() => executeNext(), { timeout: 2000 });
+  } else {
+    // Fallback: use setTimeout with delay after initial render
+    setTimeout(executeNext, 500);
+  }
 };
 
 // Function to ensure comparison datasets are loaded (only when needed)
