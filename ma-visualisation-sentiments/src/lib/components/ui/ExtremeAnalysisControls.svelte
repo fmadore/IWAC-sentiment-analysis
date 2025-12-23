@@ -379,4 +379,14 @@
       gap: 2rem;
     }
   }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .select-input,
+    .btn-toggle,
+    .btn-toggle::before,
+    .number-input {
+      transition: none;
+    }
+  }
 </style>

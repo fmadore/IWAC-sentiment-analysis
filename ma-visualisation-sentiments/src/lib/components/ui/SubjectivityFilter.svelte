@@ -82,14 +82,14 @@
 <style>
   .filter-card {
     background: color-mix(in oklab, var(--color-surface-900) 85%, transparent);
-    backdrop-filter: blur(16px);
+    backdrop-filter: blur(var(--glass-blur-md));
     border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
     border-radius: 0.875rem;
     padding: 1rem;
     box-shadow: 
       0 4px 16px color-mix(in oklab, black 8%, transparent),
       inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 6%, transparent);
-    transition: all var(--timing-normal, 0.2s) ease;
+    transition: all var(--timing-normal) var(--easing-default);
   }
 
   .filter-card:hover {
@@ -108,12 +108,13 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    margin-bottom: 0.5rem;
   }
 
   .clear-btn {
     display: inline-flex;
     align-items: center;
-    margin-top: 0.75rem;
+    margin-top: 0.5rem;
     padding: 0.375rem 0.75rem;
     font-size: 0.75rem;
     font-weight: 500;
@@ -122,7 +123,7 @@
     background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
     border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
     color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
-    transition: all var(--timing-fast, 0.15s) ease;
+    transition: all var(--timing-fast) var(--easing-default);
   }
 
   .clear-btn:hover {

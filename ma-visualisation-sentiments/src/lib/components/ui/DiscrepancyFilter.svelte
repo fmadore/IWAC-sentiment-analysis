@@ -291,7 +291,7 @@
     background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
     border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
     color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
-    transition: all var(--timing-fast) ease;
+    transition: all var(--timing-fast) var(--easing-default);
   }
 
   .reset-btn:hover {
@@ -318,7 +318,7 @@
     background: color-mix(in oklab, var(--color-surface-50) 6%, transparent);
     border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
     color: color-mix(in oklab, var(--color-surface-50) 85%, transparent);
-    transition: all var(--timing-fast) ease;
+    transition: all var(--timing-fast) var(--easing-default);
   }
 
   .filter-chip:hover {
@@ -374,7 +374,7 @@
     height: 4px;
     background: linear-gradient(90deg, var(--color-primary-500), var(--color-secondary-500));
     border-radius: 2px;
-    transition: all var(--timing-fast) ease;
+    transition: all var(--timing-fast) var(--easing-default);
   }
   
   .range-slider {
@@ -399,7 +399,7 @@
     cursor: pointer;
     pointer-events: auto;
     box-shadow: 0 2px 8px color-mix(in oklab, black 30%, transparent);
-    transition: all var(--timing-fast) ease;
+    transition: all var(--timing-fast) var(--easing-default);
   }
   
   .range-slider::-webkit-slider-thumb:hover {
@@ -416,7 +416,7 @@
     cursor: pointer;
     pointer-events: auto;
     box-shadow: 0 2px 8px color-mix(in oklab, black 30%, transparent);
-    transition: all var(--timing-fast) ease;
+    transition: all var(--timing-fast) var(--easing-default);
   }
   
   .range-slider::-moz-range-thumb:hover {
@@ -457,7 +457,7 @@
     border-radius: 12px;
     border: none;
     cursor: pointer;
-    transition: all var(--timing-normal) ease;
+    transition: all var(--timing-normal) var(--easing-default);
     outline: none;
   }
 
@@ -481,7 +481,7 @@
     height: 20px;
     background: white;
     border-radius: 50%;
-    transition: all var(--timing-normal) ease;
+    transition: all var(--timing-normal) var(--easing-default);
     box-shadow: 0 2px 4px color-mix(in oklab, black 20%, transparent);
   }
 
@@ -537,7 +537,7 @@
     font-size: 11px;
     font-weight: bold;
     cursor: help;
-    transition: all var(--timing-fast) ease;
+    transition: all var(--timing-fast) var(--easing-default);
   }
 
   .info-icon:hover {
@@ -559,7 +559,7 @@
     max-width: 400px;
     opacity: 0;
     visibility: hidden;
-    transition: all var(--timing-normal) ease;
+    transition: all var(--timing-normal) var(--easing-default);
     z-index: 1000;
     box-shadow: 0 8px 32px color-mix(in oklab, black 40%, transparent);
   }

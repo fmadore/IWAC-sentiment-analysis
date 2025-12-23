@@ -181,7 +181,7 @@
     background: color-mix(in oklab, var(--color-surface-50) 6%, transparent);
     border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
     color: var(--color-surface-50);
-    transition: all var(--timing-fast, 0.15s) ease;
+    transition: all var(--timing-fast) var(--easing-default);
   }
 
   .search-input::placeholder {
@@ -210,7 +210,7 @@
     border: none;
     color: color-mix(in oklab, var(--color-surface-50) 50%, transparent);
     cursor: pointer;
-    transition: color var(--timing-fast, 0.15s) ease;
+    transition: color var(--timing-fast) var(--easing-default);
   }
 
   .search-clear:hover {
@@ -230,44 +230,6 @@
     margin-bottom: 0.5rem;
   }
 
-  .filter-chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.375rem 0.75rem;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    border-radius: 9999px;
-    cursor: pointer;
-    white-space: nowrap;
-    background: color-mix(in oklab, var(--color-surface-50) 6%, transparent);
-    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-    color: color-mix(in oklab, var(--color-surface-50) 85%, transparent);
-    transition: all var(--timing-fast, 0.15s) ease;
-  }
-
-  .filter-chip:hover {
-    background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-    border-color: color-mix(in oklab, var(--color-surface-50) 18%, transparent);
-    color: var(--color-surface-50);
-    transform: translateY(-1px);
-  }
-
-  .filter-chip[data-selected="true"] {
-    background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
-    border-color: color-mix(in oklab, var(--color-surface-50) 25%, transparent);
-    color: white;
-    box-shadow: 
-      0 2px 8px color-mix(in oklab, var(--color-primary-500) 30%, transparent),
-      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-  }
-
-  .filter-chip[data-selected="true"]:hover {
-    transform: translateY(-1px);
-    box-shadow: 
-      0 4px 12px color-mix(in oklab, var(--color-primary-500) 40%, transparent),
-      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 20%, transparent);
-  }
-
   .toggle-btn {
     display: inline-flex;
     align-items: center;
@@ -280,7 +242,7 @@
     background: transparent;
     border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
     color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
-    transition: all var(--timing-fast, 0.15s) ease;
+    transition: all var(--timing-fast) var(--easing-default);
   }
 
   .toggle-btn:hover {
@@ -292,7 +254,7 @@
   .clear-btn {
     display: inline-flex;
     align-items: center;
-    margin-top: 0.25rem;
+    margin-top: 0.5rem;
     padding: 0.375rem 0.75rem;
     font-size: 0.75rem;
     font-weight: 500;
@@ -301,7 +263,7 @@
     background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
     border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
     color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
-    transition: all var(--timing-fast, 0.15s) ease;
+    transition: all var(--timing-fast) var(--easing-default);
   }
 
   .clear-btn:hover {
@@ -349,7 +311,6 @@
   /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
     .filter-card,
-    .filter-chip,
     .search-input,
     .toggle-btn,
     .clear-btn {

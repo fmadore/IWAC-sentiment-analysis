@@ -102,8 +102,8 @@
 
 <style>
   .filter-card {
-    background: color-mix(in oklab, var(--color-surface-900) 92%, transparent);
-    backdrop-filter: blur(var(--glass-blur-lg));
+    background: color-mix(in oklab, var(--color-surface-900) 85%, transparent);
+    backdrop-filter: blur(var(--glass-blur-md));
     border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
     border-radius: 0.875rem;
     padding: 1rem;
@@ -129,50 +129,13 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-  }
-
-  .filter-chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.375rem 0.75rem;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    border-radius: 9999px;
-    cursor: pointer;
-    white-space: nowrap;
-    background: color-mix(in oklab, var(--color-surface-50) 6%, transparent);
-    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-    color: color-mix(in oklab, var(--color-surface-50) 85%, transparent);
-    transition: all var(--timing-fast, 0.15s) ease;
-  }
-
-  .filter-chip:hover {
-    background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-    border-color: color-mix(in oklab, var(--color-surface-50) 18%, transparent);
-    color: var(--color-surface-50);
-    transform: translateY(-1px);
-  }
-
-  .filter-chip[data-selected="true"] {
-    background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
-    border-color: color-mix(in oklab, var(--color-surface-50) 25%, transparent);
-    color: white;
-    box-shadow: 
-      0 2px 8px color-mix(in oklab, var(--color-primary-500) 30%, transparent),
-      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-  }
-
-  .filter-chip[data-selected="true"]:hover {
-    transform: translateY(-1px);
-    box-shadow: 
-      0 4px 12px color-mix(in oklab, var(--color-primary-500) 40%, transparent),
-      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+    margin-bottom: 0.5rem;
   }
 
   .clear-btn {
     display: inline-flex;
     align-items: center;
-    margin-top: 0.75rem;
+    margin-top: 0.5rem;
     padding: 0.375rem 0.75rem;
     font-size: 0.75rem;
     font-weight: 500;
@@ -181,7 +144,7 @@
     background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
     border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
     color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
-    transition: all var(--timing-fast, 0.15s) ease;
+    transition: all var(--timing-fast) var(--easing-default);
   }
 
   .clear-btn:hover {
@@ -198,12 +161,7 @@
 
     .filter-title {
       font-size: 0.875rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .filter-chip {
-      padding: 0.3125rem 0.625rem;
-      font-size: 0.75rem;
+      margin-bottom: 0.625rem;
     }
   }
 
@@ -216,11 +174,6 @@
       font-size: 0.8125rem;
     }
 
-    .filter-chip {
-      padding: 0.25rem 0.5rem;
-      font-size: 0.6875rem;
-    }
-
     .clear-btn {
       font-size: 0.6875rem;
       padding: 0.3125rem 0.625rem;
@@ -230,7 +183,6 @@
   /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
     .filter-card,
-    .filter-chip,
     .clear-btn {
       transition: none;
     }

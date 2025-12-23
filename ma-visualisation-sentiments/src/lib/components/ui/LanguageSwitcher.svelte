@@ -49,7 +49,6 @@
         <ChevronDownIcon 
           size={16} 
           class={isOpen ? 'rotate-180' : ''}
-          style="transition: transform 0.2s ease;"
         />
       </div>
     </button>
@@ -104,7 +103,7 @@
     width: 100%;
     height: 100%;
     background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--color-surface-50) 15%, transparent), transparent);
-    transition: left var(--timing-slow) ease;
+    transition: left var(--timing-slow) var(--easing-default);
   }
 
   .language-btn::after {
@@ -119,7 +118,7 @@
       color-mix(in oklab, var(--color-surface-50) 5%, transparent) 100%
     );
     opacity: 0;
-    transition: opacity var(--timing-normal) ease;
+    transition: opacity var(--timing-normal) var(--easing-default);
   }
 
   .language-btn:hover::before {
@@ -158,7 +157,13 @@
     white-space: nowrap;
   }
 
+  .btn-content :global(svg) {
+    transition: transform var(--timing-fast) var(--easing-default);
+  }
 
+  .btn-content :global(.rotate-180) {
+    transform: rotate(180deg);
+  }
 
   .dropdown-menu {
     position: absolute;
@@ -199,7 +204,7 @@
     background: transparent;
     border: none;
     cursor: pointer;
-    transition: all var(--timing-fast) ease;
+    transition: all var(--timing-fast) var(--easing-default);
     font-size: 0.875rem;
     font-weight: 500;
   }

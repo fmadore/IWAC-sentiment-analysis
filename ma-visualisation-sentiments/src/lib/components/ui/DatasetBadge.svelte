@@ -81,7 +81,7 @@
       transparent 60%
     );
     opacity: 0.2;
-    transition: opacity var(--timing-fast) ease;
+    transition: opacity var(--timing-fast) var(--easing-default);
   }
   
   .dataset-badge:hover::before {

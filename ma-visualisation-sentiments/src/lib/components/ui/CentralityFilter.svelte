@@ -91,8 +91,7 @@
     font-size: 0.9375rem;
     font-weight: 600;
     color: var(--color-surface-50);
-    margin: 0 0 0.75rem 0;
-    line-height: 1.3;
+    margin: 0 0 0.875rem 0;
     letter-spacing: -0.01em;
   }
 
@@ -115,7 +114,7 @@
     background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
     border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
     color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
-    transition: all var(--timing-fast, 0.15s) ease;
+    transition: all var(--timing-fast) var(--easing-default);
   }
 
   .clear-btn:hover {

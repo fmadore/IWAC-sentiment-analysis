@@ -133,7 +133,7 @@
     width: 100%;
     height: 100%;
     background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--color-surface-50) 15%, transparent), transparent);
-    transition: left var(--timing-slow) ease;
+    transition: left var(--timing-slow) var(--easing-default);
   }
 
   .picker-button:hover::before {
@@ -164,7 +164,7 @@
   }
 
   .chevron {
-    transition: transform 0.2s ease;
+    transition: transform var(--timing-fast) var(--easing-default);
   }
 
   .dropdown-menu {
@@ -220,7 +220,7 @@
     border: none;
     color: var(--color-surface-50);
     cursor: pointer;
-    transition: all var(--timing-fast) ease;
+    transition: all var(--timing-fast) var(--easing-default);
     font-size: 0.875rem;
     font-weight: 500;
     border-radius: 0.5rem;
@@ -343,6 +343,16 @@
     .dropdown-menu {
       border-width: 2px;
       border-color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
+    }
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .picker-button,
+    .menu-item,
+    .picker-button::before,
+    .chevron {
+      transition: none;
     }
   }
 </style>
