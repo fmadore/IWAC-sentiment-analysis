@@ -459,54 +459,123 @@ def main():
     
     print(f"\n📊 Found {len(significant_articles)} articles with significant differences")
     
-    # BLIND EVALUATION: Randomize model assignment ONCE for ALL articles
-    model_a_is_chatgpt = random.choice([True, False])
-    if model_a_is_chatgpt:
-        print(f"\n🎲 Blind assignment: Model A = ChatGPT, Model B = Gemini (key stored in output)")
-    else:
-        print(f"\n🎲 Blind assignment: Model A = Gemini, Model B = ChatGPT (key stored in output)")
+    # Setup cache directory
+    cache_dir = os.path.join(os.path.dirname(__file__), "..", "exports", ".arbiter_cache")
+    os.makedirs(cache_dir, exist_ok=True)
+    cache_file = os.path.join(cache_dir, "arbiter_evaluation_cache.json")
     
-    # Ask for confirmation before proceeding (API costs)
-    print(f"\n⚠️  This will make {len(significant_articles)} API calls to Gemini 3 Pro")
-    response = input("Do you want to proceed? (yes/no): ").strip().lower()
-    if response not in ['yes', 'y']:
-        print("Aborted.")
-        return
-    
-    # Process articles with arbiter
+    # Load existing cache if available
     arbiter_results = []
-    successful = 0
-    failed = 0
+    evaluated_ids = set()
+    model_a_is_chatgpt = None
     
-    print(f"\n🔄 Evaluating articles with arbiter (using high reasoning level)...")
+    if os.path.exists(cache_file):
+        print(f"\n📦 Found existing cache file")
+        try:
+            with open(cache_file, 'r', encoding='utf-8') as f:
+                cache_data = json.load(f)
+                arbiter_results = cache_data.get('evaluations', [])
+                evaluated_ids = {r['article_id'] for r in arbiter_results}
+                model_a_is_chatgpt = cache_data['metadata'].get('model_a_is_chatgpt')
+                print(f"   Loaded {len(arbiter_results)} cached evaluations")
+                print(f"   Model assignment: {'Model A = ChatGPT' if model_a_is_chatgpt else 'Model A = Gemini'}")
+        except Exception as e:
+            print(f"   ⚠️ Failed to load cache: {e}")
+            print(f"   Starting fresh...")
+            arbiter_results = []
+            evaluated_ids = set()
+            model_a_is_chatgpt = None
     
-    for i, item in enumerate(tqdm(significant_articles, desc="Arbiter evaluation")):
-        result = evaluate_with_arbiter(
-            client,
-            item,  # Pass the entire item dict (contains o:id, o:title, ocr, etc.)
-            item['chatgpt_analysis'],
-            item['gemini_analysis'],
-            model_a_is_chatgpt  # Same assignment for ALL articles
-        )
+    # Filter out already-evaluated articles
+    remaining_articles = [a for a in significant_articles if str(a.get('o:id')) not in evaluated_ids]
+    
+    if not remaining_articles:
+        print(f"\n✓ All articles already evaluated!")
+    else:
+        print(f"\n📝 {len(remaining_articles)} articles remaining to evaluate")
         
-        if result:
-            arbiter_results.append({
-                'article_id': result.article_id,
-                'arbiter': asdict(result),
-                'discrepancies': item['discrepancies']
-            })
-            successful += 1
+        # BLIND EVALUATION: Use existing assignment or create new one
+        if model_a_is_chatgpt is None:
+            model_a_is_chatgpt = random.choice([True, False])
+            print(f"\n🎲 New blind assignment: Model A = {'ChatGPT' if model_a_is_chatgpt else 'Gemini'}, Model B = {'Gemini' if model_a_is_chatgpt else 'ChatGPT'}")
         else:
-            failed += 1
+            print(f"\n♻️  Using existing blind assignment from cache")
         
-        # Rate limiting - Gemini has rate limits
-        if (i + 1) % 10 == 0:
-            time.sleep(1)
+        # Ask for confirmation before proceeding (API costs)
+        print(f"\n⚠️  This will make {len(remaining_articles)} API calls to Gemini 3 Pro")
+        response = input("Do you want to proceed? (yes/no): ").strip().lower()
+        if response not in ['yes', 'y']:
+            print("Aborted.")
+            return
+        
+        # Process articles with arbiter
+        successful = len(arbiter_results)  # Start count from cached results
+        failed = 0
+        
+        print(f"\n🔄 Evaluating articles with arbiter (using high reasoning level)...")
+        
+        for i, item in enumerate(tqdm(remaining_articles, desc="Arbiter evaluation")):
+            result = evaluate_with_arbiter(
+                client,
+                item,  # Pass the entire item dict (contains o:id, o:title, OCR, etc.)
+                item['chatgpt_analysis'],
+                item['gemini_analysis'],
+                model_a_is_chatgpt  # Same assignment for ALL articles
+            )
+            
+            if result:
+                arbiter_results.append({
+                    'article_id': result.article_id,
+                    'arbiter': asdict(result),
+                    'discrepancies': item['discrepancies']
+                })
+                successful += 1
+                
+                # Save cache every 10 successful evaluations
+                if len(arbiter_results) % 10 == 0:
+                    try:
+                        with open(cache_file, 'w', encoding='utf-8') as f:
+                            json.dump({
+                                'metadata': {
+                                    'generated': datetime.now().isoformat(),
+                                    'arbiter_model': 'gemini-3-pro-preview',
+                                    'thinking_level': 'high',
+                                    'blind_evaluation': True,
+                                    'model_a_is_chatgpt': model_a_is_chatgpt,
+                                    'cache_note': 'Intermediate cache - evaluation in progress'
+                                },
+                                'evaluations': arbiter_results
+                            }, f, ensure_ascii=False, indent=2)
+                        print(f"  💾 Cached {len(arbiter_results)} results")
+                    except Exception as e:
+                        print(f"  ⚠️ Failed to save cache: {e}")
+            else:
+                failed += 1
+            
+            # Rate limiting - Gemini has rate limits
+            if (i + 1) % 10 == 0:
+                time.sleep(1)
+    
+    # Save final results
+    successful = len(arbiter_results)
+    failed = len(significant_articles) - successful
+    
+    # Save final results
+    successful = len(arbiter_results)
+    failed = len(significant_articles) - successful
     
     # Create output directory
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_dir = os.path.join(os.path.dirname(__file__), "..", "exports", f"arbiter_{timestamp}")
     os.makedirs(output_dir, exist_ok=True)
+    
+    # Delete cache file after successful completion
+    if os.path.exists(cache_file):
+        try:
+            os.remove(cache_file)
+            print(f"\n🗑️  Cleared cache file")
+        except Exception as e:
+            print(f"\n⚠️ Failed to delete cache: {e}")
     
     # Save the assignment key file (like significant-differences-export.py does)
     key_path = os.path.join(output_dir, "model_assignment_key.txt")
