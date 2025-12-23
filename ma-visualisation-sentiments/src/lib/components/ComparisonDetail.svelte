@@ -180,18 +180,18 @@
     
     <!-- Article metadata -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="card variant-glass glass-light p-4 hover-lift-sm">
+      <div class="card variant-glass p-4 hover-lift-sm">
         <span class="text-xs uppercase font-bold opacity-75 text-white/60">{$t.filters.journal}</span>
         <p class="text-white mt-2 font-medium">{getJournalName(comparison.article)}</p>
       </div>
-      <div class="card variant-glass glass-light p-4 hover-lift-sm">
+      <div class="card variant-glass p-4 hover-lift-sm">
         <span class="text-xs uppercase font-bold opacity-75 text-white/60">{$t.article.publicationDate}</span>
         <p class="text-white mt-2 font-medium">{formatDate(comparison.article.publication_date)}</p>
       </div>
     </div>
 
     <!-- Link to full article -->
-    <div class="card variant-glass glass-light p-4 hover-lift-sm">
+    <div class="card variant-glass p-4 hover-lift-sm">
       <span class="text-xs uppercase font-bold opacity-75 text-white/60">{$t.article.linkToFullArticle}</span>
       <p class="text-white mt-2">
         <a href={getArticleUrl(comparison.article['o:id'])} target="_blank" class="anchor hover-glow focus-ring">
@@ -369,7 +369,7 @@
     </div>
 
     <!-- ============================================ -->
-    <!-- Arbiter (Gemini 2.5 Pro) Verdict Section -->
+    <!-- Arbiter (Gemini 3 Pro) Verdict Section -->
     <!-- ============================================ -->
     <div class="arbiter-section card variant-glass glass-heavy p-5 hover-lift-sm border-gradient arbiter-gradient">
       <!-- Header with toggle -->

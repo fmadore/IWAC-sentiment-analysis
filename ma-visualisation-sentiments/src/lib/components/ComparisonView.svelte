@@ -32,7 +32,7 @@
       <!-- Back button -->
       <div class="mb-6">
         <button 
-          class="btn btn-icon gap-2 px-4" 
+          class="btn btn-sm variant-soft-surface gap-2 hover-lift whitespace-nowrap"
           onclick={goBackToList}
         >
           <ArrowLeftIcon size={16} />

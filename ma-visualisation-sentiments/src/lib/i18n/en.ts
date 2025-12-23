@@ -293,7 +293,7 @@ export const en: Translations = {
   arbiter: {
     title: 'Arbiter Verdict',
     subtitle: 'Independent evaluation by a third AI model',
-    modelName: 'Gemini 2.5 Pro',
+    modelName: 'Gemini 3 Pro',
     verdict: 'Verdict',
     overallVerdict: 'Overall Verdict',
     confidenceLevel: 'Confidence Level',
