@@ -288,7 +288,8 @@ def evaluate_with_arbiter(client: genai.Client, article: dict, chatgpt_analysis:
     
     article_id = str(article.get('o:id', article.get('id', 'unknown')))
     title = article.get('o:title', article.get('title', 'Unknown Title'))
-    text = article.get('full_text', article.get('text', ''))
+    # Use OCR field for full text from HuggingFace dataset (uppercase field name)
+    text = article.get('OCR', article.get('ocr', article.get('full_text', article.get('text', ''))))
     
     if not text:
         print(f"  ⚠️ No text available for article {article_id}")
@@ -353,6 +354,19 @@ def load_dataset() -> pd.DataFrame:
         
         df = pd.read_parquet(parquet_path)
         print(f"Successfully loaded {len(df)} rows")
+        print(f"Available columns: {', '.join(df.columns.tolist())}")
+        
+        # Check for OCR/text field
+        ocr_fields = [col for col in df.columns if 'ocr' in col.lower() or 'text' in col.lower() or 'content' in col.lower()]
+        if ocr_fields:
+            print(f"Found text fields: {', '.join(ocr_fields)}")
+            # Check how many have non-empty values
+            for field in ocr_fields:
+                non_empty = df[field].notna().sum()
+                print(f"  {field}: {non_empty}/{len(df)} non-empty ({100*non_empty/len(df):.1f}%)")
+        else:
+            print("⚠️ WARNING: No OCR/text field found in dataset!")
+        
         return df
         
     except Exception as e:
@@ -390,12 +404,19 @@ def find_significant_differences(df: pd.DataFrame) -> list:
         discrepancies = calculate_discrepancies(chatgpt_analysis, gemini_analysis)
         
         if discrepancies and discrepancies["has_significant_conflict"]:
-            significant_articles.append({
-                'article': item,
-                'chatgpt': chatgpt_analysis,
-                'gemini': gemini_analysis,
+            # Include the OCR field for full text (field name is uppercase)
+            article_data = {
+                'o:id': item.get('o:id'),
+                'o:title': item.get('title'),
+                'OCR': item.get('OCR'),  # Include OCR field - uppercase in dataset
+                'newspaper': item.get('newspaper'),
+                'country': item.get('country'),
+                'pub_date': item.get('pub_date'),
+                'chatgpt_analysis': chatgpt_analysis,
+                'gemini_analysis': gemini_analysis,
                 'discrepancies': discrepancies
-            })
+            }
+            significant_articles.append(article_data)
     
     return significant_articles
 
@@ -462,9 +483,9 @@ def main():
     for i, item in enumerate(tqdm(significant_articles, desc="Arbiter evaluation")):
         result = evaluate_with_arbiter(
             client,
-            item['article'],
-            item['chatgpt'],
-            item['gemini'],
+            item,  # Pass the entire item dict (contains o:id, o:title, ocr, etc.)
+            item['chatgpt_analysis'],
+            item['gemini_analysis'],
             model_a_is_chatgpt  # Same assignment for ALL articles
         )
         
