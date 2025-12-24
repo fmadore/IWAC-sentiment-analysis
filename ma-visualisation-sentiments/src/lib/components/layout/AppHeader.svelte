@@ -113,8 +113,8 @@
 
   /* Header Toolbar - Grid Layout */
   .header-toolbar {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
     gap: 1rem;
     padding: 0.75rem 1rem;
@@ -122,6 +122,14 @@
     margin: 0 auto;
     position: relative;
     z-index: 1;
+  }
+
+  /* On md and up, use grid for proper 3-column centering */
+  @media (min-width: 768px) {
+    .header-toolbar {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+    }
   }
 
   /* Lead Section */
@@ -132,8 +140,8 @@
   }
 
   /* Headline Section (Center) */
+  /* Note: display is controlled by Tailwind's hidden/md:flex classes */
   .header-headline {
-    display: flex;
     align-items: center;
     justify-content: center;
   }

@@ -44,17 +44,17 @@
     <h3 class="h3 text-white text-balance">{article['o:title'] ?? $t.article.titleNotAvailable}</h3>
     
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="card variant-glass glass-light p-4 hover-lift-sm">
+      <div class="card preset-glass p-4 hover-lift-sm">
         <span class="text-xs uppercase font-bold opacity-75 text-white/60">{$t.filters.journal}</span>
         <p class="text-white mt-2 font-medium">{getJournalName(article)}</p>
       </div>
-      <div class="card variant-glass glass-light p-4 hover-lift-sm">
+      <div class="card preset-glass p-4 hover-lift-sm">
         <span class="text-xs uppercase font-bold opacity-75 text-white/60">{$t.article.publicationDate}</span>
         <p class="text-white mt-2 font-medium">{formatDate(article.publication_date)}</p>
       </div>
     </div>
 
-    <div class="card variant-glass glass-light p-4 hover-lift-sm">
+    <div class="card preset-glass p-4 hover-lift-sm">
       <span class="text-xs uppercase font-bold opacity-75 text-white/60">{$t.article.linkToFullArticle}</span>
       <p class="text-white mt-2">
         <a href={getArticleUrl(article['o:id'])} target="_blank" class="anchor hover-glow focus-ring">
@@ -65,7 +65,7 @@
     
     {#if article.sentiment_analysis}
       <!-- Centralité -->
-      <div class="card variant-glass glass-medium p-5 hover-lift-sm border-gradient">
+      <div class="card preset-glass-lg p-5 hover-lift-sm border-gradient">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
           <SentimentBadge 
             type="centrality" 
@@ -78,7 +78,7 @@
         {#if article.sentiment_analysis.centralite_justification}
           <div class="mt-4">
             <span class="text-xs uppercase font-bold opacity-75 text-white/60 mb-2 block">{$t.article.justification}</span>
-            <blockquote class="card variant-glass glass-light p-4 border-l-4 border-l-blue-400/50 italic text-white/90 leading-relaxed">
+            <blockquote class="card preset-glass p-4 border-l-4 border-l-blue-400/50 italic text-white/90 leading-relaxed">
               {article.sentiment_analysis.centralite_justification}
             </blockquote>
           </div>
@@ -86,7 +86,7 @@
       </div>
       
       <!-- Polarité -->
-      <div class="card variant-glass glass-medium p-5 hover-lift-sm border-gradient">
+      <div class="card preset-glass-lg p-5 hover-lift-sm border-gradient">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
           <SentimentBadge 
             type="polarity" 
@@ -99,7 +99,7 @@
         {#if article.sentiment_analysis.polarite_justification}
           <div class="mt-4">
             <span class="text-xs uppercase font-bold opacity-75 text-white/60 mb-2 block">{$t.article.justification}</span>
-            <blockquote class="card variant-glass glass-light p-4 border-l-4 border-l-purple-400/50 italic text-white/90 leading-relaxed">
+            <blockquote class="card preset-glass p-4 border-l-4 border-l-purple-400/50 italic text-white/90 leading-relaxed">
               {article.sentiment_analysis.polarite_justification}
             </blockquote>
           </div>
@@ -107,7 +107,7 @@
       </div>
       
       <!-- Subjectivité -->
-      <div class="card variant-glass glass-medium p-5 hover-lift-sm border-gradient">
+      <div class="card preset-glass-lg p-5 hover-lift-sm border-gradient">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
           <SentimentBadge 
             type="subjectivity" 
@@ -120,20 +120,20 @@
         {#if article.sentiment_analysis.subjectivite_justification}
           <div class="mt-4">
             <span class="text-xs uppercase font-bold opacity-75 text-white/60 mb-2 block">{$t.article.justification}</span>
-            <blockquote class="card variant-glass glass-light p-4 border-l-4 border-l-green-400/50 italic text-white/90 leading-relaxed">
+            <blockquote class="card preset-glass p-4 border-l-4 border-l-green-400/50 italic text-white/90 leading-relaxed">
               {article.sentiment_analysis.subjectivite_justification}
             </blockquote>
           </div>
         {/if}
       </div>
     {:else}
-      <div class="card variant-glass glass-light p-6 text-center hover-lift-sm">
+      <div class="card preset-glass p-6 text-center hover-lift-sm">
         <p class="text-white/80 text-balance">{$t.article.noAnalysisData}</p>
       </div>
     {/if}
   </div>
 {:else}
-  <div class="card variant-glass glass-light p-8 flex flex-col items-center justify-center min-h-[300px] text-center hover-lift-sm">
+  <div class="card preset-glass p-8 flex flex-col items-center justify-center min-h-[300px] text-center hover-lift-sm">
     <div class="mb-4 opacity-50">
       <svg class="w-16 h-16 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

@@ -207,6 +207,38 @@ body {
   border: 1px solid color-mix(in oklab, var(--color-secondary-500) 25%, transparent);
 }
 
+/* Legacy glass classes (for backward compatibility with variant-glass) */
+.variant-glass {
+  background: color-mix(in oklab, var(--color-surface-900) 70%, transparent);
+  backdrop-filter: blur(var(--glass-blur-md));
+  border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+}
+
+/* Glass intensity variants - can be combined with variant-glass or used standalone */
+.glass-light {
+  background: color-mix(in oklab, var(--color-surface-900) 50%, transparent);
+  backdrop-filter: blur(var(--glass-blur-sm));
+}
+
+.glass-medium {
+  background: color-mix(in oklab, var(--color-surface-900) 65%, transparent);
+  backdrop-filter: blur(var(--glass-blur-md));
+}
+
+.glass-heavy {
+  background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
+  backdrop-filter: blur(var(--glass-blur-lg));
+}
+
+.glass-dark {
+  background: color-mix(in oklab, var(--color-surface-950) 85%, transparent);
+  backdrop-filter: blur(var(--glass-blur-lg));
+  border: 1px solid color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+}
+
 /* -----------------------------------------------------------------------------
    Card Enhancements
    ----------------------------------------------------------------------------- */
