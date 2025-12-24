@@ -1,7 +1,7 @@
 <script lang="ts">
   import { selectedDataset, availableDatasets, comparisonMode } from '$lib/stores';
   import { t } from '$lib/i18n';
-  import DatabaseIcon from '@lucide/svelte/icons/database';
+  import { base } from '$app/paths';
   import GitCompareIcon from '@lucide/svelte/icons/git-compare';
 
   let currentDataset = $derived($availableDatasets.find(d => d.id === $selectedDataset));
@@ -26,6 +26,12 @@
     md: 16,
     lg: 18
   };
+  
+  const logoSizes = {
+    sm: 14,
+    md: 16,
+    lg: 20
+  };
 </script>
 
 {#if $comparisonMode}
@@ -43,9 +49,18 @@
     style="--dataset-color: {currentDataset.color || '#3B82F6'}"
   >
     {#if showIcon}
-      <span class="dataset-icon" style="font-size: {iconSizes[size]}px">
-        {currentDataset.icon}
-      </span>
+      {#if currentDataset.logo}
+        <img 
+          src="{base}{currentDataset.logo}" 
+          alt="{currentDataset.name} logo" 
+          class="dataset-logo"
+          style="width: {logoSizes[size]}px; height: {logoSizes[size]}px;"
+        />
+      {:else if currentDataset.icon}
+        <span class="dataset-icon" style="font-size: {iconSizes[size]}px">
+          {currentDataset.icon}
+        </span>
+      {/if}
     {/if}
     {#if showLabel}
       <span class="badge-label">{currentDataset.name}</span>
@@ -109,6 +124,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .dataset-logo {
+    object-fit: contain;
+    flex-shrink: 0;
     position: relative;
     z-index: 1;
   }

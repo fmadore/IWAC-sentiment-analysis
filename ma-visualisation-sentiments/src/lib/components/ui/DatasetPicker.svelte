@@ -1,10 +1,12 @@
 <script lang="ts">
   import { selectedDataset, availableDatasets } from '$lib/stores';
   import { t } from '$lib/i18n';
-  import DatabaseIcon from '@lucide/svelte/icons/database';
+  import { base } from '$app/paths';
 
   let isOpen = $state(false);
   let pickerElement: HTMLDivElement;
+  
+  let currentDataset = $derived($availableDatasets.find(d => d.id === $selectedDataset));
 
   function selectDataset(datasetId: string) {
     selectedDataset.set(datasetId);
@@ -54,9 +56,15 @@
     type="button"
   >
     <div class="button-content">
-      <DatabaseIcon size={18} />
+      {#if currentDataset?.logo}
+        <img 
+          src="{base}{currentDataset.logo}" 
+          alt="{currentDataset.name} logo" 
+          class="dataset-logo"
+        />
+      {/if}
       <span class="picker-label">
-        {$availableDatasets.find(d => d.id === $selectedDataset)?.name || 'Select Dataset'}
+        {currentDataset?.name || 'Select Dataset'}
       </span>
       <svg
         class="chevron {isOpen ? 'rotate-180' : ''}"
@@ -76,14 +84,22 @@
       <div class="menu-section">
         <span class="section-label">{$t.datasets?.availableModels || 'Available Models'}</span>
         {#each $availableDatasets as dataset}
-                      <button
-              class="menu-item {$selectedDataset === dataset.id ? 'active' : ''}"
-              onclick={(e) => handleMenuItemClick(e, dataset.id)}
-              ontouchend={(e) => handleMenuItemClick(e, dataset.id)}
-              role="menuitem"
-              tabindex="0"
-            >
-            <span class="dataset-icon">{dataset.icon}</span>
+          <button
+            class="menu-item {$selectedDataset === dataset.id ? 'active' : ''}"
+            onclick={(e) => handleMenuItemClick(e, dataset.id)}
+            ontouchend={(e) => handleMenuItemClick(e, dataset.id)}
+            role="menuitem"
+            tabindex="0"
+          >
+            {#if dataset.logo}
+              <img 
+                src="{base}{dataset.logo}" 
+                alt="{dataset.name} logo" 
+                class="dataset-logo menu-logo"
+              />
+            {:else if dataset.icon}
+              <span class="dataset-icon">{dataset.icon}</span>
+            {/if}
             <span class="dataset-name">{dataset.name}</span>
             {#if $selectedDataset === dataset.id}
               <div class="check-mark">✓</div>
@@ -247,6 +263,18 @@
 
   .menu-item.active:hover {
     background: color-mix(in oklab, var(--color-primary-500) 30%, transparent);
+  }
+
+  .dataset-logo {
+    width: 1.25rem;
+    height: 1.25rem;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .dataset-logo.menu-logo {
+    width: 1.5rem;
+    height: 1.5rem;
   }
 
   .dataset-icon {

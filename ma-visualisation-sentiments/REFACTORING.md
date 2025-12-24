@@ -172,6 +172,30 @@ The main `+page.svelte` component was refactored to extract reusable components,
 
 ## 🔲 Phase 5: Optional Enhancements (LOW PRIORITY)
 
+### ✅ UI Improvements (COMPLETE)
+
+#### SVG Logo Integration
+
+Replaced emoji icons (🤖, ✨) with actual SVG logos for ChatGPT and Gemini:
+
+**Files Modified:**
+- `src/lib/types/data.ts` - Added `logo` field to `DatasetOption` interface
+- `src/lib/stores.ts` - Updated `availableDatasets` to use SVG paths
+- `src/lib/components/ui/DatasetPicker.svelte` - Renders `<img>` with logo path
+- `src/lib/components/ui/DatasetBadge.svelte` - Renders logo with size variations
+
+**Before:**
+```typescript
+{ id: 'chatgpt', name: 'ChatGPT', file: '...', icon: '🤖', color: '#10a37f' }
+{ id: 'gemini', name: 'Gemini', file: '...', icon: '✨', color: '#8e75b2' }
+```
+
+**After:**
+```typescript
+{ id: 'chatgpt', name: 'ChatGPT', file: '...', logo: '/logo/ChatGPT_logo.svg', color: '#10a37f' }
+{ id: 'gemini', name: 'Gemini', file: '...', logo: '/logo/Gemini_logo.svg', color: '#8e75b2' }
+```
+
 ### Visualization Components (`src/lib/components/viz/`)
 
 These components have chart-specific styling and low duplication. Refactoring is optional.

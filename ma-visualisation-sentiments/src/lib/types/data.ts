@@ -35,6 +35,9 @@ export interface DatasetOption {
   id: string;
   name: string;
   file: string;
+  /** Path to SVG logo (relative to static folder, e.g., '/logo/ChatGPT_logo.svg') */
+  logo?: string;
+  /** Fallback icon emoji (deprecated, use logo instead) */
   icon?: string;
   color?: string;
 }
