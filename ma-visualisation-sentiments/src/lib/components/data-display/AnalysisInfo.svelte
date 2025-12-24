@@ -429,6 +429,7 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
     border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
     border-radius: 1rem;
     padding: 1.25rem;
+    margin-bottom: 1.5rem;
     box-shadow: 
       0 4px 24px color-mix(in oklab, black 10%, transparent),
       inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 6%, transparent);

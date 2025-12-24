@@ -45,6 +45,7 @@ export interface Translations {
 
   // Filters
   filters: {
+    title: string;
     country: string;
     journal: string;
     polarity: string;

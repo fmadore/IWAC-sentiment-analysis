@@ -21,6 +21,7 @@ export const fr: Translations = {
 
   // Filters
   filters: {
+    title: 'Facettes',
     country: 'Pays',
     journal: 'Journal',
     polarity: 'Polarité',

@@ -221,9 +221,7 @@
 <SEOHead view={activeView} comparisonMode={$comparisonMode} />
 
 <main class="main-container container {activeView === 'extremes' ? 'max-w-7xl' : 'max-w-6xl'} mx-auto p-2 sm:p-4 md:p-6">
-  <div class="mb-4 sm:mb-6">
-    <AnalysisInfo />
-  </div>
+  <AnalysisInfo />
 
   {#if $isLoadingDataset}
     <LoadingState />

@@ -101,7 +101,7 @@
       0 4px 24px color-mix(in oklab, black 10%, transparent),
       inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 8%, transparent);
     padding: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     position: relative;
   }
 
