@@ -126,7 +126,7 @@
   .extreme-title {
     font-size: 1.75rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #FF6B35 0%, #F7931E 50%, #FFD23F 100%);
+    background: var(--gradient-extreme);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

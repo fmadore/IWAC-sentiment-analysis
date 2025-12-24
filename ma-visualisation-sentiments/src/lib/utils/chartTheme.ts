@@ -168,6 +168,24 @@ export function getAxisLineStyle() {
 }
 
 /**
+ * Axis pointer configuration for cross-style tooltips
+ * Used in line/area charts for precise value display
+ */
+export function getAxisPointerConfig() {
+  return {
+    type: 'cross' as const,
+    label: {
+      backgroundColor: 'rgba(15, 23, 42, 0.9)',
+      borderColor: 'rgba(255, 255, 255, 0.2)',
+      color: 'rgba(255, 255, 255, 0.9)'
+    },
+    crossStyle: {
+      color: 'rgba(255, 255, 255, 0.3)'
+    }
+  };
+}
+
+/**
  * Common axis label style
  */
 export function getAxisLabelStyle(isMobile: boolean) {

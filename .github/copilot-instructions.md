@@ -276,6 +276,32 @@ var(--sentiment-centrality-marginal)            /* #64748B */
 var(--sentiment-centrality-not-addressed)       /* #475569 */
 ```
 
+#### Arbiter Colors (AI Judge/Evaluator)
+```css
+/* Primary amber for arbiter elements */
+var(--sentiment-arbiter)              /* #F59E0B */
+var(--sentiment-arbiter-light)        /* #FBBF24 */
+var(--sentiment-arbiter-bg)           /* 15% opacity */
+var(--sentiment-arbiter-border)       /* 30% opacity */
+var(--sentiment-arbiter-icon-bg)      /* Gradient for icons */
+```
+
+#### Discrepancy Colors
+```css
+/* For comparison discrepancy indicators */
+var(--sentiment-discrepancy)          /* #EF4444 */
+var(--sentiment-discrepancy-light)    /* #F97316 */
+var(--sentiment-discrepancy-bg)       /* 15% opacity */
+var(--sentiment-discrepancy-border)   /* 30% opacity */
+```
+
+#### Gradient Definitions
+```css
+var(--gradient-extreme)     /* Orange/gold for extreme analysis */
+var(--gradient-header)      /* Blue/purple for headers */
+var(--gradient-comparison)  /* Blue/purple/pink for comparison views */
+```
+
 ### Using Sentiment Classes
 
 Use the predefined semantic classes for sentiment badges and filter chips:

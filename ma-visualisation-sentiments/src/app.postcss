@@ -111,6 +111,32 @@
   --sentiment-centrality-not-addressed-bg: color-mix(in oklab, #475569 15%, transparent);
   --sentiment-centrality-not-addressed-border: color-mix(in oklab, #475569 30%, transparent);
   
+  /* --- Arbiter Colors (AI Judge/Evaluator) --- */
+  /* Primary: Amber/Gold for AI arbiter elements */
+  --sentiment-arbiter: #F59E0B;
+  --sentiment-arbiter-light: #FBBF24;
+  --sentiment-arbiter-bg: color-mix(in oklab, #F59E0B 15%, transparent);
+  --sentiment-arbiter-border: color-mix(in oklab, #F59E0B 30%, transparent);
+  --sentiment-arbiter-icon-bg: linear-gradient(135deg, 
+    color-mix(in oklab, #F59E0B 20%, transparent),
+    color-mix(in oklab, #FBBF24 10%, transparent)
+  );
+  
+  /* --- Discrepancy Colors --- */
+  /* Used for comparison discrepancy indicators */
+  --sentiment-discrepancy: #EF4444;
+  --sentiment-discrepancy-light: #F97316;
+  --sentiment-discrepancy-bg: color-mix(in oklab, #EF4444 15%, transparent);
+  --sentiment-discrepancy-border: color-mix(in oklab, #EF4444 30%, transparent);
+  
+  /* --- Gradient Definitions --- */
+  /* Extreme Analysis gradient (orange/gold) */
+  --gradient-extreme: linear-gradient(135deg, #FF6B35 0%, #F7931E 50%, #FFD23F 100%);
+  /* Header gradient (blue/purple) */
+  --gradient-header: linear-gradient(90deg, var(--color-primary-500), var(--color-secondary-500));
+  /* Comparison gradient (blue/purple/pink) */
+  --gradient-comparison: linear-gradient(135deg, #60A5FA, #A78BFA, #F472B6);
+  
   /* Force dark scheme for this app */
   color-scheme: dark;
 }

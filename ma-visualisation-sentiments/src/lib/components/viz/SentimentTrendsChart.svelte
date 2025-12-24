@@ -35,6 +35,7 @@
     getTooltipConfig,
     getLegendConfig,
     getAxisLineStyle,
+    getAxisPointerConfig,
     getAxisLabelStyle,
     getSplitLineStyle,
     getGridConfig,
@@ -119,17 +120,7 @@
       tooltip: {
         ...tooltipConfig,
         trigger: 'axis',
-        axisPointer: {
-          type: 'cross',
-          label: {
-            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-            borderColor: 'rgba(255, 255, 255, 0.2)',
-            color: 'rgba(255, 255, 255, 0.9)'
-          },
-          crossStyle: {
-            color: 'rgba(255, 255, 255, 0.3)'
-          }
-        },
+        axisPointer: getAxisPointerConfig(),
         formatter: function (params: any) {
           if (!Array.isArray(params) || params.length === 0) {
             return '';

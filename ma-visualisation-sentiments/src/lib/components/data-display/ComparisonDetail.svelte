@@ -598,9 +598,9 @@
     right: 0;
     height: 3px;
     background: linear-gradient(90deg, 
-      #ef4444, /* red-500 */
-      #f97316, /* orange-500 */
-      #ef4444  /* red-500 */
+      var(--sentiment-discrepancy),
+      var(--sentiment-discrepancy-light),
+      var(--sentiment-discrepancy)
     );
     opacity: 0.8;
   }
@@ -608,7 +608,7 @@
   .discrepancy-gradient {
     background: linear-gradient(135deg, 
       color-mix(in oklab, var(--color-surface-900) 92%, transparent),
-      color-mix(in oklab, #ef4444 4%, var(--color-surface-900))
+      color-mix(in oklab, var(--sentiment-discrepancy) 4%, var(--color-surface-900))
     ) !important;
   }
 
@@ -713,9 +713,9 @@
     right: 0;
     height: 3px;
     background: linear-gradient(90deg, 
-      #f59e0b, /* amber-500 */
-      #fbbf24, /* amber-400 */
-      #f59e0b  /* amber-500 */
+      var(--sentiment-arbiter),
+      var(--sentiment-arbiter-light),
+      var(--sentiment-arbiter)
     );
     opacity: 0.8;
   }
@@ -723,7 +723,7 @@
   .arbiter-gradient {
     background: linear-gradient(135deg, 
       color-mix(in oklab, var(--color-surface-900) 92%, transparent),
-      color-mix(in oklab, #f59e0b 4%, var(--color-surface-900))
+      color-mix(in oklab, var(--sentiment-arbiter) 4%, var(--color-surface-900))
     ) !important;
   }
 
@@ -746,24 +746,21 @@
     width: 40px;
     height: 40px;
     border-radius: 10px;
-    background: linear-gradient(135deg, 
-      color-mix(in oklab, #f59e0b 20%, transparent),
-      color-mix(in oklab, #fbbf24 10%, transparent)
-    );
-    border: 1px solid color-mix(in oklab, #f59e0b 30%, transparent);
+    background: var(--sentiment-arbiter-icon-bg);
+    border: 1px solid var(--sentiment-arbiter-border);
   }
 
   .arbiter-verdict-panel {
-    border: 1px solid color-mix(in oklab, #f59e0b 15%, transparent);
+    border: 1px solid color-mix(in oklab, var(--sentiment-arbiter) 15%, transparent);
     border-radius: 0.5rem;
     padding: 1rem;
-    background: color-mix(in oklab, #f59e0b 3%, transparent);
+    background: color-mix(in oklab, var(--sentiment-arbiter) 3%, transparent);
     transition: all var(--timing-fast) var(--easing-default);
   }
 
   .arbiter-verdict-panel:hover {
-    border-color: color-mix(in oklab, #f59e0b 25%, transparent);
-    background: color-mix(in oklab, #f59e0b 5%, transparent);
+    border-color: color-mix(in oklab, var(--sentiment-arbiter) 25%, transparent);
+    background: color-mix(in oklab, var(--sentiment-arbiter) 5%, transparent);
   }
 
   /* Loading spinner for arbiter */
@@ -771,7 +768,7 @@
     width: 24px;
     height: 24px;
     border: 2px solid color-mix(in oklab, var(--color-surface-50) 20%, transparent);
-    border-top-color: #f59e0b;
+    border-top-color: var(--sentiment-arbiter);
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
