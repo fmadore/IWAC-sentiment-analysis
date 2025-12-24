@@ -155,6 +155,7 @@
   .modal-backdrop {
     position: absolute;
     inset: 0;
+    z-index: 0;
     background: color-mix(in oklab, var(--color-surface-950) 95%, transparent);
     backdrop-filter: blur(var(--glass-blur-xl));
     animation: fadeIn var(--timing-normal) var(--easing-default);
@@ -166,6 +167,7 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    width: 100%;
     animation: slideUp var(--timing-normal) var(--easing-default);
   }
 
