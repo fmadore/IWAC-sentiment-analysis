@@ -395,19 +395,19 @@
   }
   
   .arbiter-stat-fill.chatgpt {
-    background: linear-gradient(90deg, #10B981, #34D399);
+    background: linear-gradient(90deg, var(--color-success-500), var(--color-success-400));
   }
   
   .arbiter-stat-fill.gemini {
-    background: linear-gradient(90deg, #3B82F6, #60A5FA);
+    background: linear-gradient(90deg, var(--color-primary-500), var(--color-primary-400));
   }
   
   .arbiter-stat-fill.equal {
-    background: linear-gradient(90deg, #8B5CF6, #A78BFA);
+    background: linear-gradient(90deg, var(--color-secondary-500), var(--color-secondary-400));
   }
   
   .arbiter-stat-fill.neither {
-    background: linear-gradient(90deg, #6B7280, #9CA3AF);
+    background: linear-gradient(90deg, var(--sentiment-polarity-na), color-mix(in oklab, var(--sentiment-polarity-na) 70%, white));
   }
   
   .arbiter-stat-info {

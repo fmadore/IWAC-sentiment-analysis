@@ -287,8 +287,8 @@
   .loading-spinner {
     width: 48px;
     height: 48px;
-    border: 3px solid rgba(255, 255, 255, 0.1);
-    border-top-color: rgba(255, 255, 255, 0.8);
+    border: 3px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    border-top-color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: 0 auto;
@@ -300,8 +300,8 @@
 
   /* Chart Container */
   .chart-container {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: color-mix(in oklab, var(--color-surface-50) 2%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-surface-50) 5%, transparent);
   }
 
   /* Statistics Row */

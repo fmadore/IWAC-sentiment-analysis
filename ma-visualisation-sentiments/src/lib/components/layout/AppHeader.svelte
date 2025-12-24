@@ -40,8 +40,8 @@
           <path d="M8 12h16M8 16h12M8 20h8" stroke="white" stroke-width="2" stroke-linecap="round" />
           <defs>
             <linearGradient id="header-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#3B82F6" />
-              <stop offset="100%" style="stop-color:#8B5CF6" />
+              <stop offset="0%" stop-color="var(--color-primary-500)" />
+              <stop offset="100%" stop-color="var(--color-secondary-500)" />
             </linearGradient>
           </defs>
         </svg>
