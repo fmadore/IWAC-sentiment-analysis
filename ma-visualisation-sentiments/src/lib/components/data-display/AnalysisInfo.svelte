@@ -1,12 +1,22 @@
 <script lang="ts">
   import { t, currentLanguage } from '$lib/i18n';
   import { selectedDataset, comparisonMode } from '$lib/stores';
+  import { AccordionItem } from '$lib/components/common';
   
   // Define the type for open sections as an array of strings
   let openSections = $state<string[]>([]);
   
   // State for the prompt modal
   let showPromptModal = $state(false);
+  
+  // Toggle function for accordion sections
+  function toggleSection(section: string) {
+    if (openSections.includes(section)) {
+      openSections = openSections.filter(s => s !== section);
+    } else {
+      openSections = [...openSections, section];
+    }
+  }
   
   // Function to handle modal keyboard events
   function handleModalKeydown(event: KeyboardEvent) {
@@ -36,255 +46,206 @@
   </p>
   
   <div class="accordion-container">
-    <div class="accordion-item">
-      <h3>
-        <button 
-          class="accordion-trigger" 
-          data-state={openSections.includes('polarite') ? 'open' : 'closed'}
-          onclick={() => openSections = openSections.includes('polarite') ? openSections.filter(s => s !== 'polarite') : [...openSections, 'polarite']}
-        >
-          <span class="accordion-trigger-text">{$t.analysis.polaritySection}</span>
-          <span class="accordion-icon" data-state={openSections.includes('polarite') ? 'open' : 'closed'}>▼</span>
-        </button>
-      </h3>
-      {#if openSections.includes('polarite')}
-        <div class="accordion-panel">
-          <p class="panel-description">{$t.analysis.polarityDescription}</p>
-          <ul class="sentiment-list">
-            <li><span class="badge sentiment-very-positive">{$t.sentiment.veryPositive}</span> <span class="sentiment-desc">— {$t.analysis.veryPositiveDesc}</span></li>
-            <li><span class="badge sentiment-positive">{$t.sentiment.positive}</span> <span class="sentiment-desc">— {$t.analysis.positiveDesc}</span></li>
-            <li><span class="badge sentiment-neutral">{$t.sentiment.neutral}</span> <span class="sentiment-desc">— {$t.analysis.neutralDesc}</span></li>
-            <li><span class="badge sentiment-negative">{$t.sentiment.negative}</span> <span class="sentiment-desc">— {$t.analysis.negativeDesc}</span></li>
-            <li><span class="badge sentiment-very-negative">{$t.sentiment.veryNegative}</span> <span class="sentiment-desc">— {$t.analysis.veryNegativeDesc}</span></li>
-            <li><span class="badge sentiment-na">{$t.sentiment.notApplicable}</span> <span class="sentiment-desc">— {$t.analysis.notApplicableNote}</span></li>
-          </ul>
-        </div>
-      {/if}
-    </div>
+    <!-- Polarity Section -->
+    <AccordionItem 
+      title={$t.analysis.polaritySection}
+      open={openSections.includes('polarite')}
+      onToggle={() => toggleSection('polarite')}
+    >
+      <p class="panel-description">{$t.analysis.polarityDescription}</p>
+      <ul class="sentiment-list">
+        <li><span class="badge sentiment-very-positive">{$t.sentiment.veryPositive}</span> <span class="sentiment-desc">— {$t.analysis.veryPositiveDesc}</span></li>
+        <li><span class="badge sentiment-positive">{$t.sentiment.positive}</span> <span class="sentiment-desc">— {$t.analysis.positiveDesc}</span></li>
+        <li><span class="badge sentiment-neutral">{$t.sentiment.neutral}</span> <span class="sentiment-desc">— {$t.analysis.neutralDesc}</span></li>
+        <li><span class="badge sentiment-negative">{$t.sentiment.negative}</span> <span class="sentiment-desc">— {$t.analysis.negativeDesc}</span></li>
+        <li><span class="badge sentiment-very-negative">{$t.sentiment.veryNegative}</span> <span class="sentiment-desc">— {$t.analysis.veryNegativeDesc}</span></li>
+        <li><span class="badge sentiment-na">{$t.sentiment.notApplicable}</span> <span class="sentiment-desc">— {$t.analysis.notApplicableNote}</span></li>
+      </ul>
+    </AccordionItem>
     
-    <div class="accordion-item">
-      <h3>
-        <button 
-          class="accordion-trigger" 
-          data-state={openSections.includes('subjectivite') ? 'open' : 'closed'}
-          onclick={() => openSections = openSections.includes('subjectivite') ? openSections.filter(s => s !== 'subjectivite') : [...openSections, 'subjectivite']}
-        >
-          <span class="accordion-trigger-text">{$t.analysis.subjectivitySection}</span>
-          <span class="accordion-icon" data-state={openSections.includes('subjectivite') ? 'open' : 'closed'}>▼</span>
-        </button>
-      </h3>
-      {#if openSections.includes('subjectivite')}
-        <div class="accordion-panel">
-          <p class="panel-description">{$t.analysis.subjectivityDescription}</p>
-          <ul class="sentiment-list">
-            <li><span class="badge subjectivity-1">1</span> <strong class="subjectivity-label">{$t.subjectivity.factual}</strong> <span class="sentiment-desc">— {$t.analysis.factualDesc}</span></li>
-            <li><span class="badge subjectivity-2">2</span> <strong class="subjectivity-label">{$t.subjectivity.ratherFactual}</strong> <span class="sentiment-desc">— {$t.analysis.ratherFactualDesc}</span></li>
-            <li><span class="badge subjectivity-3">3</span> <strong class="subjectivity-label">{$t.subjectivity.mixed}</strong> <span class="sentiment-desc">— {$t.analysis.mixedDesc}</span></li>
-            <li><span class="badge subjectivity-4">4</span> <strong class="subjectivity-label">{$t.subjectivity.ratherSubjective}</strong> <span class="sentiment-desc">— {$t.analysis.ratherSubjectiveDesc}</span></li>
-            <li><span class="badge subjectivity-5">5</span> <strong class="subjectivity-label">{$t.subjectivity.subjective}</strong> <span class="sentiment-desc">— {$t.analysis.subjectiveDesc}</span></li>
-          </ul>
-        </div>
-      {/if}
-    </div>
+    <!-- Subjectivity Section -->
+    <AccordionItem 
+      title={$t.analysis.subjectivitySection}
+      open={openSections.includes('subjectivite')}
+      onToggle={() => toggleSection('subjectivite')}
+    >
+      <p class="panel-description">{$t.analysis.subjectivityDescription}</p>
+      <ul class="sentiment-list">
+        <li><span class="badge subjectivity-1">1</span> <strong class="subjectivity-label">{$t.subjectivity.factual}</strong> <span class="sentiment-desc">— {$t.analysis.factualDesc}</span></li>
+        <li><span class="badge subjectivity-2">2</span> <strong class="subjectivity-label">{$t.subjectivity.ratherFactual}</strong> <span class="sentiment-desc">— {$t.analysis.ratherFactualDesc}</span></li>
+        <li><span class="badge subjectivity-3">3</span> <strong class="subjectivity-label">{$t.subjectivity.mixed}</strong> <span class="sentiment-desc">— {$t.analysis.mixedDesc}</span></li>
+        <li><span class="badge subjectivity-4">4</span> <strong class="subjectivity-label">{$t.subjectivity.ratherSubjective}</strong> <span class="sentiment-desc">— {$t.analysis.ratherSubjectiveDesc}</span></li>
+        <li><span class="badge subjectivity-5">5</span> <strong class="subjectivity-label">{$t.subjectivity.subjective}</strong> <span class="sentiment-desc">— {$t.analysis.subjectiveDesc}</span></li>
+      </ul>
+    </AccordionItem>
     
-    <div class="accordion-item">
-      <h3>
-        <button 
-          class="accordion-trigger" 
-          data-state={openSections.includes('centralite') ? 'open' : 'closed'}
-          onclick={() => openSections = openSections.includes('centralite') ? openSections.filter(s => s !== 'centralite') : [...openSections, 'centralite']}
-        >
-          <span class="accordion-trigger-text">{$t.analysis.centralitySection}</span>
-          <span class="accordion-icon" data-state={openSections.includes('centralite') ? 'open' : 'closed'}>▼</span>
-        </button>
-      </h3>
-      {#if openSections.includes('centralite')}
-        <div class="accordion-panel">
-          <p class="panel-description">{$t.analysis.centralityDescription}</p>
-          <ul class="sentiment-list">
-            <li><span class="badge centrality-very-central">{$t.centrality.veryCentral}</span> <span class="sentiment-desc">— {$t.analysis.veryCentralDesc}</span></li>
-            <li><span class="badge centrality-central">{$t.centrality.central}</span> <span class="sentiment-desc">— {$t.analysis.centralDesc}</span></li>
-            <li><span class="badge centrality-secondary">{$t.centrality.secondary}</span> <span class="sentiment-desc">— {$t.analysis.secondaryDesc}</span></li>
-            <li><span class="badge centrality-marginal">{$t.centrality.marginal}</span> <span class="sentiment-desc">— {$t.analysis.marginalDesc}</span></li>
-            <li><span class="badge centrality-not-addressed">{$t.centrality.notAddressed}</span> <span class="sentiment-desc">— {$t.analysis.notAddressedDesc}</span></li>
-          </ul>
-        </div>
-      {/if}
-    </div>
+    <!-- Centrality Section -->
+    <AccordionItem 
+      title={$t.analysis.centralitySection}
+      open={openSections.includes('centralite')}
+      onToggle={() => toggleSection('centralite')}
+    >
+      <p class="panel-description">{$t.analysis.centralityDescription}</p>
+      <ul class="sentiment-list">
+        <li><span class="badge centrality-very-central">{$t.centrality.veryCentral}</span> <span class="sentiment-desc">— {$t.analysis.veryCentralDesc}</span></li>
+        <li><span class="badge centrality-central">{$t.centrality.central}</span> <span class="sentiment-desc">— {$t.analysis.centralDesc}</span></li>
+        <li><span class="badge centrality-secondary">{$t.centrality.secondary}</span> <span class="sentiment-desc">— {$t.analysis.secondaryDesc}</span></li>
+        <li><span class="badge centrality-marginal">{$t.centrality.marginal}</span> <span class="sentiment-desc">— {$t.analysis.marginalDesc}</span></li>
+        <li><span class="badge centrality-not-addressed">{$t.centrality.notAddressed}</span> <span class="sentiment-desc">— {$t.analysis.notAddressedDesc}</span></li>
+      </ul>
+    </AccordionItem>
     
-    <div class="accordion-item">
-      <h3>
-        <button 
-          class="accordion-trigger" 
-          data-state={openSections.includes('methodologie') ? 'open' : 'closed'}
-          onclick={() => openSections = openSections.includes('methodologie') ? openSections.filter(s => s !== 'methodologie') : [...openSections, 'methodologie']}
-        >
-          <span class="accordion-trigger-text">{$t.analysis.methodologyAiModel}</span>
-          <span class="accordion-icon" data-state={openSections.includes('methodologie') ? 'open' : 'closed'}>▼</span>
-        </button>
-      </h3>
-      {#if openSections.includes('methodologie')}
-        <div class="accordion-panel">
-          <div class="methodology-content">
-            <div class="methodology-section">
-              <h4 class="section-title">{$t.analysis.modelUsed}</h4>
-              {#if $comparisonMode}
-                <p class="section-text">
-                  {$currentLanguage === 'en' ? 'The analysis uses two large language models (LLMs) to provide comparative insights:' : 'L\'analyse utilise deux grands modèles de langage (LLM) pour fournir des insights comparatifs :'}
-                </p>
-                <div class="model-grid">
-                  <div class="model-card">
-                    <div class="model-header">
-                      <span class="model-icon">🤖</span>
-                      <span class="model-name">ChatGPT (GPT-5 mini)</span>
-                    </div>
-                    <p class="model-description">
-                      {$currentLanguage === 'en' ? 'OpenAI\'s efficient model with a 400,000-token context window, released August 2025. Enhanced reasoning and cost-effectiveness.' : 'Modèle efficace d\'OpenAI avec une fenêtre de contexte de 400 000 tokens, publié en août 2025. Raisonnement amélioré et coût optimisé.'}
-                    </p>
-                    <p class="model-description">
-                      {$currentLanguage === 'en' 
-                        ? "GPT-5 mini is a faster, more cost-efficient version of GPT-5. It's great for well-defined tasks and precise prompts." 
-                        : "GPT-5 mini est une version plus rapide et économique de GPT-5. Idéal pour des tâches bien définies et des invites précises."}
-                    </p>
-                    <a class="model-link" href="https://platform.openai.com/docs/models/gpt-5-mini" target="_blank" rel="noopener noreferrer">Docs →</a>
-                  </div>
-                  <div class="model-card">
-                    <div class="model-header">
-                      <span class="model-icon">✨</span>
-                      <span class="model-name">Gemini 3 Flash</span>
-                    </div>
-                    <p class="model-description">
-                      {$currentLanguage === 'en' ? 'Google\'s latest Flash model with advanced reasoning capabilities and a 1 million token context window, released December 2025.' : 'Le dernier modèle Flash de Google avec des capacités de raisonnement avancées et une fenêtre de contexte de 1 million de tokens, publié en décembre 2025.'}
-                    </p>
-                    <p class="model-description">
-                      {$currentLanguage === 'en' 
-                        ? "Gemini 3 Flash is optimized for speed and efficiency while maintaining high-quality outputs for text analysis tasks." 
-                        : "Gemini 3 Flash est optimisé pour la rapidité et l'efficacité tout en maintenant des sorties de haute qualité pour les tâches d'analyse textuelle."}
-                    </p>
-                    <a class="model-link" href="https://ai.google.dev/gemini-api/docs/models#gemini-3-flash" target="_blank" rel="noopener noreferrer">Docs →</a>
-                  </div>
-                </div>
-                <p class="section-note">
-                  {$currentLanguage === 'en' ? 'Use the dataset picker in the header to switch between models or enable comparison mode to analyze differences in their outputs.' : 'Utilisez le sélecteur de jeu de données dans l\'en-tête pour basculer entre les modèles ou activer le mode comparaison pour analyser les différences dans leurs sorties.'}
-                </p>
-              {:else}
-                <p class="section-text">
-                  {$selectedDataset === 'chatgpt' 
-                    ? ($currentLanguage === 'en' 
-                      ? 'The analysis was performed using ' 
-                      : 'L\'analyse a été réalisée avec ')
-                    : ($currentLanguage === 'en' 
-                      ? 'The analysis was performed using ' 
-                      : 'L\'analyse a été réalisée avec ')}
-                  
-                  {#if $selectedDataset === 'chatgpt'}
-                    <a href="https://platform.openai.com/docs/models/gpt-5-mini" target="_blank" rel="noopener noreferrer" class="model-badge chatgpt">
-                      GPT-5 mini
-                    </a>
-                    {$currentLanguage === 'en' 
-                      ? ', OpenAI\'s efficient model with a 400,000-token context window and enhanced reasoning capabilities, released in August 2025.' 
-                      : ', le modèle efficace d\'OpenAI avec une fenêtre de contexte de 400 000 tokens et des capacités de raisonnement améliorées, publié en août 2025.'}
-                    <span class="model-detail">{$currentLanguage === 'en' 
-                      ? "GPT-5 mini is a faster, more cost-efficient version of GPT-5. It's great for well-defined tasks and precise prompts." 
-                      : "GPT-5 mini est une version plus rapide et économique de GPT-5. Idéal pour des tâches bien définies et des invites précises."}</span>
-                  {:else}
-                    <a href="https://ai.google.dev/gemini-api/docs/models#gemini-3-flash" target="_blank" rel="noopener noreferrer" class="model-badge gemini">
-                      Gemini 3 Flash
-                    </a>
-                    {$currentLanguage === 'en' 
-                      ? ', Google\'s latest Flash model with advanced reasoning capabilities and a 1 million token context window, released December 2025.' 
-                      : ', le dernier modèle Flash de Google avec des capacités de raisonnement avancées et une fenêtre de contexte de 1 million de tokens, publié en décembre 2025.'}
-                    <span class="model-detail">{$currentLanguage === 'en' 
-                      ? "Gemini 3 Flash is optimized for speed and efficiency while maintaining high-quality outputs for text analysis tasks." 
-                      : "Gemini 3 Flash est optimisé pour la rapidité et l'efficacité tout en maintenant des sorties de haute qualité pour les tâches d'analyse textuelle."}</span>
-                  {/if}
-                </p>
-              {/if}
-            </div>
-            
-            <div class="methodology-section">
-              <h4 class="section-title">{$t.analysis.technicalConfiguration}</h4>
-              <ul class="config-list">
-                {#if $comparisonMode}
-                  <li>{($currentLanguage === 'en' ? 'Gemini: ' : 'Gemini : ')}{$t.analysis.temperatureConfig}</li>
-                {:else if $selectedDataset === 'gemini'}
-                  <li>{$t.analysis.temperatureConfig}</li>
-                {/if}
-                <li>{$t.analysis.outputFormat}</li>
-                <li>{$t.analysis.cacheSystem}</li>
-                <li>{$t.analysis.errorHandling}</li>
-                {#if $comparisonMode}
-                  <li>{$currentLanguage === 'en' ? 'Parallel processing: Both models analyze the same articles independently' : 'Traitement parallèle : Les deux modèles analysent les mêmes articles de manière indépendante'}</li>
-                  <li>{$currentLanguage === 'en' ? 'Discrepancy detection: Automatic identification of differences in sentiment analysis' : 'Détection des divergences : Identification automatique des différences dans l\'analyse de sentiment'}</li>
-                {/if}
-                <li>{$currentLanguage === 'en' ? 'API parameters: temperature=0.2, thinking_level="low" (Gemini 3)' : 'Paramètres API : temperature=0.2, thinking_level="low" (Gemini 3)'}</li>
-              </ul>
-            </div>
-            
-            <div class="methodology-section">
-              <h4 class="section-title">{$t.analysis.analysisPrompt}</h4>
-              <p class="section-text">
-                {$comparisonMode 
-                  ? ($currentLanguage === 'en' 
-                    ? 'Both models use the same standardized prompt to ensure consistent analysis criteria across different AI systems:'
-                    : 'Les deux modèles utilisent le même prompt standardisé pour assurer des critères d\'analyse cohérents entre les différents systèmes d\'IA :')
-                  : $t.analysis.promptDescription}
-              </p>
-              <ul class="config-list">
-                <li>{$t.analysis.promptFeature1}</li>
-                <li>{$t.analysis.promptFeature2}</li>
-                <li>{$t.analysis.promptFeature3}</li>
-                <li>{$t.analysis.promptFeature4}</li>
-                <li>{$t.analysis.promptFeature5}</li>
-                {#if $comparisonMode}
-                  <li>{$currentLanguage === 'en' ? 'Identical prompt ensures fair comparison between models' : 'Le prompt identique assure une comparaison équitable entre les modèles'}</li>
-                {/if}
-              </ul>
-              <button 
-                class="prompt-btn"
-                onclick={() => showPromptModal = true}
-              >
-                {$t.analysis.viewFullPrompt}
-              </button>
-            </div>
-          </div>
-        </div>
-      {/if}
-    </div>
-    
-    <div class="accordion-item">
-      <h3>
-        <button 
-          class="accordion-trigger" 
-          data-state={openSections.includes('limites') ? 'open' : 'closed'}
-          onclick={() => openSections = openSections.includes('limites') ? openSections.filter(s => s !== 'limites') : [...openSections, 'limites']}
-        >
-          <span class="accordion-trigger-text">{$t.analysis.limitationsTitle}</span>
-          <span class="accordion-icon" data-state={openSections.includes('limites') ? 'open' : 'closed'}>▼</span>
-        </button>
-      </h3>
-      {#if openSections.includes('limites')}
-        <div class="accordion-panel">
-          <p class="panel-description">{$t.analysis.limitationsDescription}</p>
+    <!-- Methodology Section -->
+    <AccordionItem 
+      title={$t.analysis.methodologyAiModel}
+      open={openSections.includes('methodologie')}
+      onToggle={() => toggleSection('methodologie')}
+    >
+      <div class="methodology-content">
+        <div class="methodology-section">
+          <h4 class="section-title">{$t.analysis.modelUsed}</h4>
           {#if $comparisonMode}
-            <div class="comparison-notice">
-              <h4 class="section-title">
-                {$currentLanguage === 'en' ? 'Comparison Mode Considerations' : 'Considérations du mode comparaison'}
-              </h4>
-              <ul class="config-list">
-                <li>{$currentLanguage === 'en' ? 'Model differences may reflect varying training data, architectures, and optimization objectives rather than inherent accuracy' : 'Les différences entre modèles peuvent refléter des données d\'entraînement, des architectures et des objectifs d\'optimisation variables plutôt qu\'une précision inhérente'}</li>
-                <li>{$currentLanguage === 'en' ? 'Neither model should be considered a ground truth; discrepancies highlight areas requiring human expert review' : 'Aucun modèle ne doit être considéré comme une vérité absolue ; les divergences soulignent les domaines nécessitant un examen d\'expert humain'}</li>
-                <li>{$currentLanguage === 'en' ? 'Comparison results are most valuable when used to identify patterns and trends rather than definitive judgments' : 'Les résultats de comparaison sont plus utiles pour identifier des motifs et tendances que pour des jugements définitifs'}</li>
-              </ul>
+            <p class="section-text">
+              {$currentLanguage === 'en' ? 'The analysis uses two large language models (LLMs) to provide comparative insights:' : 'L\'analyse utilise deux grands modèles de langage (LLM) pour fournir des insights comparatifs :'}
+            </p>
+            <div class="model-grid">
+              <div class="model-card">
+                <div class="model-header">
+                  <span class="model-icon">🤖</span>
+                  <span class="model-name">ChatGPT (GPT-5 mini)</span>
+                </div>
+                <p class="model-description">
+                  {$currentLanguage === 'en' ? 'OpenAI\'s efficient model with a 400,000-token context window, released August 2025. Enhanced reasoning and cost-effectiveness.' : 'Modèle efficace d\'OpenAI avec une fenêtre de contexte de 400 000 tokens, publié en août 2025. Raisonnement amélioré et coût optimisé.'}
+                </p>
+                <p class="model-description">
+                  {$currentLanguage === 'en' 
+                    ? "GPT-5 mini is a faster, more cost-efficient version of GPT-5. It's great for well-defined tasks and precise prompts." 
+                    : "GPT-5 mini est une version plus rapide et économique de GPT-5. Idéal pour des tâches bien définies et des invites précises."}
+                </p>
+                <a class="model-link" href="https://platform.openai.com/docs/models/gpt-5-mini" target="_blank" rel="noopener noreferrer">Docs →</a>
+              </div>
+              <div class="model-card">
+                <div class="model-header">
+                  <span class="model-icon">✨</span>
+                  <span class="model-name">Gemini 3 Flash</span>
+                </div>
+                <p class="model-description">
+                  {$currentLanguage === 'en' ? 'Google\'s latest Flash model with advanced reasoning capabilities and a 1 million token context window, released December 2025.' : 'Le dernier modèle Flash de Google avec des capacités de raisonnement avancées et une fenêtre de contexte de 1 million de tokens, publié en décembre 2025.'}
+                </p>
+                <p class="model-description">
+                  {$currentLanguage === 'en' 
+                    ? "Gemini 3 Flash is optimized for speed and efficiency while maintaining high-quality outputs for text analysis tasks." 
+                    : "Gemini 3 Flash est optimisé pour la rapidité et l'efficacité tout en maintenant des sorties de haute qualité pour les tâches d'analyse textuelle."}
+                </p>
+                <a class="model-link" href="https://ai.google.dev/gemini-api/docs/models#gemini-3-flash" target="_blank" rel="noopener noreferrer">Docs →</a>
+              </div>
             </div>
+            <p class="section-note">
+              {$currentLanguage === 'en' ? 'Use the dataset picker in the header to switch between models or enable comparison mode to analyze differences in their outputs.' : 'Utilisez le sélecteur de jeu de données dans l\'en-tête pour basculer entre les modèles ou activer le mode comparaison pour analyser les différences dans leurs sorties.'}
+            </p>
+          {:else}
+            <p class="section-text">
+              {$selectedDataset === 'chatgpt' 
+                ? ($currentLanguage === 'en' ? 'The analysis was performed using ' : 'L\'analyse a été réalisée avec ')
+                : ($currentLanguage === 'en' ? 'The analysis was performed using ' : 'L\'analyse a été réalisée avec ')}
+              
+              {#if $selectedDataset === 'chatgpt'}
+                <a href="https://platform.openai.com/docs/models/gpt-5-mini" target="_blank" rel="noopener noreferrer" class="model-badge chatgpt">
+                  GPT-5 mini
+                </a>
+                {$currentLanguage === 'en' 
+                  ? ', OpenAI\'s efficient model with a 400,000-token context window and enhanced reasoning capabilities, released in August 2025.' 
+                  : ', le modèle efficace d\'OpenAI avec une fenêtre de contexte de 400 000 tokens et des capacités de raisonnement améliorées, publié en août 2025.'}
+                <span class="model-detail">{$currentLanguage === 'en' 
+                  ? "GPT-5 mini is a faster, more cost-efficient version of GPT-5. It's great for well-defined tasks and precise prompts." 
+                  : "GPT-5 mini est une version plus rapide et économique de GPT-5. Idéal pour des tâches bien définies et des invites précises."}</span>
+              {:else}
+                <a href="https://ai.google.dev/gemini-api/docs/models#gemini-3-flash" target="_blank" rel="noopener noreferrer" class="model-badge gemini">
+                  Gemini 3 Flash
+                </a>
+                {$currentLanguage === 'en' 
+                  ? ', Google\'s latest Flash model with advanced reasoning capabilities and a 1 million token context window, released December 2025.' 
+                  : ', le dernier modèle Flash de Google avec des capacités de raisonnement avancées et une fenêtre de contexte de 1 million de tokens, publié en décembre 2025.'}
+                <span class="model-detail">{$currentLanguage === 'en' 
+                  ? "Gemini 3 Flash is optimized for speed and efficiency while maintaining high-quality outputs for text analysis tasks." 
+                  : "Gemini 3 Flash est optimisé pour la rapidité et l'efficacité tout en maintenant des sorties de haute qualité pour les tâches d'analyse textuelle."}</span>
+              {/if}
+            </p>
           {/if}
         </div>
+        
+        <div class="methodology-section">
+          <h4 class="section-title">{$t.analysis.technicalConfiguration}</h4>
+          <ul class="config-list">
+            {#if $comparisonMode}
+              <li>{($currentLanguage === 'en' ? 'Gemini: ' : 'Gemini : ')}{$t.analysis.temperatureConfig}</li>
+            {:else if $selectedDataset === 'gemini'}
+              <li>{$t.analysis.temperatureConfig}</li>
+            {/if}
+            <li>{$t.analysis.outputFormat}</li>
+            <li>{$t.analysis.cacheSystem}</li>
+            <li>{$t.analysis.errorHandling}</li>
+            {#if $comparisonMode}
+              <li>{$currentLanguage === 'en' ? 'Parallel processing: Both models analyze the same articles independently' : 'Traitement parallèle : Les deux modèles analysent les mêmes articles de manière indépendante'}</li>
+              <li>{$currentLanguage === 'en' ? 'Discrepancy detection: Automatic identification of differences in sentiment analysis' : 'Détection des divergences : Identification automatique des différences dans l\'analyse de sentiment'}</li>
+            {/if}
+            <li>{$currentLanguage === 'en' ? 'API parameters: temperature=0.2, thinking_level="low" (Gemini 3)' : 'Paramètres API : temperature=0.2, thinking_level="low" (Gemini 3)'}</li>
+          </ul>
+        </div>
+        
+        <div class="methodology-section">
+          <h4 class="section-title">{$t.analysis.analysisPrompt}</h4>
+          <p class="section-text">
+            {$comparisonMode 
+              ? ($currentLanguage === 'en' 
+                ? 'Both models use the same standardized prompt to ensure consistent analysis criteria across different AI systems:'
+                : 'Les deux modèles utilisent le même prompt standardisé pour assurer des critères d\'analyse cohérents entre les différents systèmes d\'IA :')
+              : $t.analysis.promptDescription}
+          </p>
+          <ul class="config-list">
+            <li>{$t.analysis.promptFeature1}</li>
+            <li>{$t.analysis.promptFeature2}</li>
+            <li>{$t.analysis.promptFeature3}</li>
+            <li>{$t.analysis.promptFeature4}</li>
+            <li>{$t.analysis.promptFeature5}</li>
+            {#if $comparisonMode}
+              <li>{$currentLanguage === 'en' ? 'Identical prompt ensures fair comparison between models' : 'Le prompt identique assure une comparaison équitable entre les modèles'}</li>
+            {/if}
+          </ul>
+          <button 
+            class="prompt-btn"
+            onclick={() => showPromptModal = true}
+          >
+            {$t.analysis.viewFullPrompt}
+          </button>
+        </div>
+      </div>
+    </AccordionItem>
+    
+    <!-- Limitations Section -->
+    <AccordionItem 
+      title={$t.analysis.limitationsTitle}
+      open={openSections.includes('limites')}
+      onToggle={() => toggleSection('limites')}
+    >
+      <p class="panel-description">{$t.analysis.limitationsDescription}</p>
+      {#if $comparisonMode}
+        <div class="comparison-notice">
+          <h4 class="section-title">
+            {$currentLanguage === 'en' ? 'Comparison Mode Considerations' : 'Considérations du mode comparaison'}
+          </h4>
+          <ul class="config-list">
+            <li>{$currentLanguage === 'en' ? 'Model differences may reflect varying training data, architectures, and optimization objectives rather than inherent accuracy' : 'Les différences entre modèles peuvent refléter des données d\'entraînement, des architectures et des objectifs d\'optimisation variables plutôt qu\'une précision inhérente'}</li>
+            <li>{$currentLanguage === 'en' ? 'Neither model should be considered a ground truth; discrepancies highlight areas requiring human expert review' : 'Aucun modèle ne doit être considéré comme une vérité absolue ; les divergences soulignent les domaines nécessitant un examen d\'expert humain'}</li>
+            <li>{$currentLanguage === 'en' ? 'Comparison results are most valuable when used to identify patterns and trends rather than definitive judgments' : 'Les résultats de comparaison sont plus utiles pour identifier des motifs et tendances que pour des jugements définitifs'}</li>
+          </ul>
+        </div>
       {/if}
-    </div>
+    </AccordionItem>
   </div>
 </div>
 
-<!-- Modal for displaying the complete prompt -->
+<!-- Prompt Modal -->
 {#if showPromptModal}
   <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <div 
@@ -478,7 +439,7 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
   }
 
   /* ==========================================================================
-     ACCORDION
+     ACCORDION CONTAINER
      ========================================================================== */
   .accordion-container {
     display: flex;
@@ -491,71 +452,9 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
     overflow: hidden;
   }
 
-  .accordion-item {
-    border-bottom: 1px solid color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-  }
-
-  .accordion-item:last-child {
-    border-bottom: none;
-  }
-
-  .accordion-trigger {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.875rem 1rem;
-    background: color-mix(in oklab, var(--color-surface-50) 3%, transparent);
-    border: none;
-    color: var(--color-surface-50);
-    font-size: 0.9375rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all var(--timing-fast) var(--easing-default);
-    text-align: left;
-  }
-
-  .accordion-trigger:hover {
-    background: color-mix(in oklab, var(--color-surface-50) 6%, transparent);
-  }
-
-  .accordion-trigger[data-state="open"] {
-    background: color-mix(in oklab, var(--color-primary-500) 10%, transparent);
-    border-left: 3px solid var(--color-primary-500);
-  }
-
-  .accordion-trigger-text {
-    flex: 1;
-  }
-
-  .accordion-icon {
-    font-size: 0.75rem;
-    color: color-mix(in oklab, var(--color-surface-50) 60%, transparent);
-    transition: transform var(--timing-fast) var(--easing-default);
-  }
-
-  .accordion-icon[data-state="open"] {
-    transform: rotate(180deg);
-    color: var(--color-primary-400);
-  }
-
-  .accordion-panel {
-    padding: 1rem 1.25rem;
-    background: color-mix(in oklab, var(--color-surface-950) 80%, transparent);
-    animation: slideDown 0.2s var(--easing-default);
-  }
-
-  @keyframes slideDown {
-    from {
-      opacity: 0;
-      transform: translateY(-8px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
+  /* ==========================================================================
+     PANEL CONTENT STYLES
+     ========================================================================== */
   .panel-description {
     color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
     font-size: 0.875rem;
@@ -563,9 +462,6 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
     margin-bottom: 1rem;
   }
 
-  /* ==========================================================================
-     SENTIMENT LISTS & BADGES
-     ========================================================================== */
   .sentiment-list {
     list-style: none;
     padding: 0;
@@ -591,11 +487,6 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
     color: var(--color-surface-50);
     font-weight: 500;
   }
-
-  /* Badges use global classes from app.postcss:
-     .sentiment-very-positive, .sentiment-positive, etc.
-     .subjectivity-1 through .subjectivity-5
-     .centrality-very-central, .centrality-central, etc. */
 
   /* ==========================================================================
      METHODOLOGY SECTION
@@ -647,7 +538,7 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
   }
 
   /* ==========================================================================
-     MODEL CARDS (Comparison Mode)
+     MODEL CARDS
      ========================================================================== */
   .model-grid {
     display: grid;
@@ -712,7 +603,6 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
     color: var(--color-primary-300);
   }
 
-  /* Model badges for single model view */
   .model-badge {
     display: inline-flex;
     align-items: center;
@@ -981,15 +871,6 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
       font-size: 0.875rem;
     }
 
-    .accordion-trigger {
-      padding: 0.75rem;
-      font-size: 0.875rem;
-    }
-
-    .accordion-panel {
-      padding: 0.875rem 1rem;
-    }
-
     .prompt-modal {
       max-height: 95vh;
       border-radius: 0.875rem;
@@ -1008,7 +889,6 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
      REDUCED MOTION
      ========================================================================== */
   @media (prefers-reduced-motion: reduce) {
-    .accordion-trigger,
     .model-card,
     .prompt-btn,
     .modal-close-btn,
@@ -1016,10 +896,6 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
     .prompt-modal,
     .prompt-modal-backdrop {
       transition: none;
-      animation: none;
-    }
-
-    .accordion-panel {
       animation: none;
     }
   }

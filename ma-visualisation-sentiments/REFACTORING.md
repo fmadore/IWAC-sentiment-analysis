@@ -176,7 +176,89 @@ The main `+page.svelte` component was refactored to extract reusable components,
 
 ---
 
-## 🔲 Phase 5: Optional Enhancements (LOW PRIORITY)
+## ✅ Phase 5: Large Component Refactoring (COMPLETE)
+
+Refactored `AnalysisInfo.svelte` and `ComparisonDetail.svelte` by extracting reusable components.
+
+### New Components Created
+
+| Component | Location | Purpose | Lines |
+|-----------|----------|---------|-------|
+| `AccordionItem.svelte` | `common/` | Reusable accordion with data-state styling, animation, responsive design | ~120 |
+| `ComparisonPanel.svelte` | `common/` | Side-by-side ChatGPT vs Gemini comparison for sentiment dimensions | ~115 |
+| `ArbiterSection.svelte` | `common/` | Arbiter (Gemini 3 Pro) verdict display with collapsible header | ~415 |
+
+### Before/After Comparison
+
+**AnalysisInfo.svelte:**
+- Before: 1,026 lines
+- After: ~590 lines (43% reduction)
+- Uses AccordionItem for 5 accordion sections
+
+**ComparisonDetail.svelte:**
+- Before: 866 lines
+- After: ~335 lines (61% reduction)
+- Uses ComparisonPanel for 3 dimension comparisons
+- Uses ArbiterSection for arbiter verdict
+
+### AccordionItem Component
+
+Extracted the repeated accordion pattern with:
+- `data-state` styling (active/inactive)
+- SlideDown animation with CSS `@keyframes`
+- Responsive design with mobile optimizations
+- Reduced motion support
+
+```svelte
+<AccordionItem 
+  title={$t.analysis.polaritySection}
+  open={openSections.includes('polarity')}
+  onToggle={() => toggleSection('polarity')}
+>
+  <!-- Content -->
+</AccordionItem>
+```
+
+### ComparisonPanel Component
+
+Extracted the side-by-side ChatGPT vs Gemini comparison:
+
+```svelte
+<ComparisonPanel 
+  dimension="polarity"
+  chatgptValue={comparison.chatgpt?.polarite}
+  chatgptJustification={comparison.chatgpt?.polarite_justification}
+  geminiValue={comparison.gemini?.polarite}
+  geminiJustification={comparison.gemini?.polarite_justification}
+  borderColorChatGPT="border-l-purple-400/50"
+  borderColorGemini="border-l-purple-400/50"
+/>
+```
+
+### ArbiterSection Component
+
+Self-contained arbiter verdict display with:
+- Fetches arbiter data internally via stores
+- Collapsible header with toggle
+- Overall verdict display
+- Per-dimension verdict panels (polarity, subjectivity, centrality)
+- Blind assignment decoding
+- Loading and empty states
+
+```svelte
+<ArbiterSection articleId={article['o:id']} />
+```
+
+### Updated Barrel Exports
+
+`components/common/index.ts` now exports:
+- `AccordionItem`
+- `ComparisonPanel`
+- `ArbiterSection`
+
+---
+
+## 🔲 Phase 6: Optional Enhancements (LOW PRIORITY)
 
 ### ✅ UI Improvements (COMPLETE)
 
