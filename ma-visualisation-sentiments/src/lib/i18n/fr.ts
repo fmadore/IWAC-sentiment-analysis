@@ -2,8 +2,8 @@ import type { Translations } from './types.js';
 
 export const fr: Translations = {
   // App header and branding
-  appTitle: 'Analyse de sentiments',
-  appSubtitle: 'Visualisation et exploration des données d\'articles',
+  appTitle: 'Analyse de sentiments CIAO',
+  appSubtitle: 'Collection Islam Afrique de l\'Ouest – Visualisation et exploration',
   enterFullscreen: 'Passer en plein écran',
   exitFullscreen: 'Quitter le mode plein écran',
 
@@ -145,6 +145,11 @@ export const fr: Translations = {
   // Analysis info
   analysis: {
     title: 'Méthodologie d\'analyse',
+    methodologyIntro: 'Ce tableau de bord explore le potentiel de l\'IA comme partenaire de recherche pour l\'analyse de grands corpus. La prolifération de l\'archivage numérique a produit de vastes collections qui dépassent souvent les capacités de traitement humain. Grâce à la « lecture distante » (Moretti 2000), les techniques computationnelles peuvent parcourir des milliers d\'articles et révéler des motifs que les méthodes traditionnelles manqueraient.',
+    methodologyCorpus: 'Cette expérience analyse comment l\'islam et les musulmans sont représentés dans la presse ouest-africaine. Au lieu de coder manuellement des milliers d\'articles—ce qui introduirait des incohérences—l\'ensemble du corpus de',
+    methodologyCorpusArticles: 'articles issus de la',
+    methodologyCorpusDeveloper: ', une base de données numérique collaborative et en libre accès développée par',
+    methodologyCorpusEnd: ', a été analysé à l\'aide de deux LLMs : GPT-5 mini d\'OpenAI et Gemini 3 Flash de Google. Chaque article a été évalué selon trois dimensions complémentaires :',
     methodology: 'Cette visualisation présente une analyse automatisée des sentiments concernant la représentation de l\'islam et des musulmans dans la presse d\'Afrique de l\'Ouest francophone. Les articles analysés sont issus de la',
     methodologyAiModel: 'Méthodologie et modèle d\'IA',
     modelUsed: 'Modèle utilisé',

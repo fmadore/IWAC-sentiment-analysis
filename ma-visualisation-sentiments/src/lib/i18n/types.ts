@@ -149,6 +149,11 @@ export interface Translations {
   // Analysis info
   analysis: {
     title: string;
+    methodologyIntro: string;
+    methodologyCorpus: string;
+    methodologyCorpusArticles: string;
+    methodologyCorpusDeveloper: string;
+    methodologyCorpusEnd: string;
     methodology: string;
     methodologyAiModel: string;
     modelUsed: string;

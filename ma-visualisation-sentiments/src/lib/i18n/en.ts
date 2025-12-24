@@ -2,8 +2,8 @@ import type { Translations } from './types.js';
 
 export const en: Translations = {
   // App header and branding
-  appTitle: 'Sentiment Analysis',
-  appSubtitle: 'Article data visualization and exploration',
+  appTitle: 'IWAC Sentiment Analysis',
+  appSubtitle: 'Islam West Africa Collection – Data visualization and exploration',
   enterFullscreen: 'Enter fullscreen',
   exitFullscreen: 'Exit fullscreen',
 
@@ -145,6 +145,11 @@ export const en: Translations = {
   // Analysis info
   analysis: {
     title: 'Analysis methodology',
+    methodologyIntro: 'This dashboard explores the potential of AI as a research partner for analyzing large corpora. The proliferation of digital archiving has produced vast collections that often exceed human processing capacity. Using "distant reading" (Moretti 2000), computational techniques can survey thousands of articles and reveal patterns that traditional methods would miss.',
+    methodologyCorpus: 'This experiment analyzes how Islam and Muslims are represented in West African newspapers. Instead of manually coding thousands of articles—which would introduce inconsistency—the entire corpus of',
+    methodologyCorpusArticles: 'articles from the',
+    methodologyCorpusDeveloper: ', a collaborative and open-access digital database developed by',
+    methodologyCorpusEnd: ', was analyzed using two LLMs: OpenAI\'s GPT-5 mini and Google\'s Gemini 3 Flash. Each article was evaluated according to three complementary dimensions:',
     methodology: 'This visualization presents an automated sentiment analysis concerning the representation of Islam and Muslims in the Francophone West African press. The analyzed articles come from the',
     methodologyAiModel: 'Methodology and AI model',
     modelUsed: 'Model used',
