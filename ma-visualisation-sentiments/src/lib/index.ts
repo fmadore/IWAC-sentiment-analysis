@@ -1,39 +1,31 @@
-// Reexport your entry components here
-export { default as AppHeader } from './components/ui/AppHeader.svelte';
-export { default as CountryFilter } from './components/ui/CountryFilter.svelte';
-export { default as JournalFilter } from './components/ui/JournalFilter.svelte';
-export { default as SentimentCriteriaFilter } from './components/ui/SentimentCriteriaFilter.svelte';
-export { default as PolarityFilter } from './components/ui/PolarityFilter.svelte';
-export { default as SubjectivityFilter } from './components/ui/SubjectivityFilter.svelte';
-export { default as ClearFiltersButton } from './components/ui/ClearFiltersButton.svelte';
-export { default as CSVExportButton } from './components/ui/CSVExportButton.svelte';
-export { default as DatasetPicker } from './components/ui/DatasetPicker.svelte';
-export { default as DatasetBadge } from './components/ui/DatasetBadge.svelte';
-export { default as DiscrepancyFilter } from './components/ui/DiscrepancyFilter.svelte';
-export { default as SentimentChart } from './components/viz/SentimentChart.svelte';
-export { default as SentimentTrendsChart } from './components/viz/SentimentTrendsChart.svelte';
-export { default as CorrelationChart } from './components/viz/CorrelationChart.svelte';
-export { default as VolumeChart } from './components/viz/VolumeChart.svelte';
-export { default as CentralityHeatmap } from './components/viz/CentralityHeatmap.svelte';
-export { default as SubjectivityChart } from './components/viz/SubjectivityChart.svelte';
-export { default as KeywordFrequencyChart } from './components/viz/KeywordFrequencyChart.svelte';
+/**
+ * Library Entry Point
+ * 
+ * Central export for all library modules.
+ * Components are now organized in subfolders - import from there for better tree-shaking.
+ * 
+ * Usage:
+ * import { selectedDataset, countryFilters } from '$lib';
+ * import { SentimentChart, VolumeChart } from '$lib/components/viz';
+ * import { CountryFilter, PolarityFilter } from '$lib/components/filters';
+ * import { ArticleTable, ArticleDetail } from '$lib/components/data-display';
+ */
 
-// Main components
-export { default as ArticleTable } from './components/ArticleTable.svelte';
-export { default as ArticleDetail } from './components/ArticleDetail.svelte';
-export { default as AnalysisInfo } from './components/AnalysisInfo.svelte';
-export { default as ComparisonView } from './components/ComparisonView.svelte';
-export { default as ComparisonTable } from './components/ComparisonTable.svelte';
-export { default as ComparisonStats } from './components/ComparisonStats.svelte';
-export { default as SEOHead } from './components/SEOHead.svelte';
+// Stores and state management
+export * from './stores';
+export * from './urlState';
 
-// Reexport stores and utils
-export * from './stores.ts';
-export * from './utils.ts';
-export * from './urlState.ts';
-export * from './types/data.ts'; // Also re-exporting types for convenience
-export * from './types/extremeAnalysis.ts';
-export * from './utils/extremeAnalysis.ts';
+// Utilities
+export * from './utils';
+export * from './utils/extremeAnalysis';
 
-// Reexport i18n
-export * from './i18n/index.ts';
+// Types
+export * from './types/data';
+export * from './types/extremeAnalysis';
+
+// i18n
+export * from './i18n';
+
+// Re-export types for convenience
+export type { Article } from './types/data';
+export type { ExtremeCategory, KeywordType, ExtremeArticle } from './types/extremeAnalysis';

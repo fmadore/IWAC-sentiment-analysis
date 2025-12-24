@@ -4,8 +4,7 @@
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
   import { t } from '$lib/i18n';
-  import LanguageSwitcher from './LanguageSwitcher.svelte';
-  import DatasetPicker from './DatasetPicker.svelte';
+  import { LanguageSwitcher, DatasetPicker } from '$lib/components/ui';
 
   let isFullscreen = $state(false);
 

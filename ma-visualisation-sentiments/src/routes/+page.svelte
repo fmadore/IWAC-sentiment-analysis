@@ -16,18 +16,6 @@
     selectedDataset,
     datasetArticles,
     comparisonMode,
-    CountryFilter,
-    JournalFilter as JournalFilterComponent, 
-    PolarityFilter,
-    SubjectivityFilter,
-    SentimentChart,
-    SentimentTrendsChart,
-    SubjectivityChart,
-    CorrelationChart,
-    VolumeChart,
-    CentralityHeatmap,
-    ComparisonView,
-    KeywordFrequencyChart,
     selectedArticle,
     countryFilters,
     journalFilters,
@@ -37,15 +25,36 @@
   } from '$lib';
   import { t, currentLanguage } from '$lib/i18n';
   import type { Article } from '$lib';
-  import ArticleTable from '$lib/components/ArticleTable.svelte';
-  import ArticleDetail from '$lib/components/ArticleDetail.svelte';
-  import AnalysisInfo from '$lib/components/AnalysisInfo.svelte';
-  import SEOHead from '$lib/components/SEOHead.svelte';
-  import FiltersPanel from '$lib/components/layout/FiltersPanel.svelte';
-  import CSVExportButton from '$lib/components/ui/CSVExportButton.svelte';
+  
+  // Charts
+  import { 
+    SentimentChart, 
+    SentimentTrendsChart, 
+    SubjectivityChart, 
+    CorrelationChart, 
+    VolumeChart, 
+    CentralityHeatmap,
+    KeywordFrequencyChart 
+  } from '$lib/components/viz';
+  
+  // Data Display
+  import { 
+    ArticleTable, 
+    ArticleDetail, 
+    AnalysisInfo, 
+    ComparisonView 
+  } from '$lib/components/data-display';
+  
+  // Layout
+  import { FiltersPanel, NavigationTabs } from '$lib/components/layout';
+  
+  // UI
+  import { CSVExportButton } from '$lib/components/ui';
+  
+  // Utilities
+  import { SEOHead } from '$lib/components';
   import { initializeURLState, updateURL, clearSelectedArticle, clearSelectedArticleOnly, handlePendingArticleSelection } from '$lib/urlState';
   import XIcon from '@lucide/svelte/icons/x';
-  import NavigationTabs from '$lib/components/layout/NavigationTabs.svelte';
 
   // État de l'application
   let activeView = $state('charts');

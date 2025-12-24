@@ -3,8 +3,8 @@
   import type { Article } from '$lib/types/data';
   import { getJournalName } from '$lib/utils';
   import { t, currentLanguage } from '$lib/i18n';
-  import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
-  import DatasetBadge from './ui/DatasetBadge.svelte';
+  import { DatasetBadge } from '$lib/components/ui';
+  import { SentimentBadge } from '$lib/components/common';
   import { updateURL } from '$lib/urlState';
 
   // Props - for event dispatching
@@ -71,16 +71,6 @@
     }
   }
 
-  // Semantic CSS classes for polarity (from app.postcss)
-  const polarityColors = {
-    'Très positif': 'sentiment-very-positive',
-    'Positif': 'sentiment-positive',
-    'Neutre': 'sentiment-neutral',
-    'Négatif': 'sentiment-negative',
-    'Très négatif': 'sentiment-very-negative',
-    'Non applicable': 'sentiment-na'
-  };
-
   // Ordre de tri pour les valeurs de polarité
   const polarityOrder = {
     'Très positif': 5,
@@ -91,15 +81,6 @@
     'Non applicable': 0
   };
 
-  // Semantic CSS classes for centrality (from app.postcss)
-  const centralityColors = {
-    'Très central': 'centrality-very-central',
-    'Central': 'centrality-central',
-    'Secondaire': 'centrality-secondary',
-    'Marginal': 'centrality-marginal',
-    'Non abordé': 'centrality-not-addressed'
-  };
-
   // Ordre de tri pour les valeurs de centralité
   const centralityOrder = {
     'Très central': 5,
@@ -108,34 +89,6 @@
     'Marginal': 2,
     'Non abordé': 1
   };
-  
-  // Semantic CSS classes for subjectivity (from app.postcss)
-  const subjectivityClasses = {
-    '1': 'subjectivity-1',
-    '2': 'subjectivity-2',
-    '3': 'subjectivity-3',
-    '4': 'subjectivity-4',
-    '5': 'subjectivity-5'
-  };
-
-  // Fonction d'aide pour obtenir la classe selon la polarité
-  function getPolarityClass(polarity: string | null | undefined): string {
-    if (!polarity) return 'variant-ghost';
-    return polarityColors[polarity as keyof typeof polarityColors] || 'variant-ghost';
-  }
-
-  // Fonction d'aide pour obtenir la classe selon la centralité
-  function getCentralityClass(centrality: string | null | undefined): string {
-    if (!centrality) return 'variant-ghost';
-    return centralityColors[centrality as keyof typeof centralityColors] || 'variant-ghost';
-  }
-  
-  // Fonction d'aide pour obtenir la classe selon le score de subjectivité
-  function getSubjectivityClass(score: string | number | null | undefined): string {
-    if (!score) return 'variant-ghost';
-    const scoreStr = String(score);
-    return subjectivityClasses[scoreStr as keyof typeof subjectivityClasses] || 'variant-ghost';
-  }
 
   // Fonction pour formater les dates
   function formatDate(dateStr: string | null | undefined): string {
@@ -423,15 +376,9 @@
           </div>
           
           <div class="flex flex-wrap gap-2">
-            <span class="badge badge-sm {getCentralityClass(article.sentiment_analysis?.centralite_islam_musulmans)}">
-              {translateSentimentValue(article.sentiment_analysis?.centralite_islam_musulmans, $currentLanguage) || 'N/A'}
-            </span>
-            <span class="badge badge-sm {getPolarityClass(article.sentiment_analysis?.polarite)}">
-              {translateSentimentValue(article.sentiment_analysis?.polarite, $currentLanguage) || 'N/A'}
-            </span>
-            <span class="badge badge-sm {getSubjectivityClass(article.sentiment_analysis?.subjectivite_score)}">
-              {$t.table.subjectivity}: {translateSubjectivityScore(article.sentiment_analysis?.subjectivite_score, $currentLanguage)}
-            </span>
+            <SentimentBadge type="centrality" value={article.sentiment_analysis?.centralite_islam_musulmans} size="sm" />
+            <SentimentBadge type="polarity" value={article.sentiment_analysis?.polarite} size="sm" />
+            <SentimentBadge type="subjectivity" value={article.sentiment_analysis?.subjectivite_score} size="sm" />
           </div>
         </button>
       {/each}
@@ -473,19 +420,13 @@
               <td>{getJournalName(article)}</td>
               <td>{formatDate(article.publication_date)}</td>
               <td>
-                <span class="badge {getCentralityClass(article.sentiment_analysis?.centralite_islam_musulmans)}">
-                  {translateSentimentValue(article.sentiment_analysis?.centralite_islam_musulmans, $currentLanguage) || 'N/A'}
-                </span>
+                <SentimentBadge type="centrality" value={article.sentiment_analysis?.centralite_islam_musulmans} />
               </td>
               <td>
-                <span class="badge {getPolarityClass(article.sentiment_analysis?.polarite)}">
-                  {translateSentimentValue(article.sentiment_analysis?.polarite, $currentLanguage) || 'N/A'}
-                </span>
+                <SentimentBadge type="polarity" value={article.sentiment_analysis?.polarite} />
               </td>
               <td>
-                <span class="badge {getSubjectivityClass(article.sentiment_analysis?.subjectivite_score)}">
-                  {translateSubjectivityScore(article.sentiment_analysis?.subjectivite_score, $currentLanguage)}
-                </span>
+                <SentimentBadge type="subjectivity" value={article.sentiment_analysis?.subjectivite_score} />
               </td>
             </tr>
           {/each}
@@ -528,13 +469,6 @@
   .table-container {
     max-height: 600px;
     overflow-y: auto;
-  }
-  
-  .badge {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    border-radius: 9999px;
   }
   
   table {
@@ -638,13 +572,6 @@
     overflow: hidden;
   }
 
-  .badge-sm {
-    padding: 0.125rem 0.375rem;
-    font-size: 0.625rem;
-    font-weight: 500;
-    border-radius: 9999px;
-  }
-
   /* Responsive design pour la pagination */
   @media (max-width: 768px) {
     .pagination-info {
@@ -669,11 +596,6 @@
     th, td {
       padding: 0.5rem;
       font-size: 0.875rem;
-    }
-
-    .badge {
-      padding: 0.125rem 0.375rem;
-      font-size: 0.625rem;
     }
   }
 

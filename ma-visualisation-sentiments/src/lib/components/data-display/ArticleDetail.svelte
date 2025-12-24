@@ -1,59 +1,11 @@
 <script lang="ts">
-  // import { selectedArticle } from '$lib/stores'; // Removed store import
   import type { Article } from '$lib/types/data';
   import { getJournalName } from '$lib/utils';
   import { t, currentLanguage } from '$lib/i18n';
-  import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
+  import { SentimentBadge } from '$lib/components/common';
 
   // Props: Accept article as a prop
   let { article }: { article: Article | null } = $props();
-
-  // Semantic CSS classes for polarity (from app.postcss)
-  const polarityClasses = {
-    'Très positif': 'sentiment-very-positive',
-    'Positif': 'sentiment-positive',
-    'Neutre': 'sentiment-neutral',
-    'Négatif': 'sentiment-negative',
-    'Très négatif': 'sentiment-very-negative',
-    'Non applicable': 'sentiment-na'
-  };
-
-  // Semantic CSS classes for centrality (from app.postcss)
-  const centralityClasses = {
-    'Très central': 'centrality-very-central',
-    'Central': 'centrality-central',
-    'Secondaire': 'centrality-secondary',
-    'Marginal': 'centrality-marginal',
-    'Non abordé': 'centrality-not-addressed'
-  };
-  
-  // Semantic CSS classes for subjectivity (from app.postcss)
-  const subjectivityClasses = {
-    '1': 'subjectivity-1',
-    '2': 'subjectivity-2',
-    '3': 'subjectivity-3',
-    '4': 'subjectivity-4',
-    '5': 'subjectivity-5'
-  };
-
-  // Fonction d'aide pour obtenir la classe selon la polarité
-  function getPolarityClass(polarity: string | null | undefined): string {
-    if (!polarity) return 'variant-ghost';
-    return polarityClasses[polarity as keyof typeof polarityClasses] || 'variant-ghost';
-  }
-
-  // Fonction d'aide pour obtenir la classe selon la centralité
-  function getCentralityClass(centrality: string | null | undefined): string {
-    if (!centrality) return 'variant-ghost';
-    return centralityClasses[centrality as keyof typeof centralityClasses] || 'variant-ghost';
-  }
-  
-  // Fonction d'aide pour obtenir la classe selon le score de subjectivité
-  function getSubjectivityClass(score: string | number | null | undefined): string {
-    if (!score) return 'variant-ghost';
-    const scoreStr = String(score);
-    return subjectivityClasses[scoreStr as keyof typeof subjectivityClasses] || 'variant-ghost';
-  }
 
   // Fonction pour formater les dates
   function formatDate(dateStr: string | null | undefined): string {
@@ -115,9 +67,11 @@
       <!-- Centralité -->
       <div class="card variant-glass glass-medium p-5 hover-lift-sm border-gradient">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-          <span class="badge badge-lg {getCentralityClass(article.sentiment_analysis.centralite_islam_musulmans)} hover-glow">
-            {translateSentimentValue(article.sentiment_analysis.centralite_islam_musulmans, $currentLanguage) ?? translateSentimentValue('Non abordé', $currentLanguage)}
-          </span>
+          <SentimentBadge 
+            type="centrality" 
+            value={article.sentiment_analysis.centralite_islam_musulmans ?? 'Non abordé'} 
+            size="lg"
+          />
           <span class="text-sm uppercase font-bold opacity-75 text-white/80">{$t.analysis.centralitySection}</span>
         </div>
         
@@ -134,9 +88,11 @@
       <!-- Polarité -->
       <div class="card variant-glass glass-medium p-5 hover-lift-sm border-gradient">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-          <span class="badge badge-lg {getPolarityClass(article.sentiment_analysis.polarite)} hover-glow">
-            {translateSentimentValue(article.sentiment_analysis.polarite, $currentLanguage)}
-          </span>
+          <SentimentBadge 
+            type="polarity" 
+            value={article.sentiment_analysis.polarite} 
+            size="lg"
+          />
           <span class="text-sm uppercase font-bold opacity-75 text-white/80">{$t.analysis.polaritySection}</span>
         </div>
         
@@ -153,9 +109,11 @@
       <!-- Subjectivité -->
       <div class="card variant-glass glass-medium p-5 hover-lift-sm border-gradient">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-          <span class="badge badge-lg {getSubjectivityClass(article.sentiment_analysis.subjectivite_score)} hover-glow">
-            {translateSubjectivityScore(article.sentiment_analysis.subjectivite_score, $currentLanguage)}
-          </span>
+          <SentimentBadge 
+            type="subjectivity" 
+            value={article.sentiment_analysis.subjectivite_score} 
+            size="lg"
+          />
           <span class="text-sm uppercase font-bold opacity-75 text-white/80">{$t.filters.subjectivityScore}</span>
         </div>
         
@@ -187,29 +145,6 @@
 {/if}
 
 <style>
-  .badge {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border-radius: 9999px;
-    transition: all var(--timing-fast) var(--easing-default);
-    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-    cursor: default;
-  }
-  
-  .badge:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px color-mix(in oklab, black 20%, transparent);
-    border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
-  }
-  
-  .badge-lg {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: default;
-  }
-  
   .anchor {
     color: var(--color-primary-400);
     text-decoration: none;
@@ -295,11 +230,6 @@
   
   /* Mobile responsive adjustments */
   @media (max-width: 640px) {
-    .badge-lg {
-      padding: 0.375rem 0.75rem;
-      font-size: 0.75rem;
-    }
-    
     blockquote {
       font-size: 0.875rem;
       padding: 0.75rem;
@@ -313,7 +243,6 @@
   
   /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
-    .badge,
     .anchor,
     :global(.hover-lift-sm),
     :global(.border-gradient::before) {

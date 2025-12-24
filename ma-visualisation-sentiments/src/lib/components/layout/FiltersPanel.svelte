@@ -1,12 +1,14 @@
 <script lang="ts">
-  import CountryFilter from '$lib/components/ui/CountryFilter.svelte';
-  import JournalFilter from '$lib/components/ui/JournalFilter.svelte';
-  import PolarityFilter from '$lib/components/ui/PolarityFilter.svelte';
-  import SubjectivityFilter from '$lib/components/ui/SubjectivityFilter.svelte';
-  import CentralityFilter from '$lib/components/ui/CentralityFilter.svelte';
-  import ExtremeAnalysisControls from '$lib/components/ui/ExtremeAnalysisControls.svelte';
-  import DatasetBadge from '$lib/components/ui/DatasetBadge.svelte';
-  import ClearFiltersButton from '$lib/components/ui/ClearFiltersButton.svelte';
+  import { 
+    CountryFilter, 
+    JournalFilter, 
+    PolarityFilter, 
+    SubjectivityFilter, 
+    CentralityFilter, 
+    ExtremeAnalysisControls,
+    ClearFiltersButton 
+  } from '$lib/components/filters';
+  import { DatasetBadge } from '$lib/components/ui';
   import { t } from '$lib/i18n';
   import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
 

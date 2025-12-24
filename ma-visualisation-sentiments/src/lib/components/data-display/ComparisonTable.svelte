@@ -7,7 +7,7 @@
   import ArrowUpDownIcon from '@lucide/svelte/icons/arrow-up-down';
   import LayoutGridIcon from '@lucide/svelte/icons/layout-grid';
   import TableIcon from '@lucide/svelte/icons/table';
-  import ComparisonCSVExportButton from './ui/ComparisonCSVExportButton.svelte';
+  import { ComparisonCSVExportButton } from '$lib/components/ui';
   
   let viewMode = $state<'table' | 'cards'>('table');
   let sortBy = $state<'discrepancy' | 'date' | 'title'>('discrepancy');

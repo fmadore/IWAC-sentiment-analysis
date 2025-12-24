@@ -1,6 +1,6 @@
 <script lang="ts">
   import { filteredComparisons, comparisonMode, selectedComparison, isLoadingComparison } from '$lib/stores';
-  import DiscrepancyFilter from './ui/DiscrepancyFilter.svelte';
+  import { DiscrepancyFilter } from '$lib/components/filters';
   import ComparisonTable from './ComparisonTable.svelte';
   import ComparisonStats from './ComparisonStats.svelte';
   import ComparisonDetail from './ComparisonDetail.svelte';

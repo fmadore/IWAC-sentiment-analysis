@@ -1,7 +1,8 @@
 <!-- Composant JournalFilter.svelte --> 
 <script lang="ts">
-  import { availableJournals, journalFilters } from '$lib/stores.ts';
+  import { availableJournals, journalFilters } from '$lib/stores';
   import { t } from '$lib/i18n';
+  import { FilterCard, FilterChip } from '$lib/components/common';
 
   // Propriété pour référence externe, pas pour l'injection de propriété
   export const class_name = '';
@@ -54,117 +55,75 @@
   function toggleShowAll() {
     showAll = !showAll;
   }
-
+  
+  function clearAll() {
+    selectedJournals = [];
+    applyFilter();
+  }
 </script>
 
-<div class="filter-card">
-  <div class="filter-header">
-    <h3 class="filter-title">{$t.filters.journal}</h3>
-    <span class="filter-count">({journals.length})</span>
-  </div>
-  
-  <!-- Search bar -->
-  {#if journals.length > 6}
-    <div class="search-container">
-      <div class="search-wrapper">
-        <input 
-          type="text" 
-          placeholder={$t.filters.searchJournals}
-          bind:value={searchTerm}
-          class="search-input"
-        />
-        {#if searchTerm}
-          <button 
-            onclick={clearSearch}
-            class="search-clear"
-            aria-label="Clear search"
-          >
-            ✕
-          </button>
-        {/if}
+<FilterCard 
+  title={$t.filters.journal}
+  count={journals.length}
+  showClear={selectedJournals.length > 0}
+  onClear={clearAll}
+>
+  {#snippet beforeChips()}
+    <!-- Search bar -->
+    {#if journals.length > 6}
+      <div class="search-container">
+        <div class="search-wrapper">
+          <input 
+            type="text" 
+            placeholder={$t.filters.searchJournals}
+            bind:value={searchTerm}
+            class="search-input"
+          />
+          {#if searchTerm}
+            <button 
+              onclick={clearSearch}
+              class="search-clear"
+              aria-label="Clear search"
+            >
+              ✕
+            </button>
+          {/if}
+        </div>
       </div>
-    </div>
-  {/if}
+    {/if}
+    
+    <!-- Results counter -->
+    {#if searchTerm}
+      <div class="results-count">
+        {$t.filters.showingJournals} {filteredJournals.length} {$t.filters.of} {journals.length}
+      </div>
+    {/if}
+  {/snippet}
   
-  <!-- Results counter -->
-  {#if searchTerm}
-    <div class="results-count">
-      {$t.filters.showingJournals} {filteredJournals.length} {$t.filters.of} {journals.length}
-    </div>
-  {/if}
-  
-  <!-- Journals list -->
-  <div class="filter-chips">
+  {#snippet chips()}
     {#each displayedJournals as journal}
-      <button 
-        class="filter-chip" 
-        data-selected={selectedJournals.includes(journal)}
+      <FilterChip 
+        label={journal}
+        selected={selectedJournals.includes(journal)}
         onclick={() => toggleJournal(journal)}
-        aria-pressed={selectedJournals.includes(journal)}
-      >
-        {journal}
-      </button>
+      />
     {/each}
-  </div>
+  {/snippet}
   
-  <!-- Show more/less button -->
-  {#if hasMoreJournals && !searchTerm}
-    <button 
-      class="toggle-btn" 
-      onclick={toggleShowAll}
-    >
-      {showAll ? `${$t.common.viewLess} (${INITIAL_DISPLAY_COUNT})` : `${$t.common.viewMore} (+${filteredJournals.length - INITIAL_DISPLAY_COUNT})`}
-    </button>
-  {/if}
-
-  <!-- Clear selection button -->
-  {#if selectedJournals.length > 0}
-    <button 
-      class="clear-btn" 
-      onclick={() => {selectedJournals = []; applyFilter();}}
-    >
-      {$t.filters.clearAll} ({selectedJournals.length})
-    </button>
-  {/if}
-</div>
+  {#snippet footer()}
+    <!-- Show more/less button -->
+    {#if hasMoreJournals && !searchTerm}
+      <button 
+        class="toggle-btn" 
+        onclick={toggleShowAll}
+      >
+        {showAll ? `${$t.common.viewLess} (${INITIAL_DISPLAY_COUNT})` : `${$t.common.viewMore} (+${filteredJournals.length - INITIAL_DISPLAY_COUNT})`}
+      </button>
+    {/if}
+  {/snippet}
+</FilterCard>
 
 <style>
-  .filter-card {
-    background: color-mix(in oklab, var(--color-surface-900) 85%, transparent);
-    backdrop-filter: blur(var(--glass-blur-md));
-    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-    border-radius: 0.875rem;
-    padding: 1rem;
-    box-shadow: 
-      0 4px 16px color-mix(in oklab, black 8%, transparent),
-      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 6%, transparent);
-    transition: all var(--timing-normal) var(--easing-default);
-  }
-
-  .filter-card:hover {
-    border-color: color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-  }
-
-  .filter-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.875rem;
-  }
-
-  .filter-title {
-    font-size: 0.9375rem;
-    font-weight: 600;
-    color: var(--color-surface-50);
-    margin: 0;
-    letter-spacing: -0.01em;
-  }
-
-  .filter-count {
-    font-size: 0.8125rem;
-    color: color-mix(in oklab, var(--color-surface-50) 60%, transparent);
-  }
-
   .search-container {
     margin-bottom: 0.75rem;
   }
@@ -223,17 +182,10 @@
     margin-bottom: 0.5rem;
   }
 
-  .filter-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
-
   .toggle-btn {
     display: inline-flex;
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-top: 0.5rem;
     padding: 0.375rem 0.75rem;
     font-size: 0.75rem;
     font-weight: 500;
@@ -251,69 +203,18 @@
     color: var(--color-surface-50);
   }
 
-  .clear-btn {
-    display: inline-flex;
-    align-items: center;
-    margin-top: 0.5rem;
-    padding: 0.375rem 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-    border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-    color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
-    transition: all var(--timing-fast) var(--easing-default);
-  }
-
-  .clear-btn:hover {
-    background: color-mix(in oklab, var(--color-error-500) 15%, transparent);
-    border-color: color-mix(in oklab, var(--color-error-500) 30%, transparent);
-    color: var(--color-error-400);
-  }
-
   /* Responsive */
   @media (max-width: 768px) {
-    .filter-card {
-      padding: 0.875rem;
-    }
-
-    .filter-title {
-      font-size: 0.875rem;
-    }
-
-    .filter-chip {
-      padding: 0.3125rem 0.625rem;
-      font-size: 0.75rem;
-    }
-
     .search-input {
       padding: 0.4375rem 1.75rem 0.4375rem 0.625rem;
       font-size: 0.75rem;
     }
   }
 
-  @media (max-width: 480px) {
-    .filter-card {
-      padding: 0.75rem;
-    }
-
-    .filter-title {
-      font-size: 0.8125rem;
-    }
-
-    .filter-chip {
-      padding: 0.25rem 0.5rem;
-      font-size: 0.6875rem;
-    }
-  }
-
   /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
-    .filter-card,
     .search-input,
-    .toggle-btn,
-    .clear-btn {
+    .toggle-btn {
       transition: none;
     }
   }

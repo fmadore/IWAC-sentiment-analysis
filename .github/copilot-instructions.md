@@ -380,9 +380,35 @@ export const filteredArticles = derived(
 src/
 ├── lib/
 │   ├── components/
-│   │   ├── layout/        # Layout components (AppHeader, FiltersPanel)
-│   │   ├── ui/            # UI components (buttons, inputs, modals)
-│   │   └── viz/           # Visualization components (charts)
+│   │   ├── common/        # Base reusable components
+│   │   │   ├── FilterCard.svelte      # Glass card wrapper for filters
+│   │   │   ├── FilterChip.svelte      # Selectable chip button with variants
+│   │   │   ├── GlassCard.svelte       # Generic glass morphism card
+│   │   │   ├── SentimentBadge.svelte  # Polarity/subjectivity/centrality badges
+│   │   │   └── index.ts
+│   │   ├── layout/        # Layout components
+│   │   │   ├── AppHeader.svelte
+│   │   │   ├── FiltersPanel.svelte
+│   │   │   ├── NavigationTabs.svelte
+│   │   │   └── index.ts
+│   │   ├── ui/            # UI components (filters, controls, pickers)
+│   │   │   ├── CountryFilter.svelte
+│   │   │   ├── JournalFilter.svelte
+│   │   │   ├── PolarityFilter.svelte
+│   │   │   ├── SubjectivityFilter.svelte
+│   │   │   ├── CentralityFilter.svelte
+│   │   │   ├── DatasetPicker.svelte
+│   │   │   ├── CSVExportButton.svelte
+│   │   │   └── index.ts
+│   │   ├── viz/           # Visualization components (charts)
+│   │   │   ├── SentimentChart.svelte
+│   │   │   ├── SentimentTrendsChart.svelte
+│   │   │   ├── CentralityHeatmap.svelte
+│   │   │   └── index.ts
+│   │   ├── ArticleTable.svelte    # Data display components
+│   │   ├── ArticleDetail.svelte
+│   │   ├── ComparisonView.svelte
+│   │   └── index.ts       # Main barrel export
 │   ├── i18n/              # Internationalization
 │   │   ├── en.ts          # English translations
 │   │   ├── fr.ts          # French translations
@@ -397,6 +423,119 @@ src/
 │   ├── +page.svelte       # Main page
 │   └── +page.ts           # Page data loading
 └── app.postcss            # Global styles
+```
+
+## Reusable Component Patterns
+
+### FilterCard - Base Filter Container
+
+Use `FilterCard` for all filter components to ensure consistent glass morphism styling:
+
+```svelte
+<script lang="ts">
+  import { FilterCard, FilterChip } from '$lib/components/common';
+  
+  let selectedItems = $state<string[]>([]);
+</script>
+
+<FilterCard 
+  title={$t.filters.myFilter}
+  showClear={selectedItems.length > 0}
+  onClear={() => selectedItems = []}
+>
+  {#snippet chips()}
+    {#each options as option}
+      <FilterChip 
+        label={option.label}
+        selected={selectedItems.includes(option.value)}
+        variant={option.variant}
+        onclick={() => toggle(option.value)}
+      />
+    {/each}
+  {/snippet}
+  
+  {#snippet footer()}
+    <!-- Optional legend or additional content -->
+  {/snippet}
+</FilterCard>
+```
+
+### FilterChip - Semantic Chip Variants
+
+FilterChip supports semantic color variants for sentiment values:
+
+```svelte
+<!-- Polarity variants -->
+<FilterChip variant="polarity-very-positive" ... />
+<FilterChip variant="polarity-positive" ... />
+<FilterChip variant="polarity-neutral" ... />
+<FilterChip variant="polarity-negative" ... />
+<FilterChip variant="polarity-very-negative" ... />
+
+<!-- Subjectivity variants -->
+<FilterChip variant="subjectivity-1" ... />
+<FilterChip variant="subjectivity-2" ... />
+<FilterChip variant="subjectivity-3" ... />
+
+<!-- Centrality variants -->
+<FilterChip variant="centrality-very-central" ... />
+<FilterChip variant="centrality-central" ... />
+```
+
+### SentimentBadge - Display Sentiment Values
+
+Use `SentimentBadge` for displaying sentiment values in tables, cards, and details:
+
+```svelte
+<script lang="ts">
+  import { SentimentBadge } from '$lib/components/common';
+</script>
+
+<!-- Polarity badge -->
+<SentimentBadge type="polarity" value="Très positif" />
+
+<!-- Subjectivity badge (accepts number) -->
+<SentimentBadge type="subjectivity" value={3} />
+
+<!-- Centrality badge -->
+<SentimentBadge type="centrality" value="Central" size="sm" />
+```
+
+### GlassCard - Generic Container
+
+Use `GlassCard` for any glass morphism container:
+
+```svelte
+<script lang="ts">
+  import { GlassCard } from '$lib/components/common';
+</script>
+
+<GlassCard variant="default" hover gradientBorder>
+  Card content here
+</GlassCard>
+
+<GlassCard variant="large" padding="lg">
+  Large card for charts
+</GlassCard>
+```
+
+### Import Patterns
+
+Use barrel exports for cleaner imports:
+
+```svelte
+<script lang="ts">
+  // ✅ CORRECT: Import from barrel exports
+  import { FilterCard, FilterChip, SentimentBadge } from '$lib/components/common';
+  import { SentimentChart, VolumeChart } from '$lib/components/viz';
+  import { AppHeader, FiltersPanel } from '$lib/components/layout';
+  
+  // ✅ ALSO CORRECT: Import from main components barrel
+  import { FilterCard, SentimentChart, ArticleTable } from '$lib/components';
+  
+  // ❌ AVOID: Long individual imports (unless necessary)
+  import FilterCard from '$lib/components/common/FilterCard.svelte';
+</script>
 ```
 
 ## Naming Conventions
