@@ -1,5 +1,6 @@
 <script lang="ts">
   import { t } from '$lib/i18n';
+  import { sidebarExpanded, activeView } from '$lib/stores';
   import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
   import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
   import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
@@ -13,20 +14,17 @@
   import MenuIcon from '@lucide/svelte/icons/menu';
   import XIcon from '@lucide/svelte/icons/x';
 
-  let { activeView, onChange } = $props<{ activeView: string; onChange: (view: string) => void }>();
-  
   // Sidebar state
-  let isExpanded = $state(false);
   let isMobileOpen = $state(false);
 
   function change(view: string) {
-    if (view !== activeView) onChange(view);
+    if (view !== $activeView) $activeView = view;
     // Close mobile menu after selection
     if (isMobileOpen) isMobileOpen = false;
   }
 
   function toggleSidebar() {
-    isExpanded = !isExpanded;
+    $sidebarExpanded = !$sidebarExpanded;
   }
 
   function toggleMobile() {
@@ -71,7 +69,7 @@
 <!-- Sidebar Navigation -->
 <nav 
   class="sidebar"
-  class:expanded={isExpanded}
+  class:expanded={$sidebarExpanded}
   class:mobile-open={isMobileOpen}
   aria-label="Main navigation"
 >
@@ -79,10 +77,10 @@
   <button 
     class="toggle-btn desktop-only"
     onclick={toggleSidebar}
-    aria-label={isExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
-    aria-expanded={isExpanded}
+    aria-label={$sidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
+    aria-expanded={$sidebarExpanded}
   >
-    {#if isExpanded}
+    {#if $sidebarExpanded}
       <ChevronLeftIcon size={18} />
     {:else}
       <ChevronRightIcon size={18} />
@@ -94,11 +92,11 @@
     {#each navItems as item (item.id)}
       <button 
         class="nav-item"
-        data-state={activeView === item.id ? 'active' : 'inactive'}
+        data-state={$activeView === item.id ? 'active' : 'inactive'}
         onclick={() => change(item.id)}
         role="menuitem"
-        aria-current={activeView === item.id ? 'page' : undefined}
-        title={!isExpanded ? ($t.nav[item.labelKey] || item.id) : undefined}
+        aria-current={$activeView === item.id ? 'page' : undefined}
+        title={!$sidebarExpanded ? ($t.nav[item.labelKey] || item.id) : undefined}
       >
         <span class="nav-icon">
           <item.icon size={20} />
@@ -172,10 +170,10 @@
   /* ===== Sidebar Container ===== */
   .sidebar {
     position: fixed;
-    top: 4rem; /* Start below header */
+    top: 0; /* Full height starting from top */
     left: 0;
-    z-index: 40;
-    height: calc(100dvh - 4rem);
+    z-index: 60; /* Higher than header (50) */
+    height: 100dvh;
     padding-top: 1rem;
     
     /* Collapsed width */
@@ -275,7 +273,7 @@
     gap: 0.375rem;
     padding: 0.5rem 0.75rem;
     overflow-y: auto;
-    max-height: calc(100dvh - 5rem);
+    max-height: calc(100dvh - 2rem);
   }
 
   /* ===== Navigation Item ===== */

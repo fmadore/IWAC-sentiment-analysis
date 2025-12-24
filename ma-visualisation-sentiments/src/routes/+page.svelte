@@ -16,14 +16,15 @@
     journalFilters,
     polarityFilters,
     subjectivityFilters,
-    centralityFilters
+    centralityFilters,
+    activeView
   } from '$lib';
   import { t, currentLanguage } from '$lib/i18n';
   import type { Article } from '$lib';
   import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
   
   // Layout
-  import { FiltersPanel, SidebarNav, ViewContent } from '$lib/components/layout';
+  import { FiltersPanel, ViewContent } from '$lib/components/layout';
   
   // Data Display
   import { AnalysisInfo } from '$lib/components/data-display';
@@ -36,7 +37,6 @@
   import { initializeURLState, updateURL, clearSelectedArticle, clearSelectedArticleOnly, handlePendingArticleSelection } from '$lib/urlState';
 
   // Application state
-  let activeView = $state('charts');
   let detailedArticle: Article | null = $state(null);
   let showDetailsSidebar = $state(false);
 
@@ -50,7 +50,7 @@
 
   // Reactive statement to handle extreme analysis data loading when dataset changes
   $effect(() => {
-    if (activeView === 'extremes' && $selectedDataset && browser) {
+    if ($activeView === 'extremes' && $selectedDataset && browser) {
       console.log('Loading extreme analysis for dataset:', $selectedDataset);
       loadCurrentExtremeAnalysis(fetch)
         .then(() => console.log('Extreme analysis loaded successfully for:', $selectedDataset))
@@ -76,7 +76,7 @@
     // Initialize URL state management first
     const urlView = initializeURLState();
     if (urlView) {
-      activeView = urlView;
+      $activeView = urlView;
     }
 
     // Update HTML lang attribute when language changes
@@ -116,7 +116,7 @@
       $comparisonMode;
       
       if (browser) {
-        updateURL(activeView);
+        updateURL($activeView);
       }
     });
     
@@ -157,7 +157,7 @@
         }
         
         if (browser) {
-          updateURL(activeView);
+          updateURL($activeView);
         }
       })();
     });
@@ -175,33 +175,28 @@
     clearSelectedArticle();
   }
 
-  async function handleViewChange(value: string) {
-    activeView = value;
+  // React to activeView changes for side effects (loading data, toggling comparison mode)
+  $effect(() => {
+    const view = $activeView;
     
-    if (value === 'comparison') {
+    if (view === 'comparison') {
       if (!$comparisonMode) {
         comparisonMode.set(true);
       }
       
-      try {
-        await loadComparisonDatasets(fetch);
-      } catch (error) {
+      loadComparisonDatasets(fetch).catch(error => {
         console.error("Failed to load comparison datasets:", error);
-      }
-    } else if (value === 'extremes') {
-      try {
-        await loadCurrentExtremeAnalysis(fetch);
-      } catch (error) {
+      });
+    } else if (view === 'extremes') {
+      loadCurrentExtremeAnalysis(fetch).catch(error => {
         console.error("Failed to load extreme analysis data:", error);
-      }
+      });
     } else {
       if ($comparisonMode) {
         comparisonMode.set(false);
       }
     }
-    
-    updateURL(activeView);
-  }
+  });
 
   // Handlers for extreme analysis controls
   function handleCategoryChange(category: ExtremeCategory) {
@@ -218,12 +213,9 @@
 </script>
 
 <!-- Dynamic SEO Head -->
-<SEOHead view={activeView} comparisonMode={$comparisonMode} />
+<SEOHead view={$activeView} comparisonMode={$comparisonMode} />
 
-<!-- Sidebar Navigation (fixed position) -->
-<SidebarNav {activeView} onChange={handleViewChange} />
-
-<main class="main-container container {activeView === 'extremes' ? 'max-w-7xl' : 'max-w-6xl'} mx-auto p-2 sm:p-4 md:p-6">
+<main class="main-container container {$activeView === 'extremes' ? 'max-w-7xl' : 'max-w-6xl'} mx-auto p-2 sm:p-4 md:p-6">
   <AnalysisInfo />
 
   {#if $isLoadingDataset}
@@ -231,7 +223,7 @@
   {:else if currentArticles.length > 0}
 
     <FiltersPanel
-      {activeView}
+      activeView={$activeView}
       {selectedCategory}
       {selectedKeywordType}
       {showTopN}
@@ -241,7 +233,7 @@
     />
 
     <ViewContent
-      {activeView}
+      activeView={$activeView}
       {selectedCategory}
       {selectedKeywordType}
       {showTopN}

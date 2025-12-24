@@ -1,15 +1,19 @@
 <script lang="ts">
   import '../app.postcss';
-  import { AppHeader } from '$lib/components/layout';
+  import { AppHeader, SidebarNav } from '$lib/components/layout';
   import { PWAManager } from '$lib/components';
+  import { sidebarExpanded } from '$lib/stores';
 
   let { children } = $props();
 </script>
 
-<AppHeader />
+<SidebarNav />
 
-<div class="app-content">
-  {@render children()}
+<div class="app-content" class:expanded={$sidebarExpanded}>
+  <AppHeader />
+  <main>
+    {@render children()}
+  </main>
 </div>
 
 <PWAManager />
@@ -17,13 +21,19 @@
 <style>
   /* Main content wrapper - accounts for sidebar on desktop */
   .app-content {
-    min-height: calc(100dvh - 4rem);
+    min-height: 100dvh;
     transition: margin-left var(--timing-normal) var(--easing-default);
+    display: flex;
+    flex-direction: column;
   }
 
   @media (min-width: 1024px) {
     .app-content {
       margin-left: 4.5rem; /* Matches collapsed sidebar width */
+    }
+    
+    .app-content.expanded {
+      margin-left: 14rem; /* Matches expanded sidebar width */
     }
   }
 

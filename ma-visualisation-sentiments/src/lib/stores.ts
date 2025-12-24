@@ -22,6 +22,10 @@ export const polarityFilters = writable<string[]>([]);
 export const subjectivityFilters = writable<string[]>([]);
 export const centralityFilters = writable<string[]>([]);
 
+// UI State Stores
+export const sidebarExpanded = writable<boolean>(false);
+export const activeView = writable<string>('charts');
+
 // New stores for dataset management
 export const availableDatasets = writable<DatasetOption[]>([
   { id: 'chatgpt', name: 'ChatGPT', file: '/data/iwac_articles_chatgpt.json', logo: '/logo/ChatGPT_logo.svg', color: '#10a37f' },
