@@ -2,7 +2,7 @@
 <script lang="ts">
   import { availableJournals, journalFilters } from '$lib/stores';
   import { t } from '$lib/i18n';
-  import { FilterCard, FilterChip } from '$lib/components/common';
+  import { FilterCard, FilterChip, SearchInput } from '$lib/components/common';
 
   // Propriété pour référence externe, pas pour l'injection de propriété
   export const class_name = '';
@@ -48,10 +48,6 @@
     applyFilter();
   }
   
-  function clearSearch() {
-    searchTerm = '';
-  }
-  
   function toggleShowAll() {
     showAll = !showAll;
   }
@@ -72,23 +68,10 @@
     <!-- Search bar -->
     {#if journals.length > 6}
       <div class="search-container">
-        <div class="search-wrapper">
-          <input 
-            type="text" 
-            placeholder={$t.filters.searchJournals}
-            bind:value={searchTerm}
-            class="search-input"
-          />
-          {#if searchTerm}
-            <button 
-              onclick={clearSearch}
-              class="search-clear"
-              aria-label="Clear search"
-            >
-              ✕
-            </button>
-          {/if}
-        </div>
+        <SearchInput
+          bind:value={searchTerm}
+          placeholder={$t.filters.searchJournals}
+        />
       </div>
     {/if}
     
@@ -128,54 +111,6 @@
     margin-bottom: 0.75rem;
   }
 
-  .search-wrapper {
-    position: relative;
-  }
-
-  .search-input {
-    width: 100%;
-    padding: 0.5rem 2rem 0.5rem 0.75rem;
-    font-size: 0.8125rem;
-    border-radius: 0.5rem;
-    background: color-mix(in oklab, var(--color-surface-50) 6%, transparent);
-    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-    color: var(--color-surface-50);
-    transition: all var(--timing-fast) var(--easing-default);
-  }
-
-  .search-input::placeholder {
-    color: color-mix(in oklab, var(--color-surface-50) 40%, transparent);
-  }
-
-  .search-input:hover {
-    border-color: color-mix(in oklab, var(--color-surface-50) 18%, transparent);
-    background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-  }
-
-  .search-input:focus {
-    outline: none;
-    border-color: var(--color-primary-500);
-    background: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary-500) 15%, transparent);
-  }
-
-  .search-clear {
-    position: absolute;
-    right: 0.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    padding: 0.25rem;
-    background: none;
-    border: none;
-    color: color-mix(in oklab, var(--color-surface-50) 50%, transparent);
-    cursor: pointer;
-    transition: color var(--timing-fast) var(--easing-default);
-  }
-
-  .search-clear:hover {
-    color: var(--color-surface-50);
-  }
-
   .results-count {
     font-size: 0.75rem;
     color: color-mix(in oklab, var(--color-surface-50) 60%, transparent);
@@ -203,17 +138,8 @@
     color: var(--color-surface-50);
   }
 
-  /* Responsive */
-  @media (max-width: 768px) {
-    .search-input {
-      padding: 0.4375rem 1.75rem 0.4375rem 0.625rem;
-      font-size: 0.75rem;
-    }
-  }
-
   /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
-    .search-input,
     .toggle-btn {
       transition: none;
     }
