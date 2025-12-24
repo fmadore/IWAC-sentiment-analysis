@@ -340,7 +340,7 @@
   }
 
   .content-wrapper {
-    max-width: 1200px;
+    max-width: 800px;
     margin: 0 auto;
     padding: 1.5rem;
   }
@@ -360,7 +360,7 @@
     }
 
     .content-wrapper {
-      padding: 2rem;
+      padding: 2rem 2.5rem;
     }
   }
 
@@ -371,6 +371,7 @@
 
     .content-wrapper {
       padding: 2.5rem 3rem;
+      max-width: 900px;
     }
   }
 
