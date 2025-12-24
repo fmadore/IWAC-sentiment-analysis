@@ -2,11 +2,18 @@
   import type { Snippet } from 'svelte';
 
   interface ChartCardProps {
+    /** Optional title for the card header */
     title?: string;
+    /** Optional subtitle for the card header */
     subtitle?: string;
+    /** Visual variant: default, large, or extreme */
     variant?: 'default' | 'large' | 'extreme';
+    /** Card content */
     children: Snippet;
+    /** Custom header snippet (overrides title/subtitle) */
     header?: Snippet;
+    /** Additional CSS classes */
+    class?: string;
   }
 
   let { 
@@ -14,11 +21,12 @@
     subtitle, 
     variant = 'default',
     children,
-    header
+    header,
+    class: className = ''
   }: ChartCardProps = $props();
 </script>
 
-<div class="chart-card" data-variant={variant}>
+<div class="chart-card {className}" data-variant={variant}>
   {#if title || header}
     <div class="chart-card-header">
       {#if header}
