@@ -23,7 +23,7 @@
   import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
   
   // Layout
-  import { FiltersPanel, NavigationTabs, ViewContent } from '$lib/components/layout';
+  import { FiltersPanel, SidebarNav, ViewContent } from '$lib/components/layout';
   
   // Data Display
   import { AnalysisInfo } from '$lib/components/data-display';
@@ -220,13 +220,15 @@
 <!-- Dynamic SEO Head -->
 <SEOHead view={activeView} comparisonMode={$comparisonMode} />
 
+<!-- Sidebar Navigation (fixed position) -->
+<SidebarNav {activeView} onChange={handleViewChange} />
+
 <main class="main-container container {activeView === 'extremes' ? 'max-w-7xl' : 'max-w-6xl'} mx-auto p-2 sm:p-4 md:p-6">
   <AnalysisInfo />
 
   {#if $isLoadingDataset}
     <LoadingState />
   {:else if currentArticles.length > 0}
-    <NavigationTabs {activeView} onChange={handleViewChange} />
 
     <FiltersPanel
       {activeView}

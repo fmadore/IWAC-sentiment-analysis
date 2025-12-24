@@ -30,7 +30,7 @@
   });
 </script>
 
-<header class="app-header sticky top-0 z-10">
+<header class="app-header sticky top-0 z-50">
   <div class="header-toolbar">
     <!-- Lead: Logo/Brand Section -->
     <div class="header-lead">
