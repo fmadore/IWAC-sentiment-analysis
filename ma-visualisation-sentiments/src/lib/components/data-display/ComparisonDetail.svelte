@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { ComparisonData, ArbiterAnalysis } from '$lib/types/data';
+  import { SentimentBadge } from '$lib/components/common';
   import { getJournalName } from '$lib/utils';
   import { t, currentLanguage } from '$lib/i18n';
-  import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
   import { getArbiterForArticle, isLoadingArbiter, arbiterModelAIsChatGPT, decodePreferredModel } from '$lib/stores';
   import GavelIcon from '@lucide/svelte/icons/gavel';
   import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
@@ -29,53 +29,6 @@
   // Helper to decode preferred model from blind assignment
   function getDecodedPreferredModel(preferredModel: 'model_a' | 'model_b' | 'both' | 'neither'): 'chatgpt' | 'gemini' | 'both' | 'neither' {
     return decodePreferredModel(preferredModel, modelAIsChatGPT);
-  }
-
-  // Semantic CSS classes for polarity (from app.postcss)
-  const polarityClasses = {
-    'Très positif': 'sentiment-very-positive',
-    'Positif': 'sentiment-positive',
-    'Neutre': 'sentiment-neutral',
-    'Négatif': 'sentiment-negative',
-    'Très négatif': 'sentiment-very-negative',
-    'Non applicable': 'sentiment-na'
-  };
-
-  // Semantic CSS classes for centrality (from app.postcss)
-  const centralityClasses = {
-    'Très central': 'centrality-very-central',
-    'Central': 'centrality-central',
-    'Secondaire': 'centrality-secondary',
-    'Marginal': 'centrality-marginal',
-    'Non abordé': 'centrality-not-addressed'
-  };
-  
-  // Semantic CSS classes for subjectivity (from app.postcss)
-  const subjectivityClasses = {
-    '1': 'subjectivity-1',
-    '2': 'subjectivity-2',
-    '3': 'subjectivity-3',
-    '4': 'subjectivity-4',
-    '5': 'subjectivity-5'
-  };
-
-  // Fonction d'aide pour obtenir la classe selon la polarité
-  function getPolarityClass(polarity: string | null | undefined): string {
-    if (!polarity) return 'variant-ghost';
-    return polarityClasses[polarity as keyof typeof polarityClasses] || 'variant-ghost';
-  }
-
-  // Fonction d'aide pour obtenir la classe selon la centralité
-  function getCentralityClass(centrality: string | null | undefined): string {
-    if (!centrality) return 'variant-ghost';
-    return centralityClasses[centrality as keyof typeof centralityClasses] || 'variant-ghost';
-  }
-  
-  // Fonction d'aide pour obtenir la classe selon le score de subjectivité
-  function getSubjectivityClass(score: string | number | null | undefined): string {
-    if (!score) return 'variant-ghost';
-    const scoreStr = String(score);
-    return subjectivityClasses[scoreStr as keyof typeof subjectivityClasses] || 'variant-ghost';
   }
 
   // Fonction pour formater les dates
@@ -260,9 +213,7 @@
         <div class="comparison-panel">
           <div class="flex items-center gap-2 mb-3">
             <span class="text-sm font-bold text-white/80">ChatGPT</span>
-            <span class="badge badge-sm {getCentralityClass(comparison.chatgpt?.centralite_islam_musulmans)}">
-              {translateSentimentValue(comparison.chatgpt?.centralite_islam_musulmans, $currentLanguage) ?? translateSentimentValue('Non abordé', $currentLanguage)}
-            </span>
+            <SentimentBadge type="centrality" value={comparison.chatgpt?.centralite_islam_musulmans} size="sm" />
           </div>
           {#if comparison.chatgpt?.centralite_justification}
             <blockquote class="card variant-glass glass-dark p-4 border-l-4 border-l-blue-400/50 italic text-white/90 leading-relaxed">
@@ -277,9 +228,7 @@
         <div class="comparison-panel">
           <div class="flex items-center gap-2 mb-3">
             <span class="text-sm font-bold text-white/80">Gemini</span>
-            <span class="badge badge-sm {getCentralityClass(comparison.gemini?.centralite_islam_musulmans)}">
-              {translateSentimentValue(comparison.gemini?.centralite_islam_musulmans, $currentLanguage) ?? translateSentimentValue('Non abordé', $currentLanguage)}
-            </span>
+            <SentimentBadge type="centrality" value={comparison.gemini?.centralite_islam_musulmans} size="sm" />
           </div>
           {#if comparison.gemini?.centralite_justification}
             <blockquote class="card variant-glass glass-dark p-4 border-l-4 border-l-green-400/50 italic text-white/90 leading-relaxed">
@@ -306,9 +255,7 @@
         <div class="comparison-panel">
           <div class="flex items-center gap-2 mb-3">
             <span class="text-sm font-bold text-white/80">ChatGPT</span>
-            <span class="badge badge-sm {getPolarityClass(comparison.chatgpt?.polarite)}">
-              {translateSentimentValue(comparison.chatgpt?.polarite, $currentLanguage)}
-            </span>
+            <SentimentBadge type="polarity" value={comparison.chatgpt?.polarite} size="sm" />
           </div>
           {#if comparison.chatgpt?.polarite_justification}
             <blockquote class="card variant-glass glass-dark p-4 border-l-4 border-l-purple-400/50 italic text-white/90 leading-relaxed">
@@ -323,9 +270,7 @@
         <div class="comparison-panel">
           <div class="flex items-center gap-2 mb-3">
             <span class="text-sm font-bold text-white/80">Gemini</span>
-            <span class="badge badge-sm {getPolarityClass(comparison.gemini?.polarite)}">
-              {translateSentimentValue(comparison.gemini?.polarite, $currentLanguage)}
-            </span>
+            <SentimentBadge type="polarity" value={comparison.gemini?.polarite} size="sm" />
           </div>
           {#if comparison.gemini?.polarite_justification}
             <blockquote class="card variant-glass glass-dark p-4 border-l-4 border-l-purple-400/50 italic text-white/90 leading-relaxed">
@@ -352,9 +297,7 @@
         <div class="comparison-panel">
           <div class="flex items-center gap-2 mb-3">
             <span class="text-sm font-bold text-white/80">ChatGPT</span>
-            <span class="badge badge-sm {getSubjectivityClass(comparison.chatgpt?.subjectivite_score)}">
-              {translateSubjectivityScore(comparison.chatgpt?.subjectivite_score, $currentLanguage)}
-            </span>
+            <SentimentBadge type="subjectivity" value={comparison.chatgpt?.subjectivite_score} size="sm" />
           </div>
           {#if comparison.chatgpt?.subjectivite_justification}
             <blockquote class="card variant-glass glass-dark p-4 border-l-4 border-l-green-400/50 italic text-white/90 leading-relaxed">
@@ -369,9 +312,7 @@
         <div class="comparison-panel">
           <div class="flex items-center gap-2 mb-3">
             <span class="text-sm font-bold text-white/80">Gemini</span>
-            <span class="badge badge-sm {getSubjectivityClass(comparison.gemini?.subjectivite_score)}">
-              {translateSubjectivityScore(comparison.gemini?.subjectivite_score, $currentLanguage)}
-            </span>
+            <SentimentBadge type="subjectivity" value={comparison.gemini?.subjectivite_score} size="sm" />
           </div>
           {#if comparison.gemini?.subjectivite_justification}
             <blockquote class="card variant-glass glass-dark p-4 border-l-4 border-l-green-400/50 italic text-white/90 leading-relaxed">
@@ -446,9 +387,7 @@
               <div class="flex items-center justify-between mb-3">
                 <h5 class="font-semibold text-white">{$t.arbiter.polarityVerdict}</h5>
                 <div class="flex items-center gap-2">
-                  <span class="badge badge-sm {getPolarityClass(arbiterData.polarity.score)}">
-                    {translateSentimentValue(arbiterData.polarity.score, $currentLanguage)}
-                  </span>
+                  <SentimentBadge type="polarity" value={arbiterData.polarity.score} size="sm" />
                   <span class="badge badge-sm {getPreferredModelClass(arbiterData.polarity.preferred_model)}">
                     {#if getPreferredModelIconType(arbiterData.polarity.preferred_model) === 'check'}
                       <CheckCircleIcon size={12} class="mr-1" />
@@ -478,9 +417,7 @@
               <div class="flex items-center justify-between mb-3">
                 <h5 class="font-semibold text-white">{$t.arbiter.subjectivityVerdict}</h5>
                 <div class="flex items-center gap-2">
-                  <span class="badge badge-sm {getSubjectivityClass(arbiterData.subjectivity.score)}">
-                    {translateSubjectivityScore(parseInt(arbiterData.subjectivity.score) || null, $currentLanguage)}
-                  </span>
+                  <SentimentBadge type="subjectivity" value={parseInt(arbiterData.subjectivity.score) || null} size="sm" />
                   <span class="badge badge-sm {getPreferredModelClass(arbiterData.subjectivity.preferred_model)}">
                     {#if getPreferredModelIconType(arbiterData.subjectivity.preferred_model) === 'check'}
                       <CheckCircleIcon size={12} class="mr-1" />
@@ -510,9 +447,7 @@
               <div class="flex items-center justify-between mb-3">
                 <h5 class="font-semibold text-white">{$t.arbiter.centralityVerdict}</h5>
                 <div class="flex items-center gap-2">
-                  <span class="badge badge-sm {getCentralityClass(arbiterData.centrality.score)}">
-                    {translateSentimentValue(arbiterData.centrality.score, $currentLanguage)}
-                  </span>
+                  <SentimentBadge type="centrality" value={arbiterData.centrality.score} size="sm" />
                   <span class="badge badge-sm {getPreferredModelClass(arbiterData.centrality.preferred_model)}">
                     {#if getPreferredModelIconType(arbiterData.centrality.preferred_model) === 'check'}
                       <CheckCircleIcon size={12} class="mr-1" />

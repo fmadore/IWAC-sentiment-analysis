@@ -1,13 +1,13 @@
 <script lang="ts">
   import { filteredComparisons, selectedComparison } from '$lib/stores';
   import { t, currentLanguage } from '$lib/i18n';
-  import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
   import { getJournalName } from '$lib/utils';
   import type { ComparisonData } from '$lib/types/data';
   import ArrowUpDownIcon from '@lucide/svelte/icons/arrow-up-down';
   import LayoutGridIcon from '@lucide/svelte/icons/layout-grid';
   import TableIcon from '@lucide/svelte/icons/table';
   import { ComparisonCSVExportButton } from '$lib/components/ui';
+  import { SentimentBadge } from '$lib/components/common';
   
   let viewMode = $state<'table' | 'cards'>('table');
   let sortBy = $state<'discrepancy' | 'date' | 'title'>('discrepancy');
@@ -135,53 +135,6 @@
     if (diff === 1) return 'variant-soft-warning';
     if (diff === 2) return 'variant-soft-error';
     return 'variant-filled-error';
-  }
-  
-  // Semantic CSS classes for polarity (from app.postcss)
-  const polarityClasses = {
-    'Très positif': 'sentiment-very-positive',
-    'Positif': 'sentiment-positive',
-    'Neutre': 'sentiment-neutral',
-    'Négatif': 'sentiment-negative',
-    'Très négatif': 'sentiment-very-negative',
-    'Non applicable': 'sentiment-na'
-  };
-
-  // Semantic CSS classes for centrality (from app.postcss)
-  const centralityClasses = {
-    'Très central': 'centrality-very-central',
-    'Central': 'centrality-central',
-    'Secondaire': 'centrality-secondary',
-    'Marginal': 'centrality-marginal',
-    'Non abordé': 'centrality-not-addressed'
-  };
-  
-  // Semantic CSS classes for subjectivity (from app.postcss)
-  const subjectivityClasses = {
-    '1': 'subjectivity-1',
-    '2': 'subjectivity-2',
-    '3': 'subjectivity-3',
-    '4': 'subjectivity-4',
-    '5': 'subjectivity-5'
-  };
-
-  // Fonction d'aide pour obtenir la classe selon la polarité
-  function getPolarityClass(polarity: string | null | undefined): string {
-    if (!polarity) return 'variant-ghost';
-    return polarityClasses[polarity as keyof typeof polarityClasses] || 'variant-ghost';
-  }
-
-  // Fonction d'aide pour obtenir la classe selon la centralité
-  function getCentralityClass(centrality: string | null | undefined): string {
-    if (!centrality) return 'variant-ghost';
-    return centralityClasses[centrality as keyof typeof centralityClasses] || 'variant-ghost';
-  }
-  
-  // Fonction d'aide pour obtenir la classe selon le score de subjectivité
-  function getSubjectivityClass(score: string | number | null | undefined): string {
-    if (!score) return 'variant-ghost';
-    const scoreStr = String(score);
-    return subjectivityClasses[scoreStr as keyof typeof subjectivityClasses] || 'variant-ghost';
   }
   
   function selectComparison(comparison: ComparisonData) {
@@ -321,34 +274,22 @@
                 </div>
               </td>
               <td class="text-center">
-                <span class="badge badge-sm {getPolarityClass(comparison.chatgpt?.polarite)}">
-                  {translateSentimentValue(comparison.chatgpt?.polarite, $currentLanguage) || 'N/A'}
-                </span>
+                <SentimentBadge type="polarity" value={comparison.chatgpt?.polarite} size="sm" />
               </td>
               <td class="text-center">
-                <span class="badge badge-sm {getPolarityClass(comparison.gemini?.polarite)}">
-                  {translateSentimentValue(comparison.gemini?.polarite, $currentLanguage) || 'N/A'}
-                </span>
+                <SentimentBadge type="polarity" value={comparison.gemini?.polarite} size="sm" />
               </td>
               <td class="text-center">
-                <span class="badge badge-sm {getSubjectivityClass(comparison.chatgpt?.subjectivite_score)}">
-                  {translateSubjectivityScore(comparison.chatgpt?.subjectivite_score, $currentLanguage)}
-                </span>
+                <SentimentBadge type="subjectivity" value={comparison.chatgpt?.subjectivite_score} size="sm" />
               </td>
               <td class="text-center">
-                <span class="badge badge-sm {getSubjectivityClass(comparison.gemini?.subjectivite_score)}">
-                  {translateSubjectivityScore(comparison.gemini?.subjectivite_score, $currentLanguage)}
-                </span>
+                <SentimentBadge type="subjectivity" value={comparison.gemini?.subjectivite_score} size="sm" />
               </td>
               <td class="text-center">
-                <span class="badge badge-sm {getCentralityClass(comparison.chatgpt?.centralite_islam_musulmans)}">
-                  {translateSentimentValue(comparison.chatgpt?.centralite_islam_musulmans, $currentLanguage) || 'N/A'}
-                </span>
+                <SentimentBadge type="centrality" value={comparison.chatgpt?.centralite_islam_musulmans} size="sm" />
               </td>
               <td class="text-center">
-                <span class="badge badge-sm {getCentralityClass(comparison.gemini?.centralite_islam_musulmans)}">
-                  {translateSentimentValue(comparison.gemini?.centralite_islam_musulmans, $currentLanguage) || 'N/A'}
-                </span>
+                <SentimentBadge type="centrality" value={comparison.gemini?.centralite_islam_musulmans} size="sm" />
               </td>
               <td class="text-center">
                 <span class="badge badge-lg {getDiffBadgeClass(comparison.discrepancies.totalDiff)}">
@@ -391,18 +332,14 @@
               <div class="values-grid">
                                  <div class="value-cell">
                    <span class="model-label">ChatGPT</span>
-                   <span class="badge badge-sm {getPolarityClass(comparison.chatgpt?.polarite)}">
-                     {translateSentimentValue(comparison.chatgpt?.polarite, $currentLanguage) || 'N/A'}
-                   </span>
+                   <SentimentBadge type="polarity" value={comparison.chatgpt?.polarite} size="sm" />
                  </div>
                  <div class="diff-indicator {getDiffClass(comparison.discrepancies.polarityDiff)}">
                    {comparison.discrepancies.polarityDiff > 0 ? `±${comparison.discrepancies.polarityDiff}` : '='}
                  </div>
                  <div class="value-cell">
                    <span class="model-label">Gemini</span>
-                   <span class="badge badge-sm {getPolarityClass(comparison.gemini?.polarite)}">
-                     {translateSentimentValue(comparison.gemini?.polarite, $currentLanguage) || 'N/A'}
-                   </span>
+                   <SentimentBadge type="polarity" value={comparison.gemini?.polarite} size="sm" />
                  </div>
               </div>
             </div>
@@ -413,18 +350,14 @@
               <div class="values-grid">
                 <div class="value-cell">
                   <span class="model-label">ChatGPT</span>
-                  <span class="badge badge-sm {getSubjectivityClass(comparison.chatgpt?.subjectivite_score)}">
-                    {translateSubjectivityScore(comparison.chatgpt?.subjectivite_score, $currentLanguage)}
-                  </span>
+                  <SentimentBadge type="subjectivity" value={comparison.chatgpt?.subjectivite_score} size="sm" />
                 </div>
                 <div class="diff-indicator {getDiffClass(comparison.discrepancies.subjectivityDiff)}">
                   {comparison.discrepancies.subjectivityDiff > 0 ? `±${comparison.discrepancies.subjectivityDiff}` : '='}
                 </div>
                 <div class="value-cell">
                   <span class="model-label">Gemini</span>
-                  <span class="badge badge-sm {getSubjectivityClass(comparison.gemini?.subjectivite_score)}">
-                    {translateSubjectivityScore(comparison.gemini?.subjectivite_score, $currentLanguage)}
-                  </span>
+                  <SentimentBadge type="subjectivity" value={comparison.gemini?.subjectivite_score} size="sm" />
                 </div>
               </div>
             </div>
@@ -435,18 +368,14 @@
               <div class="values-grid">
                                  <div class="value-cell">
                    <span class="model-label">ChatGPT</span>
-                   <span class="badge badge-sm {getCentralityClass(comparison.chatgpt?.centralite_islam_musulmans)} text-xs">
-                     {translateSentimentValue(comparison.chatgpt?.centralite_islam_musulmans, $currentLanguage) || 'N/A'}
-                   </span>
+                   <SentimentBadge type="centrality" value={comparison.chatgpt?.centralite_islam_musulmans} size="sm" />
                  </div>
                  <div class="diff-indicator {getDiffClass(comparison.discrepancies.centralityDiff)}">
                    {comparison.discrepancies.centralityDiff > 0 ? `±${comparison.discrepancies.centralityDiff}` : '='}
                  </div>
                  <div class="value-cell">
                    <span class="model-label">Gemini</span>
-                   <span class="badge badge-sm {getCentralityClass(comparison.gemini?.centralite_islam_musulmans)} text-xs">
-                     {translateSentimentValue(comparison.gemini?.centralite_islam_musulmans, $currentLanguage) || 'N/A'}
-                   </span>
+                   <SentimentBadge type="centrality" value={comparison.gemini?.centralite_islam_musulmans} size="sm" />
                  </div>
               </div>
             </div>
@@ -572,14 +501,6 @@
     cursor: inherit; /* Inherit cursor from parent */
   }
 
-  .badge-sm {
-    padding: 0.125rem 0.375rem;
-    font-size: 0.625rem;
-    font-weight: 500;
-    border-radius: 9999px;
-    cursor: inherit; /* Inherit cursor from parent */
-  }
-  
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
