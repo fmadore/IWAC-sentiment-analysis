@@ -3,18 +3,24 @@
   import { DiscrepancyFilter } from '$lib/components/filters';
   import ComparisonTable from './ComparisonTable.svelte';
   import ComparisonStats from './ComparisonStats.svelte';
-  import ComparisonDetail from './ComparisonDetail.svelte';
+  import { ComparisonDetailModal } from '$lib/components/common';
   import { t } from '$lib/i18n';
   import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
-  import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
   
   const hasData = $derived($filteredComparisons.length > 0);
-  const showDetail = $derived($selectedComparison !== null);
+  const showDetailModal = $derived($selectedComparison !== null);
 
-  function goBackToList() {
+  function closeDetailModal() {
     selectedComparison.set(null);
   }
 </script>
+
+<!-- Comparison Detail Modal (full-screen) -->
+<ComparisonDetailModal 
+  comparison={$selectedComparison} 
+  open={showDetailModal}
+  onClose={closeDetailModal}
+/>
 
 <div class="comparison-view">
   {#if !$comparisonMode}
@@ -26,57 +32,38 @@
         {$t.comparison?.enableComparisonDescription || 'Click the comparison button in the dataset picker to compare ChatGPT and Gemini analyses.'}
       </p>
     </div>
-  {:else if showDetail}
-    <!-- Detailed Comparison View -->
-    <div class="detail-view">
-      <!-- Back button -->
-      <div class="mb-6">
-        <button 
-          class="btn btn-sm variant-soft-surface gap-2 hover-lift whitespace-nowrap"
-          onclick={goBackToList}
-        >
-          <ArrowLeftIcon size={16} />
-          {$t.common?.viewLess || 'Back to List'}
-        </button>
+  {:else if $isLoadingComparison}
+    <!-- Loading state for comparison data -->
+    <div class="loading-section mb-6">
+      <div class="preset-glass p-8 text-center rounded-xl">
+        <div class="loading-spinner mb-4"></div>
+        <p class="text-white/80">{$t.messages?.loading || 'Loading comparison data...'}</p>
       </div>
-      
-      <!-- Detailed comparison -->
-      <ComparisonDetail comparison={$selectedComparison} />
     </div>
   {:else}
-    <!-- Loading state for comparison data -->
-    {#if $isLoadingComparison}
-      <div class="loading-section mb-6">
-        <div class="preset-glass p-8 text-center rounded-xl">
-          <div class="loading-spinner mb-4"></div>
-          <p class="text-white/80">{$t.messages?.loading || 'Loading comparison data...'}</p>
-        </div>
+    <!-- Stats Overview -->
+    <div class="stats-section mb-6">
+      <ComparisonStats />
+    </div>
+    
+    <!-- Filters -->
+    <div class="filters-section mb-6">
+      <DiscrepancyFilter />
+    </div>
+    
+    <!-- Results -->
+    {#if hasData}
+      <div class="comparison-content">
+        <ComparisonTable />
       </div>
     {:else}
-      <!-- Stats Overview -->
-      <div class="stats-section mb-6">
-        <ComparisonStats />
+      <div class="empty-results preset-glass p-8 text-center rounded-xl">
+        <AlertCircleIcon size={48} class="mx-auto mb-4 text-white/60" />
+        <h3 class="h4 mb-2 text-white">{$t.comparison?.noDiscrepancies || 'No Discrepancies Found'}</h3>
+        <p class="text-white/60 max-w-md mx-auto">
+          {$t.comparison?.adjustFilters || 'Try adjusting your filters to see articles with differences between models.'}
+        </p>
       </div>
-      
-      <!-- Filters -->
-      <div class="filters-section mb-6">
-        <DiscrepancyFilter />
-      </div>
-      
-      <!-- Results -->
-      {#if hasData}
-        <div class="comparison-content">
-          <ComparisonTable />
-        </div>
-      {:else}
-        <div class="empty-results preset-glass p-8 text-center rounded-xl">
-          <AlertCircleIcon size={48} class="mx-auto mb-4 text-white/60" />
-          <h3 class="h4 mb-2 text-white">{$t.comparison?.noDiscrepancies || 'No Discrepancies Found'}</h3>
-          <p class="text-white/60 max-w-md mx-auto">
-            {$t.comparison?.adjustFilters || 'Try adjusting your filters to see articles with differences between models.'}
-          </p>
-        </div>
-      {/if}
     {/if}
   {/if}
 </div>

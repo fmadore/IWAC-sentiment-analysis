@@ -19,13 +19,15 @@ This document tracks the ongoing component refactoring and reorganization effort
 ```
 src/lib/components/
 ├── common/           # ✅ Base reusable components
-│   ├── ArticleDetailModal.svelte  # Modal for article details
-│   ├── DropdownMenu.svelte        # NEW: Reusable dropdown menu
+│   ├── ArticleDetailModal.svelte  # Full-screen modal for article details
+│   ├── ComparisonDetailModal.svelte # NEW: Full-screen modal for comparison details
+│   ├── DropdownMenu.svelte        # Reusable dropdown menu
 │   ├── FilterCard.svelte
 │   ├── FilterChip.svelte
+│   ├── FullScreenModal.svelte     # NEW: Base full-screen modal wrapper
 │   ├── GlassCard.svelte
 │   ├── LoadingState.svelte        # Loading skeleton component
-│   ├── SearchInput.svelte         # NEW: Glass morphism search input
+│   ├── SearchInput.svelte         # Glass morphism search input
 │   ├── SentimentBadge.svelte
 │   └── index.ts
 ├── filters/          # ✅ All filter components
@@ -565,6 +567,83 @@ export function getAxisPointerConfig() {
 
 ---
 
+## ✅ Phase 8: Full-Screen Detail Components (COMPLETE)
+
+### Overview
+
+Refactored article and comparison detail views from centered modals/inline views to immersive full-screen experiences with consistent glass morphism styling.
+
+### New Components
+
+#### `FullScreenModal.svelte` (common/)
+
+A reusable full-screen modal wrapper component with:
+
+- **Full viewport coverage** with glass morphism backdrop (95% opacity, xl blur)
+- **Responsive header** with accent line variants (primary, comparison, extreme, arbiter)
+- **Back button** with arrow icon and optional text
+- **Title and subtitle** with optional header icon
+- **Header actions slot** for badges, buttons, etc.
+- **Scrollable content area** with custom scrollbar
+- **Keyboard navigation** (Escape to close)
+- **Reduced motion support**
+
+```svelte
+<FullScreenModal 
+  open={showModal}
+  onClose={() => showModal = false}
+  title="Article Details"
+  subtitle="Journal • Date"
+  accentVariant="primary"
+>
+  {#snippet headerIcon()}
+    <NewspaperIcon size={20} />
+  {/snippet}
+  
+  <YourContent />
+</FullScreenModal>
+```
+
+**Accent Variants:**
+| Variant | Color | Use Case |
+|---------|-------|----------|
+| `primary` | Blue/purple gradient | Article details |
+| `comparison` | Blue/purple/pink gradient | Comparison details |
+| `extreme` | Orange/gold gradient | Extreme analysis |
+| `arbiter` | Amber gradient | Arbiter verdicts |
+
+#### `ComparisonDetailModal.svelte` (common/)
+
+Full-screen modal for comparison details:
+- Uses `FullScreenModal` with `comparison` accent variant
+- Shows comparison icon in header
+- Displays discrepancy badge when conflicts exist
+- Wraps `ComparisonDetail` content component
+
+### Components Refactored
+
+| Component | Before | After |
+|-----------|--------|-------|
+| `ArticleDetailModal` | Centered modal (900px max) | Full-screen using `FullScreenModal` |
+| `ComparisonView` | Inline detail replaces list | Modal-based using `ComparisonDetailModal` |
+
+### Barrel Export Updates
+
+Added to `common/index.ts`:
+```typescript
+export { default as ComparisonDetailModal } from './ComparisonDetailModal.svelte';
+export { default as FullScreenModal } from './FullScreenModal.svelte';
+```
+
+### UX Improvements
+
+1. **Immersive Experience**: Full-screen modals provide better focus on content
+2. **Consistent Navigation**: Back button always visible in header
+3. **Better Mobile Support**: Full viewport usage on all screen sizes
+4. **Context Preservation**: Comparison list remains visible behind modal
+
+---
+
 ## Notes
 
 - All new components follow Svelte 5 runes patterns (`$props`, `$state`, `$derived`, `$bindable`)
@@ -576,6 +655,7 @@ export function getAxisPointerConfig() {
 - Total codebase reduction: ~1120 lines of CSS/component code
 - **New:** Arbiter, discrepancy, and gradient colors centralized in CSS variables
 - **New:** Chart axis pointer configuration centralized in `chartTheme.ts`
+- **New:** Full-screen modal system for article and comparison details
 - Documentation updated in `.github/copilot-instructions.md`
 
 ---
