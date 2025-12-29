@@ -150,16 +150,16 @@ export const en: Translations = {
     methodologyCorpus: 'This experiment analyzes how Islam and Muslims are represented in West African newspapers. Instead of manually coding thousands of articles—which would introduce inconsistency—the entire corpus of',
     methodologyCorpusArticles: 'articles from the',
     methodologyCorpusDeveloper: ', a collaborative and open-access digital database developed by',
-    methodologyCorpusEnd: ', was analyzed using two LLMs: OpenAI\'s GPT-5 mini and Google\'s Gemini 3 Flash. Each article was evaluated according to three complementary dimensions:',
+    methodologyCorpusEnd: ', was analyzed using three LLMs: OpenAI\'s GPT-5 mini, Google\'s Gemini 3 Flash, and Mistral\'s Ministral 3 14B. Each article was evaluated according to three complementary dimensions:',
     methodology: 'This visualization presents an automated sentiment analysis concerning the representation of Islam and Muslims in the Francophone West African press. The analyzed articles come from the',
     methodologyAiModel: 'Methodology and AI model',
     modelUsed: 'Model used',
-  modelDescription: 'The analysis was performed with',
-  modelDetails: ', an OpenAI GPT-5 series model ("GPT-5 mini", Aug 2025). It offers a 400,000-token context window and enhanced reasoning capabilities, providing strong quality at an efficient cost for large French-language corpora.',
-  modelSummary: 'Model overview',
-  modelUsageGuide: 'Usage guide',
-  modelDocsLink: 'Model documentation',
-  modelSpecs: 'Model specifications',
+    modelDescription: 'The analysis was performed with',
+    modelDetails: ', an OpenAI GPT-5 series model ("GPT-5 mini", Aug 2025). It offers a 400,000-token context window and enhanced reasoning capabilities, providing strong quality at an efficient cost for large French-language corpora.',
+    modelSummary: 'Model overview',
+    modelUsageGuide: 'Usage guide',
+    modelDocsLink: 'Model documentation',
+    modelSpecs: 'Model specifications',
     technicalConfiguration: 'Technical configuration',
     temperatureConfig: 'Temperature: 0.2 (for deterministic output)',
     outputFormat: 'Output format: Structured JSON with Pydantic validation',
@@ -257,7 +257,7 @@ export const en: Translations = {
     comparisonMode: 'Comparison Mode',
     compareModels: 'Compare Models'
   },
-  
+
   // Comparison
   comparison: {
     filterByDiscrepancy: 'Filter by Discrepancy',

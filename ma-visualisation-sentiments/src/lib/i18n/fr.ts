@@ -150,16 +150,16 @@ export const fr: Translations = {
     methodologyCorpus: 'Cette expérience analyse comment l\'islam et les musulmans sont représentés dans la presse ouest-africaine. Au lieu de coder manuellement des milliers d\'articles—ce qui introduirait des incohérences—l\'ensemble du corpus de',
     methodologyCorpusArticles: 'articles issus de la',
     methodologyCorpusDeveloper: ', une base de données numérique collaborative et en libre accès développée par',
-    methodologyCorpusEnd: ', a été analysé à l\'aide de deux LLMs : GPT-5 mini d\'OpenAI et Gemini 3 Flash de Google. Chaque article a été évalué selon trois dimensions complémentaires :',
+    methodologyCorpusEnd: ', a été analysé à l\'aide de trois LLMs : GPT-5 mini d\'OpenAI, Gemini 3 Flash de Google et Ministral 3 14B de Mistral. Chaque article a été évalué selon trois dimensions complémentaires :',
     methodology: 'Cette visualisation présente une analyse automatisée des sentiments concernant la représentation de l\'islam et des musulmans dans la presse d\'Afrique de l\'Ouest francophone. Les articles analysés sont issus de la',
     methodologyAiModel: 'Méthodologie et modèle d\'IA',
     modelUsed: 'Modèle utilisé',
     modelDescription: 'L\'analyse a été réalisée avec',
     modelDetails: ', un grand modèle de langage développé par Google. Ce modèle a été choisi pour son excellent rapport qualité-prix, offrant des performances satisfaisantes pour l\'analyse de texte en français à un coût accessible.',
-  modelSummary: 'Résumé du modèle',
-  modelUsageGuide: "Guide d'utilisation",
-  modelDocsLink: 'Documentation du modèle',
-  modelSpecs: 'Spécifications du modèle',
+    modelSummary: 'Résumé du modèle',
+    modelUsageGuide: "Guide d'utilisation",
+    modelDocsLink: 'Documentation du modèle',
+    modelSpecs: 'Spécifications du modèle',
     technicalConfiguration: 'Configuration technique',
     temperatureConfig: 'Température : 0.2 (pour une sortie déterministe)',
     outputFormat: 'Format de sortie : JSON structuré avec validation Pydantic',
@@ -257,7 +257,7 @@ export const fr: Translations = {
     comparisonMode: 'Mode comparaison',
     compareModels: 'Comparer les modèles'
   },
-  
+
   // Comparison
   comparison: {
     filterByDiscrepancy: 'Filtrer par divergence',
