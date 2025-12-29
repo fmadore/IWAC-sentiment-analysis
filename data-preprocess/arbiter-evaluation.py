@@ -2,8 +2,13 @@
 Arbiter Evaluation Script - Gemini 3 Pro as the Judge
 
 This script uses Gemini 3 Pro with high reasoning level (thinking_level="high") 
-as an arbiter to evaluate articles where ChatGPT and Gemini have significant 
+as an arbiter to evaluate articles where two AI models have significant 
 disagreements (≥3 points difference).
+
+Supports comparing any pair of models:
+- chatgpt-gemini (default)
+- chatgpt-mistral
+- gemini-mistral
 
 The arbiter provides:
 - Its own independent scores for each dimension
@@ -15,6 +20,12 @@ Features:
 - Gemini 3 Pro Preview with thinking_level="high" for maximum reasoning
 - System instructions for consistent evaluation context
 - Pydantic structured outputs for reliable JSON parsing
+- Configurable model pair via --pair argument
+
+Usage:
+  python arbiter-evaluation.py                    # Default: ChatGPT vs Gemini
+  python arbiter-evaluation.py --pair chatgpt-mistral
+  python arbiter-evaluation.py --pair gemini-mistral
 
 Output: JSON file with arbiter evaluations to be consumed by the visualization app
 """
@@ -23,6 +34,7 @@ import os
 import json
 import time
 import random
+import argparse
 import pandas as pd
 from tqdm import tqdm
 from datetime import datetime
@@ -32,6 +44,21 @@ from huggingface_hub import hf_hub_download
 from pydantic import BaseModel, Field
 from pathlib import Path
 from dotenv import load_dotenv
+
+# Model pair configuration
+VALID_PAIRS = ['chatgpt-gemini', 'chatgpt-mistral', 'gemini-mistral']
+
+# Model name mappings for display
+MODEL_NAMES = {
+    'chatgpt': 'ChatGPT',
+    'gemini': 'Gemini',
+    'mistral': 'Mistral'
+}
+
+def get_models_from_pair(pair: str) -> tuple[str, str]:
+    """Get the two model IDs from a pair string"""
+    parts = pair.split('-')
+    return parts[0], parts[1]
 
 # Load environment variables from .env file
 env_path = Path(__file__).parent.parent / '.env'
@@ -374,34 +401,44 @@ def load_dataset() -> pd.DataFrame:
         raise
 
 
-def find_significant_differences(df: pd.DataFrame) -> list:
-    """Find articles with significant differences between models"""
+def find_significant_differences(df: pd.DataFrame, model_a: str = 'chatgpt', model_b: str = 'gemini') -> list:
+    """Find articles with significant differences between the specified models
+    
+    Args:
+        df: DataFrame with article data
+        model_a: First model ID (e.g., 'chatgpt', 'gemini', 'mistral')
+        model_b: Second model ID (e.g., 'chatgpt', 'gemini', 'mistral')
+    """
     significant_articles = []
     
-    print(f"Processing {len(df)} articles to find significant differences...")
+    model_a_name = MODEL_NAMES.get(model_a, model_a)
+    model_b_name = MODEL_NAMES.get(model_b, model_b)
+    
+    print(f"Processing {len(df)} articles to find significant differences between {model_a_name} and {model_b_name}...")
     
     for _, row in tqdm(df.iterrows(), total=len(df), desc="Finding conflicts"):
         item = row.to_dict()
         
-        chatgpt_analysis = {
-            'polarite': item.get('chatgpt_polarite'),
-            'polarite_justification': item.get('chatgpt_polarite_justification'),
-            'subjectivite_score': item.get('chatgpt_subjectivite_score'),
-            'subjectivite_justification': item.get('chatgpt_subjectivite_justification'),
-            'centralite_islam_musulmans': item.get('chatgpt_centralite_islam_musulmans'),
-            'centralite_justification': item.get('chatgpt_centralite_justification')
+        # Dynamically build column names based on model prefixes
+        model_a_analysis = {
+            'polarite': item.get(f'{model_a}_polarite'),
+            'polarite_justification': item.get(f'{model_a}_polarite_justification'),
+            'subjectivite_score': item.get(f'{model_a}_subjectivite_score'),
+            'subjectivite_justification': item.get(f'{model_a}_subjectivite_justification'),
+            'centralite_islam_musulmans': item.get(f'{model_a}_centralite_islam_musulmans'),
+            'centralite_justification': item.get(f'{model_a}_centralite_justification')
         }
         
-        gemini_analysis = {
-            'polarite': item.get('gemini_polarite'),
-            'polarite_justification': item.get('gemini_polarite_justification'),
-            'subjectivite_score': item.get('gemini_subjectivite_score'),
-            'subjectivite_justification': item.get('gemini_subjectivite_justification'),
-            'centralite_islam_musulmans': item.get('gemini_centralite_islam_musulmans'),
-            'centralite_justification': item.get('gemini_centralite_justification')
+        model_b_analysis = {
+            'polarite': item.get(f'{model_b}_polarite'),
+            'polarite_justification': item.get(f'{model_b}_polarite_justification'),
+            'subjectivite_score': item.get(f'{model_b}_subjectivite_score'),
+            'subjectivite_justification': item.get(f'{model_b}_subjectivite_justification'),
+            'centralite_islam_musulmans': item.get(f'{model_b}_centralite_islam_musulmans'),
+            'centralite_justification': item.get(f'{model_b}_centralite_justification')
         }
         
-        discrepancies = calculate_discrepancies(chatgpt_analysis, gemini_analysis)
+        discrepancies = calculate_discrepancies(model_a_analysis, model_b_analysis)
         
         if discrepancies and discrepancies["has_significant_conflict"]:
             # Include the OCR field for full text (field name is uppercase)
@@ -412,8 +449,10 @@ def find_significant_differences(df: pd.DataFrame) -> list:
                 'newspaper': item.get('newspaper'),
                 'country': item.get('country'),
                 'pub_date': item.get('pub_date'),
-                'chatgpt_analysis': chatgpt_analysis,
-                'gemini_analysis': gemini_analysis,
+                'model_a_analysis': model_a_analysis,
+                'model_b_analysis': model_b_analysis,
+                'model_a_id': model_a,
+                'model_b_id': model_b,
                 'discrepancies': discrepancies
             }
             significant_articles.append(article_data)
@@ -421,10 +460,164 @@ def find_significant_differences(df: pd.DataFrame) -> list:
     return significant_articles
 
 
-def main():
-    """Main function"""
+
+def process_pair(client, df: pd.DataFrame, pair: str, webapp_data_dir: str) -> dict:
+    """Process a single model pair and return statistics
+    
+    Uses the webapp output file as cache for incremental processing.
+    If new articles are added to the dataset, only the new ones will be processed.
+    
+    Args:
+        client: GenAI client
+        df: DataFrame with article data
+        pair: Model pair string (e.g., 'chatgpt-gemini')
+        webapp_data_dir: Directory for webapp data files (used as cache)
+        
+    Returns:
+        dict with processing statistics
+    """
+    model_a, model_b = get_models_from_pair(pair)
+    model_a_name = MODEL_NAMES.get(model_a, model_a)
+    model_b_name = MODEL_NAMES.get(model_b, model_b)
+    
+    print(f"\n{'='*60}")
+    print(f"Processing: {model_a_name} vs {model_b_name}")
+    print(f"{'='*60}")
+    
+    # Find articles with significant differences for this pair
+    significant_articles = find_significant_differences(df, model_a, model_b)
+    
+    if not significant_articles:
+        print(f"❌ No articles with significant differences found!")
+        return {'pair': pair, 'total': 0, 'new': 0, 'cached': 0, 'failed': 0}
+    
+    print(f"📊 Found {len(significant_articles)} articles with significant differences")
+    
+    # Use webapp output file as primary cache (for incremental processing)
+    webapp_file = os.path.join(webapp_data_dir, f"iwac_arbiter_evaluations_{pair}.json")
+    
+    # Load existing evaluations from output file (acts as cache)
+    arbiter_results = []
+    evaluated_ids = set()
+    model_a_is_first = None  # Whether model_a is assigned as "Model A" in blind eval
+    
+    if os.path.exists(webapp_file):
+        print(f"📦 Found existing data file: {os.path.basename(webapp_file)}")
+        try:
+            with open(webapp_file, 'r', encoding='utf-8') as f:
+                existing_data = json.load(f)
+                arbiter_results = existing_data.get('evaluations', [])
+                evaluated_ids = {str(r['article_id']) for r in arbiter_results}
+                # Preserve the blind assignment from previous runs
+                model_a_is_first = existing_data.get('metadata', {}).get('model_a_is_first')
+                print(f"   ✓ Loaded {len(arbiter_results)} cached evaluations")
+        except Exception as e:
+            print(f"   ⚠️ Failed to load existing data: {e}")
+            arbiter_results = []
+            evaluated_ids = set()
+    
+    # Filter out already-evaluated articles
+    remaining_articles = [a for a in significant_articles if str(a.get('o:id')) not in evaluated_ids]
+    cached_count = len(evaluated_ids)
+    
+    if not remaining_articles:
+        print(f"✓ All {len(significant_articles)} articles already evaluated!")
+        return {'pair': pair, 'total': len(significant_articles), 'new': 0, 'cached': cached_count, 'failed': 0}
+    
+    print(f"📝 {len(remaining_articles)} new articles to evaluate ({cached_count} cached)")
+    
+    # BLIND EVALUATION: Use existing assignment or create new one
+    if model_a_is_first is None:
+        model_a_is_first = random.choice([True, False])
+        print(f"🎲 New blind assignment: Model A = {model_a_name if model_a_is_first else model_b_name}")
+    else:
+        print(f"📋 Using existing blind assignment: Model A = {model_a_name if model_a_is_first else model_b_name}")
+    
+    # Process new articles with arbiter
+    successful = 0
+    failed = 0
+    
+    for i, item in enumerate(tqdm(remaining_articles, desc=f"Arbiter eval ({pair})")):
+        result = evaluate_with_arbiter(
+            client,
+            item,
+            item['model_a_analysis'],
+            item['model_b_analysis'],
+            model_a_is_first
+        )
+        
+        if result:
+            arbiter_results.append({
+                'article_id': result.article_id,
+                'arbiter': asdict(result),
+                'discrepancies': item['discrepancies']
+            })
+            successful += 1
+            
+            # Save progress every 10 successful evaluations
+            if successful % 10 == 0:
+                save_results(webapp_file, arbiter_results, pair, model_a_is_first, 
+                            model_a_name, model_b_name, len(significant_articles), 
+                            len(arbiter_results), failed)
+                print(f"  💾 Saved {len(arbiter_results)} results")
+        else:
+            failed += 1
+        
+        # Rate limiting
+        if (i + 1) % 10 == 0:
+            time.sleep(1)
+    
+    # Save final results
+    save_results(webapp_file, arbiter_results, pair, model_a_is_first,
+                model_a_name, model_b_name, len(significant_articles),
+                len(arbiter_results), failed)
+    
+    print(f"✓ Completed: {successful} new, {cached_count} cached, {failed} failed")
+    
+    return {
+        'pair': pair,
+        'total': len(significant_articles),
+        'new': successful,
+        'cached': cached_count,
+        'failed': failed
+    }
+
+
+def save_results(filepath: str, results: list, pair: str, model_a_is_first: bool,
+                 model_a_name: str, model_b_name: str, total: int, successful: int, failed: int):
+    """Save arbiter results to JSON file"""
+    with open(filepath, 'w', encoding='utf-8') as f:
+        json.dump({
+            'metadata': {
+                'generated': datetime.now().isoformat(),
+                'arbiter_model': 'gemini-3-pro-preview',
+                'thinking_level': 'high',
+                'blind_evaluation': True,
+                'model_a_is_first': model_a_is_first,
+                'model_a_name': model_a_name,
+                'model_b_name': model_b_name,
+                'pair': pair,
+                'note': 'Model A/B assignment is consistent across all articles in this file.',
+                'total_articles': total,
+                'successful_evaluations': successful,
+                'failed_evaluations': failed
+            },
+            'evaluations': results
+        }, f, ensure_ascii=False, indent=2)
+
+
+def main(pairs: list[str] | None = None):
+    """Main function - processes all specified pairs
+    
+    Args:
+        pairs: List of model pairs to evaluate. If None, processes all pairs.
+    """
+    if pairs is None:
+        pairs = VALID_PAIRS
+    
     print(f"\n{'='*60}")
     print(f"IWAC Arbiter Evaluation - Gemini 3 Pro (High Reasoning)")
+    print(f"Processing {len(pairs)} model pair(s): {', '.join(pairs)}")
     print(f"{'='*60}")
     
     # Check for API key
@@ -432,15 +625,10 @@ def main():
     if not api_key:
         print("\n❌ Error: No API key found!")
         print("Please set GOOGLE_API_KEY or GEMINI_API_KEY environment variable")
-        print("\nExample:")
-        print("  export GOOGLE_API_KEY='your-api-key-here'")
-        print("  # or on Windows:")
-        print("  set GOOGLE_API_KEY=your-api-key-here")
         return
     
     # Create GenAI client
     client = genai.Client(api_key=api_key)
-    
     print(f"✓ Configured Gemini 3 Pro as arbiter (thinking_level=high)")
     
     # Load dataset
@@ -450,233 +638,85 @@ def main():
         print(f"Failed to load dataset: {e}")
         return
     
-    # Find articles with significant differences
-    significant_articles = find_significant_differences(df)
+    # Setup webapp data directory
+    webapp_data_dir = os.path.join(os.path.dirname(__file__), "..", 
+                                    "ma-visualisation-sentiments", "static", "data")
+    os.makedirs(webapp_data_dir, exist_ok=True)
     
-    if not significant_articles:
-        print("\n❌ No articles with significant differences found!")
-        return
+    # Count total new articles to process across all pairs
+    total_new = 0
+    for pair in pairs:
+        model_a, model_b = get_models_from_pair(pair)
+        articles = find_significant_differences(df, model_a, model_b)
+        webapp_file = os.path.join(webapp_data_dir, f"iwac_arbiter_evaluations_{pair}.json")
+        
+        evaluated_ids = set()
+        if os.path.exists(webapp_file):
+            try:
+                with open(webapp_file, 'r', encoding='utf-8') as f:
+                    evaluated_ids = {str(r['article_id']) for r in json.load(f).get('evaluations', [])}
+            except:
+                pass
+        
+        new_count = len([a for a in articles if str(a.get('o:id')) not in evaluated_ids])
+        total_new += new_count
     
-    print(f"\n📊 Found {len(significant_articles)} articles with significant differences")
-    
-    # Setup cache directory
-    cache_dir = os.path.join(os.path.dirname(__file__), "..", "exports", ".arbiter_cache")
-    os.makedirs(cache_dir, exist_ok=True)
-    cache_file = os.path.join(cache_dir, "arbiter_evaluation_cache.json")
-    
-    # Load existing cache if available
-    arbiter_results = []
-    evaluated_ids = set()
-    model_a_is_chatgpt = None
-    
-    if os.path.exists(cache_file):
-        print(f"\n📦 Found existing cache file")
-        try:
-            with open(cache_file, 'r', encoding='utf-8') as f:
-                cache_data = json.load(f)
-                arbiter_results = cache_data.get('evaluations', [])
-                evaluated_ids = {r['article_id'] for r in arbiter_results}
-                model_a_is_chatgpt = cache_data['metadata'].get('model_a_is_chatgpt')
-                print(f"   Loaded {len(arbiter_results)} cached evaluations")
-                print(f"   Model assignment: {'Model A = ChatGPT' if model_a_is_chatgpt else 'Model A = Gemini'}")
-        except Exception as e:
-            print(f"   ⚠️ Failed to load cache: {e}")
-            print(f"   Starting fresh...")
-            arbiter_results = []
-            evaluated_ids = set()
-            model_a_is_chatgpt = None
-    
-    # Filter out already-evaluated articles
-    remaining_articles = [a for a in significant_articles if str(a.get('o:id')) not in evaluated_ids]
-    
-    if not remaining_articles:
-        print(f"\n✓ All articles already evaluated!")
+    if total_new == 0:
+        print(f"\n✓ All articles across all pairs are already evaluated!")
+        print("No API calls needed.")
     else:
-        print(f"\n📝 {len(remaining_articles)} articles remaining to evaluate")
-        
-        # BLIND EVALUATION: Use existing assignment or create new one
-        if model_a_is_chatgpt is None:
-            model_a_is_chatgpt = random.choice([True, False])
-            print(f"\n🎲 New blind assignment: Model A = {'ChatGPT' if model_a_is_chatgpt else 'Gemini'}, Model B = {'Gemini' if model_a_is_chatgpt else 'ChatGPT'}")
-        else:
-            print(f"\n♻️  Using existing blind assignment from cache")
-        
-        # Ask for confirmation before proceeding (API costs)
-        print(f"\n⚠️  This will make {len(remaining_articles)} API calls to Gemini 3 Pro")
+        print(f"\n⚠️  This will make approximately {total_new} API calls to Gemini 3 Pro")
         response = input("Do you want to proceed? (yes/no): ").strip().lower()
         if response not in ['yes', 'y']:
             print("Aborted.")
             return
-        
-        # Process articles with arbiter
-        successful = len(arbiter_results)  # Start count from cached results
-        failed = 0
-        
-        print(f"\n🔄 Evaluating articles with arbiter (using high reasoning level)...")
-        
-        for i, item in enumerate(tqdm(remaining_articles, desc="Arbiter evaluation")):
-            result = evaluate_with_arbiter(
-                client,
-                item,  # Pass the entire item dict (contains o:id, o:title, OCR, etc.)
-                item['chatgpt_analysis'],
-                item['gemini_analysis'],
-                model_a_is_chatgpt  # Same assignment for ALL articles
-            )
-            
-            if result:
-                arbiter_results.append({
-                    'article_id': result.article_id,
-                    'arbiter': asdict(result),
-                    'discrepancies': item['discrepancies']
-                })
-                successful += 1
-                
-                # Save cache every 10 successful evaluations
-                if len(arbiter_results) % 10 == 0:
-                    try:
-                        with open(cache_file, 'w', encoding='utf-8') as f:
-                            json.dump({
-                                'metadata': {
-                                    'generated': datetime.now().isoformat(),
-                                    'arbiter_model': 'gemini-3-pro-preview',
-                                    'thinking_level': 'high',
-                                    'blind_evaluation': True,
-                                    'model_a_is_chatgpt': model_a_is_chatgpt,
-                                    'cache_note': 'Intermediate cache - evaluation in progress'
-                                },
-                                'evaluations': arbiter_results
-                            }, f, ensure_ascii=False, indent=2)
-                        print(f"  💾 Cached {len(arbiter_results)} results")
-                    except Exception as e:
-                        print(f"  ⚠️ Failed to save cache: {e}")
-            else:
-                failed += 1
-            
-            # Rate limiting - Gemini has rate limits
-            if (i + 1) % 10 == 0:
-                time.sleep(1)
     
-    # Save final results
-    successful = len(arbiter_results)
-    failed = len(significant_articles) - successful
-    
-    # Save final results
-    successful = len(arbiter_results)
-    failed = len(significant_articles) - successful
-    
-    # Create output directory
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_dir = os.path.join(os.path.dirname(__file__), "..", "exports", f"arbiter_{timestamp}")
-    os.makedirs(output_dir, exist_ok=True)
-    
-    # Delete cache file after successful completion
-    if os.path.exists(cache_file):
-        try:
-            os.remove(cache_file)
-            print(f"\n🗑️  Cleared cache file")
-        except Exception as e:
-            print(f"\n⚠️ Failed to delete cache: {e}")
-    
-    # Save the assignment key file (like significant-differences-export.py does)
-    key_path = os.path.join(output_dir, "model_assignment_key.txt")
-    with open(key_path, 'w', encoding='utf-8') as f:
-        f.write(f"ARBITER BLIND TEST MODEL ASSIGNMENT\\n")
-        f.write(f"====================================\\n")
-        f.write(f"Generated: {datetime.now().isoformat()}\\n")
-        f.write(f"Total articles evaluated: {successful}\\n\\n")
-        if model_a_is_chatgpt:
-            f.write(f"Model A = ChatGPT\\n")
-            f.write(f"Model B = Gemini\\n")
-        else:
-            f.write(f"Model A = Gemini\\n")
-            f.write(f"Model B = ChatGPT\\n")
-        f.write(f"\\nTo decode verdicts:\\n")
-        f.write(f"  - 'model_a' preferred = {'ChatGPT' if model_a_is_chatgpt else 'Gemini'} preferred\\n")
-        f.write(f"  - 'model_b' preferred = {'Gemini' if model_a_is_chatgpt else 'ChatGPT'} preferred\\n")
-    
-    # Save results as JSON
-    output_file = os.path.join(output_dir, "arbiter_evaluations.json")
-    with open(output_file, 'w', encoding='utf-8') as f:
-        json.dump({
-            'metadata': {
-                'generated': datetime.now().isoformat(),
-                'arbiter_model': 'gemini-3-pro-preview',
-                'thinking_level': 'high',
-                'blind_evaluation': True,
-                'model_a_is_chatgpt': model_a_is_chatgpt,
-                'note': 'SAME model assignment for ALL articles. Use model_a_is_chatgpt to decode verdicts.',
-                'total_articles': len(significant_articles),
-                'successful_evaluations': successful,
-                'failed_evaluations': failed
-            },
-            'evaluations': arbiter_results
-        }, f, ensure_ascii=False, indent=2)
-    
-    # Also save a copy for the web app
-    webapp_data_dir = os.path.join(os.path.dirname(__file__), "..", 
-                                    "ma-visualisation-sentiments", "static", "data")
-    if os.path.exists(webapp_data_dir):
-        webapp_file = os.path.join(webapp_data_dir, "iwac_arbiter_evaluations.json")
-        with open(webapp_file, 'w', encoding='utf-8') as f:
-            json.dump({
-                'metadata': {
-                    'generated': datetime.now().isoformat(),
-                    'arbiter_model': 'gemini-3-pro-preview',
-                    'thinking_level': 'high',
-                    'blind_evaluation': True,
-                    'model_a_is_chatgpt': model_a_is_chatgpt,
-                    'note': 'SAME model assignment for ALL articles. Use model_a_is_chatgpt to decode verdicts.',
-                    'total_articles': len(significant_articles),
-                    'successful_evaluations': successful,
-                    'failed_evaluations': failed
-                },
-                'evaluations': arbiter_results
-            }, f, ensure_ascii=False, indent=2)
-        print(f"\n✓ Also saved to web app: {webapp_file}")
+    # Process each pair
+    all_stats = []
+    for pair in pairs:
+        stats = process_pair(client, df, pair, webapp_data_dir)
+        all_stats.append(stats)
     
     # Print summary
     print(f"\n{'='*60}")
     print(f"ARBITER EVALUATION COMPLETE")
     print(f"{'='*60}")
-    print(f"Output file: {output_file}")
-    print(f"\nResults:")
-    print(f"  ✓ Successful evaluations: {successful}")
-    print(f"  ✗ Failed evaluations: {failed}")
     
-    # Print some statistics about arbiter verdicts (decode blind assignments using GLOBAL key)
-    if arbiter_results:
-        model_prefs = {'chatgpt': 0, 'gemini': 0, 'both': 0, 'neither': 0}
-        for result in arbiter_results:
-            arbiter = result['arbiter']
-            
-            for dim in ['polarity', 'subjectivity', 'centrality']:
-                pref = arbiter[dim].get('preferred_model', 'neither')
-                
-                # Decode using the GLOBAL blind assignment
-                if pref == 'model_a':
-                    actual_pref = 'chatgpt' if model_a_is_chatgpt else 'gemini'
-                elif pref == 'model_b':
-                    actual_pref = 'gemini' if model_a_is_chatgpt else 'chatgpt'
-                else:
-                    actual_pref = pref  # 'both' or 'neither'
-                
-                model_prefs[actual_pref] = model_prefs.get(actual_pref, 0) + 1
-        
-        total_verdicts = sum(model_prefs.values())
-        print(f"\n📊 Model preference breakdown (across all dimensions):")
-        print(f"  ChatGPT preferred: {model_prefs['chatgpt']} ({100*model_prefs['chatgpt']/total_verdicts:.1f}%)")
-        print(f"  Gemini preferred: {model_prefs['gemini']} ({100*model_prefs['gemini']/total_verdicts:.1f}%)")
-        print(f"  Both equally good: {model_prefs['both']} ({100*model_prefs['both']/total_verdicts:.1f}%)")
-        print(f"  Neither accurate: {model_prefs['neither']} ({100*model_prefs['neither']/total_verdicts:.1f}%)")
-        
-        print(f"\n🔐 Blind evaluation key saved to: {key_path}")
-        if model_a_is_chatgpt:
-            print(f"   Model A = ChatGPT, Model B = Gemini")
-        else:
-            print(f"   Model A = Gemini, Model B = ChatGPT")
+    for stats in all_stats:
+        print(f"\n{stats['pair']}:")
+        print(f"  Total articles: {stats['total']}")
+        print(f"  Newly evaluated: {stats['new']}")
+        print(f"  From cache: {stats['cached']}")
+        print(f"  Failed: {stats['failed']}")
 
 
 if __name__ == "__main__":
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description='IWAC Arbiter Evaluation - Compare AI models using Gemini 3 Pro as arbiter',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python arbiter-evaluation.py                      # Process all pairs (default)
+  python arbiter-evaluation.py --pair chatgpt-gemini  # Process single pair
+  python arbiter-evaluation.py --pair chatgpt-mistral --pair gemini-mistral
+"""
+    )
+    parser.add_argument(
+        '--pair', '-p',
+        type=str,
+        choices=VALID_PAIRS,
+        action='append',
+        dest='pairs',
+        help=f'Model pair(s) to evaluate. Can be specified multiple times. Default: all pairs'
+    )
+    
+    args = parser.parse_args()
+    
+    # If no pairs specified, process all pairs
+    pairs_to_process = args.pairs if args.pairs else None
+    
     # Set random seed - no fixed seed for true randomization of blind assignment
     random.seed()
-    main()
+    main(pairs=pairs_to_process)
+
