@@ -1,0 +1,358 @@
+{
+  "metadata": {
+    "generated": "2025-12-29T13:11:28.796161",
+    "arbiter_model": "gemini-3-pro-preview",
+    "thinking_level": "high",
+    "blind_evaluation": true,
+    "model_a_is_first": false,
+    "model_a_name": "Gemini",
+    "model_b_name": "Mistral",
+    "pair": "gemini-mistral",
+    "note": "Model A/B assignment is consistent across all articles in this file.",
+    "total_articles": 176,
+    "successful_evaluations": 10,
+    "failed_evaluations": 0
+  },
+  "evaluations": [
+    {
+      "article_id": "2345",
+      "arbiter": {
+        "article_id": "2345",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est une apologie complète du jeûne du Ramadan. Il énumère exclusivement des bienfaits (sociaux, médicaux, spirituels), des récompenses divines et des mérites historiques sans aucune critique ni nuance négative. Le ton est célébratif et dévot.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la tonalité extrêmement favorable et élogieuse du texte envers l'islam et la pratique du jeûne."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Ce texte n'est pas un reportage journalistique mais une contribution religieuse (type prêche ou enseignement doctrinal). Il présente des croyances religieuses (les poissons qui prient, les démons enchaînés, les récompenses du paradis) comme des faits avérés et utilise un vocabulaire empreint de ferveur ('glorieux Coran', 'mois béni'). Il exprime une opinion religieuse intense et engagée.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le modèle B a correctement identifié la nature du texte (ton de prédication, injonctions spirituelles) et lui a attribué un score de subjectivité élevé. Le modèle A a fait une erreur d'appréciation en considérant l'énumération de règles religieuses comme une forme d'objectivité (score de 2), alors que le cadre global est celui de la foi et non de l'observation factuelle neutre."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'intégralité du contenu est dédiée à l'islam à travers le prisme du Ramadan : règles canoniques, histoire religieuse, citations du Coran et des Hadiths, et exhortations à la pratique.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont parfaitement identifié que l'islam et les musulmans sont le sujet unique et exclusif de l'article."
+        },
+        "overall_verdict": "Model B is better",
+        "confidence_level": "high",
+        "timestamp": "2025-12-29T13:07:19.094112"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "2494",
+      "arbiter": {
+        "article_id": "2494",
+        "polarity": {
+          "score": "Positif",
+          "justification": "Le texte est un communiqué de la communauté musulmane qui défend sa foi et son prophète. Bien que le ton soit indigné envers le film, la représentation de l'islam et des musulmans est favorable : ils sont décrits comme pieux, attachés à la paix (appel à la retenue), et victimes d'une provocation injuste. Le sentiment envers le groupe cible est donc positif.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a correctement identifié que le texte défend l'islam, résultant en une polarité positive. Le Modèle A a commis une erreur fondamentale en confondant la colère exprimée *par* les musulmans (contre le film) avec une opinion négative *envers* les musulmans."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Il s'agit d'une déclaration officielle (communiqué de presse) exprimant des émotions fortes ('indignée', 'choquée'), des jugements de valeur ('provocation planifiée', 'actes intolérables') et des croyances religieuses. Le texte ne vise pas la neutralité journalistique mais la prise de position.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la nature hautement subjective du texte, notant l'usage d'un vocabulaire émotionnel et engagé typique d'un communiqué."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'article est entièrement consacré à la réaction de la communauté musulmane, à la défense de l'image du Prophète et aux valeurs de l'islam face à une attaque perçue.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement évalué que l'islam et les musulmans sont le sujet unique et principal du texte."
+        },
+        "overall_verdict": "Model B is significantly better because it correctly analyzes the polarity. While both models agreed on subjectivity and centrality, Model A misinterpreted the text's anger towards the film producers as a negative sentiment towards Islam itself. Model B correctly distinguished that the text portrays the Muslim community favorably as defenders of their faith and peace.",
+        "confidence_level": "high",
+        "timestamp": "2025-12-29T13:07:41.722366"
+      },
+      "discrepancies": {
+        "polarity_diff": 3,
+        "subjectivity_diff": 0,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "2648",
+      "arbiter": {
+        "article_id": "2648",
+        "polarity": {
+          "score": "Neutre",
+          "justification": "L'article est un compte-rendu factuel d'une conférence de presse. Bien que le sujet (terrorisme) soit négatif, le texte ne porte aucun jugement sur l'islam ou les musulmans. La seule mention religieuse réside dans le nom propre du groupe terroriste (GSIM), rapporté à titre informatif sans amalgame ni commentaire de la part de la journaliste.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le modèle B distingue correctement le contenu informatif du sentiment envers la religion. Le modèle A attribue une polarité négative basée sur le contexte terroriste, ce qui est compréhensible mais moins précis car le texte ne vise pas l'islam en tant que tel."
+        },
+        "subjectivity": {
+          "score": "1 (Très objectif)",
+          "justification": "L'article se contente de rapporter les propos tenus par les responsables du M/PRSCA lors d'une conférence de presse. Les opinions exprimées (exigences de poursuites, condamnations) sont clairement attribuées aux intervenants via des citations et des verbes de parole. La journaliste ne donne pas son propre avis.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le modèle B a correctement identifié que le texte est un rapport factuel de propos tiers. Le modèle A a commis une erreur fondamentale d'analyse en confondant les opinions des personnes interviewées avec la subjectivité de l'auteur de l'article."
+        },
+        "centrality": {
+          "score": "Marginal",
+          "justification": "Le thème de l'islam n'est pas abordé. Les termes 'islam' et 'musulmans' n'apparaissent que dans l'acronyme du groupe GSIM. Le sujet central est politique et judiciaire (les demandes du M/PRSCA concernant Blaise Compaoré et le procès du putsch).",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le modèle B évalue correctement que la présence de l'islam est anecdotique (limitée à un nom propre). Le modèle A surestime la centralité en la qualifiant de 'secondaire'."
+        },
+        "overall_verdict": "Model B provided a much more accurate analysis. Its primary strength was correctly identifying the genre of the text (a factual news report), which led to the correct Subjectivity score (1 vs 4). Model A failed to distinguish between the journalist's voice and the quoted sources, leading to a hallucinated subjectivity score. Additionally, Model B correctly assessed that the mere mention of a group's name does not constitute a discussion of the religion itself (Centrality and Polarity).",
+        "confidence_level": "high",
+        "timestamp": "2025-12-29T13:08:30.565893"
+      },
+      "discrepancies": {
+        "polarity_diff": 1,
+        "subjectivity_diff": 3,
+        "centrality_diff": 1,
+        "total_diff": 5,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "2728",
+      "arbiter": {
+        "article_id": "2728",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est une communication directe d'une association religieuse (AEEMB) qui fait l'éloge du Ramadan. Le ton est dévotionnel, célébrant le jeûne comme un acte de perfectionnement physique et spirituel, une source de miséricorde divine et une occasion de solidarité. Le vocabulaire est exclusivement mélioratif (« événement inestimable », « victoires éclatantes », « miséricorde immense »).",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la tonalité extrêmement favorable et enthousiaste du texte."
+        },
+        "subjectivity": {
+          "score": "5 (Very Subjective)",
+          "justification": "Ce texte n'est pas un reportage journalistique mais un message religieux (prêche/exhortation) publié tel quel. Il exprime des croyances comme des vérités absolues (« Allah y a prescrit le jeûne », « Dieu dit »), utilise un langage émotionnel et prescriptif, et vise à inspirer la piété. Il représente le point de vue interne et subjectif de l'association auteure.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le modèle B a correctement identifié la nature du texte (ton de prédication, langage dévotionnel) et lui a attribué le score maximal de subjectivité. Le modèle A a fait une erreur d'appréciation majeure en notant 2.0, confondant un texte informatif sur des dogmes religieux avec une objectivité journalistique factuelle."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'intégralité du texte est consacrée à l'Islam, spécifiquement au mois de Ramadan, à ses règles, sa signification spirituelle et ses dimensions sociales.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement déterminé que l'Islam est le sujet unique et central de l'article."
+        },
+        "overall_verdict": "Model B is significantly better because it correctly identifies the subjective nature of the text.",
+        "confidence_level": "high",
+        "timestamp": "2025-12-29T13:08:48.320276"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "2771",
+      "arbiter": {
+        "article_id": "2771",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est une hagiographie dévouée au prophète Mohammed, le qualifiant de « parangon de vertus » et d'« homme parfait ». Le ton est enthousiaste, révérencieux et vise à inspirer les fidèles, ne présentant l'islam et le prophète que sous un jour idéal.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la tonalité extrêmement favorable et élogieuse du texte."
+        },
+        "subjectivity": {
+          "score": "5 (Very Subjective)",
+          "justification": "Ce texte n'est pas un reportage journalistique factuel mais une tribune religieuse ou un prêche. Il exprime des opinions personnelles intenses, des croyances religieuses présentées comme des vérités absolues (ex: « Il a honoré l'univers par son arrivée ») et des injonctions morales (« chaque musulman doit... »). Il s'agit d'un plaidoyer subjectif pour la foi et l'unité, sans distance critique.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le modèle B a parfaitement saisi la nature du texte (« plaidoyer religieux », « ton hagiographique ») en lui attribuant un score de 5. Le modèle A a commis une erreur importante en le classant comme « plutôt objectif » (2), confondant la citation de traditions religieuses avec une présentation factuelle objective."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'intégralité du texte est consacrée à la fête du Maouloud, à la vie du prophète Mohammed et à l'unité de la communauté musulmane (Umma).",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement déterminé que l'islam et les musulmans sont le sujet unique et central de l'article."
+        },
+        "overall_verdict": "Model B is better",
+        "confidence_level": "high",
+        "timestamp": "2025-12-29T13:09:06.724063"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "2798",
+      "arbiter": {
+        "article_id": "2798",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est un récit personnel rempli d'admiration et d'enthousiasme. L'auteure utilise un vocabulaire élogieux («chaleureuse», «paisibilité», «envoûtante», «précieux», «touchant») et se dit «impressionnée» par la foi et la tolérance de la famille. La conclusion défend explicitement l'islam contre les critiques politiques mondiales.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le modèle B saisit mieux l'intensité de l'éloge en choisissant «Très positif». Le modèle A, bien que correct sur la direction, sous-estime l'enthousiasme et la défense active de la religion présents dans le texte."
+        },
+        "subjectivity": {
+          "score": "5 (Very Subjective)",
+          "justification": "Le texte est écrit entièrement à la première personne («je») et relate une expérience immersive. Il est dominé par les émotions, les impressions sensorielles et les jugements personnels de l'auteure («à mon sens», «je ressens», «cœur un peu lourd»). Ce n'est pas un reportage factuel mais un témoignage vécu et émotionnel.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le modèle B a parfaitement identifié la nature du texte (récit personnel, émotions, jugements de valeur) en attribuant un score de 5. Le modèle A a fait une erreur d'analyse majeure en qualifiant le texte de «principalement objectif» (score 2) avec seulement des «traces subtiles» de subjectivité, alors que la subjectivité est l'essence même de cet article."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'article est entièrement consacré à l'observation du Ramadan, aux pratiques religieuses (prières, ablutions, jeûne) et à la vie quotidienne d'une famille musulmane.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié que l'islam et les musulmans sont le sujet unique et central de l'article."
+        },
+        "overall_verdict": "Model B is significantly better because it correctly identifies the genre of the article as a highly subjective personal narrative. Model A failed to recognize the high level of subjectivity, treating it as a standard report with minor bias.",
+        "confidence_level": "high",
+        "timestamp": "2025-12-29T13:09:27.883047"
+      },
+      "discrepancies": {
+        "polarity_diff": 1,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 4,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "2961",
+      "arbiter": {
+        "article_id": "2961",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article dresse un portrait idéal du musulman, insistant sur des valeurs morales élevées comme la bienveillance, l'honnêteté, la charité et le rejet de l'extrémisme. L'islam est présenté comme une source de cohésion sociale et de rectitude morale.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la tonalité extrêmement favorable et l'accent mis sur les vertus éthiques de la religion."
+        },
+        "subjectivity": {
+          "score": "4 (Plutôt subjectif)",
+          "justification": "Le texte n'est pas un reportage factuel sur un événement, mais un texte prescriptif et didactique (type sermon ou tribune religieuse). Il énonce des normes de comportement ('Le musulman doit...'), exprime des jugements de valeur et prêche une morale. Il ne s'agit pas d'une observation objective de faits, mais d'une promotion de valeurs religieuses.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le modèle B a bien saisi la nature 'didactique et prescriptive' du texte. Le modèle A a fait une erreur fondamentale en classant ce texte comme '1.0' (très objectif) sous prétexte qu'il rapporte des enseignements ; or, le ton est celui de l'exhortation morale et non du reportage journalistique neutre."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'ensemble du texte est consacré à la définition du comportement du musulman, citant abondamment le Coran, les Hadiths et la vie du Prophète. L'islam est le sujet unique et exclusif.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié que l'islam est le sujet unique de l'article."
+        },
+        "overall_verdict": "Model B is significantly better because it correctly identifies the subjective nature of the text. Model A fails on the subjectivity dimension by confusing a religious exhortation with objective reporting.",
+        "confidence_level": "high",
+        "timestamp": "2025-12-29T13:09:49.774380"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "2999",
+      "arbiter": {
+        "article_id": "2999",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article n'est pas un rapport journalistique neutre sur des croyances, mais un texte dévotionnel ou de prédication qui adopte la perspective du croyant (usage du \"nous\"). Il présente l'Islam comme la vérité, valide les miracles comme des faits établis et utilise un vocabulaire révérencieux et élogieux envers les figures religieuses (Jésus, Marie, Allah). Il s'agit d'une promotion active de la foi islamique.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le modèle B a correctement identifié le ton élogieux et la nature promotionnelle du texte. Le modèle A a confondu l'absence de critique explicite avec la neutralité, alors que le texte est clairement partisan et favorable à l'Islam."
+        },
+        "subjectivity": {
+          "score": "4 (Plutôt subjectif)",
+          "justification": "Le texte ne respecte pas la distance journalistique (score 1 ou 2). Il présente des dogmes religieux et des miracles comme des faits historiques avérés sans utiliser de conditionnel ou d'attribution (ex: 'selon les croyants'). Le ton est celui d'un sermon ou d'un enseignement religieux (catéchèse), ce qui relève d'une forte subjectivité.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le modèle B a bien saisi que le texte adopte un ton de prédication et manque de distance critique. Le modèle A a fait une erreur fondamentale en classant un texte affirmant des miracles comme 'très objectif' (1.0)."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'intégralité de l'article est consacrée à la théologie islamique, aux piliers de la foi et au récit coranique concernant Jésus.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié que l'Islam et ses enseignements sont le sujet unique de l'article."
+        },
+        "overall_verdict": "Model B is significantly more accurate. It correctly recognized the genre of the text as a religious/devotional piece rather than a neutral news report. Consequently, its assessment of polarity (positive) and subjectivity (high) reflects the reality of the content, whereas Model A failed to detect the lack of journalistic distance.",
+        "confidence_level": "high",
+        "timestamp": "2025-12-29T13:10:12.397882"
+      },
+      "discrepancies": {
+        "polarity_diff": 2,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 5,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3007",
+      "arbiter": {
+        "article_id": "3007",
+        "polarity": {
+          "score": "Positif",
+          "justification": "Bien que l'islam ne soit pas le sujet principal, l'auteur qualifie les autorités religieuses (dont les musulmans) de « sages », de « dépositaires des valeurs morales » et de « précieux capital » pour la médiation sociale. Cette terminologie dénote une vision favorable et respectueuse de leur rôle dans la société, dépassant la simple neutralité factuelle.",
+          "preferred_model": "neither",
+          "verdict_explanation": "Les deux modèles ont opté pour « Neutre », manquant les qualificatifs élogieux (« précieux capital », « sages ») employés par l'auteur à l'égard des autorités religieuses. Bien que leur rôle soit évoqué dans un contexte politique, la représentation de leur fonction sociale est explicitement positive."
+        },
+        "subjectivity": {
+          "score": "4 (Plutôt subjectif)",
+          "justification": "L'article est une tribune (éditorial) où l'auteur exprime clairement ses opinions (« Carton rouge », « Nous voulons croire »), interpelle les acteurs sociaux et formule des recommandations. Ce n'est pas un compte-rendu factuel mais une prise de position engagée sur la situation politique.",
+          "preferred_model": "model_a",
+          "verdict_explanation": "Le modèle A a correctement identifié la nature subjective et éditoriale du texte (score de 4.0). Le modèle B a commis une erreur majeure en attribuant un score de 1.0 (très objectif) et en qualifiant le texte de « purement factuel », ce qui contredit le ton militant et les jugements de valeur explicites de l'auteur."
+        },
+        "centrality": {
+          "score": "Marginal",
+          "justification": "L'islam et les musulmans sont mentionnés brièvement au sein d'une énumération incluant d'autres autorités religieuses et coutumières. Ils sont cités comme destinataires d'un appel à la neutralité, mais ne constituent pas le sujet du débat qui porte sur la révision constitutionnelle.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement évalué la centralité comme marginale, l'islam n'étant qu'un élément secondaire dans l'argumentation de l'auteur."
+        },
+        "overall_verdict": "Model A is significantly better",
+        "confidence_level": "high",
+        "timestamp": "2025-12-29T13:11:05.074265"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3255",
+      "arbiter": {
+        "article_id": "3255",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est un message religieux émanant d'une organisation islamique (CERFI) qui fait l'éloge des valeurs de l'islam (charité, solidarité, modération, paix). Le portrait de la religion est par définition idéaliste et laudatif, présentant la foi comme la solution aux maux sociaux et personnels.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la tonalité très positive du texte, qui est une célébration des valeurs islamiques à l'occasion de l'Aïd."
+        },
+        "subjectivity": {
+          "score": "5 (Very Subjective)",
+          "justification": "Le texte n'est pas un rapport journalistique factuel, mais un prêche ou un communiqué religieux. Il exprime des croyances, des jugements moraux (interdiction de l'alcool, du gaspillage) et des appels à la prière. Il repose entièrement sur la foi et des textes sacrés pour prescrire des comportements, ce qui correspond à une subjectivité maximale dans le cadre d'une analyse de presse (expression d'opinions et de croyances plutôt que de faits vérifiables).",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le modèle B a correctement identifié la nature du texte (message religieux et exhortatif) et lui a attribué un score de subjectivité élevé (5). Le modèle A a fait une erreur d'analyse importante en attribuant un score de 2 (plutôt objectif), confondant probablement le ton prescriptif et les citations religieuses avec une présentation factuelle ou informative."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'article est entièrement consacré à l'islam, aux pratiques du Ramadan et de l'Aïd, et aux comportements attendus des musulmans. Il n'y a aucun autre sujet abordé en dehors du prisme religieux.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement déterminé que l'islam et les musulmans sont le sujet unique et central de l'article."
+        },
+        "overall_verdict": "Model B is better",
+        "confidence_level": "high",
+        "timestamp": "2025-12-29T13:11:28.792709"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    }
+  ]
+}
