@@ -1,6 +1,7 @@
 // Stores Svelte pour la gestion d'état 
 import { writable, derived, get } from 'svelte/store';
-import type { Article, DatasetOption, ComparisonData, DiscrepancyFilter, SentimentAnalysis, DiscrepancyInfo } from './types/data';
+import type { Article, DatasetOption, ComparisonData, DiscrepancyFilter, SentimentAnalysis, DiscrepancyInfo, ModelPair } from './types/data';
+import { getModelsFromPair } from './types/data';
 import type { ExtremeAnalysisData } from './types/extremeAnalysis';
 import { loadExtremeAnalysisData, filterExtremeAnalysisData } from './utils/extremeAnalysis';
 import { base } from '$app/paths';
@@ -35,6 +36,7 @@ export const availableDatasets = writable<DatasetOption[]>([
 
 export const selectedDataset = writable<string>('chatgpt');
 export const comparisonMode = writable<boolean>(false);
+export const comparisonPair = writable<ModelPair>('chatgpt-gemini');
 export const datasetArticles = writable<Record<string, Article[]>>({});
 export const comparisonDatasets = writable<ComparisonData[] | null>(null);
 
@@ -448,6 +450,7 @@ const scheduleSmartPrefetch = (queue: PrefetchTask[]): void => {
 };
 
 // Function to ensure comparison datasets are loaded (only when needed)
+// Now dynamically loads based on the selected comparisonPair
 export const loadComparisonDatasets = async (fetchFunction: typeof fetch): Promise<void> => {
   const currentDatasets = await new Promise<Record<string, Article[]>>(resolve => {
     datasetArticles.subscribe(value => {
@@ -455,18 +458,26 @@ export const loadComparisonDatasets = async (fetchFunction: typeof fetch): Promi
     })();
   });
 
+  // Get the selected comparison pair
+  const currentPair = await new Promise<ModelPair>(resolve => {
+    comparisonPair.subscribe(value => {
+      resolve(value);
+    })();
+  });
+
+  const [modelAId, modelBId] = getModelsFromPair(currentPair);
   const datasetsToLoad: string[] = [];
 
-  // Check which datasets need to be loaded
-  if (!currentDatasets['chatgpt'] || currentDatasets['chatgpt'].length === 0) {
-    datasetsToLoad.push('chatgpt');
+  // Check which datasets need to be loaded for the current pair
+  if (!currentDatasets[modelAId] || currentDatasets[modelAId].length === 0) {
+    datasetsToLoad.push(modelAId);
   }
-  if (!currentDatasets['gemini'] || currentDatasets['gemini'].length === 0) {
-    datasetsToLoad.push('gemini');
+  if (!currentDatasets[modelBId] || currentDatasets[modelBId].length === 0) {
+    datasetsToLoad.push(modelBId);
   }
 
   if (datasetsToLoad.length > 0) {
-    console.log(`Loading missing comparison datasets: ${datasetsToLoad.join(', ')}`);
+    console.log(`Loading missing comparison datasets for ${currentPair}: ${datasetsToLoad.join(', ')}`);
 
     // Use specific loading state for comparison
     isLoadingComparison.set(true);
@@ -541,33 +552,41 @@ function mapArticleProperties(item: any, datasetId: string): Article {
   };
 }
 
-// Derived store for comparison data
+// Derived store for comparison data - now uses comparisonPair for dynamic model selection
 export const comparisonData = derived(
-  [datasetArticles, comparisonMode],
-  ([$datasets, $isComparison]) => {
-    if (!$isComparison || !$datasets['chatgpt'] || !$datasets['gemini']) {
+  [datasetArticles, comparisonMode, comparisonPair],
+  ([$datasets, $isComparison, $pair]) => {
+    if (!$isComparison) {
       return [];
     }
 
-    // Create a map for quick lookup
-    const geminiMap = new Map($datasets['gemini'].map(article => [article['o:id'], article]));
+    const [modelAId, modelBId] = getModelsFromPair($pair);
+
+    if (!$datasets[modelAId] || !$datasets[modelBId]) {
+      return [];
+    }
+
+    // Create a map for quick lookup of Model B articles
+    const modelBMap = new Map($datasets[modelBId].map(article => [article['o:id'], article]));
 
     // Build comparison data
     const comparisons: ComparisonData[] = [];
 
-    $datasets['chatgpt'].forEach(chatgptArticle => {
-      const geminiArticle = geminiMap.get(chatgptArticle['o:id']);
+    $datasets[modelAId].forEach(modelAArticle => {
+      const modelBArticle = modelBMap.get(modelAArticle['o:id']);
 
-      if (geminiArticle) {
+      if (modelBArticle) {
         const discrepancies = calculateDiscrepancies(
-          chatgptArticle.sentiment_analysis,
-          geminiArticle.sentiment_analysis
+          modelAArticle.sentiment_analysis,
+          modelBArticle.sentiment_analysis
         );
 
         comparisons.push({
-          article: chatgptArticle,
-          chatgpt: chatgptArticle.sentiment_analysis || null,
-          gemini: geminiArticle.sentiment_analysis || null,
+          article: modelAArticle,
+          modelA: modelAArticle.sentiment_analysis || null,
+          modelB: modelBArticle.sentiment_analysis || null,
+          modelAId,
+          modelBId,
           discrepancies
         });
       }
@@ -692,11 +711,11 @@ export const filteredComparisons = derived(
 
       // Filter out articles where one model marked centrality as "Non applicable" or "Non abordé"
       if ($filters.excludeNonApplicable) {
-        const chatgptCentrality = comparison.chatgpt?.centralite_islam_musulmans;
-        const geminiCentrality = comparison.gemini?.centralite_islam_musulmans;
+        const modelACentrality = comparison.modelA?.centralite_islam_musulmans;
+        const modelBCentrality = comparison.modelB?.centralite_islam_musulmans;
 
-        if (chatgptCentrality === 'Non applicable' || chatgptCentrality === 'Non abordé' ||
-          geminiCentrality === 'Non applicable' || geminiCentrality === 'Non abordé') {
+        if (modelACentrality === 'Non applicable' || modelACentrality === 'Non abordé' ||
+          modelBCentrality === 'Non applicable' || modelBCentrality === 'Non abordé') {
           return false;
         }
       }
@@ -911,23 +930,44 @@ export const arbiterStatistics = derived(
   }
 );
 
-// Function to load arbiter evaluations
-export const loadArbiterEvaluations = async (fetchFunction: typeof fetch): Promise<void> => {
+// Function to load arbiter evaluations for a specific model pair
+// Uses the comparisonPair store to determine which arbiter file to load
+export const loadArbiterEvaluations = async (
+  fetchFunction: typeof fetch,
+  pair?: ModelPair
+): Promise<void> => {
   isLoadingArbiter.set(true);
 
+  // Get the current pair from the store if not provided
+  let targetPair: ModelPair = pair || 'chatgpt-gemini';
+  if (!pair) {
+    // Subscribe synchronously to get current value
+    const unsubscribe = comparisonPair.subscribe(value => {
+      targetPair = value;
+    });
+    unsubscribe();
+  }
+
   try {
-    const resolvedPath = `${base}/data/iwac_arbiter_evaluations.json`;
-    const response = await fetchFunction(resolvedPath);
+    // Load pair-specific arbiter file, with fallback to legacy file name
+    const pairSpecificPath = `${base}/data/iwac_arbiter_evaluations_${targetPair}.json`;
+    let response = await fetchFunction(pairSpecificPath);
+
+    // If pair-specific file doesn't exist, try legacy file (for backward compatibility)
+    if (!response.ok && targetPair === 'chatgpt-gemini') {
+      const legacyPath = `${base}/data/iwac_arbiter_evaluations.json`;
+      response = await fetchFunction(legacyPath);
+    }
 
     if (!response.ok) {
-      console.log('Arbiter evaluations not found (this is optional data)');
+      console.log(`Arbiter evaluations not found for pair ${targetPair} (this is optional data)`);
       arbiterEvaluations.set(null);
       return;
     }
 
     const data = await response.json() as ArbiterEvaluationData;
     arbiterEvaluations.set(data);
-    console.log(`Loaded ${data.evaluations?.length || 0} arbiter evaluations (blind key: Model A = ${data.metadata?.model_a_is_chatgpt ? 'ChatGPT' : 'Gemini'})`);
+    console.log(`Loaded ${data.evaluations?.length || 0} arbiter evaluations for ${targetPair} (blind key: Model A = ${data.metadata?.model_a_is_first ? 'first model' : 'second model'})`);
 
   } catch (error) {
     console.log('Arbiter evaluations not available:', error);

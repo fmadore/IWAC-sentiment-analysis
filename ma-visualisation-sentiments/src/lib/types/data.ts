@@ -25,9 +25,9 @@ export interface Article {
 export type Dataset = Article[]; // Un fichier JSON est un Dataset
 
 export interface DatasetInfo { // Pour le manifest
-    id: string; // Nom du fichier sans .json
-    name: string; // Nom lisible pour l'utilisateur (par ex., titre de l'item Omeka)
-    filePath: string; // Chemin vers le fichier JSON
+  id: string; // Nom du fichier sans .json
+  name: string; // Nom lisible pour l'utilisateur (par ex., titre de l'item Omeka)
+  filePath: string; // Chemin vers le fichier JSON
 }
 
 // New types for multi-dataset support
@@ -42,10 +42,27 @@ export interface DatasetOption {
   color?: string;
 }
 
+// Model pair type for comparison mode
+export type ModelPair = 'chatgpt-gemini' | 'chatgpt-mistral' | 'gemini-mistral';
+
+// Helper to get model IDs from a pair
+export function getModelsFromPair(pair: ModelPair): [string, string] {
+  switch (pair) {
+    case 'chatgpt-gemini': return ['chatgpt', 'gemini'];
+    case 'chatgpt-mistral': return ['chatgpt', 'mistral'];
+    case 'gemini-mistral': return ['gemini', 'mistral'];
+  }
+}
+
 export interface ComparisonData {
   article: Article;
-  chatgpt: SentimentAnalysis | null;
-  gemini: SentimentAnalysis | null;
+  /** Model A sentiment analysis (first model in pair) */
+  modelA: SentimentAnalysis | null;
+  /** Model B sentiment analysis (second model in pair) */
+  modelB: SentimentAnalysis | null;
+  /** IDs of the models being compared */
+  modelAId: string;
+  modelBId: string;
   discrepancies: DiscrepancyInfo;
 }
 
@@ -96,7 +113,11 @@ export interface ArbiterEvaluationData {
     generated: string;
     arbiter_model: string;
     blind_evaluation: boolean;
-    model_a_is_chatgpt: boolean;  // Global key: true = Model A is ChatGPT for ALL articles
+    model_a_is_chatgpt?: boolean;  // Legacy: Global key for ChatGPT vs Gemini
+    model_a_is_first?: boolean;     // New: true = Model A is first model in pair
+    model_a_name?: string;          // Display name of Model A
+    model_b_name?: string;          // Display name of Model B
+    pair?: string;                  // Model pair (e.g., 'chatgpt-gemini')
     total_articles: number;
     successful_evaluations: number;
     failed_evaluations: number;

@@ -160,10 +160,10 @@ export interface Translations {
     modelUsed: string;
     modelDescription: string;
     modelDetails: string;
-  modelSummary: string;
-  modelUsageGuide: string;
-  modelDocsLink: string;
-  modelSpecs: string;
+    modelSummary: string;
+    modelUsageGuide: string;
+    modelDocsLink: string;
+    modelSpecs: string;
     technicalConfiguration: string;
     temperatureConfig: string;
     outputFormat: string;
@@ -261,7 +261,7 @@ export interface Translations {
     comparisonMode: string;
     compareModels: string;
   };
-  
+
   // Comparison
   comparison: {
     filterByDiscrepancy: string;
@@ -297,6 +297,13 @@ export interface Translations {
     subjectivityExplanation: string;
     centralityExplanation: string;
     dimensionsNote: string;
+    // Model pair selection
+    selectModelPair: string;
+    chatgptVsGemini: string;
+    chatgptVsMistral: string;
+    geminiVsMistral: string;
+    modelALabel: string;
+    modelBLabel: string;
   };
 
   // Arbiter

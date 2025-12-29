@@ -292,7 +292,14 @@ export const fr: Translations = {
     polarityExplanation: 'Différences de sentiment positif/négatif',
     subjectivityExplanation: 'Différences objectivité vs. opinion (échelle 1-5)',
     centralityExplanation: 'Importance de l\'Islam/Musulmans dans l\'article',
-    dimensionsNote: 'Astuce : Sélectionnez une seule dimension pour concentrer votre analyse sur des types spécifiques de désaccords. Les scores de divergence seront recalculés selon votre sélection.'
+    dimensionsNote: 'Astuce : Sélectionnez une seule dimension pour concentrer votre analyse sur des types spécifiques de désaccords. Les scores de divergence seront recalculés selon votre sélection.',
+    // Model pair picker
+    selectModelPair: 'Sélectionner les modèles à comparer',
+    chatgptVsGemini: 'ChatGPT vs Gemini',
+    chatgptVsMistral: 'ChatGPT vs Mistral',
+    geminiVsMistral: 'Gemini vs Mistral',
+    modelALabel: 'Modèle A',
+    modelBLabel: 'Modèle B'
   },
 
   // Arbiter

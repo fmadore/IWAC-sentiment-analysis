@@ -292,7 +292,14 @@ export const en: Translations = {
     polarityExplanation: 'Positive/Negative sentiment differences',
     subjectivityExplanation: 'Objectivity vs. opinion differences (1-5 scale)',
     centralityExplanation: 'How central Islam/Muslims are to the article',
-    dimensionsNote: 'Tip: Select only one dimension to focus your analysis on specific types of disagreements. Discrepancy scores will be recalculated based on your selection.'
+    dimensionsNote: 'Tip: Select only one dimension to focus your analysis on specific types of disagreements. Discrepancy scores will be recalculated based on your selection.',
+    // Model pair picker
+    selectModelPair: 'Select models to compare',
+    chatgptVsGemini: 'ChatGPT vs Gemini',
+    chatgptVsMistral: 'ChatGPT vs Mistral',
+    geminiVsMistral: 'Gemini vs Mistral',
+    modelALabel: 'Model A',
+    modelBLabel: 'Model B'
   },
 
   // Arbiter
