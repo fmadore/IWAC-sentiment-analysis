@@ -10,10 +10,12 @@ import {
   centralityFilters,
   selectedDataset,
   comparisonMode,
+  comparisonPair,
   discrepancyFilters,
   selectedArticle,
   datasetArticles
 } from './stores';
+import type { ModelPair } from './types/data';
 import { writable } from 'svelte/store';
 
 // Store to track pending article selection from URL
@@ -31,6 +33,7 @@ export interface URLState {
   lang?: Language;
   dataset?: string;
   compare?: boolean;
+  pair?: ModelPair;  // Comparison model pair
   diffMin?: number;
   diffMax?: number;
   articleId?: string | number;
@@ -39,6 +42,7 @@ export interface URLState {
 // Valid views that can be set in URL
 const VALID_VIEWS = ['charts', 'trends', 'correlation', 'volume', 'heatmap', 'table', 'comparison', 'extremes'];
 const VALID_DATASETS = ['chatgpt', 'gemini', 'mistral'];
+const VALID_PAIRS: ModelPair[] = ['chatgpt-gemini', 'chatgpt-mistral', 'gemini-mistral'];
 
 // URL parameter names
 const URL_PARAMS = {
@@ -51,6 +55,7 @@ const URL_PARAMS = {
   lang: 'lang',
   dataset: 'dataset',
   compare: 'compare',
+  pair: 'pair',
   diffMin: 'diffMin',
   diffMax: 'diffMax',
   articleId: 'articleId'
@@ -84,6 +89,12 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
   const compare = searchParams.get(URL_PARAMS.compare);
   if (compare === 'true') {
     state.compare = true;
+  }
+
+  // Parse comparison pair
+  const pair = searchParams.get(URL_PARAMS.pair) as ModelPair;
+  if (pair && VALID_PAIRS.includes(pair)) {
+    state.pair = pair;
   }
 
   // Parse discrepancy filters
@@ -167,6 +178,10 @@ export function buildURLSearchParams(state: URLState): URLSearchParams {
     params.set(URL_PARAMS.compare, 'true');
   }
 
+  if (state.pair && VALID_PAIRS.includes(state.pair) && state.compare === true) {
+    params.set(URL_PARAMS.pair, state.pair);
+  }
+
   if (state.diffMin !== undefined && state.compare === true) {
     params.set(URL_PARAMS.diffMin, state.diffMin.toString());
   }
@@ -228,6 +243,7 @@ export function getCurrentState(): URLState {
   // Only include comparison-related parameters when in comparison mode
   if (isComparisonMode) {
     state.compare = true;
+    state.pair = get(comparisonPair);
     state.diffMin = filters.minDifference;
     state.diffMax = filters.maxDifference;
   }
@@ -268,6 +284,10 @@ export function applyURLState(state: URLState): string | undefined {
 
   if (state.compare === true) {
     comparisonMode.set(true);
+  }
+
+  if (state.pair && VALID_PAIRS.includes(state.pair)) {
+    comparisonPair.set(state.pair);
   }
 
   if (state.diffMin !== undefined || state.diffMax !== undefined) {
