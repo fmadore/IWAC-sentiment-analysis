@@ -117255,21 +117255,6 @@
     }
   },
   {
-    "o:id": 62612,
-    "o:title": "Tentative d'enlèvement d'Idriss Koudouss (président du CNI) : le film d'un acte criminel",
-    "Newspaper": "La Voie",
-    "Country": "Côte d'Ivoire",
-    "dcterms:date": "1995-01-16",
-    "sentiment_analysis": {
-      "centralite_islam_musulmans": "Très central",
-      "centralite_justification": "L'article porte essentiellement sur le président du Conseil national islamique, les menaces contre lui et les agressions visant la communauté musulmane.",
-      "subjectivite_score": 4,
-      "subjectivite_justification": "Texte mêlant reportage et prises de position critiques (éditoriaux, accusations envers le gouvernement) exprimant des jugements et interprétations; présence d'éléments factuels mais dominance d'un ton polémique.",
-      "polarite": "Positif",
-      "polarite_justification": "Le traitement défend la communauté musulmane et son leadership, condamne les agresseurs et critique le gouvernement, donnant une tonalité favorable aux musulmans."
-    }
-  },
-  {
     "o:id": 62613,
     "o:title": "Jeudi, la fête de Tabaski",
     "Newspaper": "Fraternité Matin",
@@ -184227,6 +184212,96 @@
       "subjectivite_justification": "Le ton est fortement personnel et émotionnel (répétitions de «Je suis inquiet», accusations et jugements envers les autorités), même si l'auteur cite des faits/conduites concrètes (note ministérielle, interdiction) comme appui à son argumentation.",
       "polarite": "Positif",
       "polarite_justification": "L'auteur défend explicitement la communauté musulmane contre la marginalisation et réclame le respect de la liberté religieuse, présentant les musulmans comme victimes et appelant à leur protection et inclusion."
+    }
+  },
+  {
+    "o:id": 78001,
+    "o:title": "Tentative d'enlèvement d'Idriss Koudouss (président du CNI) : le film des événements",
+    "Newspaper": "La Voie",
+    "Country": "Côte d'Ivoire",
+    "dcterms:date": "1995-01-16",
+    "sentiment_analysis": {
+      "centralite_islam_musulmans": null,
+      "centralite_justification": null,
+      "subjectivite_score": null,
+      "subjectivite_justification": null,
+      "polarite": null,
+      "polarite_justification": null
+    }
+  },
+  {
+    "o:id": 78002,
+    "o:title": "El Hadj Idriss Koudouss à BBC : \"Je suis menacé\"",
+    "Newspaper": "La Voie",
+    "Country": "Côte d'Ivoire",
+    "dcterms:date": "1995-01-16",
+    "sentiment_analysis": {
+      "centralite_islam_musulmans": null,
+      "centralite_justification": null,
+      "subjectivite_score": null,
+      "subjectivite_justification": null,
+      "polarite": null,
+      "polarite_justification": null
+    }
+  },
+  {
+    "o:id": 78003,
+    "o:title": "Le pouvoir veut l'intégrisme",
+    "Newspaper": "La Voie",
+    "Country": "Côte d'Ivoire",
+    "dcterms:date": "1995-01-16",
+    "sentiment_analysis": {
+      "centralite_islam_musulmans": null,
+      "centralite_justification": null,
+      "subjectivite_score": null,
+      "subjectivite_justification": null,
+      "polarite": null,
+      "polarite_justification": null
+    }
+  },
+  {
+    "o:id": 78004,
+    "o:title": "Provocation, agressions, attentats contre la communauté musulmane et ses dirigeants",
+    "Newspaper": "La Voie",
+    "Country": "Côte d'Ivoire",
+    "dcterms:date": "1995-01-16",
+    "sentiment_analysis": {
+      "centralite_islam_musulmans": null,
+      "centralite_justification": null,
+      "subjectivite_score": null,
+      "subjectivite_justification": null,
+      "polarite": null,
+      "polarite_justification": null
+    }
+  },
+  {
+    "o:id": 78005,
+    "o:title": "Communiqué de presse du CNI",
+    "Newspaper": "La Voie",
+    "Country": "Côte d'Ivoire",
+    "dcterms:date": "1995-01-16",
+    "sentiment_analysis": {
+      "centralite_islam_musulmans": null,
+      "centralite_justification": null,
+      "subjectivite_score": null,
+      "subjectivite_justification": null,
+      "polarite": null,
+      "polarite_justification": null
+    }
+  },
+  {
+    "o:id": 78006,
+    "o:title": "Tentative d'enlèvement du président du CNI : le gouvernement se fourvoie",
+    "Newspaper": "La Voie",
+    "Country": "Côte d'Ivoire",
+    "dcterms:date": "1995-01-16",
+    "sentiment_analysis": {
+      "centralite_islam_musulmans": null,
+      "centralite_justification": null,
+      "subjectivite_score": null,
+      "subjectivite_justification": null,
+      "polarite": null,
+      "polarite_justification": null
     }
   }
 ]

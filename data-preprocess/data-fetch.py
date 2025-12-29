@@ -62,10 +62,12 @@ print(f"Number of articles: {len(dataset['train'])}")
 gemini_data_list = []
 # Convert to list of dictionaries with ChatGPT data mapping
 chatgpt_data_list = []
+# Convert to list of dictionaries with Mistral data mapping
+mistral_data_list = []
 
 print(f"\nProcessing {len(dataset['train'])} records...")
 for item in tqdm(dataset['train'], desc="Processing articles"):
-    # Base item structure for both datasets
+    # Base item structure for all datasets
     base_item = {
         "o:id": safe_int_convert(item.get("o:id")),
         "o:title": item.get("title"),
@@ -97,6 +99,18 @@ for item in tqdm(dataset['train'], desc="Processing articles"):
         "polarite_justification": item.get("chatgpt_polarite_justification")
     }
     chatgpt_data_list.append(chatgpt_item)
+    
+    # Mistral data mapping
+    mistral_item = base_item.copy()
+    mistral_item["sentiment_analysis"] = {
+        "centralite_islam_musulmans": item.get("mistral_centralite_islam_musulmans"),
+        "centralite_justification": item.get("mistral_centralite_justification"),
+        "subjectivite_score": safe_int_convert(item.get("mistral_subjectivite_score")),
+        "subjectivite_justification": item.get("mistral_subjectivite_justification"),
+        "polarite": item.get("mistral_polarite"),
+        "polarite_justification": item.get("mistral_polarite_justification")
+    }
+    mistral_data_list.append(mistral_item)
 
 # Create the output directory if it doesn't exist
 output_dir = os.path.join(os.path.dirname(__file__), "..", "ma-visualisation-sentiments", "static", "data")
@@ -122,7 +136,18 @@ with open(chatgpt_json_path, 'w', encoding='utf-8') as f:
 
 print(f"ChatGPT JSON file saved successfully! ({len(chatgpt_data_list)} records)")
 
+# Save Mistral data as JSON file
+mistral_json_filename = "iwac_articles_mistral.json"
+mistral_json_path = os.path.join(output_dir, mistral_json_filename)
+
+print(f"\nSaving Mistral articles dataset to JSON file: {mistral_json_path}")
+with open(mistral_json_path, 'w', encoding='utf-8') as f:
+    json.dump(mistral_data_list, f, ensure_ascii=False, indent=2)
+
+print(f"Mistral JSON file saved successfully! ({len(mistral_data_list)} records)")
+
 print(f"\nFiles created:")
 print(f"- Gemini: {gemini_json_path}")
 print(f"- ChatGPT: {chatgpt_json_path}")
+print(f"- Mistral: {mistral_json_path}")
 print(f"{'='*50}")

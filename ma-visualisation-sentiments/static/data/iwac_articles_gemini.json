@@ -117255,21 +117255,6 @@
     }
   },
   {
-    "o:id": 62612,
-    "o:title": "Tentative d'enlèvement d'Idriss Koudouss (président du CNI) : le film d'un acte criminel",
-    "Newspaper": "La Voie",
-    "Country": "Côte d'Ivoire",
-    "dcterms:date": "1995-01-16",
-    "sentiment_analysis": {
-      "centralite_islam_musulmans": "Très central",
-      "centralite_justification": "L'article est presque entièrement consacré à la tentative d'enlèvement d'Idriss Koudouss, président du Conseil National Islamique (CNI), et aux tensions entre le pouvoir et la communauté musulmane.",
-      "subjectivite_score": 4,
-      "subjectivite_justification": "Le texte adopte un ton très critique et engagé, utilisant des termes forts comme 'banditisme d'État' ou 'complot permanent' pour dénoncer l'attitude du gouvernement envers les musulmans.",
-      "polarite": "Positif",
-      "polarite_justification": "L'article prend fait et cause pour la communauté musulmane et ses leaders, les présentant comme des victimes dignes et intègres face à un pouvoir jugé injuste et provocateur."
-    }
-  },
-  {
     "o:id": 62613,
     "o:title": "Jeudi, la fête de Tabaski",
     "Newspaper": "Fraternité Matin",
@@ -184227,6 +184212,96 @@
       "subjectivite_justification": "Le texte est un billet d'humeur exprimant une inquiétude personnelle profonde, utilisant un ton émotionnel, des jugements de valeur et une critique directe des autorités.",
       "polarite": "Négatif",
       "polarite_justification": "L'auteur dénonce une marginalisation, une stigmatisation (accusations d'intégrisme) et une entrave aux libertés religieuses des musulmans en Côte d'Ivoire."
+    }
+  },
+  {
+    "o:id": 78001,
+    "o:title": "Tentative d'enlèvement d'Idriss Koudouss (président du CNI) : le film des événements",
+    "Newspaper": "La Voie",
+    "Country": "Côte d'Ivoire",
+    "dcterms:date": "1995-01-16",
+    "sentiment_analysis": {
+      "centralite_islam_musulmans": null,
+      "centralite_justification": null,
+      "subjectivite_score": null,
+      "subjectivite_justification": null,
+      "polarite": null,
+      "polarite_justification": null
+    }
+  },
+  {
+    "o:id": 78002,
+    "o:title": "El Hadj Idriss Koudouss à BBC : \"Je suis menacé\"",
+    "Newspaper": "La Voie",
+    "Country": "Côte d'Ivoire",
+    "dcterms:date": "1995-01-16",
+    "sentiment_analysis": {
+      "centralite_islam_musulmans": null,
+      "centralite_justification": null,
+      "subjectivite_score": null,
+      "subjectivite_justification": null,
+      "polarite": null,
+      "polarite_justification": null
+    }
+  },
+  {
+    "o:id": 78003,
+    "o:title": "Le pouvoir veut l'intégrisme",
+    "Newspaper": "La Voie",
+    "Country": "Côte d'Ivoire",
+    "dcterms:date": "1995-01-16",
+    "sentiment_analysis": {
+      "centralite_islam_musulmans": null,
+      "centralite_justification": null,
+      "subjectivite_score": null,
+      "subjectivite_justification": null,
+      "polarite": null,
+      "polarite_justification": null
+    }
+  },
+  {
+    "o:id": 78004,
+    "o:title": "Provocation, agressions, attentats contre la communauté musulmane et ses dirigeants",
+    "Newspaper": "La Voie",
+    "Country": "Côte d'Ivoire",
+    "dcterms:date": "1995-01-16",
+    "sentiment_analysis": {
+      "centralite_islam_musulmans": null,
+      "centralite_justification": null,
+      "subjectivite_score": null,
+      "subjectivite_justification": null,
+      "polarite": null,
+      "polarite_justification": null
+    }
+  },
+  {
+    "o:id": 78005,
+    "o:title": "Communiqué de presse du CNI",
+    "Newspaper": "La Voie",
+    "Country": "Côte d'Ivoire",
+    "dcterms:date": "1995-01-16",
+    "sentiment_analysis": {
+      "centralite_islam_musulmans": null,
+      "centralite_justification": null,
+      "subjectivite_score": null,
+      "subjectivite_justification": null,
+      "polarite": null,
+      "polarite_justification": null
+    }
+  },
+  {
+    "o:id": 78006,
+    "o:title": "Tentative d'enlèvement du président du CNI : le gouvernement se fourvoie",
+    "Newspaper": "La Voie",
+    "Country": "Côte d'Ivoire",
+    "dcterms:date": "1995-01-16",
+    "sentiment_analysis": {
+      "centralite_islam_musulmans": null,
+      "centralite_justification": null,
+      "subjectivite_score": null,
+      "subjectivite_justification": null,
+      "polarite": null,
+      "polarite_justification": null
     }
   }
 ]

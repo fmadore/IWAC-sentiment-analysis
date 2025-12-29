@@ -2,11 +2,11 @@ import { browser } from '$app/environment';
 import { goto } from '$app/navigation';
 import { page } from '$app/stores';
 import { get } from 'svelte/store';
-import { 
-  countryFilters, 
-  journalFilters, 
-  polarityFilters, 
-  subjectivityFilters, 
+import {
+  countryFilters,
+  journalFilters,
+  polarityFilters,
+  subjectivityFilters,
   centralityFilters,
   selectedDataset,
   comparisonMode,
@@ -17,7 +17,7 @@ import {
 import { writable } from 'svelte/store';
 
 // Store to track pending article selection from URL
-const pendingArticleSelection = writable<{articleId: string | number, dataset: string} | null>(null);
+const pendingArticleSelection = writable<{ articleId: string | number, dataset: string } | null>(null);
 import { currentLanguage, type Language, LANGUAGES, initializeLanguage } from './i18n/index.js';
 
 // Types for URL state
@@ -38,13 +38,13 @@ export interface URLState {
 
 // Valid views that can be set in URL
 const VALID_VIEWS = ['charts', 'trends', 'correlation', 'volume', 'heatmap', 'table', 'comparison', 'extremes'];
-const VALID_DATASETS = ['chatgpt', 'gemini'];
+const VALID_DATASETS = ['chatgpt', 'gemini', 'mistral'];
 
 // URL parameter names
 const URL_PARAMS = {
   view: 'view',
   countries: 'countries',
-  journals: 'journals', 
+  journals: 'journals',
   polarities: 'polarities',
   subjectivities: 'subjectivities',
   centralities: 'centralities',
@@ -109,7 +109,7 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
     // Try to parse as number first, fallback to string
     const numericId = parseInt(articleId, 10);
     state.articleId = !isNaN(numericId) ? numericId : articleId;
-    
+
     // If articleId is present but no view is specified, default to table view
     if (!state.view) {
       state.view = 'table';
@@ -209,7 +209,7 @@ export function getCurrentState(): URLState {
   const filters = get(discrepancyFilters);
   const isComparisonMode = get(comparisonMode);
   const currentArticle = get(selectedArticle);
-  
+
   const state: URLState = {
     countries: get(countryFilters),
     journals: get(journalFilters),
@@ -219,19 +219,19 @@ export function getCurrentState(): URLState {
     lang: get(currentLanguage),
     dataset: get(selectedDataset)
   };
-  
+
   // Include selected article ID if there is one
   if (currentArticle) {
     state.articleId = currentArticle['o:id'];
   }
-  
+
   // Only include comparison-related parameters when in comparison mode
   if (isComparisonMode) {
     state.compare = true;
     state.diffMin = filters.minDifference;
     state.diffMax = filters.maxDifference;
   }
-  
+
   return state;
 }
 
@@ -285,14 +285,14 @@ export function applyURLState(state: URLState): string | undefined {
     const currentDataset = state.dataset || get(selectedDataset);
     const allDatasetArticles = get(datasetArticles);
     const articlesForDataset = allDatasetArticles[currentDataset];
-    
+
     if (articlesForDataset && articlesForDataset.length > 0) {
       // Find the article with matching ID
-      const targetArticle = articlesForDataset.find(article => 
-        article['o:id'] === state.articleId || 
+      const targetArticle = articlesForDataset.find(article =>
+        article['o:id'] === state.articleId ||
         article['o:id'].toString() === state.articleId?.toString()
       );
-      
+
       if (targetArticle) {
         selectedArticle.set(targetArticle);
         // Clear any pending selection since we found the article
@@ -330,7 +330,7 @@ export function updateURL(currentView?: string, replaceState = false): void {
   const params = buildURLSearchParams(currentState);
   const url = params.toString() ? `?${params.toString()}` : window.location.pathname;
 
-  goto(url, { 
+  goto(url, {
     replaceState,
     keepFocus: true,
     noScroll: true
@@ -346,7 +346,7 @@ export function initializeURLState(): string | undefined {
 
   const currentPage = get(page);
   const urlState = parseURLState(currentPage.url.searchParams);
-  
+
   return applyURLState(urlState);
 }
 
@@ -360,7 +360,7 @@ export function clearAllFilters(): void {
   subjectivityFilters.set([]);
   centralityFilters.set([]);
   // Don't reset dataset selection or comparison mode when clearing filters
-  
+
   updateURL(undefined, true);
 }
 
@@ -390,21 +390,21 @@ export function handlePendingArticleSelection(): void {
 
   const allDatasetArticles = get(datasetArticles);
   const articlesForDataset = allDatasetArticles[pending.dataset];
-  
+
   if (articlesForDataset && articlesForDataset.length > 0) {
     // Find the article with matching ID
-    const targetArticle = articlesForDataset.find(article => 
-      article['o:id'] === pending.articleId || 
+    const targetArticle = articlesForDataset.find(article =>
+      article['o:id'] === pending.articleId ||
       article['o:id'].toString() === pending.articleId.toString()
     );
-    
+
     if (targetArticle) {
       selectedArticle.set(targetArticle);
       console.log(`[URL] Selected article ${pending.articleId} after dataset loading: ${targetArticle['o:title']}`);
     } else {
       console.warn(`[URL] Article with ID ${pending.articleId} not found in dataset ${pending.dataset}`);
     }
-    
+
     // Clear the pending selection
     pendingArticleSelection.set(null);
   }

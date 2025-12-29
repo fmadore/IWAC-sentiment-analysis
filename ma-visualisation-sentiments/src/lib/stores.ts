@@ -29,7 +29,8 @@ export const activeView = writable<string>('charts');
 // New stores for dataset management
 export const availableDatasets = writable<DatasetOption[]>([
   { id: 'chatgpt', name: 'ChatGPT', file: '/data/iwac_articles_chatgpt.json', logo: '/logo/ChatGPT_logo.svg', color: '#10a37f' },
-  { id: 'gemini', name: 'Gemini', file: '/data/iwac_articles_gemini.json', logo: '/logo/Gemini_logo.svg', color: '#8e75b2' }
+  { id: 'gemini', name: 'Gemini', file: '/data/iwac_articles_gemini.json', logo: '/logo/Gemini_logo.svg', color: '#8e75b2' },
+  { id: 'mistral', name: 'Mistral', file: '/data/iwac_articles_mistral.json', logo: '/logo/Mistral_AI_logo.svg', color: '#F54E42' }
 ]);
 
 export const selectedDataset = writable<string>('chatgpt');
@@ -40,7 +41,8 @@ export const comparisonDatasets = writable<ComparisonData[] | null>(null);
 // Store for extreme analysis data
 export const extremeAnalysisData = writable<Record<string, ExtremeAnalysisData | null>>({
   chatgpt: null,
-  gemini: null
+  gemini: null,
+  mistral: null
 });
 
 // Current extreme analysis data (derived from extremeAnalysisData and selectedDataset)
@@ -77,9 +79,9 @@ export const filteredArticles = derived(
     if (isComparison) {
       return [];
     }
-    
+
     const articles = datasets[currentDataset] || [];
-    
+
     return articles.filter(article => {
       // Filtre par pays (prioritaire)
       if (countries.length > 0 && !countries.includes(article.Country || '')) {
@@ -126,25 +128,25 @@ export const availableJournals = derived(
   ([datasets, currentDataset, countries, isComparison]) => {
     // In comparison mode, combine journals from both datasets
     let articles: Article[] = [];
-    
+
     if (isComparison) {
       // Combine articles from both datasets
       articles = [...(datasets['chatgpt'] || []), ...(datasets['gemini'] || [])];
     } else {
       articles = datasets[currentDataset] || [];
     }
-    
+
     let filteredArticles = articles;
-    
+
     // Si des pays sont sélectionnés, filtrer d'abord par pays
     if (countries.length > 0) {
       filteredArticles = articles.filter(article => countries.includes(article.Country || ''));
     }
-    
+
     // Extraire les journaux uniques des articles filtrés par pays
     return [...new Set(
       filteredArticles.map(article => getJournalName(article))
-                      .filter((name): name is string => !!name)
+        .filter((name): name is string => !!name)
     )].sort((a, b) => a.localeCompare(b));
   }
 );
@@ -154,13 +156,13 @@ export const loadDatasetArticles = async (filePath: string, datasetId: string, f
   try {
     const resolvedPath = filePath.startsWith('http') ? filePath : `${base}${filePath}`;
     const response = await fetchFunction(resolvedPath);
-    
+
     if (!response.ok) {
       throw new Error(`Failed to fetch dataset: ${response.statusText}`);
     }
-    
+
     const data = await response.json();
-    
+
     // Vérifier si les données contiennent déjà un tableau d'articles
     if (Array.isArray(data)) {
       // Si c'est déjà un tableau, assurons-nous que chaque élément a le dataset_id
@@ -182,7 +184,7 @@ export const loadDatasetArticles = async (filePath: string, datasetId: string, f
 // New function to load a specific dataset into the datasetArticles store
 export const loadSpecificDataset = async (datasetId: string, fetchFunction: typeof fetch): Promise<void> => {
   isLoadingDataset.set(true);
-  
+
   try {
     // Get dataset info
     const datasets = await new Promise<DatasetOption[]>(resolve => {
@@ -190,28 +192,28 @@ export const loadSpecificDataset = async (datasetId: string, fetchFunction: type
         resolve(value);
       })();
     });
-    
+
     const dataset = datasets.find(d => d.id === datasetId);
     if (!dataset) {
       throw new Error(`Dataset ${datasetId} not found`);
     }
-    
+
     // Load the dataset
     const articles = await loadDatasetArticles(dataset.file, datasetId, fetchFunction);
-    
+
     // Update the datasetArticles store
     datasetArticles.update(current => ({
       ...current,
       [datasetId]: articles
     }));
-    
+
     // For backward compatibility, also update currentDatasetArticles if this is the selected dataset
     const currentSelected = await new Promise<string>(resolve => {
       selectedDataset.subscribe(value => {
         resolve(value);
       })();
     });
-    
+
     if (currentSelected === datasetId) {
       currentDatasetArticles.set(articles);
     }
@@ -227,7 +229,7 @@ export const loadAllDatasets = async (fetchFunction: typeof fetch): Promise<void
       resolve(value);
     })();
   });
-  
+
   // Load all datasets in parallel
   await Promise.all(
     datasets.map(dataset => loadSpecificDataset(dataset.id, fetchFunction))
@@ -241,26 +243,26 @@ export const loadCurrentDataset = async (fetchFunction: typeof fetch): Promise<v
       resolve(value);
     })();
   });
-  
+
   // Check if dataset is already loaded
   const currentDatasets = await new Promise<Record<string, Article[]>>(resolve => {
     datasetArticles.subscribe(value => {
       resolve(value);
     })();
   });
-  
+
   if (currentDatasets[currentDatasetId] && currentDatasets[currentDatasetId].length > 0) {
     // Dataset already loaded, just update currentDatasetArticles
     currentDatasetArticles.set(currentDatasets[currentDatasetId]);
-    
+
     // Start background prefetching of other datasets
     prefetchOtherDatasets(currentDatasetId, fetchFunction);
     return;
   }
-  
+
   // Load only the current dataset
   await loadSpecificDataset(currentDatasetId, fetchFunction);
-  
+
   // Update currentDatasetArticles
   const updatedDatasets = await new Promise<Record<string, Article[]>>(resolve => {
     datasetArticles.subscribe(value => {
@@ -268,9 +270,9 @@ export const loadCurrentDataset = async (fetchFunction: typeof fetch): Promise<v
     })();
   });
   currentDatasetArticles.set(updatedDatasets[currentDatasetId] || []);
-  
 
-  
+
+
   // Start background prefetching of other datasets after current one is loaded
   prefetchOtherDatasets(currentDatasetId, fetchFunction);
 };
@@ -304,17 +306,17 @@ const prefetchOtherDatasets = async (currentDatasetId: string, fetchFunction: ty
       resolve(value);
     })();
   });
-  
+
   // Get currently loaded datasets
   const currentDatasets = await new Promise<Record<string, Article[]>>(resolve => {
     datasetArticles.subscribe(value => {
       resolve(value);
     })();
   });
-  
+
   // Build priority queue for prefetching
   const prefetchQueue: PrefetchTask[] = [];
-  
+
   // Priority 1: Arbiter evaluations (small file, needed for comparison view)
   if (!prefetchCompleted.has('arbiter') && !prefetchingInProgress.has('arbiter')) {
     prefetchQueue.push({
@@ -332,7 +334,7 @@ const prefetchOtherDatasets = async (currentDatasetId: string, fetchFunction: ty
       }
     });
   }
-  
+
   // Priority 2: Other main datasets (for comparison mode)
   datasets
     .filter(dataset => dataset.id !== currentDatasetId)
@@ -355,7 +357,7 @@ const prefetchOtherDatasets = async (currentDatasetId: string, fetchFunction: ty
         });
       }
     });
-  
+
   // Priority 3: Extreme analysis data for current dataset
   const currentExtremeData = get(extremeAnalysisData);
   if (!currentExtremeData[currentDatasetId]) {
@@ -377,17 +379,17 @@ const prefetchOtherDatasets = async (currentDatasetId: string, fetchFunction: ty
       });
     }
   }
-  
+
   if (prefetchQueue.length === 0) {
     console.log('[Prefetch] All data already loaded');
     return;
   }
-  
+
   // Sort by priority
   prefetchQueue.sort((a, b) => a.priority - b.priority);
-  
+
   console.log(`[Prefetch] Queue: ${prefetchQueue.map(t => `${t.id}(P${t.priority})`).join(', ')}`);
-  
+
   // Execute prefetching with smart delays and network awareness
   scheduleSmartPrefetch(prefetchQueue);
 };
@@ -401,11 +403,11 @@ const prefetchOtherDatasets = async (currentDatasetId: string, fetchFunction: ty
  */
 const scheduleSmartPrefetch = (queue: PrefetchTask[]): void => {
   if (queue.length === 0) return;
-  
+
   const executeNext = async () => {
     const task = queue.shift();
     if (!task) return;
-    
+
     // Check network conditions (if available)
     const connection = (navigator as any).connection;
     if (connection) {
@@ -419,7 +421,7 @@ const scheduleSmartPrefetch = (queue: PrefetchTask[]): void => {
         return;
       }
     }
-    
+
     try {
       console.log(`[Prefetch] Loading: ${task.id}`);
       await task.loader();
@@ -427,7 +429,7 @@ const scheduleSmartPrefetch = (queue: PrefetchTask[]): void => {
     } catch (error) {
       console.warn(`[Prefetch] Failed: ${task.id}`, error);
     }
-    
+
     // Continue with remaining queue after a brief delay
     if (queue.length > 0) {
       setTimeout(() => scheduleSmartPrefetch(queue), 150);
@@ -435,7 +437,7 @@ const scheduleSmartPrefetch = (queue: PrefetchTask[]): void => {
       console.log('[Prefetch] All prefetching completed');
     }
   };
-  
+
   // Use requestIdleCallback if available for better performance
   if (typeof requestIdleCallback !== 'undefined') {
     requestIdleCallback(() => executeNext(), { timeout: 2000 });
@@ -452,9 +454,9 @@ export const loadComparisonDatasets = async (fetchFunction: typeof fetch): Promi
       resolve(value);
     })();
   });
-  
+
   const datasetsToLoad: string[] = [];
-  
+
   // Check which datasets need to be loaded
   if (!currentDatasets['chatgpt'] || currentDatasets['chatgpt'].length === 0) {
     datasetsToLoad.push('chatgpt');
@@ -462,13 +464,13 @@ export const loadComparisonDatasets = async (fetchFunction: typeof fetch): Promi
   if (!currentDatasets['gemini'] || currentDatasets['gemini'].length === 0) {
     datasetsToLoad.push('gemini');
   }
-  
+
   if (datasetsToLoad.length > 0) {
     console.log(`Loading missing comparison datasets: ${datasetsToLoad.join(', ')}`);
-    
+
     // Use specific loading state for comparison
     isLoadingComparison.set(true);
-    
+
     try {
       // Load only the missing datasets in parallel
       await Promise.all(
@@ -487,21 +489,21 @@ export const loadComparisonDatasets = async (fetchFunction: typeof fetch): Promi
 export const loadCurrentExtremeAnalysis = async (fetchFunction: typeof fetch): Promise<void> => {
   // Get current dataset ID using get() helper
   const currentDatasetId = get(selectedDataset);
-  
+
   // Check if extreme analysis is already loaded using get() helper
   const currentExtremeData = get(extremeAnalysisData);
-  
+
   if (currentExtremeData[currentDatasetId]) {
     // Already loaded
     console.log(`Extreme analysis for ${currentDatasetId} already loaded`);
     return;
   }
-  
+
   console.log(`Loading extreme analysis data for ${currentDatasetId}...`);
-  
+
   // Use specific loading state for extreme analysis
   isLoadingExtremeAnalysis.set(true);
-  
+
   try {
     const data = await loadExtremeAnalysisData(currentDatasetId as 'chatgpt' | 'gemini', fetchFunction);
     extremeAnalysisData.update(current => ({
@@ -546,22 +548,22 @@ export const comparisonData = derived(
     if (!$isComparison || !$datasets['chatgpt'] || !$datasets['gemini']) {
       return [];
     }
-    
+
     // Create a map for quick lookup
     const geminiMap = new Map($datasets['gemini'].map(article => [article['o:id'], article]));
-    
+
     // Build comparison data
     const comparisons: ComparisonData[] = [];
-    
+
     $datasets['chatgpt'].forEach(chatgptArticle => {
       const geminiArticle = geminiMap.get(chatgptArticle['o:id']);
-      
+
       if (geminiArticle) {
         const discrepancies = calculateDiscrepancies(
           chatgptArticle.sentiment_analysis,
           geminiArticle.sentiment_analysis
         );
-        
+
         comparisons.push({
           article: chatgptArticle,
           chatgpt: chatgptArticle.sentiment_analysis || null,
@@ -570,7 +572,7 @@ export const comparisonData = derived(
         });
       }
     });
-    
+
     return comparisons;
   }
 );
@@ -589,7 +591,7 @@ function calculateDiscrepancies(
       hasConflict: false
     };
   }
-  
+
   // Map polarity values to numeric scores
   const polarityScores: Record<string, number> = {
     'Très positif': 5,
@@ -599,7 +601,7 @@ function calculateDiscrepancies(
     'Très négatif': 1,
     'Non applicable': 0
   };
-  
+
   // Map centrality values to numeric scores
   const centralityScores: Record<string, number> = {
     'Très central': 5,
@@ -608,30 +610,30 @@ function calculateDiscrepancies(
     'Marginal': 2,
     'Non abordé': 1
   };
-  
+
   const polarityDiff = Math.abs(
     (polarityScores[chatgpt.polarite || 'Non applicable'] || 0) -
     (polarityScores[gemini.polarite || 'Non applicable'] || 0)
   );
-  
+
   const subjectivityDiff = Math.abs(
     (chatgpt.subjectivite_score || 0) -
     (gemini.subjectivite_score || 0)
   );
-  
+
   const centralityDiff = Math.abs(
     (centralityScores[chatgpt.centralite_islam_musulmans || 'Non abordé'] || 0) -
     (centralityScores[gemini.centralite_islam_musulmans || 'Non abordé'] || 0)
   );
-  
+
   const totalDiff = polarityDiff + subjectivityDiff + centralityDiff;
-  
+
   // Check for significant conflicts (e.g., opposite polarities)
-  const hasConflict = 
+  const hasConflict =
     (polarityDiff >= 3) || // Very different polarities
     (subjectivityDiff >= 3) || // Very different subjectivity
     (centralityDiff >= 3); // Very different centrality
-  
+
   return {
     polarityDiff,
     subjectivityDiff,
@@ -655,23 +657,23 @@ export const filteredComparisons = derived(
         totalDiff: 0,
         hasConflict: false
       };
-      
+
       // If no dimensions selected, use all dimensions
       if ($filters.dimensions.length === 0) {
         filteredDiscrepancy = originalDisc;
       } else {
         // Recalculate total based on selected dimensions
-        filteredDiscrepancy.totalDiff = filteredDiscrepancy.polarityDiff + 
-                                       filteredDiscrepancy.subjectivityDiff + 
-                                       filteredDiscrepancy.centralityDiff;
-        
+        filteredDiscrepancy.totalDiff = filteredDiscrepancy.polarityDiff +
+          filteredDiscrepancy.subjectivityDiff +
+          filteredDiscrepancy.centralityDiff;
+
         // Recalculate conflict status based on selected dimensions
-        filteredDiscrepancy.hasConflict = 
-          (filteredDiscrepancy.polarityDiff >= 3) || 
-          (filteredDiscrepancy.subjectivityDiff >= 3) || 
+        filteredDiscrepancy.hasConflict =
+          (filteredDiscrepancy.polarityDiff >= 3) ||
+          (filteredDiscrepancy.subjectivityDiff >= 3) ||
           (filteredDiscrepancy.centralityDiff >= 3);
       }
-      
+
       return {
         ...comparison,
         discrepancies: filteredDiscrepancy
@@ -681,7 +683,7 @@ export const filteredComparisons = derived(
       if ($countries.length > 0 && !$countries.includes(comparison.article.Country || '')) {
         return false;
       }
-      
+
       // Apply journal filter
       const journalName = getJournalName(comparison.article);
       if ($journals.length > 0 && !$journals.includes(journalName)) {
@@ -692,26 +694,26 @@ export const filteredComparisons = derived(
       if ($filters.excludeNonApplicable) {
         const chatgptCentrality = comparison.chatgpt?.centralite_islam_musulmans;
         const geminiCentrality = comparison.gemini?.centralite_islam_musulmans;
-        
+
         if (chatgptCentrality === 'Non applicable' || chatgptCentrality === 'Non abordé' ||
-            geminiCentrality === 'Non applicable' || geminiCentrality === 'Non abordé') {
+          geminiCentrality === 'Non applicable' || geminiCentrality === 'Non abordé') {
           return false;
         }
       }
-      
+
       // Apply discrepancy filters using the filtered discrepancy
       const disc = comparison.discrepancies;
-      
+
       // Check total difference range
       if (disc.totalDiff < $filters.minDifference || disc.totalDiff > $filters.maxDifference) {
         return false;
       }
-      
+
       // Check if there's any difference in the selected dimensions
       if ($filters.dimensions.length === 0) {
         return true; // Show all if no dimensions selected
       }
-      
+
       // Only show articles that have differences in the selected dimensions
       return disc.totalDiff > 0;
     });
@@ -724,7 +726,7 @@ export const comparisonStatistics = derived(
   ([$allComparisons, $filteredComparisons, $countries, $journals]) => {
     // Calculate total articles after applying country and journal filters
     let totalArticles = $allComparisons.length;
-    
+
     // If country or journal filters are applied, count only articles that match those filters
     if ($countries.length > 0 || $journals.length > 0) {
       totalArticles = $allComparisons.filter(comparison => {
@@ -732,17 +734,17 @@ export const comparisonStatistics = derived(
         if ($countries.length > 0 && !$countries.includes(comparison.article.Country || '')) {
           return false;
         }
-        
+
         // Apply journal filter
         const journalName = getJournalName(comparison.article);
         if ($journals.length > 0 && !$journals.includes(journalName)) {
           return false;
         }
-        
+
         return true;
       }).length;
     }
-    
+
     if ($filteredComparisons.length === 0) {
       return {
         totalArticles,
@@ -754,18 +756,18 @@ export const comparisonStatistics = derived(
         highConflictArticles: 0
       };
     }
-    
+
     // Other statistics come from the filtered data
     const stats = $filteredComparisons.reduce((acc, comp) => {
       const disc = comp.discrepancies;
-      
+
       acc.totalDiscrepancies += disc.totalDiff > 0 ? 1 : 0;
       acc.totalDiffSum += disc.totalDiff;
       acc.polarityConflicts += disc.polarityDiff > 0 ? 1 : 0;
       acc.subjectivityConflicts += disc.subjectivityDiff > 0 ? 1 : 0;
       acc.centralityConflicts += disc.centralityDiff > 0 ? 1 : 0;
       acc.highConflictArticles += disc.hasConflict ? 1 : 0;
-      
+
       return acc;
     }, {
       totalDiscrepancies: 0,
@@ -775,7 +777,7 @@ export const comparisonStatistics = derived(
       centralityConflicts: 0,
       highConflictArticles: 0
     });
-    
+
     return {
       totalArticles, // Respects country and journal filters
       totalDiscrepancies: stats.totalDiscrepancies,
@@ -819,11 +821,11 @@ export const getArbiterForArticle = derived(
       if (!$arbiterEvaluations || !$arbiterEvaluations.evaluations) {
         return null;
       }
-      
+
       const evaluation = $arbiterEvaluations.evaluations.find(
         e => String(e.article_id) === String(articleId)
       );
-      
+
       return evaluation ? evaluation.arbiter : null;
     };
   }
@@ -884,7 +886,7 @@ export const arbiterStatistics = derived(
     // Count preferences across all dimensions (polarity, subjectivity, centrality)
     for (const evaluation of $arbiterEvaluations.evaluations) {
       const arbiter = evaluation.arbiter;
-      
+
       for (const dimension of ['polarity', 'subjectivity', 'centrality'] as const) {
         const preferredModel = arbiter[dimension]?.preferred_model as 'model_a' | 'model_b' | 'both' | 'neither';
         const decoded = decodePreferredModel(preferredModel, $modelAIsChatGPT);
@@ -912,21 +914,21 @@ export const arbiterStatistics = derived(
 // Function to load arbiter evaluations
 export const loadArbiterEvaluations = async (fetchFunction: typeof fetch): Promise<void> => {
   isLoadingArbiter.set(true);
-  
+
   try {
     const resolvedPath = `${base}/data/iwac_arbiter_evaluations.json`;
     const response = await fetchFunction(resolvedPath);
-    
+
     if (!response.ok) {
       console.log('Arbiter evaluations not found (this is optional data)');
       arbiterEvaluations.set(null);
       return;
     }
-    
+
     const data = await response.json() as ArbiterEvaluationData;
     arbiterEvaluations.set(data);
     console.log(`Loaded ${data.evaluations?.length || 0} arbiter evaluations (blind key: Model A = ${data.metadata?.model_a_is_chatgpt ? 'ChatGPT' : 'Gemini'})`);
-    
+
   } catch (error) {
     console.log('Arbiter evaluations not available:', error);
     arbiterEvaluations.set(null);
