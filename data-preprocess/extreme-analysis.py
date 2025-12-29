@@ -3,7 +3,7 @@ Script d'analyse des extrêmes lexicaux pour le corpus IWAC
 
 Ce script analyse les mots-clés (subject et spatial) associés aux extrêmes 
 de sentiment dans le corpus IWAC. Il génère des analyses détaillées pour 
-chaque modèle (ChatGPT et Gemini) en identifiant :
+chaque modèle (ChatGPT, Gemini, et Mistral) en identifiant :
 
 1. Les mots-clés les plus fréquents pour chaque extrême
 2. La répartition par pays et journaux 
@@ -514,7 +514,7 @@ def main():
             raise e2
     
     print(f"Dataset loaded: {len(dataset['train'])} articles")
-    print("This dataset contains articles with sentiment analysis from both ChatGPT and Gemini")
+    print("This dataset contains articles with sentiment analysis from ChatGPT, Gemini, and Mistral")
     
     # Analyser pour ChatGPT
     print(f"\n{'='*40}")
@@ -527,6 +527,12 @@ def main():
     print(f"ANALYZING GEMINI RESULTS")
     print(f"{'='*40}")
     gemini_results = analyze_extreme_keywords(dataset, "gemini", top_n=50)
+    
+    # Analyser pour Mistral
+    print(f"\n{'='*40}")
+    print(f"ANALYZING MISTRAL RESULTS")
+    print(f"{'='*40}")
+    mistral_results = analyze_extreme_keywords(dataset, "mistral", top_n=50)
     
     # Créer le répertoire de sortie
     output_dir = os.path.join(os.path.dirname(__file__), "..", "ma-visualisation-sentiments", "static", "data")
@@ -544,12 +550,18 @@ def main():
     with open(gemini_path, 'w', encoding='utf-8') as f:
         json.dump(gemini_results, f, ensure_ascii=False, indent=2)
     
+    # Sauvegarder les résultats Mistral
+    mistral_path = os.path.join(output_dir, "iwac_extreme_analysis_mistral.json")
+    print(f"Saving Mistral extreme analysis to: {mistral_path}")
+    with open(mistral_path, 'w', encoding='utf-8') as f:
+        json.dump(mistral_results, f, ensure_ascii=False, indent=2)
+    
     # Afficher les statistiques
     print(f"\n{'='*60}")
     print(f"ANALYSIS SUMMARY")
     print(f"{'='*60}")
     
-    for model, results in [("ChatGPT", chatgpt_results), ("Gemini", gemini_results)]:
+    for model, results in [("ChatGPT", chatgpt_results), ("Gemini", gemini_results), ("Mistral", mistral_results)]:
         stats = results["statistics"]
         print(f"\n{model} Statistics:")
         print(f"  Total articles: {stats['total_articles']}")
@@ -564,6 +576,7 @@ def main():
     print(f"Files created:")
     print(f"- ChatGPT: {chatgpt_path}")
     print(f"- Gemini: {gemini_path}")
+    print(f"- Mistral: {mistral_path}")
     print(f"{'='*60}")
     
     # Afficher quelques exemples de mots-clés les plus fréquents

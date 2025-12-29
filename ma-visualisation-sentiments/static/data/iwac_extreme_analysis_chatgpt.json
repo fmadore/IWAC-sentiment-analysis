@@ -3,72 +3,72 @@
   "analysis": {
     "subjectivity_extreme_high": {
       "subject": {
-        "Mahomet": 384,
+        "Mahomet": 383,
         "Hadj": 349,
-        "Politique": 345,
+        "Politique": 344,
         "Prière": 341,
         "Paix": 302,
         "Ramadan": 242,
         "Mosquée": 237,
-        "Conseil National Islamique": 208,
         "Éducation": 207,
         "Coran": 207,
-        "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques": 196,
-        "Conflit": 186,
-        "Gouvernement": 185,
+        "Conseil National Islamique": 207,
+        "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques": 195,
+        "Conflit": 185,
+        "Gouvernement": 184,
+        "Laïcité": 183,
         "Terrorisme": 176,
         "Jeûne": 165,
         "Pluralisme religieux": 158,
-        "Laïcité": 156,
-        "Intégrisme": 156,
+        "Intégrisme": 155,
         "Radicalisation": 149,
         "Unité": 133,
-        "Idriss Koudouss Koné": 133,
+        "Idriss Koudouss Koné": 132,
         "Aboubacar Fofana": 126,
         "Violence": 125,
-        "Élections": 123,
+        "Élections": 122,
         "Félix Houphouët-Boigny": 122,
         "Henri Konan Bédié": 115,
         "Front de la Oumat Islamique": 114,
         "Imamat": 110,
-        "Sécurité": 109,
+        "Sécurité": 108,
         "Femmes": 105,
         "Développement": 105,
         "Jeunesse": 103,
         "Réconciliation": 101,
         "Solidarité": 101,
         "Aïd al-Adha (Tabaski)": 99,
-        "Justice": 99,
+        "Justice": 98,
         "Démocratie": 89,
         "Association des Élèves et Étudiants Musulmans au Burkina": 87,
         "Cercle d'Études, de Recherches et de Formation Islamiques": 86,
         "Laurent Gbagbo": 83,
         "Aïd el-Fitr": 82,
         "Alassane Ouattara": 82,
-        "Conseil Supérieur Islamique": 81,
         "Santé": 80,
+        "Conseil Supérieur Islamique": 80,
         "Corruption": 75,
         "Christianisme": 75,
-        "Front populaire ivoirien": 72,
+        "Front populaire ivoirien": 71,
         "Parti Démocratique de Côte d'Ivoire": 70,
         "Fédération des Associations Islamiques du Burkina": 69,
         "Économie": 69
       },
       "spatial": {
-        "Côte d'Ivoire": 594,
-        "Burkina Faso": 372,
+        "Côte d'Ivoire": 593,
+        "Burkina Faso": 371,
         "La Mecque": 304,
-        "Abidjan": 263,
+        "Abidjan": 262,
         "Ouagadougou": 217,
         "Arabie saoudite": 199,
         "Bénin": 195,
         "Niger": 152,
         "Mali": 126,
         "France": 116,
-        "Togo": 97,
-        "Yopougon": 75,
-        "Treichville": 75,
+        "Togo": 96,
         "Médine": 74,
+        "Yopougon": 74,
+        "Treichville": 74,
         "Cotonou": 73,
         "Sénégal": 64,
         "États-Unis": 62,
@@ -77,9 +77,9 @@
         "Djeddah": 59,
         "Bobo-Dioulasso": 58,
         "Nigéria": 58,
-        "Adjamé": 56,
-        "Algérie": 55,
-        "Abobo": 54,
+        "Adjamé": 55,
+        "Algérie": 54,
+        "Abobo": 53,
         "Mosquée de la Riviéra Golf": 51,
         "Cocody": 51,
         "Paris": 46,
@@ -91,8 +91,8 @@
         "Israël": 35,
         "Mont Arafat": 35,
         "Abidjan-Plateau": 34,
-        "Port-Bouët": 34,
         "Maroc": 33,
+        "Port-Bouët": 33,
         "Kaaba": 32,
         "Ghana": 31,
         "Sahel": 30,
@@ -107,7 +107,7 @@
         "Guinée": 23
       },
       "by_country": {
-        "Côte d'Ivoire": 935,
+        "Côte d'Ivoire": 934,
         "Burkina Faso": 670,
         "Benin": 230,
         "Niger": 124,
@@ -124,7 +124,7 @@
         "L'Observateur Paalga": 121,
         "Notre Voie": 72,
         "Le Jour": 70,
-        "La Voie": 64,
+        "La Voie": 63,
         "Togo-Presse": 62,
         "Plume Libre": 55,
         "Burkina 24": 54,
@@ -186,7 +186,7 @@
             "Aïd el-Fitr": 63,
             "Sécurité": 61,
             "Coran": 59,
-            "Laïcité": 55,
+            "Laïcité": 56,
             "Paix": 53,
             "Violence": 51,
             "Femmes": 49
@@ -235,7 +235,7 @@
             "Imamat": 22,
             "Violence": 21,
             "Terrorisme": 21,
-            "Pèlerinage (hadj)": 21
+            "Laïcité": 21
           },
           "spatial": {
             "Bénin": 174,
@@ -308,17 +308,17 @@
         },
         "Côte d'Ivoire": {
           "subject": {
-            "Politique": 301,
-            "Conseil National Islamique": 206,
-            "Mahomet": 196,
-            "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques": 195,
+            "Politique": 300,
+            "Conseil National Islamique": 205,
+            "Mahomet": 195,
+            "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques": 194,
             "Paix": 189,
             "Hadj": 183,
-            "Conflit": 175,
+            "Conflit": 174,
             "Prière": 154,
-            "Idriss Koudouss Koné": 133,
-            "Intégrisme": 128,
-            "Gouvernement": 126,
+            "Idriss Koudouss Koné": 132,
+            "Intégrisme": 127,
+            "Gouvernement": 125,
             "Aboubacar Fofana": 123,
             "Éducation": 123,
             "Félix Houphouët-Boigny": 121,
@@ -326,18 +326,18 @@
             "Henri Konan Bédié": 114,
             "Ramadan": 108,
             "Mosquée": 105,
-            "Unité": 99,
-            "Élections": 86
+            "Laïcité": 103,
+            "Unité": 99
           },
           "spatial": {
-            "Côte d'Ivoire": 558,
-            "Abidjan": 254,
+            "Côte d'Ivoire": 557,
+            "Abidjan": 253,
             "La Mecque": 172,
             "Arabie saoudite": 112,
-            "Treichville": 75,
-            "Yopougon": 74,
-            "Adjamé": 56,
-            "Abobo": 54,
+            "Treichville": 74,
+            "Yopougon": 73,
+            "Adjamé": 55,
+            "Abobo": 53,
             "Mosquée de la Riviéra Golf": 51,
             "Cocody": 51,
             "France": 46,
@@ -346,14 +346,16 @@
             "Yamoussoukro": 41,
             "Bouaké": 37,
             "Abidjan-Plateau": 34,
-            "Port-Bouët": 34,
             "Djeddah": 34,
-            "Burkina Faso": 33,
+            "Port-Bouët": 33,
+            "Burkina Faso": 32,
             "États-Unis": 29
           }
         },
         "Niger": {
-          "subject": {},
+          "subject": {
+            "Laïcité": 2
+          },
           "spatial": {
             "Niger": 85,
             "Niamey": 49,
@@ -1449,8 +1451,8 @@
             "Mahomet": 37,
             "Aboubacar Fofana": 35,
             "Gouvernement": 33,
+            "Laïcité": 32,
             "Alassane Ouattara": 29,
-            "Laïcité": 26,
             "Unité": 26,
             "Réconciliation": 25,
             "Henri Konan Bédié": 24,
@@ -1571,48 +1573,48 @@
         },
         "La Voie": {
           "subject": {
-            "Politique": 44,
-            "Conseil National Islamique": 30,
-            "Conseil Supérieur Islamique": 27,
-            "Conflit": 27,
-            "Diaby Moustapha": 23,
-            "Front populaire ivoirien": 23,
+            "Politique": 43,
+            "Conseil National Islamique": 29,
+            "Conseil Supérieur Islamique": 26,
+            "Conflit": 26,
+            "Diaby Moustapha": 22,
+            "Front populaire ivoirien": 22,
             "Henri Konan Bédié": 19,
-            "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques": 19,
-            "Idriss Koudouss Koné": 19,
+            "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques": 18,
+            "Idriss Koudouss Koné": 18,
             "Parti Démocratique de Côte d'Ivoire": 17,
             "Félix Houphouët-Boigny": 17,
-            "Mahomet": 17,
-            "Justice": 15,
-            "Gouvernement": 14,
-            "Élections": 14,
-            "Balla Keita": 11,
+            "Mahomet": 16,
+            "Justice": 14,
+            "Gouvernement": 13,
+            "Élections": 13,
             "Moustapha Diaby": 11,
             "Unité": 11,
             "Laurent Gbagbo": 11,
+            "Balla Keita": 10,
             "Hadj": 10
           },
           "spatial": {
-            "Côte d'Ivoire": 46,
-            "Abidjan": 23,
+            "Côte d'Ivoire": 45,
+            "Abidjan": 22,
             "Arabie saoudite": 16,
             "La Mecque": 13,
-            "Treichville": 13,
-            "Abobo": 11,
-            "Yopougon": 9,
-            "Abobo Banco": 9,
-            "Adjamé": 8,
+            "Treichville": 12,
+            "Abobo": 10,
+            "Yopougon": 8,
+            "Abobo Banco": 8,
+            "Adjamé": 7,
             "Bouaké": 6,
             "Koweït": 5,
             "San-Pédro": 5,
             "Riyad": 5,
             "France": 4,
-            "Mosquée Bilal": 4,
             "Grande Mosquée d'Adjamé": 4,
             "Touba": 4,
             "Séguéla": 4,
             "Mosquée de la Riviéra Golf": 3,
-            "Rwanda": 3
+            "États-Unis": 3,
+            "Rome": 3
           }
         },
         "Fraternité Matin": {
@@ -1670,13 +1672,13 @@
             "Politique": 19,
             "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques": 19,
             "Prière": 16,
+            "Laïcité": 14,
             "Conflit": 12,
             "Henri Konan Bédié": 11,
             "Élections": 10,
             "Ramadan": 10,
             "Imamat": 10,
             "Mahomet": 9,
-            "Laïcité": 9,
             "Diaby Moustapha": 9,
             "Gouvernement": 9,
             "Félix Houphouët-Boigny": 8,
@@ -1802,6 +1804,7 @@
         "Alif": {
           "subject": {
             "Intégrisme": 31,
+            "Laïcité": 7,
             "Conseil National Islamique": 7,
             "Conseil Supérieur Islamique": 3,
             "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques": 3
@@ -1811,6 +1814,7 @@
         "Plume Libre": {
           "subject": {
             "Intégrisme": 55,
+            "Laïcité": 5,
             "Conseil National Islamique": 4,
             "Conseil Supérieur Islamique": 1
           },
@@ -1864,7 +1868,9 @@
           "spatial": {}
         },
         "Le Sahel": {
-          "subject": {},
+          "subject": {
+            "Laïcité": 2
+          },
           "spatial": {
             "Niger": 85,
             "Niamey": 49,
@@ -2004,6 +2010,7 @@
             "Religions endogènes": 1,
             "Christianisme": 1,
             "Économie": 1,
+            "Laïcité": 1,
             "Conseil de la Communauté Musulmane de Porto-Novo": 1,
             "Terrorisme": 1,
             "Paix": 1,
@@ -19332,7 +19339,8 @@
             "Commission Électorale Nationale Indépendante",
             "Bénéwendé Stanislas Sankara",
             "Roch Marc Christian Kaboré",
-            "Salif Diallo"
+            "Salif Diallo",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -23449,7 +23457,8 @@
             "Xénophobie",
             "Jeunesse",
             "Médias",
-            "Conflit"
+            "Conflit",
+            "Laïcité"
           ],
           "spatial_keywords": [
             "Côte d'Ivoire",
@@ -24512,7 +24521,8 @@
           "newspaper": "Le Patriote",
           "pub_date": "2001-06-14",
           "subject_keywords": [
-            "Conseil National Islamique"
+            "Conseil National Islamique",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -24586,7 +24596,8 @@
           "subject_keywords": [
             "Intégrisme",
             "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques",
-            "Sant'Egidio"
+            "Sant'Egidio",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -28338,53 +28349,6 @@
           ]
         },
         {
-          "id": "62612",
-          "title": "Tentative d'enlèvement d'Idriss Koudouss (président du CNI) : le film d'un acte criminel",
-          "country": "Côte d'Ivoire",
-          "newspaper": "La Voie",
-          "pub_date": "1995-01-16",
-          "subject_keywords": [
-            "Idriss Koudouss Koné",
-            "Abobo",
-            "Procès CNI-CSI",
-            "Intervention policière mosquée d'Abobo Banco II",
-            "Tentative d'enlèvement Idriss Koudouss Koné",
-            "Front populaire ivoirien",
-            "Intégrisme",
-            "Conseil National Islamique",
-            "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques",
-            "Conseil Supérieur Islamique",
-            "Balla Keita",
-            "Diaby Moustapha",
-            "Anzoumana Konaté",
-            "Mahomet",
-            "Gouvernement",
-            "Politique",
-            "Conflit",
-            "Élections",
-            "Sécurité",
-            "Justice",
-            "Laïcité"
-          ],
-          "spatial_keywords": [
-            "Côte d'Ivoire",
-            "Abidjan",
-            "Port-Bouët",
-            "Yopougon",
-            "Odienné",
-            "Abobo",
-            "Treichville",
-            "Togo",
-            "Burkina Faso",
-            "Rwanda",
-            "Burundi",
-            "Algérie",
-            "Mosquée Bilal",
-            "Adjamé",
-            "Abobo Banco"
-          ]
-        },
-        {
           "id": "62614",
           "title": "Les religieux doivent-ils se mêler de politique?",
           "country": "Côte d'Ivoire",
@@ -31695,7 +31659,8 @@
           "newspaper": "Alif",
           "pub_date": "1992-03",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -31706,7 +31671,8 @@
           "newspaper": "Alif",
           "pub_date": "1993-04",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -31761,7 +31727,8 @@
           "newspaper": "Alif",
           "pub_date": "1993-10",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -31806,7 +31773,8 @@
           "newspaper": "Alif",
           "pub_date": "1994-07",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -31829,7 +31797,8 @@
           "newspaper": "Alif",
           "pub_date": "1994-08",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -31943,7 +31912,8 @@
           "newspaper": "Alif",
           "pub_date": "1995-03",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -32105,7 +32075,8 @@
           "newspaper": "Plume Libre",
           "pub_date": "1992-05",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -32216,7 +32187,8 @@
           "newspaper": "Plume Libre",
           "pub_date": "1993-06",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -32284,7 +32256,8 @@
           "pub_date": "1994-02",
           "subject_keywords": [
             "Intégrisme",
-            "Conseil National Islamique"
+            "Conseil National Islamique",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -34412,7 +34385,9 @@
           "country": "Niger",
           "newspaper": "Le Sahel",
           "pub_date": "2024-11-01",
-          "subject_keywords": [],
+          "subject_keywords": [
+            "Laïcité"
+          ],
           "spatial_keywords": [
             "Arabie saoudite",
             "Émirats arabes unis",
@@ -35209,7 +35184,9 @@
           "country": "Niger",
           "newspaper": "Le Sahel",
           "pub_date": "2023-11-09",
-          "subject_keywords": [],
+          "subject_keywords": [
+            "Laïcité"
+          ],
           "spatial_keywords": [
             "France",
             "Niger",
@@ -37431,7 +37408,8 @@
             "Éducation",
             "Coran",
             "Politique",
-            "Christianisme"
+            "Christianisme",
+            "Laïcité"
           ],
           "spatial_keywords": [
             "Côte d'Ivoire",
@@ -38129,7 +38107,9 @@
           "country": "Côte d'Ivoire",
           "newspaper": "Le Patriote",
           "pub_date": "2001-12-13",
-          "subject_keywords": [],
+          "subject_keywords": [
+            "Laïcité"
+          ],
           "spatial_keywords": []
         },
         {
@@ -42101,7 +42081,8 @@
             "Jésus",
             "Religions endogènes",
             "Christianisme",
-            "Économie"
+            "Économie",
+            "Laïcité"
           ],
           "spatial_keywords": [
             "Bénin",
@@ -42526,7 +42507,9 @@
           "country": "Côte d'Ivoire",
           "newspaper": "Le Patriote",
           "pub_date": "2011-03-18",
-          "subject_keywords": [],
+          "subject_keywords": [
+            "Laïcité"
+          ],
           "spatial_keywords": [
             "Côte d'Ivoire",
             "Grand-Bassam",
@@ -42850,7 +42833,9 @@
           "country": "Côte d'Ivoire",
           "newspaper": "Le Patriote",
           "pub_date": "2010-12-20",
-          "subject_keywords": [],
+          "subject_keywords": [
+            "Laïcité"
+          ],
           "spatial_keywords": [
             "Abobo",
             "Grand-Bassam"
@@ -42951,7 +42936,9 @@
           "country": "Côte d'Ivoire",
           "newspaper": "Le Jour",
           "pub_date": "2000-03-24",
-          "subject_keywords": [],
+          "subject_keywords": [
+            "Laïcité"
+          ],
           "spatial_keywords": []
         },
         {
@@ -43139,7 +43126,8 @@
           "subject_keywords": [
             "Association des Femmes Musulmanes de Côte d'Ivoire",
             "Hadj",
-            "Aboubacar Fofana"
+            "Aboubacar Fofana",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -43191,7 +43179,9 @@
           "country": "Côte d'Ivoire",
           "newspaper": "Le Jour",
           "pub_date": "2002-06-05",
-          "subject_keywords": [],
+          "subject_keywords": [
+            "Laïcité"
+          ],
           "spatial_keywords": []
         },
         {
@@ -43205,7 +43195,8 @@
             "Jeunesse Musulmane en Côte d'Ivoire",
             "Adama Koné",
             "Association des Musulmans Sunnites de Côte d'Ivoire",
-            "Congrès AMSCI (2002)"
+            "Congrès AMSCI (2002)",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -43248,7 +43239,8 @@
             "Harrissou Fofana",
             "Diaby Moustapha",
             "Association des Élèves et Étudiants Musulmans de Côte d'Ivoire",
-            "Association des Jeunes Musulmans de Côte d'Ivoire"
+            "Association des Jeunes Musulmans de Côte d'Ivoire",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -44286,7 +44278,8 @@
           "newspaper": "Plume Libre",
           "pub_date": "1994-05",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -44396,7 +44389,8 @@
           "newspaper": "Plume Libre",
           "pub_date": "1994-11",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -44528,7 +44522,8 @@
           "newspaper": "Alif",
           "pub_date": "1994-05",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         }
@@ -122987,7 +122982,8 @@
           "pub_date": "2003-03-07",
           "subject_keywords": [
             "Secours islamique mondial",
-            "Jules Lemou"
+            "Jules Lemou",
+            "Laïcité"
           ],
           "spatial_keywords": [
             "Lomé",
@@ -179229,7 +179225,8 @@
           "pub_date": "2019-08-20",
           "subject_keywords": [
             "Hadj",
-            "Gouvernement"
+            "Gouvernement",
+            "Laïcité"
           ],
           "spatial_keywords": [
             "Arabie saoudite",
@@ -195767,7 +195764,9 @@
           "country": "Côte d'Ivoire",
           "newspaper": "Le Patriote",
           "pub_date": "2010-02-01",
-          "subject_keywords": [],
+          "subject_keywords": [
+            "Laïcité"
+          ],
           "spatial_keywords": [
             "Williamsville",
             "Grande Mosquée de Williamsville"
@@ -197498,6 +197497,7 @@
         "Cercle d'Études, de Recherches et de Formation Islamiques": 19,
         "Terrorisme": 19,
         "Mawlid": 19,
+        "Laïcité": 19,
         "Spiritualité": 19,
         "Jésus": 18,
         "Radicalisation": 18,
@@ -197511,8 +197511,7 @@
         "Ismaël": 15,
         "Construction mosquée": 15,
         "Jeunesse": 15,
-        "Henri Konan Bédié": 14,
-        "Violence": 13
+        "Henri Konan Bédié": 14
       },
       "spatial": {
         "Côte d'Ivoire": 106,
@@ -197789,7 +197788,9 @@
           }
         },
         "Niger": {
-          "subject": {},
+          "subject": {
+            "Laïcité": 1
+          },
           "spatial": {
             "Niger": 6,
             "Niamey": 4,
@@ -198367,9 +198368,9 @@
             "Unité": 3,
             "Front de la Oumat Islamique": 3,
             "Conflit": 3,
+            "Laïcité": 3,
             "Hadj": 3,
-            "Extrémisme": 2,
-            "Pluralisme religieux": 2
+            "Extrémisme": 2
           },
           "spatial": {
             "Côte d'Ivoire": 16,
@@ -198590,13 +198591,15 @@
         },
         "Alif": {
           "subject": {
-            "Intégrisme": 8
+            "Intégrisme": 8,
+            "Laïcité": 2
           },
           "spatial": {}
         },
         "Plume Libre": {
           "subject": {
             "Intégrisme": 14,
+            "Laïcité": 2,
             "Conseil National Islamique": 1
           },
           "spatial": {}
@@ -198606,7 +198609,9 @@
           "spatial": {}
         },
         "Le Sahel": {
-          "subject": {},
+          "subject": {
+            "Laïcité": 1
+          },
           "spatial": {
             "Niger": 6,
             "Niamey": 4,
@@ -204399,7 +204404,8 @@
           "newspaper": "Alif",
           "pub_date": "1992-03",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -204443,7 +204449,8 @@
           "newspaper": "Alif",
           "pub_date": "1994-08",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -204487,7 +204494,8 @@
           "newspaper": "Plume Libre",
           "pub_date": "1992-05",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -205169,7 +205177,9 @@
           "country": "Niger",
           "newspaper": "Le Sahel",
           "pub_date": "2024-11-01",
-          "subject_keywords": [],
+          "subject_keywords": [
+            "Laïcité"
+          ],
           "spatial_keywords": [
             "Arabie saoudite",
             "Émirats arabes unis",
@@ -205563,7 +205573,9 @@
           "country": "Côte d'Ivoire",
           "newspaper": "Le Patriote",
           "pub_date": "2001-12-13",
-          "subject_keywords": [],
+          "subject_keywords": [
+            "Laïcité"
+          ],
           "spatial_keywords": []
         },
         {
@@ -206314,7 +206326,8 @@
           "newspaper": "Plume Libre",
           "pub_date": "1994-05",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -206380,19 +206393,19 @@
         "Prière": 1912,
         "Hadj": 1637,
         "Paix": 1379,
-        "Mahomet": 1272,
+        "Mahomet": 1271,
         "Mosquée": 1246,
         "Ramadan": 1177,
         "Éducation": 885,
         "Coran": 777,
         "Jeûne": 770,
         "Aïd al-Adha (Tabaski)": 713,
-        "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques": 687,
+        "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques": 686,
         "Pluralisme religieux": 680,
-        "Politique": 676,
-        "Gouvernement": 649,
+        "Politique": 675,
+        "Gouvernement": 648,
         "Imamat": 643,
-        "Conseil National Islamique": 629,
+        "Conseil National Islamique": 628,
         "Aïd el-Fitr": 557,
         "Solidarité": 512,
         "Développement": 467,
@@ -206401,8 +206414,8 @@
         "Santé": 440,
         "Aboubacar Fofana": 438,
         "Jeunesse": 435,
-        "Conflit": 418,
-        "Idriss Koudouss Koné": 397,
+        "Conflit": 417,
+        "Idriss Koudouss Koné": 396,
         "Sacrifice": 373,
         "Radicalisation": 369,
         "Femmes": 357,
@@ -206411,9 +206424,9 @@
         "Réconciliation": 333,
         "Cercle d'Études, de Recherches et de Formation Islamiques": 332,
         "Front de la Oumat Islamique": 329,
+        "Laïcité": 318,
         "Coopération": 305,
-        "Laïcité": 292,
-        "Sécurité": 291,
+        "Sécurité": 290,
         "Fédération des Associations Islamiques du Burkina": 284,
         "Zakat": 284,
         "Ahmadiyya": 281,
@@ -206423,43 +206436,43 @@
         "Association des Élèves et Étudiants Musulmans au Burkina": 254,
         "Communauté Musulmane du Burkina Faso": 251,
         "Enseignement confessionnel islamique": 249,
-        "Élections": 242,
+        "Élections": 241,
         "Union Islamique du Bénin": 241,
         "Félix Houphouët-Boigny": 234,
-        "Conseil Supérieur Islamique": 232
+        "Pauvreté": 231
       },
       "spatial": {
-        "Côte d'Ivoire": 2003,
+        "Côte d'Ivoire": 2002,
         "La Mecque": 1431,
-        "Burkina Faso": 1410,
+        "Burkina Faso": 1409,
         "Ouagadougou": 1103,
         "Arabie saoudite": 1026,
         "Bénin": 974,
-        "Abidjan": 902,
-        "Togo": 684,
+        "Abidjan": 901,
+        "Togo": 683,
         "Niger": 466,
         "Lomé": 442,
         "Médine": 425,
         "Cotonou": 379,
         "Mali": 351,
-        "Treichville": 351,
+        "Treichville": 350,
         "Djeddah": 305,
         "Bobo-Dioulasso": 285,
         "Mosquée de la Riviéra Golf": 267,
-        "Adjamé": 265,
+        "Adjamé": 264,
         "Sénégal": 250,
         "Mont Arafat": 227,
-        "Yopougon": 216,
+        "Yopougon": 215,
         "Porto-Novo": 183,
         "Cocody": 180,
-        "Abobo": 169,
+        "Abobo": 168,
         "Nigéria": 163,
         "France": 159,
         "Niamey": 157,
         "Ghana": 150,
         "Égypte": 146,
         "Bouaké": 142,
-        "Port-Bouët": 135,
+        "Port-Bouët": 134,
         "Place de la Révolution": 132,
         "Riviera Golf": 131,
         "Maroc": 128,
@@ -206473,7 +206486,7 @@
         "Koumassi": 103,
         "Iran": 101,
         "États-Unis": 98,
-        "Algérie": 98,
+        "Algérie": 97,
         "Libye": 95,
         "Sokodé": 84,
         "Ramatoulaye": 82,
@@ -206481,7 +206494,7 @@
         "Korhogo": 73
       },
       "by_country": {
-        "Côte d'Ivoire": 2842,
+        "Côte d'Ivoire": 2841,
         "Burkina Faso": 2436,
         "Benin": 1145,
         "Togo": 818,
@@ -206501,7 +206514,7 @@
         "Le Sahel": 282,
         "Burkina 24": 175,
         "Le Jour": 162,
-        "La Voie": 145,
+        "La Voie": 144,
         "Matin Libre": 125,
         "Agence Togolaise de Presse": 92,
         "Fraternité": 87,
@@ -206687,41 +206700,41 @@
           "subject": {
             "Hadj": 760,
             "Prière": 710,
-            "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques": 683,
+            "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques": 682,
             "Paix": 657,
-            "Politique": 620,
-            "Conseil National Islamique": 619,
-            "Mahomet": 587,
+            "Politique": 619,
+            "Conseil National Islamique": 618,
+            "Mahomet": 586,
             "Ramadan": 515,
             "Éducation": 508,
             "Mosquée": 491,
             "Aboubacar Fofana": 427,
             "Coran": 400,
-            "Gouvernement": 396,
-            "Idriss Koudouss Koné": 394,
-            "Conflit": 346,
+            "Gouvernement": 395,
+            "Idriss Koudouss Koné": 393,
             "Jeûne": 346,
+            "Conflit": 345,
             "Unité": 334,
             "Imamat": 301,
             "Développement": 285,
             "Jeunesse": 251
           },
           "spatial": {
-            "Côte d'Ivoire": 1834,
-            "Abidjan": 879,
+            "Côte d'Ivoire": 1833,
+            "Abidjan": 878,
             "La Mecque": 669,
             "Arabie saoudite": 446,
-            "Treichville": 351,
+            "Treichville": 350,
             "Mosquée de la Riviéra Golf": 267,
-            "Adjamé": 265,
-            "Yopougon": 214,
+            "Adjamé": 264,
+            "Yopougon": 213,
             "Médine": 193,
             "Cocody": 180,
-            "Abobo": 169,
+            "Abobo": 168,
             "Djeddah": 155,
             "Bouaké": 142,
             "Mali": 141,
-            "Port-Bouët": 134,
+            "Port-Bouët": 133,
             "Riviera Golf": 131,
             "Sénégal": 125,
             "Abidjan-Plateau": 123,
@@ -206731,6 +206744,7 @@
         },
         "Niger": {
           "subject": {
+            "Laïcité": 2,
             "Fondation Mohammed VI des Oulémas africains": 1
           },
           "spatial": {
@@ -208124,15 +208138,15 @@
         },
         "La Voie": {
           "subject": {
-            "Conseil National Islamique": 77,
-            "Politique": 69,
-            "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques": 58,
-            "Idriss Koudouss Koné": 48,
-            "Conseil Supérieur Islamique": 48,
-            "Mahomet": 42,
-            "Conflit": 42,
-            "Diaby Moustapha": 36,
-            "Front populaire ivoirien": 33,
+            "Conseil National Islamique": 76,
+            "Politique": 68,
+            "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques": 57,
+            "Idriss Koudouss Koné": 47,
+            "Conseil Supérieur Islamique": 47,
+            "Mahomet": 41,
+            "Conflit": 41,
+            "Diaby Moustapha": 35,
+            "Front populaire ivoirien": 32,
             "Prière": 29,
             "Éducation": 27,
             "Henri Konan Bédié": 27,
@@ -208143,29 +208157,29 @@
             "Coran": 23,
             "Ramadan": 22,
             "Félix Houphouët-Boigny": 22,
-            "Gouvernement": 21
+            "Gouvernement": 20
           },
           "spatial": {
-            "Côte d'Ivoire": 99,
-            "Abidjan": 41,
+            "Côte d'Ivoire": 98,
+            "Abidjan": 40,
             "La Mecque": 32,
-            "Adjamé": 29,
-            "Yopougon": 23,
-            "Treichville": 23,
-            "Abobo": 19,
+            "Adjamé": 28,
+            "Yopougon": 22,
+            "Treichville": 22,
             "Arabie saoudite": 19,
-            "Port-Bouët": 13,
+            "Abobo": 18,
+            "Port-Bouët": 12,
             "Grande Mosquée d'Adjamé": 11,
             "Bouaké": 11,
             "Koweït": 9,
             "San-Pédro": 9,
-            "Abobo Banco": 9,
+            "Abobo Banco": 8,
             "Cocody": 7,
-            "Burkina Faso": 7,
-            "Mosquée Bilal": 7,
             "Mosquée de la Riviéra Golf": 6,
             "Koumassi": 6,
-            "Marcory": 6
+            "Marcory": 6,
+            "Burkina Faso": 6,
+            "Mosquée Bilal": 6
           }
         },
         "Fraternité Hebdo": {
@@ -208297,6 +208311,7 @@
           "subject": {
             "Intégrisme": 31,
             "Conseil National Islamique": 8,
+            "Laïcité": 8,
             "Conseil Supérieur Islamique": 4,
             "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques": 3
           },
@@ -208306,6 +208321,7 @@
           "subject": {
             "Intégrisme": 54,
             "Conseil National Islamique": 5,
+            "Laïcité": 5,
             "Conseil Supérieur Islamique": 2,
             "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques": 1
           },
@@ -208354,6 +208370,7 @@
         },
         "Le Sahel": {
           "subject": {
+            "Laïcité": 2,
             "Fondation Mohammed VI des Oulémas africains": 1
           },
           "spatial": {
@@ -285863,7 +285880,8 @@
           "pub_date": "2003-03-07",
           "subject_keywords": [
             "Secours islamique mondial",
-            "Jules Lemou"
+            "Jules Lemou",
+            "Laïcité"
           ],
           "spatial_keywords": [
             "Lomé",
@@ -299190,7 +299208,8 @@
             "Xénophobie",
             "Jeunesse",
             "Médias",
-            "Conflit"
+            "Conflit",
+            "Laïcité"
           ],
           "spatial_keywords": [
             "Côte d'Ivoire",
@@ -300902,7 +300921,8 @@
           "newspaper": "Le Patriote",
           "pub_date": "2001-06-14",
           "subject_keywords": [
-            "Conseil National Islamique"
+            "Conseil National Islamique",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -301110,7 +301130,8 @@
           "subject_keywords": [
             "Intégrisme",
             "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques",
-            "Sant'Egidio"
+            "Sant'Egidio",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -313060,53 +313081,6 @@
           ]
         },
         {
-          "id": "62612",
-          "title": "Tentative d'enlèvement d'Idriss Koudouss (président du CNI) : le film d'un acte criminel",
-          "country": "Côte d'Ivoire",
-          "newspaper": "La Voie",
-          "pub_date": "1995-01-16",
-          "subject_keywords": [
-            "Idriss Koudouss Koné",
-            "Abobo",
-            "Procès CNI-CSI",
-            "Intervention policière mosquée d'Abobo Banco II",
-            "Tentative d'enlèvement Idriss Koudouss Koné",
-            "Front populaire ivoirien",
-            "Intégrisme",
-            "Conseil National Islamique",
-            "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques",
-            "Conseil Supérieur Islamique",
-            "Balla Keita",
-            "Diaby Moustapha",
-            "Anzoumana Konaté",
-            "Mahomet",
-            "Gouvernement",
-            "Politique",
-            "Conflit",
-            "Élections",
-            "Sécurité",
-            "Justice",
-            "Laïcité"
-          ],
-          "spatial_keywords": [
-            "Côte d'Ivoire",
-            "Abidjan",
-            "Port-Bouët",
-            "Yopougon",
-            "Odienné",
-            "Abobo",
-            "Treichville",
-            "Togo",
-            "Burkina Faso",
-            "Rwanda",
-            "Burundi",
-            "Algérie",
-            "Mosquée Bilal",
-            "Adjamé",
-            "Abobo Banco"
-          ]
-        },
-        {
           "id": "62613",
           "title": "Jeudi, la fête de Tabaski",
           "country": "Côte d'Ivoire",
@@ -314826,7 +314800,8 @@
           "subject_keywords": [
             "Intégrisme",
             "Conseil National Islamique",
-            "Conseil Supérieur Islamique"
+            "Conseil Supérieur Islamique",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -324740,7 +324715,8 @@
           "newspaper": "Alif",
           "pub_date": "1992-03",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -324751,7 +324727,8 @@
           "newspaper": "Alif",
           "pub_date": "1993-04",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -324817,7 +324794,8 @@
           "newspaper": "Alif",
           "pub_date": "1993-10",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -324850,7 +324828,8 @@
           "newspaper": "Alif",
           "pub_date": "1994-07",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -324873,7 +324852,8 @@
           "newspaper": "Alif",
           "pub_date": "1994-08",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -324977,7 +324957,8 @@
           "newspaper": "Alif",
           "pub_date": "1995-03",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -325076,7 +325057,8 @@
             "Intégrisme",
             "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques",
             "Conseil National Islamique",
-            "Conseil Supérieur Islamique"
+            "Conseil Supérieur Islamique",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -325142,7 +325124,8 @@
           "newspaper": "Plume Libre",
           "pub_date": "1992-05",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -325253,7 +325236,8 @@
           "newspaper": "Plume Libre",
           "pub_date": "1993-06",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -325321,7 +325305,8 @@
           "pub_date": "1994-02",
           "subject_keywords": [
             "Intégrisme",
-            "Conseil National Islamique"
+            "Conseil National Islamique",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -335887,7 +335872,9 @@
           "country": "Niger",
           "newspaper": "Le Sahel",
           "pub_date": "2024-11-01",
-          "subject_keywords": [],
+          "subject_keywords": [
+            "Laïcité"
+          ],
           "spatial_keywords": [
             "Arabie saoudite",
             "Émirats arabes unis",
@@ -337319,7 +337306,9 @@
           "country": "Niger",
           "newspaper": "Le Sahel",
           "pub_date": "2023-11-09",
-          "subject_keywords": [],
+          "subject_keywords": [
+            "Laïcité"
+          ],
           "spatial_keywords": [
             "France",
             "Niger",
@@ -344074,7 +344063,8 @@
             "Éducation",
             "Coran",
             "Politique",
-            "Christianisme"
+            "Christianisme",
+            "Laïcité"
           ],
           "spatial_keywords": [
             "Côte d'Ivoire",
@@ -346295,7 +346285,9 @@
           "country": "Côte d'Ivoire",
           "newspaper": "Le Patriote",
           "pub_date": "2001-12-13",
-          "subject_keywords": [],
+          "subject_keywords": [
+            "Laïcité"
+          ],
           "spatial_keywords": []
         },
         {
@@ -347991,7 +347983,8 @@
           "pub_date": "2019-08-20",
           "subject_keywords": [
             "Hadj",
-            "Gouvernement"
+            "Gouvernement",
+            "Laïcité"
           ],
           "spatial_keywords": [
             "Arabie saoudite",
@@ -364186,7 +364179,9 @@
           "country": "Côte d'Ivoire",
           "newspaper": "Le Patriote",
           "pub_date": "2010-12-20",
-          "subject_keywords": [],
+          "subject_keywords": [
+            "Laïcité"
+          ],
           "spatial_keywords": [
             "Abobo",
             "Grand-Bassam"
@@ -364449,7 +364444,8 @@
           "subject_keywords": [
             "Association des Femmes Musulmanes de Côte d'Ivoire",
             "Hadj",
-            "Aboubacar Fofana"
+            "Aboubacar Fofana",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -364512,7 +364508,8 @@
           "pub_date": "2002-08-19",
           "subject_keywords": [
             "Conseil Supérieur des Imams, des Mosquées et des Affaires islamiques",
-            "Aboubacar Fofana"
+            "Aboubacar Fofana",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -364527,7 +364524,8 @@
             "Jeunesse Musulmane en Côte d'Ivoire",
             "Adama Koné",
             "Association des Musulmans Sunnites de Côte d'Ivoire",
-            "Congrès AMSCI (2002)"
+            "Congrès AMSCI (2002)",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -364611,7 +364609,8 @@
             "Harrissou Fofana",
             "Diaby Moustapha",
             "Association des Élèves et Étudiants Musulmans de Côte d'Ivoire",
-            "Association des Jeunes Musulmans de Côte d'Ivoire"
+            "Association des Jeunes Musulmans de Côte d'Ivoire",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -366482,7 +366481,8 @@
           "newspaper": "Plume Libre",
           "pub_date": "1994-05",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         },
@@ -366735,7 +366735,8 @@
           "newspaper": "Alif",
           "pub_date": "1994-05",
           "subject_keywords": [
-            "Intégrisme"
+            "Intégrisme",
+            "Laïcité"
           ],
           "spatial_keywords": []
         }
@@ -368250,7 +368251,7 @@
             "Henri Konan Bédié": 1,
             "Reporters sans frontières": 1,
             "Démocratie": 1,
-            "Mohamed Cissé": 1
+            "Laïcité": 1
           },
           "spatial": {
             "Abidjan": 1,
@@ -385015,7 +385016,9 @@
           "country": "Côte d'Ivoire",
           "newspaper": "Le Jour",
           "pub_date": "2002-06-05",
-          "subject_keywords": [],
+          "subject_keywords": [
+            "Laïcité"
+          ],
           "spatial_keywords": []
         },
         {
@@ -385268,17 +385271,17 @@
     }
   },
   "statistics": {
-    "total_articles": 12282,
-    "subjectivity_high_count": 2052,
+    "total_articles": 12287,
+    "subjectivity_high_count": 2051,
     "subjectivity_low_count": 7521,
     "polarity_very_negative_count": 33,
     "polarity_very_positive_count": 370,
-    "centrality_very_central_count": 7523,
+    "centrality_very_central_count": 7522,
     "centrality_not_central_count": 927
   },
   "facets": {
     "countries": {
-      "Côte d'Ivoire": 3989,
+      "Côte d'Ivoire": 3994,
       "Burkina Faso": 3659,
       "Benin": 2003,
       "Togo": 1570,
@@ -385300,7 +385303,7 @@
       "Agence Togolaise de Presse": 260,
       "Le Jour": 238,
       "Matin Libre": 190,
-      "La Voie": 185,
+      "La Voie": 190,
       "APA News": 173,
       "Ehuzu": 165,
       "La Nouvelle Marche": 154,
