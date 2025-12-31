@@ -314,6 +314,7 @@ export const fr: Translations = {
     confidenceMedium: 'Moyen',
     confidenceLow: 'Faible',
     preferredModel: 'Modèle préféré',
+    prefers: 'Préfère',
     prefersChatGPT: 'ChatGPT est plus précis',
     prefersGemini: 'Gemini est plus précis',
     prefersBoth: 'Les deux sont également précis',

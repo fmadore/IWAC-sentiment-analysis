@@ -13,13 +13,19 @@ import {
   comparisonPair,
   discrepancyFilters,
   selectedArticle,
-  datasetArticles
+  datasetArticles,
+  selectedComparison,
+  comparisonData
 } from './stores';
 import type { ModelPair } from './types/data';
-import { writable } from 'svelte/store';
+import { writable, get as storeGet } from 'svelte/store';
 
 // Store to track pending article selection from URL
 const pendingArticleSelection = writable<{ articleId: string | number, dataset: string } | null>(null);
+
+// Store to track pending comparison article selection from URL
+// This is used when comparison data isn't loaded yet when URL is parsed
+export const pendingComparisonArticleSelection = writable<string | number | null>(null);
 import { currentLanguage, type Language, LANGUAGES, initializeLanguage } from './i18n/index.js';
 
 // Types for URL state
@@ -37,6 +43,7 @@ export interface URLState {
   diffMin?: number;
   diffMax?: number;
   articleId?: string | number;
+  comparisonArticleId?: string | number; // ID of selected comparison article for modal
 }
 
 // Valid views that can be set in URL
@@ -58,7 +65,8 @@ const URL_PARAMS = {
   pair: 'pair',
   diffMin: 'diffMin',
   diffMax: 'diffMax',
-  articleId: 'articleId'
+  articleId: 'articleId',
+  comparisonArticleId: 'comparisonArticleId'
 } as const;
 
 /**
@@ -124,6 +132,22 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
     // If articleId is present but no view is specified, default to table view
     if (!state.view) {
       state.view = 'table';
+    }
+  }
+
+  // Parse comparison article ID (for full-screen comparison modal)
+  const comparisonArticleId = searchParams.get(URL_PARAMS.comparisonArticleId);
+  if (comparisonArticleId) {
+    const numericId = parseInt(comparisonArticleId, 10);
+    state.comparisonArticleId = !isNaN(numericId) ? numericId : comparisonArticleId;
+
+    // If comparisonArticleId is present, ensure comparison mode is enabled
+    if (state.compare !== true) {
+      state.compare = true;
+    }
+    // Default to comparison view if no view specified
+    if (!state.view) {
+      state.view = 'comparison';
     }
   }
 
@@ -194,6 +218,11 @@ export function buildURLSearchParams(state: URLState): URLSearchParams {
     params.set(URL_PARAMS.articleId, state.articleId.toString());
   }
 
+  // Include comparison article ID when in comparison mode
+  if (state.comparisonArticleId !== undefined && state.compare === true) {
+    params.set(URL_PARAMS.comparisonArticleId, state.comparisonArticleId.toString());
+  }
+
   if (state.countries && state.countries.length > 0) {
     params.set(URL_PARAMS.countries, state.countries.join(','));
   }
@@ -246,6 +275,12 @@ export function getCurrentState(): URLState {
     state.pair = get(comparisonPair);
     state.diffMin = filters.minDifference;
     state.diffMax = filters.maxDifference;
+
+    // Include selected comparison article ID if there is one
+    const currentComparison = storeGet(selectedComparison);
+    if (currentComparison) {
+      state.comparisonArticleId = currentComparison.article['o:id'];
+    }
   }
 
   return state;
@@ -330,6 +365,33 @@ export function applyURLState(state: URLState): string | undefined {
         dataset: currentDataset
       });
       console.log(`[URL] Will select article ${state.articleId} after dataset ${currentDataset} loads`);
+    }
+  }
+
+  // Handle comparison article selection from URL
+  if (state.comparisonArticleId !== undefined && state.compare === true) {
+    // Try to find and select the comparison article
+    const comparisons = storeGet(comparisonData);
+
+    if (comparisons && comparisons.length > 0) {
+      const targetComparison = comparisons.find(comp =>
+        comp.article['o:id'] === state.comparisonArticleId ||
+        comp.article['o:id'].toString() === state.comparisonArticleId?.toString()
+      );
+
+      if (targetComparison) {
+        selectedComparison.set(targetComparison);
+        pendingComparisonArticleSelection.set(null);
+        console.log(`[URL] Selected comparison article from URL: ${targetComparison.article['o:title']}`);
+      } else {
+        // Article not found in current comparisons, store as pending
+        pendingComparisonArticleSelection.set(state.comparisonArticleId);
+        console.log(`[URL] Will select comparison article ${state.comparisonArticleId} after data loads`);
+      }
+    } else {
+      // Comparison data not loaded yet, store as pending
+      pendingComparisonArticleSelection.set(state.comparisonArticleId);
+      console.log(`[URL] Will select comparison article ${state.comparisonArticleId} after comparison data loads`);
     }
   }
 
@@ -431,6 +493,43 @@ export function handlePendingArticleSelection(): void {
 }
 
 /**
+ * Handle pending comparison article selection after comparison data is loaded
+ */
+export function handlePendingComparisonArticleSelection(): void {
+  const pending = storeGet(pendingComparisonArticleSelection);
+  if (!pending) return;
+
+  const comparisons = storeGet(comparisonData);
+
+  if (comparisons && comparisons.length > 0) {
+    // Find the comparison with matching article ID
+    const targetComparison = comparisons.find(comp =>
+      comp.article['o:id'] === pending ||
+      comp.article['o:id'].toString() === pending.toString()
+    );
+
+    if (targetComparison) {
+      selectedComparison.set(targetComparison);
+      console.log(`[URL] Selected comparison article ${pending} after data loading: ${targetComparison.article['o:title']}`);
+    } else {
+      console.warn(`[URL] Comparison article with ID ${pending} not found`);
+    }
+
+    // Clear the pending selection
+    pendingComparisonArticleSelection.set(null);
+  }
+}
+
+/**
+ * Clear selected comparison article and update URL
+ */
+export function clearSelectedComparison(): void {
+  selectedComparison.set(null);
+  pendingComparisonArticleSelection.set(null);
+  updateURL(undefined, true);
+}
+
+/**
  * Export utility functions for components
  */
 export const urlStateUtils = {
@@ -443,5 +542,7 @@ export const urlStateUtils = {
   clearAllFilters,
   clearSelectedArticle,
   handlePendingArticleSelection,
+  handlePendingComparisonArticleSelection,
+  clearSelectedComparison,
   VALID_VIEWS
 }; 

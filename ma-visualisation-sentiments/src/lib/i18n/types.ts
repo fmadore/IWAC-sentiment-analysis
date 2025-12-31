@@ -318,6 +318,7 @@ export interface Translations {
     confidenceMedium: string;
     confidenceLow: string;
     preferredModel: string;
+    prefers: string;
     prefersChatGPT: string;
     prefersGemini: string;
     prefersBoth: string;

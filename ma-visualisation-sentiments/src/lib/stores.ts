@@ -825,11 +825,15 @@ export const arbiterEvaluations = writable<ArbiterEvaluationData | null>(null);
 // Store for loading state
 export const isLoadingArbiter = writable<boolean>(false);
 
+// Store to track which pair's arbiter data is currently loaded
+// This allows us to detect when we need to reload arbiter data
+export const currentArbiterPair = writable<ModelPair | null>(null);
+
 // Derived store to get the global blind assignment key
-// This is the SAME for all articles - true means Model A = ChatGPT
-export const arbiterModelAIsChatGPT = derived(
+// model_a_is_first means the first model in the pair (e.g., 'chatgpt' in 'chatgpt-gemini') is Model A
+export const arbiterModelAIsFirst = derived(
   arbiterEvaluations,
-  ($arbiterEvaluations) => $arbiterEvaluations?.metadata?.model_a_is_chatgpt ?? true
+  ($arbiterEvaluations) => $arbiterEvaluations?.metadata?.model_a_is_first ?? true
 );
 
 // Derived store to get arbiter evaluation for a specific article
@@ -850,54 +854,61 @@ export const getArbiterForArticle = derived(
   }
 );
 
-// Helper function to decode blind model assignment to actual model name
+// Helper function to decode blind model assignment to actual model
+// Returns 'model_a', 'model_b', 'both', or 'neither'
 export const decodePreferredModel = (
   preferredModel: 'model_a' | 'model_b' | 'both' | 'neither',
-  modelAIsChatGPT: boolean
-): 'chatgpt' | 'gemini' | 'both' | 'neither' => {
-  if (preferredModel === 'model_a') {
-    return modelAIsChatGPT ? 'chatgpt' : 'gemini';
-  } else if (preferredModel === 'model_b') {
-    return modelAIsChatGPT ? 'gemini' : 'chatgpt';
-  }
-  return preferredModel; // 'both' or 'neither'
+  _unused?: boolean // kept for backward compatibility, no longer used
+): 'model_a' | 'model_b' | 'both' | 'neither' => {
+  // Simply return the model_a/model_b designation, let the UI look up actual names
+  return preferredModel;
 };
 
 // Derived store for arbiter summary statistics
+// Uses dynamic model names from the current comparison pair
 export interface ArbiterStatistics {
   totalEvaluated: number;
-  chatgptPreferred: number;
-  geminiPreferred: number;
+  modelAPreferred: number;
+  modelBPreferred: number;
   bothEqual: number;
   neitherAccurate: number;
-  chatgptPercentage: number;
-  geminiPercentage: number;
+  modelAPercentage: number;
+  modelBPercentage: number;
   bothPercentage: number;
   neitherPercentage: number;
+  modelAName: string;
+  modelBName: string;
   hasData: boolean;
 }
 
 export const arbiterStatistics = derived(
-  [arbiterEvaluations, arbiterModelAIsChatGPT],
-  ([$arbiterEvaluations, $modelAIsChatGPT]): ArbiterStatistics => {
+  [arbiterEvaluations, comparisonPair, availableDatasets],
+  ([$arbiterEvaluations, $pair, $datasets]): ArbiterStatistics => {
+    // Get model names from the current pair
+    const [modelAId, modelBId] = getModelsFromPair($pair);
+    const modelAName = $datasets.find(d => d.id === modelAId)?.name || modelAId;
+    const modelBName = $datasets.find(d => d.id === modelBId)?.name || modelBId;
+
     if (!$arbiterEvaluations || !$arbiterEvaluations.evaluations || $arbiterEvaluations.evaluations.length === 0) {
       return {
         totalEvaluated: 0,
-        chatgptPreferred: 0,
-        geminiPreferred: 0,
+        modelAPreferred: 0,
+        modelBPreferred: 0,
         bothEqual: 0,
         neitherAccurate: 0,
-        chatgptPercentage: 0,
-        geminiPercentage: 0,
+        modelAPercentage: 0,
+        modelBPercentage: 0,
         bothPercentage: 0,
         neitherPercentage: 0,
+        modelAName,
+        modelBName,
         hasData: false
       };
     }
 
     const counts = {
-      chatgpt: 0,
-      gemini: 0,
+      model_a: 0,
+      model_b: 0,
       both: 0,
       neither: 0
     };
@@ -908,23 +919,26 @@ export const arbiterStatistics = derived(
 
       for (const dimension of ['polarity', 'subjectivity', 'centrality'] as const) {
         const preferredModel = arbiter[dimension]?.preferred_model as 'model_a' | 'model_b' | 'both' | 'neither';
-        const decoded = decodePreferredModel(preferredModel, $modelAIsChatGPT);
-        counts[decoded]++;
+        if (preferredModel in counts) {
+          counts[preferredModel]++;
+        }
       }
     }
 
-    const totalVerdicts = counts.chatgpt + counts.gemini + counts.both + counts.neither;
+    const totalVerdicts = counts.model_a + counts.model_b + counts.both + counts.neither;
 
     return {
       totalEvaluated: $arbiterEvaluations.evaluations.length,
-      chatgptPreferred: counts.chatgpt,
-      geminiPreferred: counts.gemini,
+      modelAPreferred: counts.model_a,
+      modelBPreferred: counts.model_b,
       bothEqual: counts.both,
       neitherAccurate: counts.neither,
-      chatgptPercentage: totalVerdicts > 0 ? (counts.chatgpt / totalVerdicts) * 100 : 0,
-      geminiPercentage: totalVerdicts > 0 ? (counts.gemini / totalVerdicts) * 100 : 0,
+      modelAPercentage: totalVerdicts > 0 ? (counts.model_a / totalVerdicts) * 100 : 0,
+      modelBPercentage: totalVerdicts > 0 ? (counts.model_b / totalVerdicts) * 100 : 0,
       bothPercentage: totalVerdicts > 0 ? (counts.both / totalVerdicts) * 100 : 0,
       neitherPercentage: totalVerdicts > 0 ? (counts.neither / totalVerdicts) * 100 : 0,
+      modelAName,
+      modelBName,
       hasData: true
     };
   }
@@ -960,19 +974,63 @@ export const loadArbiterEvaluations = async (
     }
 
     if (!response.ok) {
-      console.log(`Arbiter evaluations not found for pair ${targetPair} (this is optional data)`);
+      console.log(`[Arbiter] Evaluations not found for pair ${targetPair} (this is optional data)`);
       arbiterEvaluations.set(null);
+      currentArbiterPair.set(targetPair); // Still track the pair even if no data
       return;
     }
 
     const data = await response.json() as ArbiterEvaluationData;
     arbiterEvaluations.set(data);
-    console.log(`Loaded ${data.evaluations?.length || 0} arbiter evaluations for ${targetPair} (blind key: Model A = ${data.metadata?.model_a_is_first ? 'first model' : 'second model'})`);
+    currentArbiterPair.set(targetPair); // Track which pair's data is loaded
+    console.log(`[Arbiter] Loaded ${data.evaluations?.length || 0} evaluations for ${targetPair}`);
 
   } catch (error) {
-    console.log('Arbiter evaluations not available:', error);
+    console.log('[Arbiter] Evaluations not available:', error);
     arbiterEvaluations.set(null);
+    currentArbiterPair.set(targetPair); // Still track the pair even on error
   } finally {
     isLoadingArbiter.set(false);
   }
+};
+
+// Track if arbiter reactivity is already set up to avoid duplicate subscriptions
+let arbiterReactivitySetUp = false;
+
+/**
+ * Sets up reactive arbiter data reloading when comparisonPair changes.
+ * This should be called once during app initialization (e.g., in +layout.svelte or page load).
+ * Uses proper Svelte 5 patterns - subscribes to comparisonPair store and reloads arbiter data
+ * when the pair changes.
+ * 
+ * @param fetchFunction - The fetch function to use for loading data
+ * @returns Unsubscribe function to clean up the subscription
+ */
+export const setupArbiterPairReactivity = (fetchFunction: typeof fetch): (() => void) => {
+  // Prevent duplicate subscriptions
+  if (arbiterReactivitySetUp) {
+    console.log('[Arbiter] Reactivity already set up, skipping');
+    return () => { };
+  }
+
+  arbiterReactivitySetUp = true;
+  console.log('[Arbiter] Setting up pair change reactivity');
+
+  const unsubscribe = comparisonPair.subscribe(async (newPair) => {
+    // Get the currently loaded arbiter pair
+    const loadedPair = get(currentArbiterPair);
+
+    // Only reload if the pair has actually changed and we're in comparison mode
+    const isInComparisonMode = get(comparisonMode);
+
+    if (isInComparisonMode && loadedPair !== null && loadedPair !== newPair) {
+      console.log(`[Arbiter] Pair changed from ${loadedPair} to ${newPair}, reloading data...`);
+      await loadArbiterEvaluations(fetchFunction, newPair);
+    }
+  });
+
+  return () => {
+    unsubscribe();
+    arbiterReactivitySetUp = false;
+  };
 }; 

@@ -3,7 +3,10 @@
 		filteredComparisons,
 		comparisonMode,
 		selectedComparison,
-		isLoadingComparison
+		isLoadingComparison,
+		comparisonData,
+		setupArbiterPairReactivity,
+		loadArbiterEvaluations
 	} from '$lib/stores';
 	import { DiscrepancyFilter } from '$lib/components/filters';
 	import ComparisonTable from './ComparisonTable.svelte';
@@ -12,13 +15,58 @@
 	import ModelPairPicker from '$lib/components/ui/ModelPairPicker.svelte';
 	import { t } from '$lib/i18n';
 	import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
+	import {
+		updateURL,
+		handlePendingComparisonArticleSelection,
+		clearSelectedComparison
+	} from '$lib/urlState';
+	import { onMount } from 'svelte';
 
 	const hasData = $derived($filteredComparisons.length > 0);
 	const showDetailModal = $derived($selectedComparison !== null);
 
 	function closeDetailModal() {
-		selectedComparison.set(null);
+		// Clear the comparison and update URL to remove the articleId param
+		clearSelectedComparison();
 	}
+
+	// Track previous comparison to detect changes
+	let previousComparisonId: string | number | null = null;
+
+	// Setup arbiter reactivity and handle URL sync
+	onMount(() => {
+		// Setup arbiter pair reactivity - this will reload arbiter data when pair changes
+		const cleanupArbiter = setupArbiterPairReactivity(fetch);
+
+		// Initial load of arbiter data (in case it wasn't loaded during prefetch)
+		loadArbiterEvaluations(fetch);
+
+		return () => {
+			cleanupArbiter();
+		};
+	});
+
+	// Watch for selectedComparison changes and update URL
+	$effect(() => {
+		const currentComparison = $selectedComparison;
+		const currentId = currentComparison?.article['o:id'] ?? null;
+
+		// Only update URL if the selection actually changed
+		if (currentId !== previousComparisonId) {
+			previousComparisonId = currentId;
+			// Update URL with the new comparison article ID (or remove it if null)
+			updateURL(undefined, true);
+		}
+	});
+
+	// Watch for comparison data loading and handle pending selection from URL
+	$effect(() => {
+		const comparisons = $comparisonData;
+		if (comparisons && comparisons.length > 0) {
+			// Try to handle any pending comparison article selection from URL
+			handlePendingComparisonArticleSelection();
+		}
+	});
 </script>
 
 <!-- Comparison Detail Modal (full-screen) -->
