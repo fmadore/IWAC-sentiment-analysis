@@ -26,6 +26,7 @@ export const centralityFilters = writable<string[]>([]);
 // UI State Stores
 export const sidebarExpanded = writable<boolean>(false);
 export const activeView = writable<string>('charts');
+export const mobileMenuOpen = writable<boolean>(false);
 
 // New stores for dataset management
 export const availableDatasets = writable<DatasetOption[]>([
