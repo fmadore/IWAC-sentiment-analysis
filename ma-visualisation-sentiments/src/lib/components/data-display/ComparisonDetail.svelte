@@ -19,10 +19,15 @@
 	import { ComparisonPanel, ArbiterSection } from '$lib/components/common';
 	import { getJournalName } from '$lib/utils';
 	import { t, currentLanguage } from '$lib/i18n';
-	import { availableDatasets } from '$lib/stores';
+	import { availableDatasets, getArbiterForArticle } from '$lib/stores';
 
 	// Props: Accept comparison data as a prop
 	let { comparison }: { comparison: ComparisonData | null } = $props();
+
+	// Check if arbiter data exists for this article
+	const hasArbiterData = $derived(
+		comparison ? $getArbiterForArticle(comparison.article['o:id']) !== null : false
+	);
 
 	// Get model display names from availableDatasets
 	function getModelName(modelId: string): string {
@@ -236,8 +241,10 @@
 			/>
 		</div>
 
-		<!-- Arbiter (Gemini 3 Pro) Verdict Section -->
-		<ArbiterSection articleId={comparison.article['o:id']} />
+		<!-- Arbiter (Gemini 3 Pro) Verdict Section - Only shown when arbiter data exists -->
+		{#if hasArbiterData}
+			<ArbiterSection articleId={comparison.article['o:id']} />
+		{/if}
 	</div>
 {:else}
 	<div
