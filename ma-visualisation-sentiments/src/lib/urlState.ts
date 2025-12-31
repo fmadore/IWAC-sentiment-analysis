@@ -206,12 +206,22 @@ export function buildURLSearchParams(state: URLState): URLSearchParams {
     params.set(URL_PARAMS.pair, state.pair);
   }
 
-  if (state.diffMin !== undefined && state.compare === true) {
-    params.set(URL_PARAMS.diffMin, state.diffMin.toString());
-  }
+  // Include diffMin/diffMax in comparison mode for the general list view
+  // Only omit them when viewing a specific article (comparisonArticleId is set) AND they're at defaults
+  const hasSpecificArticle = state.comparisonArticleId !== undefined;
+  const diffMinIsDefault = state.diffMin === undefined || state.diffMin === 0;
+  const diffMaxIsDefault = state.diffMax === undefined || state.diffMax === 5;
 
-  if (state.diffMax !== undefined && state.compare === true) {
-    params.set(URL_PARAMS.diffMax, state.diffMax.toString());
+  if (state.compare === true) {
+    // Include diffMin if: not viewing specific article, OR it's not the default value
+    if (state.diffMin !== undefined && (!hasSpecificArticle || !diffMinIsDefault)) {
+      params.set(URL_PARAMS.diffMin, state.diffMin.toString());
+    }
+
+    // Include diffMax if: not viewing specific article, OR it's not the default value  
+    if (state.diffMax !== undefined && (!hasSpecificArticle || !diffMaxIsDefault)) {
+      params.set(URL_PARAMS.diffMax, state.diffMax.toString());
+    }
   }
 
   if (state.articleId !== undefined) {
@@ -273,6 +283,8 @@ export function getCurrentState(): URLState {
   if (isComparisonMode) {
     state.compare = true;
     state.pair = get(comparisonPair);
+    // Always include diffMin/diffMax for the general comparison view
+    // (they will be conditionally excluded when a specific article is selected in buildURLSearchParams)
     state.diffMin = filters.minDifference;
     state.diffMax = filters.maxDifference;
 
