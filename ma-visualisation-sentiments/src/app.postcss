@@ -136,6 +136,66 @@
   --gradient-header: linear-gradient(90deg, var(--color-primary-500), var(--color-secondary-500));
   /* Comparison gradient (blue/purple/pink) */
   --gradient-comparison: linear-gradient(135deg, #60A5FA, #A78BFA, #F472B6);
+  /* Primary action gradient */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
+  
+  /* ==========================================================================
+     DESIGN SYSTEM TOKENS
+     Reusable tokens for consistent styling across components
+     ========================================================================== */
+  
+  /* --- Surface/Interaction States --- */
+  /* Use these for backgrounds on interactive elements */
+  --surface-muted: color-mix(in oklab, var(--color-surface-50) 5%, transparent);
+  --surface-subtle: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+  --surface-hover: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+  --surface-active: color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+  --surface-elevated: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+  
+  /* --- Border States --- */
+  --border-subtle: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+  --border-default: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+  --border-hover: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+  --border-active: color-mix(in oklab, var(--color-surface-50) 25%, transparent);
+  
+  /* --- Text Colors --- */
+  --text-on-light: #1e293b;  /* For text on light/bright backgrounds like yellow, cyan */
+  --text-primary: var(--color-surface-50);
+  --text-secondary: color-mix(in oklab, var(--color-surface-50) 85%, transparent);
+  --text-muted: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
+  --text-subtle: color-mix(in oklab, var(--color-surface-50) 50%, transparent);
+  
+  /* --- Spacing Scale --- */
+  --space-0: 0;
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  
+  /* --- Border Radius Scale --- */
+  --radius-sm: 0.375rem;   /* 6px - small elements like badges */
+  --radius-md: 0.5rem;     /* 8px - buttons, inputs */
+  --radius-lg: 0.75rem;    /* 12px - cards, containers */
+  --radius-xl: 1rem;       /* 16px - modals, large cards */
+  --radius-2xl: 1.5rem;    /* 24px - hero sections */
+  --radius-full: 9999px;   /* Full rounded (pills, avatars) */
+  
+  /* --- Shadow/Elevation Scale --- */
+  --shadow-xs: 0 1px 2px color-mix(in oklab, black 5%, transparent);
+  --shadow-sm: 0 2px 8px color-mix(in oklab, black 8%, transparent);
+  --shadow-md: 0 8px 24px color-mix(in oklab, black 12%, transparent);
+  --shadow-lg: 0 12px 40px color-mix(in oklab, black 15%, transparent);
+  --shadow-xl: 0 24px 64px color-mix(in oklab, black 20%, transparent);
+  
+  /* Glow shadows for primary actions */
+  --shadow-glow-sm: 0 4px 12px color-mix(in oklab, var(--color-primary-500) 25%, transparent);
+  --shadow-glow-md: 0 4px 16px color-mix(in oklab, var(--color-primary-500) 30%, transparent);
+  --shadow-glow-lg: 0 8px 24px color-mix(in oklab, var(--color-primary-500) 35%, transparent);
   
   /* Force dark scheme for this app */
   color-scheme: dark;
@@ -163,7 +223,136 @@ body {
 :focus-visible {
   outline: 2px solid var(--color-primary-500);
   outline-offset: 2px;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-sm);
+}
+
+/* -----------------------------------------------------------------------------
+   Typography Presets (Skeleton Pattern)
+   Semantic typography classes for consistent text styling
+   ----------------------------------------------------------------------------- */
+
+/* Display headings - for hero sections and major titles */
+.preset-typo-display-1 {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.preset-typo-display-2 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+}
+
+/* Headings - for section titles */
+.preset-typo-heading-1 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.preset-typo-heading-2 {
+  font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text-primary);
+}
+
+.preset-typo-heading-3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+/* Body text - for content */
+.preset-typo-body-lg {
+  font-size: 1.125rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.preset-typo-body {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.preset-typo-body-sm {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+/* Caption and labels */
+.preset-typo-caption {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+}
+
+.preset-typo-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+/* Menu and button text */
+.preset-typo-menu {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.preset-typo-button {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* -----------------------------------------------------------------------------
+   Anchor Styling (Skeleton Pattern)
+   Consistent link styling with hover and focus states
+   ----------------------------------------------------------------------------- */
+.anchor {
+  color: var(--color-primary-400);
+  text-decoration: none;
+  transition: color var(--timing-fast) var(--easing-default);
+  font-weight: inherit;
+}
+
+.anchor:hover {
+  color: var(--color-primary-300);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.anchor:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Anchor with subtle underline */
+.anchor-underline {
+  color: var(--color-primary-400);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--color-primary-400) 40%, transparent);
+  text-underline-offset: 3px;
+  transition: all var(--timing-fast) var(--easing-default);
+}
+
+.anchor-underline:hover {
+  color: var(--color-primary-300);
+  text-decoration-color: var(--color-primary-300);
 }
 
 /* -----------------------------------------------------------------------------
@@ -173,25 +362,25 @@ body {
 .preset-glass {
   background: color-mix(in oklab, var(--color-surface-900) 70%, transparent);
   backdrop-filter: blur(var(--glass-blur-md));
-  border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+  border: 1px solid var(--border-default);
   box-shadow: 
-    0 8px 32px color-mix(in oklab, black 12%, transparent),
-    inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+    var(--shadow-md),
+    inset 0 1px 0 var(--surface-subtle);
 }
 
 .preset-glass-sm {
   background: color-mix(in oklab, var(--color-surface-900) 60%, transparent);
   backdrop-filter: blur(var(--glass-blur-sm));
-  border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+  border: 1px solid var(--border-subtle);
 }
 
 .preset-glass-lg {
   background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
   backdrop-filter: blur(var(--glass-blur-lg));
-  border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+  border: 1px solid var(--border-active);
   box-shadow: 
-    0 12px 40px color-mix(in oklab, black 15%, transparent),
-    inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    var(--shadow-lg),
+    inset 0 1px 0 var(--border-subtle);
 }
 
 /* Glass with accent colors */
@@ -211,10 +400,10 @@ body {
 .variant-glass {
   background: color-mix(in oklab, var(--color-surface-900) 70%, transparent);
   backdrop-filter: blur(var(--glass-blur-md));
-  border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+  border: 1px solid var(--border-default);
   box-shadow: 
-    0 8px 32px color-mix(in oklab, black 12%, transparent),
-    inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+    var(--shadow-md),
+    inset 0 1px 0 var(--surface-subtle);
 }
 
 /* Glass intensity variants - can be combined with variant-glass or used standalone */
@@ -236,16 +425,16 @@ body {
 .glass-dark {
   background: color-mix(in oklab, var(--color-surface-950) 85%, transparent);
   backdrop-filter: blur(var(--glass-blur-lg));
-  border: 1px solid color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+  border: 1px solid var(--border-subtle);
 }
 
 /* -----------------------------------------------------------------------------
    Card Enhancements
    ----------------------------------------------------------------------------- */
 .card {
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   transition: all var(--timing-normal) var(--easing-default);
-  border: 1px solid color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+  border: 1px solid var(--border-subtle);
 }
 
 .card-hover {
@@ -255,8 +444,8 @@ body {
 .card-hover:hover {
   transform: translateY(-2px);
   box-shadow: 
-    0 12px 40px color-mix(in oklab, black 15%, transparent),
-    0 0 0 1px color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+    var(--shadow-lg),
+    0 0 0 1px var(--surface-active);
 }
 
 /* Card with top accent line */
@@ -272,8 +461,24 @@ body {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--color-primary-500), var(--color-secondary-500));
+  background: var(--gradient-primary);
   opacity: 0.8;
+}
+
+/* Interactive cards - respond to focus within for accessibility */
+.card-interactive {
+  transition: all var(--timing-normal) var(--easing-default);
+}
+
+.card-interactive:hover,
+.card-interactive:focus-within {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-md);
+}
+
+.card-interactive:focus-within {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
 }
 
 /* -----------------------------------------------------------------------------
@@ -306,7 +511,7 @@ body {
 
 .btn-gradient:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--color-primary-600), var(--color-secondary-600));
-  box-shadow: 0 8px 24px color-mix(in oklab, var(--color-primary-500) 30%, transparent);
+  box-shadow: var(--shadow-glow-lg);
 }
 
 /* 
@@ -317,16 +522,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0.5rem;
-  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
   transition: all var(--timing-normal) var(--easing-default);
-  background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-  border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-default);
 }
 
 .btn-icon:hover {
-  background: color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-  border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+  background: var(--surface-active);
+  border-color: var(--border-hover);
   transform: translateY(-1px);
 }
 
@@ -336,38 +541,38 @@ body {
 .nav-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 0.25rem;
+  gap: var(--space-2);
+  padding: var(--space-1);
   background: color-mix(in oklab, var(--color-surface-900) 60%, transparent);
   backdrop-filter: blur(var(--glass-blur-sm));
-  border-radius: 0.75rem;
-  border: 1px solid color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
 }
 
 .nav-tab {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
   font-weight: 500;
   font-size: 0.875rem;
   transition: all var(--timing-normal) var(--easing-default);
-  color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
+  color: var(--text-muted);
   background: transparent;
   border: 1px solid transparent;
 }
 
 .nav-tab:hover:not([data-state="active"]) {
-  background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-  color: var(--color-surface-50);
+  background: var(--surface-subtle);
+  color: var(--text-primary);
 }
 
 .nav-tab[data-state="active"] {
-  background: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
+  background: var(--gradient-primary);
   color: white;
-  border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
-  box-shadow: 0 4px 16px color-mix(in oklab, var(--color-primary-500) 30%, transparent);
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-glow-md);
 }
 
 /* Mobile nav tabs */
@@ -519,11 +724,11 @@ body {
    Table Styling
    ----------------------------------------------------------------------------- */
 .table-container {
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   background: color-mix(in oklab, var(--color-surface-900) 70%, transparent);
   backdrop-filter: blur(var(--glass-blur-md));
-  border: 1px solid color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+  border: 1px solid var(--border-subtle);
 }
 
 .table {
@@ -533,13 +738,13 @@ body {
 }
 
 .table th {
-  padding: 0.75rem 1rem;
+  padding: var(--space-3) var(--space-4);
   text-align: left;
   font-size: 0.875rem;
   font-weight: 600;
   background: color-mix(in oklab, var(--color-surface-800) 80%, transparent);
-  color: color-mix(in oklab, var(--color-surface-50) 90%, transparent);
-  border-bottom: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .table th.sortable {
@@ -582,7 +787,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: var(--space-4);
   background: color-mix(in oklab, black 60%, transparent);
   backdrop-filter: blur(4px);
   animation: fadeIn var(--timing-normal) var(--easing-default);
@@ -592,14 +797,14 @@ body {
   width: 100%;
   max-width: 48rem;
   max-height: 90vh;
-  border-radius: 1rem;
+  border-radius: var(--radius-xl);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   background: color-mix(in oklab, var(--color-surface-900) 95%, transparent);
   backdrop-filter: blur(var(--glass-blur-xl));
-  border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-  box-shadow: 0 24px 64px color-mix(in oklab, black 30%, transparent);
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-xl);
   animation: slideUp var(--timing-normal) var(--easing-default);
 }
 
@@ -616,6 +821,51 @@ body {
     var(--color-secondary-500), 
     transparent
   );
+}
+
+/* -----------------------------------------------------------------------------
+   Native Dialog Animations (Modern CSS - Skeleton Pattern)
+   Uses @starting-style for smooth entry/exit animations
+   ----------------------------------------------------------------------------- */
+dialog,
+dialog::backdrop {
+  --dialog-anim-duration: var(--timing-normal);
+  transition:
+    display var(--dialog-anim-duration) allow-discrete,
+    overlay var(--dialog-anim-duration) allow-discrete,
+    opacity var(--dialog-anim-duration);
+  opacity: 0;
+}
+
+/* Animate In */
+dialog[open],
+dialog[open]::backdrop {
+  opacity: 1;
+}
+
+/* Animate Out - requires @starting-style for smooth close */
+@starting-style {
+  dialog[open],
+  dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* Styled native dialog */
+dialog.dialog-styled {
+  border: none;
+  border-radius: var(--radius-xl);
+  background: color-mix(in oklab, var(--color-surface-900) 95%, transparent);
+  backdrop-filter: blur(var(--glass-blur-xl));
+  color: inherit;
+  max-width: min(90vw, 640px);
+  padding: 0;
+  box-shadow: var(--shadow-xl);
+}
+
+dialog.dialog-styled::backdrop {
+  background: color-mix(in oklab, black 60%, transparent);
+  backdrop-filter: blur(4px);
 }
 
 .modal-header {
@@ -937,7 +1187,7 @@ body {
 .filter-chip.subjectivity-2[data-selected="true"] {
   background: var(--sentiment-subjectivity-2);
   border-color: var(--sentiment-subjectivity-2);
-  color: #1e293b;
+  color: var(--text-on-light);
   box-shadow: 0 4px 12px var(--sentiment-subjectivity-2-bg);
 }
 
@@ -951,7 +1201,7 @@ body {
 .filter-chip.subjectivity-4[data-selected="true"] {
   background: var(--sentiment-subjectivity-4);
   border-color: var(--sentiment-subjectivity-4);
-  color: #1e293b;
+  color: var(--text-on-light);
   box-shadow: 0 4px 12px var(--sentiment-subjectivity-4-bg);
 }
 
@@ -966,21 +1216,21 @@ body {
 .filter-chip.centrality-very-central[data-selected="true"] {
   background: var(--sentiment-centrality-very-central);
   border-color: var(--sentiment-centrality-very-central);
-  color: #1e293b;
+  color: var(--text-on-light);
   box-shadow: 0 4px 12px var(--sentiment-centrality-very-central-bg);
 }
 
 .filter-chip.centrality-central[data-selected="true"] {
   background: var(--sentiment-centrality-central);
   border-color: var(--sentiment-centrality-central);
-  color: #1e293b;
+  color: var(--text-on-light);
   box-shadow: 0 4px 12px var(--sentiment-centrality-central-bg);
 }
 
 .filter-chip.centrality-secondary[data-selected="true"] {
   background: var(--sentiment-centrality-secondary);
   border-color: var(--sentiment-centrality-secondary);
-  color: #1e293b;
+  color: var(--text-on-light);
   box-shadow: 0 4px 12px var(--sentiment-centrality-secondary-bg);
 }
 
