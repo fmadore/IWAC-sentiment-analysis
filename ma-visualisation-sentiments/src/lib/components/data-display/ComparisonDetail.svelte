@@ -26,7 +26,7 @@
 
 	// Check if arbiter data exists for this article
 	const hasArbiterData = $derived(
-		comparison ? $getArbiterForArticle(comparison.article['o:id']) !== null : false
+		comparison ? getArbiterForArticle(comparison.article['o:id']) !== null : false
 	);
 
 	// Get model display names from availableDatasets

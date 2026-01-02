@@ -49,10 +49,10 @@
 	let showArbiter = $state(initiallyOpen);
 
 	// Get arbiter data for this article
-	const arbiterData = $derived($getArbiterForArticle(articleId));
+	const arbiterData = $derived(getArbiterForArticle(articleId));
 
 	// Get model names from the current comparison pair
-	const modelNames = $derived(() => {
+	const modelNames = $derived.by(() => {
 		const [modelAId, modelBId] = getModelsFromPair($comparisonPair);
 		const datasets = $availableDatasets;
 		const modelAName = datasets.find((d) => d.id === modelAId)?.name || modelAId;
@@ -64,7 +64,7 @@
 	function getPreferredModelLabel(
 		preferredModel: 'model_a' | 'model_b' | 'both' | 'neither'
 	): string {
-		const { modelAName, modelBName } = modelNames();
+		const { modelAName, modelBName } = modelNames;
 		switch (preferredModel) {
 			case 'model_a':
 				return `${$t.arbiter?.prefers || 'Prefers'} ${modelAName}`;
@@ -138,7 +138,7 @@
 	function decodeVerdictText(text: string): string {
 		if (!text) return text;
 
-		const { modelAName, modelBName } = modelNames();
+		const { modelAName, modelBName } = modelNames;
 
 		// Replace Model A/B references (case insensitive)
 		return text

@@ -17,10 +17,10 @@
 	import ChevronUpIcon from '@lucide/svelte/icons/chevron-up';
 
 	const stats = $derived($comparisonStatistics);
-	const arbiterStats = $derived($arbiterStatistics);
+	const arbiterStats = $derived(arbiterStatistics.current);
 
 	// Get dynamic model names from current comparison pair
-	const modelNames = $derived(() => {
+	const modelNames = $derived.by(() => {
 		const [modelAId, modelBId] = getModelsFromPair($comparisonPair);
 		const datasets = $availableDatasets;
 		const modelAName = datasets.find((d) => d.id === modelAId)?.name || modelAId;
@@ -29,8 +29,8 @@
 	});
 
 	// Create dynamic tooltip text with actual model names
-	const dynamicTooltips = $derived(() => {
-		const { modelAName, modelBName } = modelNames();
+	const dynamicTooltips = $derived.by(() => {
+		const { modelAName, modelBName } = modelNames;
 		return {
 			totalDiscrepancies: `Number of articles where ${modelAName} and ${modelBName} provide different analyses (any difference > 0 points)`,
 			significantDifferences: `Articles where any dimension (polarity, subjectivity, or centrality) differs by 3+ points between ${modelAName} and ${modelBName} analyses`
@@ -55,7 +55,7 @@
 		<div class="stat-header">
 			<AlertCircleIcon size={24} class="text-yellow-400" />
 			<span class="stat-label">{$t.comparison?.totalDiscrepancies || 'Total Discrepancies'}</span>
-			<div class="info-tooltip" title={dynamicTooltips().totalDiscrepancies}>
+			<div class="info-tooltip" title={dynamicTooltips.totalDiscrepancies}>
 				<InfoIcon size={14} class="text-white/50 hover:text-white/80 cursor-help" />
 			</div>
 		</div>
@@ -85,7 +85,7 @@
 		<div class="stat-header">
 			<BarChart3Icon size={24} class="text-purple-400" />
 			<span class="stat-label">{$t.comparison?.highConflicts || 'High Conflicts'}</span>
-			<div class="info-tooltip" title={dynamicTooltips().significantDifferences}>
+			<div class="info-tooltip" title={dynamicTooltips.significantDifferences}>
 				<InfoIcon size={14} class="text-white/50 hover:text-white/80 cursor-help" />
 			</div>
 		</div>

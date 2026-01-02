@@ -17,6 +17,34 @@ export { comparisonState } from './comparison.svelte';
 export { arbiterState, type ArbiterStatistics } from './arbiter.svelte';
 export { extremeState } from './extreme-analysis.svelte';
 
+// URL State (New modular implementation)
+export {
+    pendingArticleState,
+    pendingComparisonArticleState,
+    getCurrentState,
+    parseURLState,
+    buildURLSearchParams,
+    applyURLState,
+    updateURL,
+    initializeURLState,
+    clearAllFilters,
+    clearSelectedArticle,
+    clearSelectedArticleOnly,
+    handlePendingArticleSelection,
+    handlePendingComparisonArticleSelection,
+    clearSelectedComparison,
+    urlStateUtils,
+    VALID_VIEWS,
+    VALID_DATASETS,
+    VALID_PAIRS,
+    URL_PARAMS,
+    type URLState,
+    type PendingArticleSelection,
+    type ValidView,
+    type ValidDataset,
+    type URLParamKey
+} from './url';
+
 // ============================================
 // Legacy Compatibility Exports
 // ============================================

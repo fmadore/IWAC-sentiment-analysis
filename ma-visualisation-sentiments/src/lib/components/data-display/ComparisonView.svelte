@@ -31,18 +31,23 @@
 	}
 
 	// Track previous comparison to detect changes
-	let previousComparisonId: string | number | null = null;
+	let previousComparisonId: string | number | null = $state(null);
 
-	// Setup arbiter reactivity and handle URL sync
+	// Cleanup function for arbiter reactivity
+	let cleanupArbiter: (() => void) | null = $state(null);
+
+	// Setup arbiter reactivity on mount
 	onMount(() => {
 		// Setup arbiter pair reactivity - this will reload arbiter data when pair changes
-		const cleanupArbiter = setupArbiterPairReactivity(fetch);
+		cleanupArbiter = setupArbiterPairReactivity(fetch);
 
 		// Initial load of arbiter data (in case it wasn't loaded during prefetch)
 		loadArbiterEvaluations(fetch);
 
 		return () => {
-			cleanupArbiter();
+			if (cleanupArbiter) {
+				cleanupArbiter();
+			}
 		};
 	});
 
