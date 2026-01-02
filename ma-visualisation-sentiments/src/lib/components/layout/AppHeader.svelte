@@ -26,10 +26,17 @@
 	onMount(() => {
 		// Set initial fullscreen state
 		isFullscreen = !!document.fullscreenElement;
+		
 		// Listen for fullscreen change events
-		document.addEventListener('fullscreenchange', () => {
+		const handleFullscreenChange = () => {
 			isFullscreen = !!document.fullscreenElement;
-		});
+		};
+		document.addEventListener('fullscreenchange', handleFullscreenChange);
+		
+		// Cleanup on unmount
+		return () => {
+			document.removeEventListener('fullscreenchange', handleFullscreenChange);
+		};
 	});
 </script>
 

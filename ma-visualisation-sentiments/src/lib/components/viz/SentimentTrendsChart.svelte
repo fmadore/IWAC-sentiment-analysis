@@ -11,6 +11,7 @@
   } from 'echarts/components';
   import { CanvasRenderer } from 'echarts/renderers';
   import type { EChartsOption } from 'echarts';
+  import { innerWidth } from 'svelte/reactivity/window';
 
   use([
     TitleComponent,
@@ -51,22 +52,9 @@
   const frenchPolarityLabels = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif'] as const;
   type PolarityType = typeof frenchPolarityLabels[number];
 
-  let isMobile = $state(false);
+  // Reactive window width for responsive behavior
+  let isMobile = $derived((innerWidth.current ?? 1024) < 768);
   let chartContainer = $state<HTMLDivElement>();
-
-  // Modern Svelte 5 approach using $effect instead of onMount
-  $effect(() => {
-    const checkMobile = () => {
-      isMobile = window.innerWidth < 768;
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-    };
-  });
 
   // Use $derived for proper reactivity in Svelte 5
   let options = $derived.by(() => {

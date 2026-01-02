@@ -38,20 +38,21 @@
 	let isOpen = $state(false);
 	let dropdownRef = $state<HTMLDivElement | null>(null);
 
-	// Get dataset info for a model ID
-	function getDatasetInfo(modelId: string): DatasetOption | undefined {
-		let datasets: DatasetOption[] = [];
-		availableDatasets.subscribe((d) => (datasets = d))();
+	// Get dataset info for a model ID using $derived
+	function getDatasetInfo(modelId: string, datasets: DatasetOption[]): DatasetOption | undefined {
 		return datasets.find((d) => d.id === modelId);
 	}
 
-	// Get logos for the current pair
-	function getLogosForPair(pair: ModelPair): [string, string] {
+	// Get logos for a pair - now takes datasets as parameter
+	function getLogosForPair(pair: ModelPair, datasets: DatasetOption[]): [string, string] {
 		const [modelAId, modelBId] = getModelsFromPair(pair);
-		const modelA = getDatasetInfo(modelAId);
-		const modelB = getDatasetInfo(modelBId);
+		const modelA = getDatasetInfo(modelAId, datasets);
+		const modelB = getDatasetInfo(modelBId, datasets);
 		return [modelA?.logo || '', modelB?.logo || ''];
 	}
+
+	// Derived current logos for the selected pair
+	let currentLogos = $derived(getLogosForPair($comparisonPair, $availableDatasets));
 
 	function selectPair(pair: ModelPair) {
 		comparisonPair.set(pair);
@@ -80,7 +81,7 @@
 		aria-haspopup="listbox"
 	>
 		<div class="selected-pair">
-			{#each getLogosForPair($comparisonPair) as logo, i}
+			{#each currentLogos as logo, i (i)}
 				{#if logo}
 					<img src="{base}{logo}" alt="" class="pair-logo" />
 				{/if}
@@ -94,8 +95,8 @@
 
 	{#if isOpen}
 		<div class="dropdown-menu" role="listbox">
-			{#each pairs as pair}
-				{@const [logoA, logoB] = getLogosForPair(pair.id)}
+			{#each pairs as pair (pair.id)}
+				{@const [logoA, logoB] = getLogosForPair(pair.id, $availableDatasets)}
 				<button
 					class="dropdown-item {$comparisonPair === pair.id ? 'selected' : ''}"
 					role="option"

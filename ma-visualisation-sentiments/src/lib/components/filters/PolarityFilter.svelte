@@ -69,7 +69,7 @@
   onClear={clearSelection}
 >
   {#snippet chips()}
-    {#each polarityOptions as option}
+    {#each polarityOptions as option (option.value)}
       <FilterChip 
         label={option.label}
         selected={selectedPolarities.includes(option.label)}

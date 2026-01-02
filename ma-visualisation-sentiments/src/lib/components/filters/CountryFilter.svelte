@@ -75,7 +75,7 @@
   onClear={clearSelection}
 >
   {#snippet chips()}
-    {#each translatedCountries as country}
+    {#each translatedCountries as country (country.value)}
       <FilterChip 
         label={country.label}
         selected={selectedCountries.includes(country.value)}

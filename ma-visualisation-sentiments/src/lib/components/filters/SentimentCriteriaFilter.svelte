@@ -78,7 +78,7 @@
 	<div class="filter-section">
 		<h4 class="filter-subtitle">{$t.analysis.polaritySection}</h4>
 		<div class="filter-chips">
-			{#each translatedPolarityOptions as option}
+			{#each translatedPolarityOptions as option (option.value)}
 				<button
 					class="filter-chip {option.cssClass}"
 					data-selected={selectedPolarities.includes(option.value)}
@@ -94,7 +94,7 @@
 	<div class="filter-section">
 		<h4 class="filter-subtitle">{$t.filters.subjectivityScore}</h4>
 		<div class="filter-chips">
-			{#each subjectivityScores as score}
+			{#each subjectivityScores as score (score.value)}
 				<button
 					class="filter-chip {score.cssClass}"
 					data-selected={selectedScores.includes(score.value.toString())}

@@ -3,9 +3,6 @@
   import { availableJournals, journalFilters } from '$lib/stores';
   import { t } from '$lib/i18n';
   import { FilterCard, FilterChip, SearchInput } from '$lib/components/common';
-
-  // Propriété pour référence externe, pas pour l'injection de propriété
-  export const class_name = '';
   
   // Variables locales
   let selectedJournals = $state<string[]>([]);
@@ -84,7 +81,7 @@
   {/snippet}
   
   {#snippet chips()}
-    {#each displayedJournals as journal}
+    {#each displayedJournals as journal (journal)}
       <FilterChip 
         label={journal}
         selected={selectedJournals.includes(journal)}

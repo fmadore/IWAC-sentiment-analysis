@@ -8,6 +8,7 @@
 	import TableIcon from '@lucide/svelte/icons/table';
 	import { ComparisonCSVExportButton } from '$lib/components/ui';
 	import { SentimentBadge } from '$lib/components/common';
+	import { innerWidth } from 'svelte/reactivity/window';
 
 	// Helper to get model display name from ID
 	function getModelName(modelId: string): string {
@@ -19,22 +20,14 @@
 	let viewMode = $state<'table' | 'cards'>('table');
 	let sortBy = $state<'discrepancy' | 'date' | 'title'>('discrepancy');
 	let sortDirection = $state<'asc' | 'desc'>('desc');
-	let isMobile = $state(false);
+
+	// Reactive mobile detection using Svelte 5 pattern
+	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
 
 	// Pagination
 	let currentPage = $state(1);
 	let itemsPerPage = $state(25);
 	let itemsPerPageOptions = [10, 25, 50, 100];
-
-	// Check mobile on mount
-	$effect(() => {
-		const checkMobile = () => {
-			isMobile = window.innerWidth < 768;
-		};
-		checkMobile();
-		window.addEventListener('resize', checkMobile);
-		return () => window.removeEventListener('resize', checkMobile);
-	});
 
 	// Switch to card view on mobile
 	$effect(() => {
@@ -203,7 +196,7 @@
 						onchange={(e) => changeItemsPerPage(Number((e.target as HTMLSelectElement)?.value))}
 						class="select select-sm bg-surface-700 text-white border-surface-500"
 					>
-						{#each itemsPerPageOptions as option}
+					{#each itemsPerPageOptions as option (option)}
 							<option value={option}>{option}</option>
 						{/each}
 					</select>
@@ -224,7 +217,7 @@
 						← {isMobile ? '' : $t.common?.previous || 'Previous'}
 					</button>
 
-					{#each visiblePages as page}
+{#each visiblePages as page (page)}
 						<button
 							class="btn btn-sm {page === currentPage
 								? 'variant-filled-primary'
@@ -324,7 +317,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each paginatedComparisons as comparison}
+					{#each paginatedComparisons as comparison (comparison.article['o:id'])}
 						<tr
 							class="hover:bg-surface-700/30 cursor-pointer transition-colors"
 							onclick={() => selectComparison(comparison)}
@@ -390,7 +383,7 @@
 	{:else}
 		<!-- Card View -->
 		<div class="cards-grid">
-			{#each paginatedComparisons as comparison}
+			{#each paginatedComparisons as comparison (comparison.article['o:id'])}
 				<div
 					class="comparison-card card variant-glass p-4 hover-lift cursor-pointer"
 					onclick={() => selectComparison(comparison)}

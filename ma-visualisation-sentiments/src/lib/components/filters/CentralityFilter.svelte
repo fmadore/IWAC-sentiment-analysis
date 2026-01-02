@@ -56,7 +56,7 @@
   onClear={clearSelection}
 >
   {#snippet chips()}
-    {#each translatedOptions as option}
+    {#each translatedOptions as option (option.value)}
       <FilterChip 
         label={option.label}
         selected={selectedCentralities.includes(option.value)}

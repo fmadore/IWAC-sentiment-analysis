@@ -6,12 +6,15 @@
   import { DatasetBadge } from '$lib/components/ui';
   import { SentimentBadge } from '$lib/components/common';
   import { updateURL } from '$lib/urlState';
+  import { innerWidth } from 'svelte/reactivity/window';
 
   // Props - for event dispatching
   let { onShowDetails }: { onShowDetails: (details: { article: Article, position: {x: number, y: number} }) => void } = $props();
 
   let articles = $state<Article[]>([]);
-  let isMobile = $state(false);
+  
+  // Reactive mobile detection using svelte/reactivity/window
+  let isMobile = $derived((innerWidth.current ?? 1024) < 768);
   
   // Update articles when filteredArticles changes
   $effect(() => {
@@ -21,20 +24,6 @@
       currentPage = 1;
     });
     return unsubscribe; // Cleanup subscription
-  });
-
-  // Modern Svelte 5 approach using $effect instead of onMount
-  $effect(() => {
-    const checkMobile = () => {
-      isMobile = window.innerWidth < 768;
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-    };
   });
 
   // Variables pour le tri
@@ -277,7 +266,7 @@
           onchange={(e) => changeItemsPerPage(Number((e.target as HTMLSelectElement)?.value))}
           class="select select-sm bg-surface-700 text-white border-surface-500"
         >
-          {#each itemsPerPageOptions as option}
+          {#each itemsPerPageOptions as option (option)}
             <option value={option}>{option}</option>
           {/each}
         </select>
@@ -296,7 +285,7 @@
           {isMobile ? '←' : '←'}
         </button>
         
-        {#each visiblePages as page}
+        {#each visiblePages as page (page)}
           <button 
             class="btn btn-sm {page === currentPage ? 'variant-filled-primary' : 'variant-soft-surface'}"
             onclick={() => goToPage(page)}

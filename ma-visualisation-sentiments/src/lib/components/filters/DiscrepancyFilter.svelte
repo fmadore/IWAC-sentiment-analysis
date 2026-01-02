@@ -105,7 +105,7 @@
       
       <!-- Range labels -->
       <div class="range-labels">
-        {#each [0, 1, 2, 3, 4, 5] as value}
+        {#each [0, 1, 2, 3, 4, 5] as value (value)}
           <span class="range-label" style="left: {value * 20}%">{value}</span>
         {/each}
       </div>

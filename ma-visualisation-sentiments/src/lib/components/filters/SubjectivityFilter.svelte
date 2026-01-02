@@ -50,7 +50,7 @@
   onClear={clearSelection}
 >
   {#snippet chips()}
-    {#each scores as score}
+    {#each scores as score (score.value)}
       <FilterChip 
         label={score.value.toString()}
         selected={selectedScores.includes(score.value.toString())}
