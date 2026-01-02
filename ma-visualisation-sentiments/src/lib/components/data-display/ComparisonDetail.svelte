@@ -29,15 +29,13 @@
 		comparison ? getArbiterForArticle(comparison.article['o:id']) !== null : false
 	);
 
-	// Get model display names from availableDatasets
-	function getModelName(modelId: string): string {
-		let datasets: { id: string; name: string }[] = [];
-		availableDatasets.subscribe((d) => (datasets = d))();
+	// Get model display names from availableDatasets using reactive store
+	function getModelName(modelId: string, datasets: { id: string; name: string }[]): string {
 		return datasets.find((d) => d.id === modelId)?.name || modelId;
 	}
 
-	const modelAName = $derived(comparison ? getModelName(comparison.modelAId) : 'Model A');
-	const modelBName = $derived(comparison ? getModelName(comparison.modelBId) : 'Model B');
+	const modelAName = $derived(comparison ? getModelName(comparison.modelAId, $availableDatasets) : 'Model A');
+	const modelBName = $derived(comparison ? getModelName(comparison.modelBId, $availableDatasets) : 'Model B');
 
 	// Fonction pour formater les dates
 	function formatDate(dateStr: string | null | undefined): string {

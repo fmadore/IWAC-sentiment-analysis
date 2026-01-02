@@ -11,19 +11,21 @@
   // Props - for event dispatching
   let { onShowDetails }: { onShowDetails: (details: { article: Article, position: {x: number, y: number} }) => void } = $props();
 
-  let articles = $state<Article[]>([]);
+  // Reactive articles from store
+  let articles = $derived($filteredArticles);
   
   // Reactive mobile detection using svelte/reactivity/window
   let isMobile = $derived((innerWidth.current ?? 1024) < 768);
   
-  // Update articles when filteredArticles changes
+  // Track previous article count to reset pagination when filters change
+  let previousArticleCount = $state<number | null>(null);
   $effect(() => {
-    const unsubscribe = filteredArticles.subscribe(value => {
-      articles = value;
-      // Réinitialiser à la première page quand les articles changent (filtres appliqués)
+    const currentCount = articles.length;
+    if (previousArticleCount !== null && previousArticleCount !== currentCount) {
+      // Reset to first page when articles change (filters applied)
       currentPage = 1;
-    });
-    return unsubscribe; // Cleanup subscription
+    }
+    previousArticleCount = currentCount;
   });
 
   // Variables pour le tri
