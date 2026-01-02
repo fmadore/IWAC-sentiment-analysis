@@ -12,7 +12,7 @@
   } from 'echarts/components';
   import { CanvasRenderer } from 'echarts/renderers';
   import type { EChartsOption, SeriesOption } from 'echarts';
-  import { onMount } from 'svelte';
+  import { innerWidth } from 'svelte/reactivity/window';
 
   // Register the required components
   use([
@@ -67,22 +67,10 @@
     }
   }
 
-  let isMobile = $state(false);
+  // Reactive window width for responsive behavior
+  let isMobile = $derived((innerWidth.current ?? 1024) < 768);
   let chartContainer = $state<HTMLDivElement>();
   let chartType = $state<'bar' | 'pie'>('bar');
-
-  onMount(() => {
-    const checkMobile = () => {
-      isMobile = window.innerWidth < 768;
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-    };
-  });
 
   // Use $derived for proper reactivity in Svelte 5
   let options = $derived.by(() => {

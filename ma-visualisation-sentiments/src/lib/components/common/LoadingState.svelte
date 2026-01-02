@@ -43,7 +43,7 @@
   {#if showFilters}
     <div class="filters-skeleton mb-4 sm:mb-6">
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
-        {#each Array(filterCount) as _}
+        {#each Array(filterCount) as _, i (i)}
           <div class="skeleton h-10 rounded-lg"></div>
         {/each}
       </div>

@@ -100,8 +100,8 @@
     return translateSentimentValue(String(value), $currentLanguage);
   }
 
-  let variantClass = $derived(getVariantClass());
-  let displayText = $derived(getDisplayText());
+  let variantClass = $derived.by(getVariantClass);
+  let displayText = $derived.by(getDisplayText);
 </script>
 
 <span class="sentiment-badge {variantClass} size-{size} {className}">

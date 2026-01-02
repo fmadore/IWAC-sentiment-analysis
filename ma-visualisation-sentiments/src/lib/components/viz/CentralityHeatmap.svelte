@@ -10,7 +10,7 @@
   } from 'echarts/components';
   import { CanvasRenderer } from 'echarts/renderers';
   import type { EChartsOption } from 'echarts';
-  import { onMount } from 'svelte';
+  import { innerWidth } from 'svelte/reactivity/window';
 
   use([
     TitleComponent,
@@ -63,21 +63,9 @@
     translateSentimentValue('Très central', $currentLanguage)
   ]);
 
-  let isMobile = $state(false);
+  // Reactive window width for responsive behavior
+  let isMobile = $derived((innerWidth.current ?? 1024) < 768);
   let chartContainer = $state<HTMLDivElement>();
-
-  onMount(() => {
-    const checkMobile = () => {
-      isMobile = window.innerWidth < 768;
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-    };
-  });
 
   let options = $derived.by(() => {
     const articles = $filteredArticles;

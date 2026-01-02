@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Chart } from 'svelte-echarts';
-  import { onMount } from 'svelte';
+  import { innerWidth } from 'svelte/reactivity/window';
   import { currentExtremeAnalysis, extremeAnalysisData, selectedDataset, isLoadingExtremeAnalysis, filteredExtremeAnalysis } from '$lib/stores';
   import { t, currentLanguage } from '$lib/i18n';
   import type { ExtremeCategory, KeywordType, ExtremeCategoryAnalysis } from '$lib/types/extremeAnalysis';
@@ -46,35 +46,21 @@
 
   let { selectedCategory, selectedKeywordType, showTopN }: Props = $props();
   
-  let isMobile = $state(false);
+  // Reactive window width for responsive behavior
+  let isMobile = $derived((innerWidth.current ?? 1024) < 768);
   
   // Loading state - use specific loading state for better UX
-  let isLoading = $derived(() => {
-    return $isLoadingExtremeAnalysis || !$filteredExtremeAnalysis;
-  });
+  let isLoading = $derived($isLoadingExtremeAnalysis || !$filteredExtremeAnalysis);
   
   // Derived data
-  let categoryData = $derived(() => {
+  let categoryData = $derived.by(() => {
     if (!$filteredExtremeAnalysis) return null;
     return $filteredExtremeAnalysis.analysis[selectedCategory];
   });
 
-  onMount(() => {
-    const checkMobile = () => {
-      isMobile = window.innerWidth < 768;
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-    };
-  });
-
   // Chart options
   let options = $derived.by(() => {
-    const data = categoryData();
+    const data = categoryData;
     if (!data) return null;
 
     const keywords = selectedKeywordType === 'subject' 
@@ -215,7 +201,7 @@
   });
 </script>
 
-{#if isLoading()}
+{#if isLoading}
   <!-- Loading State -->
   <div class="loading-container">
     <div class="chart-container glass-medium rounded-lg p-4" style="min-height: 500px;">
@@ -250,8 +236,8 @@
   </div>
 
   <!-- Statistics Card -->
-  {#if categoryData()}
-    {@const data = categoryData()}
+  {#if categoryData}
+    {@const data = categoryData}
     <div class="card variant-glass p-4 mt-4">
       <div class="statistics-row">
         <div class="stat-item">

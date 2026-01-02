@@ -44,7 +44,7 @@
     comparison?.article?.['o:title'] ?? $t.nav.comparison
   );
 
-  let subtitle = $derived(() => {
+  let subtitle = $derived.by(() => {
     if (!comparison?.article) return '';
     const journal = getJournalName(comparison.article);
     const date = comparison.article.publication_date ?? '';
@@ -62,7 +62,7 @@
     {open}
     {onClose}
     {title}
-    subtitle={subtitle()}
+    {subtitle}
     accentVariant="comparison"
   >
     {#snippet headerIcon()}
