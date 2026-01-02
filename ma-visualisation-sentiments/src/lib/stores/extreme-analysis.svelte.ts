@@ -1,8 +1,8 @@
 /**
  * Extreme Analysis State Module
  * 
- * Manages extreme analysis data.
- * Uses writable/derived stores for proper Svelte reactivity.
+ * Manages extreme analysis data using Svelte 5 runes.
+ * Provides both modern $state-based API and legacy store compatibility.
  */
 
 import { writable, derived, get } from 'svelte/store';
@@ -13,15 +13,30 @@ import { countryFilters } from './filters.svelte';
 import { isLoadingExtremeAnalysis } from './ui.svelte';
 
 // ============================================
-// Extreme Analysis Stores
+// Svelte 5 Runes State
 // ============================================
 
-/** Extreme analysis data per dataset */
+let _extremeAnalysisData = $state<Record<string, ExtremeAnalysisData | null>>({
+    chatgpt: null,
+    gemini: null,
+    mistral: null
+});
+
+// ============================================
+// Legacy Stores
+// ============================================
+
+/**
+ * @deprecated Use extremeState.data instead
+ */
 export const extremeAnalysisData = writable<Record<string, ExtremeAnalysisData | null>>({
     chatgpt: null,
     gemini: null,
     mistral: null
 });
+
+// Sync legacy store to runes state
+extremeAnalysisData.subscribe(value => { _extremeAnalysisData = value; });
 
 // ============================================
 // Derived Stores
@@ -81,17 +96,38 @@ export const loadCurrentExtremeAnalysis = async (fetchFunction: typeof fetch): P
 };
 
 // ============================================
-// Modern State Accessors (for gradual migration)
+// Modern State Accessors (Recommended)
 // ============================================
 
+/**
+ * Extreme analysis state object with reactive getters.
+ * Use this API for new code.
+ * 
+ * @example
+ * // Read state
+ * const data = extremeState.data;
+ * const current = extremeState.current;
+ * const filtered = extremeState.filtered;
+ */
 export const extremeState = {
-    get extremeAnalysisData() {
-        return get(extremeAnalysisData);
+    // All extreme analysis data by dataset
+    get data() {
+        return _extremeAnalysisData;
     },
-    get currentExtremeAnalysis() {
+    
+    // Current dataset's extreme analysis (from derived store)
+    get current() {
         return get(currentExtremeAnalysis);
     },
-    get filteredExtremeAnalysis() {
+    
+    // Filtered extreme analysis (from derived store)
+    get filtered() {
         return get(filteredExtremeAnalysis);
+    },
+    
+    // Update data for a dataset
+    updateData(datasetId: string, data: ExtremeAnalysisData | null) {
+        _extremeAnalysisData = { ..._extremeAnalysisData, [datasetId]: data };
+        extremeAnalysisData.set(_extremeAnalysisData);
     }
 };

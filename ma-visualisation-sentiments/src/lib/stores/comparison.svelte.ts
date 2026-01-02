@@ -1,8 +1,8 @@
 /**
  * Comparison State Module
  * 
- * Manages model comparison state and derived data.
- * Uses writable/derived stores for proper Svelte reactivity.
+ * Manages model comparison state and derived data using Svelte 5 runes.
+ * Provides both modern $state-based API and legacy store compatibility.
  */
 
 import { writable, derived, get } from 'svelte/store';
@@ -15,14 +15,27 @@ import { isLoadingComparison } from './ui.svelte';
 import { datasetArticles, loadSpecificDataset } from './articles.svelte';
 
 // ============================================
-// Comparison Stores
+// Svelte 5 Runes State
 // ============================================
 
-/** Currently selected comparison for detail view */
+let _selectedComparison = $state<ComparisonData | null>(null);
+
+// ============================================
+// Legacy Stores
+// ============================================
+
+/**
+ * @deprecated Use comparisonState.selected instead
+ */
 export const selectedComparison = writable<ComparisonData | null>(null);
 
-/** Cached comparison datasets (legacy) */
+/**
+ * @deprecated No longer used
+ */
 export const comparisonDatasets = writable<ComparisonData[] | null>(null);
+
+// Sync legacy store to runes state
+selectedComparison.subscribe(value => { _selectedComparison = value; });
 
 // ============================================
 // Score Mappings
@@ -315,23 +328,45 @@ export const loadComparisonDatasets = async (fetchFunction: typeof fetch): Promi
 };
 
 // ============================================
-// Modern State Accessors (for gradual migration)
+// Modern State Accessors (Recommended)
 // ============================================
 
+/**
+ * Comparison state object with reactive getters and setters.
+ * Use this API for new code.
+ * 
+ * @example
+ * // Read state
+ * const data = comparisonState.data;
+ * 
+ * // Write state
+ * comparisonState.selected = comparison;
+ * 
+ * // Get statistics
+ * const stats = comparisonState.statistics;
+ */
 export const comparisonState = {
-    get selectedComparison() {
-        return get(selectedComparison);
+    // Selected comparison
+    get selected() {
+        return _selectedComparison;
     },
-    setSelectedComparison(value: ComparisonData | null) {
+    set selected(value: ComparisonData | null) {
+        _selectedComparison = value;
         selectedComparison.set(value);
     },
-    get comparisonData() {
+    
+    // Comparison data (from derived store)
+    get data() {
         return get(comparisonData);
     },
-    get filteredComparisons() {
+    
+    // Filtered comparisons (from derived store)
+    get filtered() {
         return get(filteredComparisons);
     },
-    get comparisonStatistics() {
+    
+    // Statistics (from derived store)
+    get statistics() {
         return get(comparisonStatistics);
     }
 };

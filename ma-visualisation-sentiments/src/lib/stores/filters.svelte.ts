@@ -1,34 +1,23 @@
 /**
  * Filter State Module
  * 
- * Manages all filter-related state.
- * Uses writable stores for proper Svelte reactivity.
+ * Manages all filter-related state using Svelte 5 runes.
+ * Provides both modern $state-based API and legacy store compatibility.
  */
 
-import { writable, get } from 'svelte/store';
+import { writable } from 'svelte/store';
 import type { DiscrepancyFilter } from '$lib/types/data';
 
 // ============================================
-// Filter Stores
+// Svelte 5 Runes State
 // ============================================
 
-/** Selected country filters */
-export const countryFilters = writable<string[]>([]);
-
-/** Selected journal filters */
-export const journalFilters = writable<string[]>([]);
-
-/** Selected polarity filters */
-export const polarityFilters = writable<string[]>([]);
-
-/** Selected subjectivity filters */
-export const subjectivityFilters = writable<string[]>([]);
-
-/** Selected centrality filters */
-export const centralityFilters = writable<string[]>([]);
-
-/** Discrepancy filter settings for comparison mode */
-export const discrepancyFilters = writable<DiscrepancyFilter>({
+let _countryFilters = $state<string[]>([]);
+let _journalFilters = $state<string[]>([]);
+let _polarityFilters = $state<string[]>([]);
+let _subjectivityFilters = $state<string[]>([]);
+let _centralityFilters = $state<string[]>([]);
+let _discrepancyFilters = $state<DiscrepancyFilter>({
     minDifference: 0,
     maxDifference: 5,
     dimensions: ['polarity', 'subjectivity', 'centrality'],
@@ -36,67 +25,89 @@ export const discrepancyFilters = writable<DiscrepancyFilter>({
 });
 
 // ============================================
-// Modern State Accessors (for gradual migration)
+// Modern State Accessors (Recommended)
 // ============================================
 
 /**
- * Filter state object with getters and setters.
- * Provides a more ergonomic API for new code.
+ * Filter state object with reactive getters and setters.
+ * Use this API for new code.
+ * 
+ * @example
+ * // Read state
+ * const countries = filterState.countries;
+ * 
+ * // Write state
+ * filterState.countries = ['France', 'Canada'];
+ * 
+ * // Check if filters active
+ * if (filterState.hasActiveFilters) { ... }
  */
 export const filterState = {
     // Country filters
-    get countryFilters() {
-        return get(countryFilters);
+    get countries() {
+        return _countryFilters;
     },
-    setCountryFilters(value: string[]) {
+    set countries(value: string[]) {
+        _countryFilters = value;
         countryFilters.set(value);
     },
 
     // Journal filters
-    get journalFilters() {
-        return get(journalFilters);
+    get journals() {
+        return _journalFilters;
     },
-    setJournalFilters(value: string[]) {
+    set journals(value: string[]) {
+        _journalFilters = value;
         journalFilters.set(value);
     },
 
     // Polarity filters
-    get polarityFilters() {
-        return get(polarityFilters);
+    get polarities() {
+        return _polarityFilters;
     },
-    setPolarityFilters(value: string[]) {
+    set polarities(value: string[]) {
+        _polarityFilters = value;
         polarityFilters.set(value);
     },
 
     // Subjectivity filters
-    get subjectivityFilters() {
-        return get(subjectivityFilters);
+    get subjectivities() {
+        return _subjectivityFilters;
     },
-    setSubjectivityFilters(value: string[]) {
+    set subjectivities(value: string[]) {
+        _subjectivityFilters = value;
         subjectivityFilters.set(value);
     },
 
     // Centrality filters
-    get centralityFilters() {
-        return get(centralityFilters);
+    get centralities() {
+        return _centralityFilters;
     },
-    setCentralityFilters(value: string[]) {
+    set centralities(value: string[]) {
+        _centralityFilters = value;
         centralityFilters.set(value);
     },
 
     // Discrepancy filters
-    get discrepancyFilters() {
-        return get(discrepancyFilters);
+    get discrepancy() {
+        return _discrepancyFilters;
     },
-    setDiscrepancyFilters(value: DiscrepancyFilter) {
+    set discrepancy(value: DiscrepancyFilter) {
+        _discrepancyFilters = value;
         discrepancyFilters.set(value);
     },
-    updateDiscrepancyFilters(updates: Partial<DiscrepancyFilter>) {
-        discrepancyFilters.update((current) => ({ ...current, ...updates }));
+    updateDiscrepancy(updates: Partial<DiscrepancyFilter>) {
+        _discrepancyFilters = { ..._discrepancyFilters, ...updates };
+        discrepancyFilters.set(_discrepancyFilters);
     },
 
     // Utility: Clear all filters
     clearAll() {
+        _countryFilters = [];
+        _journalFilters = [];
+        _polarityFilters = [];
+        _subjectivityFilters = [];
+        _centralityFilters = [];
         countryFilters.set([]);
         journalFilters.set([]);
         polarityFilters.set([]);
@@ -107,11 +118,58 @@ export const filterState = {
     // Utility: Check if any filters are active
     get hasActiveFilters() {
         return (
-            get(countryFilters).length > 0 ||
-            get(journalFilters).length > 0 ||
-            get(polarityFilters).length > 0 ||
-            get(subjectivityFilters).length > 0 ||
-            get(centralityFilters).length > 0
+            _countryFilters.length > 0 ||
+            _journalFilters.length > 0 ||
+            _polarityFilters.length > 0 ||
+            _subjectivityFilters.length > 0 ||
+            _centralityFilters.length > 0
         );
     }
 };
+
+// ============================================
+// Legacy Store Compatibility
+// ============================================
+
+/**
+ * @deprecated Use filterState.countries instead
+ */
+export const countryFilters = writable<string[]>([]);
+
+/**
+ * @deprecated Use filterState.journals instead
+ */
+export const journalFilters = writable<string[]>([]);
+
+/**
+ * @deprecated Use filterState.polarities instead
+ */
+export const polarityFilters = writable<string[]>([]);
+
+/**
+ * @deprecated Use filterState.subjectivities instead
+ */
+export const subjectivityFilters = writable<string[]>([]);
+
+/**
+ * @deprecated Use filterState.centralities instead
+ */
+export const centralityFilters = writable<string[]>([]);
+
+/**
+ * @deprecated Use filterState.discrepancy instead
+ */
+export const discrepancyFilters = writable<DiscrepancyFilter>({
+    minDifference: 0,
+    maxDifference: 5,
+    dimensions: ['polarity', 'subjectivity', 'centrality'],
+    excludeNonApplicable: true
+});
+
+// Sync legacy stores to runes state
+countryFilters.subscribe(value => { _countryFilters = value; });
+journalFilters.subscribe(value => { _journalFilters = value; });
+polarityFilters.subscribe(value => { _polarityFilters = value; });
+subjectivityFilters.subscribe(value => { _subjectivityFilters = value; });
+centralityFilters.subscribe(value => { _centralityFilters = value; });
+discrepancyFilters.subscribe(value => { _discrepancyFilters = value; });

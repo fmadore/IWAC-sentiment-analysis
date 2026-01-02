@@ -1,8 +1,8 @@
 /**
  * Articles State Module
  * 
- * Manages article data, loading, and filtering.
- * Uses writable/derived stores for proper Svelte reactivity.
+ * Manages article data, loading, and filtering using Svelte 5 runes.
+ * Provides both modern $state-based API and legacy store compatibility.
  */
 
 import { writable, derived, get } from 'svelte/store';
@@ -24,17 +24,36 @@ import {
 import { isLoadingDataset } from './ui.svelte';
 
 // ============================================
-// Article Stores
+// Svelte 5 Runes State
 // ============================================
 
-/** Cached articles by dataset ID */
+let _datasetArticles = $state<Record<string, Article[]>>({});
+let _currentDatasetArticles = $state<Article[]>([]);
+let _selectedArticle = $state<Article | null>(null);
+
+// ============================================
+// Legacy Stores (for derived store compatibility)
+// ============================================
+
+/**
+ * @deprecated Use articleState.datasets instead
+ */
 export const datasetArticles = writable<Record<string, Article[]>>({});
 
-/** Articles for the current dataset (for backward compatibility) */
+/**
+ * @deprecated Use articleState.current instead
+ */
 export const currentDatasetArticles = writable<Article[]>([]);
 
-/** Currently selected article for detail view */
+/**
+ * @deprecated Use articleState.selected instead
+ */
 export const selectedArticle = writable<Article | null>(null);
+
+// Sync legacy stores to runes state
+datasetArticles.subscribe(value => { _datasetArticles = value; });
+currentDatasetArticles.subscribe(value => { _currentDatasetArticles = value; });
+selectedArticle.subscribe(value => { _selectedArticle = value; });
 
 // ============================================
 // Derived Stores
@@ -334,26 +353,60 @@ const prefetchOtherDatasets = async (
 };
 
 // ============================================
-// Modern State Accessors (for gradual migration)
+// Modern State Accessors (Recommended)
 // ============================================
 
+/**
+ * Article state object with reactive getters and setters.
+ * Use this API for new code.
+ * 
+ * @example
+ * // Read state
+ * const articles = articleState.datasets['chatgpt'];
+ * 
+ * // Write state
+ * articleState.selected = article;
+ * 
+ * // Get filtered
+ * const filtered = articleState.filtered;
+ */
 export const articleState = {
-    get datasetArticles() {
-        return get(datasetArticles);
+    // All dataset articles
+    get datasets() {
+        return _datasetArticles;
     },
-    get currentDatasetArticles() {
-        return get(currentDatasetArticles);
+    
+    // Current dataset articles
+    get current() {
+        return _currentDatasetArticles;
     },
-    get selectedArticle() {
-        return get(selectedArticle);
+    set current(value: Article[]) {
+        _currentDatasetArticles = value;
+        currentDatasetArticles.set(value);
     },
-    setSelectedArticle(value: Article | null) {
+    
+    // Selected article
+    get selected() {
+        return _selectedArticle;
+    },
+    set selected(value: Article | null) {
+        _selectedArticle = value;
         selectedArticle.set(value);
     },
-    get filteredArticles() {
+    
+    // Filtered articles (reads from derived store)
+    get filtered() {
         return get(filteredArticles);
     },
-    get availableJournals() {
+    
+    // Available journals (reads from derived store)
+    get journals() {
         return get(availableJournals);
+    },
+    
+    // Update datasets
+    updateDatasets(datasetId: string, articles: Article[]) {
+        _datasetArticles = { ..._datasetArticles, [datasetId]: articles };
+        datasetArticles.set(_datasetArticles);
     }
 };

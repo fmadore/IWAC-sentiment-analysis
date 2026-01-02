@@ -92,8 +92,8 @@ export interface ArbiterStatistics {
 
 /** Compute arbiter statistics */
 function computeArbiterStatistics(): ArbiterStatistics {
-	const pair = datasetState.comparisonPair;
-	const datasets = datasetState.availableDatasets;
+	const pair = datasetState.pair;
+	const datasets = datasetState.available;
 	const [modelAId, modelBId] = getModelsFromPair(pair);
 	const modelAName = datasets.find((d) => d.id === modelAId)?.name || modelAId;
 	const modelBName = datasets.find((d) => d.id === modelBId)?.name || modelBId;
@@ -187,9 +187,9 @@ export const loadArbiterEvaluations = async (
 	fetchFunction: typeof fetch,
 	pair?: ModelPair
 ): Promise<void> => {
-	uiState.setIsLoadingArbiter(true);
+	uiState.isLoadingArbiter = true;
 
-	const targetPair: ModelPair = pair || datasetState.comparisonPair;
+	const targetPair: ModelPair = pair || datasetState.pair;
 
 	try {
 		const pairSpecificPath = `${base}/data/iwac_arbiter_evaluations_${targetPair}.json`;
@@ -219,7 +219,7 @@ export const loadArbiterEvaluations = async (
 		_arbiterEvaluations = null;
 		_currentArbiterPair = targetPair;
 	} finally {
-		uiState.setIsLoadingArbiter(false);
+		uiState.isLoadingArbiter = false;
 	}
 };
 
@@ -238,8 +238,8 @@ export const setupArbiterPairReactivity = (fetchFunction: typeof fetch): (() => 
 		let previousPair = _currentArbiterPair;
 
 		$effect(() => {
-			const newPair = datasetState.comparisonPair;
-			const isInComparisonMode = datasetState.comparisonMode;
+			const newPair = datasetState.pair;
+			const isInComparisonMode = datasetState.isComparisonMode;
 
 			if (isInComparisonMode && previousPair !== null && previousPair !== newPair) {
 				console.log(`[Arbiter] Pair changed from ${previousPair} to ${newPair}, reloading data...`);

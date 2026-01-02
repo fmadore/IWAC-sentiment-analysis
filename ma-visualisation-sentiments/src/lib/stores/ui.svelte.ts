@@ -1,116 +1,166 @@
 /**
  * UI State Module
  * 
- * Manages UI-related state.
- * Uses writable stores for proper Svelte reactivity.
+ * Manages UI-related state using Svelte 5 runes.
+ * Provides both modern $state-based API and legacy store compatibility.
  */
 
-import { writable, get } from 'svelte/store';
+import { writable } from 'svelte/store';
 
 // ============================================
-// UI Stores
+// Svelte 5 Runes State
 // ============================================
 
-/** Whether the sidebar is expanded */
-export const sidebarExpanded = writable<boolean>(false);
-
-/** Currently active view (charts, table, comparison, extremes) */
-export const activeView = writable<string>('charts');
-
-/** Whether mobile menu is open */
-export const mobileMenuOpen = writable<boolean>(false);
-
-// ============================================
-// Loading State Stores
-// ============================================
-
-/** Whether a dataset is currently loading */
-export const isLoadingDataset = writable<boolean>(false);
-
-/** Whether extreme analysis is loading */
-export const isLoadingExtremeAnalysis = writable<boolean>(false);
-
-/** Whether comparison data is loading */
-export const isLoadingComparison = writable<boolean>(false);
-
-/** Whether arbiter data is loading */
-export const isLoadingArbiter = writable<boolean>(false);
+let _sidebarExpanded = $state<boolean>(false);
+let _activeView = $state<string>('charts');
+let _mobileMenuOpen = $state<boolean>(false);
+let _isLoadingDataset = $state<boolean>(false);
+let _isLoadingExtremeAnalysis = $state<boolean>(false);
+let _isLoadingComparison = $state<boolean>(false);
+let _isLoadingArbiter = $state<boolean>(false);
 
 // ============================================
-// Modern State Accessors (for gradual migration)
+// Modern State Accessors (Recommended)
 // ============================================
 
 /**
- * UI state object with getters and setters.
- * Provides a more ergonomic API for new code.
+ * UI state object with reactive getters and setters.
+ * Use this API for new code.
+ * 
+ * @example
+ * // Read state
+ * const view = uiState.activeView;
+ * 
+ * // Write state
+ * uiState.activeView = 'table';
+ * 
+ * // Toggle
+ * uiState.toggleSidebar();
  */
 export const uiState = {
     // Sidebar
     get sidebarExpanded() {
-        return get(sidebarExpanded);
+        return _sidebarExpanded;
     },
-    setSidebarExpanded(value: boolean) {
+    set sidebarExpanded(value: boolean) {
+        _sidebarExpanded = value;
         sidebarExpanded.set(value);
     },
     toggleSidebar() {
-        sidebarExpanded.update((v) => !v);
+        _sidebarExpanded = !_sidebarExpanded;
+        sidebarExpanded.set(_sidebarExpanded);
     },
 
     // Active view
     get activeView() {
-        return get(activeView);
+        return _activeView;
     },
-    setActiveView(value: string) {
+    set activeView(value: string) {
+        _activeView = value;
         activeView.set(value);
     },
 
     // Mobile menu
     get mobileMenuOpen() {
-        return get(mobileMenuOpen);
+        return _mobileMenuOpen;
     },
-    setMobileMenuOpen(value: boolean) {
+    set mobileMenuOpen(value: boolean) {
+        _mobileMenuOpen = value;
         mobileMenuOpen.set(value);
     },
     toggleMobileMenu() {
-        mobileMenuOpen.update((v) => !v);
+        _mobileMenuOpen = !_mobileMenuOpen;
+        mobileMenuOpen.set(_mobileMenuOpen);
     },
 
     // Loading states
     get isLoadingDataset() {
-        return get(isLoadingDataset);
+        return _isLoadingDataset;
     },
-    setIsLoadingDataset(value: boolean) {
+    set isLoadingDataset(value: boolean) {
+        _isLoadingDataset = value;
         isLoadingDataset.set(value);
     },
 
     get isLoadingExtremeAnalysis() {
-        return get(isLoadingExtremeAnalysis);
+        return _isLoadingExtremeAnalysis;
     },
-    setIsLoadingExtremeAnalysis(value: boolean) {
+    set isLoadingExtremeAnalysis(value: boolean) {
+        _isLoadingExtremeAnalysis = value;
         isLoadingExtremeAnalysis.set(value);
     },
 
     get isLoadingComparison() {
-        return get(isLoadingComparison);
+        return _isLoadingComparison;
     },
-    setIsLoadingComparison(value: boolean) {
+    set isLoadingComparison(value: boolean) {
+        _isLoadingComparison = value;
         isLoadingComparison.set(value);
     },
 
     get isLoadingArbiter() {
-        return get(isLoadingArbiter);
+        return _isLoadingArbiter;
     },
-    setIsLoadingArbiter(value: boolean) {
+    set isLoadingArbiter(value: boolean) {
+        _isLoadingArbiter = value;
         isLoadingArbiter.set(value);
     },
 
     // Utility: Check if anything is loading
     get isLoading() {
         return (
-            get(isLoadingDataset) ||
-            get(isLoadingExtremeAnalysis) ||
-            get(isLoadingComparison) ||
-            get(isLoadingArbiter)
+            _isLoadingDataset ||
+            _isLoadingExtremeAnalysis ||
+            _isLoadingComparison ||
+            _isLoadingArbiter
         );
     }
 };
+
+// ============================================
+// Legacy Store Compatibility
+// ============================================
+
+/**
+ * @deprecated Use uiState.sidebarExpanded instead
+ */
+export const sidebarExpanded = writable<boolean>(false);
+
+/**
+ * @deprecated Use uiState.activeView instead
+ */
+export const activeView = writable<string>('charts');
+
+/**
+ * @deprecated Use uiState.mobileMenuOpen instead
+ */
+export const mobileMenuOpen = writable<boolean>(false);
+
+/**
+ * @deprecated Use uiState.isLoadingDataset instead
+ */
+export const isLoadingDataset = writable<boolean>(false);
+
+/**
+ * @deprecated Use uiState.isLoadingExtremeAnalysis instead
+ */
+export const isLoadingExtremeAnalysis = writable<boolean>(false);
+
+/**
+ * @deprecated Use uiState.isLoadingComparison instead
+ */
+export const isLoadingComparison = writable<boolean>(false);
+
+/**
+ * @deprecated Use uiState.isLoadingArbiter instead
+ */
+export const isLoadingArbiter = writable<boolean>(false);
+
+// Sync legacy stores to runes state
+sidebarExpanded.subscribe(value => { _sidebarExpanded = value; });
+activeView.subscribe(value => { _activeView = value; });
+mobileMenuOpen.subscribe(value => { _mobileMenuOpen = value; });
+isLoadingDataset.subscribe(value => { _isLoadingDataset = value; });
+isLoadingExtremeAnalysis.subscribe(value => { _isLoadingExtremeAnalysis = value; });
+isLoadingComparison.subscribe(value => { _isLoadingComparison = value; });
+isLoadingArbiter.subscribe(value => { _isLoadingArbiter = value; });
