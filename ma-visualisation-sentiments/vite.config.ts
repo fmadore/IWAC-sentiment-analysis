@@ -28,6 +28,11 @@ export default defineConfig({
 			verbose: true
 		})
 	],
+	build: {
+		// The main chunk is large due to ECharts and visualization components.
+		// Gzipped size (~253 kB) is acceptable; Brotli reduces it further to ~200 kB.
+		chunkSizeWarningLimit: 800
+	},
 	optimizeDeps: {
 		exclude: [
 			'@lucide/svelte/icons/x',
