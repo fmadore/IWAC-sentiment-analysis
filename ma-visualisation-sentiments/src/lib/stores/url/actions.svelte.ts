@@ -9,21 +9,30 @@ import { goto } from '$app/navigation';
 import { page } from '$app/stores';
 import { get } from 'svelte/store';
 import { initializeLanguage } from '$lib/i18n';
+
+// Import directly from individual store modules to avoid circular dependencies
+// (importing from '$lib/stores' would create a cycle since stores/index.ts re-exports from url/)
 import {
   countryFilters,
   journalFilters,
   polarityFilters,
   subjectivityFilters,
   centralityFilters,
+  discrepancyFilters
+} from '../filters.svelte';
+import {
   selectedDataset,
   comparisonMode,
-  comparisonPair,
-  discrepancyFilters,
+  comparisonPair
+} from '../datasets.svelte';
+import {
   selectedArticle,
-  datasetArticles,
+  datasetArticles
+} from '../articles.svelte';
+import {
   selectedComparison,
   comparisonData
-} from '$lib/stores';
+} from '../comparison.svelte';
 
 import { VALID_PAIRS } from './constants';
 import type { URLState } from './types';

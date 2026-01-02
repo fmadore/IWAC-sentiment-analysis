@@ -1,9 +1,9 @@
 // Service Worker for IWAC Sentiment Analysis PWA
 // Provides caching and offline functionality
 
-const CACHE_NAME = 'iwac-sentiment-analysis-v2';
-const STATIC_CACHE_NAME = 'iwac-static-v2';
-const DATA_CACHE_NAME = 'iwac-data-v2';
+const CACHE_NAME = 'iwac-sentiment-analysis-v4';
+const STATIC_CACHE_NAME = 'iwac-static-v4';
+const DATA_CACHE_NAME = 'iwac-data-v4';
 
 // Get base path for GitHub Pages deployment
 const BASE_PATH = self.location.pathname.includes('/IWAC-sentiment-analysis') ? '/IWAC-sentiment-analysis' : '';
@@ -22,13 +22,17 @@ const STATIC_FILES = [
 // Smaller files first for faster initial cache population
 const DATA_FILES_PRIORITY = [
   // Priority 1: Arbiter evaluations (smallest, needed for comparison view)
-  `${BASE_PATH}/data/iwac_arbiter_evaluations.json`,
+  `${BASE_PATH}/data/iwac_arbiter_evaluations_chatgpt-gemini.json`,
+  `${BASE_PATH}/data/iwac_arbiter_evaluations_chatgpt-mistral.json`,
+  `${BASE_PATH}/data/iwac_arbiter_evaluations_gemini-mistral.json`,
   // Priority 2: Main article datasets
   `${BASE_PATH}/data/iwac_articles_chatgpt.json`,
   `${BASE_PATH}/data/iwac_articles_gemini.json`,
+  `${BASE_PATH}/data/iwac_articles_mistral.json`,
   // Priority 3: Extreme analysis data (larger files, used less frequently)
   `${BASE_PATH}/data/iwac_extreme_analysis_chatgpt.json`,
-  `${BASE_PATH}/data/iwac_extreme_analysis_gemini.json`
+  `${BASE_PATH}/data/iwac_extreme_analysis_gemini.json`,
+  `${BASE_PATH}/data/iwac_extreme_analysis_mistral.json`
 ];
 
 // Legacy DATA_FILES for backward compatibility
@@ -113,13 +117,27 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
+  // Skip Vite HMR and dev server requests in development
+  if (url.pathname.includes('/@') || 
+      url.pathname.includes('__vite') || 
+      url.pathname.includes('.hot-update') ||
+      url.pathname.includes('node_modules')) {
+    return;
+  }
+  
   // Skip cross-origin requests that we can't cache
   if (url.origin !== self.location.origin && !url.hostname.includes('fonts.googleapis.com') && !url.hostname.includes('fonts.gstatic.com')) {
     return;
   }
   
   // Handle data files with network-first strategy
-  if (DATA_FILES.some(file => url.pathname.includes(file.replace('/data/', '')))) {
+  // Check if the pathname contains any of our data file names
+  const isDataFile = url.pathname.includes('/data/') && 
+    (url.pathname.includes('iwac_articles_') || 
+     url.pathname.includes('iwac_arbiter_evaluations_') || 
+     url.pathname.includes('iwac_extreme_analysis_'));
+  
+  if (isDataFile) {
     event.respondWith(
       networkFirstStrategy(request, DATA_CACHE_NAME)
     );
@@ -127,9 +145,9 @@ self.addEventListener('fetch', (event) => {
   }
   
   // Handle static files with cache-first strategy
-  if (STATIC_FILES.some(file => url.pathname === file) || 
-      url.pathname.startsWith('/icons/') ||
-      url.pathname.startsWith('/_app/')) {
+  if (STATIC_FILES.some(file => url.pathname === file || url.pathname.endsWith(file)) || 
+      url.pathname.includes('/icons/') ||
+      url.pathname.includes('/_app/')) {
     event.respondWith(
       cacheFirstStrategy(request, STATIC_CACHE_NAME)
     );
@@ -139,7 +157,7 @@ self.addEventListener('fetch', (event) => {
   // Handle navigation requests (HTML pages)
   if (request.mode === 'navigate') {
     event.respondWith(
-      networkFirstStrategy(request, CACHE_NAME, '/')
+      networkFirstStrategy(request, CACHE_NAME, `${BASE_PATH}/`)
     );
     return;
   }

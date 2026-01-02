@@ -2,14 +2,17 @@
   import '../app.postcss';
   import { AppHeader, SidebarNav } from '$lib/components/layout';
   import { PWAManager } from '$lib/components';
-  import { sidebarExpanded } from '$lib/stores';
+  import { uiState } from '$lib/stores';
 
   let { children } = $props();
+  
+  // Reactive binding to sidebar state
+  let isSidebarExpanded = $derived(uiState.sidebarExpanded);
 </script>
 
 <SidebarNav />
 
-<div class="app-content" class:expanded={$sidebarExpanded}>
+<div class="app-content" class:expanded={isSidebarExpanded}>
   <AppHeader />
   <main>
     {@render children()}

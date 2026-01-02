@@ -13,6 +13,20 @@
 			return;
 		}
 
+		// Skip service worker registration in development mode
+		// to avoid conflicts with Vite's HMR
+		const isDev = import.meta.env.DEV;
+		if (isDev) {
+			console.log('[PWA] Skipping Service Worker registration in development mode');
+			// Unregister any existing service workers in dev mode
+			const registrations = await navigator.serviceWorker.getRegistrations();
+			for (const reg of registrations) {
+				await reg.unregister();
+				console.log('[PWA] Unregistered existing Service Worker');
+			}
+			return;
+		}
+
 		try {
 			// Register service worker with proper base path for GitHub Pages
 			const basePath = import.meta.env.BASE_URL || '/';

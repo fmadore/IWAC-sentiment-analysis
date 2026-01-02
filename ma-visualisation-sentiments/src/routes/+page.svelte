@@ -2,23 +2,21 @@
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
   import { 
-    currentDatasetArticles, 
-    isLoadingDataset, 
     loadCurrentDataset,
     loadComparisonDatasets,
     loadCurrentExtremeAnalysis,
     loadArbiterEvaluations,
-    selectedDataset,
+    uiState,
+    datasetState,
+    articleState,
+    filterState
+  } from '$lib/stores';
+  import { 
     datasetArticles,
-    comparisonMode,
+    currentDatasetArticles,
     selectedArticle,
-    countryFilters,
-    journalFilters,
-    polarityFilters,
-    subjectivityFilters,
-    centralityFilters,
     activeView
-  } from '$lib';
+  } from '$lib/stores';
   import { t, currentLanguage } from '$lib/i18n';
   import type { Article } from '$lib';
   import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
@@ -39,28 +37,34 @@
   // Application state
   let detailedArticle: Article | null = $state(null);
   let showDetailsSidebar = $state(false);
+  let isInitialized = $state(false);
 
   // Extreme analysis controls state
   let selectedCategory = $state<ExtremeCategory>('polarity_very_negative');
   let selectedKeywordType = $state<KeywordType>('subject');
   let showTopN = $state(10);
 
-  // Get articles for the current dataset
-  let currentArticles = $derived($datasetArticles[$selectedDataset] || []);
+  // Derived state from stores
+  let currentView = $derived(uiState.activeView);
+  let isLoading = $derived(uiState.isLoadingDataset);
+  let isComparisonMode = $derived(datasetState.isComparisonMode);
+  let currentDatasetId = $derived(datasetState.selected);
+  let currentArticles = $derived(articleState.datasets[currentDatasetId] || []);
+  let currentSelectedArticle = $derived(articleState.selected);
 
-  // Reactive statement to handle extreme analysis data loading when dataset changes
+  // Load extreme analysis when view is 'extremes' and dataset changes
   $effect(() => {
-    if ($activeView === 'extremes' && $selectedDataset && browser) {
-      console.log('Loading extreme analysis for dataset:', $selectedDataset);
+    if (currentView === 'extremes' && currentDatasetId && browser && isInitialized) {
+      console.log('Loading extreme analysis for dataset:', currentDatasetId);
       loadCurrentExtremeAnalysis(fetch)
-        .then(() => console.log('Extreme analysis loaded successfully for:', $selectedDataset))
+        .then(() => console.log('Extreme analysis loaded successfully for:', currentDatasetId))
         .catch(error => console.error("Failed to load extreme analysis data:", error));
     }
   });
 
-  // Reactive statement to handle comparison data loading when comparison mode is enabled
+  // Load comparison data when comparison mode is enabled
   $effect(() => {
-    if ($comparisonMode && browser) {
+    if (isComparisonMode && browser && isInitialized) {
       console.log('Comparison mode enabled, loading comparison datasets...');
       loadComparisonDatasets(fetch)
         .then(() => console.log('Comparison datasets loaded successfully'))
@@ -72,26 +76,96 @@
     }
   });
 
+  // Update HTML lang attribute when language changes
+  $effect(() => {
+    const lang = $currentLanguage;
+    if (browser && typeof document !== 'undefined') {
+      document.documentElement.lang = lang;
+    }
+  });
+
+  // React to filter changes and update URL
+  $effect(() => {
+    // Access filter state to track changes
+    filterState.countries;
+    filterState.journals;
+    filterState.polarities;
+    filterState.subjectivities;
+    filterState.centralities;
+    isComparisonMode;
+    
+    if (browser && isInitialized) {
+      updateURL(currentView);
+    }
+  });
+
+  // React to selectedArticle changes and show details if article is selected
+  $effect(() => {
+    if (currentSelectedArticle && !detailedArticle) {
+      detailedArticle = currentSelectedArticle;
+      showDetailsSidebar = true;
+      console.log(`[Article Details] Showing details for article from URL: ${currentSelectedArticle['o:title']}`);
+    }
+  });
+
+  // React to dataset changes to load new dataset and update URL
+  $effect(() => {
+    if (!browser || !isInitialized) return;
+    
+    const datasets = articleState.datasets;
+    if (!datasets[currentDatasetId] || datasets[currentDatasetId].length === 0) {
+      uiState.isLoadingDataset = true;
+      loadCurrentDataset(fetch)
+        .then(() => {
+          setTimeout(() => handlePendingArticleSelection(), 100);
+        })
+        .catch(error => {
+          console.error("Failed to load dataset:", error);
+        })
+        .finally(() => {
+          uiState.isLoadingDataset = false;
+        });
+    } else {
+      articleState.current = datasets[currentDatasetId];
+      setTimeout(() => handlePendingArticleSelection(), 100);
+    }
+    
+    updateURL(currentView);
+  });
+
+  // React to activeView changes for side effects (loading data, toggling comparison mode)
+  $effect(() => {
+    if (!browser || !isInitialized) return;
+    
+    if (currentView === 'comparison') {
+      if (!isComparisonMode) {
+        datasetState.isComparisonMode = true;
+      }
+      
+      loadComparisonDatasets(fetch).catch(error => {
+        console.error("Failed to load comparison datasets:", error);
+      });
+    } else if (currentView === 'extremes') {
+      loadCurrentExtremeAnalysis(fetch).catch(error => {
+        console.error("Failed to load extreme analysis data:", error);
+      });
+    } else {
+      if (isComparisonMode) {
+        datasetState.isComparisonMode = false;
+      }
+    }
+  });
+
   onMount(() => {
     // Initialize URL state management first
     const urlView = initializeURLState();
     if (urlView) {
-      $activeView = urlView;
+      uiState.activeView = urlView;
     }
-
-    // Update HTML lang attribute when language changes
-    const updateHtmlLang = (lang: string) => {
-      if (typeof document !== 'undefined') {
-        document.documentElement.lang = lang;
-      }
-    };
-
-    // Set initial HTML lang attribute
-    updateHtmlLang($currentLanguage);
 
     // Load only the current dataset at startup (lazy loading)
     const loadData = async () => {
-      isLoadingDataset.set(true);
+      uiState.isLoadingDataset = true;
       clearSelectedArticleOnly();
       
       try {
@@ -100,67 +174,12 @@
       } catch (error) {
         console.error("Failed to load dataset:", error);
       } finally {
-        isLoadingDataset.set(false);
+        uiState.isLoadingDataset = false;
+        isInitialized = true;
       }
     };
 
     loadData();
-
-    // React to filter changes and update URL
-    $effect(() => {
-      $countryFilters;
-      $journalFilters;
-      $polarityFilters;
-      $subjectivityFilters;
-      $centralityFilters;
-      $comparisonMode;
-      
-      if (browser) {
-        updateURL($activeView);
-      }
-    });
-    
-    // React to language changes and update HTML lang attribute
-    $effect(() => {
-      updateHtmlLang($currentLanguage);
-    });
-
-    // React to selectedArticle changes and show details if article is selected
-    $effect(() => {
-      const article = $selectedArticle;
-      if (article && !detailedArticle) {
-        detailedArticle = article;
-        showDetailsSidebar = true;
-        console.log(`[Article Details] Showing details for article from URL: ${article['o:title']}`);
-      }
-    });
-
-    // React to dataset changes to load new dataset and update URL
-    $effect(() => {
-      const datasetId = $selectedDataset;
-      
-      (async () => {
-        const currentDatasets = $datasetArticles;
-        if (!currentDatasets[datasetId] || currentDatasets[datasetId].length === 0) {
-          isLoadingDataset.set(true);
-          try {
-            await loadCurrentDataset(fetch);
-            setTimeout(() => handlePendingArticleSelection(), 100);
-          } catch (error) {
-            console.error("Failed to load dataset:", error);
-          } finally {
-            isLoadingDataset.set(false);
-          }
-        } else {
-          currentDatasetArticles.set(currentDatasets[datasetId]);
-          setTimeout(() => handlePendingArticleSelection(), 100);
-        }
-        
-        if (browser) {
-          updateURL($activeView);
-        }
-      })();
-    });
   });
 
   // Handle showing article details
@@ -174,29 +193,6 @@
     detailedArticle = null;
     clearSelectedArticle();
   }
-
-  // React to activeView changes for side effects (loading data, toggling comparison mode)
-  $effect(() => {
-    const view = $activeView;
-    
-    if (view === 'comparison') {
-      if (!$comparisonMode) {
-        comparisonMode.set(true);
-      }
-      
-      loadComparisonDatasets(fetch).catch(error => {
-        console.error("Failed to load comparison datasets:", error);
-      });
-    } else if (view === 'extremes') {
-      loadCurrentExtremeAnalysis(fetch).catch(error => {
-        console.error("Failed to load extreme analysis data:", error);
-      });
-    } else {
-      if ($comparisonMode) {
-        comparisonMode.set(false);
-      }
-    }
-  });
 
   // Handlers for extreme analysis controls
   function handleCategoryChange(category: ExtremeCategory) {
@@ -213,17 +209,17 @@
 </script>
 
 <!-- Dynamic SEO Head -->
-<SEOHead view={$activeView} comparisonMode={$comparisonMode} />
+<SEOHead view={currentView} comparisonMode={isComparisonMode} />
 
-<main class="main-container container {$activeView === 'extremes' ? 'max-w-7xl' : 'max-w-6xl'} mx-auto p-2 sm:p-4 md:p-6">
+<main class="main-container container {currentView === 'extremes' ? 'max-w-7xl' : 'max-w-6xl'} mx-auto p-2 sm:p-4 md:p-6">
   <AnalysisInfo />
 
-  {#if $isLoadingDataset}
+  {#if isLoading}
     <LoadingState />
   {:else if currentArticles.length > 0}
 
     <FiltersPanel
-      activeView={$activeView}
+      activeView={currentView}
       {selectedCategory}
       {selectedKeywordType}
       {showTopN}
@@ -233,7 +229,7 @@
     />
 
     <ViewContent
-      activeView={$activeView}
+      activeView={currentView}
       {selectedCategory}
       {selectedKeywordType}
       {showTopN}

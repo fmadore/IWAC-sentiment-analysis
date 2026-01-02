@@ -5,21 +5,26 @@
  */
 
 import { currentLanguage } from '$lib/i18n';
+import { get } from 'svelte/store';
+import type { URLState, PendingArticleSelection } from './types';
+
+// Import directly from individual store modules to avoid circular dependencies
+// (importing from '$lib/stores' would create a cycle since stores/index.ts re-exports from url/)
 import {
   countryFilters,
   journalFilters,
   polarityFilters,
   subjectivityFilters,
   centralityFilters,
+  discrepancyFilters
+} from '../filters.svelte';
+import {
   selectedDataset,
   comparisonMode,
-  comparisonPair,
-  discrepancyFilters,
-  selectedArticle,
-  selectedComparison
-} from '$lib/stores';
-import { get } from 'svelte/store';
-import type { URLState, PendingArticleSelection } from './types';
+  comparisonPair
+} from '../datasets.svelte';
+import { selectedArticle } from '../articles.svelte';
+import { selectedComparison } from '../comparison.svelte';
 
 // ============================================
 // Svelte 5 Runes State
