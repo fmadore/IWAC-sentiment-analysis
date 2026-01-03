@@ -26,13 +26,13 @@
 	onMount(() => {
 		// Set initial fullscreen state
 		isFullscreen = !!document.fullscreenElement;
-		
+
 		// Listen for fullscreen change events
 		const handleFullscreenChange = () => {
 			isFullscreen = !!document.fullscreenElement;
 		};
 		document.addEventListener('fullscreenchange', handleFullscreenChange);
-		
+
 		// Cleanup on unmount
 		return () => {
 			document.removeEventListener('fullscreenchange', handleFullscreenChange);
@@ -58,29 +58,6 @@
 				{/if}
 			</button>
 
-			<div class="brand-icon">
-				<svg
-					width="32"
-					height="32"
-					viewBox="0 0 32 32"
-					fill="none"
-					xmlns="http://www.w3.org/2000/svg"
-				>
-					<rect width="32" height="32" rx="8" fill="url(#header-gradient)" />
-					<path
-						d="M8 12h16M8 16h12M8 20h8"
-						stroke="white"
-						stroke-width="2"
-						stroke-linecap="round"
-					/>
-					<defs>
-						<linearGradient id="header-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-							<stop offset="0%" stop-color="var(--color-primary-500)" />
-							<stop offset="100%" stop-color="var(--color-secondary-500)" />
-						</linearGradient>
-					</defs>
-				</svg>
-			</div>
 			<div class="brand-text">
 				<span class="brand-title">{$t.appTitle}</span>
 				<span class="brand-subtitle hidden sm:block">{$t.appSubtitle}</span>
@@ -231,27 +208,6 @@
 		justify-content: flex-end;
 	}
 
-	/* Brand Section */
-	.brand-icon {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 2.5rem;
-		height: 2.5rem;
-		border-radius: 0.625rem;
-		background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-		transition: all var(--timing-normal, 0.2s) ease;
-		flex-shrink: 0;
-	}
-
-	.brand-icon:hover {
-		background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-		border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
-		transform: translateY(-1px);
-		box-shadow: 0 4px 16px color-mix(in oklab, var(--color-primary-500) 20%, transparent);
-	}
-
 	.brand-text {
 		display: flex;
 		flex-direction: column;
@@ -318,16 +274,6 @@
 			gap: 0.5rem;
 		}
 
-		.brand-icon {
-			width: 2rem;
-			height: 2rem;
-		}
-
-		.brand-icon svg {
-			width: 24px;
-			height: 24px;
-		}
-
 		.fullscreen-btn {
 			width: 2rem;
 			height: 2rem;
@@ -352,16 +298,6 @@
 			gap: 0.375rem;
 		}
 
-		.brand-icon {
-			width: 1.75rem;
-			height: 1.75rem;
-		}
-
-		.brand-icon svg {
-			width: 20px;
-			height: 20px;
-		}
-
 		.brand-title {
 			font-size: 0.9rem;
 		}
@@ -378,11 +314,6 @@
 			gap: 1.5rem;
 		}
 
-		.brand-icon {
-			width: 2.75rem;
-			height: 2.75rem;
-		}
-
 		.brand-title {
 			font-size: 1.375rem;
 		}
@@ -395,7 +326,6 @@
 
 	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
-		.brand-icon,
 		.fullscreen-btn {
 			transition: none;
 		}
@@ -403,7 +333,6 @@
 
 	/* High contrast mode support */
 	@media (prefers-contrast: high) {
-		.brand-icon,
 		.fullscreen-btn {
 			border-width: 2px;
 		}
