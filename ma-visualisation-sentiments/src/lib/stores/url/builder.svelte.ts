@@ -22,7 +22,9 @@ export function buildURLSearchParams(state: URLState): URLSearchParams {
     params.set(URL_PARAMS.lang, state.lang);
   }
 
-  if (state.dataset && (VALID_DATASETS as readonly string[]).includes(state.dataset)) {
+  // Only include dataset parameter when NOT in comparison mode
+  // In comparison mode, datasets are derived from the pair parameter
+  if (state.dataset && (VALID_DATASETS as readonly string[]).includes(state.dataset) && state.compare !== true) {
     params.set(URL_PARAMS.dataset, state.dataset);
   }
 

@@ -92,9 +92,14 @@ export function getCurrentState(): URLState {
     polarities: get(polarityFilters),
     subjectivities: get(subjectivityFilters),
     centralities: get(centralityFilters),
-    lang: get(currentLanguage),
-    dataset: get(selectedDataset)
+    lang: get(currentLanguage)
   };
+
+  // Only include dataset when not in comparison mode
+  // In comparison mode, datasets are derived from the pair parameter
+  if (!isComparisonMode) {
+    state.dataset = get(selectedDataset);
+  }
 
   // Include selected article ID if there is one
   if (currentArticle) {

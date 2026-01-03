@@ -13,7 +13,10 @@ export default defineConfig({
     resolve: {
         alias: {
             $lib: resolve('./src/lib'),
-            '$app/paths': resolve('./src/mocks/app-paths.ts')
+            '$app/paths': resolve('./src/mocks/app-paths.ts'),
+            '$app/environment': resolve('./src/mocks/app-environment.ts'),
+            '$app/navigation': resolve('./src/mocks/app-navigation.ts'),
+            '$app/stores': resolve('./src/mocks/app-stores.ts')
         }
     }
 });
