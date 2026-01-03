@@ -28,6 +28,10 @@ jobs:
           # Try npm ci first, fallback to npm install if it fails
           npm ci || npm install
 
+      - name: Run tests
+        working-directory: ./ma-visualisation-sentiments
+        run: npm run test:run
+
       - name: Build application
         working-directory: ./ma-visualisation-sentiments
         run: npm run build # This uses the build script from your package.json

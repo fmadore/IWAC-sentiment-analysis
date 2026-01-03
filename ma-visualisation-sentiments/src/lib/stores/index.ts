@@ -109,6 +109,7 @@ export {
     getArbiterForArticle,
     arbiterStatistics,
     decodePreferredModel,
+    getActualModelName,
     loadArbiterEvaluations,
     setupArbiterPairReactivity
 } from './arbiter.svelte';

@@ -24,7 +24,8 @@
 		isLoadingArbiter,
 		arbiterModelAIsFirst,
 		comparisonPair,
-		availableDatasets
+		availableDatasets,
+		getActualModelName
 	} from '$lib/stores';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
@@ -61,15 +62,14 @@
 	});
 
 	// Get preferred model label using dynamic model names
+	// Uses getActualModelName which accounts for model_a_is_first flag
 	function getPreferredModelLabel(
 		preferredModel: 'model_a' | 'model_b' | 'both' | 'neither'
 	): string {
-		const { modelAName, modelBName } = modelNames;
 		switch (preferredModel) {
 			case 'model_a':
-				return `${$t.arbiter?.prefers || 'Prefers'} ${modelAName}`;
 			case 'model_b':
-				return `${$t.arbiter?.prefers || 'Prefers'} ${modelBName}`;
+				return `${$t.arbiter?.prefers || 'Prefers'} ${getActualModelName(preferredModel)}`;
 			case 'both':
 				return $t.arbiter?.prefersBoth || 'Both equal';
 			case 'neither':

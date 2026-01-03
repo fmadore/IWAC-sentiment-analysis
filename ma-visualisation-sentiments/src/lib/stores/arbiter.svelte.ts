@@ -141,16 +141,27 @@ function computeArbiterStatistics(): ArbiterStatistics {
 		}
 	}
 
+
 	const totalVerdicts = counts.model_a + counts.model_b + counts.both + counts.neither;
+
+	// Check if model A (as seen by arbiter) corresponds to first model in pair
+	// When model_a_is_first is false, we need to swap the counts to match UI expectations
+	// UI expects: "modelAPreferred" = preferences for first model in pair name (e.g., chatgpt for chatgpt-gemini)
+	const modelAIsFirst = _arbiterEvaluations?.metadata?.model_a_is_first ?? true;
+
+	// When modelAIsFirst is true: JSON's model_a = first model, model_b = second model
+	// When modelAIsFirst is false: JSON's model_a = second model, model_b = first model (need to swap)
+	const firstModelPreferred = modelAIsFirst ? counts.model_a : counts.model_b;
+	const secondModelPreferred = modelAIsFirst ? counts.model_b : counts.model_a;
 
 	return {
 		totalEvaluated: _arbiterEvaluations.evaluations.length,
-		modelAPreferred: counts.model_a,
-		modelBPreferred: counts.model_b,
+		modelAPreferred: firstModelPreferred,
+		modelBPreferred: secondModelPreferred,
 		bothEqual: counts.both,
 		neitherAccurate: counts.neither,
-		modelAPercentage: totalVerdicts > 0 ? (counts.model_a / totalVerdicts) * 100 : 0,
-		modelBPercentage: totalVerdicts > 0 ? (counts.model_b / totalVerdicts) * 100 : 0,
+		modelAPercentage: totalVerdicts > 0 ? (firstModelPreferred / totalVerdicts) * 100 : 0,
+		modelBPercentage: totalVerdicts > 0 ? (secondModelPreferred / totalVerdicts) * 100 : 0,
 		bothPercentage: totalVerdicts > 0 ? (counts.both / totalVerdicts) * 100 : 0,
 		neitherPercentage: totalVerdicts > 0 ? (counts.neither / totalVerdicts) * 100 : 0,
 		modelAName,
@@ -158,6 +169,7 @@ function computeArbiterStatistics(): ArbiterStatistics {
 		hasData: true
 	};
 }
+
 
 /** Arbiter statistics - exported as getter for reactivity */
 export const arbiterStatistics = {
@@ -170,13 +182,44 @@ export const arbiterStatistics = {
 // Helper Functions
 // ============================================
 
-/** Decode preferred model (kept for API compatibility) */
+/** 
+ * Get the actual model name for a preferred_model value from the arbiter JSON.
+ * Accounts for the model_a_is_first flag to correctly map to the UI model names.
+ * 
+ * @param preferredModel - The raw preference from arbiter JSON ('model_a', 'model_b', 'both', 'neither')
+ * @returns The display-ready model name or special label
+ */
+export function getActualModelName(
+	preferredModel: 'model_a' | 'model_b' | 'both' | 'neither'
+): string {
+	if (preferredModel === 'both' || preferredModel === 'neither') {
+		return preferredModel;
+	}
+
+	const pair = datasetState.pair;
+	const datasets = datasetState.available;
+	const [firstModelId, secondModelId] = getModelsFromPair(pair);
+	const firstModelName = datasets.find((d) => d.id === firstModelId)?.name || firstModelId;
+	const secondModelName = datasets.find((d) => d.id === secondModelId)?.name || secondModelId;
+
+	const modelAIsFirst = _arbiterEvaluations?.metadata?.model_a_is_first ?? true;
+
+	// Map JSON's model_a/model_b to actual model names
+	if (preferredModel === 'model_a') {
+		return modelAIsFirst ? firstModelName : secondModelName;
+	} else {
+		return modelAIsFirst ? secondModelName : firstModelName;
+	}
+}
+
+/** Decode preferred model (kept for API compatibility, deprecated) */
 export const decodePreferredModel = (
 	preferredModel: 'model_a' | 'model_b' | 'both' | 'neither',
 	_unused?: boolean
 ): 'model_a' | 'model_b' | 'both' | 'neither' => {
 	return preferredModel;
 };
+
 
 // ============================================
 // Data Loading
@@ -227,7 +270,7 @@ export const loadArbiterEvaluations = async (
 export const setupArbiterPairReactivity = (fetchFunction: typeof fetch): (() => void) => {
 	if (arbiterReactivitySetUp) {
 		console.log('[Arbiter] Reactivity already set up, skipping');
-		return () => {};
+		return () => { };
 	}
 
 	arbiterReactivitySetUp = true;
