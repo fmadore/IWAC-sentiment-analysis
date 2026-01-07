@@ -2,7 +2,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
-	import type { BeforeInstallPromptEvent, ExtendedServiceWorkerRegistration } from '$lib/types/pwa.js';
+	import { base } from '$app/paths';
+	import { DEV } from 'esm-env';
+	import type { ExtendedServiceWorkerRegistration } from '$lib/types/pwa.js';
 
 	let updateAvailable = $state(false);
 	let registration = $state<ExtendedServiceWorkerRegistration | null>(null);
@@ -15,8 +17,7 @@
 
 		// Skip service worker registration in development mode
 		// to avoid conflicts with Vite's HMR
-		const isDev = import.meta.env.DEV;
-		if (isDev) {
+		if (DEV) {
 			console.log('[PWA] Skipping Service Worker registration in development mode');
 			// Unregister any existing service workers in dev mode
 			const registrations = await navigator.serviceWorker.getRegistrations();
@@ -29,7 +30,7 @@
 
 		try {
 			// Register service worker with proper base path for GitHub Pages
-			const basePath = import.meta.env.BASE_URL || '/';
+			const basePath = base || '/';
 			registration = (await navigator.serviceWorker.register(`${basePath}sw.js`, {
 				scope: basePath
 			})) as ExtendedServiceWorkerRegistration;
@@ -89,46 +90,6 @@
 			registration.waiting.postMessage({ type: 'SKIP_WAITING' });
 		}
 	}
-
-	// Install prompt handling
-	let deferredPrompt = $state<BeforeInstallPromptEvent | null>(null);
-	let showInstallPrompt = $state(false);
-
-	onMount(() => {
-		if (!browser) return;
-
-		// Listen for the beforeinstallprompt event
-		window.addEventListener('beforeinstallprompt', (e: BeforeInstallPromptEvent) => {
-			// Prevent the mini-infobar from appearing on mobile
-			e.preventDefault();
-			// Stash the event so it can be triggered later
-			deferredPrompt = e;
-			// Show install button
-			showInstallPrompt = true;
-		});
-
-		// Listen for the install event
-		window.addEventListener('appinstalled', () => {
-			console.log('PWA was installed');
-			showInstallPrompt = false;
-			deferredPrompt = null;
-		});
-	});
-
-	async function installPWA() {
-		if (!deferredPrompt) return;
-
-		// Show the prompt
-		deferredPrompt.prompt();
-
-		// Wait for the user to respond to the prompt
-		const { outcome } = await deferredPrompt.userChoice;
-		console.log(`User response to the install prompt: ${outcome}`);
-
-		// We no longer need the prompt. Clear it up.
-		deferredPrompt = null;
-		showInstallPrompt = false;
-	}
 </script>
 
 <!-- Update notification -->
@@ -144,31 +105,6 @@
 				class="bg-white text-blue-600 px-3 py-1 rounded font-medium hover:bg-blue-50 transition-colors"
 			>
 				Update
-			</button>
-		</div>
-	</div>
-{/if}
-
-<!-- Install prompt -->
-{#if showInstallPrompt}
-	<div class="fixed bottom-4 left-4 z-50">
-		<div class="bg-slate-800 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3">
-			<div class="flex-1">
-				<p class="font-medium">Install App</p>
-				<p class="text-sm opacity-90">Add IWAC Analysis to your home screen</p>
-			</div>
-			<button
-				onclick={installPWA}
-				class="bg-blue-600 text-white px-3 py-1 rounded font-medium hover:bg-blue-700 transition-colors"
-			>
-				Install
-			</button>
-			<button
-				onclick={() => (showInstallPrompt = false)}
-				class="text-slate-400 hover:text-white transition-colors"
-				aria-label="Dismiss"
-			>
-				×
 			</button>
 		</div>
 	</div>
