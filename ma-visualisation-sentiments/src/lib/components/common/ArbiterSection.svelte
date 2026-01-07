@@ -135,17 +135,28 @@
 	}
 
 	// Decode Model A/B references in text to actual model names
+	// Uses model_a_is_first flag to correctly map arbiter's Model A/B to actual models
+	// Handles both English (Model A/B) and French (modèle A/B) variations
 	function decodeVerdictText(text: string): string {
 		if (!text) return text;
 
 		const { modelAName, modelBName } = modelNames;
+		const modelAIsFirst = arbiterModelAIsFirst.current;
 
-		// Replace Model A/B references (case insensitive)
+		// Map arbiter's Model A/B to actual model names based on blind assignment
+		// When modelAIsFirst is true: arbiter's Model A = first model (modelAName)
+		// When modelAIsFirst is false: arbiter's Model A = second model (modelBName)
+		const arbiterModelAName = modelAIsFirst ? modelAName : modelBName;
+		const arbiterModelBName = modelAIsFirst ? modelBName : modelAName;
+
+		// Replace Model A/B references (case insensitive) - handles both English and French
 		return text
-			.replace(/Model A/gi, modelAName)
-			.replace(/Model B/gi, modelBName)
-			.replace(/model_a/gi, modelAName)
-			.replace(/model_b/gi, modelBName);
+			.replace(/Model A/gi, arbiterModelAName)
+			.replace(/Model B/gi, arbiterModelBName)
+			.replace(/model_a/gi, arbiterModelAName)
+			.replace(/model_b/gi, arbiterModelBName)
+			.replace(/modèle A/gi, arbiterModelAName)
+			.replace(/modèle B/gi, arbiterModelBName);
 	}
 </script>
 

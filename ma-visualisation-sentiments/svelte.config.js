@@ -18,7 +18,8 @@ const config = {
 		adapter: adapter({
 			pages: 'build',
 			assets: 'build',
-			fallback: '404.html', // '200.html' or '404.html' - consider adding this if you use client-side routing extensively and need a fallback for direct URL access.
+			// Don't generate fallback - we use a custom 404.html in static/ for GitHub Pages SPA routing
+			fallback: undefined,
 			precompress: true,
 			strict: true
 		}),
