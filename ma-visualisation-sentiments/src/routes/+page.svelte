@@ -25,7 +25,7 @@
   import { FiltersPanel, ViewContent } from '$lib/components/layout';
   
   // Data Display
-  import { AnalysisInfo } from '$lib/components/data-display';
+  import { AnalysisInfo, ArbiterMethodology } from '$lib/components/data-display';
   
   // Common
   import { ArticleDetailModal, LoadingState } from '$lib/components/common';
@@ -149,6 +149,16 @@
       loadCurrentExtremeAnalysis(fetch).catch(error => {
         console.error("Failed to load extreme analysis data:", error);
       });
+    } else if (currentView === 'arbiter') {
+      // Arbiter view needs comparison mode for model pair selection
+      if (!isComparisonMode) {
+        datasetState.isComparisonMode = true;
+      }
+      
+      // Load arbiter data (handled by ArbiterView component but also preload here)
+      loadArbiterEvaluations(fetch).catch(error => {
+        console.log('Arbiter evaluations not available:', error);
+      });
     } else {
       if (isComparisonMode) {
         datasetState.isComparisonMode = false;
@@ -212,12 +222,24 @@
 <SEOHead view={currentView} comparisonMode={isComparisonMode} />
 
 <main class="main-container container {currentView === 'extremes' ? 'max-w-7xl' : 'max-w-6xl'} mx-auto p-2 sm:p-4 md:p-6">
-  <AnalysisInfo />
+  {#if currentView === 'arbiter'}
+    <ArbiterMethodology />
+  {:else}
+    <AnalysisInfo />
+  {/if}
 
   {#if isLoading}
     <LoadingState />
+  {:else if currentView === 'arbiter'}
+    <!-- Arbiter view has its own internal filtering, no FiltersPanel needed -->
+    <ViewContent
+      activeView={currentView}
+      {selectedCategory}
+      {selectedKeywordType}
+      {showTopN}
+      onShowDetails={handleShowDetails}
+    />
   {:else if currentArticles.length > 0}
-
     <FiltersPanel
       activeView={currentView}
       {selectedCategory}

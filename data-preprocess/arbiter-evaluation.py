@@ -584,8 +584,19 @@ def process_pair(client, df: pd.DataFrame, pair: str, webapp_data_dir: str) -> d
 
 
 def save_results(filepath: str, results: list, pair: str, model_a_is_first: bool,
-                 model_a_name: str, model_b_name: str, total: int, successful: int, failed: int):
-    """Save arbiter results to JSON file"""
+                 first_model_name: str, second_model_name: str, total: int, successful: int, failed: int):
+    """Save arbiter results to JSON file
+    
+    Args:
+        model_a_is_first: Whether the first model in the pair was presented as "Model A" to the arbiter
+        first_model_name: Name of the first model in the pair (e.g., ChatGPT for chatgpt-gemini)
+        second_model_name: Name of the second model in the pair (e.g., Gemini for chatgpt-gemini)
+    """
+    # CRITICAL: Save the actual model names that the arbiter saw as Model A/B
+    # This makes the JSON self-documenting and avoids confusion
+    arbiter_model_a = first_model_name if model_a_is_first else second_model_name
+    arbiter_model_b = second_model_name if model_a_is_first else first_model_name
+    
     with open(filepath, 'w', encoding='utf-8') as f:
         json.dump({
             'metadata': {
@@ -593,11 +604,14 @@ def save_results(filepath: str, results: list, pair: str, model_a_is_first: bool
                 'arbiter_model': 'gemini-3-pro-preview',
                 'thinking_level': 'high',
                 'blind_evaluation': True,
-                'model_a_is_first': model_a_is_first,
-                'model_a_name': model_a_name,
-                'model_b_name': model_b_name,
+                # Clarified naming: these are what the arbiter ACTUALLY saw
+                'arbiter_model_a': arbiter_model_a,  # What arbiter saw as "Model A"
+                'arbiter_model_b': arbiter_model_b,  # What arbiter saw as "Model B"
+                # Keep pair info for reference
                 'pair': pair,
-                'note': 'Model A/B assignment is consistent across all articles in this file.',
+                'pair_first_model': first_model_name,
+                'pair_second_model': second_model_name,
+                'note': 'arbiter_model_a/b = what the arbiter saw. preferred_model in verdicts directly maps to these names.',
                 'total_articles': total,
                 'successful_evaluations': successful,
                 'failed_evaluations': failed

@@ -6,8 +6,8 @@
     title?: string;
     /** Optional subtitle for the card header */
     subtitle?: string;
-    /** Visual variant: default, large, or extreme */
-    variant?: 'default' | 'large' | 'extreme';
+    /** Visual variant: default, large, extreme, or arbiter */
+    variant?: 'default' | 'large' | 'extreme' | 'arbiter';
     /** Card content */
     children: Snippet;
     /** Custom header snippet (overrides title/subtitle) */
@@ -143,6 +143,47 @@
 
   .chart-card[data-variant="extreme"] .chart-card-body {
     padding: 2rem;
+  }
+
+  /* Arbiter variant - for the arbiter analysis view */
+  .chart-card[data-variant="arbiter"] {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-surface-900) 92%, transparent),
+      color-mix(in oklab, var(--sentiment-arbiter) 4%, var(--color-surface-900))
+    );
+    border-color: var(--sentiment-arbiter-border);
+  }
+
+  .chart-card[data-variant="arbiter"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      var(--sentiment-arbiter),
+      var(--sentiment-arbiter-light),
+      var(--sentiment-arbiter)
+    );
+    opacity: 0.8;
+  }
+
+  .chart-card[data-variant="arbiter"] .chart-card-header {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .chart-card[data-variant="arbiter"] .chart-title {
+    font-size: 1.25rem;
+    color: var(--sentiment-arbiter-light);
+  }
+
+  .chart-card[data-variant="arbiter"] .chart-card-body {
+    padding: 1.5rem;
   }
 
   /* Responsive */

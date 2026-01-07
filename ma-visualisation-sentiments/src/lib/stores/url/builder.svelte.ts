@@ -36,13 +36,15 @@ export function buildURLSearchParams(state: URLState): URLSearchParams {
     params.set(URL_PARAMS.pair, state.pair);
   }
 
-  // Include diffMin/diffMax in comparison mode for the general list view
-  // Only omit them when viewing a specific article (comparisonArticleId is set) AND they're at defaults
+  // Include diffMin/diffMax ONLY for comparison view (not arbiter view)
+  // - Arbiter view has its own filters and doesn't use diff ranges
+  // - Also omit when viewing a specific article with default values
+  const isArbiterView = state.view === 'arbiter';
   const hasSpecificArticle = state.comparisonArticleId !== undefined;
   const diffMinIsDefault = state.diffMin === undefined || state.diffMin === 0;
   const diffMaxIsDefault = state.diffMax === undefined || state.diffMax === 5;
 
-  if (state.compare === true) {
+  if (state.compare === true && !isArbiterView) {
     // Include diffMin if: not viewing specific article, OR it's not the default value
     if (state.diffMin !== undefined && (!hasSpecificArticle || !diffMinIsDefault)) {
       params.set(URL_PARAMS.diffMin, state.diffMin.toString());

@@ -62,7 +62,7 @@
 	});
 
 	// Get preferred model label using dynamic model names
-	// Uses getActualModelName which accounts for model_a_is_first flag
+	// Uses getActualModelName which maps arbiter's model_a/model_b to actual model names via arbiter_model_a/b metadata
 	function getPreferredModelLabel(
 		preferredModel: 'model_a' | 'model_b' | 'both' | 'neither'
 	): string {
@@ -135,7 +135,7 @@
 	}
 
 	// Decode Model A/B references in text to actual model names
-	// Uses model_a_is_first flag to correctly map arbiter's Model A/B to actual models
+	// Uses arbiter_model_a/arbiter_model_b from metadata to get the correct mapping
 	// Handles both English (Model A/B) and French (modèle A/B) variations
 	function decodeVerdictText(text: string): string {
 		if (!text) return text;

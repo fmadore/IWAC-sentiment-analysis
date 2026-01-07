@@ -35,7 +35,8 @@
   // Data Display
   import { 
     ArticleTable, 
-    ComparisonView 
+    ComparisonView,
+    ArbiterView
   } from '$lib/components/data-display';
   
   // UI
@@ -108,6 +109,8 @@
       <KeywordFrequencyChart {selectedCategory} {selectedKeywordType} {showTopN} />
     </ChartCard>
   </div>
+{:else if activeView === 'arbiter'}
+  <ArbiterView />
 {/if}
 
 <style>

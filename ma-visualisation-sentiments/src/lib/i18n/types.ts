@@ -41,6 +41,7 @@ export interface Translations {
     table: string;
     comparison: string;
     extremes: string;
+    arbiter: string;
   };
 
   // Filters
@@ -345,6 +346,74 @@ export interface Translations {
     neitherAccurate: string;
     preferred: string;
     blindEvaluationNote: string;
+    // Arbiter View page
+    viewTitle: string;
+    viewSubtitle: string;
+    overallStats: string;
+    verdictDistribution: string;
+    verdictsByDimension: string;
+    confidenceDistribution: string;
+    totalVerdicts: string;
+    modelPreference: string;
+    agreementRate: string;
+    dimension: string;
+    polarity: string;
+    subjectivity: string;
+    centrality: string;
+    allDimensions: string;
+    modelAWins: string;
+    modelBWins: string;
+    ties: string;
+    selectModelPair: string;
+    noDataForPair: string;
+    runScript: string;
+    filterByDimension: string;
+    filterByConfidence: string;
+    // Methodology section
+    methodologyTitle: string;
+    methodologySubtitle: string;
+    blindEvaluation: string;
+    blindEvaluationDesc: string;
+    highReasoning: string;
+    highReasoningDesc: string;
+    independentVerdict: string;
+    independentVerdictDesc: string;
+    howItWorks: string;
+    selectionProcess: string;
+    selectionProcessDesc: string;
+    blindAssignment: string;
+    blindAssignmentDesc: string;
+    evaluationProcess: string;
+    step1: string;
+    step2: string;
+    step3: string;
+    step4: string;
+    arbiterModel: string;
+    arbiterRole: string;
+    geminiArbiterDesc: string;
+    evaluationScales: string;
+    viewPrompt: string;
+    promptExplanation: string;
+    viewFullPrompt: string;
+    arbiterPrompt: string;
+    systemInstruction: string;
+    userPromptTemplate: string;
+    // Scale descriptions
+    polarityVeryPositive: string;
+    polarityPositive: string;
+    polarityNeutral: string;
+    polarityNegative: string;
+    polarityVeryNegative: string;
+    subjectivity1: string;
+    subjectivity2: string;
+    subjectivity3: string;
+    subjectivity4: string;
+    subjectivity5: string;
+    centralityVeryCentral: string;
+    centralityCentral: string;
+    centralitySecondary: string;
+    centralityMarginal: string;
+    centralityNotAddressed: string;
   };
 
   // Extreme Analysis

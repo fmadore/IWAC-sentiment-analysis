@@ -113,11 +113,14 @@ export interface ArbiterEvaluationData {
     generated: string;
     arbiter_model: string;
     blind_evaluation: boolean;
-    model_a_is_chatgpt?: boolean;  // Legacy: Global key for ChatGPT vs Gemini
-    model_a_is_first?: boolean;     // New: true = Model A is first model in pair
-    model_a_name?: string;          // Display name of Model A
-    model_b_name?: string;          // Display name of Model B
-    pair?: string;                  // Model pair (e.g., 'chatgpt-gemini')
+    // What the arbiter ACTUALLY saw (blind evaluation labels → real model names)
+    arbiter_model_a: string;       // Model name that arbiter saw as "Model A"
+    arbiter_model_b: string;       // Model name that arbiter saw as "Model B"
+    // Pair reference info
+    pair: string;                  // Model pair (e.g., 'chatgpt-gemini')
+    pair_first_model: string;      // First model in pair name (e.g., ChatGPT for chatgpt-gemini)
+    pair_second_model: string;     // Second model in pair name (e.g., Gemini for chatgpt-gemini)
+    // Statistics
     total_articles: number;
     successful_evaluations: number;
     failed_evaluations: number;

@@ -11,3 +11,8 @@ export { default as SentimentChart } from './SentimentChart.svelte';
 export { default as SentimentTrendsChart } from './SentimentTrendsChart.svelte';
 export { default as SubjectivityChart } from './SubjectivityChart.svelte';
 export { default as VolumeChart } from './VolumeChart.svelte';
+
+// Arbiter Charts
+export { default as ArbiterVerdictChart } from './ArbiterVerdictChart.svelte';
+export { default as ArbiterDimensionChart } from './ArbiterDimensionChart.svelte';
+export { default as ArbiterConfidenceChart } from './ArbiterConfidenceChart.svelte';

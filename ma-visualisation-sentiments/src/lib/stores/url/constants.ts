@@ -7,7 +7,7 @@
 import type { ModelPair } from '$lib/types/data';
 
 // Valid views that can be set in URL
-export const VALID_VIEWS = ['charts', 'trends', 'correlation', 'volume', 'heatmap', 'table', 'comparison', 'extremes'] as const;
+export const VALID_VIEWS = ['charts', 'trends', 'correlation', 'volume', 'heatmap', 'table', 'comparison', 'extremes', 'arbiter'] as const;
 export type ValidView = typeof VALID_VIEWS[number];
 
 // Valid datasets

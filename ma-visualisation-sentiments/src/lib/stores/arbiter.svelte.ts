@@ -51,10 +51,21 @@ export const currentArbiterPair = {
 // Derived Values
 // ============================================
 
-/** Check if model A is first in the pair */
+/** 
+ * Check if arbiter's "Model A" corresponds to the first model in the pair name.
+ * This is used to correctly map arbiter verdicts to UI display.
+ * 
+ * Example: For pair "chatgpt-gemini"
+ * - If arbiter_model_a = "ChatGPT", then arbiterModelAIsFirst = true
+ * - If arbiter_model_a = "Gemini", then arbiterModelAIsFirst = false
+ */
 export const arbiterModelAIsFirst = {
 	get current() {
-		return _arbiterEvaluations?.metadata?.model_a_is_first ?? true;
+		const meta = _arbiterEvaluations?.metadata;
+		if (!meta?.arbiter_model_a || !meta?.pair_first_model) {
+			return true; // Default assumption
+		}
+		return meta.arbiter_model_a === meta.pair_first_model;
 	}
 };
 
@@ -144,13 +155,16 @@ function computeArbiterStatistics(): ArbiterStatistics {
 
 	const totalVerdicts = counts.model_a + counts.model_b + counts.both + counts.neither;
 
-	// Check if model A (as seen by arbiter) corresponds to first model in pair
-	// When model_a_is_first is false, we need to swap the counts to match UI expectations
-	// UI expects: "modelAPreferred" = preferences for first model in pair name (e.g., chatgpt for chatgpt-gemini)
-	const modelAIsFirst = _arbiterEvaluations?.metadata?.model_a_is_first ?? true;
+	// BLIND EVALUATION MAPPING:
+	// - arbiter_model_a: The ACTUAL model name that arbiter saw as "Model A"
+	// - arbiter_model_b: The ACTUAL model name that arbiter saw as "Model B"
+	// - Verdicts' "model_a"/"model_b" directly refer to these model names
+	// 
+	// We want modelAPreferred to always mean "first model in pair" for consistent UI display
+	const meta = _arbiterEvaluations?.metadata;
+	const modelAIsFirst = meta?.arbiter_model_a === meta?.pair_first_model;
 
-	// When modelAIsFirst is true: JSON's model_a = first model, model_b = second model
-	// When modelAIsFirst is false: JSON's model_a = second model, model_b = first model (need to swap)
+	// Map arbiter verdicts to pair order (first/second model in pair name)
 	const firstModelPreferred = modelAIsFirst ? counts.model_a : counts.model_b;
 	const secondModelPreferred = modelAIsFirst ? counts.model_b : counts.model_a;
 
@@ -184,7 +198,7 @@ export const arbiterStatistics = {
 
 /** 
  * Get the actual model name for a preferred_model value from the arbiter JSON.
- * Accounts for the model_a_is_first flag to correctly map to the UI model names.
+ * Uses arbiter_model_a/arbiter_model_b from metadata to directly map to real model names.
  * 
  * @param preferredModel - The raw preference from arbiter JSON ('model_a', 'model_b', 'both', 'neither')
  * @returns The display-ready model name or special label
@@ -196,19 +210,12 @@ export function getActualModelName(
 		return preferredModel;
 	}
 
-	const pair = datasetState.pair;
-	const datasets = datasetState.available;
-	const [firstModelId, secondModelId] = getModelsFromPair(pair);
-	const firstModelName = datasets.find((d) => d.id === firstModelId)?.name || firstModelId;
-	const secondModelName = datasets.find((d) => d.id === secondModelId)?.name || secondModelId;
-
-	const modelAIsFirst = _arbiterEvaluations?.metadata?.model_a_is_first ?? true;
-
-	// Map JSON's model_a/model_b to actual model names
+	const meta = _arbiterEvaluations?.metadata;
+	
 	if (preferredModel === 'model_a') {
-		return modelAIsFirst ? firstModelName : secondModelName;
+		return meta?.arbiter_model_a ?? 'Model A';
 	} else {
-		return modelAIsFirst ? secondModelName : firstModelName;
+		return meta?.arbiter_model_b ?? 'Model B';
 	}
 }
 
@@ -236,13 +243,7 @@ export const loadArbiterEvaluations = async (
 
 	try {
 		const pairSpecificPath = `${base}/data/iwac_arbiter_evaluations_${targetPair}.json`;
-		let response = await fetchFunction(pairSpecificPath);
-
-		// Fallback to legacy file for chatgpt-gemini
-		if (!response.ok && targetPair === 'chatgpt-gemini') {
-			const legacyPath = `${base}/data/iwac_arbiter_evaluations.json`;
-			response = await fetchFunction(legacyPath);
-		}
+		const response = await fetchFunction(pairSpecificPath);
 
 		if (!response.ok) {
 			console.log(
@@ -316,7 +317,8 @@ export const arbiterState = {
 		_currentArbiterPair = value;
 	},
 	get modelAIsFirst() {
-		return _arbiterEvaluations?.metadata?.model_a_is_first ?? true;
+		const meta = _arbiterEvaluations?.metadata;
+		return meta?.arbiter_model_a === meta?.pair_first_model;
 	},
 	get statistics(): ArbiterStatistics {
 		return computeArbiterStatistics();
