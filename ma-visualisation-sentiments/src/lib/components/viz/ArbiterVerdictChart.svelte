@@ -23,7 +23,9 @@
 	import { t } from '$lib/i18n';
 	import {
 		getTooltipConfig,
-		getLegendConfig
+		getLegendConfig,
+		arbiterVerdictColors,
+		chartColors
 	} from '$lib/utils/chartTheme';
 
 	interface ArbiterVerdictChartProps {
@@ -35,14 +37,6 @@
 	let { dimension, modelAName, modelBName }: ArbiterVerdictChartProps = $props();
 
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
-
-	// Colors for verdict types
-	const verdictColors = {
-		model_a: '#22C55E', // Green for model A
-		model_b: '#8B5CF6', // Purple for model B
-		both: '#FBBF24', // Amber for both equal
-		neither: '#6B7280' // Gray for neither
-	};
 
 	// Compute verdict counts based on dimension filter
 	const verdictData = $derived.by(() => {
@@ -85,22 +79,22 @@
 			{
 				name: modelAName,
 				value: firstModelPreferred,
-				itemStyle: { color: verdictColors.model_a }
+				itemStyle: { color: arbiterVerdictColors.model_a }
 			},
 			{
 				name: modelBName,
 				value: secondModelPreferred,
-				itemStyle: { color: verdictColors.model_b }
+				itemStyle: { color: arbiterVerdictColors.model_b }
 			},
 			{
 				name: $t.arbiter.bothEqual,
 				value: counts.both,
-				itemStyle: { color: verdictColors.both }
+				itemStyle: { color: arbiterVerdictColors.both }
 			},
 			{
 				name: $t.arbiter.neitherAccurate,
 				value: counts.neither,
-				itemStyle: { color: verdictColors.neither }
+				itemStyle: { color: arbiterVerdictColors.neither }
 			}
 		].filter((d) => d.value > 0);
 	});
@@ -118,7 +112,7 @@
 					const p = params as { name: string; value: number; percent: number };
 					return `
 						<div style="font-weight: 600; margin-bottom: 4px;">${p.name}</div>
-						<div style="color: rgba(255,255,255,0.7);">
+						<div style="color: ${chartColors.text.subtle};">
 							${p.value} verdicts (${p.percent.toFixed(1)}%)
 						</div>
 					`;
@@ -137,13 +131,13 @@
 					avoidLabelOverlap: true,
 					itemStyle: {
 						borderRadius: 8,
-						borderColor: 'rgba(15, 23, 42, 0.9)',
+						borderColor: chartColors.background.dark,
 						borderWidth: 2
 					},
 					label: {
 						show: !isMobile,
 						position: 'outside',
-						color: 'rgba(255, 255, 255, 0.85)',
+						color: chartColors.text.secondary,
 						fontSize: 11,
 						formatter: (params: unknown) => {
 							const p = params as { name: string; percent: number };
@@ -153,14 +147,14 @@
 					labelLine: {
 						show: !isMobile,
 						lineStyle: {
-							color: 'rgba(255, 255, 255, 0.3)'
+							color: chartColors.text.faint
 						}
 					},
 					emphasis: {
 						itemStyle: {
 							shadowBlur: 20,
 							shadowOffsetX: 0,
-							shadowColor: 'rgba(0, 0, 0, 0.4)'
+							shadowColor: chartColors.shadow.emphasis
 						},
 						label: {
 							show: true,

@@ -423,9 +423,13 @@ Provide your independent evaluation for each dimension, determine which model is
 	}
 
 	.key-info-icon.blind {
-		background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(139, 92, 246, 0.1));
-		border: 1px solid rgba(168, 85, 247, 0.3);
-		color: rgb(192, 132, 252);
+		background: linear-gradient(
+			135deg,
+			var(--sentiment-subjectivity-3-bg),
+			color-mix(in oklab, var(--sentiment-subjectivity-3) 10%, transparent)
+		);
+		border: 1px solid var(--sentiment-subjectivity-3-border);
+		color: var(--sentiment-subjectivity-3);
 	}
 
 	.key-info-icon.arbiter {
@@ -435,9 +439,13 @@ Provide your independent evaluation for each dimension, determine which model is
 	}
 
 	.key-info-icon.scale {
-		background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.1));
-		border: 1px solid rgba(34, 197, 94, 0.3);
-		color: rgb(74, 222, 128);
+		background: linear-gradient(
+			135deg,
+			var(--sentiment-polarity-very-positive-bg),
+			color-mix(in oklab, var(--sentiment-polarity-very-positive) 10%, transparent)
+		);
+		border: 1px solid var(--sentiment-polarity-very-positive-border);
+		color: var(--sentiment-polarity-positive);
 	}
 
 	.key-info-title {
@@ -563,9 +571,9 @@ Provide your independent evaluation for each dimension, determine which model is
 	}
 
 	.model-badge.gemini {
-		background: rgba(66, 133, 244, 0.2);
-		color: rgb(147, 197, 253);
-		border: 1px solid rgba(66, 133, 244, 0.3);
+		background: var(--sentiment-polarity-neutral-bg);
+		color: var(--sentiment-polarity-neutral);
+		border: 1px solid var(--sentiment-polarity-neutral-border);
 	}
 
 	.model-description {

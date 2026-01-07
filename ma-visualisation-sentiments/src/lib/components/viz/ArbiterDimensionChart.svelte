@@ -28,7 +28,8 @@
 		getGridConfig,
 		getAxisLabelStyle,
 		getAxisLineStyle,
-		getSplitLineStyle
+		getSplitLineStyle,
+		arbiterVerdictColors
 	} from '$lib/utils/chartTheme';
 
 	interface ArbiterDimensionChartProps {
@@ -39,14 +40,6 @@
 	let { modelAName, modelBName }: ArbiterDimensionChartProps = $props();
 
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
-
-	// Colors for verdict types
-	const verdictColors = {
-		model_a: '#22C55E',
-		model_b: '#8B5CF6',
-		both: '#FBBF24',
-		neither: '#6B7280'
-	};
 
 	// Dimension labels
 	const dimensionLabels = $derived({
@@ -139,7 +132,7 @@
 					stack: 'total',
 					emphasis: { focus: 'series' },
 					itemStyle: {
-						color: verdictColors.model_a,
+						color: arbiterVerdictColors.model_a,
 						borderRadius: [0, 0, 0, 0]
 					},
 					data: dimensionData.map((d) => d.modelA)
@@ -150,7 +143,7 @@
 					stack: 'total',
 					emphasis: { focus: 'series' },
 					itemStyle: {
-						color: verdictColors.model_b,
+						color: arbiterVerdictColors.model_b,
 						borderRadius: [0, 0, 0, 0]
 					},
 					data: dimensionData.map((d) => d.modelB)
@@ -161,7 +154,7 @@
 					stack: 'total',
 					emphasis: { focus: 'series' },
 					itemStyle: {
-						color: verdictColors.both,
+						color: arbiterVerdictColors.both,
 						borderRadius: [0, 0, 0, 0]
 					},
 					data: dimensionData.map((d) => d.both)
@@ -172,7 +165,7 @@
 					stack: 'total',
 					emphasis: { focus: 'series' },
 					itemStyle: {
-						color: verdictColors.neither,
+						color: arbiterVerdictColors.neither,
 						borderRadius: [4, 4, 0, 0]
 					},
 					data: dimensionData.map((d) => d.neither)

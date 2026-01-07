@@ -21,16 +21,9 @@
 
 	import { arbiterEvaluations } from '$lib/stores';
 	import { t } from '$lib/i18n';
-	import { getTooltipConfig, getLegendConfig } from '$lib/utils/chartTheme';
+	import { getTooltipConfig, getLegendConfig, arbiterConfidenceColors, chartColors } from '$lib/utils/chartTheme';
 
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
-
-	// Colors for confidence levels
-	const confidenceColors = {
-		high: '#22C55E',
-		medium: '#FBBF24',
-		low: '#EF4444'
-	};
 
 	// Compute confidence distribution
 	const confidenceData = $derived.by(() => {
@@ -53,17 +46,17 @@
 			{
 				name: $t.arbiter.confidenceHigh,
 				value: counts.high,
-				itemStyle: { color: confidenceColors.high }
+				itemStyle: { color: arbiterConfidenceColors.high }
 			},
 			{
 				name: $t.arbiter.confidenceMedium,
 				value: counts.medium,
-				itemStyle: { color: confidenceColors.medium }
+				itemStyle: { color: arbiterConfidenceColors.medium }
 			},
 			{
 				name: $t.arbiter.confidenceLow,
 				value: counts.low,
-				itemStyle: { color: confidenceColors.low }
+				itemStyle: { color: arbiterConfidenceColors.low }
 			}
 		].filter((d) => d.value > 0);
 	});
@@ -80,7 +73,7 @@
 					const p = params as { name: string; value: number; percent: number };
 					return `
 						<div style="font-weight: 600; margin-bottom: 4px;">${p.name}</div>
-						<div style="color: rgba(255,255,255,0.7);">
+						<div style="color: ${chartColors.text.subtle};">
 							${p.value} evaluations (${p.percent.toFixed(1)}%)
 						</div>
 					`;
@@ -99,13 +92,13 @@
 					avoidLabelOverlap: true,
 					itemStyle: {
 						borderRadius: 8,
-						borderColor: 'rgba(15, 23, 42, 0.9)',
+						borderColor: chartColors.background.dark,
 						borderWidth: 2
 					},
 					label: {
 						show: !isMobile,
 						position: 'outside',
-						color: 'rgba(255, 255, 255, 0.85)',
+						color: chartColors.text.secondary,
 						fontSize: 11,
 						formatter: (params: unknown) => {
 							const p = params as { name: string; percent: number };
@@ -115,14 +108,14 @@
 					labelLine: {
 						show: !isMobile,
 						lineStyle: {
-							color: 'rgba(255, 255, 255, 0.3)'
+							color: chartColors.text.faint
 						}
 					},
 					emphasis: {
 						itemStyle: {
 							shadowBlur: 20,
 							shadowOffsetX: 0,
-							shadowColor: 'rgba(0, 0, 0, 0.4)'
+							shadowColor: chartColors.shadow.emphasis
 						},
 						label: {
 							show: true,

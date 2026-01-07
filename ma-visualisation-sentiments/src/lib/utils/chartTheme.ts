@@ -62,6 +62,27 @@ export const centralityColors = {
 } as const;
 
 /**
+ * Arbiter verdict colors - for model comparison results
+ * Uses semantic colors that represent model preference outcomes
+ */
+export const arbiterVerdictColors = {
+  model_a: '#22C55E',   // --sentiment-polarity-very-positive (Green for first model)
+  model_b: '#8B5CF6',   // --sentiment-subjectivity-3 (Purple for second model)
+  both: '#FBBF24',      // --sentiment-arbiter-light (Amber for equal)
+  neither: '#6B7280'    // --sentiment-polarity-na (Gray for neither)
+} as const;
+
+/**
+ * Arbiter confidence level colors
+ * Indicates how confident the arbiter is in its verdict
+ */
+export const arbiterConfidenceColors = {
+  high: '#22C55E',      // --sentiment-polarity-very-positive (Green for high confidence)
+  medium: '#FBBF24',    // --sentiment-arbiter-light (Amber for medium)
+  low: '#EF4444'        // --sentiment-polarity-very-negative (Red for low)
+} as const;
+
+/**
  * Modern color palette for multi-series charts (countries, journals, etc.)
  * Uses a harmonious set of colors that work well on dark backgrounds
  */
@@ -82,6 +103,42 @@ export const seriesColorPalette = [
   '#84CC16', // Lime
   '#F43F5E'  // Rose
 ] as const;
+
+// =============================================================================
+// CHART STYLING CONSTANTS
+// Centralized values for consistent chart styling
+// =============================================================================
+
+/**
+ * Chart color constants for consistent styling
+ * These mirror CSS custom properties for use in ECharts (which needs raw color values)
+ */
+export const chartColors = {
+  // Text colors
+  text: {
+    primary: 'rgba(255, 255, 255, 0.95)',
+    secondary: 'rgba(255, 255, 255, 0.85)',
+    muted: 'rgba(255, 255, 255, 0.75)',
+    subtle: 'rgba(255, 255, 255, 0.7)',
+    faint: 'rgba(255, 255, 255, 0.3)'
+  },
+  // Background colors
+  background: {
+    tooltip: 'rgba(15, 23, 42, 0.9)',
+    dark: 'rgba(15, 23, 42, 0.9)'
+  },
+  // Border colors
+  border: {
+    subtle: 'rgba(255, 255, 255, 0.08)',
+    light: 'rgba(255, 255, 255, 0.15)',
+    medium: 'rgba(255, 255, 255, 0.2)'
+  },
+  // Shadow colors
+  shadow: {
+    default: 'rgba(0, 0, 0, 0.3)',
+    emphasis: 'rgba(0, 0, 0, 0.4)'
+  }
+} as const;
 
 // =============================================================================
 // THEME CONFIGURATION HELPERS
@@ -105,7 +162,7 @@ export function getFontSize(isMobile: boolean, type: 'title' | 'label' | 'legend
  */
 export function getTitleStyle(isMobile: boolean) {
   return {
-    color: 'rgba(255, 255, 255, 0.95)',
+    color: chartColors.text.primary,
     fontWeight: 'bold' as const,
     fontSize: getFontSize(isMobile, 'title'),
     fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
@@ -117,17 +174,17 @@ export function getTitleStyle(isMobile: boolean) {
  */
 export function getTooltipConfig(isMobile: boolean) {
   return {
-    backgroundColor: 'rgba(15, 23, 42, 0.9)',
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: chartColors.background.tooltip,
+    borderColor: chartColors.border.light,
     borderWidth: 1,
     borderRadius: 8,
     padding: [12, 16],
     textStyle: {
-      color: 'rgba(255, 255, 255, 0.9)',
+      color: chartColors.text.secondary,
       fontSize: getFontSize(isMobile, 'tooltip'),
       fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
     },
-    extraCssText: 'backdrop-filter: blur(12px); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);'
+    extraCssText: `backdrop-filter: blur(12px); box-shadow: 0 8px 32px ${chartColors.shadow.default};`
   };
 }
 
@@ -137,7 +194,7 @@ export function getTooltipConfig(isMobile: boolean) {
 export function getLegendConfig(isMobile: boolean, orientation: 'horizontal' | 'vertical' = 'horizontal') {
   return {
     textStyle: {
-      color: 'rgba(255, 255, 255, 0.85)',
+      color: chartColors.text.secondary,
       fontSize: getFontSize(isMobile, 'legend'),
       fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
     },
@@ -147,10 +204,10 @@ export function getLegendConfig(isMobile: boolean, orientation: 'horizontal' | '
     itemWidth: isMobile ? 12 : 20,
     itemHeight: isMobile ? 8 : 12,
     itemGap: isMobile ? 8 : 12,
-    pageIconColor: 'rgba(255, 255, 255, 0.7)',
-    pageIconInactiveColor: 'rgba(255, 255, 255, 0.3)',
+    pageIconColor: chartColors.text.subtle,
+    pageIconInactiveColor: chartColors.text.faint,
     pageTextStyle: {
-      color: 'rgba(255, 255, 255, 0.7)'
+      color: chartColors.text.subtle
     }
   };
 }
@@ -161,7 +218,7 @@ export function getLegendConfig(isMobile: boolean, orientation: 'horizontal' | '
 export function getAxisLineStyle() {
   return {
     lineStyle: {
-      color: 'rgba(255, 255, 255, 0.2)',
+      color: chartColors.border.medium,
       width: 1
     }
   };
@@ -175,12 +232,12 @@ export function getAxisPointerConfig() {
   return {
     type: 'cross' as const,
     label: {
-      backgroundColor: 'rgba(15, 23, 42, 0.9)',
-      borderColor: 'rgba(255, 255, 255, 0.2)',
-      color: 'rgba(255, 255, 255, 0.9)'
+      backgroundColor: chartColors.background.tooltip,
+      borderColor: chartColors.border.medium,
+      color: chartColors.text.secondary
     },
     crossStyle: {
-      color: 'rgba(255, 255, 255, 0.3)'
+      color: chartColors.text.faint
     }
   };
 }
@@ -190,7 +247,7 @@ export function getAxisPointerConfig() {
  */
 export function getAxisLabelStyle(isMobile: boolean) {
   return {
-    color: 'rgba(255, 255, 255, 0.75)',
+    color: chartColors.text.muted,
     fontSize: getFontSize(isMobile, 'label'),
     fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
   };
@@ -202,7 +259,7 @@ export function getAxisLabelStyle(isMobile: boolean) {
 export function getSplitLineStyle() {
   return {
     lineStyle: {
-      color: 'rgba(255, 255, 255, 0.08)',
+      color: chartColors.border.subtle,
       type: 'dashed' as const
     }
   };

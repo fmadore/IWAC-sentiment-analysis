@@ -6,9 +6,10 @@
 -->
 <script lang="ts">
 	import type { ArbiterStatistics } from '$lib/stores';
+	import { availableDatasets } from '$lib/stores';
 	import { t } from '$lib/i18n';
+	import { base } from '$app/paths';
 	import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
-	import TrophyIcon from '@lucide/svelte/icons/trophy';
 	import ScaleIcon from '@lucide/svelte/icons/scale';
 	import CheckCircle2Icon from '@lucide/svelte/icons/check-circle-2';
 
@@ -19,6 +20,16 @@
 	}
 
 	let { stats, modelAName, modelBName }: ArbiterStatsCardsProps = $props();
+
+	// Get model logo from datasets
+	function getModelLogo(modelName: string): string | null {
+		const dataset = $availableDatasets.find(d => d.name === modelName);
+		return dataset?.logo ?? null;
+	}
+
+	// Derived model logos
+	const modelALogo = $derived(getModelLogo(modelAName));
+	const modelBLogo = $derived(getModelLogo(modelBName));
 
 	// Calculate who is winning overall
 	const leadingModel = $derived(
@@ -49,7 +60,9 @@
 	<!-- Model A Wins -->
 	<div class="stat-card">
 		<div class="stat-icon model-a">
-			<TrophyIcon size={20} />
+			{#if modelALogo}
+				<img src="{base}{modelALogo}" alt="{modelAName}" class="model-logo" />
+			{/if}
 		</div>
 		<div class="stat-content">
 			<div class="stat-value">{stats.modelAPreferred}</div>
@@ -61,7 +74,9 @@
 	<!-- Model B Wins -->
 	<div class="stat-card">
 		<div class="stat-icon model-b">
-			<TrophyIcon size={20} />
+			{#if modelBLogo}
+				<img src="{base}{modelBLogo}" alt="{modelBName}" class="model-logo" />
+			{/if}
 		</div>
 		<div class="stat-content">
 			<div class="stat-value">{stats.modelBPreferred}</div>
@@ -97,7 +112,11 @@
 
 <!-- Overall Lead Indicator -->
 {#if leadingModel && Number(leadPercentage) > 1}
+	{@const leadingLogo = getModelLogo(leadingModel)}
 	<div class="lead-indicator mt-4">
+		{#if leadingLogo}
+			<img src="{base}{leadingLogo}" alt="{leadingModel}" class="lead-logo" />
+		{/if}
 		<span class="lead-text">
 			<strong>{leadingModel}</strong> leads by <strong>{leadPercentage}%</strong> in overall preferences
 		</span>
@@ -139,33 +158,59 @@
 	}
 
 	.stat-icon.evaluations {
-		background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.1));
-		color: #3B82F6;
-		border: 1px solid rgba(59, 130, 246, 0.3);
+		background: linear-gradient(
+			135deg,
+			var(--sentiment-polarity-neutral-bg),
+			color-mix(in oklab, var(--sentiment-polarity-neutral) 10%, transparent)
+		);
+		color: var(--sentiment-polarity-neutral);
+		border: 1px solid var(--sentiment-polarity-neutral-border);
 	}
 
 	.stat-icon.model-a {
-		background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1));
-		color: #22C55E;
-		border: 1px solid rgba(34, 197, 94, 0.3);
+		background: linear-gradient(
+			135deg,
+			var(--sentiment-polarity-very-positive-bg),
+			color-mix(in oklab, var(--sentiment-polarity-very-positive) 10%, transparent)
+		);
+		color: var(--sentiment-polarity-very-positive);
+		border: 1px solid var(--sentiment-polarity-very-positive-border);
 	}
 
 	.stat-icon.model-b {
-		background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1));
-		color: #8B5CF6;
-		border: 1px solid rgba(139, 92, 246, 0.3);
+		background: linear-gradient(
+			135deg,
+			var(--sentiment-subjectivity-3-bg),
+			color-mix(in oklab, var(--sentiment-subjectivity-3) 10%, transparent)
+		);
+		color: var(--sentiment-subjectivity-3);
+		border: 1px solid var(--sentiment-subjectivity-3-border);
 	}
 
 	.stat-icon.equal {
-		background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(251, 191, 36, 0.1));
-		color: #FBBF24;
-		border: 1px solid rgba(251, 191, 36, 0.3);
+		background: linear-gradient(
+			135deg,
+			var(--sentiment-arbiter-bg),
+			color-mix(in oklab, var(--sentiment-arbiter-light) 10%, transparent)
+		);
+		color: var(--sentiment-arbiter-light);
+		border: 1px solid var(--sentiment-arbiter-border);
 	}
 
 	.stat-icon.neither {
-		background: linear-gradient(135deg, rgba(107, 114, 128, 0.2), rgba(107, 114, 128, 0.1));
-		color: #6B7280;
-		border: 1px solid rgba(107, 114, 128, 0.3);
+		background: linear-gradient(
+			135deg,
+			var(--sentiment-polarity-na-bg),
+			color-mix(in oklab, var(--sentiment-polarity-na) 10%, transparent)
+		);
+		color: var(--sentiment-polarity-na);
+		border: 1px solid var(--sentiment-polarity-na-border);
+	}
+
+	.model-logo {
+		width: 24px;
+		height: 24px;
+		object-fit: contain;
 	}
 
 	.stat-content {
@@ -196,10 +241,17 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		gap: 0.5rem;
 		padding: 0.75rem 1rem;
 		border-radius: 0.75rem;
 		background: color-mix(in oklab, var(--sentiment-arbiter) 10%, transparent);
 		border: 1px solid var(--sentiment-arbiter-border);
+	}
+
+	.lead-logo {
+		width: 20px;
+		height: 20px;
+		object-fit: contain;
 	}
 
 	.lead-text {
@@ -227,6 +279,11 @@
 		.stat-icon {
 			width: 36px;
 			height: 36px;
+		}
+
+		.model-logo {
+			width: 20px;
+			height: 20px;
 		}
 	}
 </style>
