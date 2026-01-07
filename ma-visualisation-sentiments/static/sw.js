@@ -126,7 +126,12 @@ self.addEventListener('fetch', (event) => {
   }
   
   // Skip cross-origin requests that we can't cache
-  if (url.origin !== self.location.origin && !url.hostname.includes('fonts.googleapis.com') && !url.hostname.includes('fonts.gstatic.com')) {
+  // Use exact hostname matching to prevent subdomain attacks
+  const allowedExternalHosts = ['fonts.googleapis.com', 'fonts.gstatic.com'];
+  const isAllowedExternalHost = allowedExternalHosts.some(
+    host => url.hostname === host || url.hostname.endsWith('.' + host)
+  );
+  if (url.origin !== self.location.origin && !isAllowedExternalHost) {
     return;
   }
   
