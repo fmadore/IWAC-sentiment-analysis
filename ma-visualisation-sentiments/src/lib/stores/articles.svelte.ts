@@ -210,9 +210,15 @@ export const loadDatasetArticles = async (
 /** Load a specific dataset into the store */
 export const loadSpecificDataset = async (
     datasetId: string,
-    fetchFunction: typeof fetch
+    fetchFunction: typeof fetch,
+    options: { showLoading?: boolean } = {}
 ): Promise<void> => {
-    isLoadingDataset.set(true);
+    const { showLoading = true } = options;
+    
+    // Only show loading indicator for foreground loads, not background prefetch
+    if (showLoading) {
+        isLoadingDataset.set(true);
+    }
 
     try {
         const datasets = get(availableDatasets);
@@ -234,7 +240,9 @@ export const loadSpecificDataset = async (
             currentDatasetArticles.set(articles);
         }
     } finally {
-        isLoadingDataset.set(false);
+        if (showLoading) {
+            isLoadingDataset.set(false);
+        }
     }
 };
 
@@ -332,7 +340,8 @@ const prefetchOtherDatasets = async (
                     loader: async () => {
                         prefetchingInProgress.add(dataset.id);
                         try {
-                            await loadSpecificDataset(dataset.id, fetchFunction);
+                            // Use showLoading: false to prevent UI flashing during background prefetch
+                            await loadSpecificDataset(dataset.id, fetchFunction, { showLoading: false });
                             prefetchCompleted.add(dataset.id);
                         } finally {
                             prefetchingInProgress.delete(dataset.id);

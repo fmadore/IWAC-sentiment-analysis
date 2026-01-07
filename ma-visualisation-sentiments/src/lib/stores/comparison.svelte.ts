@@ -317,7 +317,8 @@ export const loadComparisonDatasets = async (fetchFunction: typeof fetch): Promi
         isLoadingComparison.set(true);
 
         try {
-            await Promise.all(datasetsToLoad.map((datasetId) => loadSpecificDataset(datasetId, fetchFunction)));
+            // Use showLoading: false since we manage our own loading state (isLoadingComparison)
+            await Promise.all(datasetsToLoad.map((datasetId) => loadSpecificDataset(datasetId, fetchFunction, { showLoading: false })));
             console.log('Comparison datasets loaded successfully');
         } finally {
             isLoadingComparison.set(false);
