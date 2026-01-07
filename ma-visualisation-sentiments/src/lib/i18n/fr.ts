@@ -92,6 +92,7 @@ export const fr: Translations = {
     polarityDistribution: 'Distribution de la polarité',
     subjectivityDistribution: 'Distribution de la subjectivité',
     sentimentTrends: 'Tendances des sentiments',
+    subjectivityTrends: 'Tendances de la subjectivité',
     correlationDistribution: 'Distribution croisée',
     volumeByCountry: 'Volume d\'articles par pays',
     centralityHeatmap: 'Heatmap de centralité',

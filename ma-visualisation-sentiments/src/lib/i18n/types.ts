@@ -96,6 +96,7 @@ export interface Translations {
     polarityDistribution: string;
     subjectivityDistribution: string;
     sentimentTrends: string;
+    subjectivityTrends: string;
     correlationDistribution: string;
     volumeByCountry: string;
     centralityHeatmap: string;

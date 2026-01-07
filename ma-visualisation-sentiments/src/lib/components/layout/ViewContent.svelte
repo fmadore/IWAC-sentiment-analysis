@@ -26,6 +26,7 @@
     SentimentChart, 
     SentimentTrendsChart, 
     SubjectivityChart, 
+    SubjectivityTrendsChart,
     CorrelationChart, 
     VolumeChart, 
     CentralityHeatmap,
@@ -121,8 +122,14 @@
       </div>
     </div>
     
-    <ChartCard variant="trends">
+    <!-- Polarity Trends Chart -->
+    <ChartCard variant="trends" class="mb-6">
       <SentimentTrendsChart />
+    </ChartCard>
+    
+    <!-- Subjectivity Trends Chart -->
+    <ChartCard variant="trends">
+      <SubjectivityTrendsChart />
     </ChartCard>
   </div>
 {:else if activeView === 'correlation'}
