@@ -171,11 +171,11 @@
 		top: calc(100% + 0.25rem);
 		left: 0;
 		min-width: 200px;
-		background: var(--color-surface-900);
+		background: color-mix(in oklab, var(--color-surface-900) 95%, transparent);
 		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 30%, transparent);
 		border-radius: 0.5rem;
-		box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-		backdrop-filter: blur(16px);
+		box-shadow: 0 10px 25px -5px color-mix(in oklab, black 50%, transparent);
+		backdrop-filter: blur(var(--glass-blur-lg));
 		z-index: 100;
 		overflow: hidden;
 		padding: 0.25rem;
