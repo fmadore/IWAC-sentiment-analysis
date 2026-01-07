@@ -209,8 +209,11 @@
 					<SparklesIcon size={20} class="text-amber-400 mt-1 flex-shrink-0" />
 					<div>
 						<h5 class="font-semibold text-white mb-2">{$t.arbiter.overallVerdict}</h5>
+						<p class="text-white/70 text-sm mb-2">
+							<strong class="text-amber-400">{getPreferredModelLabel(arbiterData.overall_winner)}</strong>
+						</p>
 						<p class="text-white/90 leading-relaxed">
-							{decodeVerdictText(arbiterData.overall_verdict)}
+							{decodeVerdictText(arbiterData.overall_explanation)}
 						</p>
 					</div>
 				</div>

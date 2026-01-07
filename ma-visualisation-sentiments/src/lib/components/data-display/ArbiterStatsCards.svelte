@@ -123,6 +123,53 @@
 	</div>
 {/if}
 
+<!-- Head-to-Head Comparison Bar (based on overall_winner per article) -->
+{#if stats.overallModelAWins + stats.overallModelBWins > 0}
+	{@const totalDecisive = stats.overallModelAWins + stats.overallModelBWins}
+	{@const modelAPercent = (stats.overallModelAWins / totalDecisive) * 100}
+	{@const modelBPercent = (stats.overallModelBWins / totalDecisive) * 100}
+	<div class="comparison-section mt-4">
+		<div class="comparison-header">
+			<span class="comparison-title">{$t.arbiter.headToHead}</span>
+			<span class="comparison-subtitle">{$t.arbiter.excludingTies}</span>
+		</div>
+		<div class="comparison-bar-container">
+			<div class="comparison-labels">
+				<div class="model-label model-a-label">
+					{#if modelALogo}
+						<img src="{base}{modelALogo}" alt="{modelAName}" class="comparison-logo" />
+					{/if}
+					<span>{modelAName}</span>
+					<strong>{modelAPercent.toFixed(1)}%</strong>
+				</div>
+				<div class="model-label model-b-label">
+					<strong>{modelBPercent.toFixed(1)}%</strong>
+					<span>{modelBName}</span>
+					{#if modelBLogo}
+						<img src="{base}{modelBLogo}" alt="{modelBName}" class="comparison-logo" />
+					{/if}
+				</div>
+			</div>
+			<div class="comparison-bar">
+				<div 
+					class="bar-segment model-a-segment" 
+					style="width: {modelAPercent}%"
+					title="{modelAName}: {stats.overallModelAWins} ({modelAPercent.toFixed(1)}%)"
+				></div>
+				<div 
+					class="bar-segment model-b-segment" 
+					style="width: {modelBPercent}%"
+					title="{modelBName}: {stats.overallModelBWins} ({modelBPercent.toFixed(1)}%)"
+				></div>
+			</div>
+			<div class="comparison-counts">
+				<span class="count model-a-count">{stats.overallModelAWins} {$t.arbiter.wins}</span>
+				<span class="count model-b-count">{stats.overallModelBWins} {$t.arbiter.wins}</span>
+			</div>
+		</div>
+	</div>
+{/if}
+
 <style>
 	.stats-grid {
 		display: grid;
@@ -263,6 +310,133 @@
 		color: var(--sentiment-arbiter-light);
 	}
 
+	/* Head-to-Head Comparison Section */
+	.comparison-section {
+		padding: 1.25rem;
+		border-radius: 0.875rem;
+		background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
+		backdrop-filter: blur(var(--glass-blur-md));
+		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+	}
+
+	.comparison-header {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.5rem;
+		margin-bottom: 1rem;
+	}
+
+	.comparison-title {
+		font-size: 0.9375rem;
+		font-weight: 600;
+		color: var(--color-surface-50);
+	}
+
+	.comparison-subtitle {
+		font-size: 0.75rem;
+		color: color-mix(in oklab, var(--color-surface-50) 50%, transparent);
+	}
+
+	.comparison-bar-container {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.comparison-labels {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.model-label {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.8125rem;
+	}
+
+	.model-a-label {
+		color: var(--sentiment-polarity-very-positive);
+	}
+
+	.model-a-label strong {
+		font-weight: 700;
+		font-size: 1rem;
+	}
+
+	.model-b-label {
+		color: var(--sentiment-subjectivity-3);
+	}
+
+	.model-b-label strong {
+		font-weight: 700;
+		font-size: 1rem;
+	}
+
+	.comparison-logo {
+		width: 20px;
+		height: 20px;
+		object-fit: contain;
+	}
+
+	.comparison-bar {
+		display: flex;
+		height: 24px;
+		border-radius: 12px;
+		overflow: hidden;
+		background: color-mix(in oklab, var(--color-surface-50) 5%, transparent);
+	}
+
+	.bar-segment {
+		height: 100%;
+		transition: width var(--timing-normal) var(--easing-default);
+		position: relative;
+	}
+
+	.bar-segment:first-child {
+		border-radius: 12px 0 0 12px;
+	}
+
+	.bar-segment:last-child {
+		border-radius: 0 12px 12px 0;
+	}
+
+	.model-a-segment {
+		background: linear-gradient(
+			90deg,
+			var(--sentiment-polarity-very-positive),
+			color-mix(in oklab, var(--sentiment-polarity-very-positive) 80%, var(--sentiment-polarity-positive))
+		);
+	}
+
+	.model-b-segment {
+		background: linear-gradient(
+			90deg,
+			color-mix(in oklab, var(--sentiment-subjectivity-3) 80%, var(--sentiment-subjectivity-4)),
+			var(--sentiment-subjectivity-3)
+		);
+	}
+
+	.comparison-counts {
+		display: flex;
+		justify-content: space-between;
+	}
+
+	.count {
+		font-size: 0.75rem;
+		color: color-mix(in oklab, var(--color-surface-50) 60%, transparent);
+	}
+
+	.model-a-count {
+		color: color-mix(in oklab, var(--sentiment-polarity-very-positive) 70%, var(--color-surface-50));
+	}
+
+	.model-b-count {
+		color: color-mix(in oklab, var(--sentiment-subjectivity-3) 70%, var(--color-surface-50));
+	}
+
 	@media (max-width: 640px) {
 		.stats-grid {
 			grid-template-columns: repeat(2, 1fr);
@@ -284,6 +458,23 @@
 		.model-logo {
 			width: 20px;
 			height: 20px;
+		}
+
+		.comparison-section {
+			padding: 1rem;
+		}
+
+		.model-label span {
+			display: none;
+		}
+
+		.comparison-bar {
+			height: 20px;
+		}
+
+		.comparison-logo {
+			width: 18px;
+			height: 18px;
 		}
 	}
 </style>

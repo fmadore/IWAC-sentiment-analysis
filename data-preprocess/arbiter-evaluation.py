@@ -83,22 +83,25 @@ except ImportError:
 
 class DimensionScore(BaseModel):
     """Score for a single dimension (polarity, subjectivity, or centrality)"""
-    arbiter_score: str = Field(description="The arbiter's score for this dimension")
-    justification: str = Field(description="Reasoning for this score")
+    arbiter_score: str = Field(description="Le score de l'arbitre pour cette dimension")
+    justification: str = Field(description="Raisonnement pour ce score")
     preferred_model: Literal["model_a", "model_b", "both", "neither"] = Field(
-        description="Which model's analysis is more accurate (model_a or model_b)"
+        description="Quel modèle a l'analyse la plus précise (model_a ou model_b)"
     )
-    verdict_explanation: str = Field(description="Why this model's analysis is preferred")
+    verdict_explanation: str = Field(description="Pourquoi l'analyse de ce modèle est préférée")
 
 
 class ArbiterResponse(BaseModel):
     """Complete structured response from the arbiter"""
-    polarity: DimensionScore = Field(description="Evaluation of polarity/sentiment")
-    subjectivity: DimensionScore = Field(description="Evaluation of subjectivity score")
-    centrality: DimensionScore = Field(description="Evaluation of centrality of Islam/Muslims")
-    overall_verdict: str = Field(description="General assessment of which model performed better")
+    polarity: DimensionScore = Field(description="Évaluation de la polarité/sentiment")
+    subjectivity: DimensionScore = Field(description="Évaluation du score de subjectivité")
+    centrality: DimensionScore = Field(description="Évaluation de la centralité de l'islam/musulmans")
+    overall_winner: Literal["model_a", "model_b", "both", "neither"] = Field(
+        description="Quel modèle est globalement meilleur: 'model_a', 'model_b', 'both' (les deux équivalents), ou 'neither' (aucun précis)"
+    )
+    overall_explanation: str = Field(description="Explication détaillée du verdict global")
     confidence_level: Literal["high", "medium", "low"] = Field(
-        description="Confidence in the evaluation"
+        description="Niveau de confiance dans l'évaluation"
     )
 
 
@@ -122,7 +125,8 @@ class ArbiterAnalysis:
     polarity: ArbiterScore
     subjectivity: ArbiterScore
     centrality: ArbiterScore
-    overall_verdict: str  # General assessment
+    overall_winner: str  # "model_a", "model_b", "both", or "neither"
+    overall_explanation: str  # Detailed explanation of the verdict
     confidence_level: str  # "high", "medium", "low"
     timestamp: str
     # Note: model_a_is_chatgpt is stored once globally in metadata, not per article
@@ -132,43 +136,46 @@ class ArbiterAnalysis:
 # System Instruction for the Arbiter
 # ============================================================================
 
-SYSTEM_INSTRUCTION = """You are an expert arbiter evaluating sentiment analysis of news articles about Islam and Muslims in Francophone West Africa.
+SYSTEM_INSTRUCTION = """Vous êtes un arbitre expert évaluant l'analyse de sentiment d'articles de presse sur l'islam et les musulmans en Afrique de l'Ouest francophone.
 
-Your role is to:
-1. Analyze articles independently and provide your own assessment
-2. Compare the analyses from two AI models (Model A and Model B)
-3. Determine which model's analysis is more accurate
-4. Provide clear, well-reasoned justifications for your decisions
+Votre rôle est de :
+1. Analyser les articles de manière indépendante et fournir votre propre évaluation
+2. Comparer les analyses de deux modèles d'IA (Modèle A et Modèle B)
+3. Déterminer quelle analyse est la plus précise
+4. Fournir des justifications claires et bien argumentées pour vos décisions
 
-## Evaluation Scales Reference:
+## Référence des échelles d'évaluation :
 
-### Polarity (Sentiment toward Islam/Muslims):
-- **Très positif**: Extremely favorable, enthusiastic, praising portrait
-- **Positif**: Favorable, optimistic portrait
-- **Neutre**: No clear sentiment or balance between positive/negative; factual tone
-- **Négatif**: Unfavorable, critical, pessimistic portrait
-- **Très négatif**: Extremely unfavorable, alarmist, very critical portrait
+### Polarité (Sentiment envers l'islam/les musulmans) :
+- **Très positif** : Portrait extrêmement favorable, enthousiaste, élogieux
+- **Positif** : Portrait favorable, optimiste
+- **Neutre** : Pas de sentiment clair ou équilibre entre positif/négatif ; ton factuel
+- **Négatif** : Portrait défavorable, critique, pessimiste
+- **Très négatif** : Portrait extrêmement défavorable, alarmiste, très critique
 
-### Subjectivity Score (1-5):
-- **1 (Very Objective)**: Reports verifiable facts without personal opinions, purely informative
-- **2 (Rather Objective)**: Mainly factual, may contain subtle traces of opinions
-- **3 (Mixed)**: Balanced mix of facts and opinions, or presents multiple viewpoints
-- **4 (Rather Subjective)**: Clearly expresses opinions and judgments
-- **5 (Very Subjective)**: Heavily biased, intense opinions with little factual presentation
+### Score de subjectivité (1-5) :
+- **1 (Très objectif)** : Rapporte des faits vérifiables sans opinions personnelles, purement informatif
+- **2 (Plutôt objectif)** : Principalement factuel, peut contenir de subtiles traces d'opinions
+- **3 (Mixte)** : Mélange équilibré de faits et d'opinions, ou présente plusieurs points de vue
+- **4 (Plutôt subjectif)** : Exprime clairement des opinions et des jugements
+- **5 (Très subjectif)** : Fortement biaisé, opinions intenses avec peu de présentation factuelle
 
-### Centrality:
-- **Très central**: Islam/Muslims are the main subject of the article
-- **Central**: Important theme but shared with other subjects
-- **Secondaire**: Mentioned significantly but secondarily
-- **Marginal**: Briefly or anecdotally mentioned
-- **Non abordé**: No mention of Islam or Muslims
+### Centralité :
+- **Très central** : L'islam/les musulmans sont le sujet principal de l'article
+- **Central** : Thème important mais partagé avec d'autres sujets
+- **Secondaire** : Mentionné significativement mais de façon secondaire
+- **Marginal** : Mentionné brièvement ou anecdotiquement
+- **Non abordé** : Aucune mention de l'islam ou des musulmans
 
-## Guidelines:
-- Be thorough and analytical in your evaluation
-- Consider the cultural and regional context of Francophone West Africa
-- Provide specific textual evidence when possible
-- Be honest about uncertainty when the correct answer is ambiguous
-- Use French terminology for scores (as shown above)"""
+## Directives :
+- Soyez rigoureux et analytique dans votre évaluation
+- Tenez compte du contexte culturel et régional de l'Afrique de l'Ouest francophone
+- Fournissez des preuves textuelles spécifiques lorsque possible
+- Soyez honnête sur l'incertitude lorsque la réponse correcte est ambiguë
+- Utilisez la terminologie française pour les scores (comme indiqué ci-dessus)
+- Répondez entièrement en français (justifications, explications et verdicts)
+- Pour overall_winner, utilisez strictement : "model_a", "model_b", "both" (équivalents), ou "neither" (aucun précis)
+- Pour overall_explanation, fournissez une explication détaillée en français du verdict global"""
 
 
 def safe_int_convert(value) -> Optional[int]:
@@ -237,35 +244,35 @@ def create_arbiter_prompt(article_text: str, title: str,
     Model assignment is randomized for blind evaluation.
     """
     
-    prompt = f"""Evaluate the following article and the two model analyses.
+    prompt = f"""Évaluez l'article suivant et les deux analyses de modèles.
 
-## Article Information
-**Title:** {title}
+## Informations sur l'article
+**Titre :** {title}
 
-**Full Text:**
+**Texte intégral :**
 {article_text[:15000]}
 
 ---
 
-## Model A Analysis:
-- **Polarity (sentiment toward Islam/Muslims):** {model_a_analysis.get('polarite', 'N/A')}
-  - Justification: {model_a_analysis.get('polarite_justification', 'N/A')}
-- **Subjectivity Score (1=very objective, 5=very subjective):** {model_a_analysis.get('subjectivite_score', 'N/A')}
-  - Justification: {model_a_analysis.get('subjectivite_justification', 'N/A')}
-- **Centrality of Islam/Muslims:** {model_a_analysis.get('centralite_islam_musulmans', 'N/A')}
-  - Justification: {model_a_analysis.get('centralite_justification', 'N/A')}
+## Analyse du Modèle A :
+- **Polarité (sentiment envers l'islam/les musulmans) :** {model_a_analysis.get('polarite', 'N/A')}
+  - Justification : {model_a_analysis.get('polarite_justification', 'N/A')}
+- **Score de subjectivité (1=très objectif, 5=très subjectif) :** {model_a_analysis.get('subjectivite_score', 'N/A')}
+  - Justification : {model_a_analysis.get('subjectivite_justification', 'N/A')}
+- **Centralité de l'islam/des musulmans :** {model_a_analysis.get('centralite_islam_musulmans', 'N/A')}
+  - Justification : {model_a_analysis.get('centralite_justification', 'N/A')}
 
-## Model B Analysis:
-- **Polarity:** {model_b_analysis.get('polarite', 'N/A')}
-  - Justification: {model_b_analysis.get('polarite_justification', 'N/A')}
-- **Subjectivity Score:** {model_b_analysis.get('subjectivite_score', 'N/A')}
-  - Justification: {model_b_analysis.get('subjectivite_justification', 'N/A')}
-- **Centrality:** {model_b_analysis.get('centralite_islam_musulmans', 'N/A')}
-  - Justification: {model_b_analysis.get('centralite_justification', 'N/A')}
+## Analyse du Modèle B :
+- **Polarité :** {model_b_analysis.get('polarite', 'N/A')}
+  - Justification : {model_b_analysis.get('polarite_justification', 'N/A')}
+- **Score de subjectivité :** {model_b_analysis.get('subjectivite_score', 'N/A')}
+  - Justification : {model_b_analysis.get('subjectivite_justification', 'N/A')}
+- **Centralité :** {model_b_analysis.get('centralite_islam_musulmans', 'N/A')}
+  - Justification : {model_b_analysis.get('centralite_justification', 'N/A')}
 
 ---
 
-Provide your independent evaluation for each dimension, determine which model is more accurate, and explain your reasoning."""
+Fournissez votre évaluation indépendante pour chaque dimension, déterminez quel modèle est le plus précis et expliquez votre raisonnement."""
 
     return prompt
 
@@ -292,7 +299,8 @@ def convert_pydantic_to_dataclass(response: ArbiterResponse, article_id: str) ->
             preferred_model=response.centrality.preferred_model,
             verdict_explanation=response.centrality.verdict_explanation
         ),
-        overall_verdict=response.overall_verdict,
+        overall_winner=response.overall_winner,
+        overall_explanation=response.overall_explanation,
         confidence_level=response.confidence_level,
         timestamp=datetime.now().isoformat()
     )

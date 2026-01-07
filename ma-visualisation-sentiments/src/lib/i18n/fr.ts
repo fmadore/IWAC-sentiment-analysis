@@ -409,7 +409,11 @@ export const fr: Translations = {
     centralityCentral: 'Important mais partagé avec d\'autres sujets',
     centralitySecondary: 'Mentionné significativement mais secondaire',
     centralityMarginal: 'Mentionné brièvement ou anecdotiquement',
-    centralityNotAddressed: 'Aucune mention de l\'islam ou des musulmans'
+    centralityNotAddressed: 'Aucune mention de l\'islam ou des musulmans',
+    // Head-to-head comparison
+    headToHead: 'Comparaison directe',
+    excludingTies: '(hors égalités et « aucun précis »)',
+    wins: 'victoires'
   },
 
   // Extreme Analysis

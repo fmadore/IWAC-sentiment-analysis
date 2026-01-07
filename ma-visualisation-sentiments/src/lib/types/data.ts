@@ -103,7 +103,8 @@ export interface ArbiterAnalysis {
   polarity: ArbiterDimensionScore;
   subjectivity: ArbiterDimensionScore;
   centrality: ArbiterDimensionScore;
-  overall_verdict: string;  // General assessment
+  overall_winner: 'model_a' | 'model_b' | 'both' | 'neither';  // Strict winner value
+  overall_explanation: string;  // Detailed explanation of the verdict
   confidence_level: 'high' | 'medium' | 'low';
   timestamp: string;
 }

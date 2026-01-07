@@ -414,6 +414,10 @@ export interface Translations {
     centralitySecondary: string;
     centralityMarginal: string;
     centralityNotAddressed: string;
+    // Head-to-head comparison
+    headToHead: string;
+    excludingTies: string;
+    wins: string;
   };
 
   // Extreme Analysis

@@ -409,7 +409,11 @@ export const en: Translations = {
     centralityCentral: 'Important but shared with other subjects',
     centralitySecondary: 'Mentioned significantly but secondary',
     centralityMarginal: 'Briefly or anecdotally mentioned',
-    centralityNotAddressed: 'No mention of Islam or Muslims'
+    centralityNotAddressed: 'No mention of Islam or Muslims',
+    // Head-to-head comparison
+    headToHead: 'Head-to-Head Comparison',
+    excludingTies: '(excluding ties and neither)',
+    wins: 'wins'
   },
 
   // Extreme Analysis

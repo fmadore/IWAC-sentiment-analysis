@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { comparisonPair, availableDatasets } from '$lib/stores';
+	import { comparisonPair, availableDatasets, activeView } from '$lib/stores';
 	import type { ModelPair, DatasetOption } from '$lib/types/data';
 	import { getModelsFromPair } from '$lib/types/data';
 	import { t } from '$lib/i18n';
 	import { base } from '$app/paths';
+	import { updateURL } from '$lib/stores/url';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 
 	// Available comparison pairs
@@ -57,6 +58,8 @@
 	function selectPair(pair: ModelPair) {
 		comparisonPair.set(pair);
 		isOpen = false;
+		// Update URL to reflect the new pair, passing the current view
+		updateURL($activeView, true);
 	}
 
 	function handleClickOutside(event: MouseEvent) {

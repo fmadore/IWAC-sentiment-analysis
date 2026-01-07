@@ -96,6 +96,10 @@ export interface ArbiterStatistics {
 	modelBPercentage: number;
 	bothPercentage: number;
 	neitherPercentage: number;
+	// Overall verdict counts (per article, not per dimension)
+	overallModelAWins: number;
+	overallModelBWins: number;
+	overallTies: number;
 	modelAName: string;
 	modelBName: string;
 	hasData: boolean;
@@ -124,12 +128,16 @@ function computeArbiterStatistics(): ArbiterStatistics {
 			modelBPercentage: 0,
 			bothPercentage: 0,
 			neitherPercentage: 0,
+			overallModelAWins: 0,
+			overallModelBWins: 0,
+			overallTies: 0,
 			modelAName,
 			modelBName,
 			hasData: false
 		};
 	}
 
+	// Dimension-level counts
 	const counts = {
 		model_a: 0,
 		model_b: 0,
@@ -137,9 +145,17 @@ function computeArbiterStatistics(): ArbiterStatistics {
 		neither: 0
 	};
 
+	// Overall verdict counts (per article)
+	const overallCounts = {
+		model_a: 0,
+		model_b: 0,
+		tie: 0
+	};
+
 	for (const evaluation of _arbiterEvaluations.evaluations) {
 		const arbiter = evaluation.arbiter;
 
+		// Count dimension-level preferences
 		for (const dimension of ['polarity', 'subjectivity', 'centrality'] as const) {
 			const preferredModel = arbiter[dimension]?.preferred_model as
 				| 'model_a'
@@ -149,6 +165,17 @@ function computeArbiterStatistics(): ArbiterStatistics {
 			if (preferredModel in counts) {
 				counts[preferredModel]++;
 			}
+		}
+
+		// Count overall verdict using the structured field
+		const winner = arbiter.overall_winner;
+		if (winner === 'model_a') {
+			overallCounts.model_a++;
+		} else if (winner === 'model_b') {
+			overallCounts.model_b++;
+		} else {
+			// 'both' or 'neither' = tie
+			overallCounts.tie++;
 		}
 	}
 
@@ -167,6 +194,10 @@ function computeArbiterStatistics(): ArbiterStatistics {
 	// Map arbiter verdicts to pair order (first/second model in pair name)
 	const firstModelPreferred = modelAIsFirst ? counts.model_a : counts.model_b;
 	const secondModelPreferred = modelAIsFirst ? counts.model_b : counts.model_a;
+	
+	// Map overall verdicts to pair order
+	const overallFirstWins = modelAIsFirst ? overallCounts.model_a : overallCounts.model_b;
+	const overallSecondWins = modelAIsFirst ? overallCounts.model_b : overallCounts.model_a;
 
 	return {
 		totalEvaluated: _arbiterEvaluations.evaluations.length,
@@ -178,6 +209,9 @@ function computeArbiterStatistics(): ArbiterStatistics {
 		modelBPercentage: totalVerdicts > 0 ? (secondModelPreferred / totalVerdicts) * 100 : 0,
 		bothPercentage: totalVerdicts > 0 ? (counts.both / totalVerdicts) * 100 : 0,
 		neitherPercentage: totalVerdicts > 0 ? (counts.neither / totalVerdicts) * 100 : 0,
+		overallModelAWins: overallFirstWins,
+		overallModelBWins: overallSecondWins,
+		overallTies: overallCounts.tie,
 		modelAName,
 		modelBName,
 		hasData: true

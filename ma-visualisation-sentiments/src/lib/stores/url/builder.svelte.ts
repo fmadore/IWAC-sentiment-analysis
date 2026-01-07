@@ -65,24 +65,27 @@ export function buildURLSearchParams(state: URLState): URLSearchParams {
     params.set(URL_PARAMS.comparisonArticleId, state.comparisonArticleId.toString());
   }
 
-  if (state.countries && state.countries.length > 0) {
-    params.set(URL_PARAMS.countries, state.countries.join(','));
-  }
+  // Exclude regular filters for arbiter view (it has its own filter system)
+  if (!isArbiterView) {
+    if (state.countries && state.countries.length > 0) {
+      params.set(URL_PARAMS.countries, state.countries.join(','));
+    }
 
-  if (state.journals && state.journals.length > 0) {
-    params.set(URL_PARAMS.journals, state.journals.join(','));
-  }
+    if (state.journals && state.journals.length > 0) {
+      params.set(URL_PARAMS.journals, state.journals.join(','));
+    }
 
-  if (state.polarities && state.polarities.length > 0) {
-    params.set(URL_PARAMS.polarities, state.polarities.join(','));
-  }
+    if (state.polarities && state.polarities.length > 0) {
+      params.set(URL_PARAMS.polarities, state.polarities.join(','));
+    }
 
-  if (state.subjectivities && state.subjectivities.length > 0) {
-    params.set(URL_PARAMS.subjectivities, state.subjectivities.join(','));
-  }
+    if (state.subjectivities && state.subjectivities.length > 0) {
+      params.set(URL_PARAMS.subjectivities, state.subjectivities.join(','));
+    }
 
-  if (state.centralities && state.centralities.length > 0) {
-    params.set(URL_PARAMS.centralities, state.centralities.join(','));
+    if (state.centralities && state.centralities.length > 0) {
+      params.set(URL_PARAMS.centralities, state.centralities.join(','));
+    }
   }
 
   return params;
