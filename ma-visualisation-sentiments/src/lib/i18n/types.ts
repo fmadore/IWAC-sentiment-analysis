@@ -108,6 +108,27 @@ export interface Translations {
     bars: string;
     pie: string;
     polaritySubjectivityDistribution: string;
+    subtitle: string;
+  };
+
+  // Trends view
+  trends: {
+    subtitle: string;
+  };
+
+  // Volume view
+  volume: {
+    subtitle: string;
+  };
+
+  // Heatmap view
+  heatmap: {
+    subtitle: string;
+  };
+
+  // Correlation/Distribution view
+  correlation: {
+    subtitle: string;
   };
 
   // Table
@@ -127,6 +148,7 @@ export interface Translations {
     noArticles: string;
     noFilteredArticles: string;
     articleTitle: string;
+    subtitle: string;
   };
 
   // Article details
@@ -265,6 +287,7 @@ export interface Translations {
 
   // Comparison
   comparison: {
+    subtitle: string;
     filterByDiscrepancy: string;
     differenceRange: string;
     quickFilters: string;

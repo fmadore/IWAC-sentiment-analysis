@@ -83,20 +83,20 @@
 
 {#if comparison}
 	<div class="space-y-6">
-		<h3 class="h3 text-white text-balance">
+		<h3 class="h3 text-white text-balance comparison-detail-title">
 			{comparison.article['o:title'] ?? $t.article.titleNotAvailable}
 		</h3>
 
 		<!-- Article metadata -->
 		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-			<div class="card variant-glass glass-heavy p-4 hover-lift-sm border-gradient">
-				<span class="text-xs uppercase font-bold opacity-75 text-white/60"
+			<div class="comparison-metadata-card card variant-glass glass-heavy p-4 hover-lift-sm border-gradient">
+				<span class="text-xs uppercase font-bold opacity-75 text-purple-300/80"
 					>{$t.filters.journal}</span
 				>
 				<p class="text-white mt-2 font-medium">{getJournalName(comparison.article)}</p>
 			</div>
-			<div class="card variant-glass glass-heavy p-4 hover-lift-sm border-gradient">
-				<span class="text-xs uppercase font-bold opacity-75 text-white/60"
+			<div class="comparison-metadata-card card variant-glass glass-heavy p-4 hover-lift-sm border-gradient">
+				<span class="text-xs uppercase font-bold opacity-75 text-purple-300/80"
 					>{$t.article.publicationDate}</span
 				>
 				<p class="text-white mt-2 font-medium">{formatDate(comparison.article.publication_date)}</p>
@@ -104,15 +104,15 @@
 		</div>
 
 		<!-- Link to full article -->
-		<div class="card variant-glass glass-heavy p-4 hover-lift-sm border-gradient">
-			<span class="text-xs uppercase font-bold opacity-75 text-white/60"
+		<div class="comparison-metadata-card card variant-glass glass-heavy p-4 hover-lift-sm border-gradient">
+			<span class="text-xs uppercase font-bold opacity-75 text-purple-300/80"
 				>{$t.article.linkToFullArticle}</span
 			>
 			<p class="text-white mt-2">
 				<a
 					href={getArticleUrl(comparison.article['o:id'])}
 					target="_blank"
-					class="anchor hover-glow focus-ring"
+					class="anchor comparison-anchor hover-glow focus-ring"
 				>
 					{$t.article.consultOriginalArticle}
 				</a>
@@ -285,6 +285,36 @@
 		font-size: 0.875rem;
 		font-weight: 600;
 		cursor: default;
+	}
+
+	/* Comparison Title */
+	.comparison-detail-title {
+		background: var(--gradient-comparison);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+	}
+
+	/* Comparison Metadata Cards */
+	.comparison-metadata-card {
+		background: color-mix(in oklab, var(--sentiment-comparison) 5%, transparent) !important;
+		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 15%, transparent) !important;
+	}
+
+	.comparison-metadata-card:hover {
+		background: color-mix(in oklab, var(--sentiment-comparison) 8%, transparent) !important;
+		border-color: color-mix(in oklab, var(--sentiment-comparison) 25%, transparent) !important;
+	}
+
+	/* Comparison Anchor */
+	.comparison-anchor {
+		color: var(--sentiment-comparison-light) !important;
+		border-bottom-color: color-mix(in oklab, var(--sentiment-comparison-light) 40%, transparent) !important;
+	}
+
+	.comparison-anchor:hover {
+		color: var(--sentiment-comparison-accent) !important;
+		border-bottom-color: var(--sentiment-comparison-accent) !important;
 	}
 
 	.anchor {

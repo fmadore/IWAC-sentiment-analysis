@@ -103,7 +103,28 @@ export const en: Translations = {
     lines: 'Lines',
     bars: 'Bars',
     pie: 'Pie chart',
-    polaritySubjectivityDistribution: 'Polarity × Subjectivity Distribution'
+    polaritySubjectivityDistribution: 'Polarity × Subjectivity Distribution',
+    subtitle: 'Visualize sentiment distribution across polarity and subjectivity dimensions.'
+  },
+
+  // Trends view
+  trends: {
+    subtitle: 'Track sentiment evolution over time across publications.'
+  },
+
+  // Volume view
+  volume: {
+    subtitle: 'Analyze publication volume and temporal patterns in the corpus.'
+  },
+
+  // Heatmap view
+  heatmap: {
+    subtitle: 'Explore centrality patterns across countries and themes with interactive visualization.'
+  },
+
+  // Correlation/Distribution view
+  correlation: {
+    subtitle: 'Analyze the relationship between polarity and subjectivity dimensions.'
   },
 
   // Table
@@ -122,7 +143,8 @@ export const en: Translations = {
     showingItems: 'Showing',
     noArticles: 'No articles available',
     noFilteredArticles: 'No articles match the selected filters',
-    articleTitle: 'Title'
+    articleTitle: 'Title',
+    subtitle: 'Browse and search all articles with detailed sentiment data.'
   },
 
   // Article details
@@ -261,6 +283,7 @@ export const en: Translations = {
 
   // Comparison
   comparison: {
+    subtitle: 'Compare sentiment analyses between different AI models and identify significant discrepancies.',
     filterByDiscrepancy: 'Filter by Discrepancy',
     differenceRange: 'Difference Range',
     quickFilters: 'Quick Filters',

@@ -145,14 +145,14 @@
 <div class="comparison-table-container">
 	<!-- Header with title and export button -->
 	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-		<h2 class="h3 m-0 text-white text-gradient">
+		<h2 class="h3 m-0 text-white comparison-text-gradient">
 			{$t.datasets?.compareModels || 'Model Comparison'}
 		</h2>
 		<ComparisonCSVExportButton />
 	</div>
 
 	<!-- Controls and Pagination Info -->
-	<div class="controls-section mb-4">
+	<div class="controls-section comparison-controls mb-4">
 		<!-- First row: View controls and results info -->
 		<div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-3">
 			<!-- View Mode Toggle -->
@@ -243,7 +243,7 @@
 
 	{#if viewMode === 'table' && !isMobile}
 		<!-- Table View -->
-		<div class="table-container card variant-glass overflow-hidden">
+		<div class="table-container comparison-table-wrapper card variant-glass overflow-hidden">
 			<table class="table">
 				<thead>
 					<tr class="bg-surface-800">
@@ -382,7 +382,7 @@
 		</div>
 	{:else}
 		<!-- Card View -->
-		<div class="cards-grid">
+		<div class="cards-grid comparison-cards-grid">
 			{#each paginatedComparisons as comparison (comparison.article['o:id'])}
 				<div
 					class="comparison-card card variant-glass p-4 hover-lift cursor-pointer"
@@ -511,6 +511,24 @@
 		overflow-y: auto;
 	}
 
+	/* Comparison table wrapper with gradient accent */
+	.comparison-table-wrapper {
+		background: color-mix(in oklab, var(--sentiment-comparison) 3%, transparent);
+		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 12%, transparent);
+		backdrop-filter: blur(var(--glass-blur-md));
+	}
+
+	.comparison-table-wrapper::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 2px;
+		background: var(--gradient-comparison);
+		z-index: 10;
+	}
+
 	.sortable-header {
 		cursor: pointer;
 		user-select: none;
@@ -518,7 +536,7 @@
 	}
 
 	.sortable-header:hover {
-		background-color: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+		background-color: color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
 	}
 
 	/* Sticky table headers */
@@ -533,25 +551,38 @@
 	/* Ensure all clickable elements have pointer cursor */
 	.comparison-card {
 		cursor: pointer;
+		background: color-mix(in oklab, var(--sentiment-comparison) 5%, transparent);
+		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 12%, transparent);
+		backdrop-filter: blur(var(--glass-blur-sm));
+		transition: all var(--timing-fast) var(--easing-default);
 	}
 
 	.comparison-card:hover {
 		cursor: pointer;
+		background: color-mix(in oklab, var(--sentiment-comparison) 10%, transparent);
+		border-color: color-mix(in oklab, var(--sentiment-comparison) 25%, transparent);
+		transform: translateY(-2px);
 	}
 
 	/* Table rows */
 	tbody tr {
 		cursor: pointer;
+		transition: background-color var(--timing-fast) var(--easing-default);
 	}
 
 	tbody tr:hover {
 		cursor: pointer;
+		background-color: color-mix(in oklab, var(--sentiment-comparison) 10%, transparent);
 	}
 
 	.cards-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
 		gap: 1rem;
+	}
+
+	.comparison-cards-grid {
+		gap: 1.25rem;
 	}
 
 	.comparison-grid {
@@ -568,8 +599,10 @@
 
 	.dimension-label {
 		font-size: 0.75rem;
-		color: color-mix(in oklab, var(--color-surface-50) 60%, transparent);
-		font-weight: 500;
+		color: var(--sentiment-comparison-light);
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
 	}
 
 	.values-grid {
@@ -628,6 +661,11 @@
 		backdrop-filter: blur(var(--glass-blur-sm));
 	}
 
+	.comparison-controls {
+		background: color-mix(in oklab, var(--sentiment-comparison) 5%, transparent);
+		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
+	}
+
 	.pagination-controls {
 		flex-wrap: wrap;
 		justify-content: center;
@@ -659,7 +697,7 @@
 	}
 
 	/* Text gradient styling */
-	.text-gradient {
+	.comparison-text-gradient {
 		background: var(--gradient-comparison);
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
@@ -722,7 +760,9 @@
 
 	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
-		.sortable-header {
+		.sortable-header,
+		.comparison-card,
+		tbody tr {
 			transition: none;
 		}
 	}

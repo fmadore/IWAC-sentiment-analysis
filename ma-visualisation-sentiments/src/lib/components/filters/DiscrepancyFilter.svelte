@@ -56,10 +56,12 @@
   }
 </script>
 
-<div class="filter-card">
+<div class="filter-card comparison-filter-card">
   <div class="filter-header">
-    <FilterIcon size={20} class="header-icon" />
-    <h3 class="filter-title">{$t.comparison?.filterByDiscrepancy || 'Filter by Discrepancy'}</h3>
+    <div class="filter-icon-container">
+      <FilterIcon size={20} class="header-icon" />
+    </div>
+    <h3 class="filter-title comparison-filter-title">{$t.comparison?.filterByDiscrepancy || 'Filter by Discrepancy'}</h3>
   </div>
   
   <!-- Difference Range -->
@@ -225,6 +227,29 @@
     transition: all var(--timing-normal) var(--easing-default);
   }
 
+  /* Comparison-specific filter card */
+  .comparison-filter-card {
+    background: color-mix(in oklab, var(--sentiment-comparison) 5%, transparent);
+    border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .comparison-filter-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--gradient-comparison);
+  }
+
+  .comparison-filter-card:hover {
+    border-color: color-mix(in oklab, var(--sentiment-comparison) 25%, transparent);
+    background: color-mix(in oklab, var(--sentiment-comparison) 8%, transparent);
+  }
+
   .filter-card:hover {
     border-color: color-mix(in oklab, var(--color-surface-50) 15%, transparent);
   }
@@ -232,12 +257,23 @@
   .filter-header {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
     margin-bottom: 1rem;
   }
 
+  .filter-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--sentiment-comparison-icon-bg);
+    border: 1px solid var(--sentiment-comparison-border);
+  }
+
   .filter-header :global(svg) {
-    color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
+    color: var(--sentiment-comparison-light);
   }
 
   .filter-title {
@@ -245,6 +281,13 @@
     font-weight: 600;
     color: var(--color-surface-50);
     margin: 0;
+  }
+
+  .comparison-filter-title {
+    background: var(--gradient-comparison);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .filter-section {
@@ -329,10 +372,10 @@
   }
 
   .filter-chip[data-selected="true"] {
-    background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
-    border-color: color-mix(in oklab, var(--color-surface-50) 25%, transparent);
+    background: var(--gradient-comparison);
+    border-color: color-mix(in oklab, var(--sentiment-comparison-light) 40%, transparent);
     color: white;
-    box-shadow: 0 2px 8px color-mix(in oklab, var(--color-primary-500) 30%, transparent);
+    box-shadow: 0 2px 8px color-mix(in oklab, var(--sentiment-comparison) 30%, transparent);
   }
 
   .filter-chip.warning[data-selected="true"] {
@@ -372,7 +415,7 @@
     position: absolute;
     top: 20px;
     height: 4px;
-    background: linear-gradient(90deg, var(--color-primary-500), var(--color-secondary-500));
+    background: var(--gradient-comparison);
     border-radius: 2px;
     transition: all var(--timing-fast) var(--easing-default);
   }
@@ -395,7 +438,7 @@
     height: 20px;
     border-radius: 50%;
     background: white;
-    border: 2px solid var(--color-primary-500);
+    border: 2px solid var(--sentiment-comparison);
     cursor: pointer;
     pointer-events: auto;
     box-shadow: 0 2px 8px color-mix(in oklab, black 30%, transparent);
@@ -404,7 +447,7 @@
   
   .range-slider::-webkit-slider-thumb:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 12px color-mix(in oklab, black 40%, transparent);
+    box-shadow: 0 4px 12px color-mix(in oklab, var(--sentiment-comparison) 40%, transparent);
   }
   
   .range-slider::-moz-range-thumb {
@@ -412,7 +455,7 @@
     height: 20px;
     border-radius: 50%;
     background: white;
-    border: 2px solid var(--color-primary-500);
+    border: 2px solid var(--sentiment-comparison);
     cursor: pointer;
     pointer-events: auto;
     box-shadow: 0 2px 8px color-mix(in oklab, black 30%, transparent);
@@ -421,7 +464,7 @@
   
   .range-slider::-moz-range-thumb:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 12px color-mix(in oklab, black 40%, transparent);
+    box-shadow: 0 4px 12px color-mix(in oklab, var(--sentiment-comparison) 40%, transparent);
   }
   
   .range-min {
@@ -466,11 +509,11 @@
   }
 
   .toggle-switch[data-active="true"] {
-    background: var(--color-primary-500);
+    background: var(--sentiment-comparison);
   }
 
   .toggle-switch[data-active="true"]:hover {
-    background: var(--color-secondary-500);
+    background: var(--sentiment-comparison-light);
   }
 
   .toggle-thumb {

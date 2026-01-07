@@ -84,8 +84,8 @@
 <div class="comparison-view">
 	{#if !$comparisonMode}
 		<!-- Not in comparison mode -->
-		<div class="empty-state preset-glass p-8 text-center rounded-xl">
-			<AlertCircleIcon size={48} class="mx-auto mb-4 text-white/60" />
+		<div class="empty-state comparison-empty-state preset-glass p-8 text-center rounded-xl">
+			<AlertCircleIcon size={48} class="mx-auto mb-4 text-purple-400/60" />
 			<h3 class="h3 mb-2 text-white">
 				{$t.comparison?.enableComparisonMode || 'Enable Comparison Mode'}
 			</h3>
@@ -97,14 +97,14 @@
 	{:else if $isLoadingComparison}
 		<!-- Loading state for comparison data -->
 		<div class="loading-section mb-6">
-			<div class="preset-glass p-8 text-center rounded-xl">
-				<div class="loading-spinner mb-4"></div>
+			<div class="comparison-loading-card preset-glass p-8 text-center rounded-xl">
+				<div class="loading-spinner comparison-spinner mb-4"></div>
 				<p class="text-white/80">{$t.messages?.loading || 'Loading comparison data...'}</p>
 			</div>
 		</div>
 	{:else}
 		<!-- Model Pair Picker -->
-		<div class="pair-picker-section mb-4">
+		<div class="pair-picker-section comparison-pair-picker mb-4">
 			<div class="flex items-center gap-3">
 				<span class="text-white/60 text-sm">{$t.comparison?.selectModelPair || 'Compare:'}</span>
 				<ModelPairPicker />
@@ -127,8 +127,8 @@
 				<ComparisonTable />
 			</div>
 		{:else}
-			<div class="empty-results preset-glass p-8 text-center rounded-xl">
-				<AlertCircleIcon size={48} class="mx-auto mb-4 text-white/60" />
+			<div class="empty-results comparison-empty-results preset-glass p-8 text-center rounded-xl">
+				<AlertCircleIcon size={48} class="mx-auto mb-4 text-purple-400/60" />
 				<h3 class="h4 mb-2 text-white">
 					{$t.comparison?.noDiscrepancies || 'No Discrepancies Found'}
 				</h3>
@@ -154,6 +154,21 @@
 		max-width: 600px;
 	}
 
+	/* Comparison-specific empty states */
+	.comparison-empty-state,
+	.comparison-empty-results {
+		background: color-mix(in oklab, var(--sentiment-comparison) 5%, transparent);
+		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
+		backdrop-filter: blur(var(--glass-blur-md));
+	}
+
+	/* Comparison loading card */
+	.comparison-loading-card {
+		background: color-mix(in oklab, var(--sentiment-comparison) 5%, transparent);
+		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
+		backdrop-filter: blur(var(--glass-blur-md));
+	}
+
 	/* Loading spinner - using CSS custom properties */
 	.loading-spinner {
 		width: 48px;
@@ -163,6 +178,19 @@
 		border-radius: 50%;
 		animation: spin 1s linear infinite;
 		margin: 0 auto;
+	}
+
+	.comparison-spinner {
+		border-top-color: var(--sentiment-comparison);
+	}
+
+	/* Pair picker section */
+	.comparison-pair-picker {
+		background: color-mix(in oklab, var(--sentiment-comparison) 5%, transparent);
+		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
+		border-radius: 0.75rem;
+		padding: 1rem;
+		backdrop-filter: blur(var(--glass-blur-sm));
 	}
 
 	@keyframes spin {

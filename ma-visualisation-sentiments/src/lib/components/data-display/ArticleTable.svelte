@@ -376,7 +376,7 @@
     </div>
   {:else}
     <!-- Desktop Table View -->
-    <div class="table-container card variant-glass">
+    <div class="table-container card variant-glass overflow-hidden">
       <table class="table">
         <thead>
           <tr class="bg-surface-800">
@@ -457,9 +457,31 @@
 {/if}
 
 <style>
+  /* ==============================================
+     Table Container - Glass morphism wrapper
+     ============================================== */
   .table-container {
     max-height: 600px;
     overflow-y: auto;
+    position: relative;
+    /* Glass effect with primary gradient hint */
+    background: color-mix(in oklab, var(--color-primary-500) 3%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-primary-500) 12%, transparent);
+    backdrop-filter: blur(var(--glass-blur-md));
+    border-radius: var(--radius-lg);
+  }
+
+  /* Gradient accent line at top */
+  .table-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--gradient-header);
+    z-index: 10;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   }
   
   table {
@@ -470,17 +492,20 @@
   th, td {
     padding: 0.75rem 1rem;
     text-align: left;
-    border-bottom: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    border-bottom: 1px solid var(--border-subtle);
   }
 
-  /* Styles pour les lignes d'articles cliquables */
+  /* ==============================================
+     Table Row Styles
+     ============================================== */
   .article-row {
     cursor: pointer;
     transition: background-color var(--timing-fast) var(--easing-default);
   }
 
   .article-row:hover {
-    background-color: color-mix(in oklab, var(--color-surface-50) 5%, transparent);
+    cursor: pointer;
+    background-color: color-mix(in oklab, var(--color-primary-500) 10%, transparent);
   }
 
   .article-title {
@@ -493,13 +518,16 @@
     text-decoration: underline;
     font-weight: 500;
   }
-  
+
+  /* ==============================================
+     Sticky Table Headers
+     ============================================== */
   th {
     position: sticky;
     top: 0;
     z-index: 1;
     background-color: var(--color-surface-800);
-    box-shadow: 0 1px 0 color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+    box-shadow: 0 1px 0 var(--border-default);
   }
   
   .sortable-header {
@@ -509,15 +537,18 @@
   }
   
   .sortable-header:hover {
-    background-color: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    background-color: color-mix(in oklab, var(--color-primary-500) 15%, transparent);
   }
 
-  /* Styles pour la pagination */
+  /* ==============================================
+     Pagination Controls Section
+     ============================================== */
   .pagination-info {
-    background: color-mix(in oklab, var(--color-surface-50) 5%, transparent);
+    background: color-mix(in oklab, var(--color-primary-500) 5%, transparent);
     padding: 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    border-radius: var(--radius-lg);
+    border: 1px solid color-mix(in oklab, var(--color-primary-500) 15%, transparent);
+    backdrop-filter: blur(var(--glass-blur-sm));
   }
 
   .pagination-controls {
@@ -532,6 +563,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
   }
 
   .pagination-controls button:disabled {
@@ -539,20 +571,63 @@
     cursor: not-allowed;
   }
 
+  .pagination-controls button:not(:disabled):hover {
+    cursor: pointer;
+  }
+
+  .pagination-bottom {
+    background: color-mix(in oklab, var(--color-primary-500) 3%, transparent);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid color-mix(in oklab, var(--color-primary-500) 10%, transparent);
+  }
+
   .select-sm {
     padding: 0.25rem 0.5rem;
     font-size: 0.875rem;
-    border-radius: 0.375rem;
+    border-radius: var(--radius-md);
   }
 
-  /* Mobile card styles */
+  /* Select elements */
+  select {
+    cursor: pointer;
+  }
+
+  /* Labels for form elements */
+  label {
+    cursor: pointer;
+  }
+
+  /* ==============================================
+     Mobile Sort Controls
+     ============================================== */
+  .mobile-sort-controls {
+    background: color-mix(in oklab, var(--color-primary-500) 5%, transparent) !important;
+    border: 1px solid color-mix(in oklab, var(--color-primary-500) 15%, transparent) !important;
+    backdrop-filter: blur(var(--glass-blur-sm));
+  }
+
+  /* ==============================================
+     Mobile Card Styles
+     ============================================== */
   .mobile-cards {
     max-height: 600px;
     overflow-y: auto;
   }
 
   .mobile-card {
-    border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    cursor: pointer;
+    background: color-mix(in oklab, var(--color-primary-500) 5%, transparent) !important;
+    border: 1px solid color-mix(in oklab, var(--color-primary-500) 12%, transparent) !important;
+    backdrop-filter: blur(var(--glass-blur-sm));
+    transition: all var(--timing-fast) var(--easing-default);
+  }
+
+  .mobile-card:hover {
+    cursor: pointer;
+    background: color-mix(in oklab, var(--color-primary-500) 10%, transparent) !important;
+    border-color: color-mix(in oklab, var(--color-primary-500) 25%, transparent) !important;
+    transform: translateY(-2px);
   }
 
   .line-clamp-2 {
@@ -563,10 +638,12 @@
     overflow: hidden;
   }
 
-  /* Responsive design pour la pagination */
+  /* ==============================================
+     Responsive Design
+     ============================================== */
   @media (max-width: 768px) {
     .pagination-info {
-      padding: 0.5rem;
+      padding: 0.75rem;
     }
     
     .pagination-controls {
@@ -599,7 +676,7 @@
     }
 
     .mobile-card {
-      padding: 0.75rem;
+      padding: 0.75rem !important;
     }
 
     .mobile-card h3 {
@@ -607,12 +684,19 @@
     }
   }
   
-  /* Reduced motion */
+  /* ==============================================
+     Reduced Motion
+     ============================================== */
   @media (prefers-reduced-motion: reduce) {
     .article-row,
     .article-title,
-    .sortable-header {
+    .sortable-header,
+    .mobile-card {
       transition: none;
+    }
+
+    .mobile-card:hover {
+      transform: none;
     }
   }
 </style>

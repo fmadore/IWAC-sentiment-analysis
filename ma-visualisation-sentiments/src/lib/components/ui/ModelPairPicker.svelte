@@ -133,8 +133,8 @@
 		align-items: center;
 		gap: 0.5rem;
 		padding: 0.5rem 0.75rem;
-		background: color-mix(in oklab, var(--color-surface-800) 80%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+		background: color-mix(in oklab, var(--sentiment-comparison) 10%, transparent);
+		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 25%, transparent);
 		border-radius: 0.5rem;
 		color: var(--color-surface-50);
 		cursor: pointer;
@@ -142,8 +142,8 @@
 	}
 
 	.picker-button:hover {
-		background: color-mix(in oklab, var(--color-surface-700) 80%, transparent);
-		border-color: color-mix(in oklab, var(--color-surface-50) 25%, transparent);
+		background: color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
+		border-color: color-mix(in oklab, var(--sentiment-comparison) 40%, transparent);
 	}
 
 	.selected-pair {
@@ -162,7 +162,7 @@
 		font-size: 0.625rem;
 		font-weight: 600;
 		text-transform: uppercase;
-		color: var(--color-surface-400);
+		color: var(--sentiment-comparison-light);
 		letter-spacing: 0.05em;
 	}
 
@@ -170,14 +170,15 @@
 		position: absolute;
 		top: calc(100% + 0.25rem);
 		left: 0;
-		min-width: 180px;
-		background: color-mix(in oklab, var(--color-surface-900) 95%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+		min-width: 200px;
+		background: var(--color-surface-900);
+		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 30%, transparent);
 		border-radius: 0.5rem;
 		box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-		backdrop-filter: blur(12px);
+		backdrop-filter: blur(16px);
 		z-index: 100;
 		overflow: hidden;
+		padding: 0.25rem;
 	}
 
 	.dropdown-item {
@@ -188,6 +189,7 @@
 		padding: 0.625rem 0.75rem;
 		background: transparent;
 		border: none;
+		border-radius: 0.375rem;
 		color: var(--color-surface-100);
 		cursor: pointer;
 		transition: all var(--timing-fast) var(--easing-default);
@@ -195,11 +197,12 @@
 	}
 
 	.dropdown-item:hover {
-		background: color-mix(in oklab, var(--color-primary-500) 15%, transparent);
+		background: color-mix(in oklab, var(--sentiment-comparison) 20%, transparent);
 	}
 
 	.dropdown-item.selected {
-		background: color-mix(in oklab, var(--color-primary-500) 20%, transparent);
+		background: color-mix(in oklab, var(--sentiment-comparison) 25%, transparent);
+		box-shadow: inset 2px 0 0 var(--sentiment-comparison-light);
 	}
 
 	.pair-logos {
@@ -218,7 +221,7 @@
 		font-size: 0.5rem;
 		font-weight: 600;
 		text-transform: uppercase;
-		color: var(--color-surface-500);
+		color: var(--sentiment-comparison-light);
 	}
 
 	.pair-label {

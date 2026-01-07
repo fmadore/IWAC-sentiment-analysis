@@ -6,8 +6,8 @@
     title?: string;
     /** Optional subtitle for the card header */
     subtitle?: string;
-    /** Visual variant: default, large, extreme, or arbiter */
-    variant?: 'default' | 'large' | 'extreme' | 'arbiter';
+    /** Visual variant: default, large, extreme, arbiter, comparison, charts, trends, volume, heatmap, table, correlation */
+    variant?: 'default' | 'large' | 'extreme' | 'arbiter' | 'comparison' | 'charts' | 'trends' | 'volume' | 'heatmap' | 'table' | 'correlation';
     /** Card content */
     children: Snippet;
     /** Custom header snippet (overrides title/subtitle) */
@@ -118,16 +118,40 @@
 
   /* Extreme variant - for the extreme analysis view */
   .chart-card[data-variant="extreme"] {
-    min-height: 850px;
+    position: relative;
+    overflow: hidden;
+    min-height: 600px;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-surface-900) 92%, transparent),
+      color-mix(in oklab, var(--sentiment-extreme) 4%, var(--color-surface-900))
+    );
+    border-color: var(--sentiment-extreme-border);
+  }
+
+  .chart-card[data-variant="extreme"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      var(--sentiment-extreme),
+      var(--sentiment-extreme-light),
+      var(--sentiment-extreme-accent)
+    );
+    opacity: 0.8;
   }
 
   .chart-card[data-variant="extreme"] .chart-card-header {
-    padding: 1.5rem 2rem;
-    border-bottom: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--sentiment-extreme) 15%, transparent);
   }
 
   .chart-card[data-variant="extreme"] .chart-title {
-    font-size: 1.75rem;
+    font-size: 1.25rem;
     font-weight: 700;
     background: var(--gradient-extreme);
     -webkit-background-clip: text;
@@ -142,7 +166,7 @@
   }
 
   .chart-card[data-variant="extreme"] .chart-card-body {
-    padding: 2rem;
+    padding: 1.5rem;
   }
 
   /* Arbiter variant - for the arbiter analysis view */
@@ -186,6 +210,332 @@
     padding: 1.5rem;
   }
 
+  /* Comparison variant - for the comparison view */
+  .chart-card[data-variant="comparison"] {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-surface-900) 92%, transparent),
+      color-mix(in oklab, var(--sentiment-comparison) 4%, var(--color-surface-900))
+    );
+    border-color: var(--sentiment-comparison-border);
+  }
+
+  .chart-card[data-variant="comparison"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-comparison);
+    opacity: 0.8;
+  }
+
+  .chart-card[data-variant="comparison"] .chart-card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
+  }
+
+  .chart-card[data-variant="comparison"] .chart-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: var(--gradient-comparison);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .chart-card[data-variant="comparison"] .chart-card-body {
+    padding: 1.5rem;
+  }
+
+  /* Charts variant - for the distribution/charts view */
+  .chart-card[data-variant="charts"] {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-surface-900) 92%, transparent),
+      color-mix(in oklab, var(--sentiment-charts) 4%, var(--color-surface-900))
+    );
+    border-color: var(--sentiment-charts-border);
+  }
+
+  .chart-card[data-variant="charts"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-charts);
+    opacity: 0.8;
+  }
+
+  .chart-card[data-variant="charts"] .chart-card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--sentiment-charts) 15%, transparent);
+  }
+
+  .chart-card[data-variant="charts"] .chart-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    background: var(--gradient-charts);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .chart-card[data-variant="charts"] .chart-card-body {
+    padding: 1.5rem;
+  }
+
+  .chart-card[data-variant="charts"]:hover {
+    border-color: var(--sentiment-charts);
+    box-shadow: 
+      0 8px 32px color-mix(in oklab, var(--sentiment-charts) 15%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+  }
+
+  /* Trends variant - for the trends view */
+  .chart-card[data-variant="trends"] {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-surface-900) 92%, transparent),
+      color-mix(in oklab, var(--sentiment-trends) 4%, var(--color-surface-900))
+    );
+    border-color: var(--sentiment-trends-border);
+  }
+
+  .chart-card[data-variant="trends"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-trends);
+    opacity: 0.8;
+  }
+
+  .chart-card[data-variant="trends"] .chart-card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--sentiment-trends) 15%, transparent);
+  }
+
+  .chart-card[data-variant="trends"] .chart-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    background: var(--gradient-trends);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .chart-card[data-variant="trends"] .chart-card-body {
+    padding: 1.5rem;
+  }
+
+  .chart-card[data-variant="trends"]:hover {
+    border-color: var(--sentiment-trends);
+    box-shadow: 
+      0 8px 32px color-mix(in oklab, var(--sentiment-trends) 15%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+  }
+
+  /* Volume variant - for the volume view */
+  .chart-card[data-variant="volume"] {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-surface-900) 92%, transparent),
+      color-mix(in oklab, var(--sentiment-volume) 4%, var(--color-surface-900))
+    );
+    border-color: var(--sentiment-volume-border);
+  }
+
+  .chart-card[data-variant="volume"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-volume);
+    opacity: 0.8;
+  }
+
+  .chart-card[data-variant="volume"] .chart-card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--sentiment-volume) 15%, transparent);
+  }
+
+  .chart-card[data-variant="volume"] .chart-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    background: var(--gradient-volume);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .chart-card[data-variant="volume"] .chart-card-body {
+    padding: 1.5rem;
+  }
+
+  .chart-card[data-variant="volume"]:hover {
+    border-color: var(--sentiment-volume);
+    box-shadow: 
+      0 8px 32px color-mix(in oklab, var(--sentiment-volume) 15%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+  }
+
+  /* Heatmap variant - for the heatmap view */
+  .chart-card[data-variant="heatmap"] {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-surface-900) 92%, transparent),
+      color-mix(in oklab, var(--sentiment-heatmap) 4%, var(--color-surface-900))
+    );
+    border-color: var(--sentiment-heatmap-border);
+  }
+
+  .chart-card[data-variant="heatmap"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-heatmap);
+    opacity: 0.8;
+  }
+
+  .chart-card[data-variant="heatmap"] .chart-card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--sentiment-heatmap) 15%, transparent);
+  }
+
+  .chart-card[data-variant="heatmap"] .chart-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    background: var(--gradient-heatmap);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .chart-card[data-variant="heatmap"] .chart-card-body {
+    padding: 1.5rem;
+  }
+
+  .chart-card[data-variant="heatmap"]:hover {
+    border-color: var(--sentiment-heatmap);
+    box-shadow: 
+      0 8px 32px color-mix(in oklab, var(--sentiment-heatmap) 15%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+  }
+
+  /* Table variant - for the table view */
+  .chart-card[data-variant="table"] {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-surface-900) 92%, transparent),
+      color-mix(in oklab, var(--sentiment-table) 3%, var(--color-surface-900))
+    );
+    border-color: var(--sentiment-table-border);
+  }
+
+  .chart-card[data-variant="table"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-table);
+    opacity: 0.6;
+  }
+
+  .chart-card[data-variant="table"] .chart-card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--sentiment-table) 15%, transparent);
+  }
+
+  .chart-card[data-variant="table"] .chart-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-surface-50);
+  }
+
+  .chart-card[data-variant="table"] .chart-card-body {
+    padding: 1.5rem;
+  }
+
+  .chart-card[data-variant="table"]:hover {
+    border-color: var(--sentiment-table);
+    box-shadow: 
+      0 8px 32px color-mix(in oklab, var(--sentiment-table) 10%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+  }
+
+  /* Correlation variant - for the distribution/correlation view */
+  .chart-card[data-variant="correlation"] {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-surface-900) 92%, transparent),
+      color-mix(in oklab, var(--sentiment-correlation) 4%, var(--color-surface-900))
+    );
+    border-color: var(--sentiment-correlation-border);
+  }
+
+  .chart-card[data-variant="correlation"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-correlation);
+    opacity: 0.8;
+  }
+
+  .chart-card[data-variant="correlation"] .chart-card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--sentiment-correlation) 15%, transparent);
+  }
+
+  .chart-card[data-variant="correlation"] .chart-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    background: var(--gradient-correlation);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .chart-card[data-variant="correlation"] .chart-card-body {
+    padding: 1.5rem;
+  }
+
+  .chart-card[data-variant="correlation"]:hover {
+    border-color: var(--sentiment-correlation);
+    box-shadow: 
+      0 8px 32px color-mix(in oklab, var(--sentiment-correlation) 15%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+  }
+
   /* Responsive */
   @media (max-width: 640px) {
     .chart-card-header {
@@ -205,21 +555,29 @@
     }
 
     .chart-card[data-variant="extreme"] .chart-title {
-      font-size: 1.375rem;
+      font-size: 1.125rem;
     }
 
     .chart-card[data-variant="extreme"] .chart-card-body {
       padding: 1rem;
     }
+    
+    .chart-card[data-variant="extreme"] {
+      min-height: 450px;
+    }
   }
 
   @media (min-width: 1024px) {
     .chart-card[data-variant="extreme"] {
-      min-height: 950px;
+      min-height: 700px;
     }
 
     .chart-card[data-variant="extreme"] .chart-title {
-      font-size: 2rem;
+      font-size: 1.5rem;
+    }
+    
+    .chart-card[data-variant="extreme"] .chart-card-body {
+      padding: 2rem;
     }
   }
 

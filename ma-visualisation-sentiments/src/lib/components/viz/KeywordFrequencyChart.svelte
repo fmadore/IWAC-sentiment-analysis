@@ -204,10 +204,10 @@
 {#if isLoading}
   <!-- Loading State -->
   <div class="loading-container">
-    <div class="chart-container glass-medium rounded-lg p-4" style="min-height: 500px;">
+    <div class="chart-container extreme-chart-container rounded-lg p-4" style="min-height: 500px;">
       <div class="flex items-center justify-center h-full">
         <div class="text-center">
-          <div class="loading-spinner mb-4"></div>
+          <div class="loading-spinner extreme-spinner mb-4"></div>
           <p class="text-white/80">{$t.messages.loading || 'Loading extreme analysis data...'}</p>
         </div>
       </div>
@@ -219,7 +219,7 @@
     {@const descriptionKey = selectedCategory.replace('_extreme', '').replace('polarity_very_', 'polarity').replace('centrality_', 'centrality') as keyof typeof $t.extremeAnalysis.descriptions}
     {@const description = $t.extremeAnalysis.descriptions[descriptionKey]}
     {#if description && description.trim()}
-      <div class="card variant-glass p-4 mb-4">
+      <div class="extreme-description-card">
         <p class="text-sm text-white/80 leading-relaxed">
           {description}
         </p>
@@ -230,7 +230,7 @@
   <!-- Chart Container -->
   <div 
     style="height: {isMobile ? '400px' : '500px'}; position: relative;" 
-    class="chart-container glass-medium rounded-lg p-2 sm:p-4"
+    class="chart-container extreme-chart-container rounded-lg p-2 sm:p-4"
   >
     <Chart {init} {options} />
   </div>
@@ -238,15 +238,15 @@
   <!-- Statistics Card -->
   {#if categoryData}
     {@const data = categoryData}
-    <div class="card variant-glass p-4 mt-4">
+    <div class="extreme-stats-card">
       <div class="statistics-row">
         <div class="stat-item">
           <span class="stat-label">{$t.common.total} {$t.common.articles}:</span>
-          <span class="stat-value">{data?.articles.length || 0}</span>
+          <span class="stat-value extreme-stat-value">{data?.articles.length || 0}</span>
         </div>
         <div class="stat-item">
           <span class="stat-label">{$t.extremeAnalysis.topKeywords}:</span>
-          <span class="stat-value">{showTopN}</span>
+          <span class="stat-value extreme-stat-value">{showTopN}</span>
         </div>
       </div>
     </div>
@@ -280,6 +280,10 @@
     margin: 0 auto;
   }
 
+  .extreme-spinner {
+    border-top-color: var(--sentiment-extreme);
+  }
+
   @keyframes spin {
     to { transform: rotate(360deg); }
   }
@@ -288,6 +292,51 @@
   .chart-container {
     background: color-mix(in oklab, var(--color-surface-50) 2%, transparent);
     border: 1px solid color-mix(in oklab, var(--color-surface-50) 5%, transparent);
+  }
+
+  .extreme-chart-container {
+    background: color-mix(in oklab, var(--sentiment-extreme) 3%, transparent);
+    border: 1px solid color-mix(in oklab, var(--sentiment-extreme) 12%, transparent);
+    backdrop-filter: blur(var(--glass-blur-md));
+    transition: all var(--timing-fast) var(--easing-default);
+  }
+
+  .extreme-chart-container:hover {
+    border-color: color-mix(in oklab, var(--sentiment-extreme) 20%, transparent);
+    background: color-mix(in oklab, var(--sentiment-extreme) 5%, transparent);
+  }
+
+  /* Description Card */
+  .extreme-description-card {
+    background: color-mix(in oklab, var(--sentiment-extreme) 8%, transparent);
+    border: 1px solid color-mix(in oklab, var(--sentiment-extreme) 15%, transparent);
+    border-left: 3px solid var(--sentiment-extreme);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    backdrop-filter: blur(var(--glass-blur-sm));
+    transition: all var(--timing-fast) var(--easing-default);
+  }
+
+  .extreme-description-card:hover {
+    background: color-mix(in oklab, var(--sentiment-extreme) 10%, transparent);
+    border-color: color-mix(in oklab, var(--sentiment-extreme) 25%, transparent);
+  }
+
+  /* Statistics Card */
+  .extreme-stats-card {
+    background: color-mix(in oklab, var(--sentiment-extreme) 5%, transparent);
+    border: 1px solid color-mix(in oklab, var(--sentiment-extreme) 12%, transparent);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-top: 1rem;
+    backdrop-filter: blur(var(--glass-blur-sm));
+    transition: all var(--timing-fast) var(--easing-default);
+  }
+
+  .extreme-stats-card:hover {
+    background: color-mix(in oklab, var(--sentiment-extreme) 8%, transparent);
+    border-color: color-mix(in oklab, var(--sentiment-extreme) 20%, transparent);
   }
 
   /* Statistics Row */
@@ -316,33 +365,8 @@
     font-size: 1rem;
   }
 
-  /* Glass Effects */
-  :global(.glass-medium) {
-    backdrop-filter: blur(12px);
-  }
-
-  /* Hover Lift Effect */
-  :global(.hover-lift) {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  :global(.hover-lift:hover) {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  }
-
-  /* Card Styles */
-  :global(.card) {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.75rem;
-    transition: all 0.3s ease;
-  }
-
-  :global(.card:hover) {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.15);
+  .extreme-stat-value {
+    color: var(--sentiment-extreme-accent);
   }
 
   /* Mobile Responsiveness */
@@ -369,6 +393,17 @@
 
     .stat-item {
       text-align: center;
+    }
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .loading-spinner,
+    .extreme-chart-container,
+    .extreme-description-card,
+    .extreme-stats-card {
+      animation: none;
+      transition: none;
     }
   }
 </style> 

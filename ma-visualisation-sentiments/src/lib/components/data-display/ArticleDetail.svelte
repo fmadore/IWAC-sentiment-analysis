@@ -41,20 +41,20 @@
 
 {#if article}
   <div class="space-y-6">
-    <h3 class="h3 text-white text-balance">{article['o:title'] ?? $t.article.titleNotAvailable}</h3>
+    <h3 class="h3 text-white text-balance article-detail-title">{article['o:title'] ?? $t.article.titleNotAvailable}</h3>
     
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="card preset-glass p-4 hover-lift-sm">
+      <div class="article-meta-card card preset-glass p-4 hover-lift-sm">
         <span class="text-xs uppercase font-bold opacity-75 text-white/60">{$t.filters.journal}</span>
         <p class="text-white mt-2 font-medium">{getJournalName(article)}</p>
       </div>
-      <div class="card preset-glass p-4 hover-lift-sm">
+      <div class="article-meta-card card preset-glass p-4 hover-lift-sm">
         <span class="text-xs uppercase font-bold opacity-75 text-white/60">{$t.article.publicationDate}</span>
         <p class="text-white mt-2 font-medium">{formatDate(article.publication_date)}</p>
       </div>
     </div>
 
-    <div class="card preset-glass p-4 hover-lift-sm">
+    <div class="article-meta-card card preset-glass p-4 hover-lift-sm">
       <span class="text-xs uppercase font-bold opacity-75 text-white/60">{$t.article.linkToFullArticle}</span>
       <p class="text-white mt-2">
         <a href={getArticleUrl(article['o:id'])} target="_blank" class="anchor hover-glow focus-ring">
@@ -65,7 +65,7 @@
     
     {#if article.sentiment_analysis}
       <!-- Centralité -->
-      <div class="card preset-glass-lg p-5 hover-lift-sm border-gradient">
+      <div class="card preset-glass-lg p-5 hover-lift-sm border-gradient centrality-section">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
           <SentimentBadge 
             type="centrality" 
@@ -78,7 +78,7 @@
         {#if article.sentiment_analysis.centralite_justification}
           <div class="mt-4">
             <span class="text-xs uppercase font-bold opacity-75 text-white/60 mb-2 block">{$t.article.justification}</span>
-            <blockquote class="card preset-glass p-4 border-l-4 border-l-blue-400/50 italic text-white/90 leading-relaxed">
+            <blockquote class="blockquote-centrality card preset-glass p-4 italic text-white/90 leading-relaxed">
               {article.sentiment_analysis.centralite_justification}
             </blockquote>
           </div>
@@ -86,7 +86,7 @@
       </div>
       
       <!-- Polarité -->
-      <div class="card preset-glass-lg p-5 hover-lift-sm border-gradient">
+      <div class="card preset-glass-lg p-5 hover-lift-sm border-gradient polarity-section">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
           <SentimentBadge 
             type="polarity" 
@@ -99,7 +99,7 @@
         {#if article.sentiment_analysis.polarite_justification}
           <div class="mt-4">
             <span class="text-xs uppercase font-bold opacity-75 text-white/60 mb-2 block">{$t.article.justification}</span>
-            <blockquote class="card preset-glass p-4 border-l-4 border-l-purple-400/50 italic text-white/90 leading-relaxed">
+            <blockquote class="blockquote-polarity card preset-glass p-4 italic text-white/90 leading-relaxed">
               {article.sentiment_analysis.polarite_justification}
             </blockquote>
           </div>
@@ -107,7 +107,7 @@
       </div>
       
       <!-- Subjectivité -->
-      <div class="card preset-glass-lg p-5 hover-lift-sm border-gradient">
+      <div class="card preset-glass-lg p-5 hover-lift-sm border-gradient subjectivity-section">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
           <SentimentBadge 
             type="subjectivity" 
@@ -120,7 +120,7 @@
         {#if article.sentiment_analysis.subjectivite_justification}
           <div class="mt-4">
             <span class="text-xs uppercase font-bold opacity-75 text-white/60 mb-2 block">{$t.article.justification}</span>
-            <blockquote class="card preset-glass p-4 border-l-4 border-l-green-400/50 italic text-white/90 leading-relaxed">
+            <blockquote class="blockquote-subjectivity card preset-glass p-4 italic text-white/90 leading-relaxed">
               {article.sentiment_analysis.subjectivite_justification}
             </blockquote>
           </div>
@@ -133,7 +133,7 @@
     {/if}
   </div>
 {:else}
-  <div class="card preset-glass p-8 flex flex-col items-center justify-center min-h-[300px] text-center hover-lift-sm">
+  <div class="article-empty-state card preset-glass p-8 flex flex-col items-center justify-center min-h-[300px] text-center hover-lift-sm">
     <div class="mb-4 opacity-50">
       <svg class="w-16 h-16 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -145,6 +145,119 @@
 {/if}
 
 <style>
+  /* ==============================================
+     Title Styling
+     ============================================== */
+  .article-detail-title {
+    background: var(--gradient-header);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ==============================================
+     Metadata Cards
+     ============================================== */
+  .article-meta-card {
+    background: color-mix(in oklab, var(--color-primary-500) 5%, transparent) !important;
+    border: 1px solid color-mix(in oklab, var(--color-primary-500) 15%, transparent) !important;
+  }
+
+  .article-meta-card:hover {
+    background: color-mix(in oklab, var(--color-primary-500) 8%, transparent) !important;
+    border-color: color-mix(in oklab, var(--color-primary-500) 25%, transparent) !important;
+  }
+
+  /* ==============================================
+     Empty State
+     ============================================== */
+  .article-empty-state {
+    background: color-mix(in oklab, var(--color-primary-500) 5%, transparent) !important;
+    border: 1px solid color-mix(in oklab, var(--color-primary-500) 15%, transparent) !important;
+  }
+
+  /* ==============================================
+     Section Styles with Dimension Accents
+     ============================================== */
+
+  /* Centrality Section - Gold/Yellow accent (matches semantic colors) */
+  .centrality-section {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .centrality-section::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      var(--sentiment-centrality-very-central),
+      var(--sentiment-centrality-central)
+    );
+    opacity: 0.8;
+  }
+
+  .blockquote-centrality {
+    border-left: 4px solid var(--sentiment-centrality-central) !important;
+  }
+
+  /* Polarity Section - Blue/Green accent */
+  .polarity-section {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .polarity-section::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      var(--sentiment-polarity-very-positive),
+      var(--sentiment-polarity-neutral)
+    );
+    opacity: 0.8;
+  }
+
+  .blockquote-polarity {
+    border-left: 4px solid var(--sentiment-polarity-neutral) !important;
+  }
+
+  /* Subjectivity Section - Purple/Cyan accent */
+  .subjectivity-section {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .subjectivity-section::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      var(--sentiment-subjectivity-1),
+      var(--sentiment-subjectivity-3)
+    );
+    opacity: 0.8;
+  }
+
+  .blockquote-subjectivity {
+    border-left: 4px solid var(--sentiment-subjectivity-3) !important;
+  }
+
+  /* ==============================================
+     Anchor/Link Styling
+     ============================================== */
   .anchor {
     color: var(--color-primary-400);
     text-decoration: none;
@@ -159,8 +272,10 @@
     border-bottom-color: color-mix(in oklab, var(--color-primary-300) 60%, transparent);
     transform: translateY(-1px);
   }
-  
-  /* Enhanced blockquote styling */
+
+  /* ==============================================
+     Blockquote Styling
+     ============================================== */
   blockquote {
     position: relative;
     font-style: italic;
@@ -176,8 +291,10 @@
     color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
     font-family: serif;
   }
-  
-  /* Hover effects for cards */
+
+  /* ==============================================
+     Hover Effects
+     ============================================== */
   :global(.hover-lift-sm:hover) {
     transform: translateY(-2px);
     box-shadow: 
@@ -214,7 +331,9 @@
     opacity: 1;
   }
   
-  /* Ensure proper cursor behavior */
+  /* ==============================================
+     Cursor Behavior
+     ============================================== */
   :global(.card) {
     cursor: default;
   }
@@ -223,25 +342,27 @@
     cursor: inherit;
   }
   
-  /* Override cursor for clickable elements */
   :global(.anchor) {
     cursor: pointer !important;
   }
-  
-  /* Mobile responsive adjustments */
+
+  /* ==============================================
+     Responsive Adjustments
+     ============================================== */
   @media (max-width: 640px) {
     blockquote {
       font-size: 0.875rem;
       padding: 0.75rem;
     }
     
-    /* Reduce hover effects on mobile */
     :global(.hover-lift-sm:hover) {
       transform: translateY(-1px);
     }
   }
   
-  /* Reduced motion */
+  /* ==============================================
+     Reduced Motion
+     ============================================== */
   @media (prefers-reduced-motion: reduce) {
     .anchor,
     :global(.hover-lift-sm),

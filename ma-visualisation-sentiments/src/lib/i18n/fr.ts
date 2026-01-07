@@ -103,7 +103,28 @@ export const fr: Translations = {
     lines: 'Lignes',
     bars: 'Barres',
     pie: 'Camembert',
-    polaritySubjectivityDistribution: 'Distribution Polarité × Subjectivité'
+    polaritySubjectivityDistribution: 'Distribution Polarité × Subjectivité',
+    subtitle: 'Visualisez la distribution des sentiments selon les dimensions de polarité et de subjectivité.'
+  },
+
+  // Trends view
+  trends: {
+    subtitle: 'Suivez l\'évolution des sentiments au fil du temps à travers les publications.'
+  },
+
+  // Volume view
+  volume: {
+    subtitle: 'Analysez le volume de publications et les tendances temporelles dans le corpus.'
+  },
+
+  // Heatmap view
+  heatmap: {
+    subtitle: 'Explorez les patterns de centralité par pays et thèmes avec une visualisation interactive.'
+  },
+
+  // Correlation/Distribution view
+  correlation: {
+    subtitle: 'Analysez la relation entre les dimensions de polarité et de subjectivité.'
   },
 
   // Table
@@ -122,7 +143,8 @@ export const fr: Translations = {
     showingItems: 'Affichage de',
     noArticles: 'Aucun article disponible',
     noFilteredArticles: 'Aucun article ne correspond aux filtres sélectionnés',
-    articleTitle: 'Titre'
+    articleTitle: 'Titre',
+    subtitle: 'Parcourez et recherchez tous les articles avec leurs données de sentiment détaillées.'
   },
 
   // Article details
@@ -261,6 +283,7 @@ export const fr: Translations = {
 
   // Comparison
   comparison: {
+    subtitle: 'Comparez les analyses de sentiment entre différents modèles d\'IA et identifiez les divergences significatives.',
     filterByDiscrepancy: 'Filtrer par divergence',
     differenceRange: 'Plage de différence',
     quickFilters: 'Filtres rapides',

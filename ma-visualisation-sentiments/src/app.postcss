@@ -122,12 +122,98 @@
     color-mix(in oklab, #FBBF24 10%, transparent)
   );
   
+  /* --- Comparison View Colors --- */
+  /* Primary: Purple/Pink for comparison elements */
+  --sentiment-comparison: #A78BFA;
+  --sentiment-comparison-light: #C4B5FD;
+  --sentiment-comparison-accent: #F472B6;
+  --sentiment-comparison-secondary: #60A5FA;
+  --sentiment-comparison-bg: color-mix(in oklab, #A78BFA 15%, transparent);
+  --sentiment-comparison-border: color-mix(in oklab, #A78BFA 30%, transparent);
+  --sentiment-comparison-icon-bg: linear-gradient(135deg, 
+    color-mix(in oklab, #A78BFA 20%, transparent),
+    color-mix(in oklab, #F472B6 10%, transparent)
+  );
+  
   /* --- Discrepancy Colors --- */
   /* Used for comparison discrepancy indicators */
   --sentiment-discrepancy: #EF4444;
   --sentiment-discrepancy-light: #F97316;
   --sentiment-discrepancy-bg: color-mix(in oklab, #EF4444 15%, transparent);
   --sentiment-discrepancy-border: color-mix(in oklab, #EF4444 30%, transparent);
+  
+  /* --- Extreme Analysis Colors --- */
+  /* Primary: Orange/Gold for extreme analysis elements */
+  --sentiment-extreme: #FF6B35;
+  --sentiment-extreme-light: #F7931E;
+  --sentiment-extreme-accent: #FFD23F;
+  --sentiment-extreme-bg: color-mix(in oklab, #FF6B35 15%, transparent);
+  --sentiment-extreme-border: color-mix(in oklab, #FF6B35 30%, transparent);
+  --sentiment-extreme-icon-bg: linear-gradient(135deg, 
+    color-mix(in oklab, #FF6B35 20%, transparent),
+    color-mix(in oklab, #F7931E 10%, transparent)
+  );
+  
+  /* --- Chart View Colors --- */
+  /* Charts/Distribution view: Blue/Cyan */
+  --sentiment-charts: #3B82F6;
+  --sentiment-charts-light: #60A5FA;
+  --sentiment-charts-bg: color-mix(in oklab, #3B82F6 15%, transparent);
+  --sentiment-charts-border: color-mix(in oklab, #3B82F6 30%, transparent);
+  --sentiment-charts-icon-bg: linear-gradient(135deg, 
+    color-mix(in oklab, #3B82F6 20%, transparent),
+    color-mix(in oklab, #60A5FA 10%, transparent)
+  );
+  
+  /* Trends view: Green/Teal */
+  --sentiment-trends: #10B981;
+  --sentiment-trends-light: #34D399;
+  --sentiment-trends-bg: color-mix(in oklab, #10B981 15%, transparent);
+  --sentiment-trends-border: color-mix(in oklab, #10B981 30%, transparent);
+  --sentiment-trends-icon-bg: linear-gradient(135deg, 
+    color-mix(in oklab, #10B981 20%, transparent),
+    color-mix(in oklab, #34D399 10%, transparent)
+  );
+  
+  /* Volume view: Indigo/Purple */
+  --sentiment-volume: #6366F1;
+  --sentiment-volume-light: #818CF8;
+  --sentiment-volume-bg: color-mix(in oklab, #6366F1 15%, transparent);
+  --sentiment-volume-border: color-mix(in oklab, #6366F1 30%, transparent);
+  --sentiment-volume-icon-bg: linear-gradient(135deg, 
+    color-mix(in oklab, #6366F1 20%, transparent),
+    color-mix(in oklab, #818CF8 10%, transparent)
+  );
+  
+  /* Heatmap view: Amber/Yellow (related to centrality) */
+  --sentiment-heatmap: #F59E0B;
+  --sentiment-heatmap-light: #FBBF24;
+  --sentiment-heatmap-bg: color-mix(in oklab, #F59E0B 15%, transparent);
+  --sentiment-heatmap-border: color-mix(in oklab, #F59E0B 30%, transparent);
+  --sentiment-heatmap-icon-bg: linear-gradient(135deg, 
+    color-mix(in oklab, #F59E0B 20%, transparent),
+    color-mix(in oklab, #FBBF24 10%, transparent)
+  );
+  
+  /* Table view: Slate/Neutral */
+  --sentiment-table: #64748B;
+  --sentiment-table-light: #94A3B8;
+  --sentiment-table-bg: color-mix(in oklab, #64748B 15%, transparent);
+  --sentiment-table-border: color-mix(in oklab, #64748B 30%, transparent);
+  --sentiment-table-icon-bg: linear-gradient(135deg, 
+    color-mix(in oklab, #64748B 20%, transparent),
+    color-mix(in oklab, #94A3B8 10%, transparent)
+  );
+  
+  /* Correlation/Distribution view: Pink/Rose */
+  --sentiment-correlation: #EC4899;
+  --sentiment-correlation-light: #F472B6;
+  --sentiment-correlation-bg: color-mix(in oklab, #EC4899 15%, transparent);
+  --sentiment-correlation-border: color-mix(in oklab, #EC4899 30%, transparent);
+  --sentiment-correlation-icon-bg: linear-gradient(135deg, 
+    color-mix(in oklab, #EC4899 20%, transparent),
+    color-mix(in oklab, #F472B6 10%, transparent)
+  );
   
   /* --- Gradient Definitions --- */
   /* Extreme Analysis gradient (orange/gold) */
@@ -138,6 +224,13 @@
   --gradient-comparison: linear-gradient(135deg, #60A5FA, #A78BFA, #F472B6);
   /* Primary action gradient */
   --gradient-primary: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
+  /* Chart view gradients */
+  --gradient-charts: linear-gradient(135deg, #3B82F6, #60A5FA, #06B6D4);
+  --gradient-trends: linear-gradient(135deg, #10B981, #34D399, #14B8A6);
+  --gradient-volume: linear-gradient(135deg, #6366F1, #818CF8, #A78BFA);
+  --gradient-heatmap: linear-gradient(135deg, #F59E0B, #FBBF24, #FCD34D);
+  --gradient-table: linear-gradient(135deg, #64748B, #94A3B8, #CBD5E1);
+  --gradient-correlation: linear-gradient(135deg, #EC4899, #F472B6, #A78BFA);
   
   /* ==========================================================================
      DESIGN SYSTEM TOKENS

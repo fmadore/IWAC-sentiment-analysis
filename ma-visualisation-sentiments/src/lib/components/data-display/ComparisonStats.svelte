@@ -42,32 +42,38 @@
 </script>
 
 <div class="stats-grid">
-	<div class="stat-card card variant-glass p-4 hover-lift">
+	<div class="stat-card comparison-stat-card card variant-glass p-4 hover-lift">
 		<div class="stat-header">
-			<GitCompareArrowsIcon size={24} class="text-blue-400" />
+			<div class="stat-icon-container comparison-icon">
+				<GitCompareArrowsIcon size={24} class="text-purple-400" />
+			</div>
 			<span class="stat-label">{$t.comparison?.totalArticles || 'Total Articles'}</span>
 		</div>
-		<div class="stat-value">{stats.totalArticles}</div>
+		<div class="stat-value comparison-stat-value">{stats.totalArticles}</div>
 		<div class="stat-detail">{$t.comparison?.articlesAnalyzed || 'Articles analyzed'}</div>
 	</div>
 
-	<div class="stat-card card variant-glass p-4 hover-lift">
+	<div class="stat-card comparison-stat-card card variant-glass p-4 hover-lift">
 		<div class="stat-header">
-			<AlertCircleIcon size={24} class="text-yellow-400" />
+			<div class="stat-icon-container discrepancy-icon">
+				<AlertCircleIcon size={24} class="text-amber-400" />
+			</div>
 			<span class="stat-label">{$t.comparison?.totalDiscrepancies || 'Total Discrepancies'}</span>
 			<div class="info-tooltip" title={dynamicTooltips.totalDiscrepancies}>
 				<InfoIcon size={14} class="text-white/50 hover:text-white/80 cursor-help" />
 			</div>
 		</div>
-		<div class="stat-value">{stats.totalDiscrepancies}</div>
+		<div class="stat-value discrepancy-stat-value">{stats.totalDiscrepancies}</div>
 		<div class="stat-detail">
 			{$t.comparison?.articlesWithDifferences || 'Articles with differences'}
 		</div>
 	</div>
 
-	<div class="stat-card card variant-glass p-4 hover-lift">
+	<div class="stat-card comparison-stat-card card variant-glass p-4 hover-lift">
 		<div class="stat-header">
-			<TrendingUpIcon size={24} class="text-green-400" />
+			<div class="stat-icon-container success-icon">
+				<TrendingUpIcon size={24} class="text-green-400" />
+			</div>
 			<span class="stat-label">{$t.comparison?.averageDiscrepancy || 'Average Discrepancy'}</span>
 			<div
 				class="info-tooltip"
@@ -81,15 +87,17 @@
 		<div class="stat-detail">{$t.comparison?.pointsPerArticle || 'Points per article'}</div>
 	</div>
 
-	<div class="stat-card card variant-glass p-4 hover-lift">
+	<div class="stat-card comparison-stat-card card variant-glass p-4 hover-lift">
 		<div class="stat-header">
-			<BarChart3Icon size={24} class="text-purple-400" />
+			<div class="stat-icon-container conflict-icon">
+				<BarChart3Icon size={24} class="text-pink-400" />
+			</div>
 			<span class="stat-label">{$t.comparison?.highConflicts || 'High Conflicts'}</span>
 			<div class="info-tooltip" title={dynamicTooltips.significantDifferences}>
 				<InfoIcon size={14} class="text-white/50 hover:text-white/80 cursor-help" />
 			</div>
 		</div>
-		<div class="stat-value">{stats.highConflictArticles}</div>
+		<div class="stat-value conflict-stat-value">{stats.highConflictArticles}</div>
 		<div class="stat-detail">
 			{$t.comparison?.significantDifferences || 'Significant differences'}
 		</div>
@@ -97,7 +105,7 @@
 </div>
 
 <!-- Breakdown by dimension -->
-<div class="breakdown-section mt-6">
+<div class="breakdown-section comparison-breakdown mt-6">
 	<h4 class="h5 mb-3 text-white">
 		{$t.comparison?.breakdownByDimension || 'Breakdown by Dimension'}
 	</h4>
@@ -260,15 +268,60 @@
 		overflow: hidden;
 	}
 
-	.stat-card::before {
+	/* Comparison stat cards with gradient accent */
+	.comparison-stat-card {
+		background: color-mix(in oklab, var(--sentiment-comparison) 5%, transparent);
+		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
+		backdrop-filter: blur(var(--glass-blur-md));
+		transition: all var(--timing-fast) var(--easing-default);
+	}
+
+	.comparison-stat-card:hover {
+		background: color-mix(in oklab, var(--sentiment-comparison) 8%, transparent);
+		border-color: color-mix(in oklab, var(--sentiment-comparison) 25%, transparent);
+		transform: translateY(-2px);
+	}
+
+	.comparison-stat-card::before {
 		content: '';
 		position: absolute;
 		top: 0;
 		left: 0;
 		right: 0;
 		height: 2px;
-		background: linear-gradient(90deg, var(--color-primary-500), var(--color-secondary-500));
+		background: var(--gradient-comparison);
 		opacity: 0.8;
+	}
+
+	/* Icon containers */
+	.stat-icon-container {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		height: 40px;
+		border-radius: 10px;
+		flex-shrink: 0;
+	}
+
+	.comparison-icon {
+		background: var(--sentiment-comparison-icon-bg);
+		border: 1px solid var(--sentiment-comparison-border);
+	}
+
+	.discrepancy-icon {
+		background: color-mix(in oklab, var(--sentiment-discrepancy-light) 15%, transparent);
+		border: 1px solid color-mix(in oklab, var(--sentiment-discrepancy-light) 30%, transparent);
+	}
+
+	.success-icon {
+		background: color-mix(in oklab, #22C55E 15%, transparent);
+		border: 1px solid color-mix(in oklab, #22C55E 30%, transparent);
+	}
+
+	.conflict-icon {
+		background: color-mix(in oklab, var(--sentiment-comparison-accent) 15%, transparent);
+		border: 1px solid color-mix(in oklab, var(--sentiment-comparison-accent) 30%, transparent);
 	}
 
 	.stat-header {
@@ -298,6 +351,18 @@
 		margin-bottom: 0.25rem;
 	}
 
+	.comparison-stat-value {
+		color: var(--sentiment-comparison-light);
+	}
+
+	.discrepancy-stat-value {
+		color: var(--sentiment-discrepancy-light);
+	}
+
+	.conflict-stat-value {
+		color: var(--sentiment-comparison-accent);
+	}
+
 	.stat-detail {
 		font-size: 0.75rem;
 		color: color-mix(in oklab, var(--color-surface-50) 60%, transparent);
@@ -313,6 +378,11 @@
 		box-shadow:
 			0 4px 16px color-mix(in oklab, black 8%, transparent),
 			inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 6%, transparent);
+	}
+
+	.comparison-breakdown {
+		background: color-mix(in oklab, var(--sentiment-comparison) 5%, transparent);
+		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
 	}
 
 	.breakdown-grid {

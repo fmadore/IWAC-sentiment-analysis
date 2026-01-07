@@ -1,6 +1,7 @@
 <script lang="ts">
   import { t } from '$lib/i18n';
   import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
+  import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
 
   // Props
   interface Props {
@@ -39,8 +40,13 @@
   }
 </script>
 
-<div class="extreme-controls card variant-glass glass-heavy p-3 hover-lift-sm border-gradient">
-  <h3 class="h5 mb-3 text-white responsive-title">{$t.extremeAnalysis.analysisControls}</h3>
+<div class="extreme-controls card variant-glass glass-heavy p-3 hover-lift-sm border-gradient extreme-gradient">
+  <div class="flex items-center gap-3 mb-4">
+    <div class="extreme-controls-icon">
+      <SlidersHorizontalIcon size={18} class="text-orange-400" />
+    </div>
+    <h3 class="h5 text-white responsive-title">{$t.extremeAnalysis.analysisControls}</h3>
+  </div>
   
   <div class="controls-grid">
     <!-- Category Select -->
@@ -131,16 +137,34 @@
     right: 0;
     height: 3px;
     background: linear-gradient(90deg, 
-      var(--color-primary-500),
-      var(--color-secondary-500),
-      var(--color-primary-500)
+      var(--sentiment-extreme),
+      var(--sentiment-extreme-light),
+      var(--sentiment-extreme-accent)
     );
     opacity: 0.8;
   }
 
+  .extreme-gradient {
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-surface-900) 92%, transparent),
+      color-mix(in oklab, var(--sentiment-extreme) 4%, var(--color-surface-900))
+    ) !important;
+  }
+
   .glass-heavy {
-    background: color-mix(in oklab, var(--color-surface-900) 92%, transparent) !important;
     backdrop-filter: blur(var(--glass-blur-lg));
+  }
+
+  .extreme-controls-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--sentiment-extreme-icon-bg);
+    border: 1px solid var(--sentiment-extreme-border);
   }
 
   /* Controls Grid */
@@ -184,8 +208,8 @@
   }
 
   .select-input:focus {
-    border-color: color-mix(in oklab, var(--color-primary-500) 50%, transparent);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary-500) 10%, transparent);
+    border-color: color-mix(in oklab, var(--sentiment-extreme) 50%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--sentiment-extreme) 10%, transparent);
   }
 
   /* Fix dropdown options styling */
@@ -255,9 +279,14 @@
   }
 
   .btn-toggle.active {
-    background: linear-gradient(135deg, color-mix(in oklab, var(--color-primary-500) 30%, transparent), color-mix(in oklab, var(--color-secondary-500) 20%, transparent));
-    color: var(--color-surface-50);
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--sentiment-extreme) 30%, transparent),
+      color-mix(in oklab, var(--sentiment-extreme-light) 20%, transparent)
+    );
+    color: var(--sentiment-extreme-accent);
     font-weight: 600;
+    border-color: var(--sentiment-extreme-border);
   }
 
   /* Number Input */
@@ -281,8 +310,8 @@
   }
 
   .number-input:focus {
-    border-color: color-mix(in oklab, var(--color-primary-500) 50%, transparent);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary-500) 10%, transparent);
+    border-color: color-mix(in oklab, var(--sentiment-extreme) 50%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--sentiment-extreme) 10%, transparent);
   }
 
   /* Chrome, Safari, Edge, Opera */
