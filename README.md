@@ -8,13 +8,15 @@ L'objectif principal est de fournir une interface interactive pour explorer et c
 
 ## Fonctionnalités
 
-### Mode de comparaison ChatGPT vs Gemini
-Analyse comparative des résultats entre les deux modèles :
+### Mode de comparaison multi-modèles
+Analyse comparative des résultats entre trois modèles IA (ChatGPT, Gemini, Mistral) :
+- Sélection de paires de modèles à comparer (chatgpt-gemini, chatgpt-mistral, gemini-mistral)
 - Comparaison côte à côte des analyses de sentiment
 - Calcul automatique des divergences entre modèles
 - Filtres avancés par niveau de désaccord
 - Statistiques détaillées sur les convergences et conflits
-- Export CSV incluant les données des deux modèles
+- **Évaluations d'arbitrage** : Gemini 3.0 Pro comme évaluateur tiers pour déterminer quel modèle est le plus pertinent
+- Export CSV incluant les données des modèles comparés
 
 ### Interface multilingue
 Support du français et de l'anglais avec traduction automatique des valeurs de sentiment et synchronisation URL.
@@ -45,7 +47,7 @@ https://fmadore.github.io/IWAC-sentiment-analysis/?view=table&countries=Mali&sub
 https://fmadore.github.io/IWAC-sentiment-analysis/?view=comparison&compare=true&dataset=chatgpt
 ```
 
-Consultez le [Guide du routage URL](./ma-visualisation-sentiments/URL_ROUTING_GUIDE.md) pour plus de détails.
+
 
 ## Optimisations de performance
 
@@ -97,65 +99,118 @@ compression({
 
 ## Structure du projet
 
-Le projet est structuré comme une application SvelteKit typique :
+Le projet est structuré comme une application SvelteKit moderne avec Svelte 5 runes :
 
 -   `src/`
     -   `lib/`: Contient la logique principale de l'application.
-        -   `components/`: Composants Svelte réutilisables.
-            -   `ui/`: Composants pour l'interface utilisateur.
-                -   `AppHeader.svelte`: En-tête de l'application avec branding, sélecteur de langue et bouton plein écran.
-                -   `LanguageSwitcher.svelte`: Composant de sélection de langue avec interface élégante.
-                -   `CountryFilter.svelte`: Permet de filtrer les articles par pays (filtre hiérarchique principal).
-                -   `JournalFilter.svelte`: Permet de filtrer les articles par source (nom du journal), avec recherche et pagination.
-                -   `PolarityFilter.svelte`: Permet de filtrer les articles par polarité du sentiment.
-                -   `SubjectivityFilter.svelte`: Permet de filtrer les articles par score de subjectivité (1-5).
-                -   `CentralityFilter.svelte`: Permet de filtrer les articles par centralité de l'islam/musulmans.
-                -   `ClearFiltersButton.svelte`: Bouton pour effacer tous les filtres actifs.
-                -   `ComparisonCSVExportButton.svelte`: Export CSV spécialisé pour les données de comparaison.
-                -   `DiscrepancyFilter.svelte`: Filtres avancés pour le mode comparaison (seuils, dimensions).
-                -   `DatasetPicker.svelte`: Sélecteur de dataset avec support du mode comparaison.
-                -   `DatasetBadge.svelte`: Badge indiquant le dataset actuel ou le mode comparaison.
-                -   `SentimentCriteriaFilter.svelte`: Version alternative qui combine les filtres de polarité et subjectivité.
-            -   `viz/`: Composants pour la visualisation des données.
-                -   `SentimentChart.svelte`: Affiche la distribution de polarité par journal avec options barres/camembert.
-                -   `SubjectivityChart.svelte`: Affiche la distribution de subjectivité par journal avec options barres/camembert.
-                -   `SentimentTrendsChart.svelte`: Affiche l'évolution des sentiments au fil du temps avec zoom interactif.
-                -   `CorrelationChart.svelte`: Graphique de distribution croisée entre polarité et subjectivité.
-                -   `VolumeChart.svelte`: Volume d'articles par pays au fil du temps (aires empilées/lignes).
-                -   `CentralityHeatmap.svelte`: Heatmap de la centralité moyenne par pays et année.
-            -   `AnalysisInfo.svelte`: Fournit des informations explicatives sur la méthodologie d'analyse.
-            -   `ArticleTable.svelte`: Affiche les articles dans un tableau interactif avec tri, pagination et sélection.
-            -   `ArticleDetail.svelte`: Affiche les détails d'un article sélectionné.
-            -   `ComparisonView.svelte`: Interface principale du mode comparaison avec statistiques et filtres.
-            -   `ComparisonTable.svelte`: Tableau de comparaison avec visualisation des divergences entre modèles.
-            -   `ComparisonDetail.svelte`: Vue détaillée d'une comparaison article par article.
-            -   `ComparisonStats.svelte`: Statistiques et métriques du mode comparaison.
-            -   `SEOHead.svelte`: Composant de métadonnées SEO dynamiques avec support multilingue.
+        -   `components/`: Composants Svelte réutilisables organisés par catégorie.
+            -   `common/`: Composants de base réutilisables.
+                -   `AccordionItem.svelte`: Item accordéon animé pour sections pliables.
+                -   `ArbiterSection.svelte`: Affichage des verdicts d'arbitrage entre modèles.
+                -   `ArticleDetailModal.svelte`: Modal pour afficher les détails d'un article.
+                -   `ComparisonDetailModal.svelte`: Modal pour afficher les détails de comparaison.
+                -   `ComparisonPanel.svelte`: Panneau de contrôle du mode comparaison.
+                -   `DropdownMenu.svelte`: Menu déroulant générique réutilisable.
+                -   `FilterCard.svelte`: Conteneur stylisé pour les groupes de filtres.
+                -   `FilterChip.svelte`: Chip de filtre avec états visuels.
+                -   `FullScreenModal.svelte`: Modal plein écran pour les détails.
+                -   `GlassCard.svelte`: Carte avec effet glassmorphism.
+                -   `LoadingState.svelte`: Indicateur de chargement animé.
+                -   `SearchInput.svelte`: Champ de recherche avec icône.
+                -   `SentimentBadge.svelte`: Badge coloré pour afficher les valeurs de sentiment.
+            -   `layout/`: Composants de mise en page.
+                -   `AppHeader.svelte`: En-tête avec branding, sélecteur de langue et bouton plein écran.
+                -   `FiltersPanel.svelte`: Panneau latéral contenant tous les filtres.
+                -   `SidebarNav.svelte`: Navigation latérale avec menu des vues.
+                -   `ViewContent.svelte`: Container principal pour le contenu des vues.
+            -   `data-display/`: Composants d'affichage de données.
+                -   `AnalysisInfo.svelte`: Informations explicatives sur la méthodologie d'analyse.
+                -   `ArticleDetail.svelte`: Détails complets d'un article sélectionné.
+                -   `ArticleTable.svelte`: Tableau interactif des articles avec tri et pagination.
+                -   `ComparisonDetail.svelte`: Vue détaillée d'une comparaison article par article.
+                -   `ComparisonStats.svelte`: Statistiques et métriques du mode comparaison.
+                -   `ComparisonTable.svelte`: Tableau comparatif avec visualisation des divergences.
+                -   `ComparisonView.svelte`: Interface principale du mode comparaison.
+            -   `filters/`: Composants de filtrage.
+                -   `CentralityFilter.svelte`: Filtre par centralité de l'islam/musulmans.
+                -   `ClearFiltersButton.svelte`: Bouton pour effacer tous les filtres.
+                -   `CountryFilter.svelte`: Filtre hiérarchique par pays.
+                -   `DiscrepancyFilter.svelte`: Filtres avancés pour les divergences.
+                -   `ExtremeAnalysisControls.svelte`: Contrôles pour l'analyse des extrêmes.
+                -   `JournalFilter.svelte`: Filtre par journal avec recherche et pagination.
+                -   `PolarityFilter.svelte`: Filtre par polarité du sentiment.
+                -   `SentimentCriteriaFilter.svelte`: Filtres combinés polarité/subjectivité.
+                -   `SubjectivityFilter.svelte`: Filtre par score de subjectivité.
+            -   `viz/`: Composants de visualisation.
+                -   `CentralityHeatmap.svelte`: Heatmap de centralité par pays et année.
+                -   `CorrelationChart.svelte`: Distribution croisée polarité/subjectivité.
+                -   `KeywordFrequencyChart.svelte`: Graphique des mots-clés dans les extrêmes.
+                -   `SentimentChart.svelte`: Distribution de polarité par journal.
+                -   `SentimentTrendsChart.svelte`: Évolution des sentiments dans le temps.
+                -   `SubjectivityChart.svelte`: Distribution de subjectivité par journal.
+                -   `VolumeChart.svelte`: Volume d'articles par pays au fil du temps.
+            -   `ui/`: Composants d'interface utilisateur.
+                -   `ChartCard.svelte`: Conteneur pour les graphiques avec titre et options.
+                -   `CSVExportButton.svelte`: Bouton d'export CSV des données filtrées.
+                -   `ComparisonCSVExportButton.svelte`: Export CSV spécialisé pour les comparaisons.
+                -   `DatasetBadge.svelte`: Badge indiquant le dataset ou mode actuel.
+                -   `DatasetPicker.svelte`: Sélecteur de dataset et mode comparaison.
+                -   `LanguageSwitcher.svelte`: Sélecteur de langue FR/EN.
+                -   `ModelPairPicker.svelte`: Sélecteur de paire de modèles pour comparaison.
+            -   `SEOHead.svelte`: Métadonnées SEO dynamiques avec support multilingue.
+            -   `PWAManager.svelte`: Gestion de l'installation PWA et des mises à jour.
+        -   `stores/`: Modules de gestion d'état avec Svelte 5 runes.
+            -   `arbiter.svelte.ts`: État des évaluations d'arbitrage Gemini 3.0 Pro.
+            -   `articles.svelte.ts`: État des articles du corpus.
+            -   `comparison.svelte.ts`: État du mode comparaison entre modèles.
+            -   `datasets.svelte.ts`: État des datasets et sélection de modèles.
+            -   `extreme-analysis.svelte.ts`: État de l'analyse des extrêmes lexicaux.
+            -   `filters.svelte.ts`: État des filtres (pays, journal, polarité, etc.).
+            -   `ui.svelte.ts`: État de l'interface (sidebar, vue active, chargement).
+            -   `url/`: Module de gestion d'état URL.
+                -   `state.svelte.ts`: État URL réactif.
+                -   `parser.svelte.ts`: Parsing des paramètres URL.
+                -   `builder.svelte.ts`: Construction des URLs partageables.
+                -   `actions.svelte.ts`: Actions de manipulation d'état.
+                -   `constants.ts`: Constantes et valeurs valides.
+                -   `types.ts`: Types TypeScript pour l'état URL.
+            -   `*.test.ts`: Tests unitaires Vitest pour les stores.
         -   `i18n/`: Système d'internationalisation.
             -   `index.ts`: Configuration principale et stores de langue.
             -   `fr.ts`: Traductions françaises (langue par défaut).
             -   `en.ts`: Traductions anglaises complètes.
             -   `utils.ts`: Utilitaires de traduction pour les valeurs de sentiment.
             -   `types.ts`: Types TypeScript pour les traductions.
-        -   `stores.ts`: Stores Svelte pour la gestion d'état global de l'application.
-        -   `urlState.ts`: Gestion de l'état URL et synchronisation des filtres.
-        -   `utils.ts`: Fonctions utilitaires pour le chargement et la transformation des données.
-        -   `types/data.ts`: Définitions TypeScript pour les structures de données.
-        -   `index.ts`: Réexportation des composants, stores et types pour une importation simplifiée.
+        -   `types/`: Définitions TypeScript.
+            -   `data.ts`: Structures de données (Article, SentimentAnalysis, etc.).
+            -   `extremeAnalysis.ts`: Types pour l'analyse des extrêmes.
+            -   `pwa.ts`: Types pour la gestion PWA.
+        -   `utils/`: Fonctions utilitaires.
+            -   `chartTheme.ts`: Configuration des thèmes ECharts.
+            -   `extremeAnalysis.ts`: Utilitaires pour l'analyse des extrêmes.
+            -   `pwa.ts`: Utilitaires pour la gestion PWA.
+        -   `urlState.ts`: Gestion legacy de l'état URL (pour compatibilité).
+        -   `utils.ts`: Fonctions utilitaires générales.
+        -   `index.ts`: Point d'entrée central pour les exports.
     -   `routes/`: Définit les pages de l'application.
-        -   `+page.svelte`: Le composant Svelte pour la page principale de la visualisation.
-        -   `+page.ts`: Script de chargement de données pour la page principale.
-        -   `+layout.svelte`: Définit la mise en page commune à toutes les pages.
-        -   `+layout.ts`: Configuration pour le prérendu de l'application.
-    -   `app.html`: Le template HTML principal de l'application.
-    -   `app.d.ts`: Déclarations de types globaux pour l'application.
-    -   `app.postcss`: Styles CSS globaux et configuration Tailwind.
+        -   `+page.svelte`: Composant principal de la page de visualisation.
+        -   `+page.ts`: Script de chargement de données.
+        -   `+layout.svelte`: Mise en page commune à toutes les pages.
+        -   `+layout.ts`: Configuration pour le prérendu SSG.
+    -   `app.html`: Template HTML principal de l'application.
+    -   `app.d.ts`: Déclarations de types globaux.
+    -   `app.css`: Styles CSS globaux avec variables CSS et thème.
 -   `static/`: Contient les fichiers statiques.
     -   `data/`: **Fichiers de données JSON du corpus IWAC.**
-        -   `iwac_articles_chatgpt.json`: Articles analysés par ChatGPT
-        -   `iwac_articles_gemini.json`: Articles analysés par Gemini
+        -   `iwac_articles_chatgpt.json`: Articles analysés par ChatGPT.
+        -   `iwac_articles_gemini.json`: Articles analysés par Gemini.
+        -   `iwac_articles_mistral.json`: Articles analysés par Mistral.
+        -   `iwac_arbiter_evaluations_*.json`: Évaluations d'arbitrage pour chaque paire de modèles.
+        -   `iwac_extreme_analysis_*.json`: Analyses lexicales des extrêmes par modèle.
 -   `data-preprocess/`: Scripts de préparation des données.
-    -   `data-fetch.py`: Script Python pour récupérer et transformer les données depuis le dataset Hugging Face.
+    -   `data-fetch.py`: Script Python pour récupérer et transformer les données depuis Hugging Face.
+    -   `extreme-analysis.py`: Script pour générer l'analyse lexicale des extrêmes.
+-   `.agent/`: Configuration des workflows pour l'agent IA.
 -   `package.json`: Définit les dépendances du projet et les scripts npm.
 -   `svelte.config.js`: Configuration SvelteKit.
 -   `tsconfig.json`: Configuration TypeScript.
@@ -168,10 +223,20 @@ Le projet est structuré comme une application SvelteKit typique :
 L'application charge automatiquement le corpus IWAC depuis les fichiers JSON situés dans `static/data/` :
 - `iwac_articles_chatgpt.json`: Articles analysés par ChatGPT
 - `iwac_articles_gemini.json`: Articles analysés par Gemini
+- `iwac_articles_mistral.json`: Articles analysés par Mistral
 
 Chaque fichier contient une liste d'objets `Article`, où chaque article inclut des métadonnées (titre, journal, pays, date) et un objet `sentiment_analysis` contenant les résultats de l'analyse (polarité, subjectivité, centralité, etc.).
 
-Le mode comparaison utilise les deux datasets simultanément pour identifier et analyser les divergences entre les analyses des deux modèles.
+Le mode comparaison utilise deux datasets simultanément (sélectionnés parmi les trois paires possibles) pour identifier et analyser les divergences entre les analyses des modèles.
+
+### Données d'arbitrage
+
+Pour chaque paire de modèles, des évaluations d'arbitrage par Gemini 3.0 Pro sont disponibles :
+- `iwac_arbiter_evaluations_chatgpt-gemini.json`
+- `iwac_arbiter_evaluations_chatgpt-mistral.json`
+- `iwac_arbiter_evaluations_gemini-mistral.json`
+
+Ces fichiers contiennent les verdicts de l'arbitre pour chaque dimension d'analyse (polarité, subjectivité, centralité), indiquant quel modèle a produit l'analyse la plus pertinente.
 
 Consultez `src/lib/types/data.ts` pour la structure détaillée des objets `Article`, `SentimentAnalysis` et `ComparisonData`.
 
@@ -243,33 +308,56 @@ L'application propose une suite complète de visualisations interactives pour ex
 - **Filtrage flexible** : Nombre de mots-clés ajustable (5-25) et sélection du type
 - **Statistiques détaillées** : Nombre d'articles par catégorie et répartition géographique
 
-## Gestion d'état (`stores.ts`)
+## Gestion d'état (`stores/`)
 
-L'application utilise les stores Svelte pour gérer l'état global :
+L'application utilise des modules de gestion d'état basés sur les **Svelte 5 runes** pour une réactivité optimale :
 
--   `currentDatasetArticles`: La liste des articles du corpus IWAC chargé.
--   `selectedArticle`: L'article actuellement sélectionné pour affichage détaillé.
--   `isLoadingDataset`: Un booléen indiquant si le dataset est en cours de chargement.
--   `countryFilters`: Un tableau des pays sélectionnés pour le filtrage (filtre hiérarchique principal).
--   `journalFilters`: Un tableau des journaux sélectionnés pour le filtrage.
--   `polarityFilters`: Un tableau des polarités sélectionnées pour le filtrage.
--   `subjectivityFilters`: Un tableau des scores de subjectivité sélectionnés pour le filtrage.
--   `centralityFilters`: Un tableau des niveaux de centralité sélectionnés pour le filtrage.
--   `filteredArticles`: Un store dérivé qui contient les articles après application de tous les filtres actifs.
--   `availableJournals`: Un store dérivé qui liste les journaux disponibles selon les pays sélectionnés.
+### Module `filters.svelte.ts`
+-   `countryFilters`: Pays sélectionnés pour le filtrage (filtre hiérarchique principal).
+-   `journalFilters`: Journaux sélectionnés pour le filtrage.
+-   `polarityFilters`: Polarités sélectionnées pour le filtrage.
+-   `subjectivityFilters`: Scores de subjectivité sélectionnés.
+-   `centralityFilters`: Niveaux de centralité sélectionnés.
+-   `discrepancyFilters`: Filtres de divergence pour le mode comparaison.
 
-**Stores spécifiques au mode comparaison :**
+### Module `articles.svelte.ts`
+-   `datasetArticles`: Cache des articles par dataset.
+-   `currentDatasetArticles`: Articles du dataset sélectionné.
+-   `selectedArticle`: Article actuellement sélectionné pour affichage détaillé.
+-   `filteredArticles`: Articles après application de tous les filtres.
+-   `availableJournals`: Journaux disponibles selon les pays sélectionnés.
+
+### Module `datasets.svelte.ts`
+-   `availableDatasets`: Liste des datasets disponibles (ChatGPT, Gemini, Mistral).
+-   `selectedDataset`: Dataset actuellement sélectionné.
 -   `comparisonMode`: Booléen indiquant si le mode comparaison est actif.
--   `selectedComparison`: Comparaison actuellement sélectionnée pour affichage détaillé.
--   `discrepancyFilters`: Filtres pour les seuils de divergence et dimensions à comparer.
--   `comparisonData`: Store dérivé contenant les données de comparaison entre ChatGPT et Gemini.
--   `filteredComparisons`: Store dérivé avec les comparaisons après application des filtres.
--   `comparisonStatistics`: Store dérivé avec les statistiques et métriques de comparaison.
+-   `comparisonPair`: Paire de modèles sélectionnée pour comparaison.
 
-De plus, le store expose les fonctions :
--   `loadDatasetArticles`: Fonction pour charger un dataset depuis un fichier JSON.
--   `loadCurrentDataset`: Fonction optimisée pour charger uniquement le dataset sélectionné.
--   `loadComparisonDatasets`: Fonction pour charger les deux datasets en mode comparaison.
+### Module `comparison.svelte.ts`
+-   `selectedComparison`: Comparaison actuellement sélectionnée pour affichage détaillé.
+-   `comparisonData`: Données de comparaison entre modèles.
+-   `filteredComparisons`: Comparaisons après application des filtres.
+-   `comparisonStatistics`: Statistiques et métriques de comparaison.
+
+### Module `arbiter.svelte.ts`
+-   `arbiterEvaluations`: Évaluations d'arbitrage par Gemini 3.0 Pro.
+-   `currentArbiterPair`: Paire de modèles pour laquelle les évaluations sont chargées.
+-   `arbiterStatistics`: Statistiques des verdicts d'arbitrage.
+-   `getArbiterForArticle()`: Récupère l'évaluation d'arbitrage pour un article.
+
+### Module `ui.svelte.ts`
+-   `sidebarExpanded`: État d'expansion de la sidebar.
+-   `activeView`: Vue actuellement active (charts, trends, comparison, etc.).
+-   `isLoadingDataset`, `isLoadingComparison`, `isLoadingArbiter`: États de chargement.
+
+### Module `url/`
+Gestion modulaire de l'état URL avec synchronisation automatique :
+-   `getCurrentState()`: Récupère l'état actuel de l'application.
+-   `parseURLState()`: Parse les paramètres URL.
+-   `buildURLSearchParams()`: Construit les paramètres URL.
+-   `updateURL()`: Met à jour l'URL avec l'état actuel.
+-   `initializeURLState()`: Initialise l'état depuis l'URL.
+-   `clearAllFilters()`: Efface tous les filtres.
 
 ## Composants clés
 
@@ -388,14 +476,15 @@ Tous les composants de filtrage supportent désormais la traduction automatique 
 -   `+page.svelte`:
     -   Charge automatiquement le corpus IWAC au démarrage de l'application.
     -   Initialise la langue depuis l'URL ou les préférences utilisateur.
-    -   Propose sept vues différentes via un menu de navigation latéral (desktop) ou modal (mobile):
+    -   Propose huit vues différentes via un menu de navigation latéral (desktop) ou modal (mobile):
       - **Charts**: Graphiques de distribution de polarité et subjectivité (barres/camembert)
       - **Trends**: Évolution des sentiments au fil du temps
       - **Distribution**: Distribution croisée entre polarité et subjectivité
       - **Volume**: Volume d'articles par pays au fil du temps
       - **Heatmap**: Heatmap de centralité par pays et année
       - **Table**: Articles dans un tableau interactif
-      - **Comparison**: Mode comparaison ChatGPT vs Gemini avec analyse des divergences
+      - **Comparison**: Mode comparaison multi-modèles avec analyse des divergences et arbitrage
+      - **Extremes**: Analyse lexicale des cas extrêmes par modèle
     -   Inclut un système de filtrage hiérarchique (Pays → Journaux → Critères de sentiment)
     -   Gère automatiquement l'activation/désactivation du mode comparaison selon la vue
     -   Synchronise tous les filtres, la langue et le mode comparaison avec l'URL en temps réel
@@ -424,24 +513,30 @@ L'application intègre un système complet de gestion multilingue :
 - **Utilitaires** : Fonctions de traduction pour les valeurs de données
 - **Composants adaptatifs** : Tous les composants s'adaptent automatiquement
 
-Consultez le [Guide d'internationalisation](./ma-visualisation-sentiments/I18N_GUIDE.md) pour plus de détails sur l'implémentation.
 
-## Mode de comparaison ChatGPT vs Gemini
+
+## Mode de comparaison multi-modèles
 
 ### **Qu'est-ce que le mode comparaison ?**
 
-Le mode comparaison est une fonctionnalité avancée qui permet d'analyser les différences entre les analyses de sentiment effectuées par ChatGPT et Gemini sur le même corpus d'articles. Cette approche comparative offre des insights précieux sur :
+Le mode comparaison est une fonctionnalité avancée qui permet d'analyser les différences entre les analyses de sentiment effectuées par **trois modèles IA** (ChatGPT, Gemini, Mistral) sur le même corpus d'articles. Cette approche comparative offre des insights précieux sur :
 
 - **La cohérence inter-modèles** : Identifier où les modèles convergent ou divergent
 - **Les biais potentiels** : Détecter les patterns de désaccord systématiques
 - **La fiabilité des analyses** : Évaluer la robustesse des résultats
 - **Les cas complexes** : Repérer les articles nécessitant une expertise humaine
+- **L'arbitrage objectif** : Verdicts de Gemini 3.0 Pro pour départager les modèles
 
 ### **Comment activer le mode comparaison ?**
 
 1. **Via le sélecteur de dataset** : Cliquez sur le bouton de comparaison dans le DatasetPicker
 2. **Via la navigation** : Sélectionnez la vue "Comparison" dans le menu latéral
-3. **Via l'URL** : Ajoutez `?compare=true` à l'URL
+3. **Via l'URL** : Ajoutez `?compare=true&pair=chatgpt-gemini` à l'URL
+
+### **Paires de modèles disponibles**
+- **chatgpt-gemini** : Compare les analyses ChatGPT et Gemini
+- **chatgpt-mistral** : Compare les analyses ChatGPT et Mistral
+- **gemini-mistral** : Compare les analyses Gemini et Mistral
 
 ### **Fonctionnalités du mode comparaison**
 
@@ -493,7 +588,7 @@ Le mode comparaison fournit des métriques détaillées :
 
 ### **Limitations et considérations**
 
-- **Aucun modèle comme référence** : Ni ChatGPT ni Gemini ne doit être considéré comme vérité absolue
+- **Aucun modèle comme référence** : Ni ChatGPT, ni Gemini, ni Mistral ne doit être considéré comme vérité absolue
 - **Divergences != erreurs** : Les désaccords peuvent refléter des perspectives légitimes différentes
 - **Contexte nécessaire** : L'interprétation des divergences nécessite une expertise du domaine
 - **Complémentarité** : Les résultats sont plus utiles pour identifier des tendances que pour des jugements définitifs
@@ -539,6 +634,8 @@ Prérequis : Node.js et npm installés.
 -   `npm run check`: Exécute Svelte Check pour vérifier les types et les erreurs dans les composants Svelte.
 -   `npm run lint`: Exécute ESLint pour vérifier les erreurs de style de code.
 -   `npm run format`: Exécute Prettier pour formater le code.
+-   `npm run test`: Lance les tests unitaires Vitest en mode watch.
+-   `npm run test:run`: Exécute les tests unitaires une seule fois.
 
 
 
@@ -548,7 +645,7 @@ Pour mettre à jour les données du corpus IWAC :
 
 1.  **Installer les dépendances Python :**
     ```bash
-    pip install datasets tqdm pandas
+    pip install -r data-preprocess/requirements.txt
     ```
 
 2.  **Exécuter le script de récupération des données :**
@@ -556,9 +653,16 @@ Pour mettre à jour les données du corpus IWAC :
     python data-preprocess/data-fetch.py
     ```
     
-    Ce script récupère automatiquement les données depuis le dataset Hugging Face et génère le fichier `iwac_articles.json` dans le bon format.
+    Ce script récupère automatiquement les données depuis le dataset Hugging Face et génère les fichiers `iwac_articles_chatgpt.json`, `iwac_articles_gemini.json` et `iwac_articles_mistral.json`.
 
-3.  **Générer l'analyse des extrêmes lexicaux (optionnel) :**
+3.  **Générer les évaluations d'arbitrage (Admin uniquement) :**
+    ```bash
+    python data-preprocess/arbiter-evaluation.py
+    ```
+    
+    Ce script utilise l'API Gemini pour générer les verdicts d'arbitrage entre les modèles. Nécessite une clé API Google valide.
+
+4.  **Générer l'analyse des extrêmes lexicaux (optionnel) :**
     ```bash
     python data-preprocess/extreme-analysis.py
     ```
@@ -566,6 +670,7 @@ Pour mettre à jour les données du corpus IWAC :
     Ce script analyse les mots-clés associés aux cas extrêmes de sentiment et génère :
     - `iwac_extreme_analysis_chatgpt.json` : Analyse lexicale des extrêmes pour ChatGPT
     - `iwac_extreme_analysis_gemini.json` : Analyse lexicale des extrêmes pour Gemini
+    - `iwac_extreme_analysis_mistral.json` : Analyse lexicale des extrêmes pour Mistral
     
     Ces fichiers permettent d'alimenter la vue "Extremes" avec des insights sur les patterns lexicaux caractéristiques de chaque catégorie de sentiment.
 
