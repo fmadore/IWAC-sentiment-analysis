@@ -30,7 +30,8 @@
 
 		try {
 			// Register service worker with proper base path for GitHub Pages
-			const basePath = base || '/';
+			// Ensure basePath ends with a slash for proper URL construction
+			const basePath = base ? (base.endsWith('/') ? base : `${base}/`) : '/';
 			registration = (await navigator.serviceWorker.register(`${basePath}sw.js`, {
 				scope: basePath
 			})) as ExtendedServiceWorkerRegistration;
