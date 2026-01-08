@@ -1,0 +1,1069 @@
+{
+  "metadata": {
+    "generated": "2026-01-08T09:14:55.970280",
+    "arbiter_model": "gemini-3-pro-preview",
+    "thinking_level": "high",
+    "blind_evaluation": true,
+    "arbiter_model_a": "Mistral",
+    "arbiter_model_b": "Gemini",
+    "pair": "gemini-mistral",
+    "pair_first_model": "Gemini",
+    "pair_second_model": "Mistral",
+    "note": "arbiter_model_a/b = what the arbiter saw. preferred_model in verdicts directly maps to these names.",
+    "total_articles": 176,
+    "successful_evaluations": 30,
+    "failed_evaluations": 0
+  },
+  "evaluations": [
+    {
+      "article_id": "2345",
+      "arbiter": {
+        "article_id": "2345",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est une apologie complète du jeûne et de l'islam. Il énumère exclusivement des bienfaits (spirituels, sociaux, médicaux), utilise un vocabulaire honorifique ('mois béni', 'glorieux Coran', 'récompenses') et présente la pratique religieuse comme la voie du salut et de la santé.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la nature élogieuse et promotionnelle du texte envers l'islam et le Ramadan."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Ce texte n'est pas un reportage journalistique neutre mais une contribution religieuse (prêche). Il présente des croyances dogmatiques comme des faits absolus (ex: 'Les démons sont enchaînés', la révélation des livres célestes à des dates précises) et vise à instruire ou convaincre les fidèles. Il adopte entièrement le point de vue interne du croyant.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a correctement identifié le ton de 'prédication religieuse' et attribué un score de subjectivité élevé (5). Le Modèle A a commis une erreur importante en notant 2.0 (plutôt objectif), confondant la présentation factuelle de règles religieuses avec l'objectivité journalistique. Un texte qui affirme des vérités théologiques sans distanciation est hautement subjectif."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'intégralité du texte est consacrée au Ramadan, aux règles du jeûne, à l'histoire islamique et aux citations du Coran et des Hadiths. L'islam est le sujet unique.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont parfaitement identifié que l'islam et les musulmans sont le sujet exclusif de l'article."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B est supérieur car il a correctement évalué la dimension de subjectivité. L'article est une contribution extérieure de nature religieuse (un prêche sur les bienfaits du jeûne), ce qui le rend intrinsèquement subjectif (score 5). Le Modèle A a échoué sur ce point en le considérant comme 'plutôt objectif' (score 2), ce qui est une mauvaise interprétation du genre textuel. Sur les autres dimensions (polarité et centralité), les deux modèles étaient précis.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:01:35.706941"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "2494",
+      "arbiter": {
+        "article_id": "2494",
+        "polarity": {
+          "score": "Positif",
+          "justification": "L'article est un communiqué de la communauté musulmane elle-même. Bien que le ton soit indigné et en colère contre les auteurs du film (le sujet externe), le portrait dressé des musulmans et de l'islam est favorable : ils sont présentés comme des défenseurs de la dignité de leur prophète, des croyants fervents, mais aussi comme des acteurs de paix appelant à la retenue et à la coexistence pacifique malgré la provocation.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a correctement identifié que le sentiment envers l'islam est positif, car le texte défend la religion. Le Modèle A a commis une erreur fondamentale en confondant la colère de l'auteur envers le film (tonalité négative) avec le sentiment envers le sujet de l'analyse (l'islam). Le texte n'est pas 'anti-islam' (Polarité Négative), il est 'pro-islam' réagissant à une attaque."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Le texte est une déclaration officielle (communiqué de presse) exprimant l'opinion collective d'un groupe religieux. Il utilise un vocabulaire fortement émotionnel ('indignée', 'choquée', 'inavouées') et normatif ('devoir religieux', 'nous n'accepterons jamais'), sans prétention de neutralité journalistique.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié le score maximal de subjectivité (5.0) et ont fourni des justifications pertinentes soulignant la nature émotionnelle et engagée du texte."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'intégralité du texte concerne la réaction de la communauté musulmane, la défense du Prophète et les valeurs de l'islam face à la diffusion du film. Il n'y a aucun autre sujet.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié que l'islam et les musulmans sont le sujet exclusif de l'article."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B est le vainqueur incontestable car il a réussi l'analyse de la polarité, qui était le point piège de cet article. Le Modèle A a échoué sur cette dimension critique en interprétant la négativité du texte (dirigée vers le film) comme une négativité envers l'islam, alors que l'article est une défense de l'islam (donc positif envers le sujet). Sur les autres dimensions (subjectivité et centralité), les deux modèles étaient performants.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:01:59.120906"
+      },
+      "discrepancies": {
+        "polarity_diff": 3,
+        "subjectivity_diff": 0,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "2648",
+      "arbiter": {
+        "article_id": "2648",
+        "polarity": {
+          "score": "Neutre",
+          "justification": "L'article rapporte des faits liés à la sécurité et à la politique. La seule mention de l'islam apparaît dans le nom propre du groupe terroriste (GSIM). Bien que le contexte (terrorisme) soit négatif, l'article ne projette aucun sentiment, positif ou négatif, sur la religion musulmane ou les fidèles en général. Il s'agit d'un rapport factuel sur des revendications politiques.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B fait la distinction cruciale entre le sentiment envers un groupe terroriste (négatif) et le sentiment envers l'islam en tant que religion (ici neutre/absent). Le Modèle A confond la négativité associée aux actes criminels avec une polarité négative envers l'islam, ce qui est inexact dans ce contexte."
+        },
+        "subjectivity": {
+          "score": "2 (Plutôt objectif)",
+          "justification": "Il s'agit d'un compte-rendu journalistique d'une conférence de presse. L'auteure rapporte les propos et opinions d'un tiers (le M/PRSCA) en utilisant des verbes d'attribution ('a martelé', 'invite', 'exige'). Bien que les propos rapportés soient subjectifs, le traitement journalistique reste principalement factuel et informatif.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B identifie correctement la nature objective du rapport journalistique. Le Modèle A attribue à tort la subjectivité des personnes interviewées (le mouvement M/PRSCA) au texte lui-même, ce qui fausse le score de subjectivité."
+        },
+        "centrality": {
+          "score": "Marginal",
+          "justification": "L'islam n'est mentionné qu'une seule fois, et uniquement en tant que composante du nom d'une organisation (GSIM). Le sujet de l'article est politique et judiciaire (poursuites contre Blaise Compaoré, sécurité nationale), et non religieux.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B évalue correctement que la présence de l'islam est anecdotique (liée à un acronyme). Le Modèle A surestime l'importance de cette mention en la classant comme 'Secondaire', alors qu'aucun thème religieux n'est développé."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B a fourni une analyse nettement plus précise sur les trois dimensions. Il a su distinguer le contenu rapporté (les opinions du M/PRSCA) de la voix de l'auteure (journalisme factuel), et a correctement identifié que la mention de l'islam était purement nominale (dans le nom du GSIM) et non thématique. Le Modèle A a manqué de nuance en confondant la négativité du sujet (terrorisme) avec le sentiment envers la religion, et en confondant les propos rapportés avec la subjectivité de l'article.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:02:40.122974"
+      },
+      "discrepancies": {
+        "polarity_diff": 1,
+        "subjectivity_diff": 3,
+        "centrality_diff": 1,
+        "total_diff": 5,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "2728",
+      "arbiter": {
+        "article_id": "2728",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est un communiqué d'une association musulmane (AEEMB) qui fait l'éloge du Ramadan. Le ton est dévotionnel, célébrant les vertus spirituelles, physiques et sociales du jeûne avec un vocabulaire enthousiaste ('événement inestimable', 'perfection', 'miséricorde immense').",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la tonalité très positive et célébrative du texte."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Ce texte n'est pas un reportage journalistique neutre, mais un message religieux (prêche/exhortation). Il présente des croyances religieuses comme des vérités absolues, donne des directives morales et utilise un langage émotionnel et spirituel pour persuader les fidèles.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a correctement identifié la nature du texte (prédication religieuse) et lui a attribué un score de subjectivité élevé. Le Modèle A a fait une erreur d'analyse en classant ce texte comme 'plutôt objectif' (2.0), confondant probablement l'énoncé de dogmes avec une présentation factuelle neutre."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'intégralité du texte est consacrée au Ramadan, à sa signification, ses règles et ses bienfaits. L'islam est le sujet unique.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié que l'islam et les musulmans sont le sujet exclusif de l'article."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B est supérieur car il a correctement évalué la dimension de subjectivité. Il a compris que le texte était une exhortation religieuse (un prêche publié) et non un article d'information neutre. Le Modèle A a échoué sur ce point crucial en attribuant un score d'objectivité de 2/5 à un texte qui est intrinsèquement subjectif (expression de la foi et directives morales). Sur les autres dimensions (polarité et centralité), les deux modèles étaient équivalents.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:03:02.899628"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "2771",
+      "arbiter": {
+        "article_id": "2771",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est une hagiographie explicite du prophète Mohammed, le qualifiant de «parangon de vertus», d'«homme parfait» et affirmant qu'il a rendu un «service éternel au monde». Le texte est un éloge ininterrompu de l'islam, de ses pratiques (propreté, respect des femmes) et un appel enthousiaste à l'unité de la communauté.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la tonalité extrêmement favorable et élogieuse du texte."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Ce texte n'est pas un article journalistique factuel, mais une contribution d'un lecteur (tribune/op-ed) qui s'apparente à un sermon religieux. Il est rempli d'injonctions morales («chaque musulman doit»), de superlatifs émotionnels et de croyances religieuses présentées comme des vérités absolues. Il exprime une opinion personnelle et religieuse forte.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a parfaitement saisi la nature du texte («plaidoyer religieux», «ton hagiographique») en lui attribuant un score de 5. Le Modèle A a commis une erreur majeure en donnant un score de 2 (plutôt objectif), confondant probablement un ton respectueux avec une neutralité journalistique, alors que le texte est purement opinionnel et dévotionnel."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'ensemble du texte est consacré à l'islam : la fête du Maouloud, la vie du prophète Mohammed, les préceptes religieux et l'unité de la Umma. Aucun autre sujet n'est abordé.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié que l'islam et les musulmans sont le sujet unique et central de l'article."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B est le vainqueur incontestable grâce à son analyse précise de la subjectivité. Alors que les deux modèles ont bien évalué la polarité et la centralité, le Modèle A a échoué à reconnaître le genre textuel (une tribune religieuse/prêche) en le classant comme «plutôt objectif» (2/5). Le Modèle B a correctement identifié qu'il s'agissait d'un texte hautement subjectif (5/5), utilisant un ton hagiographique et des injonctions morales, ce qui démontre une compréhension bien plus fine des nuances entre un reportage factuel et une opinion religieuse.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:03:26.492547"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "2798",
+      "arbiter": {
+        "article_id": "2798",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est extrêmement élogieux. L'auteure utilise un vocabulaire affectif fort ('chaleureuse', 'envoûtante', 'apaisante', 'touchant', 'impressionnée'). Elle présente l'islam comme une religion de paix, de tolérance et de beauté spirituelle, et conclut par une défense explicite de la religion face aux critiques politiques. Ce n'est pas simplement favorable, c'est enthousiaste.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a mieux saisi l'intensité du sentiment. Le Modèle A qualifie le ton de 'positif' et affirme 'sans idéalisation excessive', ce qui est inexact car l'auteure idéalise et romantise clairement son expérience (par exemple, la description des anges et de la 'paisibilité' des lieux)."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Il s'agit d'un récit à la première personne ('je') relatant une expérience immersive personnelle. L'article est entièrement construit autour des émotions, des sensations (odeurs, couleurs) et des jugements de valeur de l'auteure ('à mon sens', 'je ressens', 'moment privilégié'). Il ne s'agit pas d'un reportage factuel distancié.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a correctement identifié la nature hautement subjective du texte (récit personnel, émotions). Le Modèle A a fait une erreur significative en attribuant un score de 2 (plutôt objectif) et en parlant de 'traces subtiles' de subjectivité, alors que la subjectivité est l'essence même de cet article de type 'blog' ou témoignage."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'intégralité de l'article est consacrée à l'observation du Ramadan, aux pratiques religieuses (prières, ablutions, jeûne) et à la foi de la famille d'accueil. Aucun autre sujet n'est abordé.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié que l'islam et les musulmans sont le sujet unique et central de l'article."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B est nettement supérieur car il a correctement analysé le genre journalistique de l'article. Là où le Modèle A a tenté de traiter le texte comme un reportage factuel standard (sous-estimant grandement la subjectivité et modérant la polarité), le Modèle B a reconnu qu'il s'agissait d'un récit personnel, émotionnel et très élogieux. L'erreur du Modèle A sur le score de subjectivité (2 au lieu de 4 ou 5) est majeure pour ce type de contenu.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:03:51.574526"
+      },
+      "discrepancies": {
+        "polarity_diff": 1,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 4,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "2961",
+      "arbiter": {
+        "article_id": "2961",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est une exhortation religieuse (type prêche) qui présente l'islam et le comportement idéal du musulman sous un jour exclusivement vertueux. Il met en avant des valeurs universellement positives comme la charité, l'équité, la douceur, le respect des femmes et l'honnêteté, en s'appuyant sur des textes sacrés. Il n'y a aucune critique de la religion ; au contraire, elle est présentée comme la solution pour une société harmonieuse.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la nature extrêmement favorable du texte, qui sert à promouvoir les vertus de l'islam."
+        },
+        "subjectivity": {
+          "score": "4 (Plutôt subjectif)",
+          "justification": "Ce texte n'est pas un reportage journalistique factuel (score 1 ou 2), mais un texte normatif et prescriptif. Il dicte ce que 'doit' être le comportement d'un musulman. Bien qu'il cite des 'faits' scripturaires (hadiths, versets), la sélection et l'objectif sont de persuader, d'enseigner une morale et de promouvoir une vision du monde spécifique. Il exprime des opinions religieuses et des jugements de valeur (ce qui est bien ou mal), ce qui relève d'une forte subjectivité.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle A a commis une erreur importante en attribuant un score de 1.0 (Très objectif). Confondre un prêche religieux ou un texte didactique avec un rapport factuel objectif est une faute d'analyse. Le Modèle B a correctement identifié le ton 'didactique et prescriptif' et l'aspect 'idéalisé', justifiant un score de 4.0."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'intégralité du texte est consacrée à l'islam, aux enseignements du Prophète et aux devoirs religieux des musulmans. Il n'y a aucun autre sujet abordé.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont parfaitement identifié que l'islam est le sujet unique et exclusif de l'article."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Bien que les deux modèles soient d'accord et précis sur la polarité et la centralité, le Modèle B remporte l'évaluation grâce à son analyse de la subjectivité. Le Modèle A a classé ce texte comme '1.0 - Très objectif', ce qui est incorrect pour un article de nature religieuse, morale et prescriptive (un sermon). Un texte qui dit aux gens comment se comporter et ce qu'ils doivent croire n'est pas 'purement informatif' au sens journalistique du terme. Le Modèle B a su discerner le ton didactique et a attribué un score de subjectivité (4.0) beaucoup plus réaliste.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:04:20.234307"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "2999",
+      "arbiter": {
+        "article_id": "2999",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est rédigé avec un ton de révérence et de dévotion. Il utilise un vocabulaire élogieux ('illustre', 'béni', 'miséricorde', 'fils pur') pour décrire Jésus et Marie selon la perspective islamique. Il ne s'agit pas d'une analyse neutre, mais d'une affirmation de la vérité et de la beauté des croyances islamiques.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle A échoue en qualifiant le texte de 'Neutre'. Un texte qui affirme des miracles et utilise des termes honorifiques religieux est intrinsèquement positif envers le sujet. Le Modèle B a correctement identifié le ton élogieux et 'très positif'."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Le texte présente des croyances religieuses et des événements surnaturels (miracles, intervention des anges, résurrection) comme des faits historiques absolus, sans utiliser de conditionnel ni de distanciation journalistique (ex: 'selon les croyants'). C'est un texte de foi, pas un rapport factuel vérifiable.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle A a commis une erreur critique en attribuant un score de 1.0 (Très objectif). Rapporter des récits miraculeux comme des vérités établies est la définition même de la subjectivité dans un contexte d'analyse de presse. Le Modèle B a bien saisi que le ton relevait de la prédication et du témoignage (score 4.0), ce qui est beaucoup plus proche de la réalité."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'intégralité de l'article est consacrée à l'explication de la place de Jésus dans l'islam, citant le Coran et les traditions prophétiques. L'islam et ses figures sont le sujet unique.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié que le sujet est 'Très central' à l'article."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B est largement supérieur car il a compris la nature du texte. L'article n'est pas un reportage journalistique standard, mais un texte religieux/théologique (probablement une tribune ou un sermon retranscrit). Le Modèle A a confondu la structure narrative avec l'objectivité, ne parvenant pas à distinguer qu'affirmer des miracles comme des faits constitue une subjectivité forte. De plus, le Modèle A a manqué la charge émotionnelle et révérencieuse (polarité) que le Modèle B a correctement identifiée comme 'Très positif'.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:04:50.932989"
+      },
+      "discrepancies": {
+        "polarity_diff": 2,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 5,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3007",
+      "arbiter": {
+        "article_id": "3007",
+        "polarity": {
+          "score": "Positif",
+          "justification": "Bien que l'auteur demande aux musulmans (et autres religieux) de rester neutres politiquement, il les décrit explicitement comme des « sages », des « dépositaires des valeurs morales » et un « précieux capital » pour la nation. Cette caractérisation est élogieuse et va au-delà d'une simple neutralité factuelle.",
+          "preferred_model": "neither",
+          "verdict_explanation": "Les deux modèles ont classé la polarité comme « Neutre », se concentrant sur l'appel à la non-intervention politique. Ils ont manqué les qualificatifs laudatifs (« précieux capital », « valeurs morales ») utilisés par l'auteur pour décrire la communauté, qui justifient un score « Positif »."
+        },
+        "subjectivity": {
+          "score": "4 (Plutôt subjectif)",
+          "justification": "Ce texte est un éditorial ou une tribune d'opinion, non un article d'information factuelle. L'auteur utilise la première personne (« nous »), exprime des jugements de valeur forts (« Carton rouge », « imprécations funestes ») et donne des directives aux acteurs sociaux.",
+          "preferred_model": "model_a",
+          "verdict_explanation": "Le Modèle A a correctement identifié la nature subjective et engagée du texte (score de 4.0). Le Modèle B a commis une erreur majeure en attribuant un score de 1.0 (très objectif) et en qualifiant le texte de « purement factuel », ce qui contredit le ton éditorial évident."
+        },
+        "centrality": {
+          "score": "Marginal",
+          "justification": "L'islam et les musulmans ne sont mentionnés que brièvement dans deux paragraphes vers la fin du texte, au sein d'une liste d'autorités morales (avec les chefs coutumiers et les églises), dans le contexte spécifique d'un appel à la réserve.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié que le sujet est marginal, l'article portant principalement sur la révision constitutionnelle et le climat politique."
+        },
+        "overall_winner": "model_a",
+        "overall_explanation": "Le Modèle A est largement supérieur car il a correctement analysé la subjectivité du texte. Il a compris qu'il s'agissait d'un article d'opinion exprimant des jugements (score de 4.0), alors que le Modèle B a échoué en le considérant comme purement factuel (score de 1.0). Bien que les deux modèles aient manqué la nuance positive dans la polarité, l'analyse contextuelle du Modèle A reste plus pertinente.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:05:42.797029"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3255",
+      "arbiter": {
+        "article_id": "3255",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est une retranscription d'un message du CERFI qui fait l'éloge des valeurs islamiques (charité, solidarité, discipline). L'islam est présenté comme la source de solutions morales et sociales, sans aucune critique. Le ton est enthousiaste et dévotionnel.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la tonalité très positive du texte, qui est une exhortation religieuse mettant en avant les vertus de la foi musulmane."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Le texte n'est pas un reportage journalistique factuel, mais un sermon/message religieux (op-ed). Il exprime des croyances, prescrit des comportements moraux ('nous devons', 'il faut'), interprète la volonté divine et utilise un vocabulaire émotionnel et spirituel fort ('alliés du Diable', 'miséricorde'). Il s'agit de l'expression d'une opinion religieuse et non d'un rapport objectif de faits.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a correctement identifié la nature du texte (message religieux et exhortatif) et lui a attribué un score de subjectivité élevé (5). Le Modèle A a commis une erreur significative en attribuant un score de 2 (plutôt objectif), confondant la citation de textes religieux avec une présentation factuelle objective."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'intégralité de l'article est consacrée à l'islam, aux pratiques du Ramadan et de l'Aïd, et aux directives morales pour les musulmans.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement déterminé que l'islam et les musulmans sont le sujet unique et central de l'article."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Bien que les deux modèles aient correctement évalué la polarité et la centralité, le Modèle B remporte l'évaluation grâce à son analyse bien plus précise de la subjectivité. Le texte analysé est un message religieux (un prêche) publié tel quel. Le considérer comme 'plutôt objectif' (Score 2), comme l'a fait le Modèle A, est une erreur d'interprétation majeure du genre textuel. Le Modèle B a compris que le texte était prescriptif, basé sur la foi et l'émotion, justifiant ainsi un score de subjectivité maximal (5).",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:06:09.640743"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3271",
+      "arbiter": {
+        "article_id": "3271",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est une nécrologie rendant hommage à une figure majeure de la communauté musulmane. Le ton est exclusivement élogieux, utilisant des termes comme 'générosité légendaire', 'grandeur d'esprit', et rapportant des comparaisons avec un prophète. Il n'y a aucune critique, seulement de l'admiration et du deuil.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la polarité 'Très positif'. Leurs justifications sont toutes deux valides, soulignant l'admiration et le caractère hagiographique du texte."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Bien que l'article soit structuré sous forme d'interviews (ce qui pourrait suggérer une démarche journalistique factuelle), le contenu est purement émotionnel et opinatif. Le journaliste lui-même utilise des termes subjectifs ('générosité légendaire') et les témoignages rapportés ne sont constitués que de sentiments personnels, de louanges et de jugements de valeur ('père', 'saint', 'prophète'). Il ne s'agit pas d'un rapport factuel froid, mais d'une célébration subjective d'une vie.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle A a commis une erreur d'analyse en attribuant un score de 2 (plutôt objectif), confondant probablement la structure (citations rapportées) avec le fond (opinions émotionnelles). Le Modèle B a parfaitement saisi la nature 'hagiographique' et émotionnelle du texte, justifiant un score élevé de subjectivité."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "Le sujet unique de l'article est El Hadj Oumarou Kanazoé, défini par son titre religieux ('El Hadj'), son surnom ('L'homme aux cent mosquées') et son rôle au sein de la communauté musulmane. La majorité des intervenants sont des responsables de la communauté musulmane. L'identité islamique du défunt et ses actions pour l'islam sont indissociables du sujet principal.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B est plus précis en classant la centralité comme 'Très central'. Le Modèle A a choisi 'Central', ce qui est acceptable mais sous-estime légèrement le fait que l'article est entièrement dédié à une figure dont l'identité est intrinsèquement liée à l'islam et à la communauté musulmane."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B est le vainqueur incontestable de cette évaluation. Sa supériorité réside principalement dans son analyse de la subjectivité. Là où le Modèle A a considéré à tort que l'article était 'plutôt objectif' (2.0) simplement parce qu'il rapportait des faits et des citations, le Modèle B a compris que la nature même d'une nécrologie remplie de témoignages élogieux et de langage affectif est hautement subjective (5.0). De plus, le Modèle B a mieux qualifié la centralité du sujet ('Très central'), reconnaissant que l'hommage à cette figure religieuse constituait la totalité du propos, et non juste un thème central parmi d'autres.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:06:41.997218"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 1,
+        "total_diff": 4,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3463",
+      "arbiter": {
+        "article_id": "3463",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est une exhortation religieuse interne à la foi, célébrant la 'spiritualité absolue' de la Nuit du Destin. Il présente les pratiques islamiques comme sources de paix, de salut et de récompense divine, sans aucune critique.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la polarité très positive. Le texte est dévotionnel et élogieux envers l'islam."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Le texte n'est pas un compte-rendu journalistique neutre, mais un sermon ou un guide spirituel. L'auteur s'inclut dans la communauté des croyants ('nous', 'notre relation'), donne des directives impératives ('Il faut également...') et termine par une prière. Il s'agit d'une expression de foi et de doctrine, ce qui est intrinsèquement subjectif par rapport à une norme journalistique factuelle.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a parfaitement saisi la nature du texte ('ton de prédication religieuse'). Le Modèle A a commis une erreur d'analyse en considérant le texte comme 'plutôt objectif' (2.0) simplement parce qu'il cite des sources. Citer le Coran pour prêcher est un acte subjectif, non un rapport factuel distancié."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'intégralité de l'article est consacrée à un sujet religieux spécifique (Laylat al-Qadr), aux rituels associés (prière, Irtikâf) et à la théologie islamique.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié que l'islam et les musulmans sont le sujet unique et exclusif de cet article."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Bien que les deux modèles aient correctement évalué la polarité et la centralité (qui étaient évidentes), le Modèle B se distingue nettement sur l'analyse de la subjectivité. Le Modèle A a confondu la présence de citations religieuses avec de l'objectivité journalistique. Or, ce texte est un prêche religieux écrit par un croyant pour des croyants, utilisant des impératifs et des prières ('Que Dieu nous aide'). Le Modèle B a correctement identifié ce ton de 'prédication', ce qui justifie un score de subjectivité élevé, rendant son analyse globale beaucoup plus pertinente pour comprendre la nature de l'article.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:07:05.252851"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3559",
+      "arbiter": {
+        "article_id": "3559",
+        "polarity": {
+          "score": "Positif",
+          "justification": "Le texte est un message de vœux officiel. Il est bienveillant, respectueux et inclusif, invoquant des bénédictions divines. C'est un portrait favorable classique pour ce type de communication institutionnelle.",
+          "preferred_model": "model_a",
+          "verdict_explanation": "Le Modèle A capture mieux la nuance. Bien que le texte soit très favorable, 'Positif' est plus approprié pour un message protocolaire standard. 'Très positif' est généralement réservé à des articles faisant l'éloge enthousiaste ou la défense passionnée de l'islam, ce qui dépasse le cadre d'un simple vœu présidentiel."
+        },
+        "subjectivity": {
+          "score": "4 (Plutôt subjectif)",
+          "justification": "Le texte est constitué entièrement de vœux, de souhaits ('Je souhaite', 'je formule le vœu') et d'invocations religieuses ('Qu'Allah bénisse'). Il ne rapporte pas des faits, mais exprime les sentiments et les espoirs du locuteur (le Président).",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle A fait une erreur fondamentale en classant un texte basé sur l'expression de vœux personnels et religieux comme '1.0 - Très objectif'. Le Modèle B identifie correctement que le contenu est subjectif (expression de souhaits et spiritualité), même si le ton est formel."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "Le titre de l'article est 'Tabaski' et le contenu est exclusivement adressé aux musulmans pour leur fête. L'islam et la fête religieuse sont la raison d'être unique de ce texte.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle A échoue en classant le sujet comme 'Secondaire'. Le fait que le président parle de cohésion sociale ne dilue pas le sujet ; c'est le message central adressé *à l'occasion* de la fête islamique. Le Modèle B a correctement identifié que c'est le sujet principal."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B est nettement supérieur sur cette évaluation. Bien que le Modèle A ait donné une polarité légèrement plus précise ('Positif' vs 'Très positif'), il a commis deux erreurs majeures d'analyse sur les autres dimensions. Premièrement, il a confondu le ton formel avec l'objectivité factuelle (le texte est une expression subjective de vœux, pas un rapport factuel). Deuxièmement, et c'est plus grave, il a considéré l'islam comme un sujet 'Secondaire' alors que l'article est intitulé 'Tabaski' et est un message direct aux musulmans. Le Modèle B a correctement identifié la centralité du sujet et la nature subjective du message.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:07:38.807047"
+      },
+      "discrepancies": {
+        "polarity_diff": 1,
+        "subjectivity_diff": 3,
+        "centrality_diff": 2,
+        "total_diff": 6,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3692",
+      "arbiter": {
+        "article_id": "3692",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est une exhortation spirituelle qui présente le Ramadan et l'islam comme des sources ultimes de bonheur, de purification et de noblesse ('vrai bonheur', 'bouclier des croyants', 'élu de Dieu'). Le ton est enthousiaste, dévotionnel et totalement dénué de critique.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la nature extrêmement favorable et élogieuse du texte envers l'islam et la pratique du jeûne."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Ce texte n'est pas un reportage journalistique mais une tribune religieuse ou un sermon. L'auteur s'exprime avec une conviction personnelle intense, utilise des impératifs ('Aimez', 'Donnez', 'Soyez'), et présente des concepts théologiques (le diable, la volonté de Dieu, les démons) comme des faits absolus. Il s'agit d'une opinion pure et d'une guidance spirituelle.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a parfaitement saisi la nature du texte ('prédication', 'exhortation religieuse') et lui a attribué le score maximal de subjectivité. Le Modèle A a commis une erreur majeure en attribuant un score de 2 (plutôt objectif) à un texte qui parle d'interactions démoniaques et demande au lecteur d'être 'l'islam', ce qui est l'opposé de l'objectivité journalistique."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'intégralité de l'article est consacrée au Ramadan, à sa signification spirituelle, à son organisation pratique et au comportement du musulman.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement déterminé que l'islam et les musulmans sont le sujet unique et exclusif de l'article."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Bien que les deux modèles aient correctement évalué la polarité et la centralité, le Modèle B est nettement supérieur sur l'évaluation de la subjectivité. L'article analysé est un texte de dévotion, rempli d'injonctions religieuses et de métaphores spirituelles. Le Modèle A a échoué à reconnaître ce genre textuel, le qualifiant à tort de 'plutôt objectif' (score de 2), alors qu'il s'agit d'un discours de foi hautement subjectif. Le Modèle B a correctement identifié le ton de 'prédication' et a attribué le score de subjectivité approprié (5), démontrant une meilleure compréhension des nuances du texte.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:08:03.594372"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3728",
+      "arbiter": {
+        "article_id": "3728",
+        "polarity": {
+          "score": "Positif",
+          "justification": "L'article est une défense explicite de l'image des musulmans. L'auteure critique l'expression 'intégrisme musulman' justement parce qu'elle la juge insultante et stigmatisante pour la communauté. Elle cherche à dissocier l'islam de la violence ('méchants et meurtriers') et affirme sa propre identité de musulmane pratiquante non intégriste. Le sentiment envers l'islam est donc de soutien et de protection contre les amalgames.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a correctement identifié que l'auteure défend l'islam (sentiment positif/défensif). Le Modèle A a commis une erreur d'interprétation majeure en confondant la colère de l'auteure envers le ministre (ton critique) avec un sentiment négatif envers l'islam lui-même. Qualifier l'article de 'Très négatif' envers les musulmans est un contresens complet par rapport à l'intention de la tribune."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Il s'agit d'une tribune libre (op-ed) écrite à la première personne ('je me permets', 'm'ont choquée'). L'auteure exprime des émotions personnelles intenses, des jugements de valeur et interpelle directement un ministre. Le texte est purement opinionnel.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont parfaitement identifié la nature hautement subjective du texte, justifiant leur score par la présence de marqueurs émotionnels et l'usage de la première personne."
+        },
+        "centrality": {
+          "score": "Central",
+          "justification": "La controverse sur le terme 'intégrisme musulman' est le point de départ et le sujet principal de la première moitié du texte. Cependant, la seconde moitié de la tribune élargit le propos à une critique plus générale sur le mélange entre politique et culture, sans mentionner l'islam. Le sujet est donc central mais partage l'espace avec une réflexion sur la politique culturelle.",
+          "preferred_model": "model_a",
+          "verdict_explanation": "Le Modèle A est légèrement plus précis en classant le sujet comme 'Central' (thème important mais partagé), car il reconnaît implicitement que le texte aborde aussi des thèmes culturels plus larges. Le Modèle B ('Très central') est acceptable vu le titre, mais ignore un peu la seconde partie du texte."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B est le vainqueur incontestable car il a réussi l'analyse la plus critique : celle de la polarité. Dans ce type de texte (une défense passionnée contre une stigmatisation), il est fréquent que les modèles confondent la colère de l'auteur avec une négativité envers le sujet. Le Modèle A est tombé dans ce piège en classant l'article comme 'Très négatif' envers l'islam, alors que l'auteure écrit pour défendre la dignité des musulmans. Bien que le Modèle A ait été légèrement plus nuancé sur la centralité, son échec sur la polarité constitue une incompréhension fondamentale du sens du texte.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:08:37.493526"
+      },
+      "discrepancies": {
+        "polarity_diff": 3,
+        "subjectivity_diff": 0,
+        "centrality_diff": 1,
+        "total_diff": 4,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3736",
+      "arbiter": {
+        "article_id": "3736",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "Le texte est un message de vœux officiel rempli de bienveillance. L'auteur associe l'islam et le mois de Ramadan à des valeurs hautement positives comme la santé, la paix, l'amour, le partage et la cohésion sociale. Il n'y a aucune négativité.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la nature très positive et bienveillante du message."
+        },
+        "subjectivity": {
+          "score": "4 (Plutôt subjectif)",
+          "justification": "Le texte n'est pas un rapport factuel d'un événement, mais l'expression directe des sentiments, des souhaits et des prières de l'auteur ('Je souhaite', 'Puisse l'Eternel', 'Que Dieu bénisse'). Bien que le ton soit formel, il s'agit par définition d'un discours subjectif exprimant la volonté et les espérances de l'orateur.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle A a fait une erreur fondamentale en classant ce texte comme '1.0 (Très objectif)'. Il a confondu le ton formel/institutionnel avec l'objectivité journalistique. Un message de vœux est intrinsèquement subjectif. Le Modèle B a correctement identifié que l'expression de souhaits et d'invocations relève de la subjectivité."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'intégralité du texte est consacrée au message de Ramadan. L'islam et les musulmans sont les destinataires exclusifs et la raison d'être de l'article. Les mentions de cohésion nationale sont des corollaires directs du message religieux.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B est plus précis. Le Modèle A considère que le sujet est 'dilué' par les vœux nationaux, alors que dans ce contexte (un message de fête religieuse), ces vœux font partie intégrante du sujet principal."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B est nettement supérieur car il a correctement analysé la dimension de la subjectivité. Le Modèle A a échoué à reconnaître qu'un message de vœux (commençant par 'Je souhaite') est une expression subjective et non un rapport factuel objectif, même s'il est poli et formel. De plus, l'évaluation de la centralité par le Modèle B ('Très central') est plus fidèle à la nature du texte, qui est entièrement dédié à l'événement religieux.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:09:02.041413"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 1,
+        "total_diff": 4,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3739",
+      "arbiter": {
+        "article_id": "3739",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est une chronique religieuse qui présente l'islam et le Ramadan comme des vecteurs de paix, de cohésion sociale ('vivre ensemble'), de miséricorde et d'amélioration de soi. Le ton est exhortatif et met en valeur les idéaux éthiques de la religion.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la nature élogieuse et enthousiaste du texte envers les valeurs islamiques."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Il s'agit d'une chronique d'opinion et d'enseignement religieux (prêche). L'auteur, un imam, partage ses interprétations personnelles des textes sacrés, pose des questions rhétoriques sur la moralité et exprime des convictions de foi. Ce n'est pas un rapport factuel d'événement, mais une exhortation spirituelle.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle A a fait une erreur significative en classant ce texte comme '2 (Plutôt objectif)', confondant la citation de versets (faits textuels) avec la nature du texte qui est une interprétation théologique et morale. Le Modèle B a parfaitement saisi qu'il s'agit d'une exhortation religieuse exprimant des convictions personnelles intenses."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "Le sujet unique et exclusif du texte est le Ramadan, ses enseignements coraniques et leur application dans la vie du musulman.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié que l'islam est le sujet principal."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Bien que les deux modèles aient correctement évalué la polarité et la centralité, le Modèle B est nettement supérieur sur l'analyse de la subjectivité. Le Modèle A a échoué à reconnaître le genre textuel (une chronique religieuse/un prêche) en le qualifiant de 'plutôt objectif'. Un texte qui prescrit des comportements moraux basés sur la foi et l'interprétation divine est par définition hautement subjectif. Le Modèle B a correctement identifié cette nuance cruciale.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:09:24.428543"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3740",
+      "arbiter": {
+        "article_id": "3740",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est une chronique religieuse (prêche) écrite par un imam. Le texte fait l'éloge inconditionnel de la prière, la qualifiant de 'refuge', de 'repos de l'âme' et de source de succès. Le ton est dévotionnel, enthousiaste et ne contient aucune critique, présentant la pratique islamique comme la solution aux maux de l'existence.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la nature extrêmement favorable du texte. Leurs justifications sont pertinentes, notant le vocabulaire élogieux et la perspective spirituelle."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Ce texte est une chronique d'opinion religieuse. Il ne rapporte pas des faits journalistiques vérifiables de manière neutre, mais exprime des croyances, des dogmes ('celui qui délaisse la prière est mécréant'), des émotions et des exhortations directes ('lève-tôt et prie'). Il s'agit de l'expression pure d'une vision du monde subjective et spirituelle.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a parfaitement identifié le genre du texte ('billet d'humeur spirituel', 'exhortatif') et a attribué le score correct de 5. Le Modèle A a commis une erreur significative en attribuant un score de 2 (plutôt objectif) et en qualifiant le texte de 'principalement factuel'. Un prêche religieux est par nature subjectif dans le cadre d'une analyse médiatique, car il repose sur la foi et non sur l'observation journalistique neutre."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'article est entièrement consacré à l'islam, spécifiquement aux pratiques du Ramadan et de la prière (Salat). Il n'y a aucun autre sujet abordé.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié que l'islam et les pratiques musulmanes sont le sujet unique et exclusif de l'article."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Bien que les deux modèles aient correctement évalué la polarité et la centralité (qui étaient assez évidentes pour ce type de texte), le Modèle B se distingue nettement sur l'analyse de la subjectivité. Le Modèle A a échoué à reconnaître la nature intrinsèquement subjective d'une chronique religieuse/d'un prêche, le classant à tort comme 'plutôt objectif' (2/5). Le Modèle B a fait preuve d'une compréhension beaucoup plus fine du genre textuel et des nuances journalistiques en attribuant un score de subjectivité de 5/5, ce qui est la seule évaluation correcte pour un texte d'opinion religieuse exhortative.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:09:47.069737"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3742",
+      "arbiter": {
+        "article_id": "3742",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est une chronique religieuse (un sermon) qui présente l'islam, ses textes sacrés et le comportement du Prophète comme des modèles de perfection morale et des solutions absolues aux maux de la société (gaspillage, égoïsme). Le ton est enthousiaste, exhortatif et élogieux.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B capture mieux l'intensité du sentiment ('Très positif') inhérente à un texte de nature prédicatrice qui exalte les vertus de la religion, contrairement au Modèle A qui reste sur un 'Positif' plus modéré."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Ce texte n'est pas un rapport journalistique factuel mais une 'chronique' d'opinion religieuse. L'auteur (un imam) exprime des jugements moraux forts ('œuvre du diable', 'insultant'), donne des directives comportementales ('Partage mon frère') et interprète le monde à travers le prisme de la foi. Il s'agit d'une subjectivité totale assumée.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a correctement identifié la nature du texte (billet d'humeur/exhortation religieuse) et lui a attribué le score maximal de subjectivité. Le Modèle A a commis une erreur majeure en le classant comme 'plutôt objectif' (2.0) sous prétexte qu'il cite des textes, confondant références religieuses et faits journalistiques."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'islam, le Coran, le Prophète et les pratiques du Ramadan constituent la totalité du sujet. L'écologie et le gaspillage sont abordés uniquement à travers le prisme des enseignements islamiques.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié que l'islam est le sujet central et omniprésent de l'article."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B est largement supérieur car il a correctement analysé le genre textuel. Il a compris qu'il s'agissait d'un sermon religieux hautement subjectif (score de 5), alors que le Modèle A a échoué sur l'analyse de la subjectivité en qualifiant le texte de 'principalement factuel' (score de 2), ce qui est une incompréhension fondamentale de la nature d'une chronique religieuse.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:10:11.665244"
+      },
+      "discrepancies": {
+        "polarity_diff": 1,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 4,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3748",
+      "arbiter": {
+        "article_id": "3748",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est une apologie explicite des pratiques islamiques. L'auteur, un imam, présente l'islam comme un système parfait favorisant l'humanisme, la gestion responsable de la terre et l'amélioration morale. Le ton est enthousiaste et ne contient aucune critique.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la nature élogieuse et très positive du texte envers l'islam, notant les vertus humanistes et éducatives mises en avant."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Il s'agit d'une chronique religieuse (un sermon) qui exprime des croyances, des interprétations théologiques et des prescriptions morales. Ce n'est pas un rapport factuel d'événement, mais l'expression d'une foi et d'une vision du monde spécifique. Le texte repose entièrement sur l'opinion et l'interprétation de l'auteur.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a correctement identifié le genre textuel ('billet d'humeur', 'exégèse spirituelle') et attribué un score de subjectivité élevé (5). Le Modèle A a fait une erreur significative en attribuant un score de 2 (objectif), confondant le ton didactique d'un enseignement religieux avec l'objectivité journalistique. Un prêche est par nature subjectif."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'article est entièrement consacré à l'explication de concepts islamiques (adoration, califat, piliers de l'islam). Il n'y a aucun autre sujet.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont parfaitement identifié que l'islam est le sujet unique et central du texte."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B est supérieur car il a correctement évalué la dimension de subjectivité. L'article est une chronique religieuse (un prêche), ce qui constitue intrinsèquement un contenu subjectif (expression de croyances et d'opinions). Le Modèle A a échoué sur ce point en qualifiant le texte de 'plutôt objectif' (2.0), ce qui est une mauvaise classification pour un texte d'opinion religieuse. Sur les autres dimensions (polarité et centralité), les deux modèles étaient excellents et alignés.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:10:38.169428"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3767",
+      "arbiter": {
+        "article_id": "3767",
+        "polarity": {
+          "score": "Neutre",
+          "justification": "L'article est une brève annonce logistique concernant les horaires d'arrivée des vols de pèlerins. Le ton est purement informatif, sans aucune charge émotionnelle, critique ou élogieuse.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la neutralité absolue du texte, qui se contente de relayer des informations pratiques."
+        },
+        "subjectivity": {
+          "score": "1 (Très objectif)",
+          "justification": "Le contenu se limite strictement à des faits vérifiables : dates, heures, lieux (Ouagadougou, Bobo-Dioulasso) et nombres de passagers (288, 366). Aucune opinion ou analyse n'est présente.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont parfaitement évalué le caractère purement factuel et objectif de l'article."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "Bien que l'article soit court, le sujet unique et exclusif est le retour des pèlerins musulmans (Hadj). L'intégralité du texte leur est consacrée ; sans eux, l'article n'existe pas.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a correctement identifié que le sujet est 'Très central' car il occupe tout l'article. Le Modèle A a commis une erreur d'appréciation en classant la centralité comme 'Marginale', confondant probablement la brièveté du texte ou l'aspect logistique avec une importance secondaire du sujet."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B est supérieur car son analyse de la centralité est exacte. Le Modèle A a échoué sur cette dimension en qualifiant la présence de l'islam/des musulmans de 'marginale', alors que le retour du Hadj est l'unique sujet de l'article. Sur la polarité et la subjectivité, les deux modèles étaient parfaits.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:10:58.104540"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 0,
+        "centrality_diff": 3,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3797",
+      "arbiter": {
+        "article_id": "3797",
+        "polarity": {
+          "score": "Positif",
+          "justification": "L'article est une chronique religieuse qui présente l'islam comme une source de sagesse, de perfectionnement moral et de purification de l'âme. Bien que le texte critique certains comportements humains (le jugement d'autrui), il le fait au nom des valeurs islamiques, qui sont présentées sous un jour favorable et constructif.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la tonalité positive. Le Modèle A note 'Positif' et le Modèle B 'Très positif'; les deux sont acceptables pour un texte de nature dévotionnelle qui valorise la religion."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Ce texte est une chronique d'opinion religieuse (un prêche). Il exprime des croyances, des jugements moraux ('L'âme humaine est encline au mal'), des interprétations spirituelles et des conseils de vie. Il ne s'agit pas d'un rapport journalistique factuel, mais d'une exhortation basée sur la foi et la perspective personnelle de l'Imam.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a parfaitement identifié la nature du texte ('billet d'humeur', 'exhortation religieuse') et lui a attribué le score correct de 5.0. Le Modèle A a commis une erreur significative en le classant comme 'Plutôt objectif' (2.0), confondant la présence de citations (faits textuels) avec l'objectivité du propos (qui est ici totalement normatif et moral)."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'islam, le Ramadan, les citations coraniques et les enseignements prophétiques constituent la totalité du sujet de l'article.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié que l'islam est le sujet central et unique de l'article."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B est le vainqueur incontestable grâce à son analyse de la subjectivité. Alors que les deux modèles ont bien évalué la polarité et la centralité, le Modèle A a échoué à reconnaître le genre textuel (une chronique religieuse/un sermon) en le qualifiant de 'plutôt objectif'. Le Modèle B a correctement compris qu'un texte prêchant la morale et la foi est intrinsèquement très subjectif.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:11:24.856714"
+      },
+      "discrepancies": {
+        "polarity_diff": 1,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 4,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3897",
+      "arbiter": {
+        "article_id": "3897",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est une éloge inconditionnelle du Ramadan et des valeurs islamiques. Il présente l'islam comme une source de perfectionnement moral ('école de culture de bons comportements'), de purification et de solidarité sociale. Le ton est enthousiaste et encourageant.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la polarité très positive. Ils relèvent tous deux les aspects de bienfaisance, de spiritualité et de perfectionnement moral mis en avant dans le texte."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Ce texte n'est pas un reportage journalistique factuel, mais un communiqué d'une association religieuse (AEEMB) qui s'apparente à un prêche ou une exhortation morale. Il est rempli de jugements de valeur ('chercher à atteindre la perfection'), d'impératifs moraux ('Il faut être affectueux...', 'Nous devons...') et de croyances religieuses présentées comme des vérités absolues. Il exprime le point de vue interne et spirituel de l'auteur.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a parfaitement saisi la nature du texte en lui attribuant un score de 5, justifiant cela par le ton 'religieux et exhortatif'. Le Modèle A a commis une erreur significative en donnant un score de 2 (plutôt objectif), confondant un texte prescriptif et spirituel avec un texte informatif. Le fait de donner des conseils moraux et religieux est intrinsèquement subjectif."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'intégralité du texte est consacrée au bilan du Ramadan, aux enseignements de l'islam, aux actions de l'association musulmane AEEMB et aux prescriptions religieuses (Zakat, prière).",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié que l'islam et les musulmans sont le sujet unique et central de l'article."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Bien que les deux modèles aient correctement évalué la polarité et la centralité, le Modèle B est le vainqueur incontestable grâce à son analyse de la subjectivité. Le Modèle A a échoué à reconnaître le genre textuel (un communiqué religieux/exhortation morale) et l'a traité comme un article quasi-objectif (score de 2), ce qui est une erreur d'interprétation majeure. Le Modèle B a compris que le texte était 'purement religieux et exhortatif' (score de 5), ce qui correspond à la réalité d'un texte écrit par une association confessionnelle pour guider le comportement des fidèles.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:11:48.539219"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3909",
+      "arbiter": {
+        "article_id": "3909",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "Le texte est exclusivement constitué de vœux, de prières et de souhaits de 'succès', 'solidarité', 'harmonie' et 'paix'. L'auteur utilise un vocabulaire religieux respectueux et affectueux ('Chers amis', 'frères et sœurs').",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la nature extrêmement positive et bienveillante du message."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Le texte n'est pas un rapport factuel ou journalistique, mais un message personnel de vœux. Il exprime les sentiments, les espoirs et la foi de l'auteur (actes de langage expressifs comme 'souhaitons', 'ayons une pensée'). Il relève entièrement de l'expression subjective.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle A commet une erreur fondamentale en classant ce texte comme '1.0 (Très objectif)'. Un message de vœux et de prières est par définition subjectif car il exprime l'attitude intérieure du locuteur et non des faits extérieurs vérifiables. Le Modèle B a correctement identifié que l'expression d'émotions et de prières rend le texte subjectif."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'intégralité du court texte est consacrée aux musulmans, au pèlerinage (Hajj) et à la fête de l'Aïd el-Kebir. Aucun autre sujet n'est abordé.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B est plus précis en choisissant 'Très central', car le sujet occupe 100% du texte. Le Modèle A choisit 'Central', ce qui est acceptable mais moins précis pour un texte aussi court et focalisé."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B est nettement supérieur car il a correctement interprété la dimension de la subjectivité. Le Modèle A a confondu un ton 'calme' avec l'objectivité factuelle ; or, un message de vœux religieux est intrinsèquement subjectif (expression de sentiments personnels) et ne peut être classé comme 'purement factuel' (score de 1). De plus, le Modèle B a mieux qualifié la centralité du sujet.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:12:14.260256"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 4,
+        "centrality_diff": 1,
+        "total_diff": 5,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3919",
+      "arbiter": {
+        "article_id": "3919",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "Le texte est un sermon religieux qui présente l'islam comme la source ultime de lumière, de sagesse, de justice sociale et de bonne gouvernance. Le ton est révérencieux, enthousiaste et glorifie les valeurs islamiques comme solution aux problèmes sociétaux et politiques.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B saisit mieux l'intensité du sentiment ('Très positif') inhérente à un texte de nature dévotionnelle et exhortative, là où le Modèle A reste sur un 'Positif' plus modéré."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Bien que les deux premiers paragraphes soient introductifs, la quasi-totalité du texte est la transcription d'un prêche (khutba) ou d'un message religieux. Il contient des louanges à Dieu, des interprétations théologiques, des jugements moraux sur la politique et des exhortations directes aux croyants. Ce n'est pas un rapport factuel, mais l'expression d'une foi et d'opinions religieuses.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a correctement identifié la nature du texte (un sermon/message religieux) et lui a attribué le score maximal de subjectivité. Le Modèle A a commis une erreur majeure en notant ce texte 2.0 (plutôt objectif), confondant probablement la structure du texte avec un article de presse factuel, alors qu'il s'agit d'un discours d'opinion religieuse."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'islam, les musulmans, la pratique religieuse (Ramadan, Hadj) et l'application des valeurs islamiques dans la vie civile sont les sujets exclusifs et omniprésents de l'article.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié que l'islam est le sujet central et incontournable du texte."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B est nettement supérieur car il a correctement analysé le genre textuel. L'article n'est pas un reportage journalistique neutre, mais la publication d'un message religieux/sermon. Par conséquent, le score de subjectivité de 5.0 attribué par le Modèle B est exact, tandis que le score de 2.0 du Modèle A (suggérant un texte factuel) est une erreur d'interprétation significative. De plus, le Modèle B a mieux capté l'intensité de la polarité ('Très positif') qui convient à un texte faisant l'éloge de la foi.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:12:42.004434"
+      },
+      "discrepancies": {
+        "polarity_diff": 1,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 4,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3950",
+      "arbiter": {
+        "article_id": "3950",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est un message de vœux d'un leader religieux. Il présente l'islam, le Ramadan et les valeurs coraniques (solidarité, justice, piété) comme des idéaux absolus et des solutions aux problèmes sociaux et politiques. Le ton est élogieux et exhortatif.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la polarité très positive. Leurs justifications sont pertinentes, notant la mise en avant des valeurs de miséricorde et de solidarité."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Ce texte n'est pas un article de presse factuel, mais une tribune/un message religieux (sermon). Il exprime des croyances, des vœux ('Puisse Allah...'), des jugements moraux (critique des commerçants) et des interprétations spirituelles. Il est entièrement basé sur la foi et l'opinion de l'auteur.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a parfaitement saisi la nature du texte en attribuant un score de 5, justifiant qu'il s'agit d'exhortations religieuses et de sentiments personnels. Le Modèle A a commis une erreur majeure en donnant un score de 2 ('globalement factuel'), confondant un discours religieux normatif avec un rapport d'information objectif."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "Le texte est entièrement consacré au Ramadan, aux enseignements de l'islam et aux devoirs des musulmans. L'islam est le prisme unique par lequel tous les sujets (y compris l'économie et la politique) sont abordés.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié que l'islam et les musulmans sont le sujet central et exclusif de cet article."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Bien que les deux modèles aient correctement évalué la polarité et la centralité, le Modèle B est le vainqueur incontestable grâce à son analyse de la subjectivité. Le Modèle A a échoué à reconnaître le genre textuel (un message religieux/sermon) et l'a traité comme un texte 'globalement factuel' (score de 2), ce qui est une erreur fondamentale d'analyse. Le Modèle B a correctement identifié que ce type de contenu est intrinsèquement très subjectif (score de 5), car il repose sur l'expression de la foi, des vœux et des jugements moraux.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:13:06.721848"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3953",
+      "arbiter": {
+        "article_id": "3953",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est une éloge inconditionnelle de la gouvernance islamique à travers la figure d'Omar Ibn Abdoul Aziz. Le texte utilise un vocabulaire laudatif ('rayonnante', 'meilleure société humaine', 'vrai démocrate') et présente l'islam comme la solution idéale aux problèmes contemporains de corruption et de pauvreté.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la tonalité extrêmement favorable et enthousiaste du texte envers l'islam et ses figures historiques."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Ce texte n'est pas un reportage journalistique mais une tribune ou un prêche publié par une association religieuse (A.E.E.M.B.). Il présente une vision idéalisée et hagiographique de l'histoire (affirmant par exemple l'éradication totale de la pauvreté sur trois continents en deux ans) pour soutenir un argumentaire moral et politique. Il s'agit d'une opinion forte et non d'un rapport factuel neutre.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a parfaitement saisi la nature du texte ('hagiographique et militant'), justifiant un score de 5. Le Modèle A a commis une erreur majeure d'analyse en attribuant un score de 2 (plutôt objectif) à un texte qui est manifestement un plaidoyer religieux et politique."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'islam et le calife Omar Ibn Abdoul Aziz ne sont pas de simples exemples accessoires ; ils constituent le cœur de l'argumentation. Le concept de justice sociale est défini et validé uniquement à travers le prisme de l'histoire islamique et du 'référentiel de Dieu'.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B reconnaît que l'idéal islamique est le sujet fondamental et structurant de l'article ('Très central'). Le Modèle A, bien que proche, minimise légèrement l'importance du sujet en le qualifiant simplement de 'Central' et en suggérant que le sujet principal est la justice sociale de manière générique, alors qu'elle est indissociable de l'islam dans ce texte."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B est nettement supérieur car il a correctement identifié le genre textuel de l'article. Là où le Modèle A a vu un article informatif 'globalement objectif' (une erreur critique pour un texte d'opinion religieuse), le Modèle B a reconnu le caractère hagiographique, militant et hautement subjectif du contenu. Cette distinction est fondamentale pour une analyse de sentiment précise. De plus, le Modèle B a mieux capté la centralité absolue du thème islamique qui sert de fondement unique à la thèse de l'auteur.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:13:35.437132"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 1,
+        "total_diff": 4,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3955",
+      "arbiter": {
+        "article_id": "3955",
+        "polarity": {
+          "score": "Positif",
+          "justification": "L'article dresse un portrait favorable des musulmans en suscitant de la sympathie pour les victimes Rohingya (présentées comme subissant une injustice intolérable) et en mettant en valeur la position morale, pacifique et humaniste du chef de la communauté Ahmadiyya. Bien que les événements décrits soient tragiques, le sentiment *envers* le groupe est de soutien et de solidarité.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a correctement identifié que la représentation des musulmans est positive (victimes dignes de soutien, appel à la paix), alors que le Modèle A a confondu la nature négative des événements (violence, persécution) avec le sentiment envers le groupe cible. Être défendu contre une persécution constitue une polarité positive (soutien) et non négative."
+        },
+        "subjectivity": {
+          "score": "4 (Plutôt subjectif)",
+          "justification": "L'article combine quelques faits (statistiques de l'ONU) avec un langage fortement émotionnel et normatif ('affront à l'humanité', 'cruel', 'injustices'). Il repose largement sur les citations d'un chef religieux exprimant des prières, des espoirs et des jugements moraux, ce qui éloigne le texte d'un simple rapport factuel.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement attribué le score de 4.0, identifiant la présence de faits mais la prédominance d'un ton engagé, émotionnel et d'appels à l'action basés sur des opinions religieuses."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'islam et les musulmans sont le sujet unique de l'article. Il s'agit spécifiquement du sort des musulmans Rohingya et de la réaction officielle d'une communauté musulmane (Ahmadiyya). Il n'y a pas de sujet concurrent ; les aspects humanitaires sont indissociables du sujet religieux/communautaire ici.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B est plus précis. Le Modèle A dilue la centralité en considérant les 'enjeux humanitaires' comme un sujet partageant la vedette, alors qu'ils ne sont ici que le contexte de la situation des musulmans. Le sujet ne traite que de cela."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B a fourni une analyse nettement supérieure sur la polarité et la centralité. Concernant la polarité, il a su distinguer le contenu tragique (les meurtres) de la posture de l'article envers le groupe (sympathie et défense), là où le Modèle A a fait une erreur classique d'analyse de sentiment en classant le texte comme 'Très négatif' à cause de la violence décrite. De plus, le Modèle B a mieux saisi que le sujet était exclusivement centré sur les musulmans, sans dilution thématique.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:14:05.655817"
+      },
+      "discrepancies": {
+        "polarity_diff": 3,
+        "subjectivity_diff": 0,
+        "centrality_diff": 1,
+        "total_diff": 4,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3972",
+      "arbiter": {
+        "article_id": "3972",
+        "polarity": {
+          "score": "Très positif",
+          "justification": "L'article est une transcription d'un sermon religieux qui présente l'islam comme une source de lumière, de guidance, de moralité et de solution aux problèmes sociétaux. Il exalte les vertus de la foi, du pèlerinage et de la figure d'Abraham sans aucune critique envers la religion elle-même.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement identifié la tonalité extrêmement favorable et élogieuse du texte envers l'islam et les musulmans."
+        },
+        "subjectivity": {
+          "score": "5 (Très subjectif)",
+          "justification": "Le texte est un sermon (prêche). Par définition, il exprime des croyances religieuses personnelles, des jugements moraux, des exhortations spirituelles et des opinions politiques (sur la gouvernance et la sécurité). Il ne s'agit pas d'un reportage journalistique neutre, mais d'un discours visant à persuader et éduquer selon une vision du monde spécifique.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a parfaitement saisi la nature du texte (un sermon religieux exhortatif) en attribuant le score maximal de subjectivité. Le Modèle A a commis une erreur significative en le notant 2 (plutôt objectif), confondant probablement la description de rituels avec une objectivité journalistique, alors que le ton est intrinsèquement prescriptif et émotionnel."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'ensemble du texte est consacré à l'islam : la fête de la Tabaski, le Hajj, les enseignements coraniques, l'histoire d'Ibrahim et le comportement attendu du citoyen musulman.",
+          "preferred_model": "both",
+          "verdict_explanation": "Les deux modèles ont correctement déterminé que l'islam et les musulmans sont le sujet unique et principal de cet article."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Bien que les deux modèles aient correctement évalué la polarité et la centralité, le Modèle B se distingue nettement sur l'évaluation de la subjectivité. Le Modèle A a échoué à reconnaître le genre textuel (un sermon religieux) et l'a traité comme un texte quasi-objectif (score de 2), ce qui est incorrect pour un discours rempli d'opinions, de croyances et d'appels moraux. Le Modèle B a correctement identifié la haute subjectivité inhérente à ce type de contenu.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:14:29.787931"
+      },
+      "discrepancies": {
+        "polarity_diff": 0,
+        "subjectivity_diff": 3,
+        "centrality_diff": 0,
+        "total_diff": 3,
+        "has_significant_conflict": true
+      }
+    },
+    {
+      "article_id": "3978",
+      "arbiter": {
+        "article_id": "3978",
+        "polarity": {
+          "score": "Positif",
+          "justification": "Le texte est un message de vœux officiel. Bien que formel, il exprime explicitement de la bienveillance, des souhaits de 'bonne fête' et des prières pour la 'grâce' et la 'miséricorde'. Ces éléments constituent un sentiment positif envers la communauté destinataire.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B identifie correctement que la nature même d'un message de vœux est positive (chaleureux, respectueux). Le Modèle A confond le ton formel/institutionnel avec une neutralité de sentiment, alors que le contenu est bienveillant."
+        },
+        "subjectivity": {
+          "score": "2 (Plutôt objectif)",
+          "justification": "Le texte est une communication politique standardisée (factuelle dans son existence), mais son contenu repose sur l'expression de souhaits et de prières (subjectif). Le score de 2 reflète cet équilibre entre le format institutionnel rigide et l'expression de sentiments bienveillants.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B offre une nuance importante en notant que le texte exprime des souhaits personnels/institutionnels (subjectivité légère) tout en restant formel. Le Modèle A est trop strict en le classant comme purement factuel (1.0)."
+        },
+        "centrality": {
+          "score": "Très central",
+          "justification": "L'intégralité du texte est consacrée aux vœux adressés aux musulmans pour la fête de la Tabaski. Il n'y a aucun autre sujet abordé.",
+          "preferred_model": "model_b",
+          "verdict_explanation": "Le Modèle B a correctement identifié que l'islam et les musulmans sont le sujet unique du texte. Le Modèle A a commis une erreur significative en classant la centralité comme 'Marginale', probablement trompé par la brièveté du texte, alors que le sujet occupe 100% du contenu."
+        },
+        "overall_winner": "model_b",
+        "overall_explanation": "Le Modèle B a fourni une analyse nettement supérieure sur tous les points. Il a compris la fonction pragmatique du texte (un message de vœux est positif et non neutre) et a correctement évalué la centralité. Le Modèle A a échoué particulièrement sur la centralité, considérant le sujet comme marginal alors qu'il est exclusif, et a confondu formalisme et neutralité pour la polarité.",
+        "confidence_level": "high",
+        "timestamp": "2026-01-08T09:14:55.966421"
+      },
+      "discrepancies": {
+        "polarity_diff": 1,
+        "subjectivity_diff": 1,
+        "centrality_diff": 3,
+        "total_diff": 5,
+        "has_significant_conflict": true
+      }
+    }
+  ]
+}
