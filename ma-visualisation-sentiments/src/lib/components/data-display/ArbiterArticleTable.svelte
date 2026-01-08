@@ -17,6 +17,7 @@
 	import { t, currentLanguage } from '$lib/i18n';
 	import { getJournalName } from '$lib/utils';
 	import { SentimentBadge } from '$lib/components/common';
+	import { ArbiterCSVExportButton } from '$lib/components/ui';
 	import { get } from 'svelte/store';
 	import ArrowUpDownIcon from '@lucide/svelte/icons/arrow-up-down';
 	import LayoutGridIcon from '@lucide/svelte/icons/layout-grid';
@@ -325,6 +326,9 @@
 						<LayoutGridIcon size={16} />
 						<span>{$t.common?.cardView || 'Cards'}</span>
 					</button>
+
+					<!-- CSV Export Button -->
+					<ArbiterCSVExportButton />
 				</div>
 
 				<!-- Results info and items per page -->
