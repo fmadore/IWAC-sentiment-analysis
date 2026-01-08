@@ -442,6 +442,12 @@ export interface Translations {
     headToHead: string;
     excludingTies: string;
     wins: string;
+    // Evaluated articles table
+    evaluatedArticles: string;
+    evaluatedArticlesSubtitle: string;
+    viewArticleDetails: string;
+    articleWithArbiter: string;
+    noEvaluatedArticles: string;
   };
 
   // Extreme Analysis

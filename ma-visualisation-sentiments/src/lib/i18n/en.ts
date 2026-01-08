@@ -437,7 +437,13 @@ export const en: Translations = {
     // Head-to-head comparison
     headToHead: 'Head-to-Head Comparison',
     excludingTies: '(excluding ties and neither)',
-    wins: 'wins'
+    wins: 'wins',
+    // Evaluated articles table
+    evaluatedArticles: 'Evaluated Articles',
+    evaluatedArticlesSubtitle: 'Articles analyzed by the arbiter for disagreement resolution',
+    viewArticleDetails: 'View article details',
+    articleWithArbiter: 'Article with Arbiter Verdict',
+    noEvaluatedArticles: 'No evaluated articles available'
   },
 
   // Extreme Analysis

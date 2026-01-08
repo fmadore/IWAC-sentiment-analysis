@@ -8,6 +8,7 @@
 export { default as ArticleDetailModal } from './ArticleDetailModal.svelte';
 export { default as ComparisonDetailModal } from './ComparisonDetailModal.svelte';
 export { default as FullScreenModal } from './FullScreenModal.svelte';
+export { default as ArbiterArticleDetailModal } from './ArbiterArticleDetailModal.svelte';
 
 // Layout & Containers
 export { default as AccordionItem } from './AccordionItem.svelte';

@@ -14,3 +14,4 @@ export { default as AnalysisInfo } from './AnalysisInfo.svelte';
 export { default as ArbiterView } from './ArbiterView.svelte';
 export { default as ArbiterStatsCards } from './ArbiterStatsCards.svelte';
 export { default as ArbiterMethodology } from './ArbiterMethodology.svelte';
+export { default as ArbiterArticleTable } from './ArbiterArticleTable.svelte';

@@ -28,13 +28,37 @@
 	import { ChartCard } from '$lib/components/ui';
 	import ModelPairPicker from '$lib/components/ui/ModelPairPicker.svelte';
 	import ArbiterStatsCards from './ArbiterStatsCards.svelte';
-	import { ArbiterVerdictChart, ArbiterDimensionChart, ArbiterConfidenceChart } from '$lib/components/viz';
+	import ArbiterArticleTable from './ArbiterArticleTable.svelte';
+	import {
+		ArbiterVerdictChart,
+		ArbiterDimensionChart,
+		ArbiterConfidenceChart
+	} from '$lib/components/viz';
+	import { ArbiterArticleDetailModal } from '$lib/components/common';
+	import type { ArbiterAnalysis } from '$lib/types/data';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
+	import TableIcon from '@lucide/svelte/icons/table';
 	import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
 	import SparklesIcon from '@lucide/svelte/icons/sparkles';
 
 	// Selected dimension filter (null = all dimensions)
 	let selectedDimension = $state<'polarity' | 'subjectivity' | 'centrality' | null>(null);
+
+	// Modal state for article detail
+	let selectedArticleId = $state<string | null>(null);
+	let selectedArbiterData = $state<ArbiterAnalysis | null>(null);
+
+	// Handler for article selection from table
+	function handleSelectArticle(articleId: string, arbiterData: ArbiterAnalysis) {
+		selectedArticleId = articleId;
+		selectedArbiterData = arbiterData;
+	}
+
+	// Handler for closing modal
+	function handleCloseModal() {
+		selectedArticleId = null;
+		selectedArbiterData = null;
+	}
 
 	// Cleanup function for arbiter reactivity
 	let cleanupArbiter: (() => void) | null = $state(null);
@@ -126,7 +150,11 @@
 	{:else if hasData}
 		<!-- Stats Cards -->
 		<div class="stats-section mb-6">
-			<ArbiterStatsCards {stats} modelAName={modelNames.modelAName} modelBName={modelNames.modelBName} />
+			<ArbiterStatsCards
+				{stats}
+				modelAName={modelNames.modelAName}
+				modelBName={modelNames.modelBName}
+			/>
 		</div>
 
 		<!-- Dimension Filter -->
@@ -174,6 +202,27 @@
 				/>
 			</ChartCard>
 		</div>
+
+		<!-- Evaluated Articles Section -->
+		<div class="evaluated-articles-section mt-8">
+			<div class="section-header mb-4">
+				<div class="flex items-center gap-3">
+					<div class="section-icon">
+						<TableIcon size={24} class="text-amber-400" />
+					</div>
+					<div>
+						<h2 class="h3 text-white section-title">
+							{$t.arbiter?.evaluatedArticles || 'Evaluated Articles'}
+						</h2>
+						<p class="text-sm text-white/60">
+							{$t.arbiter?.evaluatedArticlesSubtitle ||
+								'Articles analyzed by the arbiter for disagreement resolution'}
+						</p>
+					</div>
+				</div>
+			</div>
+			<ArbiterArticleTable onSelectArticle={handleSelectArticle} />
+		</div>
 	{:else}
 		<!-- No Data State -->
 		<ChartCard>
@@ -188,7 +237,40 @@
 	{/if}
 </div>
 
+<!-- Article Detail Modal -->
+<ArbiterArticleDetailModal
+	articleId={selectedArticleId}
+	arbiterData={selectedArbiterData}
+	onClose={handleCloseModal}
+/>
+
 <style>
+	.evaluated-articles-section {
+		border-top: 1px solid color-mix(in oklab, var(--sentiment-arbiter) 15%, transparent);
+		padding-top: 2rem;
+	}
+
+	.section-header {
+		padding-bottom: 1rem;
+	}
+
+	.section-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 48px;
+		height: 48px;
+		border-radius: 12px;
+		background: var(--sentiment-arbiter-icon-bg);
+		border: 1px solid var(--sentiment-arbiter-border);
+	}
+
+	.section-title {
+		background: linear-gradient(135deg, var(--sentiment-arbiter-light), var(--sentiment-arbiter));
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+	}
 	.arbiter-view {
 		width: 100%;
 	}
