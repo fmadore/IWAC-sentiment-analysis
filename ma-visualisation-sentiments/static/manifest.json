@@ -1,4 +1,5 @@
 {
+  "id": "iwac-sentiment-analysis",
   "name": "IWAC Sentiment Analysis",
   "short_name": "IWAC Analysis",
   "description": "Interactive visualization of sentiment analysis results from the Islam West Africa Collection (IWAC)",
@@ -9,7 +10,12 @@
   "orientation": "portrait-primary",
   "scope": "./",
   "lang": "fr",
-  "categories": ["education", "productivity", "utilities"],
+  "dir": "ltr",
+  "categories": [
+    "education",
+    "productivity",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "./favicon.png",
@@ -35,26 +41,36 @@
       "short_name": "ChatGPT",
       "description": "View ChatGPT sentiment analysis results",
       "url": "./?dataset=chatgpt",
-      "icons": [{ "src": "./icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "./icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Gemini Analysis",
       "short_name": "Gemini",
       "description": "View Gemini sentiment analysis results",
       "url": "./?dataset=gemini",
-      "icons": [{ "src": "./icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "./icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ],
   "screenshots": [
     {
-      "src": "/screenshots/desktop.png",
+      "src": "./screenshots/desktop.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
       "label": "IWAC Sentiment Analysis Dashboard"
     },
     {
-      "src": "/screenshots/mobile.png",
+      "src": "./screenshots/mobile.png",
       "sizes": "390x844",
       "type": "image/png",
       "form_factor": "narrow",
