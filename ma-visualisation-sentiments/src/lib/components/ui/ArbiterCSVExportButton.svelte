@@ -115,15 +115,25 @@
 			modelNames.modelBName + ' - ' + ($t.table?.polarity || 'Polarity'),
 			modelNames.modelBName + ' - ' + ($t.table?.subjectivity || 'Subjectivity'),
 			modelNames.modelBName + ' - ' + ($t.table?.centrality || 'Centrality'),
-			// Arbiter verdict columns
+			// Arbiter overall verdict columns
 			$t.arbiter?.overallVerdict || 'Overall Verdict',
 			$t.arbiter?.confidenceLevel || 'Confidence Level',
-			($t.arbiter?.polarity || 'Polarity') + ' ' + ($t.arbiter?.verdict || 'Verdict'),
-			($t.arbiter?.polarity || 'Polarity') + ' ' + ($t.arbiter?.justification || 'Justification'),
-			($t.arbiter?.subjectivity || 'Subjectivity') + ' ' + ($t.arbiter?.verdict || 'Verdict'),
-			($t.arbiter?.subjectivity || 'Subjectivity') + ' ' + ($t.arbiter?.justification || 'Justification'),
-			($t.arbiter?.centrality || 'Centrality') + ' ' + ($t.arbiter?.verdict || 'Verdict'),
-			($t.arbiter?.centrality || 'Centrality') + ' ' + ($t.arbiter?.justification || 'Justification'),
+			// Arbiter Polarity columns
+			($t.arbiter?.polarity || 'Polarity') + ' - ' + ($t.arbiter?.arbiterScore || 'Arbiter Score'),
+			($t.arbiter?.polarity || 'Polarity') + ' - ' + ($t.arbiter?.arbiterJustification || 'Arbiter Justification'),
+			($t.arbiter?.polarity || 'Polarity') + ' - ' + ($t.arbiter?.verdict || 'Verdict'),
+			($t.arbiter?.polarity || 'Polarity') + ' - ' + ($t.arbiter?.verdictExplanation || 'Verdict Explanation'),
+			// Arbiter Subjectivity columns
+			($t.arbiter?.subjectivity || 'Subjectivity') + ' - ' + ($t.arbiter?.arbiterScore || 'Arbiter Score'),
+			($t.arbiter?.subjectivity || 'Subjectivity') + ' - ' + ($t.arbiter?.arbiterJustification || 'Arbiter Justification'),
+			($t.arbiter?.subjectivity || 'Subjectivity') + ' - ' + ($t.arbiter?.verdict || 'Verdict'),
+			($t.arbiter?.subjectivity || 'Subjectivity') + ' - ' + ($t.arbiter?.verdictExplanation || 'Verdict Explanation'),
+			// Arbiter Centrality columns
+			($t.arbiter?.centrality || 'Centrality') + ' - ' + ($t.arbiter?.arbiterScore || 'Arbiter Score'),
+			($t.arbiter?.centrality || 'Centrality') + ' - ' + ($t.arbiter?.arbiterJustification || 'Arbiter Justification'),
+			($t.arbiter?.centrality || 'Centrality') + ' - ' + ($t.arbiter?.verdict || 'Verdict'),
+			($t.arbiter?.centrality || 'Centrality') + ' - ' + ($t.arbiter?.verdictExplanation || 'Verdict Explanation'),
+			// Overall justification
 			$t.arbiter?.arbiterJustification || 'Overall Justification',
 			$t.export?.articleId || 'Article ID'
 		];
@@ -171,15 +181,25 @@
 						)
 					),
 
-					// Arbiter verdicts
+					// Arbiter overall verdicts
 					escapeCSVField(translateVerdict(evaluation.arbiter.overall_winner)),
 					escapeCSVField(translateConfidence(evaluation.arbiter.confidence_level)),
+					// Arbiter Polarity
+					escapeCSVField(evaluation.arbiter.polarity.score),
+					escapeCSVField(evaluation.arbiter.polarity.justification),
 					escapeCSVField(translateVerdict(evaluation.arbiter.polarity.preferred_model)),
 					escapeCSVField(evaluation.arbiter.polarity.verdict_explanation),
+					// Arbiter Subjectivity
+					escapeCSVField(evaluation.arbiter.subjectivity.score),
+					escapeCSVField(evaluation.arbiter.subjectivity.justification),
 					escapeCSVField(translateVerdict(evaluation.arbiter.subjectivity.preferred_model)),
 					escapeCSVField(evaluation.arbiter.subjectivity.verdict_explanation),
+					// Arbiter Centrality
+					escapeCSVField(evaluation.arbiter.centrality.score),
+					escapeCSVField(evaluation.arbiter.centrality.justification),
 					escapeCSVField(translateVerdict(evaluation.arbiter.centrality.preferred_model)),
 					escapeCSVField(evaluation.arbiter.centrality.verdict_explanation),
+					// Overall justification
 					escapeCSVField(evaluation.arbiter.overall_explanation),
 					escapeCSVField(evaluation.article_id)
 				];
