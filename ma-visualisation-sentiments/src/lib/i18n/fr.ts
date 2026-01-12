@@ -443,7 +443,8 @@ export const fr: Translations = {
     evaluatedArticlesSubtitle: 'Articles analysés par l\'arbitre pour résoudre les désaccords',
     viewArticleDetails: 'Voir les détails de l\'article',
     articleWithArbiter: 'Article avec verdict de l\'arbitre',
-    noEvaluatedArticles: 'Aucun article évalué disponible'
+    noEvaluatedArticles: 'Aucun article évalué disponible',
+    justification: 'Justification'
   },
 
   // Extreme Analysis

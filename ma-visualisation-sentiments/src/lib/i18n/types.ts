@@ -448,6 +448,7 @@ export interface Translations {
     viewArticleDetails: string;
     articleWithArbiter: string;
     noEvaluatedArticles: string;
+    justification: string;
   };
 
   // Extreme Analysis

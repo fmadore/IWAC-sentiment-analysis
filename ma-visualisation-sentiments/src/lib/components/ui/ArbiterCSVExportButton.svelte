@@ -119,9 +119,12 @@
 			$t.arbiter?.overallVerdict || 'Overall Verdict',
 			$t.arbiter?.confidenceLevel || 'Confidence Level',
 			($t.arbiter?.polarity || 'Polarity') + ' ' + ($t.arbiter?.verdict || 'Verdict'),
+			($t.arbiter?.polarity || 'Polarity') + ' ' + ($t.arbiter?.justification || 'Justification'),
 			($t.arbiter?.subjectivity || 'Subjectivity') + ' ' + ($t.arbiter?.verdict || 'Verdict'),
+			($t.arbiter?.subjectivity || 'Subjectivity') + ' ' + ($t.arbiter?.justification || 'Justification'),
 			($t.arbiter?.centrality || 'Centrality') + ' ' + ($t.arbiter?.verdict || 'Verdict'),
-			$t.arbiter?.arbiterJustification || 'Arbiter Justification',
+			($t.arbiter?.centrality || 'Centrality') + ' ' + ($t.arbiter?.justification || 'Justification'),
+			$t.arbiter?.arbiterJustification || 'Overall Justification',
 			$t.export?.articleId || 'Article ID'
 		];
 
@@ -172,8 +175,11 @@
 					escapeCSVField(translateVerdict(evaluation.arbiter.overall_winner)),
 					escapeCSVField(translateConfidence(evaluation.arbiter.confidence_level)),
 					escapeCSVField(translateVerdict(evaluation.arbiter.polarity.preferred_model)),
+					escapeCSVField(evaluation.arbiter.polarity.verdict_explanation),
 					escapeCSVField(translateVerdict(evaluation.arbiter.subjectivity.preferred_model)),
+					escapeCSVField(evaluation.arbiter.subjectivity.verdict_explanation),
 					escapeCSVField(translateVerdict(evaluation.arbiter.centrality.preferred_model)),
+					escapeCSVField(evaluation.arbiter.centrality.verdict_explanation),
 					escapeCSVField(evaluation.arbiter.overall_explanation),
 					escapeCSVField(evaluation.article_id)
 				];
