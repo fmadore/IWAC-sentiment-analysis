@@ -14,7 +14,8 @@
 		arbiterEvaluations,
 		comparisonData,
 		availableDatasets,
-		comparisonPair
+		comparisonPair,
+		getActualModelName
 	} from '$lib/stores';
 	import { getJournalName } from '$lib/utils';
 	import { t, currentLanguage } from '$lib/i18n';
@@ -63,12 +64,14 @@
 	}
 
 	// Translate verdict to user-friendly text
+	// Uses getActualModelName to correctly map arbiter's model_a/model_b to actual model names
+	// based on the blind assignment (arbiter_model_a/arbiter_model_b from metadata)
 	function translateVerdict(verdict: 'model_a' | 'model_b' | 'both' | 'neither'): string {
 		switch (verdict) {
 			case 'model_a':
-				return modelNames.modelAName;
 			case 'model_b':
-				return modelNames.modelBName;
+				// Use getActualModelName which correctly maps arbiter's blind assignment
+				return getActualModelName(verdict);
 			case 'both':
 				return $t.arbiter?.bothEqual || 'Both equal';
 			case 'neither':
