@@ -137,6 +137,7 @@
 	// Decode Model A/B references in text to actual model names
 	// Uses arbiter_model_a/arbiter_model_b from metadata to get the correct mapping
 	// Handles both English (Model A/B) and French (modèle A/B) variations
+	// Also handles French articles (le/Le) before model references
 	function decodeVerdictText(text: string): string {
 		if (!text) return text;
 
@@ -150,13 +151,27 @@
 		const arbiterModelBName = modelAIsFirst ? modelBName : modelAName;
 
 		// Replace Model A/B references (case insensitive) - handles both English and French
+		// Order matters: replace "le/Le modèle X" first to avoid leaving orphan articles
 		return text
-			.replace(/Model A/gi, arbiterModelAName)
-			.replace(/Model B/gi, arbiterModelBName)
-			.replace(/model_a/gi, arbiterModelAName)
-			.replace(/model_b/gi, arbiterModelBName)
-			.replace(/modèle A/gi, arbiterModelAName)
-			.replace(/modèle B/gi, arbiterModelBName);
+			// French with article: "le modèle A" -> "Gemini" (remove the article entirely)
+			.replace(/\b[Ll]e [Mm]odèle A\b/g, arbiterModelAName)
+			.replace(/\b[Ll]e [Mm]odèle B\b/g, arbiterModelBName)
+			// French with article: "du modèle A" -> "de Gemini"
+			.replace(/\b[Dd]u [Mm]odèle A\b/g, `de ${arbiterModelAName}`)
+			.replace(/\b[Dd]u [Mm]odèle B\b/g, `de ${arbiterModelBName}`)
+			// French with article: "au modèle A" -> "à Gemini"
+			.replace(/\b[Aa]u [Mm]odèle A\b/g, `à ${arbiterModelAName}`)
+			.replace(/\b[Aa]u [Mm]odèle B\b/g, `à ${arbiterModelBName}`)
+			// English with article: "the Model A" -> "Gemini"
+			.replace(/\b[Tt]he [Mm]odel A\b/g, arbiterModelAName)
+			.replace(/\b[Tt]he [Mm]odel B\b/g, arbiterModelBName)
+			// Plain references (no article)
+			.replace(/\b[Mm]odel A\b/g, arbiterModelAName)
+			.replace(/\b[Mm]odel B\b/g, arbiterModelBName)
+			.replace(/\bmodel_a\b/gi, arbiterModelAName)
+			.replace(/\bmodel_b\b/gi, arbiterModelBName)
+			.replace(/\b[Mm]odèle A\b/g, arbiterModelAName)
+			.replace(/\b[Mm]odèle B\b/g, arbiterModelBName);
 	}
 </script>
 

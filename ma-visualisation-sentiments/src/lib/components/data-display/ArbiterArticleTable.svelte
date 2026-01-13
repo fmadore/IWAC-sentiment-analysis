@@ -18,7 +18,6 @@
 	import { getJournalName } from '$lib/utils';
 	import { SentimentBadge } from '$lib/components/common';
 	import { ArbiterCSVExportButton } from '$lib/components/ui';
-	import { get } from 'svelte/store';
 	import ArrowUpDownIcon from '@lucide/svelte/icons/arrow-up-down';
 	import LayoutGridIcon from '@lucide/svelte/icons/layout-grid';
 	import TableIcon from '@lucide/svelte/icons/table';
@@ -74,7 +73,8 @@
 
 	const articlesWithArbiter = $derived.by(() => {
 		const evaluations = arbiterEvaluations.current?.evaluations;
-		const comparisons = get(comparisonData);
+		// Use $comparisonData to reactively subscribe to the store
+		const comparisons = $comparisonData;
 
 		if (!evaluations || evaluations.length === 0) {
 			return [];
