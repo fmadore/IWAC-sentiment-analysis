@@ -6,19 +6,20 @@
 
 import type { ModelPair } from '$lib/types/data';
 import type { Language } from '$lib/i18n';
+import type { ValidView, ValidDataset } from './constants';
 
 /**
  * Represents the parsed state from URL parameters
  */
 export interface URLState {
-  view?: string;
+  view?: ValidView;
   countries?: string[];
   journals?: string[];
   polarities?: string[];
   subjectivities?: string[];
   centralities?: string[];
   lang?: Language;
-  dataset?: string;
+  dataset?: ValidDataset;
   compare?: boolean;
   pair?: ModelPair;
   diffMin?: number;

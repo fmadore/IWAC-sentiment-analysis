@@ -29,11 +29,6 @@ let _selectedComparison = $state<ComparisonData | null>(null);
  */
 export const selectedComparison = writable<ComparisonData | null>(null);
 
-/**
- * @deprecated No longer used
- */
-export const comparisonDatasets = writable<ComparisonData[] | null>(null);
-
 // Sync legacy store to runes state
 selectedComparison.subscribe(value => { _selectedComparison = value; });
 

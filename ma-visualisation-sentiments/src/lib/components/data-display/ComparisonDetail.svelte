@@ -18,7 +18,9 @@
 	import type { ComparisonData } from '$lib/types/data';
 	import { ComparisonPanel, ArbiterSection } from '$lib/components/common';
 	import { getJournalName } from '$lib/utils';
-	import { t, currentLanguage } from '$lib/i18n';
+	import { formatDate, getArticleUrl, getModelDisplayName } from '$lib/utils/format';
+	import { getDiffClass, getDiffBadgeClass } from '$lib/utils/discrepancy';
+	import { t } from '$lib/i18n';
 	import { availableDatasets, getArbiterForArticle } from '$lib/stores';
 
 	// Props: Accept comparison data as a prop
@@ -29,56 +31,8 @@
 		comparison ? getArbiterForArticle(comparison.article['o:id']) !== null : false
 	);
 
-	// Get model display names from availableDatasets using reactive store
-	function getModelName(modelId: string, datasets: { id: string; name: string }[]): string {
-		return datasets.find((d) => d.id === modelId)?.name || modelId;
-	}
-
-	const modelAName = $derived(comparison ? getModelName(comparison.modelAId, $availableDatasets) : 'Model A');
-	const modelBName = $derived(comparison ? getModelName(comparison.modelBId, $availableDatasets) : 'Model B');
-
-	// Fonction pour formater les dates
-	function formatDate(dateStr: string | null | undefined): string {
-		if (!dateStr) return $t.messages.noData;
-
-		try {
-			const date = new Date(dateStr);
-			if (isNaN(date.getTime())) {
-				return dateStr;
-			}
-
-			const locale = $currentLanguage === 'en' ? 'en-US' : 'fr-FR';
-			return date.toLocaleDateString(locale, {
-				day: 'numeric',
-				month: 'long',
-				year: 'numeric'
-			});
-		} catch (error) {
-			console.error('Erreur lors du formatage de la date:', error);
-			return dateStr || '';
-		}
-	}
-
-	// Fonction pour construire l'URL de l'article complet
-	function getArticleUrl(id: string | number | null | undefined): string {
-		if (!id) return '#';
-		return `https://islam.zmo.de/s/afrique_ouest/item/${id}`;
-	}
-
-	// Fonction pour obtenir la classe de différence
-	function getDiffClass(diff: number): string {
-		if (diff === 0) return 'text-white/40';
-		if (diff === 1) return 'text-yellow-400';
-		if (diff === 2) return 'text-orange-400';
-		return 'text-red-400';
-	}
-
-	function getDiffBadgeClass(diff: number): string {
-		if (diff === 0) return 'variant-ghost';
-		if (diff === 1) return 'variant-soft-warning';
-		if (diff === 2) return 'variant-soft-error';
-		return 'variant-filled-error';
-	}
+	const modelAName = $derived(comparison ? getModelDisplayName(comparison.modelAId, $availableDatasets) : 'Model A');
+	const modelBName = $derived(comparison ? getModelDisplayName(comparison.modelBId, $availableDatasets) : 'Model B');
 </script>
 
 {#if comparison}

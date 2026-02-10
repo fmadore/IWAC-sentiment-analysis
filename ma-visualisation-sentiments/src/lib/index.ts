@@ -1,9 +1,9 @@
 /**
  * Library Entry Point
- * 
+ *
  * Central export for all library modules.
  * Components are now organized in subfolders - import from there for better tree-shaking.
- * 
+ *
  * Usage:
  * import { selectedDataset, countryFilters } from '$lib';
  * import { SentimentChart, VolumeChart } from '$lib/components/viz';
@@ -25,7 +25,3 @@ export * from './types/extremeAnalysis';
 
 // i18n
 export * from './i18n';
-
-// Re-export types for convenience
-export type { Article } from './types/data';
-export type { ExtremeCategory, KeywordType, ExtremeArticle } from './types/extremeAnalysis';

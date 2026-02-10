@@ -1,11 +1,20 @@
 // Définitions TypeScript pour vos données 
 
+/** Known centrality values from the AI models */
+export type CentralityValue = 'Très central' | 'Central' | 'Secondaire' | 'Marginal' | 'Non abordé';
+
+/** Known polarity values from the AI models */
+export type PolarityValue = 'Très positif' | 'Positif' | 'Neutre' | 'Négatif' | 'Très négatif' | 'Non applicable';
+
+/** Subjectivity score from 1 (very objective) to 5 (very subjective) */
+export type SubjectivityScore = 1 | 2 | 3 | 4 | 5;
+
 export interface SentimentAnalysis {
-  centralite_islam_musulmans: 'Très central' | 'Central' | 'Secondaire' | 'Marginal' | 'Non abordé' | string | null; // string pour flexibilité si l'API renvoie autre chose
+  centralite_islam_musulmans: CentralityValue | string | null;
   centralite_justification: string | null;
-  subjectivite_score: 1 | 2 | 3 | 4 | 5 | number | null; // Score from 1 (very objective) to 5 (very subjective)
+  subjectivite_score: SubjectivityScore | number | null;
   subjectivite_justification: string | null;
-  polarite: 'Très positif' | 'Positif' | 'Neutre' | 'Négatif' | 'Très négatif' | 'Non applicable' | string | null;
+  polarite: PolarityValue | string | null;
   polarite_justification: string | null;
 }
 
@@ -88,6 +97,7 @@ export interface ComparisonStatistics {
   polarityConflicts: number;
   subjectivityConflicts: number;
   centralityConflicts: number;
+  highConflictArticles: number;
 }
 
 // Arbiter (Gemini 3 Pro) evaluation types

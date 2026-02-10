@@ -76,7 +76,7 @@ export const loadCurrentExtremeAnalysis = async (fetchFunction: typeof fetch): P
 
     try {
         const data = await loadExtremeAnalysisData(
-            currentDatasetId as 'chatgpt' | 'gemini',
+            currentDatasetId as 'chatgpt' | 'gemini' | 'mistral',
             fetchFunction
         );
         extremeAnalysisData.update((current) => ({

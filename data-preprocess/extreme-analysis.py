@@ -14,23 +14,14 @@ Auteur: Assistant IA
 Date: 2024
 """
 
-from datasets import load_dataset
 import os
 import json
 import pandas as pd
 from collections import Counter, defaultdict
 from tqdm import tqdm
 import re
-from huggingface_hub import hf_hub_download
 
-# Helper function to safely convert to int, handling NaN values
-def safe_int_convert(value):
-    if pd.isna(value) or value is None:
-        return None
-    try:
-        return int(float(value))
-    except (ValueError, TypeError):
-        return None
+from shared import safe_int_convert, load_iwac_dataset, get_webapp_data_dir, save_json
 
 def clean_and_split_keywords(text):
     """
@@ -479,39 +470,8 @@ def main():
     print(f"{'='*60}")
     
     # Charger le dataset depuis Hugging Face
-    print("Loading dataset from Hugging Face...")
-    
-    # Try to download the parquet files directly to avoid schema issues
-    try:
-        print("Attempting to download dataset files directly...")
-        
-        # Download the parquet file for articles directly
-        parquet_path = hf_hub_download(
-            repo_id="fmadore/islam-west-africa-collection", 
-            filename="articles/train-00000-of-00001.parquet",
-            repo_type="dataset"
-        )
-        
-        print(f"Downloaded parquet file to: {parquet_path}")
-        
-        # Load with pandas
-        df = pd.read_parquet(parquet_path)
-        print(f"Successfully loaded {len(df)} rows with {len(df.columns)} columns")
-        
-        # Convert to expected format
-        dataset_dict = df.to_dict('records')
-        dataset = {"train": dataset_dict}
-        
-    except Exception as e:
-        print(f"Direct download failed: {e}")
-        print("Trying alternative approach...")
-        
-        # Fallback: try to load dataset with ignore_verifications
-        try:
-            dataset = load_dataset("fmadore/islam-west-africa-collection", "articles", verification_mode="no_checks")
-        except Exception as e2:
-            print(f"Alternative approach also failed: {e2}")
-            raise e2
+    df = load_iwac_dataset()
+    dataset = {"train": df.to_dict('records')}
     
     print(f"Dataset loaded: {len(dataset['train'])} articles")
     print("This dataset contains articles with sentiment analysis from ChatGPT, Gemini, and Mistral")
@@ -534,27 +494,13 @@ def main():
     print(f"{'='*40}")
     mistral_results = analyze_extreme_keywords(dataset, "mistral", top_n=50)
     
-    # Créer le répertoire de sortie
-    output_dir = os.path.join(os.path.dirname(__file__), "..", "ma-visualisation-sentiments", "static", "data")
-    os.makedirs(output_dir, exist_ok=True)
-    
-    # Sauvegarder les résultats ChatGPT
-    chatgpt_path = os.path.join(output_dir, "iwac_extreme_analysis_chatgpt.json")
-    print(f"\nSaving ChatGPT extreme analysis to: {chatgpt_path}")
-    with open(chatgpt_path, 'w', encoding='utf-8') as f:
-        json.dump(chatgpt_results, f, ensure_ascii=False, indent=2)
-    
-    # Sauvegarder les résultats Gemini
-    gemini_path = os.path.join(output_dir, "iwac_extreme_analysis_gemini.json")
-    print(f"Saving Gemini extreme analysis to: {gemini_path}")
-    with open(gemini_path, 'w', encoding='utf-8') as f:
-        json.dump(gemini_results, f, ensure_ascii=False, indent=2)
-    
-    # Sauvegarder les résultats Mistral
-    mistral_path = os.path.join(output_dir, "iwac_extreme_analysis_mistral.json")
-    print(f"Saving Mistral extreme analysis to: {mistral_path}")
-    with open(mistral_path, 'w', encoding='utf-8') as f:
-        json.dump(mistral_results, f, ensure_ascii=False, indent=2)
+    # Créer le répertoire de sortie et sauvegarder les résultats
+    output_dir = get_webapp_data_dir()
+
+    for model_name, results_data in [("chatgpt", chatgpt_results), ("gemini", gemini_results), ("mistral", mistral_results)]:
+        path = os.path.join(output_dir, f"iwac_extreme_analysis_{model_name}.json")
+        print(f"\nSaving {model_name} extreme analysis to: {path}")
+        save_json(results_data, path)
     
     # Afficher les statistiques
     print(f"\n{'='*60}")
@@ -573,10 +519,7 @@ def main():
         print(f"  Not central: {stats['centrality_not_central_count']} ({stats['centrality_not_central_count']/stats['total_articles']*100:.1f}%)")
     
     print(f"\n{'='*60}")
-    print(f"Files created:")
-    print(f"- ChatGPT: {chatgpt_path}")
-    print(f"- Gemini: {gemini_path}")
-    print(f"- Mistral: {mistral_path}")
+    print(f"Files created in: {output_dir}")
     print(f"{'='*60}")
     
     # Afficher quelques exemples de mots-clés les plus fréquents
@@ -656,21 +599,4 @@ This allows for filtering and exploration by:
     """)
 
 if __name__ == "__main__":
-    # Importer pandas pour la vérification des valeurs NaN
-    try:
-        import pandas as pd
-    except ImportError:
-        print("pandas not found, implementing basic NaN check")
-        # Fonction de remplacement simple pour pd.isna
-        def isna_replacement(value):
-            return value is None or (isinstance(value, str) and value.strip() == "")
-        
-        # Créer un module fictif pour pd.isna
-        class MockPd:
-            @staticmethod
-            def isna(value):
-                return isna_replacement(value)
-        
-        pd = MockPd()
-    
-    main() 
+    main()

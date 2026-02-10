@@ -253,15 +253,6 @@ export function getActualModelName(
 	}
 }
 
-/** Decode preferred model (kept for API compatibility, deprecated) */
-export const decodePreferredModel = (
-	preferredModel: 'model_a' | 'model_b' | 'both' | 'neither',
-	_unused?: boolean
-): 'model_a' | 'model_b' | 'both' | 'neither' => {
-	return preferredModel;
-};
-
-
 // ============================================
 // Data Loading
 // ============================================

@@ -16,7 +16,7 @@ import type {
  * Load extreme analysis data for a specific model
  */
 export async function loadExtremeAnalysisData(
-  model: 'chatgpt' | 'gemini',
+  model: 'chatgpt' | 'gemini' | 'mistral',
   fetchFunction: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
 ): Promise<ExtremeAnalysisData> {
   const filePath = `/data/iwac_extreme_analysis_${model}.json`;
@@ -75,13 +75,6 @@ export const extremeCategoryConfigs: ExtremeCategoryConfig[] = [
  */
 export function getExtremeCategoryConfig(categoryId: ExtremeCategory): ExtremeCategoryConfig | undefined {
   return extremeCategoryConfigs.find(config => config.id === categoryId);
-}
-
-/**
- * Format number with localization
- */
-export function formatNumber(num: number, locale: string = 'fr-FR'): string {
-  return new Intl.NumberFormat(locale).format(num);
 }
 
 /**

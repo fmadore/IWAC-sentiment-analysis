@@ -14,8 +14,9 @@
 	import type { ArbiterAnalysis, ComparisonData } from '$lib/types/data';
 	import { comparisonData, availableDatasets, comparisonPair } from '$lib/stores';
 	import { getModelsFromPair } from '$lib/types/data';
-	import { t, currentLanguage } from '$lib/i18n';
+	import { t } from '$lib/i18n';
 	import { getJournalName } from '$lib/utils';
+	import { formatDate, getArticleUrl } from '$lib/utils/format';
 	import { SentimentBadge, ArbiterSection } from '$lib/components/common';
 	import { get } from 'svelte/store';
 	import XIcon from '@lucide/svelte/icons/x';
@@ -44,25 +45,6 @@
 		const modelBName = datasets.find((d) => d.id === modelBId)?.name || modelBId;
 		return { modelAName, modelBName };
 	});
-
-	// Format date
-	function formatDate(dateStr: string | null | undefined): string {
-		if (!dateStr) return $t.messages?.noData || 'N/A';
-		const date = new Date(dateStr);
-		if (isNaN(date.getTime())) return dateStr;
-		const locale = $currentLanguage === 'en' ? 'en-US' : 'fr-FR';
-		return date.toLocaleDateString(locale, {
-			day: 'numeric',
-			month: 'long',
-			year: 'numeric'
-		});
-	}
-
-	// Build article URL
-	function getArticleUrl(id: string | number | null | undefined): string {
-		if (!id) return '#';
-		return `https://islam.zmo.de/s/afrique_ouest/item/${id}`;
-	}
 
 	// Handle overlay click
 	function handleOverlayClick(event: MouseEvent) {

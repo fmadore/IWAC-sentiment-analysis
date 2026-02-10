@@ -13,66 +13,8 @@ import pandas as pd
 from tqdm import tqdm
 import random
 from datetime import datetime
-from huggingface_hub import hf_hub_download
 
-def safe_int_convert(value):
-    """Convertit de manière sécurisée en entier, gère les valeurs NaN"""
-    if pd.isna(value) or value is None:
-        return None
-    try:
-        return int(float(value))
-    except (ValueError, TypeError):
-        return None
-
-def calculate_discrepancies(analysis_a, analysis_b):
-    """Calcule les divergences entre les deux analyses"""
-    if not analysis_a or not analysis_b:
-        return None
-    
-    # Mappage des valeurs de polarité vers des scores numériques
-    polarity_scores = {
-        'Très positif': 5, 'Positif': 4, 'Neutre': 3, 
-        'Négatif': 2, 'Très négatif': 1, 'Non applicable': 0
-    }
-    
-    # Mappage des valeurs de centralité vers des scores numériques
-    centrality_scores = {
-        'Très central': 5, 'Central': 4, 'Secondaire': 3, 
-        'Marginal': 2, 'Non abordé': 1, 'Non applicable': 0
-    }
-    
-    # Vérifier les valeurs "Non applicable" - les exclure
-    if (analysis_a.get('polarite') == 'Non applicable' or 
-        analysis_b.get('polarite') == 'Non applicable' or
-        analysis_a.get('centralite_islam_musulmans') == 'Non applicable' or 
-        analysis_b.get('centralite_islam_musulmans') == 'Non applicable'):
-        return None
-    
-    # Calculer les différences
-    polarity_diff = abs(
-        polarity_scores.get(analysis_a.get('polarite', 'Non applicable'), 0) -
-        polarity_scores.get(analysis_b.get('polarite', 'Non applicable'), 0)
-    )
-    
-    subj_a = safe_int_convert(analysis_a.get('subjectivite_score', 0)) or 0
-    subj_b = safe_int_convert(analysis_b.get('subjectivite_score', 0)) or 0
-    subjectivity_diff = abs(subj_a - subj_b)
-    
-    centrality_diff = abs(
-        centrality_scores.get(analysis_a.get('centralite_islam_musulmans', 'Non applicable'), 0) -
-        centrality_scores.get(analysis_b.get('centralite_islam_musulmans', 'Non applicable'), 0)
-    )
-    
-    # Vérifier si c'est significatif (≥3 points dans au moins une dimension)
-    has_significant_conflict = (polarity_diff >= 3 or subjectivity_diff >= 3 or centrality_diff >= 3)
-    
-    return {
-        "polarity_diff": polarity_diff,
-        "subjectivity_diff": subjectivity_diff,
-        "centrality_diff": centrality_diff,
-        "total_diff": polarity_diff + subjectivity_diff + centrality_diff,
-        "has_significant_conflict": has_significant_conflict
-    }
+from shared import load_iwac_dataset, calculate_discrepancies
 
 def extract_significant_differences(dataset):
     """Extrait les articles avec des différences significatives"""
@@ -161,19 +103,9 @@ def main():
     print(f"{'='*60}")
     
     # Charger le dataset
-    print("Loading dataset from Hugging Face...")
-    
     try:
-        parquet_path = hf_hub_download(
-            repo_id="fmadore/islam-west-africa-collection", 
-            filename="articles/train-00000-of-00001.parquet",
-            repo_type="dataset"
-        )
-        
-        df = pd.read_parquet(parquet_path)
-        print(f"Successfully loaded {len(df)} rows")
+        df = load_iwac_dataset()
         dataset = df.to_dict('records')
-        
     except Exception as e:
         print(f"Failed to load dataset: {e}")
         return

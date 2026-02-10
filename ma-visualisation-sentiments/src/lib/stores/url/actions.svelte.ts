@@ -34,7 +34,7 @@ import {
   comparisonData
 } from '../comparison.svelte';
 
-import { VALID_PAIRS } from './constants';
+import { VALID_PAIRS, type ValidView } from './constants';
 import type { URLState } from './types';
 import { parseURLState } from './parser.svelte';
 import { buildURLSearchParams } from './builder.svelte';
@@ -160,7 +160,7 @@ export function updateURL(currentView?: string, replaceState = false): void {
 
   const currentState = getCurrentState();
   if (currentView) {
-    currentState.view = currentView;
+    currentState.view = currentView as ValidView;
   }
 
   const params = buildURLSearchParams(currentState);

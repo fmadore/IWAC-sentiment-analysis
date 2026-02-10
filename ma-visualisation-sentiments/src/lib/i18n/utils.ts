@@ -52,7 +52,7 @@ export function translateSentimentValue(frenchValue: string | null | undefined, 
  * Translates a numeric subjectivity score to the current language
  */
 export function translateSubjectivityScore(score: number | null | undefined, lang?: Language): string {
-  if (score === null || score === undefined) return 'Non applicable';
+  if (score === null || score === undefined) return translate('sentiment.notApplicable', lang);
   
   const translationKey = SUBJECTIVITY_SCORE_MAP[score as keyof typeof SUBJECTIVITY_SCORE_MAP];
   if (translationKey) {
@@ -121,11 +121,4 @@ export function getFrenchSentimentValue(translatedValue: string): string {
 export function formatNumber(num: number, lang?: Language): string {
   const locale = lang === 'en' ? 'en-US' : 'fr-FR';
   return num.toLocaleString(locale);
-}
-
-/**
- * Gets the appropriate locale string for the current language
- */
-export function getLocale(lang?: Language): string {
-  return lang === 'en' ? 'en-US' : 'fr-FR';
 } 

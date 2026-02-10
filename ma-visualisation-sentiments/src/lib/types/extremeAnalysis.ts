@@ -83,7 +83,7 @@ export interface GlobalFacets {
  * Complete extreme analysis data structure
  */
 export interface ExtremeAnalysisData {
-  model: 'chatgpt' | 'gemini';
+  model: 'chatgpt' | 'gemini' | 'mistral';
   analysis: {
     subjectivity_extreme_high: ExtremeCategoryAnalysis;
     subjectivity_extreme_low: ExtremeCategoryAnalysis;

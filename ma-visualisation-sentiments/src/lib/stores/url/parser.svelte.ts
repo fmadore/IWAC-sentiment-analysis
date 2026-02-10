@@ -6,7 +6,7 @@
 
 import { LANGUAGES, type Language } from '$lib/i18n';
 import type { ModelPair } from '$lib/types/data';
-import { VALID_VIEWS, VALID_DATASETS, VALID_PAIRS, URL_PARAMS } from './constants';
+import { VALID_VIEWS, VALID_DATASETS, VALID_PAIRS, URL_PARAMS, type ValidView, type ValidDataset } from './constants';
 import type { URLState } from './types';
 
 /**
@@ -18,19 +18,19 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
   // Parse view
   const view = searchParams.get(URL_PARAMS.view);
   if (view && (VALID_VIEWS as readonly string[]).includes(view)) {
-    state.view = view;
+    state.view = view as ValidView;
   }
 
   // Parse language
-  const lang = searchParams.get(URL_PARAMS.lang) as Language;
+  const lang = searchParams.get(URL_PARAMS.lang);
   if (lang && lang in LANGUAGES) {
-    state.lang = lang;
+    state.lang = lang as Language;
   }
 
   // Parse dataset
   const dataset = searchParams.get(URL_PARAMS.dataset);
   if (dataset && (VALID_DATASETS as readonly string[]).includes(dataset)) {
-    state.dataset = dataset;
+    state.dataset = dataset as ValidDataset;
   }
 
   // Parse comparison mode
@@ -40,9 +40,9 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
   }
 
   // Parse comparison pair
-  const pair = searchParams.get(URL_PARAMS.pair) as ModelPair;
-  if (pair && (VALID_PAIRS as readonly string[]).includes(pair)) {
-    state.pair = pair;
+  const pair = searchParams.get(URL_PARAMS.pair);
+  if (pair && (VALID_PAIRS as readonly string[]).includes(pair as ModelPair)) {
+    state.pair = pair as ModelPair;
   }
 
   // Parse discrepancy filters

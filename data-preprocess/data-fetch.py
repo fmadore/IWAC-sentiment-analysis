@@ -1,57 +1,15 @@
-from datasets import load_dataset
 import os
-import json
 from tqdm import tqdm
-import pandas as pd
-from huggingface_hub import hf_hub_download
 
-# Helper function to safely convert to int, handling NaN values
-def safe_int_convert(value):
-    if pd.isna(value) or value is None:
-        return None
-    try:
-        return int(float(value))
-    except (ValueError, TypeError):
-        return None
+from shared import safe_int_convert, load_iwac_dataset, get_webapp_data_dir, save_json
 
 print(f"\n{'='*50}")
 print(f"Loading config: articles")
 print(f"{'='*50}")
 
-# Try to download the parquet files directly
-try:
-    print("Attempting to download dataset files directly...")
-    
-    # Download the parquet file for articles directly
-    parquet_path = hf_hub_download(
-        repo_id="fmadore/islam-west-africa-collection", 
-        filename="articles/train-00000-of-00001.parquet",
-        repo_type="dataset"
-    )
-    
-    print(f"Downloaded parquet file to: {parquet_path}")
-    
-    # Load with pandas first to see the structure
-    df = pd.read_parquet(parquet_path)
-    print(f"Successfully loaded {len(df)} rows")
-    print(f"Number of columns: {len(df.columns)}")
-    
-    # Convert to list of dictionaries
-    dataset_dict = df.to_dict('records')
-    dataset = {"train": dataset_dict}
-    
-except Exception as e:
-    print(f"Direct download failed: {e}")
-    print("Trying alternative approach...")
-    
-    # Fallback: try to load dataset with ignore_verifications
-    try:
-        dataset = load_dataset("fmadore/islam-west-africa-collection", "articles", verification_mode="no_checks")
-    except Exception as e2:
-        print(f"Alternative approach also failed: {e2}")
-        raise e2
+df = load_iwac_dataset()
+dataset = {"train": df.to_dict('records')}
 
-# Access the data
 print(f"Dataset loaded successfully!")
 print(f"Number of articles: {len(dataset['train'])}")
 # Don't print the first example - it's too much data
@@ -112,42 +70,13 @@ for item in tqdm(dataset['train'], desc="Processing articles"):
     }
     mistral_data_list.append(mistral_item)
 
-# Create the output directory if it doesn't exist
-output_dir = os.path.join(os.path.dirname(__file__), "..", "ma-visualisation-sentiments", "static", "data")
-os.makedirs(output_dir, exist_ok=True)
+# Save all model data
+output_dir = get_webapp_data_dir()
 
-# Save Gemini data as JSON file
-gemini_json_filename = "iwac_articles_gemini.json"
-gemini_json_path = os.path.join(output_dir, gemini_json_filename)
+for model_name, data_list in [("gemini", gemini_data_list), ("chatgpt", chatgpt_data_list), ("mistral", mistral_data_list)]:
+    json_path = os.path.join(output_dir, f"iwac_articles_{model_name}.json")
+    print(f"\nSaving {model_name} articles dataset to: {json_path}")
+    save_json(data_list, json_path)
+    print(f"{model_name} JSON file saved successfully! ({len(data_list)} records)")
 
-print(f"\nSaving Gemini articles dataset to JSON file: {gemini_json_path}")
-with open(gemini_json_path, 'w', encoding='utf-8') as f:
-    json.dump(gemini_data_list, f, ensure_ascii=False, indent=2)
-
-print(f"Gemini JSON file saved successfully! ({len(gemini_data_list)} records)")
-
-# Save ChatGPT data as JSON file
-chatgpt_json_filename = "iwac_articles_chatgpt.json"
-chatgpt_json_path = os.path.join(output_dir, chatgpt_json_filename)
-
-print(f"\nSaving ChatGPT articles dataset to JSON file: {chatgpt_json_path}")
-with open(chatgpt_json_path, 'w', encoding='utf-8') as f:
-    json.dump(chatgpt_data_list, f, ensure_ascii=False, indent=2)
-
-print(f"ChatGPT JSON file saved successfully! ({len(chatgpt_data_list)} records)")
-
-# Save Mistral data as JSON file
-mistral_json_filename = "iwac_articles_mistral.json"
-mistral_json_path = os.path.join(output_dir, mistral_json_filename)
-
-print(f"\nSaving Mistral articles dataset to JSON file: {mistral_json_path}")
-with open(mistral_json_path, 'w', encoding='utf-8') as f:
-    json.dump(mistral_data_list, f, ensure_ascii=False, indent=2)
-
-print(f"Mistral JSON file saved successfully! ({len(mistral_data_list)} records)")
-
-print(f"\nFiles created:")
-print(f"- Gemini: {gemini_json_path}")
-print(f"- ChatGPT: {chatgpt_json_path}")
-print(f"- Mistral: {mistral_json_path}")
-print(f"{'='*50}")
+print(f"\n{'='*50}")

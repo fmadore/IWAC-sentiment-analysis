@@ -33,7 +33,6 @@ export {
     handlePendingArticleSelection,
     handlePendingComparisonArticleSelection,
     clearSelectedComparison,
-    urlStateUtils,
     VALID_VIEWS,
     VALID_DATASETS,
     VALID_PAIRS,
@@ -97,7 +96,6 @@ export {
     comparisonData,
     filteredComparisons,
     comparisonStatistics,
-    comparisonDatasets,
     loadComparisonDatasets
 } from './comparison.svelte';
 
@@ -108,7 +106,6 @@ export {
     arbiterModelAIsFirst,
     getArbiterForArticle,
     arbiterStatistics,
-    decodePreferredModel,
     getActualModelName,
     loadArbiterEvaluations,
     setupArbiterPairReactivity

@@ -2,7 +2,8 @@
   import { filteredArticles, selectedArticle } from '$lib/stores';
   import type { Article } from '$lib/types/data';
   import { getJournalName } from '$lib/utils';
-  import { t, currentLanguage } from '$lib/i18n';
+  import { formatDate } from '$lib/utils/format';
+  import { t } from '$lib/i18n';
   import { DatasetBadge } from '$lib/components/ui';
   import { SentimentBadge } from '$lib/components/common';
   import { updateURL } from '$lib/urlState';
@@ -80,31 +81,6 @@
     'Marginal': 2,
     'Non abordé': 1
   };
-
-  // Fonction pour formater les dates
-  function formatDate(dateStr: string | null | undefined): string {
-    if (!dateStr) return 'N/A';
-    
-    try {
-      // Gérer différents formats de date possibles
-      const date = new Date(dateStr);
-      if (isNaN(date.getTime())) {
-        // Si la date n'est pas valide, renvoyer la chaîne originale
-        return dateStr;
-      }
-      
-      // Formater la date au format localisé selon la langue courante
-      const locale = $currentLanguage === 'en' ? 'en-US' : 'fr-FR';
-      return date.toLocaleDateString(locale, {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      });
-    } catch (error) {
-      console.error("Erreur lors du formatage de la date:", error);
-      return dateStr;
-    }
-  }
 
   // Fonction pour changer la colonne de tri
   function sortBy(column: string) {

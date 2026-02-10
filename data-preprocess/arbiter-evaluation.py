@@ -40,20 +40,17 @@ from tqdm import tqdm
 from datetime import datetime
 from typing import Optional, Literal
 from dataclasses import dataclass, asdict
-from huggingface_hub import hf_hub_download
 from pydantic import BaseModel, Field
 from pathlib import Path
 from dotenv import load_dotenv
 
+from shared import (
+    safe_int_convert, load_iwac_dataset, calculate_discrepancies,
+    get_webapp_data_dir, save_json, MODEL_NAMES
+)
+
 # Model pair configuration
 VALID_PAIRS = ['chatgpt-gemini', 'chatgpt-mistral', 'gemini-mistral']
-
-# Model name mappings for display
-MODEL_NAMES = {
-    'chatgpt': 'ChatGPT',
-    'gemini': 'Gemini',
-    'mistral': 'Mistral'
-}
 
 def get_models_from_pair(pair: str) -> tuple[str, str]:
     """Get the two model IDs from a pair string"""
@@ -177,62 +174,6 @@ Votre rôle est de :
 - Pour overall_winner, utilisez strictement : "model_a", "model_b", "both" (équivalents), ou "neither" (aucun précis)
 - Pour overall_explanation, fournissez une explication détaillée en français du verdict global"""
 
-
-def safe_int_convert(value) -> Optional[int]:
-    """Safely convert to integer, handling NaN values"""
-    if pd.isna(value) or value is None:
-        return None
-    try:
-        return int(float(value))
-    except (ValueError, TypeError):
-        return None
-
-
-def calculate_discrepancies(chatgpt_analysis: dict, gemini_analysis: dict) -> Optional[dict]:
-    """Calculate discrepancies between the two analyses"""
-    if not chatgpt_analysis or not gemini_analysis:
-        return None
-    
-    polarity_scores = {
-        'Très positif': 5, 'Positif': 4, 'Neutre': 3, 
-        'Négatif': 2, 'Très négatif': 1, 'Non applicable': 0
-    }
-    
-    centrality_scores = {
-        'Très central': 5, 'Central': 4, 'Secondaire': 3, 
-        'Marginal': 2, 'Non abordé': 1, 'Non applicable': 0
-    }
-    
-    # Exclude "Non applicable" cases
-    if (chatgpt_analysis.get('polarite') == 'Non applicable' or 
-        gemini_analysis.get('polarite') == 'Non applicable' or
-        chatgpt_analysis.get('centralite_islam_musulmans') == 'Non applicable' or 
-        gemini_analysis.get('centralite_islam_musulmans') == 'Non applicable'):
-        return None
-    
-    polarity_diff = abs(
-        polarity_scores.get(chatgpt_analysis.get('polarite', 'Non applicable'), 0) -
-        polarity_scores.get(gemini_analysis.get('polarite', 'Non applicable'), 0)
-    )
-    
-    subj_a = safe_int_convert(chatgpt_analysis.get('subjectivite_score', 0)) or 0
-    subj_b = safe_int_convert(gemini_analysis.get('subjectivite_score', 0)) or 0
-    subjectivity_diff = abs(subj_a - subj_b)
-    
-    centrality_diff = abs(
-        centrality_scores.get(chatgpt_analysis.get('centralite_islam_musulmans', 'Non applicable'), 0) -
-        centrality_scores.get(gemini_analysis.get('centralite_islam_musulmans', 'Non applicable'), 0)
-    )
-    
-    has_significant_conflict = (polarity_diff >= 3 or subjectivity_diff >= 3 or centrality_diff >= 3)
-    
-    return {
-        "polarity_diff": polarity_diff,
-        "subjectivity_diff": subjectivity_diff,
-        "centrality_diff": centrality_diff,
-        "total_diff": polarity_diff + subjectivity_diff + centrality_diff,
-        "has_significant_conflict": has_significant_conflict
-    }
 
 
 def create_arbiter_prompt(article_text: str, title: str, 
@@ -376,37 +317,22 @@ def evaluate_with_arbiter(client: genai.Client, article: dict, chatgpt_analysis:
     return None
 
 
-def load_dataset() -> pd.DataFrame:
-    """Load the IWAC dataset from Hugging Face"""
-    print("Loading dataset from Hugging Face...")
-    
-    try:
-        parquet_path = hf_hub_download(
-            repo_id="fmadore/islam-west-africa-collection", 
-            filename="articles/train-00000-of-00001.parquet",
-            repo_type="dataset"
-        )
-        
-        df = pd.read_parquet(parquet_path)
-        print(f"Successfully loaded {len(df)} rows")
-        print(f"Available columns: {', '.join(df.columns.tolist())}")
-        
-        # Check for OCR/text field
-        ocr_fields = [col for col in df.columns if 'ocr' in col.lower() or 'text' in col.lower() or 'content' in col.lower()]
-        if ocr_fields:
-            print(f"Found text fields: {', '.join(ocr_fields)}")
-            # Check how many have non-empty values
-            for field in ocr_fields:
-                non_empty = df[field].notna().sum()
-                print(f"  {field}: {non_empty}/{len(df)} non-empty ({100*non_empty/len(df):.1f}%)")
-        else:
-            print("⚠️ WARNING: No OCR/text field found in dataset!")
-        
-        return df
-        
-    except Exception as e:
-        print(f"Failed to load dataset: {e}")
-        raise
+def load_dataset_with_text_info() -> pd.DataFrame:
+    """Load the IWAC dataset and print text field availability info."""
+    df = load_iwac_dataset()
+    print(f"Available columns: {', '.join(df.columns.tolist())}")
+
+    # Check for OCR/text field
+    ocr_fields = [col for col in df.columns if 'ocr' in col.lower() or 'text' in col.lower() or 'content' in col.lower()]
+    if ocr_fields:
+        print(f"Found text fields: {', '.join(ocr_fields)}")
+        for field in ocr_fields:
+            non_empty = df[field].notna().sum()
+            print(f"  {field}: {non_empty}/{len(df)} non-empty ({100*non_empty/len(df):.1f}%)")
+    else:
+        print("WARNING: No OCR/text field found in dataset!")
+
+    return df
 
 
 def find_significant_differences(df: pd.DataFrame, model_a: str = 'chatgpt', model_b: str = 'gemini') -> list:
@@ -605,27 +531,24 @@ def save_results(filepath: str, results: list, pair: str, model_a_is_first: bool
     arbiter_model_a = first_model_name if model_a_is_first else second_model_name
     arbiter_model_b = second_model_name if model_a_is_first else first_model_name
     
-    with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump({
-            'metadata': {
-                'generated': datetime.now().isoformat(),
-                'arbiter_model': 'gemini-3-pro-preview',
-                'thinking_level': 'high',
-                'blind_evaluation': True,
-                # Clarified naming: these are what the arbiter ACTUALLY saw
-                'arbiter_model_a': arbiter_model_a,  # What arbiter saw as "Model A"
-                'arbiter_model_b': arbiter_model_b,  # What arbiter saw as "Model B"
-                # Keep pair info for reference
-                'pair': pair,
-                'pair_first_model': first_model_name,
-                'pair_second_model': second_model_name,
-                'note': 'arbiter_model_a/b = what the arbiter saw. preferred_model in verdicts directly maps to these names.',
-                'total_articles': total,
-                'successful_evaluations': successful,
-                'failed_evaluations': failed
-            },
-            'evaluations': results
-        }, f, ensure_ascii=False, indent=2)
+    save_json({
+        'metadata': {
+            'generated': datetime.now().isoformat(),
+            'arbiter_model': 'gemini-3-pro-preview',
+            'thinking_level': 'high',
+            'blind_evaluation': True,
+            'arbiter_model_a': arbiter_model_a,
+            'arbiter_model_b': arbiter_model_b,
+            'pair': pair,
+            'pair_first_model': first_model_name,
+            'pair_second_model': second_model_name,
+            'note': 'arbiter_model_a/b = what the arbiter saw. preferred_model in verdicts directly maps to these names.',
+            'total_articles': total,
+            'successful_evaluations': successful,
+            'failed_evaluations': failed
+        },
+        'evaluations': results
+    }, filepath)
 
 
 def main(pairs: list[str] | None = None):
@@ -655,15 +578,13 @@ def main(pairs: list[str] | None = None):
     
     # Load dataset
     try:
-        df = load_dataset()
+        df = load_dataset_with_text_info()
     except Exception as e:
         print(f"Failed to load dataset: {e}")
         return
     
     # Setup webapp data directory
-    webapp_data_dir = os.path.join(os.path.dirname(__file__), "..", 
-                                    "ma-visualisation-sentiments", "static", "data")
-    os.makedirs(webapp_data_dir, exist_ok=True)
+    webapp_data_dir = get_webapp_data_dir()
     
     # Count total new articles to process across all pairs
     total_new = 0

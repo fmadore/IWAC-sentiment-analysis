@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { filteredComparisons, selectedComparison, availableDatasets } from '$lib/stores';
-	import { t, currentLanguage } from '$lib/i18n';
+	import { t } from '$lib/i18n';
 	import { getJournalName } from '$lib/utils';
+	import { formatDate, getModelDisplayName } from '$lib/utils/format';
+	import { getDiffClass, getDiffBadgeClass } from '$lib/utils/discrepancy';
 	import type { ComparisonData } from '$lib/types/data';
 	import ArrowUpDownIcon from '@lucide/svelte/icons/arrow-up-down';
 	import LayoutGridIcon from '@lucide/svelte/icons/layout-grid';
@@ -9,13 +11,6 @@
 	import { ComparisonCSVExportButton } from '$lib/components/ui';
 	import { SentimentBadge } from '$lib/components/common';
 	import { innerWidth } from 'svelte/reactivity/window';
-
-	// Helper to get model display name from ID
-	function getModelName(modelId: string): string {
-		const datasets = $availableDatasets;
-		const dataset = datasets.find((d) => d.id === modelId);
-		return dataset?.name || modelId;
-	}
 
 	let viewMode = $state<'table' | 'cards'>('table');
 	let sortBy = $state<'discrepancy' | 'date' | 'title'>('discrepancy');
@@ -116,26 +111,6 @@
 
 		return pages;
 	});
-
-	function formatDate(dateStr: string | null | undefined): string {
-		if (!dateStr) return 'N/A';
-		const date = new Date(dateStr);
-		return date.toLocaleDateString();
-	}
-
-	function getDiffClass(diff: number): string {
-		if (diff === 0) return 'text-white/40';
-		if (diff === 1) return 'text-yellow-400';
-		if (diff === 2) return 'text-orange-400';
-		return 'text-red-400';
-	}
-
-	function getDiffBadgeClass(diff: number): string {
-		if (diff === 0) return 'variant-ghost';
-		if (diff === 1) return 'variant-soft-warning';
-		if (diff === 2) return 'variant-soft-error';
-		return 'variant-filled-error';
-	}
 
 	function selectComparison(comparison: ComparisonData) {
 		selectedComparison.set(comparison);
@@ -285,32 +260,32 @@
 						<th></th>
 						<th class="text-white/60 text-center font-normal"
 							>{paginatedComparisons[0]
-								? getModelName(paginatedComparisons[0].modelAId)
+								? getModelDisplayName(paginatedComparisons[0].modelAId, $availableDatasets)
 								: 'Model A'}</th
 						>
 						<th class="text-white/60 text-center font-normal"
 							>{paginatedComparisons[0]
-								? getModelName(paginatedComparisons[0].modelBId)
+								? getModelDisplayName(paginatedComparisons[0].modelBId, $availableDatasets)
 								: 'Model B'}</th
 						>
 						<th class="text-white/60 text-center font-normal"
 							>{paginatedComparisons[0]
-								? getModelName(paginatedComparisons[0].modelAId)
+								? getModelDisplayName(paginatedComparisons[0].modelAId, $availableDatasets)
 								: 'Model A'}</th
 						>
 						<th class="text-white/60 text-center font-normal"
 							>{paginatedComparisons[0]
-								? getModelName(paginatedComparisons[0].modelBId)
+								? getModelDisplayName(paginatedComparisons[0].modelBId, $availableDatasets)
 								: 'Model B'}</th
 						>
 						<th class="text-white/60 text-center font-normal"
 							>{paginatedComparisons[0]
-								? getModelName(paginatedComparisons[0].modelAId)
+								? getModelDisplayName(paginatedComparisons[0].modelAId, $availableDatasets)
 								: 'Model A'}</th
 						>
 						<th class="text-white/60 text-center font-normal"
 							>{paginatedComparisons[0]
-								? getModelName(paginatedComparisons[0].modelBId)
+								? getModelDisplayName(paginatedComparisons[0].modelBId, $availableDatasets)
 								: 'Model B'}</th
 						>
 						<th></th>
@@ -416,7 +391,7 @@
 							<span class="dimension-label">{$t.comparison?.polarity || 'Polarity'}</span>
 							<div class="values-grid">
 								<div class="value-cell">
-									<span class="model-label">{getModelName(comparison.modelAId)}</span>
+									<span class="model-label">{getModelDisplayName(comparison.modelAId, $availableDatasets)}</span>
 									<SentimentBadge type="polarity" value={comparison.modelA?.polarite} size="sm" />
 								</div>
 								<div class="diff-indicator {getDiffClass(comparison.discrepancies.polarityDiff)}">
@@ -425,7 +400,7 @@
 										: '='}
 								</div>
 								<div class="value-cell">
-									<span class="model-label">{getModelName(comparison.modelBId)}</span>
+									<span class="model-label">{getModelDisplayName(comparison.modelBId, $availableDatasets)}</span>
 									<SentimentBadge type="polarity" value={comparison.modelB?.polarite} size="sm" />
 								</div>
 							</div>
@@ -436,7 +411,7 @@
 							<span class="dimension-label">{$t.comparison?.subjectivity || 'Subjectivity'}</span>
 							<div class="values-grid">
 								<div class="value-cell">
-									<span class="model-label">{getModelName(comparison.modelAId)}</span>
+									<span class="model-label">{getModelDisplayName(comparison.modelAId, $availableDatasets)}</span>
 									<SentimentBadge
 										type="subjectivity"
 										value={comparison.modelA?.subjectivite_score}
@@ -451,7 +426,7 @@
 										: '='}
 								</div>
 								<div class="value-cell">
-									<span class="model-label">{getModelName(comparison.modelBId)}</span>
+									<span class="model-label">{getModelDisplayName(comparison.modelBId, $availableDatasets)}</span>
 									<SentimentBadge
 										type="subjectivity"
 										value={comparison.modelB?.subjectivite_score}
@@ -466,7 +441,7 @@
 							<span class="dimension-label">{$t.comparison?.centrality || 'Centrality'}</span>
 							<div class="values-grid">
 								<div class="value-cell">
-									<span class="model-label">{getModelName(comparison.modelAId)}</span>
+									<span class="model-label">{getModelDisplayName(comparison.modelAId, $availableDatasets)}</span>
 									<SentimentBadge
 										type="centrality"
 										value={comparison.modelA?.centralite_islam_musulmans}
@@ -479,7 +454,7 @@
 										: '='}
 								</div>
 								<div class="value-cell">
-									<span class="model-label">{getModelName(comparison.modelBId)}</span>
+									<span class="model-label">{getModelDisplayName(comparison.modelBId, $availableDatasets)}</span>
 									<SentimentBadge
 										type="centrality"
 										value={comparison.modelB?.centralite_islam_musulmans}

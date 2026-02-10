@@ -23,6 +23,7 @@
 	import { getModelsFromPair, type ArbiterEvaluationData } from '$lib/types/data';
 	import { get } from 'svelte/store';
 	import DownloadIcon from '@lucide/svelte/icons/download';
+	import { escapeCSVField, formatDateForCSV, downloadCSVFile } from '$lib/utils/csv';
 
 	let isExporting = $state(false);
 
@@ -34,34 +35,6 @@
 		const modelBName = datasets.find((d) => d.id === modelBId)?.name || modelBId;
 		return { modelAName, modelBName };
 	});
-
-	// Function to escape CSV fields that contain commas, quotes, or newlines
-	function escapeCSVField(field: string | null | undefined): string {
-		if (field === null || field === undefined) return '';
-
-		const str = String(field);
-		// If field contains comma, quote, or newline, wrap in quotes and escape internal quotes
-		if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
-			return '"' + str.replace(/"/g, '""') + '"';
-		}
-		return str;
-	}
-
-	// Function to format date for CSV
-	function formatDateForCSV(dateStr: string | null | undefined): string {
-		if (!dateStr) return '';
-
-		try {
-			const date = new Date(dateStr);
-			if (isNaN(date.getTime())) {
-				return dateStr;
-			}
-			// Return in ISO format (YYYY-MM-DD)
-			return date.toISOString().split('T')[0];
-		} catch (error) {
-			return dateStr || '';
-		}
-	}
 
 	// Translate verdict to user-friendly text
 	// Uses getActualModelName to correctly map arbiter's model_a/model_b to actual model names
@@ -237,22 +210,7 @@
 			}
 
 			const csvContent = convertToCSV(evaluations);
-			const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-			const url = URL.createObjectURL(blob);
-
-			// Create download link
-			const link = document.createElement('a');
-			link.href = url;
-			link.download = generateFilename();
-			link.style.display = 'none';
-
-			// Trigger download
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-
-			// Clean up
-			URL.revokeObjectURL(url);
+			downloadCSVFile(csvContent, generateFilename());
 		} catch (error) {
 			console.error('Error exporting arbiter CSV:', error);
 			alert($t.export?.exportError || 'Error exporting CSV');

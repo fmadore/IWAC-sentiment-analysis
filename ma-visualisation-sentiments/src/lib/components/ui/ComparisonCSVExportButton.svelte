@@ -5,43 +5,10 @@
 	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
 	import type { ComparisonData } from '$lib/types/data';
 	import DownloadIcon from '@lucide/svelte/icons/download';
-
-	// Helper to get model display name from model ID
-	function getModelName(modelId: string): string {
-		const datasets = $availableDatasets;
-		const dataset = datasets.find((d) => d.id === modelId);
-		return dataset?.name || modelId;
-	}
+	import { escapeCSVField, formatDateForCSV, downloadCSVFile } from '$lib/utils/csv';
+	import { getModelDisplayName } from '$lib/utils/format';
 
 	let isExporting = $state(false);
-
-	// Function to escape CSV fields that contain commas, quotes, or newlines
-	function escapeCSVField(field: string | null | undefined): string {
-		if (field === null || field === undefined) return '';
-
-		const str = String(field);
-		// If field contains comma, quote, or newline, wrap in quotes and escape internal quotes
-		if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
-			return '"' + str.replace(/"/g, '""') + '"';
-		}
-		return str;
-	}
-
-	// Function to format date for CSV
-	function formatDateForCSV(dateStr: string | null | undefined): string {
-		if (!dateStr) return '';
-
-		try {
-			const date = new Date(dateStr);
-			if (isNaN(date.getTime())) {
-				return dateStr;
-			}
-			// Return in ISO format (YYYY-MM-DD)
-			return date.toISOString().split('T')[0];
-		} catch (error) {
-			return dateStr || '';
-		}
-	}
 
 	// Function to convert comparison data to CSV
 	function convertToCSV(comparisons: ComparisonData[]): string {
@@ -49,8 +16,8 @@
 
 		// Get model names from first comparison (they're all the same pair)
 		const firstComp = comparisons[0];
-		const modelAName = getModelName(firstComp.modelAId);
-		const modelBName = getModelName(firstComp.modelBId);
+		const modelAName = getModelDisplayName(firstComp.modelAId, $availableDatasets);
+		const modelBName = getModelDisplayName(firstComp.modelBId, $availableDatasets);
 
 		// Define CSV headers based on current language
 		const headers = [
@@ -156,22 +123,7 @@
 			}
 
 			const csvContent = convertToCSV(comparisons);
-			const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-			const url = URL.createObjectURL(blob);
-
-			// Create download link
-			const link = document.createElement('a');
-			link.href = url;
-			link.download = generateFilename();
-			link.style.display = 'none';
-
-			// Trigger download
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-
-			// Clean up
-			URL.revokeObjectURL(url);
+			downloadCSVFile(csvContent, generateFilename());
 		} catch (error) {
 			console.error('Error exporting comparison CSV:', error);
 			alert($t.export.exportError);
