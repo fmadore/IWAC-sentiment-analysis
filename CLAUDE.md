@@ -39,7 +39,7 @@ IWAC-sentiment-analysis/
 - **State:** Svelte 5 Runes (`$state`, `$derived`, `$effect`, `$props`)
 - **Charts:** ECharts via svelte-echarts
 - **Icons:** Lucide Svelte (`@lucide/svelte`)
-- **Build:** Vite 7 with gzip + brotli compression
+- **Build:** Vite 8 (Rolldown) with gzip + brotli compression
 - **Testing:** Vitest + @testing-library/svelte + jsdom
 - **Python:** pandas, huggingface_hub, google-genai (for preprocessing)
 
@@ -102,7 +102,7 @@ Always use Svelte 5 syntax. Never use Svelte 4 patterns.
 
 ### CSS Patterns
 
-- Use CSS custom properties from `app.postcss` -- never hardcode colors or timing
+- Use CSS custom properties from `app.css` -- never hardcode colors or timing
 - Use `color-mix(in oklab, ...)` for transparency -- never `rgba()`
 - Use `data-*` attributes for state instead of conditional class concatenation
 - Sentiment colors: `--sentiment-polarity-{value}`, `--sentiment-subjectivity-{n}`, `--sentiment-centrality-{value}`

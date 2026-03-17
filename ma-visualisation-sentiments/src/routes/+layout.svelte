@@ -1,5 +1,5 @@
 <script lang="ts">
-  import '../app.postcss';
+  import '../app.css';
   import { AppHeader, SidebarNav } from '$lib/components/layout';
   import { PWAManager } from '$lib/components';
   import { uiState } from '$lib/stores';
