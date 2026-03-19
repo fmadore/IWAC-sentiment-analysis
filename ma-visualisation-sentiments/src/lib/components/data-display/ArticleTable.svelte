@@ -8,6 +8,7 @@
   import { SentimentBadge } from '$lib/components/common';
   import { updateURL } from '$lib/urlState';
   import { innerWidth } from 'svelte/reactivity/window';
+  import { createPagination } from '$lib/utils/pagination.svelte';
 
   // Props - for event dispatching
   let { onShowDetails }: { onShowDetails: (details: { article: Article, position: {x: number, y: number} }) => void } = $props();
@@ -18,26 +19,10 @@
   // Reactive mobile detection using svelte/reactivity/window
   let isMobile = $derived((innerWidth.current ?? 1024) < 768);
   
-  // Track previous article count to reset pagination when filters change
-  let previousArticleCount = $state<number | null>(null);
-  $effect(() => {
-    const currentCount = articles.length;
-    if (previousArticleCount !== null && previousArticleCount !== currentCount) {
-      // Reset to first page when articles change (filters applied)
-      currentPage = 1;
-    }
-    previousArticleCount = currentCount;
-  });
-
   // Variables pour le tri
   let sortColumn = $state<string>('titre');
   let sortDirection = $state<'asc' | 'desc'>('asc');
 
-  // Variables pour la pagination
-  let currentPage = $state<number>(1);
-  let itemsPerPage = $state<number>(50); // 50 articles par page par défaut
-  let itemsPerPageOptions = [25, 50, 100, 200];
-  
   // Référence pour le conteneur du tableau
   let tableContainerRef = $state<HTMLElement | undefined>();
 
@@ -93,7 +78,7 @@
       sortDirection = 'asc';
     }
     // Réinitialiser à la première page après un tri
-    currentPage = 1;
+    pagination.currentPage = 1;
   }
 
   // Fonction pour trier les articles
@@ -142,84 +127,26 @@
     }
   }));
 
-  // Calculs pour la pagination
-  const totalItems = $derived(sortedArticles.length);
-  const totalPages = $derived(Math.ceil(totalItems / itemsPerPage));
-  const startIndex = $derived((currentPage - 1) * itemsPerPage);
-  const endIndex = $derived(Math.min(startIndex + itemsPerPage, totalItems));
-  
-  // Articles paginés
-  const paginatedArticles = $derived(sortedArticles.slice(startIndex, endIndex));
-
   // Fonction pour faire défiler vers le haut du tableau
   function scrollToTop() {
     if (tableContainerRef) {
-      tableContainerRef.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start' 
+      tableContainerRef.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
       });
     }
   }
 
-  // Fonctions de navigation
-  function goToPage(page: number) {
-    if (page >= 1 && page <= totalPages) {
-      currentPage = page;
-      // Faire défiler vers le haut après changement de page
-      setTimeout(scrollToTop, 100);
-    }
-  }
-
-  function previousPage() {
-    if (currentPage > 1) {
-      currentPage--;
-      setTimeout(scrollToTop, 100);
-    }
-  }
-
-  function nextPage() {
-    if (currentPage < totalPages) {
-      currentPage++;
-      setTimeout(scrollToTop, 100);
-    }
-  }
-
-  function changeItemsPerPage(newItemsPerPage: number) {
-    itemsPerPage = newItemsPerPage;
-    currentPage = 1; // Réinitialiser à la première page
-    setTimeout(scrollToTop, 100);
-  }
-
-  // Générer les numéros de pages à afficher
-  const visiblePages = $derived.by(() => {
-    const pages: number[] = [];
-    const maxVisiblePages = 7;
-    
-    if (totalPages <= maxVisiblePages) {
-      // Afficher toutes les pages si le nombre total est petit
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      // Logique pour afficher les pages avec ellipses
-      const halfVisible = Math.floor(maxVisiblePages / 2);
-      let startPage = Math.max(1, currentPage - halfVisible);
-      let endPage = Math.min(totalPages, currentPage + halfVisible);
-      
-      // Ajuster si on est près du début ou de la fin
-      if (currentPage <= halfVisible) {
-        endPage = Math.min(totalPages, maxVisiblePages);
-      } else if (currentPage > totalPages - halfVisible) {
-        startPage = Math.max(1, totalPages - maxVisiblePages + 1);
-      }
-      
-      for (let i = startPage; i <= endPage; i++) {
-        pages.push(i);
-      }
-    }
-    
-    return pages;
+  // Pagination
+  const pagination = createPagination({
+    totalItems: () => articles.length,
+    initialItemsPerPage: 50,
+    itemsPerPageOptions: [25, 50, 100, 200],
+    maxVisiblePages: 7,
+    onPageChange: () => setTimeout(scrollToTop, 100)
   });
+
+  const paginatedArticles = $derived(sortedArticles.slice(pagination.startIndex, pagination.endIndex));
 
 </script>
 
@@ -234,17 +161,17 @@
     <!-- Première ligne : Informations et sélecteur -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 mb-3">
       <span class="text-xs sm:text-sm text-white">
-        {$t.table.showingItems} {startIndex + 1} à {endIndex} sur {totalItems} {$t.common.articles}
+        {$t.table.showingItems} {pagination.startIndex + 1} à {pagination.endIndex} sur {articles.length} {$t.common.articles}
       </span>
       <div class="flex items-center gap-2">
         <label for="items-per-page" class="text-xs sm:text-sm text-white whitespace-nowrap">{$t.table.itemsPerPage}:</label>
         <select 
           id="items-per-page"
-          bind:value={itemsPerPage}
-          onchange={(e) => changeItemsPerPage(Number((e.target as HTMLSelectElement)?.value))}
+          bind:value={pagination.itemsPerPage}
+          onchange={(e) => pagination.changeItemsPerPage(Number((e.target as HTMLSelectElement)?.value))}
           class="select select-sm bg-surface-700 text-white border-surface-500"
         >
-          {#each itemsPerPageOptions as option (option)}
+          {#each pagination.itemsPerPageOptions as option (option)}
             <option value={option}>{option}</option>
           {/each}
         </select>
@@ -254,28 +181,28 @@
     <!-- Deuxième ligne : Navigation de pagination centrée -->
     <div class="flex justify-center">
       <div class="pagination-controls flex items-center gap-1 sm:gap-2">
-        <button 
-          class="btn btn-sm variant-soft-surface" 
-          onclick={previousPage}
-          disabled={currentPage === 1}
+        <button
+          class="btn btn-sm variant-soft-surface"
+          onclick={pagination.previousPage}
+          disabled={pagination.currentPage === 1}
           title={$t.common.previous || 'Previous page'}
         >
           {isMobile ? '←' : '←'}
         </button>
-        
-        {#each visiblePages as page (page)}
-          <button 
-            class="btn btn-sm {page === currentPage ? 'variant-filled-primary' : 'variant-soft-surface'}"
-            onclick={() => goToPage(page)}
+
+        {#each pagination.visiblePages as page (page)}
+          <button
+            class="btn btn-sm {page === pagination.currentPage ? 'variant-filled-primary' : 'variant-soft-surface'}"
+            onclick={() => pagination.goToPage(page)}
           >
             {page}
           </button>
         {/each}
-        
-        <button 
-          class="btn btn-sm variant-soft-surface" 
-          onclick={nextPage}
-          disabled={currentPage === totalPages}
+
+        <button
+          class="btn btn-sm variant-soft-surface"
+          onclick={pagination.nextPage}
+          disabled={pagination.currentPage === pagination.totalPages}
           title={$t.common.next || 'Next page'}
         >
           {isMobile ? '→' : '→'}
@@ -293,7 +220,7 @@
         <select 
           id="mobile-sort-select"
           bind:value={sortColumn}
-          onchange={() => currentPage = 1}
+          onchange={() => pagination.currentPage = 1}
           class="select select-sm bg-surface-700 text-white border-surface-500 flex-1"
         >
           <option value="titre">{$t.table.articleTitle}</option>
@@ -305,7 +232,7 @@
         </select>
         <button 
           class="btn btn-sm variant-soft-surface"
-          onclick={() => { sortDirection = sortDirection === 'asc' ? 'desc' : 'asc'; currentPage = 1; }}
+          onclick={() => { sortDirection = sortDirection === 'asc' ? 'desc' : 'asc'; pagination.currentPage = 1; }}
           title={$t.table.sortBy}
         >
           {sortDirection === 'asc' ? '↑' : '↓'}
@@ -405,23 +332,23 @@
   <!-- Navigation de pagination (en bas) -->
   <div class="pagination-bottom mt-4 flex items-center justify-center">
     <div class="pagination-controls flex items-center gap-2">
-      <button 
-        class="btn btn-sm variant-soft-surface" 
-        onclick={previousPage}
-        disabled={currentPage === 1}
+      <button
+        class="btn btn-sm variant-soft-surface"
+        onclick={pagination.previousPage}
+        disabled={pagination.currentPage === 1}
         title={$t.common.previous}
       >
         ← {$t.common.previous}
       </button>
-      
+
       <span class="text-sm text-white px-4">
-        Page {currentPage} sur {totalPages}
+        Page {pagination.currentPage} sur {pagination.totalPages}
       </span>
-      
-      <button 
-        class="btn btn-sm variant-soft-surface" 
-        onclick={nextPage}
-        disabled={currentPage === totalPages}
+
+      <button
+        class="btn btn-sm variant-soft-surface"
+        onclick={pagination.nextPage}
+        disabled={pagination.currentPage === pagination.totalPages}
         title={$t.common.next}
       >
         {$t.common.next} →

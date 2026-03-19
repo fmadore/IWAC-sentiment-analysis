@@ -11,6 +11,7 @@
 	import { ComparisonCSVExportButton } from '$lib/components/ui';
 	import { SentimentBadge } from '$lib/components/common';
 	import { innerWidth } from 'svelte/reactivity/window';
+	import { createPagination } from '$lib/utils/pagination.svelte';
 
 	let viewMode = $state<'table' | 'cards'>('table');
 	let sortBy = $state<'discrepancy' | 'date' | 'title'>('discrepancy');
@@ -18,11 +19,6 @@
 
 	// Reactive mobile detection using Svelte 5 pattern
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
-
-	// Pagination
-	let currentPage = $state(1);
-	let itemsPerPage = $state(25);
-	let itemsPerPageOptions = [10, 25, 50, 100];
 
 	// Switch to card view on mobile
 	$effect(() => {
@@ -61,56 +57,14 @@
 	);
 
 	// Pagination
-	const totalItems = $derived(sortedComparisons.length);
-	const totalPages = $derived(Math.ceil(totalItems / itemsPerPage));
-	const startIndex = $derived((currentPage - 1) * itemsPerPage);
-	const endIndex = $derived(Math.min(startIndex + itemsPerPage, totalItems));
-	const paginatedComparisons = $derived(sortedComparisons.slice(startIndex, endIndex));
-
-	// Pagination functions
-	function goToPage(page: number) {
-		if (page >= 1 && page <= totalPages) {
-			currentPage = page;
-		}
-	}
-
-	function previousPage() {
-		if (currentPage > 1) {
-			currentPage--;
-		}
-	}
-
-	function nextPage() {
-		if (currentPage < totalPages) {
-			currentPage++;
-		}
-	}
-
-	function changeItemsPerPage(newItemsPerPage: number) {
-		itemsPerPage = newItemsPerPage;
-		currentPage = 1; // Reset to first page
-	}
-
-	// Generate visible page numbers
-	const visiblePages = $derived.by(() => {
-		const pages: number[] = [];
-		const maxVisible = isMobile ? 3 : 5;
-		const half = Math.floor(maxVisible / 2);
-
-		let start = Math.max(1, currentPage - half);
-		let end = Math.min(totalPages, start + maxVisible - 1);
-
-		// Adjust start if we're near the end
-		if (end - start + 1 < maxVisible) {
-			start = Math.max(1, end - maxVisible + 1);
-		}
-
-		for (let i = start; i <= end; i++) {
-			pages.push(i);
-		}
-
-		return pages;
+	const pagination = createPagination({
+		totalItems: () => sortedComparisons.length,
+		initialItemsPerPage: 25,
+		itemsPerPageOptions: [10, 25, 50, 100],
+		maxVisiblePages: () => (isMobile ? 3 : 5)
 	});
+
+	const paginatedComparisons = $derived(sortedComparisons.slice(pagination.startIndex, pagination.endIndex));
 
 	function selectComparison(comparison: ComparisonData) {
 		selectedComparison.set(comparison);
@@ -157,9 +111,9 @@
 			<div class="flex items-center gap-4">
 				<div class="text-sm text-white/60">
 					{$t.table?.showingItems || 'Showing'}
-					{startIndex + 1}-{endIndex}
+					{pagination.startIndex + 1}-{pagination.endIndex}
 					{$t.common?.of || 'of'}
-					{totalItems}
+					{sortedComparisons.length}
 				</div>
 				<div class="flex items-center gap-2">
 					<label for="items-per-page" class="text-sm text-white whitespace-nowrap"
@@ -167,11 +121,11 @@
 					>
 					<select
 						id="items-per-page"
-						bind:value={itemsPerPage}
-						onchange={(e) => changeItemsPerPage(Number((e.target as HTMLSelectElement)?.value))}
+						bind:value={pagination.itemsPerPage}
+						onchange={(e) => pagination.changeItemsPerPage(Number((e.target as HTMLSelectElement)?.value))}
 						class="select select-sm bg-surface-700 text-white border-surface-500"
 					>
-					{#each itemsPerPageOptions as option (option)}
+					{#each pagination.itemsPerPageOptions as option (option)}
 							<option value={option}>{option}</option>
 						{/each}
 					</select>
@@ -180,24 +134,24 @@
 		</div>
 
 		<!-- Second row: Pagination controls -->
-		{#if totalPages > 1}
+		{#if pagination.totalPages > 1}
 			<div class="flex justify-center">
 				<div class="pagination-controls flex items-center gap-2">
 					<button
 						class="btn btn-sm variant-soft-surface"
-						onclick={previousPage}
-						disabled={currentPage === 1}
+						onclick={pagination.previousPage}
+						disabled={pagination.currentPage === 1}
 						title={$t.common?.previous || 'Previous page'}
 					>
 						← {isMobile ? '' : $t.common?.previous || 'Previous'}
 					</button>
 
-{#each visiblePages as page (page)}
+{#each pagination.visiblePages as page (page)}
 						<button
-							class="btn btn-sm {page === currentPage
+							class="btn btn-sm {page === pagination.currentPage
 								? 'variant-filled-primary'
 								: 'variant-soft-surface'}"
-							onclick={() => goToPage(page)}
+							onclick={() => pagination.goToPage(page)}
 						>
 							{page}
 						</button>
@@ -205,8 +159,8 @@
 
 					<button
 						class="btn btn-sm variant-soft-surface"
-						onclick={nextPage}
-						disabled={currentPage === totalPages}
+						onclick={pagination.nextPage}
+						disabled={pagination.currentPage === pagination.totalPages}
 						title={$t.common?.next || 'Next page'}
 					>
 						{isMobile ? '' : $t.common?.next || 'Next'} →
