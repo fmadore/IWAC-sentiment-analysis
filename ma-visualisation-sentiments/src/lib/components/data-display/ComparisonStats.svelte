@@ -268,29 +268,17 @@
 		overflow: hidden;
 	}
 
-	/* Comparison stat cards with gradient accent */
+	/* Stat cards with neutral glass style */
 	.comparison-stat-card {
-		background: color-mix(in oklab, var(--sentiment-comparison) 5%, transparent);
-		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
+		background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
+		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
 		backdrop-filter: blur(var(--glass-blur-md));
 		transition: all var(--timing-fast) var(--easing-default);
 	}
 
 	.comparison-stat-card:hover {
-		background: color-mix(in oklab, var(--sentiment-comparison) 8%, transparent);
-		border-color: color-mix(in oklab, var(--sentiment-comparison) 25%, transparent);
+		border-color: color-mix(in oklab, var(--color-surface-50) 18%, transparent);
 		transform: translateY(-2px);
-	}
-
-	.comparison-stat-card::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		height: 2px;
-		background: var(--gradient-comparison);
-		opacity: 0.8;
 	}
 
 	/* Icon containers */
@@ -381,8 +369,8 @@
 	}
 
 	.comparison-breakdown {
-		background: color-mix(in oklab, var(--sentiment-comparison) 5%, transparent);
-		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
+		background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
+		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
 	}
 
 	.breakdown-grid {

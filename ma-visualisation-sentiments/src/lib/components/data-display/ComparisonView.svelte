@@ -157,15 +157,15 @@
 	/* Comparison-specific empty states */
 	.comparison-empty-state,
 	.comparison-empty-results {
-		background: color-mix(in oklab, var(--sentiment-comparison) 5%, transparent);
-		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
+		background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
+		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
 		backdrop-filter: blur(var(--glass-blur-md));
 	}
 
 	/* Comparison loading card */
 	.comparison-loading-card {
-		background: color-mix(in oklab, var(--sentiment-comparison) 5%, transparent);
-		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
+		background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
+		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
 		backdrop-filter: blur(var(--glass-blur-md));
 	}
 
@@ -186,8 +186,8 @@
 
 	/* Pair picker section */
 	.comparison-pair-picker {
-		background: color-mix(in oklab, var(--sentiment-comparison) 5%, transparent);
-		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
+		background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
+		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
 		border-radius: 0.75rem;
 		padding: 1rem;
 		backdrop-filter: blur(var(--glass-blur-sm));

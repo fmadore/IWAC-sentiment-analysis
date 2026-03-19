@@ -442,20 +442,9 @@
 
 	/* Comparison table wrapper with gradient accent */
 	.comparison-table-wrapper {
-		background: color-mix(in oklab, var(--sentiment-comparison) 3%, transparent);
-		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 12%, transparent);
+		background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
+		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
 		backdrop-filter: blur(var(--glass-blur-md));
-	}
-
-	.comparison-table-wrapper::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		height: 2px;
-		background: var(--gradient-comparison);
-		z-index: 10;
 	}
 
 	.sortable-header {
@@ -465,7 +454,7 @@
 	}
 
 	.sortable-header:hover {
-		background-color: color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
+		background-color: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
 	}
 
 	/* Sticky table headers */
@@ -480,16 +469,16 @@
 	/* Ensure all clickable elements have pointer cursor */
 	.comparison-card {
 		cursor: pointer;
-		background: color-mix(in oklab, var(--sentiment-comparison) 5%, transparent);
-		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 12%, transparent);
+		background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
+		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
 		backdrop-filter: blur(var(--glass-blur-sm));
 		transition: all var(--timing-fast) var(--easing-default);
 	}
 
 	.comparison-card:hover {
 		cursor: pointer;
-		background: color-mix(in oklab, var(--sentiment-comparison) 10%, transparent);
-		border-color: color-mix(in oklab, var(--sentiment-comparison) 25%, transparent);
+		background: color-mix(in oklab, var(--color-surface-900) 90%, transparent);
+		border-color: color-mix(in oklab, var(--color-surface-50) 18%, transparent);
 		transform: translateY(-2px);
 	}
 
@@ -501,7 +490,7 @@
 
 	tbody tr:hover {
 		cursor: pointer;
-		background-color: color-mix(in oklab, var(--sentiment-comparison) 10%, transparent);
+		background-color: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
 	}
 
 	.cards-grid {
@@ -591,8 +580,8 @@
 	}
 
 	.comparison-controls {
-		background: color-mix(in oklab, var(--sentiment-comparison) 5%, transparent);
-		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
+		background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
+		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
 	}
 
 	.pagination-controls {
