@@ -2,3 +2,6 @@
 .venv
 exports/
 data-preprocess/__pycache__/
+
+# Claude Code local settings
+.claude/settings.local.json
