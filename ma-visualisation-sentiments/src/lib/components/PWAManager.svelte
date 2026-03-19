@@ -4,7 +4,10 @@
 	import { browser } from '$app/environment';
 	import { base } from '$app/paths';
 	import { DEV } from 'esm-env';
-	import type { ExtendedServiceWorkerRegistration } from '$lib/types/pwa.js';
+	interface ExtendedServiceWorkerRegistration extends ServiceWorkerRegistration {
+		sync?: { register(tag: string): Promise<void> };
+		periodicSync?: { register(tag: string, options: { minInterval: number }): Promise<void> };
+	}
 
 	let updateAvailable = $state(false);
 	let registration = $state<ExtendedServiceWorkerRegistration | null>(null);

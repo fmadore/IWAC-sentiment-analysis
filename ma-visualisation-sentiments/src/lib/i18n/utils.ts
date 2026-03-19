@@ -28,11 +28,6 @@ export const SUBJECTIVITY_SCORE_MAP = {
   5: 'subjectivity.subjective'   // Very subjective
 } as const;
 
-// Reverse mapping from translation keys to French values (for data storage)
-export const TRANSLATION_KEY_TO_FRENCH_MAP = Object.fromEntries(
-  Object.entries(SENTIMENT_VALUE_MAP).map(([french, key]) => [key, french])
-);
-
 /**
  * Translates a sentiment value from French to the current language
  */
