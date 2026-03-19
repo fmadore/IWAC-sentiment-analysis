@@ -133,8 +133,8 @@
 		align-items: center;
 		gap: 0.5rem;
 		padding: 0.5rem 0.75rem;
-		background: color-mix(in oklab, var(--sentiment-comparison) 10%, transparent);
-		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 25%, transparent);
+		background: color-mix(in oklab, var(--color-surface-50) 6%, transparent);
+		border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
 		border-radius: 0.5rem;
 		color: var(--color-surface-50);
 		cursor: pointer;
@@ -142,8 +142,8 @@
 	}
 
 	.picker-button:hover {
-		background: color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
-		border-color: color-mix(in oklab, var(--sentiment-comparison) 40%, transparent);
+		background: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+		border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
 	}
 
 	.selected-pair {
@@ -172,7 +172,7 @@
 		left: 0;
 		min-width: 200px;
 		background: color-mix(in oklab, var(--color-surface-900) 95%, transparent);
-		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 30%, transparent);
+		border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
 		border-radius: 0.5rem;
 		box-shadow: 0 10px 25px -5px color-mix(in oklab, black 50%, transparent);
 		backdrop-filter: blur(var(--glass-blur-lg));
@@ -197,12 +197,12 @@
 	}
 
 	.dropdown-item:hover {
-		background: color-mix(in oklab, var(--sentiment-comparison) 20%, transparent);
+		background: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
 	}
 
 	.dropdown-item.selected {
-		background: color-mix(in oklab, var(--sentiment-comparison) 25%, transparent);
-		box-shadow: inset 2px 0 0 var(--sentiment-comparison-light);
+		background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+		box-shadow: inset 2px 0 0 var(--color-primary-400);
 	}
 
 	.pair-logos {

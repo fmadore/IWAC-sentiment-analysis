@@ -184,8 +184,10 @@
 		border-top-color: var(--sentiment-comparison);
 	}
 
-	/* Pair picker section */
+	/* Pair picker section — z-index ensures dropdown floats above stats cards */
 	.comparison-pair-picker {
+		position: relative;
+		z-index: 10;
 		background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
 		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
 		border-radius: 0.75rem;

@@ -227,27 +227,10 @@
     transition: all var(--timing-normal) var(--easing-default);
   }
 
-  /* Comparison-specific filter card */
+  /* Comparison-specific filter card — neutral glass like other filter cards */
   .comparison-filter-card {
-    background: color-mix(in oklab, var(--sentiment-comparison) 5%, transparent);
-    border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
     position: relative;
     overflow: hidden;
-  }
-
-  .comparison-filter-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--gradient-comparison);
-  }
-
-  .comparison-filter-card:hover {
-    border-color: color-mix(in oklab, var(--sentiment-comparison) 25%, transparent);
-    background: color-mix(in oklab, var(--sentiment-comparison) 8%, transparent);
   }
 
   .filter-card:hover {
