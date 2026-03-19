@@ -10,6 +10,7 @@
     GridComponent,
     LegendComponent
   } from 'echarts/components';
+  import { LabelLayout, UniversalTransition } from 'echarts/features';
   import { CanvasRenderer } from 'echarts/renderers';
   import type { EChartsOption, SeriesOption } from 'echarts';
   import { innerWidth } from 'svelte/reactivity/window';
@@ -22,6 +23,8 @@
     LegendComponent,
     BarChart,
     PieChart,
+    LabelLayout,
+    UniversalTransition,
     CanvasRenderer
   ]);
 
@@ -44,7 +47,9 @@
     getSplitLineStyle,
     getGridConfig,
     getPieSeriesStyle,
-    getEmphasisConfig
+    getEmphasisConfig,
+    getUniversalTransitionConfig,
+    getStaggeredAnimationDelay
   } from '$lib/utils/chartTheme';
 
   // Get subjectivity labels in current language
@@ -152,6 +157,8 @@
           name: currentT.filters.subjectivity,
           type: 'pie',
           ...pieStyle,
+          ...getUniversalTransitionConfig(),
+          id: 'subjectivity',
           data: pieData
         }]
       } as EChartsOption;
@@ -164,6 +171,9 @@
           type: 'bar',
           stack: 'total',
           emphasis: getEmphasisConfig(),
+          ...getUniversalTransitionConfig(),
+          ...getStaggeredAnimationDelay(),
+          id: `subjectivity-${index}`,
           data: frenchSubjectivityLabels.map(frenchLabel => newspaperSubjectivityCounts[journal]?.[frenchLabel] || 0),
           itemStyle: {
             color: seriesColorPalette[index % seriesColorPalette.length],

@@ -37,7 +37,8 @@
     getAxisLabelStyle,
     getSplitLineStyle,
     getGridConfig,
-    getEmphasisConfig
+    getEmphasisConfig,
+    getStaggeredAnimationDelay
   } from '$lib/utils/chartTheme';
 
   // Ordre des polarités pour l'affichage (French values for data operations)
@@ -110,7 +111,8 @@
         color: subjectivityColors[subjScore as keyof typeof subjectivityColors],
         borderRadius: [3, 3, 0, 0]
       },
-      emphasis: getEmphasisConfig()
+      emphasis: getEmphasisConfig(),
+      ...getStaggeredAnimationDelay()
     }));
 
     const tooltipConfig = getTooltipConfig(isMobile);

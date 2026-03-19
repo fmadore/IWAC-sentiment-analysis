@@ -96,6 +96,9 @@
 		"cookie": "^0.7.0",
 		"@tailwindcss/vite": {
 			"vite": "$vite"
+		},
+		"svelte-echarts": {
+			"echarts": "$echarts"
 		}
 	},
 	"dependencies": {

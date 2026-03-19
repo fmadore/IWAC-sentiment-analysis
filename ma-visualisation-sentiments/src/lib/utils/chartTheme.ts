@@ -479,6 +479,47 @@ export function getAnimationConfig() {
   };
 }
 
+/**
+ * Staggered animation delay for bar series (v6 enhancement)
+ * Creates a progressive reveal effect where bars appear sequentially
+ */
+export function getStaggeredAnimationDelay(baseDelay: number = 30) {
+  return {
+    animationDuration: 800,
+    animationEasing: 'cubicOut' as const,
+    animationDelay: (idx: number) => idx * baseDelay
+  };
+}
+
+/**
+ * Universal transition configuration (v6 enhancement)
+ * Enables smooth morphing animation when switching between chart types (e.g., bar ↔ pie)
+ * Requires UniversalTransition feature to be registered via use()
+ */
+export function getUniversalTransitionConfig() {
+  return {
+    universalTransition: {
+      enabled: true,
+      divideShape: 'clone' as const
+    }
+  };
+}
+
+/**
+ * Accessibility configuration with decal patterns (v6 enhancement)
+ * Adds visual patterns to chart elements for better colorblind accessibility
+ */
+export function getAccessibilityConfig(enabled: boolean = true) {
+  return {
+    aria: {
+      enabled,
+      decal: {
+        show: enabled
+      }
+    }
+  };
+}
+
 // =============================================================================
 // COMPLETE CHART OPTIONS BUILDER
 // =============================================================================

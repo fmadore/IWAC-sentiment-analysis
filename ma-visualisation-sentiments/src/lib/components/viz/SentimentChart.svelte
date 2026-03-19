@@ -11,6 +11,7 @@
     GridComponent,
     LegendComponent
   } from 'echarts/components';
+  import { LabelLayout, UniversalTransition } from 'echarts/features';
   import { CanvasRenderer } from 'echarts/renderers';
   import type { EChartsOption, SeriesOption } from 'echarts';
   import { innerWidth } from 'svelte/reactivity/window';
@@ -23,6 +24,8 @@
     LegendComponent,
     BarChart,
     PieChart,
+    LabelLayout,
+    UniversalTransition,
     CanvasRenderer
   ]);
 
@@ -45,7 +48,9 @@
     getSplitLineStyle,
     getGridConfig,
     getPieSeriesStyle,
-    getEmphasisConfig
+    getEmphasisConfig,
+    getUniversalTransitionConfig,
+    getStaggeredAnimationDelay
   } from '$lib/utils/chartTheme';
 
   // Get polarity labels in current language
@@ -140,6 +145,8 @@
           name: currentT.filters.polarity,
           type: 'pie',
           ...pieStyle,
+          ...getUniversalTransitionConfig(),
+          id: 'sentiment',
           data: pieData
         }]
       } as EChartsOption;
@@ -152,6 +159,9 @@
           type: 'bar',
           stack: 'total',
           emphasis: getEmphasisConfig(),
+          ...getUniversalTransitionConfig(),
+          ...getStaggeredAnimationDelay(),
+          id: `sentiment-${index}`,
           data: frenchPolarityLabels.map(frenchLabel => newspaperPolarityCounts[journal]?.[frenchLabel] || 0),
           itemStyle: {
             color: seriesColorPalette[index % seriesColorPalette.length],

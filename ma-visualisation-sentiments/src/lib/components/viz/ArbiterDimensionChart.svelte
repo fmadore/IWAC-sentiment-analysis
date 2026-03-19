@@ -29,6 +29,7 @@
 		getAxisLabelStyle,
 		getAxisLineStyle,
 		getSplitLineStyle,
+		getStaggeredAnimationDelay,
 		arbiterVerdictColors
 	} from '$lib/utils/chartTheme';
 
@@ -131,6 +132,7 @@
 					type: 'bar',
 					stack: 'total',
 					emphasis: { focus: 'series' },
+					...getStaggeredAnimationDelay(),
 					itemStyle: {
 						color: arbiterVerdictColors.model_a,
 						borderRadius: [0, 0, 0, 0]
@@ -142,6 +144,7 @@
 					type: 'bar',
 					stack: 'total',
 					emphasis: { focus: 'series' },
+					...getStaggeredAnimationDelay(),
 					itemStyle: {
 						color: arbiterVerdictColors.model_b,
 						borderRadius: [0, 0, 0, 0]
@@ -153,6 +156,7 @@
 					type: 'bar',
 					stack: 'total',
 					emphasis: { focus: 'series' },
+					...getStaggeredAnimationDelay(),
 					itemStyle: {
 						color: arbiterVerdictColors.both,
 						borderRadius: [0, 0, 0, 0]
@@ -164,6 +168,7 @@
 					type: 'bar',
 					stack: 'total',
 					emphasis: { focus: 'series' },
+					...getStaggeredAnimationDelay(),
 					itemStyle: {
 						color: arbiterVerdictColors.neither,
 						borderRadius: [4, 4, 0, 0]

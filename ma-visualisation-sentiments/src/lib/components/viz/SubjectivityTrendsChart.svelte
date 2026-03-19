@@ -9,6 +9,7 @@
     LegendComponent,
     DataZoomComponent
   } from 'echarts/components';
+  import { LabelLayout } from 'echarts/features';
   import { CanvasRenderer } from 'echarts/renderers';
   import type { EChartsOption } from 'echarts';
   import { innerWidth } from 'svelte/reactivity/window';
@@ -19,6 +20,7 @@
     GridComponent,
     LegendComponent,
     LineChart,
+    LabelLayout,
     CanvasRenderer,
     DataZoomComponent
   ]);

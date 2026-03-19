@@ -23,6 +23,7 @@
     GridComponent,
     LegendComponent
   } from 'echarts/components';
+  import { LabelLayout } from 'echarts/features';
   import { CanvasRenderer } from 'echarts/renderers';
   import type { EChartsOption } from 'echarts';
   import DatasetBadge from '../ui/DatasetBadge.svelte';
@@ -34,6 +35,7 @@
     GridComponent,
     LegendComponent,
     BarChart,
+    LabelLayout,
     CanvasRenderer
   ]);
 

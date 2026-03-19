@@ -9,6 +9,7 @@
     LegendComponent,
     DataZoomComponent
   } from 'echarts/components';
+  import { UniversalTransition } from 'echarts/features';
   import { CanvasRenderer } from 'echarts/renderers';
   import type { EChartsOption } from 'echarts';
   import { innerWidth } from 'svelte/reactivity/window';
@@ -19,6 +20,7 @@
     GridComponent,
     LegendComponent,
     LineChart,
+    UniversalTransition,
     CanvasRenderer,
     DataZoomComponent
   ]);
@@ -42,7 +44,8 @@
     getGridConfig,
     getDataZoomConfig,
     getLineSeriesStyle,
-    getEmphasisConfig
+    getEmphasisConfig,
+    getUniversalTransitionConfig
   } from '$lib/utils/chartTheme';
 
   // Reactive window width for responsive behavior
@@ -96,6 +99,8 @@
           opacity: 0.4
         } : undefined,
         emphasis: getEmphasisConfig(),
+        ...getUniversalTransitionConfig(),
+        id: `volume-${index}`,
         data: years.map(year => countryYearData[country][year] || 0),
         color,
         ...lineStyle,
