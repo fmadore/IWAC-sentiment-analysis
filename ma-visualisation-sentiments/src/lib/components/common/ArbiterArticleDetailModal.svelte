@@ -17,6 +17,7 @@
 	import { t } from '$lib/i18n';
 	import { getJournalName } from '$lib/utils';
 	import { formatDate, getArticleUrl } from '$lib/utils/format';
+	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
 	import { SentimentBadge, ArbiterSection } from '$lib/components/common';
 	import { get } from 'svelte/store';
 	import XIcon from '@lucide/svelte/icons/x';
@@ -106,6 +107,9 @@
 							</div>
 						</div>
 
+						{#if comparison.article.iiif_manifest}
+							<IIIFViewer manifestUrl={comparison.article.iiif_manifest} articleUrl={getArticleUrl(comparison.article['o:id'])} />
+						{/if}
 						<a
 							href={getArticleUrl(comparison.article['o:id'])}
 							target="_blank"

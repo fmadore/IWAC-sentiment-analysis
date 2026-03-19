@@ -19,6 +19,7 @@
 	import { ComparisonPanel, ArbiterSection } from '$lib/components/common';
 	import { getJournalName } from '$lib/utils';
 	import { formatDate, getArticleUrl, getModelDisplayName } from '$lib/utils/format';
+	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
 	import { getDiffClass, getDiffBadgeClass } from '$lib/utils/discrepancy';
 	import { t } from '$lib/i18n';
 	import { availableDatasets, getArbiterForArticle } from '$lib/stores';
@@ -57,9 +58,14 @@
 			</div>
 		</div>
 
+		<!-- Article viewer -->
+		{#if comparison.article.iiif_manifest}
+			<IIIFViewer manifestUrl={comparison.article.iiif_manifest} articleUrl={getArticleUrl(comparison.article['o:id'])} />
+		{/if}
+
 		<!-- Link to full article -->
 		<div class="comparison-metadata-card card variant-glass glass-heavy p-4 hover-lift-sm border-gradient">
-			<span class="text-xs uppercase font-bold opacity-75 text-purple-300/80"
+			<span class="text-xs uppercase font-bold opacity-75 text-white/60"
 				>{$t.article.linkToFullArticle}</span
 			>
 			<p class="text-white mt-2">

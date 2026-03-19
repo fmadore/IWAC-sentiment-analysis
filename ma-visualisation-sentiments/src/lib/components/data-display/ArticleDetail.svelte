@@ -4,6 +4,7 @@
   import { formatDate, getArticleUrl } from '$lib/utils/format';
   import { t } from '$lib/i18n';
   import { SentimentBadge } from '$lib/components/common';
+  import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
 
   // Props: Accept article as a prop
   let { article }: { article: Article | null } = $props();
@@ -25,6 +26,10 @@
         <p class="text-white mt-2 font-medium">{formatDate(article.publication_date)}</p>
       </div>
     </div>
+
+    {#if article.iiif_manifest}
+      <IIIFViewer manifestUrl={article.iiif_manifest} articleUrl={getArticleUrl(article['o:id'])} />
+    {/if}
 
     <div class="article-meta-card card preset-glass p-4 hover-lift-sm">
       <span class="text-xs uppercase font-bold opacity-75 text-white/60">{$t.article.linkToFullArticle}</span>

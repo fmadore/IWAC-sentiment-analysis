@@ -25,7 +25,7 @@ export interface Article {
   Newspaper?: string; // Field from the JSON data
   Country?: string; // Field from the JSON data
   publication_date?: string; // YYYY-MM-DD
-  // ... autres champs Omeka que vous souhaitez utiliser ...
+  iiif_manifest?: string; // IIIF v3 manifest URL (e.g. https://islam.zmo.de/iiif/3/5504/manifest)
   sentiment_analysis: SentimentAnalysis | null;
   // Propriété ajoutée dynamiquement pour savoir de quel dataset vient l'article
   dataset_id: string;

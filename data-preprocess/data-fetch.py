@@ -26,12 +26,14 @@ mistral_data_list = []
 print(f"\nProcessing {len(dataset['train'])} records...")
 for item in tqdm(dataset['train'], desc="Processing articles"):
     # Base item structure for all datasets
+    iiif = safe_str(item.get("iiif_manifest"))
     base_item = {
         "o:id": safe_int_convert(item.get("o:id")),
         "o:title": safe_str(item.get("title")),
         "Newspaper": safe_str(item.get("newspaper")),
         "Country": safe_str(item.get("country")),
-        "dcterms:date": safe_str(item.get("pub_date"))
+        "dcterms:date": safe_str(item.get("pub_date")),
+        **({"iiif_manifest": iiif} if iiif else {})
     }
 
     # Gemini data mapping
