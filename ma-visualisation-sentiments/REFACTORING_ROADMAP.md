@@ -24,15 +24,29 @@
 ### Phase 4: Accessibility Fix
 - Added `prefers-reduced-motion` support to `ArbiterMethodology.svelte` modal
 
+### Phase 5: Skipped
+- Chart container classes are already consistent across standard charts (7/11 use same pattern)
+- Differences in Arbiter charts and KeywordFrequencyChart are intentional (different contexts)
+
+### Phase 6: AnalysisInfo Decomposition
+- Created `src/lib/utils/accordion.svelte.ts` with `createAccordion()` composable
+- Created `src/lib/components/common/PromptModal.svelte` shared modal component
+- Extracted prompt modal from `AnalysisInfo.svelte` into shared `PromptModal`
+- Applied accordion composable to `AnalysisInfo.svelte`
+- Reduced from 1202 to 985 lines (~18% reduction)
+
+### Phase 7: ArbiterMethodology Decomposition
+- Applied accordion composable to `ArbiterMethodology.svelte`
+- Extracted prompt modal into shared `PromptModal`
+- Reduced from 849 to 715 lines (~16% reduction)
+
 ---
 
 ## Future Work
 
 | Phase | Scope | Priority | Effort |
 |-------|-------|----------|--------|
-| 5 | Visual consistency — standardize chart container classes | LOW | Small |
-| 6 | Split AnalysisInfo.svelte (1200+ lines) into sub-components | MEDIUM | Large |
-| 7 | Split ArbiterMethodology.svelte (850+ lines) + extract accordion composable | MEDIUM | Large |
+| 6b | Further split AnalysisInfo: extract MethodologySection (model cards, config) | MEDIUM | Medium |
 | 8 | Extract shared ModelComparisonStatsCard from ComparisonStats + ArbiterStatsCards | MEDIUM | Medium |
 | 9 | Dual runes+writable store pattern consolidation | LOW | Large |
 | 10 | Python preprocessing cleanup (data-fetch.py model mapping, extreme-analysis.py structure init) | LOW | Small |

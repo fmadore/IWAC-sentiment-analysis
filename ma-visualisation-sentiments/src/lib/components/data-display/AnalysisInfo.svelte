@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { t, currentLanguage } from '$lib/i18n';
 	import { selectedDataset, comparisonMode, datasetArticles } from '$lib/stores';
-	import { AccordionItem } from '$lib/components/common';
+	import { AccordionItem, PromptModal } from '$lib/components/common';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import { base } from '$app/paths';
+	import { createAccordion } from '$lib/utils/accordion.svelte';
 
-	// Define the type for open sections as an array of strings
-	let openSections = $state<string[]>([]);
+	const accordion = createAccordion();
 
 	// State for the main methodology panel
 	let isMethodologyOpen = $state(false);
@@ -17,26 +17,9 @@
 	// Compute total article count from all datasets
 	let totalArticleCount = $derived.by(() => {
 		const datasets = $datasetArticles;
-		// Get the count from the first available dataset (they should all have the same articles)
 		const firstDataset = Object.values(datasets)[0];
 		return firstDataset?.length ?? 0;
 	});
-
-	// Toggle function for accordion sections
-	function toggleSection(section: string) {
-		if (openSections.includes(section)) {
-			openSections = openSections.filter((s) => s !== section);
-		} else {
-			openSections = [...openSections, section];
-		}
-	}
-
-	// Function to handle modal keyboard events
-	function handleModalKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape') {
-			showPromptModal = false;
-		}
-	}
 </script>
 
 <div class="info-card">
@@ -86,8 +69,8 @@
 				<!-- Polarity Section -->
 				<AccordionItem
 					title={$t.analysis.polaritySection}
-					open={openSections.includes('polarite')}
-					onToggle={() => toggleSection('polarite')}
+					open={accordion.isOpen('polarite')}
+					onToggle={() => accordion.toggle('polarite')}
 				>
 					<p class="panel-description">{$t.analysis.polarityDescription}</p>
 					<ul class="sentiment-list">
@@ -121,8 +104,8 @@
 				<!-- Subjectivity Section -->
 				<AccordionItem
 					title={$t.analysis.subjectivitySection}
-					open={openSections.includes('subjectivite')}
-					onToggle={() => toggleSection('subjectivite')}
+					open={accordion.isOpen('subjectivite')}
+					onToggle={() => accordion.toggle('subjectivite')}
 				>
 					<p class="panel-description">{$t.analysis.subjectivityDescription}</p>
 					<ul class="sentiment-list">
@@ -157,8 +140,8 @@
 				<!-- Centrality Section -->
 				<AccordionItem
 					title={$t.analysis.centralitySection}
-					open={openSections.includes('centralite')}
-					onToggle={() => toggleSection('centralite')}
+					open={accordion.isOpen('centralite')}
+					onToggle={() => accordion.toggle('centralite')}
 				>
 					<p class="panel-description">{$t.analysis.centralityDescription}</p>
 					<ul class="sentiment-list">
@@ -188,8 +171,8 @@
 				<!-- Methodology Section -->
 				<AccordionItem
 					title={$t.analysis.methodologyAiModel}
-					open={openSections.includes('methodologie')}
-					onToggle={() => toggleSection('methodologie')}
+					open={accordion.isOpen('methodologie')}
+					onToggle={() => accordion.toggle('methodologie')}
 				>
 					<div class="methodology-content">
 						<div class="methodology-section">
@@ -414,8 +397,8 @@
 				<!-- Limitations Section -->
 				<AccordionItem
 					title={$t.analysis.limitationsTitle}
-					open={openSections.includes('limites')}
-					onToggle={() => toggleSection('limites')}
+					open={accordion.isOpen('limites')}
+					onToggle={() => accordion.toggle('limites')}
 				>
 					<p class="panel-description">{$t.analysis.limitationsDescription}</p>
 					{#if $comparisonMode}
@@ -451,51 +434,23 @@
 </div>
 
 <!-- Prompt Modal -->
-{#if showPromptModal}
-	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-	<div
-		class="prompt-modal-backdrop"
-		role="dialog"
-		aria-modal="true"
-		aria-labelledby="prompt-modal-title"
-		onclick={() => (showPromptModal = false)}
-		onkeydown={handleModalKeydown}
-		tabindex="-1"
-	>
-		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-		<div
-			class="prompt-modal"
-			role="document"
-			onclick={(e) => e.stopPropagation()}
-			onkeydown={(e) => e.stopPropagation()}
-		>
-			<div class="prompt-modal-header">
-				<h3 id="prompt-modal-title" class="prompt-modal-title">
-					{$currentLanguage === 'en' ? 'Complete Analysis Prompt' : "Prompt d'analyse complet"}
-				</h3>
-				<button
-					class="modal-close-btn"
-					onclick={() => (showPromptModal = false)}
-					aria-label={$currentLanguage === 'en' ? 'Close modal' : 'Fermer la modal'}
-					type="button"
-				>
-					✕
-				</button>
-			</div>
+<PromptModal open={showPromptModal} onClose={() => (showPromptModal = false)}>
+	{#snippet title()}
+		{$currentLanguage === 'en' ? 'Complete Analysis Prompt' : "Prompt d'analyse complet"}
+	{/snippet}
 
-			<div class="prompt-modal-body">
-				{#if $currentLanguage === 'en'}
-					<div class="translation-notice">
-						<p>
-							<strong>Note:</strong> This is a translation of the original French prompt used for the
-							analysis. The AI model received instructions in French as the corpus consists of French-language
-							articles.
-						</p>
-					</div>
-				{/if}
+	{#if $currentLanguage === 'en'}
+		<div class="translation-notice">
+			<p>
+				<strong>Note:</strong> This is a translation of the original French prompt used for the
+				analysis. The AI model received instructions in French as the corpus consists of French-language
+				articles.
+			</p>
+		</div>
+	{/if}
 
-				<div class="prompt-code-container">
-					<pre class="prompt-code">{$currentLanguage === 'en'
+	<div class="prompt-code-container">
+		<pre class="prompt-code">{$currentLanguage === 'en'
 							? `# Sentiment Analysis: Representation of Islam and Muslims in Francophone West African Media
 
 You are an expert analyst of representations of Islam and Muslims in the media, with a particular focus on Francophone West Africa. Analyze the provided text by evaluating the centrality, subjectivity, and polarity concerning the treatment of Islam and/or Muslims.
@@ -582,17 +537,8 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
     - subjectivite_justification = "Non applicable car le sujet n'est pas abordé."
     - polarite = "Non applicable"
     - polarite_justification = "Non applicable car le sujet n'est pas abordé."`}</pre>
-				</div>
-			</div>
-
-			<div class="prompt-modal-footer">
-				<button class="close-btn" onclick={() => (showPromptModal = false)} type="button">
-					{$t.common.close}
-				</button>
-			</div>
-		</div>
 	</div>
-{/if}
+</PromptModal>
 
 <style>
 	/* ==========================================================================
@@ -964,130 +910,9 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 	}
 
 	/* ==========================================================================
-     PROMPT MODAL
+     PROMPT MODAL BODY CONTENT
+     (styles for content rendered inside PromptModal from this component)
      ========================================================================== */
-	.prompt-modal-backdrop {
-		position: fixed;
-		inset: 0;
-		z-index: 1000;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 1rem;
-		background: color-mix(in oklab, var(--color-surface-950) 85%, transparent);
-		backdrop-filter: blur(var(--glass-blur-sm));
-		animation: fadeIn 0.2s var(--easing-default);
-	}
-
-	@keyframes fadeIn {
-		from {
-			opacity: 0;
-		}
-		to {
-			opacity: 1;
-		}
-	}
-
-	@keyframes slideDown {
-		from {
-			opacity: 0;
-			transform: translateY(-8px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-
-	.prompt-modal {
-		width: 100%;
-		max-width: 850px;
-		max-height: 90vh;
-		display: flex;
-		flex-direction: column;
-		background: color-mix(in oklab, var(--color-surface-900) 95%, transparent);
-		backdrop-filter: blur(var(--glass-blur-lg));
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-		border-radius: 1rem;
-		box-shadow:
-			0 16px 64px color-mix(in oklab, black 30%, transparent),
-			0 0 40px color-mix(in oklab, var(--color-primary-500) 10%, transparent);
-		animation: scaleIn 0.25s var(--easing-default);
-		overflow: hidden;
-	}
-
-	@keyframes scaleIn {
-		from {
-			opacity: 0;
-			transform: scale(0.95) translateY(10px);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1) translateY(0);
-		}
-	}
-
-	.prompt-modal::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		height: 2px;
-		background: linear-gradient(
-			90deg,
-			transparent,
-			var(--color-primary-500),
-			var(--color-secondary-500),
-			transparent
-		);
-		opacity: 0.6;
-	}
-
-	.prompt-modal-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 1.25rem 1.5rem;
-		border-bottom: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		background: color-mix(in oklab, var(--color-surface-50) 3%, transparent);
-	}
-
-	.prompt-modal-title {
-		font-size: 1.125rem;
-		font-weight: 600;
-		color: var(--color-surface-50);
-		margin: 0;
-	}
-
-	.modal-close-btn {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 2rem;
-		height: 2rem;
-		background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-		border-radius: 0.5rem;
-		color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
-		font-size: 1rem;
-		cursor: pointer;
-		transition: all var(--timing-fast) var(--easing-default);
-	}
-
-	.modal-close-btn:hover {
-		background: color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-		border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
-		color: var(--color-surface-50);
-		transform: translateY(-1px);
-	}
-
-	.prompt-modal-body {
-		flex: 1;
-		overflow-y: auto;
-		padding: 1.5rem;
-	}
-
 	.translation-notice {
 		padding: 0.875rem 1rem;
 		margin-bottom: 1rem;
@@ -1121,31 +946,6 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 		margin: 0;
 	}
 
-	.prompt-modal-footer {
-		display: flex;
-		justify-content: flex-end;
-		padding: 1rem 1.5rem;
-		border-top: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		background: color-mix(in oklab, var(--color-surface-50) 2%, transparent);
-	}
-
-	.close-btn {
-		padding: 0.5rem 1.25rem;
-		font-size: 0.875rem;
-		font-weight: 500;
-		background: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
-		border: none;
-		border-radius: 0.5rem;
-		color: white;
-		cursor: pointer;
-		transition: all var(--timing-fast) var(--easing-default);
-	}
-
-	.close-btn:hover {
-		transform: translateY(-1px);
-		box-shadow: 0 4px 12px color-mix(in oklab, var(--color-primary-500) 30%, transparent);
-	}
-
 	/* ==========================================================================
      RESPONSIVE
      ========================================================================== */
@@ -1167,19 +967,6 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 			width: 1.75rem;
 			height: 1.75rem;
 		}
-
-		.prompt-modal {
-			max-height: 95vh;
-			border-radius: 0.875rem;
-		}
-
-		.prompt-modal-header {
-			padding: 1rem;
-		}
-
-		.prompt-modal-body {
-			padding: 1rem;
-		}
 	}
 
 	/* ==========================================================================
@@ -1188,10 +975,6 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 	@media (prefers-reduced-motion: reduce) {
 		.model-card,
 		.prompt-btn,
-		.modal-close-btn,
-		.close-btn,
-		.prompt-modal,
-		.prompt-modal-backdrop,
 		.info-content,
 		.header-icon,
 		.info-header-btn {

@@ -5,6 +5,7 @@
  */
 
 // Modals
+export { default as PromptModal } from './PromptModal.svelte';
 export { default as ArticleDetailModal } from './ArticleDetailModal.svelte';
 export { default as ComparisonDetailModal } from './ComparisonDetailModal.svelte';
 export { default as FullScreenModal } from './FullScreenModal.svelte';

@@ -15,7 +15,8 @@
 -->
 <script lang="ts">
 	import { t, currentLanguage } from '$lib/i18n';
-	import { AccordionItem } from '$lib/components/common';
+	import { AccordionItem, PromptModal } from '$lib/components/common';
+	import { createAccordion } from '$lib/utils/accordion.svelte';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import EyeOffIcon from '@lucide/svelte/icons/eye-off';
@@ -27,26 +28,10 @@
 	let isMethodologyOpen = $state(false);
 
 	// State for accordion sections
-	let openSections = $state<string[]>([]);
+	const accordion = createAccordion();
 
 	// State for the prompt modal
 	let showPromptModal = $state(false);
-
-	// Toggle function for accordion sections
-	function toggleSection(section: string) {
-		if (openSections.includes(section)) {
-			openSections = openSections.filter((s) => s !== section);
-		} else {
-			openSections = [...openSections, section];
-		}
-	}
-
-	// Function to handle modal keyboard events
-	function handleModalKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape') {
-			showPromptModal = false;
-		}
-	}
 </script>
 
 <div class="info-card">
@@ -108,8 +93,8 @@
 				<!-- How it works -->
 				<AccordionItem
 					title={$t.arbiter.howItWorks}
-					open={openSections.includes('how-it-works')}
-					onToggle={() => toggleSection('how-it-works')}
+					open={accordion.isOpen('how-it-works')}
+					onToggle={() => accordion.toggle('how-it-works')}
 				>
 					<div class="methodology-content">
 						<div class="methodology-section">
@@ -135,8 +120,8 @@
 				<!-- Arbiter Model -->
 				<AccordionItem
 					title={$t.arbiter.arbiterModel}
-					open={openSections.includes('arbiter-model')}
-					onToggle={() => toggleSection('arbiter-model')}
+					open={accordion.isOpen('arbiter-model')}
+					onToggle={() => accordion.toggle('arbiter-model')}
 				>
 					<div class="model-card-single">
 						<div class="model-header">
@@ -163,8 +148,8 @@
 				<!-- Evaluation Scales -->
 				<AccordionItem
 					title={$t.arbiter.evaluationScales}
-					open={openSections.includes('scales')}
-					onToggle={() => toggleSection('scales')}
+					open={accordion.isOpen('scales')}
+					onToggle={() => accordion.toggle('scales')}
 				>
 					<div class="scales-content">
 						<div class="scale-section">
@@ -203,8 +188,8 @@
 				<!-- View Prompt -->
 				<AccordionItem
 					title={$t.arbiter.viewPrompt}
-					open={openSections.includes('prompt')}
-					onToggle={() => toggleSection('prompt')}
+					open={accordion.isOpen('prompt')}
+					onToggle={() => accordion.toggle('prompt')}
 				>
 					<div class="prompt-section">
 						<p class="section-text">{$t.arbiter.promptExplanation}</p>
@@ -219,33 +204,17 @@
 </div>
 
 <!-- Prompt Modal -->
-{#if showPromptModal}
-	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-	<div
-		class="prompt-modal-backdrop"
-		role="dialog"
-		aria-modal="true"
-		aria-labelledby="prompt-modal-title"
-		onclick={() => (showPromptModal = false)}
-		onkeydown={handleModalKeydown}
-		tabindex="-1"
-	>
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="prompt-modal" onclick={(e) => e.stopPropagation()}>
-			<div class="prompt-modal-header">
-				<h3 id="prompt-modal-title" class="prompt-modal-title">
-					<GavelIcon size={20} class="text-amber-400" />
-					{$t.arbiter.arbiterPrompt}
-				</h3>
-				<button class="modal-close-btn" onclick={() => (showPromptModal = false)}>✕</button>
-			</div>
-			<div class="prompt-modal-body">
-				<div class="prompt-section-header">
-					<h4>{$t.arbiter.systemInstruction}</h4>
-				</div>
-				<div class="prompt-code-container">
-					<pre class="prompt-code">{`You are an expert arbiter evaluating sentiment analysis of news articles about Islam and Muslims in Francophone West Africa.
+<PromptModal open={showPromptModal} onClose={() => (showPromptModal = false)}>
+	{#snippet title()}
+		<GavelIcon size={20} class="text-amber-400" />
+		{$t.arbiter.arbiterPrompt}
+	{/snippet}
+
+	<div class="prompt-section-header">
+		<h4>{$t.arbiter.systemInstruction}</h4>
+	</div>
+	<div class="prompt-code-container">
+		<pre class="prompt-code">{`You are an expert arbiter evaluating sentiment analysis of news articles about Islam and Muslims in Francophone West Africa.
 
 Your role is to:
 1. Analyze articles independently and provide your own assessment
@@ -282,13 +251,13 @@ Your role is to:
 - Provide specific textual evidence when possible
 - Be honest about uncertainty when the correct answer is ambiguous
 - Use French terminology for scores (as shown above)`}</pre>
-				</div>
+	</div>
 
-				<div class="prompt-section-header">
-					<h4>{$t.arbiter.userPromptTemplate}</h4>
-				</div>
-				<div class="prompt-code-container">
-					<pre class="prompt-code">{`Evaluate the following article and the two model analyses.
+	<div class="prompt-section-header">
+		<h4>{$t.arbiter.userPromptTemplate}</h4>
+	</div>
+	<div class="prompt-code-container">
+		<pre class="prompt-code">{`Evaluate the following article and the two model analyses.
 
 ## Article Information
 **Title:** {title}
@@ -317,16 +286,8 @@ Your role is to:
 ---
 
 Provide your independent evaluation for each dimension, determine which model is more accurate, and explain your reasoning.`}</pre>
-				</div>
-			</div>
-			<div class="prompt-modal-footer">
-				<button class="btn preset-filled" onclick={() => (showPromptModal = false)}>
-					{$t.common.close}
-				</button>
-			</div>
-		</div>
 	</div>
-{/if}
+</PromptModal>
 
 <style>
 	/* ==========================================================================
@@ -694,99 +655,8 @@ Provide your independent evaluation for each dimension, determine which model is
 	}
 
 	/* ==========================================================================
-     Modal Styles
+     Prompt Body Content Styles (rendered inside shared PromptModal)
      ========================================================================== */
-	.prompt-modal-backdrop {
-		position: fixed;
-		inset: 0;
-		z-index: 50;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 1rem;
-		background: color-mix(in oklab, black 80%, transparent);
-		backdrop-filter: blur(8px);
-		animation: fadeIn 0.2s ease-out;
-	}
-
-	@keyframes fadeIn {
-		from { opacity: 0; }
-		to { opacity: 1; }
-	}
-
-	.prompt-modal {
-		position: relative;
-		width: 100%;
-		max-width: 800px;
-		max-height: 85vh;
-		display: flex;
-		flex-direction: column;
-		background: var(--color-surface-900);
-		border: 1px solid color-mix(in oklab, var(--sentiment-arbiter) 30%, transparent);
-		border-radius: 1rem;
-		overflow: hidden;
-		animation: scaleIn 0.2s ease-out;
-	}
-
-	@keyframes scaleIn {
-		from { opacity: 0; transform: scale(0.95); }
-		to { opacity: 1; transform: scale(1); }
-	}
-
-	.prompt-modal::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		height: 3px;
-		background: linear-gradient(90deg, var(--sentiment-arbiter), var(--sentiment-arbiter-light), var(--sentiment-arbiter));
-	}
-
-	.prompt-modal-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 1rem 1.25rem;
-		border-bottom: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-	}
-
-	.prompt-modal-title {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		font-size: 1.125rem;
-		font-weight: 600;
-		color: var(--color-surface-50);
-	}
-
-	.modal-close-btn {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 32px;
-		height: 32px;
-		font-size: 1.25rem;
-		color: var(--color-surface-50);
-		opacity: 0.6;
-		background: transparent;
-		border: none;
-		border-radius: 0.5rem;
-		cursor: pointer;
-		transition: all var(--timing-fast) var(--easing-default);
-	}
-
-	.modal-close-btn:hover {
-		opacity: 1;
-		background: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-	}
-
-	.prompt-modal-body {
-		flex: 1;
-		overflow-y: auto;
-		padding: 1.25rem;
-	}
-
 	.prompt-section-header {
 		margin-bottom: 0.75rem;
 	}
@@ -822,23 +692,12 @@ Provide your independent evaluation for each dimension, determine which model is
 		overflow-x: auto;
 	}
 
-	.prompt-modal-footer {
-		display: flex;
-		justify-content: flex-end;
-		padding: 1rem 1.25rem;
-		border-top: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-	}
-
 	/* ==========================================================================
      Responsive Styles
      ========================================================================== */
 	@media (max-width: 640px) {
 		.key-info-grid {
 			grid-template-columns: 1fr;
-		}
-
-		.prompt-modal {
-			max-height: 90vh;
 		}
 
 		.prompt-code {
@@ -848,14 +707,8 @@ Provide your independent evaluation for each dimension, determine which model is
 
 	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
-		.prompt-modal-backdrop,
-		.prompt-modal {
-			animation: none;
-		}
-
 		.info-header-btn,
-		.header-icon,
-		.modal-close-btn {
+		.header-icon {
 			transition: none;
 		}
 	}
