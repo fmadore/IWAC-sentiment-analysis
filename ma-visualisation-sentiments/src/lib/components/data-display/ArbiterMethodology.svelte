@@ -845,4 +845,18 @@ Provide your independent evaluation for each dimension, determine which model is
 			font-size: 0.6875rem;
 		}
 	}
+
+	/* Reduced motion */
+	@media (prefers-reduced-motion: reduce) {
+		.prompt-modal-backdrop,
+		.prompt-modal {
+			animation: none;
+		}
+
+		.info-header-btn,
+		.header-icon,
+		.modal-close-btn {
+			transition: none;
+		}
+	}
 </style>
