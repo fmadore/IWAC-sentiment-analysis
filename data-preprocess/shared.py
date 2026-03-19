@@ -43,12 +43,33 @@ MODEL_NAMES = {
 
 def safe_int_convert(value) -> Optional[int]:
     """Safely convert a value to int, handling NaN and None."""
-    if pd.isna(value) or value is None:
+    if value is None:
         return None
+    try:
+        if pd.isna(value):
+            return None
+    except (ValueError, TypeError):
+        pass
     try:
         return int(float(value))
     except (ValueError, TypeError):
         return None
+
+
+def safe_str(value) -> Optional[str]:
+    """Safely convert a value to str, handling NaN, pd.NA, and None.
+
+    Returns None for any missing/NA value so that JSON serialization
+    produces ``null`` instead of invalid tokens like ``NaN``.
+    """
+    if value is None:
+        return None
+    try:
+        if pd.isna(value):
+            return None
+    except (ValueError, TypeError):
+        pass
+    return str(value)
 
 
 # ============================================================================

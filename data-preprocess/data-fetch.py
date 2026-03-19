@@ -1,7 +1,7 @@
 import os
 from tqdm import tqdm
 
-from shared import safe_int_convert, load_iwac_dataset, get_webapp_data_dir, save_json
+from shared import safe_int_convert, safe_str, load_iwac_dataset, get_webapp_data_dir, save_json
 
 print(f"\n{'='*50}")
 print(f"Loading config: articles")
@@ -28,45 +28,45 @@ for item in tqdm(dataset['train'], desc="Processing articles"):
     # Base item structure for all datasets
     base_item = {
         "o:id": safe_int_convert(item.get("o:id")),
-        "o:title": item.get("title"),
-        "Newspaper": item.get("newspaper"),
-        "Country": item.get("country"),
-        "dcterms:date": item.get("pub_date")
+        "o:title": safe_str(item.get("title")),
+        "Newspaper": safe_str(item.get("newspaper")),
+        "Country": safe_str(item.get("country")),
+        "dcterms:date": safe_str(item.get("pub_date"))
     }
-    
+
     # Gemini data mapping
     gemini_item = base_item.copy()
     gemini_item["sentiment_analysis"] = {
-        "centralite_islam_musulmans": item.get("gemini_centralite_islam_musulmans"),
-        "centralite_justification": item.get("gemini_centralite_justification"),
+        "centralite_islam_musulmans": safe_str(item.get("gemini_centralite_islam_musulmans")),
+        "centralite_justification": safe_str(item.get("gemini_centralite_justification")),
         "subjectivite_score": safe_int_convert(item.get("gemini_subjectivite_score")),
-        "subjectivite_justification": item.get("gemini_subjectivite_justification"),
-        "polarite": item.get("gemini_polarite"),
-        "polarite_justification": item.get("gemini_polarite_justification")
+        "subjectivite_justification": safe_str(item.get("gemini_subjectivite_justification")),
+        "polarite": safe_str(item.get("gemini_polarite")),
+        "polarite_justification": safe_str(item.get("gemini_polarite_justification"))
     }
     gemini_data_list.append(gemini_item)
-    
+
     # ChatGPT data mapping
     chatgpt_item = base_item.copy()
     chatgpt_item["sentiment_analysis"] = {
-        "centralite_islam_musulmans": item.get("chatgpt_centralite_islam_musulmans"),
-        "centralite_justification": item.get("chatgpt_centralite_justification"),
+        "centralite_islam_musulmans": safe_str(item.get("chatgpt_centralite_islam_musulmans")),
+        "centralite_justification": safe_str(item.get("chatgpt_centralite_justification")),
         "subjectivite_score": safe_int_convert(item.get("chatgpt_subjectivite_score")),
-        "subjectivite_justification": item.get("chatgpt_subjectivite_justification"),
-        "polarite": item.get("chatgpt_polarite"),
-        "polarite_justification": item.get("chatgpt_polarite_justification")
+        "subjectivite_justification": safe_str(item.get("chatgpt_subjectivite_justification")),
+        "polarite": safe_str(item.get("chatgpt_polarite")),
+        "polarite_justification": safe_str(item.get("chatgpt_polarite_justification"))
     }
     chatgpt_data_list.append(chatgpt_item)
-    
+
     # Mistral data mapping
     mistral_item = base_item.copy()
     mistral_item["sentiment_analysis"] = {
-        "centralite_islam_musulmans": item.get("mistral_centralite_islam_musulmans"),
-        "centralite_justification": item.get("mistral_centralite_justification"),
+        "centralite_islam_musulmans": safe_str(item.get("mistral_centralite_islam_musulmans")),
+        "centralite_justification": safe_str(item.get("mistral_centralite_justification")),
         "subjectivite_score": safe_int_convert(item.get("mistral_subjectivite_score")),
-        "subjectivite_justification": item.get("mistral_subjectivite_justification"),
-        "polarite": item.get("mistral_polarite"),
-        "polarite_justification": item.get("mistral_polarite_justification")
+        "subjectivite_justification": safe_str(item.get("mistral_subjectivite_justification")),
+        "polarite": safe_str(item.get("mistral_polarite")),
+        "polarite_justification": safe_str(item.get("mistral_polarite_justification"))
     }
     mistral_data_list.append(mistral_item)
 
