@@ -26,7 +26,8 @@
   import { t, currentLanguage } from '$lib/i18n';
   import { translateSentimentValue } from '$lib/i18n/utils';
   import DatasetBadge from '../ui/DatasetBadge.svelte';
-  
+  import { createStackedBarTooltipFormatter } from '$lib/utils/chartFormatters';
+
   // Import centralized chart theme
   import {
     subjectivityColors,
@@ -134,25 +135,12 @@
             color: 'rgba(59, 130, 246, 0.08)'
           }
         },
-        formatter: function(params: any) {
-          let listHtml = '';
-          let total = 0;
-          params.forEach((param: any) => {
-            if (param.value > 0) {
-              listHtml += `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">
-                <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${param.color};"></span>
-                <span style="flex:1;">${param.seriesName}</span>
-                <strong>${param.value}</strong>
-              </div>`;
-              total += param.value;
-            }
-          });
-          return `<div style="min-width:180px;">
-            <div style="font-weight:600;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.15);">${params[0].name}</div>
-            ${listHtml}
-            <div style="padding-top:6px;margin-top:4px;border-top:1px solid rgba(255,255,255,0.15);font-weight:600;">Total: ${total} ${$t.common.articles}</div>
-          </div>`;
-        }
+        formatter: createStackedBarTooltipFormatter({
+          getTotalLabel: () => 'Total',
+          headerKey: 'name',
+          sort: false,
+          totalSuffix: () => $t.common.articles
+        })
       },
       legend: {
         ...getLegendConfig(isMobile),

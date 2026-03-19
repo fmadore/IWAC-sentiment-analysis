@@ -27,6 +27,7 @@
   import { CanvasRenderer } from 'echarts/renderers';
   import type { EChartsOption } from 'echarts';
   import DatasetBadge from '../ui/DatasetBadge.svelte';
+  import { createSimpleTooltipFormatter } from '$lib/utils/chartFormatters';
 
   // Register the required components
   use([
@@ -111,16 +112,9 @@
             color: 'rgba(255, 255, 255, 0.05)'
           }
         },
-        formatter: (params: any) => {
-          const data = params[0];
-          return `<div style="min-width:140px;">
-            <div style="font-weight:600;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.15);">${data.name}</div>
-            <div style="display:flex;justify-content:space-between;">
-              <span>${$t.extremeAnalysis.articleCount}:</span>
-              <strong>${data.value}</strong>
-            </div>
-          </div>`;
-        }
+        formatter: createSimpleTooltipFormatter({
+          getLabel: () => $t.extremeAnalysis.articleCount
+        })
       },
       grid: {
         // Use pixel value derived above instead of large percentage to reclaim space.

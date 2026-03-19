@@ -34,7 +34,8 @@
   import { t, currentLanguage } from '$lib/i18n';
   import { getSentimentLabels, formatNumber } from '$lib/i18n/utils';
   import DatasetBadge from '../ui/DatasetBadge.svelte';
-  
+  import { createPieTooltipFormatter, createStackedBarTooltipFormatter } from '$lib/utils/chartFormatters';
+
   // Import centralized chart theme
   import {
     subjectivityColorsByLabel,
@@ -138,17 +139,9 @@
         tooltip: {
           ...tooltipConfig,
           trigger: 'item',
-          formatter: function(params: any) {
-            if (Array.isArray(params)) {
-              return params.map(param => 
-                `<span style="display:inline-block;margin-right:5px;border-radius:50%;width:10px;height:10px;background-color:${param.color};"></span> ${param.seriesName}: ${param.value} (${param.percent}%)`
-              ).join('<br/>');
-            } else {
-              return `<div style="font-weight:600;margin-bottom:8px;">${params.seriesName}</div>
-                      <span style="display:inline-block;margin-right:5px;border-radius:50%;width:10px;height:10px;background-color:${params.color};"></span> 
-                      ${params.name}: <strong>${formatNumber(params.value, currentLang)}</strong> (${params.percent}%)`;
-            }
-          }
+          formatter: createPieTooltipFormatter({
+            formatValue: (n) => formatNumber(n, currentLang)
+          })
         },
         legend: {
           show: false
@@ -209,34 +202,11 @@
             }
           },
           confine: true,
-          formatter: function (params: any) {
-            if (!Array.isArray(params) || params.length === 0) {
-              return '';
-            }
-            const sortedParams = params.slice().sort((a: any, b: any) => b.value - a.value);
-            
-            let listItemsHtml = '';
-            let total = 0;
-            
-            sortedParams.forEach((param: any) => {
-              if (param.value > 0) { 
-                listItemsHtml += `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">
-                  <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${param.color};"></span>
-                  <span style="flex:1;">${param.seriesName}</span>
-                  <strong>${param.value}</strong>
-                </div>`;
-              }
-              total += param.value;
-            });
-
-            return `<div style="min-width:180px;">
-              <div style="font-weight:600;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.15);">${params[0].axisValueLabel}</div>
-              <div style="max-height:${isMobile ? '150px' : '200px'};overflow-y:auto;margin-bottom:8px;">
-                ${listItemsHtml}
-              </div>
-              <div style="padding-top:6px;border-top:1px solid rgba(255,255,255,0.15);font-weight:600;">${currentT.common.total}: ${total}</div>
-            </div>`;
-          }
+          formatter: createStackedBarTooltipFormatter({
+            getTotalLabel: () => currentT.common.total,
+            getIsMobile: () => isMobile,
+            scrollableList: true
+          })
         },
         legend: {
           ...getLegendConfig(isMobile),

@@ -30,7 +30,8 @@
   import { t, currentLanguage } from '$lib/i18n';
   import { formatNumber } from '$lib/i18n/utils';
   import DatasetBadge from '../ui/DatasetBadge.svelte';
-  
+  import { createTrendTooltipFormatter } from '$lib/utils/chartFormatters';
+
   // Import centralized chart theme
   import {
     seriesColorPalette,
@@ -122,32 +123,10 @@
         ...tooltipConfig,
         trigger: 'axis',
         axisPointer: getAxisPointerConfig(),
-        formatter: function (params: any) {
-          if (!Array.isArray(params) || params.length === 0) {
-            return '';
-          }
-          
-          const sortedParams = params.slice().sort((a: any, b: any) => b.value - a.value);
-          let listHtml = '';
-          let total = 0;
-          
-          sortedParams.forEach((param: any) => {
-            if (param.value > 0) {
-              listHtml += `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">
-                <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${param.color};"></span>
-                <span style="flex:1;">${param.seriesName}</span>
-                <strong>${param.value}</strong>
-              </div>`;
-            }
-            total += param.value;
-          });
-          
-          return `<div style="min-width:160px;">
-            <div style="font-weight:600;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.15);">${params[0].axisValue}</div>
-            ${listHtml}
-            ${total > 0 ? `<div style="padding-top:6px;margin-top:4px;border-top:1px solid rgba(255,255,255,0.15);font-weight:600;">${currentT.common.total}: ${total}</div>` : ''}
-          </div>`;
-        }
+        formatter: createTrendTooltipFormatter({
+          getTotalLabel: () => currentT.common.total,
+          sort: true
+        })
       },
       legend: {
         ...getLegendConfig(isMobile),
