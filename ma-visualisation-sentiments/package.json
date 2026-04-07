@@ -50,7 +50,7 @@
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.4",
-		"@eslint/js": "^9.39.2",
+		"@eslint/js": "^10.0.1",
 		"@skeletonlabs/skeleton": "^4.15.1",
 		"@sveltejs/adapter-auto": "^7.0.0",
 		"@sveltejs/adapter-static": "^3.0.9",
