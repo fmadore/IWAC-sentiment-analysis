@@ -59,7 +59,7 @@
 		"@tailwindcss/vite": "^4.2.2",
 		"@testing-library/svelte": "^5.3.1",
 		"@types/node": "^25.5.2",
-		"eslint": "^9.39.2",
+		"eslint": "^10.2.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^3.17.0",
 		"gh-pages": "^6.3.0",
