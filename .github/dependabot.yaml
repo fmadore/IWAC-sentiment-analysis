@@ -1,0 +1,117 @@
+version: 2
+
+updates:
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: "ci"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # npm dependencies (SvelteKit frontend)
+  - package-ecosystem: npm
+    directory: /ma-visualisation-sentiments
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - javascript
+    commit-message:
+      prefix: "deps"
+    open-pull-requests-limit: 15
+    groups:
+      svelte-ecosystem:
+        patterns:
+          - "svelte"
+          - "svelte-*"
+          - "@sveltejs/*"
+        update-types:
+          - minor
+          - patch
+      skeleton-ui:
+        patterns:
+          - "@skeletonlabs/*"
+        update-types:
+          - minor
+          - patch
+      testing:
+        patterns:
+          - "vitest"
+          - "@testing-library/*"
+          - "jsdom"
+        update-types:
+          - minor
+          - patch
+      linting-and-formatting:
+        patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@eslint/*"
+          - "prettier"
+          - "prettier-*"
+          - "typescript-eslint"
+        update-types:
+          - minor
+          - patch
+      build-tools:
+        patterns:
+          - "vite"
+          - "vite-*"
+          - "@tailwindcss/*"
+          - "tailwindcss"
+          - "postcss"
+          - "publint"
+        update-types:
+          - minor
+          - patch
+      typescript:
+        patterns:
+          - "typescript"
+          - "@types/*"
+        update-types:
+          - minor
+          - patch
+      charts:
+        patterns:
+          - "echarts"
+          - "svelte-echarts"
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # Avoid major bumps on core framework deps without manual review
+      - dependency-name: "svelte"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@sveltejs/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
+
+  # Python dependencies (data preprocessing)
+  - package-ecosystem: pip
+    directory: /data-preprocess
+    schedule:
+      interval: monthly
+    labels:
+      - dependencies
+      - python
+    commit-message:
+      prefix: "deps"
+    open-pull-requests-limit: 5
+    groups:
+      python-deps:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch

@@ -2,46 +2,62 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches:
-      - main # Or your default branch if it's different
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
-  contents: write # Required to push to the gh-pages branch
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./ma-visualisation-sentiments
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # You can adjust this to your preferred Node.js version
-          cache: 'npm'
+          node-version: 24
+          cache: npm
           cache-dependency-path: ma-visualisation-sentiments/package-lock.json
 
       - name: Install dependencies
-        working-directory: ./ma-visualisation-sentiments
-        run: |
-          # Try npm ci first, fallback to npm install if it fails
-          npm ci || npm install
+        run: npm ci
+
+      - name: Check types
+        run: npm run check
+
+      - name: Lint
+        run: npm run lint
 
       - name: Run tests
-        working-directory: ./ma-visualisation-sentiments
         run: npm run test:run
 
-      - name: Build application
-        working-directory: ./ma-visualisation-sentiments
-        run: npm run build # This uses the build script from your package.json
+      - name: Build
+        run: npm run build
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./ma-visualisation-sentiments/build # The directory your static site is built into
-          # publish_branch: gh-pages # This is the default, so it's optional
-          # user_name: 'github-actions[bot]' # Optional: Defaults to 'github-actions[bot]'
-          # user_email: 'github-actions[bot]@users.noreply.github.com' # Optional
-          # commit_message: ${{ github.event.head_commit.message }} # Optional: Customize commit message 
+          path: ./ma-visualisation-sentiments/build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
