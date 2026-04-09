@@ -10,38 +10,38 @@
 
 // Re-export everything from the modular implementation
 export {
-  // Types
-  type URLState,
-  type PendingArticleSelection,
-  type ValidView,
-  type ValidDataset,
-  type URLParamKey,
+	// Types
+	type URLState,
+	type PendingArticleSelection,
+	type ValidView,
+	type ValidDataset,
+	type URLParamKey,
 
-  // Constants
-  VALID_VIEWS,
-  VALID_DATASETS,
-  VALID_PAIRS,
-  URL_PARAMS,
+	// Constants
+	VALID_VIEWS,
+	VALID_DATASETS,
+	VALID_PAIRS,
+	URL_PARAMS,
 
-  // Parser
-  parseURLState,
+	// Parser
+	parseURLState,
 
-  // Builder
-  buildURLSearchParams,
+	// Builder
+	buildURLSearchParams,
 
-  // State (Svelte 5 runes)
-  pendingArticleState,
-  pendingComparisonArticleState,
-  getCurrentState,
+	// State (Svelte 5 runes)
+	pendingArticleState,
+	pendingComparisonArticleState,
+	getCurrentState,
 
-  // Actions
-  applyURLState,
-  updateURL,
-  initializeURLState,
-  clearAllFilters,
-  clearSelectedArticle,
-  clearSelectedArticleOnly,
-  handlePendingArticleSelection,
-  handlePendingComparisonArticleSelection,
-  clearSelectedComparison
+	// Actions
+	applyURLState,
+	updateURL,
+	initializeURLState,
+	clearAllFilters,
+	clearSelectedArticle,
+	clearSelectedArticleOnly,
+	handlePendingArticleSelection,
+	handlePendingComparisonArticleSelection,
+	clearSelectedComparison
 } from './stores/url';

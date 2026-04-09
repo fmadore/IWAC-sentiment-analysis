@@ -8,17 +8,21 @@
 	import { Chart } from 'svelte-echarts';
 	import { init, use } from 'echarts/core';
 	import { PieChart, BarChart } from 'echarts/charts';
-	import {
-		TitleComponent,
-		TooltipComponent,
-		LegendComponent
-	} from 'echarts/components';
+	import { TitleComponent, TooltipComponent, LegendComponent } from 'echarts/components';
 	import { LabelLayout } from 'echarts/features';
 	import { CanvasRenderer } from 'echarts/renderers';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	use([TitleComponent, TooltipComponent, LegendComponent, PieChart, BarChart, LabelLayout, CanvasRenderer]);
+	use([
+		TitleComponent,
+		TooltipComponent,
+		LegendComponent,
+		PieChart,
+		BarChart,
+		LabelLayout,
+		CanvasRenderer
+	]);
 
 	import { arbiterEvaluations, arbiterModelAIsFirst } from '$lib/stores';
 	import { t } from '$lib/i18n';
@@ -102,9 +106,6 @@
 
 	// Chart options
 	const options = $derived.by((): EChartsOption => {
-		const currentT = $t;
-		const total = verdictData.reduce((sum, d) => sum + d.value, 0);
-
 		return {
 			tooltip: {
 				...getTooltipConfig(isMobile),

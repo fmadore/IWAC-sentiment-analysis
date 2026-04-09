@@ -23,7 +23,7 @@
 		comparisonPair,
 		availableDatasets
 	} from '$lib/stores';
-	import { getModelsFromPair, type ModelPair } from '$lib/types/data';
+	import { getModelsFromPair } from '$lib/types/data';
 	import { t } from '$lib/i18n';
 	import { ChartCard } from '$lib/components/ui';
 	import ModelPairPicker from '$lib/components/ui/ModelPairPicker.svelte';

@@ -37,66 +37,43 @@
 		{ value: 5, variant: 'subjectivity-5' as const }
 	];
 
-	let selectedPolarities = $state<string[]>([]);
-	let selectedScores = $state<string[]>([]);
-
-	// Sync local state with store values
-	$effect(() => {
-		selectedPolarities = $polarityFilters;
-	});
-
-	$effect(() => {
-		selectedScores = $subjectivityFilters;
-	});
-
-	function updatePolaritySelection() {
-		polarityFilters.set(selectedPolarities);
-	}
-
-	function updateSubjectivitySelection() {
-		subjectivityFilters.set(selectedScores);
-	}
+	let selectedPolarities = $derived($polarityFilters);
+	let selectedScores = $derived($subjectivityFilters);
 
 	function togglePolarity(polarity: string) {
-		if (selectedPolarities.includes(polarity)) {
-			selectedPolarities = selectedPolarities.filter((p) => p !== polarity);
-		} else {
-			selectedPolarities = [...selectedPolarities, polarity];
-		}
-		updatePolaritySelection();
+		const updated = selectedPolarities.includes(polarity)
+			? selectedPolarities.filter((p) => p !== polarity)
+			: [...selectedPolarities, polarity];
+		polarityFilters.set(updated);
 	}
 
 	function toggleScore(score: number) {
 		const scoreStr = score.toString();
-		if (selectedScores.includes(scoreStr)) {
-			selectedScores = selectedScores.filter((s) => s !== scoreStr);
-		} else {
-			selectedScores = [...selectedScores, scoreStr];
-		}
-		updateSubjectivitySelection();
+		const updated = selectedScores.includes(scoreStr)
+			? selectedScores.filter((s) => s !== scoreStr)
+			: [...selectedScores, scoreStr];
+		subjectivityFilters.set(updated);
 	}
 
 	function clearPolarities() {
-		selectedPolarities = [];
-		updatePolaritySelection();
+		polarityFilters.set([]);
 	}
 
 	function clearScores() {
-		selectedScores = [];
-		updateSubjectivitySelection();
+		subjectivityFilters.set([]);
 	}
 </script>
 
 <div class="sentiment-criteria-container">
 	<!-- Polarity Filter -->
-	<FilterCard 
+	<FilterCard
 		title={$t.analysis.polaritySection}
 		showClear={selectedPolarities.length > 0}
 		onClear={clearPolarities}
 	>
 		{#snippet chips()}
 			{#each translatedPolarityOptions as option (option.value)}
-				<FilterChip 
+				<FilterChip
 					label={option.label}
 					selected={selectedPolarities.includes(option.value)}
 					variant={option.variant}
@@ -107,14 +84,14 @@
 	</FilterCard>
 
 	<!-- Subjectivity Filter -->
-	<FilterCard 
+	<FilterCard
 		title={$t.filters.subjectivityScore}
 		showClear={selectedScores.length > 0}
 		onClear={clearScores}
 	>
 		{#snippet chips()}
 			{#each subjectivityScores as score (score.value)}
-				<FilterChip 
+				<FilterChip
 					label={score.value.toString()}
 					selected={selectedScores.includes(score.value.toString())}
 					variant={score.variant}

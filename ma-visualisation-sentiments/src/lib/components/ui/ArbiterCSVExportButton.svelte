@@ -96,19 +96,35 @@
 			$t.arbiter?.confidenceLevel || 'Confidence Level',
 			// Arbiter Polarity columns
 			($t.arbiter?.polarity || 'Polarity') + ' - ' + ($t.arbiter?.arbiterScore || 'Arbiter Score'),
-			($t.arbiter?.polarity || 'Polarity') + ' - ' + ($t.arbiter?.arbiterJustification || 'Arbiter Justification'),
+			($t.arbiter?.polarity || 'Polarity') +
+				' - ' +
+				($t.arbiter?.arbiterJustification || 'Arbiter Justification'),
 			($t.arbiter?.polarity || 'Polarity') + ' - ' + ($t.arbiter?.verdict || 'Verdict'),
-			($t.arbiter?.polarity || 'Polarity') + ' - ' + ($t.arbiter?.verdictExplanation || 'Verdict Explanation'),
+			($t.arbiter?.polarity || 'Polarity') +
+				' - ' +
+				($t.arbiter?.verdictExplanation || 'Verdict Explanation'),
 			// Arbiter Subjectivity columns
-			($t.arbiter?.subjectivity || 'Subjectivity') + ' - ' + ($t.arbiter?.arbiterScore || 'Arbiter Score'),
-			($t.arbiter?.subjectivity || 'Subjectivity') + ' - ' + ($t.arbiter?.arbiterJustification || 'Arbiter Justification'),
+			($t.arbiter?.subjectivity || 'Subjectivity') +
+				' - ' +
+				($t.arbiter?.arbiterScore || 'Arbiter Score'),
+			($t.arbiter?.subjectivity || 'Subjectivity') +
+				' - ' +
+				($t.arbiter?.arbiterJustification || 'Arbiter Justification'),
 			($t.arbiter?.subjectivity || 'Subjectivity') + ' - ' + ($t.arbiter?.verdict || 'Verdict'),
-			($t.arbiter?.subjectivity || 'Subjectivity') + ' - ' + ($t.arbiter?.verdictExplanation || 'Verdict Explanation'),
+			($t.arbiter?.subjectivity || 'Subjectivity') +
+				' - ' +
+				($t.arbiter?.verdictExplanation || 'Verdict Explanation'),
 			// Arbiter Centrality columns
-			($t.arbiter?.centrality || 'Centrality') + ' - ' + ($t.arbiter?.arbiterScore || 'Arbiter Score'),
-			($t.arbiter?.centrality || 'Centrality') + ' - ' + ($t.arbiter?.arbiterJustification || 'Arbiter Justification'),
+			($t.arbiter?.centrality || 'Centrality') +
+				' - ' +
+				($t.arbiter?.arbiterScore || 'Arbiter Score'),
+			($t.arbiter?.centrality || 'Centrality') +
+				' - ' +
+				($t.arbiter?.arbiterJustification || 'Arbiter Justification'),
 			($t.arbiter?.centrality || 'Centrality') + ' - ' + ($t.arbiter?.verdict || 'Verdict'),
-			($t.arbiter?.centrality || 'Centrality') + ' - ' + ($t.arbiter?.verdictExplanation || 'Verdict Explanation'),
+			($t.arbiter?.centrality || 'Centrality') +
+				' - ' +
+				($t.arbiter?.verdictExplanation || 'Verdict Explanation'),
 			// Overall justification
 			$t.arbiter?.arbiterJustification || 'Overall Justification',
 			$t.export?.articleId || 'Article ID'

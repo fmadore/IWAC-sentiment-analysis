@@ -8,11 +8,7 @@
 	import { Chart } from 'svelte-echarts';
 	import { init, use } from 'echarts/core';
 	import { PieChart } from 'echarts/charts';
-	import {
-		TitleComponent,
-		TooltipComponent,
-		LegendComponent
-	} from 'echarts/components';
+	import { TitleComponent, TooltipComponent, LegendComponent } from 'echarts/components';
 	import { LabelLayout } from 'echarts/features';
 	import { CanvasRenderer } from 'echarts/renderers';
 	import type { EChartsOption } from 'echarts';
@@ -22,7 +18,12 @@
 
 	import { arbiterEvaluations } from '$lib/stores';
 	import { t } from '$lib/i18n';
-	import { getTooltipConfig, getLegendConfig, arbiterConfidenceColors, chartColors } from '$lib/utils/chartTheme';
+	import {
+		getTooltipConfig,
+		getLegendConfig,
+		arbiterConfidenceColors,
+		chartColors
+	} from '$lib/utils/chartTheme';
 
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
 
@@ -64,8 +65,6 @@
 
 	// Chart options
 	const options = $derived.by((): EChartsOption => {
-		const currentT = $t;
-
 		return {
 			tooltip: {
 				...getTooltipConfig(isMobile),

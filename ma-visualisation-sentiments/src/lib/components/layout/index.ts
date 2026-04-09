@@ -1,6 +1,6 @@
 /**
  * Layout Components Barrel Export
- * 
+ *
  * Components for page layout and navigation structure.
  */
 

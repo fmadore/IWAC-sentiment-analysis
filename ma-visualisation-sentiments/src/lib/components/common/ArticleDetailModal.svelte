@@ -12,48 +12,42 @@
   />
 -->
 <script lang="ts">
-  import type { Article } from '$lib/types/data';
-  import { t } from '$lib/i18n';
-  import { ArticleDetail } from '$lib/components/data-display';
-  import { getJournalName } from '$lib/utils';
-  import FullScreenModal from './FullScreenModal.svelte';
-  import NewspaperIcon from '@lucide/svelte/icons/newspaper';
+	import type { Article } from '$lib/types/data';
+	import { t } from '$lib/i18n';
+	import { ArticleDetail } from '$lib/components/data-display';
+	import { getJournalName } from '$lib/utils';
+	import FullScreenModal from './FullScreenModal.svelte';
+	import NewspaperIcon from '@lucide/svelte/icons/newspaper';
 
-  interface ArticleDetailModalProps {
-    /** The article to display */
-    article: Article | null;
-    /** Whether the modal is open */
-    open: boolean;
-    /** Callback when the modal should close */
-    onClose: () => void;
-  }
+	interface ArticleDetailModalProps {
+		/** The article to display */
+		article: Article | null;
+		/** Whether the modal is open */
+		open: boolean;
+		/** Callback when the modal should close */
+		onClose: () => void;
+	}
 
-  let { 
-    article, 
-    open, 
-    onClose
-  }: ArticleDetailModalProps = $props();
+	let { article, open, onClose }: ArticleDetailModalProps = $props();
 
-  // Derive subtitle from article metadata
-  let subtitle = $derived(
-    article 
-      ? `${getJournalName(article)} • ${article.publication_date ?? ''}` 
-      : ''
-  );
+	// Derive subtitle from article metadata
+	let subtitle = $derived(
+		article ? `${getJournalName(article)} • ${article.publication_date ?? ''}` : ''
+	);
 </script>
 
 {#if article}
-  <FullScreenModal 
-    {open}
-    {onClose}
-    title={article['o:title'] ?? $t.article.titleNotAvailable}
-    {subtitle}
-    accentVariant="primary"
-  >
-    {#snippet headerIcon()}
-      <NewspaperIcon size={20} class="text-primary-400" />
-    {/snippet}
-    
-    <ArticleDetail {article} />
-  </FullScreenModal>
+	<FullScreenModal
+		{open}
+		{onClose}
+		title={article['o:title'] ?? $t.article.titleNotAvailable}
+		{subtitle}
+		accentVariant="primary"
+	>
+		{#snippet headerIcon()}
+			<NewspaperIcon size={20} class="text-primary-400" />
+		{/snippet}
+
+		<ArticleDetail {article} />
+	</FullScreenModal>
 {/if}

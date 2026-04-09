@@ -70,7 +70,10 @@
 			}
 
 			// Request periodic sync (if supported)
-			if ('periodicSync' in window.ServiceWorkerRegistration.prototype && registration?.periodicSync) {
+			if (
+				'periodicSync' in window.ServiceWorkerRegistration.prototype &&
+				registration?.periodicSync
+			) {
 				try {
 					const status = await navigator.permissions.query({
 						name: 'periodic-background-sync' as PermissionName

@@ -442,16 +442,15 @@
 	{#if $currentLanguage === 'en'}
 		<div class="translation-notice">
 			<p>
-				<strong>Note:</strong> This is a translation of the original French prompt used for the
-				analysis. The AI model received instructions in French as the corpus consists of French-language
-				articles.
+				<strong>Note:</strong> This is a translation of the original French prompt used for the analysis.
+				The AI model received instructions in French as the corpus consists of French-language articles.
 			</p>
 		</div>
 	{/if}
 
 	<div class="prompt-code-container">
 		<pre class="prompt-code">{$currentLanguage === 'en'
-							? `# Sentiment Analysis: Representation of Islam and Muslims in Francophone West African Media
+				? `# Sentiment Analysis: Representation of Islam and Muslims in Francophone West African Media
 
 You are an expert analyst of representations of Islam and Muslims in the media, with a particular focus on Francophone West Africa. Analyze the provided text by evaluating the centrality, subjectivity, and polarity concerning the treatment of Islam and/or Muslims.
 
@@ -494,7 +493,7 @@ Evaluates the general sentiment expressed in the article towards Islam and/or Mu
     - subjectivite_justification = "Not applicable as the subject is not addressed."
     - polarite = "Not applicable"
     - polarite_justification = "Not applicable as the subject is not addressed."`
-							: `# Analyse de Sentiment : représentation de l'islam et des musulmans dans les médias d'Afrique de l'Ouest francophone
+				: `# Analyse de Sentiment : représentation de l'islam et des musulmans dans les médias d'Afrique de l'Ouest francophone
 
 Vous êtes un analyste expert des représentations de l'islam et des musulmans dans les médias, avec un focus particulier sur l'Afrique de l'Ouest francophone. Analysez le texte fourni en évaluant la centralité, la subjectivité et la polarité concernant le traitement de l'islam et/ou des musulmans.
 

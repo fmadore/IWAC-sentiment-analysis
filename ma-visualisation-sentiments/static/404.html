@@ -1,47 +1,47 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Redirecting...</title>
-  <script>
-    // GitHub Pages SPA redirect script
-    // This script runs when GitHub Pages returns a 404 for client-side routes.
-    // It preserves the current URL's path and query params in sessionStorage,
-    // then redirects to the root. The main app.html will restore the URL.
-    
-    (function() {
-      // Get the base path for the GitHub Pages site
-      var basePath = '/IWAC-sentiment-analysis';
-      
-      // Get the current path relative to the base
-      var pathname = window.location.pathname;
-      var relativePath = pathname;
-      
-      // Remove base path if present
-      if (pathname.startsWith(basePath)) {
-        relativePath = pathname.slice(basePath.length) || '/';
-      }
-      
-      // Only redirect if we're not already at root
-      // and the path is something that should be handled by client-side routing
-      var search = window.location.search;
-      var hash = window.location.hash;
-      
-      // Store the intended destination
-      var redirectData = {
-        path: relativePath,
-        search: search,
-        hash: hash
-      };
-      
-      sessionStorage.setItem('spa-redirect', JSON.stringify(redirectData));
-      
-      // Redirect to the base path (which will serve index.html)
-      window.location.replace(basePath + '/');
-    })();
-  </script>
-</head>
-<body>
-  <p>Redirecting...</p>
-</body>
+	<head>
+		<meta charset="utf-8" />
+		<title>Redirecting...</title>
+		<script>
+			// GitHub Pages SPA redirect script
+			// This script runs when GitHub Pages returns a 404 for client-side routes.
+			// It preserves the current URL's path and query params in sessionStorage,
+			// then redirects to the root. The main app.html will restore the URL.
+
+			(function () {
+				// Get the base path for the GitHub Pages site
+				var basePath = '/IWAC-sentiment-analysis';
+
+				// Get the current path relative to the base
+				var pathname = window.location.pathname;
+				var relativePath = pathname;
+
+				// Remove base path if present
+				if (pathname.startsWith(basePath)) {
+					relativePath = pathname.slice(basePath.length) || '/';
+				}
+
+				// Only redirect if we're not already at root
+				// and the path is something that should be handled by client-side routing
+				var search = window.location.search;
+				var hash = window.location.hash;
+
+				// Store the intended destination
+				var redirectData = {
+					path: relativePath,
+					search: search,
+					hash: hash
+				};
+
+				sessionStorage.setItem('spa-redirect', JSON.stringify(redirectData));
+
+				// Redirect to the base path (which will serve index.html)
+				window.location.replace(basePath + '/');
+			})();
+		</script>
+	</head>
+	<body>
+		<p>Redirecting...</p>
+	</body>
 </html>

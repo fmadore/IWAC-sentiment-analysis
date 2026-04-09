@@ -31,6 +31,19 @@ jobs:
           cache: npm
           cache-dependency-path: ma-visualisation-sentiments/package-lock.json
 
+      - name: Cache SvelteKit artifacts
+        uses: actions/cache@v5
+        with:
+          path: |
+            ma-visualisation-sentiments/.svelte-kit
+            ma-visualisation-sentiments/node_modules/.cache
+          key: ${{ runner.os }}-sveltekit-${{ hashFiles('ma-visualisation-sentiments/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-sveltekit-
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v6
+
       - name: Install dependencies
         run: npm ci
 

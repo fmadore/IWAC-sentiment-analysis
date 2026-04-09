@@ -9,78 +9,70 @@
   This creates a natural filtering flow: Country → Journal → Sentiment criteria
 -->
 <script lang="ts">
-  import { currentDatasetArticles, countryFilters } from '$lib/stores';
-  import { t, currentLanguage } from '$lib/i18n';
-  import { FilterCard, FilterChip } from '$lib/components/common';
-  import type { Article } from '$lib/types/data';
+	import { currentDatasetArticles, countryFilters } from '$lib/stores';
+	import { t, currentLanguage } from '$lib/i18n';
+	import { FilterCard, FilterChip } from '$lib/components/common';
+	import type { Article } from '$lib/types/data';
 
-  // Country name translations
-  const countryTranslations: Record<string, Record<string, string>> = {
-    'Bénin': { 'fr': 'Bénin', 'en': 'Benin' },
-    'Benin': { 'fr': 'Bénin', 'en': 'Benin' }
-  };
+	// Country name translations
+	const countryTranslations: Record<string, Record<string, string>> = {
+		Bénin: { fr: 'Bénin', en: 'Benin' },
+		Benin: { fr: 'Bénin', en: 'Benin' }
+	};
 
-  // Function to translate country name
-  function translateCountryName(country: string): string {
-    const translation = countryTranslations[country];
-    if (translation) {
-      return translation[$currentLanguage] || country;
-    }
-    return country;
-  }
+	// Function to translate country name
+	function translateCountryName(country: string): string {
+		const translation = countryTranslations[country];
+		if (translation) {
+			return translation[$currentLanguage] || country;
+		}
+		return country;
+	}
 
-  // Variables locales
-  let selectedCountries = $state<string[]>([]);
-  let countries = $derived([...new Set(
-    ($currentDatasetArticles as Article[]).map(article => article.Country)
-                                       .filter((country): country is string => !!country)
-  )].sort((a, b) => a.localeCompare(b)));
+	// Variables locales
+	let selectedCountries = $derived($countryFilters);
+	let countries = $derived(
+		[
+			...new Set(
+				($currentDatasetArticles as Article[])
+					.map((article) => article.Country)
+					.filter((country): country is string => !!country)
+			)
+		].sort((a, b) => a.localeCompare(b))
+	);
 
-  // Sync local state with store values
-  $effect(() => {
-    selectedCountries = $countryFilters;
-  });
+	// Get countries with translated labels for display
+	const translatedCountries = $derived(
+		countries.map((country) => ({
+			value: country, // Keep original value for data operations
+			label: translateCountryName(country) // Translated label for display
+		}))
+	);
 
-  // Get countries with translated labels for display
-  const translatedCountries = $derived(
-    countries.map(country => ({
-      value: country, // Keep original value for data operations
-      label: translateCountryName(country) // Translated label for display
-    }))
-  );
+	function toggleCountry(country: string) {
+		const updated = selectedCountries.includes(country)
+			? selectedCountries.filter((c) => c !== country)
+			: [...selectedCountries, country];
+		countryFilters.set(updated);
+	}
 
-  // Fonction pour appliquer le filtre
-  function applyFilter() {
-    countryFilters.set(selectedCountries);
-  }
-
-  function toggleCountry(country: string) {
-    if (selectedCountries.includes(country)) {
-      selectedCountries = selectedCountries.filter(c => c !== country);
-    } else {
-      selectedCountries = [...selectedCountries, country];
-    }
-    applyFilter();
-  }
-
-  function clearSelection() {
-    selectedCountries = [];
-    applyFilter();
-  }
+	function clearSelection() {
+		countryFilters.set([]);
+	}
 </script>
 
-<FilterCard 
-  title={$t.filters.country}
-  showClear={selectedCountries.length > 0}
-  onClear={clearSelection}
+<FilterCard
+	title={$t.filters.country}
+	showClear={selectedCountries.length > 0}
+	onClear={clearSelection}
 >
-  {#snippet chips()}
-    {#each translatedCountries as country (country.value)}
-      <FilterChip 
-        label={country.label}
-        selected={selectedCountries.includes(country.value)}
-        onclick={() => toggleCountry(country.value)}
-      />
-    {/each}
-  {/snippet}
-</FilterCard> 
+	{#snippet chips()}
+		{#each translatedCountries as country (country.value)}
+			<FilterChip
+				label={country.label}
+				selected={selectedCountries.includes(country.value)}
+				onclick={() => toggleCountry(country.value)}
+			/>
+		{/each}
+	{/snippet}
+</FilterCard>

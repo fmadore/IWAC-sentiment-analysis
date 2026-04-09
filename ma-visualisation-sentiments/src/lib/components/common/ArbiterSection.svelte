@@ -15,7 +15,6 @@
   <ArbiterSection articleId={article['o:id']} />
 -->
 <script lang="ts">
-	import type { ArbiterAnalysis } from '$lib/types/data';
 	import { getModelsFromPair } from '$lib/types/data';
 	import { SentimentBadge } from '$lib/components/common';
 	import { t } from '$lib/i18n';
@@ -152,26 +151,28 @@
 
 		// Replace Model A/B references (case insensitive) - handles both English and French
 		// Order matters: replace "le/Le modèle X" first to avoid leaving orphan articles
-		return text
-			// French with article: "le modèle A" -> "Gemini" (remove the article entirely)
-			.replace(/\b[Ll]e [Mm]odèle A\b/g, arbiterModelAName)
-			.replace(/\b[Ll]e [Mm]odèle B\b/g, arbiterModelBName)
-			// French with article: "du modèle A" -> "de Gemini"
-			.replace(/\b[Dd]u [Mm]odèle A\b/g, `de ${arbiterModelAName}`)
-			.replace(/\b[Dd]u [Mm]odèle B\b/g, `de ${arbiterModelBName}`)
-			// French with article: "au modèle A" -> "à Gemini"
-			.replace(/\b[Aa]u [Mm]odèle A\b/g, `à ${arbiterModelAName}`)
-			.replace(/\b[Aa]u [Mm]odèle B\b/g, `à ${arbiterModelBName}`)
-			// English with article: "the Model A" -> "Gemini"
-			.replace(/\b[Tt]he [Mm]odel A\b/g, arbiterModelAName)
-			.replace(/\b[Tt]he [Mm]odel B\b/g, arbiterModelBName)
-			// Plain references (no article)
-			.replace(/\b[Mm]odel A\b/g, arbiterModelAName)
-			.replace(/\b[Mm]odel B\b/g, arbiterModelBName)
-			.replace(/\bmodel_a\b/gi, arbiterModelAName)
-			.replace(/\bmodel_b\b/gi, arbiterModelBName)
-			.replace(/\b[Mm]odèle A\b/g, arbiterModelAName)
-			.replace(/\b[Mm]odèle B\b/g, arbiterModelBName);
+		return (
+			text
+				// French with article: "le modèle A" -> "Gemini" (remove the article entirely)
+				.replace(/\b[Ll]e [Mm]odèle A\b/g, arbiterModelAName)
+				.replace(/\b[Ll]e [Mm]odèle B\b/g, arbiterModelBName)
+				// French with article: "du modèle A" -> "de Gemini"
+				.replace(/\b[Dd]u [Mm]odèle A\b/g, `de ${arbiterModelAName}`)
+				.replace(/\b[Dd]u [Mm]odèle B\b/g, `de ${arbiterModelBName}`)
+				// French with article: "au modèle A" -> "à Gemini"
+				.replace(/\b[Aa]u [Mm]odèle A\b/g, `à ${arbiterModelAName}`)
+				.replace(/\b[Aa]u [Mm]odèle B\b/g, `à ${arbiterModelBName}`)
+				// English with article: "the Model A" -> "Gemini"
+				.replace(/\b[Tt]he [Mm]odel A\b/g, arbiterModelAName)
+				.replace(/\b[Tt]he [Mm]odel B\b/g, arbiterModelBName)
+				// Plain references (no article)
+				.replace(/\b[Mm]odel A\b/g, arbiterModelAName)
+				.replace(/\b[Mm]odel B\b/g, arbiterModelBName)
+				.replace(/\bmodel_a\b/gi, arbiterModelAName)
+				.replace(/\bmodel_b\b/gi, arbiterModelBName)
+				.replace(/\b[Mm]odèle A\b/g, arbiterModelAName)
+				.replace(/\b[Mm]odèle B\b/g, arbiterModelBName)
+		);
 	}
 </script>
 
@@ -225,7 +226,9 @@
 					<div>
 						<h5 class="font-semibold text-white mb-2">{$t.arbiter.overallVerdict}</h5>
 						<p class="text-white/70 text-sm mb-2">
-							<strong class="text-amber-400">{getPreferredModelLabel(arbiterData.overall_winner)}</strong>
+							<strong class="text-amber-400"
+								>{getPreferredModelLabel(arbiterData.overall_winner)}</strong
+							>
 						</p>
 						<p class="text-white/90 leading-relaxed">
 							{decodeVerdictText(arbiterData.overall_explanation)}

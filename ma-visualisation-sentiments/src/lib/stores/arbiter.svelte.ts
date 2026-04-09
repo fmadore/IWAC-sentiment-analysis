@@ -1,6 +1,6 @@
 /**
  * Arbiter State Module
- * 
+ *
  * Manages arbiter (Gemini 3 Pro) evaluation state.
  * Uses Svelte 5 runes for reactivity.
  */
@@ -51,10 +51,10 @@ export const currentArbiterPair = {
 // Derived Values
 // ============================================
 
-/** 
+/**
  * Check if arbiter's "Model A" corresponds to the first model in the pair name.
  * This is used to correctly map arbiter verdicts to UI display.
- * 
+ *
  * Example: For pair "chatgpt-gemini"
  * - If arbiter_model_a = "ChatGPT", then arbiterModelAIsFirst = true
  * - If arbiter_model_a = "Gemini", then arbiterModelAIsFirst = false
@@ -179,14 +179,13 @@ function computeArbiterStatistics(): ArbiterStatistics {
 		}
 	}
 
-
 	const totalVerdicts = counts.model_a + counts.model_b + counts.both + counts.neither;
 
 	// BLIND EVALUATION MAPPING:
 	// - arbiter_model_a: The ACTUAL model name that arbiter saw as "Model A"
 	// - arbiter_model_b: The ACTUAL model name that arbiter saw as "Model B"
 	// - Verdicts' "model_a"/"model_b" directly refer to these model names
-	// 
+	//
 	// We want modelAPreferred to always mean "first model in pair" for consistent UI display
 	const meta = _arbiterEvaluations?.metadata;
 	const modelAIsFirst = meta?.arbiter_model_a === meta?.pair_first_model;
@@ -194,7 +193,7 @@ function computeArbiterStatistics(): ArbiterStatistics {
 	// Map arbiter verdicts to pair order (first/second model in pair name)
 	const firstModelPreferred = modelAIsFirst ? counts.model_a : counts.model_b;
 	const secondModelPreferred = modelAIsFirst ? counts.model_b : counts.model_a;
-	
+
 	// Map overall verdicts to pair order
 	const overallFirstWins = modelAIsFirst ? overallCounts.model_a : overallCounts.model_b;
 	const overallSecondWins = modelAIsFirst ? overallCounts.model_b : overallCounts.model_a;
@@ -218,7 +217,6 @@ function computeArbiterStatistics(): ArbiterStatistics {
 	};
 }
 
-
 /** Arbiter statistics - exported as getter for reactivity */
 export const arbiterStatistics = {
 	get current(): ArbiterStatistics {
@@ -230,10 +228,10 @@ export const arbiterStatistics = {
 // Helper Functions
 // ============================================
 
-/** 
+/**
  * Get the actual model name for a preferred_model value from the arbiter JSON.
  * Uses arbiter_model_a/arbiter_model_b from metadata to directly map to real model names.
- * 
+ *
  * @param preferredModel - The raw preference from arbiter JSON ('model_a', 'model_b', 'both', 'neither')
  * @returns The display-ready model name or special label
  */
@@ -245,7 +243,7 @@ export function getActualModelName(
 	}
 
 	const meta = _arbiterEvaluations?.metadata;
-	
+
 	if (preferredModel === 'model_a') {
 		return meta?.arbiter_model_a ?? 'Model A';
 	} else {
@@ -271,9 +269,7 @@ export const loadArbiterEvaluations = async (
 		const response = await fetchFunction(pairSpecificPath);
 
 		if (!response.ok) {
-			console.log(
-				`[Arbiter] Evaluations not found for pair ${targetPair} (this is optional data)`
-			);
+			console.log(`[Arbiter] Evaluations not found for pair ${targetPair} (this is optional data)`);
 			_arbiterEvaluations = null;
 			_currentArbiterPair = targetPair;
 			return;
@@ -296,7 +292,7 @@ export const loadArbiterEvaluations = async (
 export const setupArbiterPairReactivity = (fetchFunction: typeof fetch): (() => void) => {
 	if (arbiterReactivitySetUp) {
 		console.log('[Arbiter] Reactivity already set up, skipping');
-		return () => { };
+		return () => {};
 	}
 
 	arbiterReactivitySetUp = true;

@@ -1,80 +1,76 @@
 {
-  "id": "iwac-sentiment-analysis",
-  "name": "IWAC Sentiment Analysis",
-  "short_name": "IWAC Analysis",
-  "description": "Interactive visualization of sentiment analysis results from the Islam West Africa Collection (IWAC)",
-  "start_url": "./",
-  "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#1e293b",
-  "orientation": "portrait-primary",
-  "scope": "./",
-  "lang": "fr",
-  "dir": "ltr",
-  "categories": [
-    "education",
-    "productivity",
-    "utilities"
-  ],
-  "icons": [
-    {
-      "src": "./favicon.png",
-      "sizes": "32x32",
-      "type": "image/png"
-    },
-    {
-      "src": "./icons/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "./icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable any"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "ChatGPT Analysis",
-      "short_name": "ChatGPT",
-      "description": "View ChatGPT sentiment analysis results",
-      "url": "./?dataset=chatgpt",
-      "icons": [
-        {
-          "src": "./icons/icon-192x192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "Gemini Analysis",
-      "short_name": "Gemini",
-      "description": "View Gemini sentiment analysis results",
-      "url": "./?dataset=gemini",
-      "icons": [
-        {
-          "src": "./icons/icon-192x192.png",
-          "sizes": "192x192"
-        }
-      ]
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "./screenshots/desktop.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "IWAC Sentiment Analysis Dashboard"
-    },
-    {
-      "src": "./screenshots/mobile.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "IWAC Mobile Analysis View"
-    }
-  ]
+	"id": "iwac-sentiment-analysis",
+	"name": "IWAC Sentiment Analysis",
+	"short_name": "IWAC Analysis",
+	"description": "Interactive visualization of sentiment analysis results from the Islam West Africa Collection (IWAC)",
+	"start_url": "./",
+	"display": "standalone",
+	"background_color": "#0f172a",
+	"theme_color": "#1e293b",
+	"orientation": "portrait-primary",
+	"scope": "./",
+	"lang": "fr",
+	"dir": "ltr",
+	"categories": ["education", "productivity", "utilities"],
+	"icons": [
+		{
+			"src": "./favicon.png",
+			"sizes": "32x32",
+			"type": "image/png"
+		},
+		{
+			"src": "./icons/icon-192x192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable any"
+		},
+		{
+			"src": "./icons/icon-512x512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable any"
+		}
+	],
+	"shortcuts": [
+		{
+			"name": "ChatGPT Analysis",
+			"short_name": "ChatGPT",
+			"description": "View ChatGPT sentiment analysis results",
+			"url": "./?dataset=chatgpt",
+			"icons": [
+				{
+					"src": "./icons/icon-192x192.png",
+					"sizes": "192x192"
+				}
+			]
+		},
+		{
+			"name": "Gemini Analysis",
+			"short_name": "Gemini",
+			"description": "View Gemini sentiment analysis results",
+			"url": "./?dataset=gemini",
+			"icons": [
+				{
+					"src": "./icons/icon-192x192.png",
+					"sizes": "192x192"
+				}
+			]
+		}
+	],
+	"screenshots": [
+		{
+			"src": "./screenshots/desktop.png",
+			"sizes": "1280x720",
+			"type": "image/png",
+			"form_factor": "wide",
+			"label": "IWAC Sentiment Analysis Dashboard"
+		},
+		{
+			"src": "./screenshots/mobile.png",
+			"sizes": "390x844",
+			"type": "image/png",
+			"form_factor": "narrow",
+			"label": "IWAC Mobile Analysis View"
+		}
+	]
 }

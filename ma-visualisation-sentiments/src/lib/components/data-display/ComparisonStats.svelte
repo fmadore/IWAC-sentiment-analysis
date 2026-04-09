@@ -303,8 +303,8 @@
 	}
 
 	.success-icon {
-		background: color-mix(in oklab, #22C55E 15%, transparent);
-		border: 1px solid color-mix(in oklab, #22C55E 30%, transparent);
+		background: color-mix(in oklab, #22c55e 15%, transparent);
+		border: 1px solid color-mix(in oklab, #22c55e 30%, transparent);
 	}
 
 	.conflict-icon {

@@ -64,7 +64,9 @@
 		maxVisiblePages: () => (isMobile ? 3 : 5)
 	});
 
-	const paginatedComparisons = $derived(sortedComparisons.slice(pagination.startIndex, pagination.endIndex));
+	const paginatedComparisons = $derived(
+		sortedComparisons.slice(pagination.startIndex, pagination.endIndex)
+	);
 
 	function selectComparison(comparison: ComparisonData) {
 		selectedComparison.set(comparison);
@@ -122,10 +124,11 @@
 					<select
 						id="items-per-page"
 						bind:value={pagination.itemsPerPage}
-						onchange={(e) => pagination.changeItemsPerPage(Number((e.target as HTMLSelectElement)?.value))}
+						onchange={(e) =>
+							pagination.changeItemsPerPage(Number((e.target as HTMLSelectElement)?.value))}
 						class="select select-sm bg-surface-700 text-white border-surface-500"
 					>
-					{#each pagination.itemsPerPageOptions as option (option)}
+						{#each pagination.itemsPerPageOptions as option (option)}
 							<option value={option}>{option}</option>
 						{/each}
 					</select>
@@ -146,7 +149,7 @@
 						← {isMobile ? '' : $t.common?.previous || 'Previous'}
 					</button>
 
-{#each pagination.visiblePages as page (page)}
+					{#each pagination.visiblePages as page (page)}
 						<button
 							class="btn btn-sm {page === pagination.currentPage
 								? 'variant-filled-primary'
@@ -345,7 +348,9 @@
 							<span class="dimension-label">{$t.comparison?.polarity || 'Polarity'}</span>
 							<div class="values-grid">
 								<div class="value-cell">
-									<span class="model-label">{getModelDisplayName(comparison.modelAId, $availableDatasets)}</span>
+									<span class="model-label"
+										>{getModelDisplayName(comparison.modelAId, $availableDatasets)}</span
+									>
 									<SentimentBadge type="polarity" value={comparison.modelA?.polarite} size="sm" />
 								</div>
 								<div class="diff-indicator {getDiffClass(comparison.discrepancies.polarityDiff)}">
@@ -354,7 +359,9 @@
 										: '='}
 								</div>
 								<div class="value-cell">
-									<span class="model-label">{getModelDisplayName(comparison.modelBId, $availableDatasets)}</span>
+									<span class="model-label"
+										>{getModelDisplayName(comparison.modelBId, $availableDatasets)}</span
+									>
 									<SentimentBadge type="polarity" value={comparison.modelB?.polarite} size="sm" />
 								</div>
 							</div>
@@ -365,7 +372,9 @@
 							<span class="dimension-label">{$t.comparison?.subjectivity || 'Subjectivity'}</span>
 							<div class="values-grid">
 								<div class="value-cell">
-									<span class="model-label">{getModelDisplayName(comparison.modelAId, $availableDatasets)}</span>
+									<span class="model-label"
+										>{getModelDisplayName(comparison.modelAId, $availableDatasets)}</span
+									>
 									<SentimentBadge
 										type="subjectivity"
 										value={comparison.modelA?.subjectivite_score}
@@ -380,7 +389,9 @@
 										: '='}
 								</div>
 								<div class="value-cell">
-									<span class="model-label">{getModelDisplayName(comparison.modelBId, $availableDatasets)}</span>
+									<span class="model-label"
+										>{getModelDisplayName(comparison.modelBId, $availableDatasets)}</span
+									>
 									<SentimentBadge
 										type="subjectivity"
 										value={comparison.modelB?.subjectivite_score}
@@ -395,7 +406,9 @@
 							<span class="dimension-label">{$t.comparison?.centrality || 'Centrality'}</span>
 							<div class="values-grid">
 								<div class="value-cell">
-									<span class="model-label">{getModelDisplayName(comparison.modelAId, $availableDatasets)}</span>
+									<span class="model-label"
+										>{getModelDisplayName(comparison.modelAId, $availableDatasets)}</span
+									>
 									<SentimentBadge
 										type="centrality"
 										value={comparison.modelA?.centralite_islam_musulmans}
@@ -408,7 +421,9 @@
 										: '='}
 								</div>
 								<div class="value-cell">
-									<span class="model-label">{getModelDisplayName(comparison.modelBId, $availableDatasets)}</span>
+									<span class="model-label"
+										>{getModelDisplayName(comparison.modelBId, $availableDatasets)}</span
+									>
 									<SentimentBadge
 										type="centrality"
 										value={comparison.modelB?.centralite_islam_musulmans}

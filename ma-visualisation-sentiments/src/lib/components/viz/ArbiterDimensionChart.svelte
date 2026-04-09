@@ -21,7 +21,7 @@
 	use([TitleComponent, TooltipComponent, LegendComponent, GridComponent, BarChart, CanvasRenderer]);
 
 	import { arbiterEvaluations, arbiterModelAIsFirst } from '$lib/stores';
-	import { t, currentLanguage } from '$lib/i18n';
+	import { t } from '$lib/i18n';
 	import {
 		getTooltipConfig,
 		getLegendConfig,
@@ -55,8 +55,10 @@
 		const modelAIsFirst = arbiterModelAIsFirst.current;
 
 		const dimensions = ['polarity', 'subjectivity', 'centrality'] as const;
-		const result: Record<string, { model_a: number; model_b: number; both: number; neither: number }> =
-			{};
+		const result: Record<
+			string,
+			{ model_a: number; model_b: number; both: number; neither: number }
+		> = {};
 
 		for (const dim of dimensions) {
 			result[dim] = { model_a: 0, model_b: 0, both: 0, neither: 0 };
@@ -103,7 +105,12 @@
 			},
 			legend: {
 				...getLegendConfig(isMobile),
-				data: [modelAName, modelBName, currentT.arbiter.bothEqual, currentT.arbiter.neitherAccurate],
+				data: [
+					modelAName,
+					modelBName,
+					currentT.arbiter.bothEqual,
+					currentT.arbiter.neitherAccurate
+				],
 				top: 0
 			},
 			grid: {

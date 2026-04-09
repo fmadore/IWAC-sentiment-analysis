@@ -1,6 +1,6 @@
 /**
  * URL State Types
- * 
+ *
  * Type definitions for URL state management.
  */
 
@@ -12,26 +12,26 @@ import type { ValidView, ValidDataset } from './constants';
  * Represents the parsed state from URL parameters
  */
 export interface URLState {
-  view?: ValidView;
-  countries?: string[];
-  journals?: string[];
-  polarities?: string[];
-  subjectivities?: string[];
-  centralities?: string[];
-  lang?: Language;
-  dataset?: ValidDataset;
-  compare?: boolean;
-  pair?: ModelPair;
-  diffMin?: number;
-  diffMax?: number;
-  articleId?: string | number;
-  comparisonArticleId?: string | number;
+	view?: ValidView;
+	countries?: string[];
+	journals?: string[];
+	polarities?: string[];
+	subjectivities?: string[];
+	centralities?: string[];
+	lang?: Language;
+	dataset?: ValidDataset;
+	compare?: boolean;
+	pair?: ModelPair;
+	diffMin?: number;
+	diffMax?: number;
+	articleId?: string | number;
+	comparisonArticleId?: string | number;
 }
 
 /**
  * Pending article selection from URL
  */
 export interface PendingArticleSelection {
-  articleId: string | number;
-  dataset: string;
+	articleId: string | number;
+	dataset: string;
 }

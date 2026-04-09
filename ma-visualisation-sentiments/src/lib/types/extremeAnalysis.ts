@@ -7,105 +7,105 @@
  * Keyword frequency map where key is the keyword and value is the count
  */
 export interface KeywordFrequency {
-  [keyword: string]: number;
+	[keyword: string]: number;
 }
 
 /**
  * Keywords organized by type (subject/spatial)
  */
 export interface KeywordsByType {
-  subject: KeywordFrequency;
-  spatial: KeywordFrequency;
+	subject: KeywordFrequency;
+	spatial: KeywordFrequency;
 }
 
 /**
  * Distribution of articles by facet (country or newspaper)
  */
 export interface FacetDistribution {
-  [facetName: string]: number;
+	[facetName: string]: number;
 }
 
 /**
  * Keywords organized by facet and then by type
  */
 export interface KeywordsByFacet {
-  [facetName: string]: KeywordsByType;
+	[facetName: string]: KeywordsByType;
 }
 
 /**
  * Article information for extreme analysis
  */
 export interface ExtremeArticle {
-  id: string;
-  title: string;
-  country: string;
-  newspaper: string;
-  pub_date: string;
-  subject_keywords: string[];
-  spatial_keywords: string[];
+	id: string;
+	title: string;
+	country: string;
+	newspaper: string;
+	pub_date: string;
+	subject_keywords: string[];
+	spatial_keywords: string[];
 }
 
 /**
  * Analysis data for a single extreme category
  */
 export interface ExtremeCategoryAnalysis {
-  subject: KeywordFrequency;
-  spatial: KeywordFrequency;
-  by_country: FacetDistribution;
-  by_newspaper: FacetDistribution;
-  keywords_by_country: KeywordsByFacet;
-  keywords_by_newspaper: KeywordsByFacet;
-  articles: ExtremeArticle[];
+	subject: KeywordFrequency;
+	spatial: KeywordFrequency;
+	by_country: FacetDistribution;
+	by_newspaper: FacetDistribution;
+	keywords_by_country: KeywordsByFacet;
+	keywords_by_newspaper: KeywordsByFacet;
+	articles: ExtremeArticle[];
 }
 
 /**
  * Statistics for extreme analysis
  */
 export interface ExtremeStatistics {
-  total_articles: number;
-  subjectivity_high_count: number;
-  subjectivity_low_count: number;
-  polarity_very_negative_count: number;
-  polarity_very_positive_count: number;
-  centrality_very_central_count: number;
-  centrality_not_central_count: number;
+	total_articles: number;
+	subjectivity_high_count: number;
+	subjectivity_low_count: number;
+	polarity_very_negative_count: number;
+	polarity_very_positive_count: number;
+	centrality_very_central_count: number;
+	centrality_not_central_count: number;
 }
 
 /**
  * Global facets information
  */
 export interface GlobalFacets {
-  countries: FacetDistribution;
-  newspapers: FacetDistribution;
+	countries: FacetDistribution;
+	newspapers: FacetDistribution;
 }
 
 /**
  * Complete extreme analysis data structure
  */
 export interface ExtremeAnalysisData {
-  model: 'chatgpt' | 'gemini' | 'mistral';
-  analysis: {
-    subjectivity_extreme_high: ExtremeCategoryAnalysis;
-    subjectivity_extreme_low: ExtremeCategoryAnalysis;
-    polarity_very_negative: ExtremeCategoryAnalysis;
-    polarity_very_positive: ExtremeCategoryAnalysis;
-    centrality_very_central: ExtremeCategoryAnalysis;
-    centrality_not_central: ExtremeCategoryAnalysis;
-  };
-  statistics: ExtremeStatistics;
-  facets: GlobalFacets;
+	model: 'chatgpt' | 'gemini' | 'mistral';
+	analysis: {
+		subjectivity_extreme_high: ExtremeCategoryAnalysis;
+		subjectivity_extreme_low: ExtremeCategoryAnalysis;
+		polarity_very_negative: ExtremeCategoryAnalysis;
+		polarity_very_positive: ExtremeCategoryAnalysis;
+		centrality_very_central: ExtremeCategoryAnalysis;
+		centrality_not_central: ExtremeCategoryAnalysis;
+	};
+	statistics: ExtremeStatistics;
+	facets: GlobalFacets;
 }
 
 /**
  * Extreme category types
  */
-export type ExtremeCategory = 
-  | 'subjectivity_extreme_high'
-  | 'subjectivity_extreme_low'
-  | 'polarity_very_negative'
-  | 'polarity_very_positive'
-  | 'centrality_very_central'
-  | 'centrality_not_central';
+export type ExtremeCategory =
+	| 'subjectivity_extreme_high'
+	| 'subjectivity_extreme_low'
+	| 'polarity_very_negative'
+	| 'polarity_very_positive'
+	| 'centrality_very_central'
+	| 'centrality_not_central';
 
 /**
  * Keyword type
@@ -121,9 +121,9 @@ export type FacetType = 'country' | 'newspaper';
  * Display configuration for extreme categories
  */
 export interface ExtremeCategoryConfig {
-  id: ExtremeCategory;
-  labelKey: string;
-  color: string;
-  gradient: string;
-  icon?: string;
-} 
+	id: ExtremeCategory;
+	labelKey: string;
+	color: string;
+	gradient: string;
+	icon?: string;
+}

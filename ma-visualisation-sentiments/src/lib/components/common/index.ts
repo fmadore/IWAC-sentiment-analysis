@@ -1,6 +1,6 @@
 /**
  * Common Components Barrel Export
- * 
+ *
  * Base reusable components used across the application.
  */
 

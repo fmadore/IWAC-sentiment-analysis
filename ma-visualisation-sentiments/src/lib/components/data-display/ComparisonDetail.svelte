@@ -32,8 +32,12 @@
 		comparison ? getArbiterForArticle(comparison.article['o:id']) !== null : false
 	);
 
-	const modelAName = $derived(comparison ? getModelDisplayName(comparison.modelAId, $availableDatasets) : 'Model A');
-	const modelBName = $derived(comparison ? getModelDisplayName(comparison.modelBId, $availableDatasets) : 'Model B');
+	const modelAName = $derived(
+		comparison ? getModelDisplayName(comparison.modelAId, $availableDatasets) : 'Model A'
+	);
+	const modelBName = $derived(
+		comparison ? getModelDisplayName(comparison.modelBId, $availableDatasets) : 'Model B'
+	);
 </script>
 
 {#if comparison}
@@ -44,13 +48,17 @@
 
 		<!-- Article metadata -->
 		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-			<div class="comparison-metadata-card card variant-glass glass-heavy p-4 hover-lift-sm border-gradient">
+			<div
+				class="comparison-metadata-card card variant-glass glass-heavy p-4 hover-lift-sm border-gradient"
+			>
 				<span class="text-xs uppercase font-bold opacity-75 text-purple-300/80"
 					>{$t.filters.journal}</span
 				>
 				<p class="text-white mt-2 font-medium">{getJournalName(comparison.article)}</p>
 			</div>
-			<div class="comparison-metadata-card card variant-glass glass-heavy p-4 hover-lift-sm border-gradient">
+			<div
+				class="comparison-metadata-card card variant-glass glass-heavy p-4 hover-lift-sm border-gradient"
+			>
 				<span class="text-xs uppercase font-bold opacity-75 text-purple-300/80"
 					>{$t.article.publicationDate}</span
 				>
@@ -60,11 +68,16 @@
 
 		<!-- Article viewer -->
 		{#if comparison.article.iiif_manifest}
-			<IIIFViewer manifestUrl={comparison.article.iiif_manifest} articleUrl={getArticleUrl(comparison.article['o:id'])} />
+			<IIIFViewer
+				manifestUrl={comparison.article.iiif_manifest}
+				articleUrl={getArticleUrl(comparison.article['o:id'])}
+			/>
 		{/if}
 
 		<!-- Link to full article -->
-		<div class="comparison-metadata-card card variant-glass glass-heavy p-4 hover-lift-sm border-gradient">
+		<div
+			class="comparison-metadata-card card variant-glass glass-heavy p-4 hover-lift-sm border-gradient"
+		>
 			<span class="text-xs uppercase font-bold opacity-75 text-white/60"
 				>{$t.article.linkToFullArticle}</span
 			>
@@ -269,7 +282,11 @@
 	/* Comparison Anchor */
 	.comparison-anchor {
 		color: var(--sentiment-comparison-light) !important;
-		border-bottom-color: color-mix(in oklab, var(--sentiment-comparison-light) 40%, transparent) !important;
+		border-bottom-color: color-mix(
+			in oklab,
+			var(--sentiment-comparison-light) 40%,
+			transparent
+		) !important;
 	}
 
 	.comparison-anchor:hover {

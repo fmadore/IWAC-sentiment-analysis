@@ -79,8 +79,12 @@
 	}
 
 	@keyframes fadeIn {
-		from { opacity: 0; }
-		to { opacity: 1; }
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
 	}
 
 	.prompt-modal {
@@ -101,8 +105,14 @@
 	}
 
 	@keyframes scaleIn {
-		from { opacity: 0; transform: scale(0.95) translateY(10px); }
-		to { opacity: 1; transform: scale(1) translateY(0); }
+		from {
+			opacity: 0;
+			transform: scale(0.95) translateY(10px);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1) translateY(0);
+		}
 	}
 
 	.prompt-modal::before {
@@ -112,7 +122,13 @@
 		left: 0;
 		right: 0;
 		height: 2px;
-		background: linear-gradient(90deg, transparent, var(--color-primary-500), var(--color-secondary-500), transparent);
+		background: linear-gradient(
+			90deg,
+			transparent,
+			var(--color-primary-500),
+			var(--color-secondary-500),
+			transparent
+		);
 		opacity: 0.6;
 	}
 

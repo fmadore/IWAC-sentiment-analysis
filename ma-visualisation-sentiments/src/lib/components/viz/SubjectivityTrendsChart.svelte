@@ -1,165 +1,168 @@
 <script lang="ts">
-  import { Chart } from 'svelte-echarts';
-  import { init, use } from 'echarts/core';
-  import { LineChart } from 'echarts/charts';
-  import {
-    TitleComponent,
-    TooltipComponent,
-    GridComponent,
-    LegendComponent,
-    DataZoomComponent
-  } from 'echarts/components';
-  import { LabelLayout } from 'echarts/features';
-  import { CanvasRenderer } from 'echarts/renderers';
-  import type { EChartsOption } from 'echarts';
-  import { innerWidth } from 'svelte/reactivity/window';
+	import { Chart } from 'svelte-echarts';
+	import { init, use } from 'echarts/core';
+	import { LineChart } from 'echarts/charts';
+	import {
+		TitleComponent,
+		TooltipComponent,
+		GridComponent,
+		LegendComponent,
+		DataZoomComponent
+	} from 'echarts/components';
+	import { LabelLayout } from 'echarts/features';
+	import { CanvasRenderer } from 'echarts/renderers';
+	import type { EChartsOption } from 'echarts';
+	import { innerWidth } from 'svelte/reactivity/window';
 
-  use([
-    TitleComponent,
-    TooltipComponent,
-    GridComponent,
-    LegendComponent,
-    LineChart,
-    LabelLayout,
-    CanvasRenderer,
-    DataZoomComponent
-  ]);
+	use([
+		TitleComponent,
+		TooltipComponent,
+		GridComponent,
+		LegendComponent,
+		LineChart,
+		LabelLayout,
+		CanvasRenderer,
+		DataZoomComponent
+	]);
 
-  import { filteredArticles } from '$lib';
-  import type { Article } from '$lib';
-  import { t, currentLanguage } from '$lib/i18n';
-  import { getSentimentLabels, formatNumber } from '$lib/i18n/utils';
-  import DatasetBadge from '../ui/DatasetBadge.svelte';
-  import { createTrendTooltipFormatter } from '$lib/utils/chartFormatters';
+	import { filteredArticles } from '$lib';
+	import type { Article } from '$lib';
+	import { t, currentLanguage } from '$lib/i18n';
+	import { getSentimentLabels, formatNumber } from '$lib/i18n/utils';
+	import DatasetBadge from '../ui/DatasetBadge.svelte';
+	import { createTrendTooltipFormatter } from '$lib/utils/chartFormatters';
 
-  // Import centralized chart theme
-  import {
-    subjectivityColors,
-    getTitleStyle,
-    getTooltipConfig,
-    getLegendConfig,
-    getAxisLineStyle,
-    getAxisPointerConfig,
-    getAxisLabelStyle,
-    getSplitLineStyle,
-    getGridConfig,
-    getDataZoomConfig,
-    getLineSeriesStyle,
-    getEmphasisConfig
-  } from '$lib/utils/chartTheme';
+	// Import centralized chart theme
+	import {
+		subjectivityColors,
+		getTitleStyle,
+		getTooltipConfig,
+		getLegendConfig,
+		getAxisLineStyle,
+		getAxisPointerConfig,
+		getAxisLabelStyle,
+		getSplitLineStyle,
+		getGridConfig,
+		getDataZoomConfig,
+		getLineSeriesStyle,
+		getEmphasisConfig
+	} from '$lib/utils/chartTheme';
 
-  // Get subjectivity labels in current language
-  let subjectivityLabels = $derived(getSentimentLabels('subjectivity', $currentLanguage));
-  
-  // Subjectivity scores (1-5, excluding N/A for trends)
-  const subjectivityScores = [1, 2, 3, 4, 5] as const;
-  type SubjectivityScore = typeof subjectivityScores[number];
+	// Get subjectivity labels in current language
+	let subjectivityLabels = $derived(getSentimentLabels('subjectivity', $currentLanguage));
 
-  // Reactive window width for responsive behavior
-  let isMobile = $derived((innerWidth.current ?? 1024) < 768);
-  let chartContainer = $state<HTMLDivElement>();
+	// Subjectivity scores (1-5, excluding N/A for trends)
+	const subjectivityScores = [1, 2, 3, 4, 5] as const;
+	type SubjectivityScore = (typeof subjectivityScores)[number];
 
-  // Use $derived for proper reactivity in Svelte 5
-  let options = $derived.by(() => {
-    const articles = $filteredArticles; // Direct reactive dependency
-    const currentT = $t; // Capture current translations for reactive updates
-    const currentLang = $currentLanguage; // Capture current language for reactive updates
-    const yearlyData: Record<string, Record<SubjectivityScore, number>> = {};
-    let articlesAnalyzed = 0;
+	// Reactive window width for responsive behavior
+	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
+	let chartContainer = $state<HTMLDivElement>();
 
-    articles.forEach((article: Article) => {
-      if (article.publication_date && article.sentiment_analysis?.subjectivite_score) {
-        const year = article.publication_date.substring(0, 4);
-        const score = article.sentiment_analysis.subjectivite_score as SubjectivityScore;
+	// Use $derived for proper reactivity in Svelte 5
+	let options = $derived.by(() => {
+		const articles = $filteredArticles; // Direct reactive dependency
+		const currentT = $t; // Capture current translations for reactive updates
+		const currentLang = $currentLanguage; // Capture current language for reactive updates
+		const yearlyData: Record<string, Record<SubjectivityScore, number>> = {};
+		let articlesAnalyzed = 0;
 
-        if (subjectivityScores.includes(score)) {
-          if (!yearlyData[year]) {
-            yearlyData[year] = Object.fromEntries(subjectivityScores.map(s => [s, 0])) as Record<SubjectivityScore, number>;
-          }
-          yearlyData[year][score]++;
-          articlesAnalyzed++;
-        }
-      }
-    });
+		articles.forEach((article: Article) => {
+			if (article.publication_date && article.sentiment_analysis?.subjectivite_score) {
+				const year = article.publication_date.substring(0, 4);
+				const score = article.sentiment_analysis.subjectivite_score as SubjectivityScore;
 
-    const years = Object.keys(yearlyData).sort();
+				if (subjectivityScores.includes(score)) {
+					if (!yearlyData[year]) {
+						yearlyData[year] = Object.fromEntries(subjectivityScores.map((s) => [s, 0])) as Record<
+							SubjectivityScore,
+							number
+						>;
+					}
+					yearlyData[year][score]++;
+					articlesAnalyzed++;
+				}
+			}
+		});
 
-    const series = subjectivityScores.map((score, index) => {
-      const color = subjectivityColors[score];
-      const lineStyle = getLineSeriesStyle(isMobile, color);
-      return {
-        name: subjectivityLabels[index],
-        type: 'line' as const,
-        emphasis: getEmphasisConfig(),
-        data: years.map(year => yearlyData[year][score] || 0),
-        color,
-        ...lineStyle,
-        smooth: true
-      };
-    });
+		const years = Object.keys(yearlyData).sort();
 
-    const tooltipConfig = getTooltipConfig(isMobile);
+		const series = subjectivityScores.map((score, index) => {
+			const color = subjectivityColors[score];
+			const lineStyle = getLineSeriesStyle(isMobile, color);
+			return {
+				name: subjectivityLabels[index],
+				type: 'line' as const,
+				emphasis: getEmphasisConfig(),
+				data: years.map((year) => yearlyData[year][score] || 0),
+				color,
+				...lineStyle,
+				smooth: true
+			};
+		});
 
-    return {
-      backgroundColor: 'transparent',
-      title: {
-        text: `${currentT.charts.subjectivityTrends} ${currentT.charts.byYear} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.charts.articlesAnalyzed})`,
-        left: 'center',
-        top: '2%',
-        textStyle: getTitleStyle(isMobile)
-      },
-      tooltip: {
-        ...tooltipConfig,
-        trigger: 'axis',
-        axisPointer: getAxisPointerConfig(),
-        formatter: createTrendTooltipFormatter({
-          getTotalLabel: () => currentT.common.total
-        })
-      },
-      legend: {
-        ...getLegendConfig(isMobile),
-        data: subjectivityLabels.slice(0, 5), // Exclude N/A label
-        top: isMobile ? '12%' : '8%'
-      },
-      grid: getGridConfig(isMobile, { hasLegendTop: true, hasDataZoom: true }),
-      xAxis: {
-        type: 'category',
-        boundaryGap: false,
-        data: years,
-        axisLine: getAxisLineStyle(),
-        axisLabel: {
-          ...getAxisLabelStyle(isMobile),
-          rotate: isMobile ? 45 : 0
-        }
-      },
-      yAxis: {
-        type: 'value',
-        minInterval: 1,
-        axisLine: getAxisLineStyle(),
-        splitLine: getSplitLineStyle(),
-        axisLabel: {
-          ...getAxisLabelStyle(isMobile),
-          formatter: (value: number) => Math.floor(value).toString()
-        }
-      },
-      series: series,
-      dataZoom: getDataZoomConfig(isMobile)
-    } as EChartsOption;
-  });
+		const tooltipConfig = getTooltipConfig(isMobile);
+
+		return {
+			backgroundColor: 'transparent',
+			title: {
+				text: `${currentT.charts.subjectivityTrends} ${currentT.charts.byYear} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.charts.articlesAnalyzed})`,
+				left: 'center',
+				top: '2%',
+				textStyle: getTitleStyle(isMobile)
+			},
+			tooltip: {
+				...tooltipConfig,
+				trigger: 'axis',
+				axisPointer: getAxisPointerConfig(),
+				formatter: createTrendTooltipFormatter({
+					getTotalLabel: () => currentT.common.total
+				})
+			},
+			legend: {
+				...getLegendConfig(isMobile),
+				data: subjectivityLabels.slice(0, 5), // Exclude N/A label
+				top: isMobile ? '12%' : '8%'
+			},
+			grid: getGridConfig(isMobile, { hasLegendTop: true, hasDataZoom: true }),
+			xAxis: {
+				type: 'category',
+				boundaryGap: false,
+				data: years,
+				axisLine: getAxisLineStyle(),
+				axisLabel: {
+					...getAxisLabelStyle(isMobile),
+					rotate: isMobile ? 45 : 0
+				}
+			},
+			yAxis: {
+				type: 'value',
+				minInterval: 1,
+				axisLine: getAxisLineStyle(),
+				splitLine: getSplitLineStyle(),
+				axisLabel: {
+					...getAxisLabelStyle(isMobile),
+					formatter: (value: number) => Math.floor(value).toString()
+				}
+			},
+			series: series,
+			dataZoom: getDataZoomConfig(isMobile)
+		} as EChartsOption;
+	});
 </script>
 
 {#if $filteredArticles.length > 0}
-  <div class="mb-4">
-    <DatasetBadge size="sm" />
-  </div>
-  
-  <div 
-    bind:this={chartContainer}
-    style="height: {isMobile ? '400px' : '500px'}; position: relative;" 
-    class="chart-container glass-medium rounded-lg p-2 sm:p-4"
-  >
-    <Chart {init} {options} />
-  </div>
+	<div class="mb-4">
+		<DatasetBadge size="sm" />
+	</div>
+
+	<div
+		bind:this={chartContainer}
+		style="height: {isMobile ? '400px' : '500px'}; position: relative;"
+		class="chart-container glass-medium rounded-lg p-2 sm:p-4"
+	>
+		<Chart {init} {options} />
+	</div>
 {:else}
-  <p class="text-center py-8 text-white/80 text-sm sm:text-base">{$t.table.noFilteredArticles}</p>
+	<p class="text-center py-8 text-white/80 text-sm sm:text-base">{$t.table.noFilteredArticles}</p>
 {/if}

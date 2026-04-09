@@ -17,88 +17,74 @@
   />
 -->
 <script lang="ts">
-  import type { ComparisonData } from '$lib/types/data';
-  import { t } from '$lib/i18n';
-  import { ComparisonDetail } from '$lib/components/data-display';
-  import FullScreenModal from './FullScreenModal.svelte';
-  import { getJournalName } from '$lib/utils';
-  import GitCompareArrowsIcon from '@lucide/svelte/icons/git-compare-arrows';
+	import type { ComparisonData } from '$lib/types/data';
+	import { t } from '$lib/i18n';
+	import { ComparisonDetail } from '$lib/components/data-display';
+	import FullScreenModal from './FullScreenModal.svelte';
+	import { getJournalName } from '$lib/utils';
+	import GitCompareArrowsIcon from '@lucide/svelte/icons/git-compare-arrows';
 
-  interface ComparisonDetailModalProps {
-    /** The comparison data to display */
-    comparison: ComparisonData | null;
-    /** Whether the modal is open */
-    open: boolean;
-    /** Callback when the modal should close */
-    onClose: () => void;
-  }
+	interface ComparisonDetailModalProps {
+		/** The comparison data to display */
+		comparison: ComparisonData | null;
+		/** Whether the modal is open */
+		open: boolean;
+		/** Callback when the modal should close */
+		onClose: () => void;
+	}
 
-  let { 
-    comparison, 
-    open, 
-    onClose
-  }: ComparisonDetailModalProps = $props();
+	let { comparison, open, onClose }: ComparisonDetailModalProps = $props();
 
-  // Derive title and subtitle from comparison data
-  let title = $derived(
-    comparison?.article?.['o:title'] ?? $t.nav.comparison
-  );
+	// Derive title and subtitle from comparison data
+	let title = $derived(comparison?.article?.['o:title'] ?? $t.nav.comparison);
 
-  let subtitle = $derived.by(() => {
-    if (!comparison?.article) return '';
-    const journal = getJournalName(comparison.article);
-    const date = comparison.article.publication_date ?? '';
-    return `${journal} • ${date}`;
-  });
+	let subtitle = $derived.by(() => {
+		if (!comparison?.article) return '';
+		const journal = getJournalName(comparison.article);
+		const date = comparison.article.publication_date ?? '';
+		return `${journal} • ${date}`;
+	});
 
-  // Check if there are discrepancies
-  let hasDiscrepancies = $derived(
-    comparison ? comparison.discrepancies.hasConflict : false
-  );
+	// Check if there are discrepancies
+	let hasDiscrepancies = $derived(comparison ? comparison.discrepancies.hasConflict : false);
 </script>
 
 {#if comparison}
-  <FullScreenModal 
-    {open}
-    {onClose}
-    {title}
-    {subtitle}
-    accentVariant="comparison"
-  >
-    {#snippet headerIcon()}
-      <GitCompareArrowsIcon size={20} class="text-secondary-400" />
-    {/snippet}
-    
-    {#snippet headerActions()}
-      {#if hasDiscrepancies}
-        <span class="discrepancy-badge">
-          {$t.comparison.highConflicts}
-        </span>
-      {/if}
-    {/snippet}
-    
-    <ComparisonDetail {comparison} />
-  </FullScreenModal>
+	<FullScreenModal {open} {onClose} {title} {subtitle} accentVariant="comparison">
+		{#snippet headerIcon()}
+			<GitCompareArrowsIcon size={20} class="text-secondary-400" />
+		{/snippet}
+
+		{#snippet headerActions()}
+			{#if hasDiscrepancies}
+				<span class="discrepancy-badge">
+					{$t.comparison.highConflicts}
+				</span>
+			{/if}
+		{/snippet}
+
+		<ComparisonDetail {comparison} />
+	</FullScreenModal>
 {/if}
 
 <style>
-  .discrepancy-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.375rem 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border-radius: 9999px;
-    background: var(--sentiment-discrepancy-bg);
-    border: 1px solid var(--sentiment-discrepancy-border);
-    color: var(--sentiment-discrepancy-light);
-    white-space: nowrap;
-  }
+	.discrepancy-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.375rem 0.75rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		border-radius: 9999px;
+		background: var(--sentiment-discrepancy-bg);
+		border: 1px solid var(--sentiment-discrepancy-border);
+		color: var(--sentiment-discrepancy-light);
+		white-space: nowrap;
+	}
 
-  @media (max-width: 640px) {
-    .discrepancy-badge {
-      display: none;
-    }
-  }
+	@media (max-width: 640px) {
+		.discrepancy-badge {
+			display: none;
+		}
+	}
 </style>

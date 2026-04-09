@@ -14,7 +14,7 @@
   <ArbiterMethodology />
 -->
 <script lang="ts">
-	import { t, currentLanguage } from '$lib/i18n';
+	import { t } from '$lib/i18n';
 	import { AccordionItem, PromptModal } from '$lib/components/common';
 	import { createAccordion } from '$lib/utils/accordion.svelte';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
@@ -125,11 +125,7 @@
 				>
 					<div class="model-card-single">
 						<div class="model-header">
-							<img 
-								src="{base}/logo/Gemini_logo.svg" 
-								alt="Gemini Logo" 
-								class="model-logo"
-							/>
+							<img src="{base}/logo/Gemini_logo.svg" alt="Gemini Logo" class="model-logo" />
 							<div>
 								<h4 class="model-name">Gemini 3 Pro</h4>
 								<span class="model-badge gemini">{$t.arbiter.arbiterRole}</span>
@@ -155,31 +151,76 @@
 						<div class="scale-section">
 							<h4 class="section-title">{$t.filters.polarity}</h4>
 							<ul class="sentiment-list">
-								<li><span class="sentiment-label very-positive">Très positif</span> <span class="sentiment-desc">{$t.arbiter.polarityVeryPositive}</span></li>
-								<li><span class="sentiment-label positive">Positif</span> <span class="sentiment-desc">{$t.arbiter.polarityPositive}</span></li>
-								<li><span class="sentiment-label neutral">Neutre</span> <span class="sentiment-desc">{$t.arbiter.polarityNeutral}</span></li>
-								<li><span class="sentiment-label negative">Négatif</span> <span class="sentiment-desc">{$t.arbiter.polarityNegative}</span></li>
-								<li><span class="sentiment-label very-negative">Très négatif</span> <span class="sentiment-desc">{$t.arbiter.polarityVeryNegative}</span></li>
+								<li>
+									<span class="sentiment-label very-positive">Très positif</span>
+									<span class="sentiment-desc">{$t.arbiter.polarityVeryPositive}</span>
+								</li>
+								<li>
+									<span class="sentiment-label positive">Positif</span>
+									<span class="sentiment-desc">{$t.arbiter.polarityPositive}</span>
+								</li>
+								<li>
+									<span class="sentiment-label neutral">Neutre</span>
+									<span class="sentiment-desc">{$t.arbiter.polarityNeutral}</span>
+								</li>
+								<li>
+									<span class="sentiment-label negative">Négatif</span>
+									<span class="sentiment-desc">{$t.arbiter.polarityNegative}</span>
+								</li>
+								<li>
+									<span class="sentiment-label very-negative">Très négatif</span>
+									<span class="sentiment-desc">{$t.arbiter.polarityVeryNegative}</span>
+								</li>
 							</ul>
 						</div>
 						<div class="scale-section">
 							<h4 class="section-title">{$t.filters.subjectivity}</h4>
 							<ul class="sentiment-list">
-								<li><span class="subjectivity-label">1</span> <span class="sentiment-desc">{$t.arbiter.subjectivity1}</span></li>
-								<li><span class="subjectivity-label">2</span> <span class="sentiment-desc">{$t.arbiter.subjectivity2}</span></li>
-								<li><span class="subjectivity-label">3</span> <span class="sentiment-desc">{$t.arbiter.subjectivity3}</span></li>
-								<li><span class="subjectivity-label">4</span> <span class="sentiment-desc">{$t.arbiter.subjectivity4}</span></li>
-								<li><span class="subjectivity-label">5</span> <span class="sentiment-desc">{$t.arbiter.subjectivity5}</span></li>
+								<li>
+									<span class="subjectivity-label">1</span>
+									<span class="sentiment-desc">{$t.arbiter.subjectivity1}</span>
+								</li>
+								<li>
+									<span class="subjectivity-label">2</span>
+									<span class="sentiment-desc">{$t.arbiter.subjectivity2}</span>
+								</li>
+								<li>
+									<span class="subjectivity-label">3</span>
+									<span class="sentiment-desc">{$t.arbiter.subjectivity3}</span>
+								</li>
+								<li>
+									<span class="subjectivity-label">4</span>
+									<span class="sentiment-desc">{$t.arbiter.subjectivity4}</span>
+								</li>
+								<li>
+									<span class="subjectivity-label">5</span>
+									<span class="sentiment-desc">{$t.arbiter.subjectivity5}</span>
+								</li>
 							</ul>
 						</div>
 						<div class="scale-section">
 							<h4 class="section-title">{$t.filters.centrality}</h4>
 							<ul class="sentiment-list">
-								<li><span class="centrality-label very-central">Très central</span> <span class="sentiment-desc">{$t.arbiter.centralityVeryCentral}</span></li>
-								<li><span class="centrality-label central">Central</span> <span class="sentiment-desc">{$t.arbiter.centralityCentral}</span></li>
-								<li><span class="centrality-label secondary">Secondaire</span> <span class="sentiment-desc">{$t.arbiter.centralitySecondary}</span></li>
-								<li><span class="centrality-label marginal">Marginal</span> <span class="sentiment-desc">{$t.arbiter.centralityMarginal}</span></li>
-								<li><span class="centrality-label not-addressed">Non abordé</span> <span class="sentiment-desc">{$t.arbiter.centralityNotAddressed}</span></li>
+								<li>
+									<span class="centrality-label very-central">Très central</span>
+									<span class="sentiment-desc">{$t.arbiter.centralityVeryCentral}</span>
+								</li>
+								<li>
+									<span class="centrality-label central">Central</span>
+									<span class="sentiment-desc">{$t.arbiter.centralityCentral}</span>
+								</li>
+								<li>
+									<span class="centrality-label secondary">Secondaire</span>
+									<span class="sentiment-desc">{$t.arbiter.centralitySecondary}</span>
+								</li>
+								<li>
+									<span class="centrality-label marginal">Marginal</span>
+									<span class="sentiment-desc">{$t.arbiter.centralityMarginal}</span>
+								</li>
+								<li>
+									<span class="centrality-label not-addressed">Non abordé</span>
+									<span class="sentiment-desc">{$t.arbiter.centralityNotAddressed}</span>
+								</li>
 							</ul>
 						</div>
 					</div>
@@ -214,7 +255,8 @@
 		<h4>{$t.arbiter.systemInstruction}</h4>
 	</div>
 	<div class="prompt-code-container">
-		<pre class="prompt-code">{`You are an expert arbiter evaluating sentiment analysis of news articles about Islam and Muslims in Francophone West Africa.
+		<pre
+			class="prompt-code">{`You are an expert arbiter evaluating sentiment analysis of news articles about Islam and Muslims in Francophone West Africa.
 
 Your role is to:
 1. Analyze articles independently and provide your own assessment
@@ -585,11 +627,31 @@ Provide your independent evaluation for each dimension, determine which model is
 		text-align: center;
 	}
 
-	.sentiment-label.very-positive { background: var(--sentiment-polarity-very-positive-bg); color: var(--sentiment-polarity-very-positive); border: 1px solid var(--sentiment-polarity-very-positive-border); }
-	.sentiment-label.positive { background: var(--sentiment-polarity-positive-bg); color: var(--sentiment-polarity-positive); border: 1px solid var(--sentiment-polarity-positive-border); }
-	.sentiment-label.neutral { background: var(--sentiment-polarity-neutral-bg); color: var(--sentiment-polarity-neutral); border: 1px solid var(--sentiment-polarity-neutral-border); }
-	.sentiment-label.negative { background: var(--sentiment-polarity-negative-bg); color: var(--sentiment-polarity-negative); border: 1px solid var(--sentiment-polarity-negative-border); }
-	.sentiment-label.very-negative { background: var(--sentiment-polarity-very-negative-bg); color: var(--sentiment-polarity-very-negative); border: 1px solid var(--sentiment-polarity-very-negative-border); }
+	.sentiment-label.very-positive {
+		background: var(--sentiment-polarity-very-positive-bg);
+		color: var(--sentiment-polarity-very-positive);
+		border: 1px solid var(--sentiment-polarity-very-positive-border);
+	}
+	.sentiment-label.positive {
+		background: var(--sentiment-polarity-positive-bg);
+		color: var(--sentiment-polarity-positive);
+		border: 1px solid var(--sentiment-polarity-positive-border);
+	}
+	.sentiment-label.neutral {
+		background: var(--sentiment-polarity-neutral-bg);
+		color: var(--sentiment-polarity-neutral);
+		border: 1px solid var(--sentiment-polarity-neutral-border);
+	}
+	.sentiment-label.negative {
+		background: var(--sentiment-polarity-negative-bg);
+		color: var(--sentiment-polarity-negative);
+		border: 1px solid var(--sentiment-polarity-negative-border);
+	}
+	.sentiment-label.very-negative {
+		background: var(--sentiment-polarity-very-negative-bg);
+		color: var(--sentiment-polarity-very-negative);
+		border: 1px solid var(--sentiment-polarity-very-negative-border);
+	}
 
 	.subjectivity-label {
 		display: inline-flex;
@@ -615,11 +677,31 @@ Provide your independent evaluation for each dimension, determine which model is
 		text-align: center;
 	}
 
-	.centrality-label.very-central { background: var(--sentiment-centrality-very-central-bg); color: var(--sentiment-centrality-very-central); border: 1px solid var(--sentiment-centrality-very-central-border); }
-	.centrality-label.central { background: var(--sentiment-centrality-central-bg); color: var(--sentiment-centrality-central); border: 1px solid var(--sentiment-centrality-central-border); }
-	.centrality-label.secondary { background: var(--sentiment-centrality-secondary-bg); color: var(--sentiment-centrality-secondary); border: 1px solid var(--sentiment-centrality-secondary-border); }
-	.centrality-label.marginal { background: var(--sentiment-centrality-marginal-bg); color: var(--sentiment-centrality-marginal); border: 1px solid var(--sentiment-centrality-marginal-border); }
-	.centrality-label.not-addressed { background: var(--sentiment-centrality-not-addressed-bg); color: var(--sentiment-centrality-not-addressed); border: 1px solid var(--sentiment-centrality-not-addressed-border); }
+	.centrality-label.very-central {
+		background: var(--sentiment-centrality-very-central-bg);
+		color: var(--sentiment-centrality-very-central);
+		border: 1px solid var(--sentiment-centrality-very-central-border);
+	}
+	.centrality-label.central {
+		background: var(--sentiment-centrality-central-bg);
+		color: var(--sentiment-centrality-central);
+		border: 1px solid var(--sentiment-centrality-central-border);
+	}
+	.centrality-label.secondary {
+		background: var(--sentiment-centrality-secondary-bg);
+		color: var(--sentiment-centrality-secondary);
+		border: 1px solid var(--sentiment-centrality-secondary-border);
+	}
+	.centrality-label.marginal {
+		background: var(--sentiment-centrality-marginal-bg);
+		color: var(--sentiment-centrality-marginal);
+		border: 1px solid var(--sentiment-centrality-marginal-border);
+	}
+	.centrality-label.not-addressed {
+		background: var(--sentiment-centrality-not-addressed-bg);
+		color: var(--sentiment-centrality-not-addressed);
+		border: 1px solid var(--sentiment-centrality-not-addressed-border);
+	}
 
 	.sentiment-desc {
 		color: var(--color-surface-50);

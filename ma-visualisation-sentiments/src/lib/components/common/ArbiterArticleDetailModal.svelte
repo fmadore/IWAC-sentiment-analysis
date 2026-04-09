@@ -11,7 +11,7 @@
   - Overlay click to close
 -->
 <script lang="ts">
-	import type { ArbiterAnalysis, ComparisonData } from '$lib/types/data';
+	import type { ArbiterAnalysis } from '$lib/types/data';
 	import { comparisonData, availableDatasets, comparisonPair } from '$lib/stores';
 	import { getModelsFromPair } from '$lib/types/data';
 	import { t } from '$lib/i18n';
@@ -108,7 +108,10 @@
 						</div>
 
 						{#if comparison.article.iiif_manifest}
-							<IIIFViewer manifestUrl={comparison.article.iiif_manifest} articleUrl={getArticleUrl(comparison.article['o:id'])} />
+							<IIIFViewer
+								manifestUrl={comparison.article.iiif_manifest}
+								articleUrl={getArticleUrl(comparison.article['o:id'])}
+							/>
 						{/if}
 						<a
 							href={getArticleUrl(comparison.article['o:id'])}

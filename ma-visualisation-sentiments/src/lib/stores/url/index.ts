@@ -1,6 +1,6 @@
 /**
  * URL State Module
- * 
+ *
  * Barrel export for URL state management.
  * Provides Svelte 5 runes-based state management for URL synchronization.
  */
@@ -9,14 +9,14 @@
 export type { URLState, PendingArticleSelection } from './types';
 
 // Constants
-export { 
-  VALID_VIEWS, 
-  VALID_DATASETS, 
-  VALID_PAIRS, 
-  URL_PARAMS,
-  type ValidView,
-  type ValidDataset,
-  type URLParamKey
+export {
+	VALID_VIEWS,
+	VALID_DATASETS,
+	VALID_PAIRS,
+	URL_PARAMS,
+	type ValidView,
+	type ValidDataset,
+	type URLParamKey
 } from './constants';
 
 // Parser
@@ -26,22 +26,21 @@ export { parseURLState } from './parser.svelte';
 export { buildURLSearchParams } from './builder.svelte';
 
 // State (Svelte 5 runes)
-export { 
-  pendingArticleState, 
-  pendingComparisonArticleState, 
-  getCurrentState 
+export {
+	pendingArticleState,
+	pendingComparisonArticleState,
+	getCurrentState
 } from './state.svelte';
 
 // Actions
 export {
-  applyURLState,
-  updateURL,
-  initializeURLState,
-  clearAllFilters,
-  clearSelectedArticle,
-  clearSelectedArticleOnly,
-  handlePendingArticleSelection,
-  handlePendingComparisonArticleSelection,
-  clearSelectedComparison
+	applyURLState,
+	updateURL,
+	initializeURLState,
+	clearAllFilters,
+	clearSelectedArticle,
+	clearSelectedArticleOnly,
+	handlePendingArticleSelection,
+	handlePendingComparisonArticleSelection,
+	clearSelectedComparison
 } from './actions.svelte';
-

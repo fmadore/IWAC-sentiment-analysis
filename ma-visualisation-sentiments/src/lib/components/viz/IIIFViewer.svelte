@@ -19,7 +19,7 @@
 	let viewerContainer = $state<HTMLDivElement>();
 	let OSD: typeof OpenSeadragon | null = $state(null);
 	let viewer: OpenSeadragon.Viewer | null = $state(null);
-	let tileSources = $state<any[]>([]);
+	let tileSources = $state<(string | { type: string; url: string })[]>([]);
 	let currentPage = $state(0);
 	let totalPages = $state(0);
 	let loading = $state(true);
@@ -44,7 +44,7 @@
 			const manifest = await res.json();
 
 			// IIIF v3: items[].items[].items[].body.service[]
-			const sources: any[] = [];
+			const sources: (string | { type: string; url: string })[] = [];
 
 			// IIIF v3: items[].items[].items[].body.service[]
 			if (manifest.items) {
@@ -99,7 +99,9 @@
 
 		viewer = OSD({
 			element: viewerContainer,
-			tileSources: tileSources[0],
+			// OSD accepts strings and { type, url } objects at runtime; its TileSourceSpecifier
+			// type is stricter than what we need for IIIF info.json URLs.
+			tileSources: tileSources[0] as unknown as OpenSeadragon.TileSourceSpecifier,
 			showNavigationControl: false,
 			showZoomControl: false,
 			showHomeControl: false,
@@ -117,7 +119,7 @@
 	function goToPage(page: number) {
 		if (!viewer || page < 0 || page >= totalPages) return;
 		currentPage = page;
-		viewer.open(tileSources[page]);
+		viewer.open(tileSources[page] as unknown as OpenSeadragon.TileSourceSpecifier);
 	}
 
 	function toggleExpanded() {
@@ -130,65 +132,77 @@
 </script>
 
 {#if !fallback}
-<div class="iiif-viewer-wrapper" data-expanded={expanded}>
-	{#if loading}
-		<div class="viewer-placeholder">
-			<div class="viewer-spinner"></div>
-			<p class="text-white/60 text-sm">{$t.messages?.loading ?? 'Loading...'}</p>
-		</div>
-	{:else if error}
-		<div class="viewer-placeholder">
-			<p class="text-white/60 text-sm">{error}</p>
-			{#if articleUrl}
-				<a href={articleUrl} target="_blank" rel="noopener noreferrer" class="viewer-fallback-link">
-					{$t.article?.consultOriginalArticle ?? 'View original article'} <ExternalLinkIcon size={14} />
-				</a>
-			{/if}
-		</div>
-	{:else}
-		<!-- Toolbar -->
-		<div class="viewer-toolbar">
-			{#if totalPages > 1}
-				<div class="page-nav">
-					<button
-						class="viewer-btn"
-						onclick={() => goToPage(currentPage - 1)}
-						disabled={currentPage === 0}
-						aria-label="Previous page"
-					>
-						<ChevronLeftIcon size={16} />
-					</button>
-					<span class="page-indicator">{currentPage + 1} / {totalPages}</span>
-					<button
-						class="viewer-btn"
-						onclick={() => goToPage(currentPage + 1)}
-						disabled={currentPage === totalPages - 1}
-						aria-label="Next page"
-					>
-						<ChevronRightIcon size={16} />
-					</button>
-				</div>
-			{/if}
-			<div class="toolbar-actions">
-				<button class="viewer-btn" onclick={toggleExpanded} aria-label="Toggle expanded view">
-					{#if expanded}
-						<MinimizeIcon size={16} />
-					{:else}
-						<MaximizeIcon size={16} />
-					{/if}
-				</button>
+	<div class="iiif-viewer-wrapper" data-expanded={expanded}>
+		{#if loading}
+			<div class="viewer-placeholder">
+				<div class="viewer-spinner"></div>
+				<p class="text-white/60 text-sm">{$t.messages?.loading ?? 'Loading...'}</p>
+			</div>
+		{:else if error}
+			<div class="viewer-placeholder">
+				<p class="text-white/60 text-sm">{error}</p>
 				{#if articleUrl}
-					<a href={articleUrl} target="_blank" rel="noopener noreferrer" class="viewer-btn" aria-label="Open in new tab">
-						<ExternalLinkIcon size={16} />
+					<a
+						href={articleUrl}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="viewer-fallback-link"
+					>
+						{$t.article?.consultOriginalArticle ?? 'View original article'}
+						<ExternalLinkIcon size={14} />
 					</a>
 				{/if}
 			</div>
-		</div>
+		{:else}
+			<!-- Toolbar -->
+			<div class="viewer-toolbar">
+				{#if totalPages > 1}
+					<div class="page-nav">
+						<button
+							class="viewer-btn"
+							onclick={() => goToPage(currentPage - 1)}
+							disabled={currentPage === 0}
+							aria-label="Previous page"
+						>
+							<ChevronLeftIcon size={16} />
+						</button>
+						<span class="page-indicator">{currentPage + 1} / {totalPages}</span>
+						<button
+							class="viewer-btn"
+							onclick={() => goToPage(currentPage + 1)}
+							disabled={currentPage === totalPages - 1}
+							aria-label="Next page"
+						>
+							<ChevronRightIcon size={16} />
+						</button>
+					</div>
+				{/if}
+				<div class="toolbar-actions">
+					<button class="viewer-btn" onclick={toggleExpanded} aria-label="Toggle expanded view">
+						{#if expanded}
+							<MinimizeIcon size={16} />
+						{:else}
+							<MaximizeIcon size={16} />
+						{/if}
+					</button>
+					{#if articleUrl}
+						<a
+							href={articleUrl}
+							target="_blank"
+							rel="noopener noreferrer"
+							class="viewer-btn"
+							aria-label="Open in new tab"
+						>
+							<ExternalLinkIcon size={16} />
+						</a>
+					{/if}
+				</div>
+			</div>
 
-		<!-- OpenSeadragon container -->
-		<div bind:this={viewerContainer} class="osd-container"></div>
-	{/if}
-</div>
+			<!-- OpenSeadragon container -->
+			<div bind:this={viewerContainer} class="osd-container"></div>
+		{/if}
+	</div>
 {/if}
 
 <style>
@@ -236,7 +250,9 @@
 	}
 
 	@keyframes spin {
-		to { transform: rotate(360deg); }
+		to {
+			transform: rotate(360deg);
+		}
 	}
 
 	.viewer-toolbar {

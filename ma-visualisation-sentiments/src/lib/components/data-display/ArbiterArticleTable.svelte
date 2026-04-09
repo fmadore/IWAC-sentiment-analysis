@@ -16,7 +16,6 @@
 	import { comparisonPair } from '$lib/stores';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { getJournalName } from '$lib/utils';
-	import { SentimentBadge } from '$lib/components/common';
 	import { ArbiterCSVExportButton } from '$lib/components/ui';
 	import ArrowUpDownIcon from '@lucide/svelte/icons/arrow-up-down';
 	import LayoutGridIcon from '@lucide/svelte/icons/layout-grid';

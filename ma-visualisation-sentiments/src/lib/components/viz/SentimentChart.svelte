@@ -1,269 +1,291 @@
-<!-- SentimentChart.svelte component with ECharts integration --> 
+<!-- SentimentChart.svelte component with ECharts integration -->
 <script lang="ts">
-  import { Chart } from 'svelte-echarts';
+	import { Chart } from 'svelte-echarts';
 
-  // ECharts core and modules for tree-shaking
-  import { init, use } from 'echarts/core';
-  import { BarChart, PieChart } from 'echarts/charts';
-  import {
-    TitleComponent,
-    TooltipComponent,
-    GridComponent,
-    LegendComponent
-  } from 'echarts/components';
-  import { LabelLayout, UniversalTransition } from 'echarts/features';
-  import { CanvasRenderer } from 'echarts/renderers';
-  import type { EChartsOption, SeriesOption } from 'echarts';
-  import { innerWidth } from 'svelte/reactivity/window';
+	// ECharts core and modules for tree-shaking
+	import { init, use } from 'echarts/core';
+	import { BarChart, PieChart } from 'echarts/charts';
+	import {
+		TitleComponent,
+		TooltipComponent,
+		GridComponent,
+		LegendComponent
+	} from 'echarts/components';
+	import { LabelLayout, UniversalTransition } from 'echarts/features';
+	import { CanvasRenderer } from 'echarts/renderers';
+	import type { EChartsOption, SeriesOption } from 'echarts';
+	import { innerWidth } from 'svelte/reactivity/window';
+	import { SvelteSet } from 'svelte/reactivity';
 
-  // Register the required components
-  use([
-    TitleComponent,
-    TooltipComponent,
-    GridComponent,
-    LegendComponent,
-    BarChart,
-    PieChart,
-    LabelLayout,
-    UniversalTransition,
-    CanvasRenderer
-  ]);
+	// Register the required components
+	use([
+		TitleComponent,
+		TooltipComponent,
+		GridComponent,
+		LegendComponent,
+		BarChart,
+		PieChart,
+		LabelLayout,
+		UniversalTransition,
+		CanvasRenderer
+	]);
 
-  import { filteredArticles } from '$lib';
-  import type { Article } from '$lib';
-  import { getJournalName } from '$lib/utils';
-  import { t, currentLanguage } from '$lib/i18n';
-  import { getSentimentLabels, formatNumber } from '$lib/i18n/utils';
-  import DatasetBadge from '../ui/DatasetBadge.svelte';
-  import { createPieTooltipFormatter, createStackedBarTooltipFormatter } from '$lib/utils/chartFormatters';
+	import { filteredArticles } from '$lib';
+	import type { Article } from '$lib';
+	import { getJournalName } from '$lib/utils';
+	import { t, currentLanguage } from '$lib/i18n';
+	import { getSentimentLabels, formatNumber } from '$lib/i18n/utils';
+	import DatasetBadge from '../ui/DatasetBadge.svelte';
+	import {
+		createPieTooltipFormatter,
+		createStackedBarTooltipFormatter
+	} from '$lib/utils/chartFormatters';
 
-  // Import centralized chart theme
-  import {
-    polarityColors,
-    seriesColorPalette,
-    getTitleStyle,
-    getTooltipConfig,
-    getLegendConfig,
-    getAxisLineStyle,
-    getAxisLabelStyle,
-    getSplitLineStyle,
-    getGridConfig,
-    getPieSeriesStyle,
-    getEmphasisConfig,
-    getUniversalTransitionConfig,
-    getStaggeredAnimationDelay
-  } from '$lib/utils/chartTheme';
+	// Import centralized chart theme
+	import {
+		polarityColors,
+		seriesColorPalette,
+		getTitleStyle,
+		getTooltipConfig,
+		getLegendConfig,
+		getAxisLineStyle,
+		getAxisLabelStyle,
+		getSplitLineStyle,
+		getGridConfig,
+		getPieSeriesStyle,
+		getEmphasisConfig,
+		getUniversalTransitionConfig,
+		getStaggeredAnimationDelay
+	} from '$lib/utils/chartTheme';
 
-  // Get polarity labels in current language
-  let polarityLabels = $derived(getSentimentLabels('polarity', $currentLanguage));
-  
-  // French labels for data lookup (data is stored in French)
-  const frenchPolarityLabels = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif', 'Non applicable'];
+	// Get polarity labels in current language
+	let polarityLabels = $derived(getSentimentLabels('polarity', $currentLanguage));
 
-  // Reactive window width for responsive behavior
-  let isMobile = $derived((innerWidth.current ?? 1024) < 768);
-  let chartContainer = $state<HTMLDivElement>();
-  let chartType = $state<'bar' | 'pie'>('bar');
+	// French labels for data lookup (data is stored in French)
+	const frenchPolarityLabels = [
+		'Très positif',
+		'Positif',
+		'Neutre',
+		'Négatif',
+		'Très négatif',
+		'Non applicable'
+	];
 
-  // Use $derived for proper reactivity in Svelte 5
-  let options = $derived.by(() => {
-    const articles = $filteredArticles; // Direct reactive dependency
-    const currentT = $t; // Capture current translations for reactive updates
-    const currentLang = $currentLanguage; // Capture current language for reactive updates
-    let articlesAnalyzed = 0;
-    const newspaperPolarityCounts: Record<string, Record<string, number>> = {};
-    const uniqueNewspapers = new Set<string>();
+	// Reactive window width for responsive behavior
+	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
+	let chartContainer = $state<HTMLDivElement>();
+	let chartType = $state<'bar' | 'pie'>('bar');
 
-    articles.forEach((article: Article) => {
-      if (article.sentiment_analysis?.polarite) {
-        const polarityKey = article.sentiment_analysis.polarite as string;
-        const journal = getJournalName(article); // Use the utility function
-        uniqueNewspapers.add(journal);
+	// Use $derived for proper reactivity in Svelte 5
+	let options = $derived.by(() => {
+		const articles = $filteredArticles; // Direct reactive dependency
+		const currentT = $t; // Capture current translations for reactive updates
+		const currentLang = $currentLanguage; // Capture current language for reactive updates
+		let articlesAnalyzed = 0;
+		const newspaperPolarityCounts: Record<string, Record<string, number>> = {};
+		const uniqueNewspapers = new SvelteSet<string>();
 
-        if (!newspaperPolarityCounts[journal]) {
-          newspaperPolarityCounts[journal] = Object.fromEntries(frenchPolarityLabels.map(l => [l, 0]));
-        }
-        if (newspaperPolarityCounts[journal].hasOwnProperty(polarityKey)) {
-          newspaperPolarityCounts[journal][polarityKey]++;
-        }
-        articlesAnalyzed++;
-      }
-    });
+		articles.forEach((article: Article) => {
+			if (article.sentiment_analysis?.polarite) {
+				const polarityKey = article.sentiment_analysis.polarite as string;
+				const journal = getJournalName(article); // Use the utility function
+				uniqueNewspapers.add(journal);
 
-    const newspaperList = Array.from(uniqueNewspapers).sort();
+				if (!newspaperPolarityCounts[journal]) {
+					newspaperPolarityCounts[journal] = Object.fromEntries(
+						frenchPolarityLabels.map((l) => [l, 0])
+					);
+				}
+				if (Object.prototype.hasOwnProperty.call(newspaperPolarityCounts[journal], polarityKey)) {
+					newspaperPolarityCounts[journal][polarityKey]++;
+				}
+				articlesAnalyzed++;
+			}
+		});
 
-    if (chartType === 'pie') {
-      // Pie chart: agrégation globale par polarité
-      const totalByPolarity: Record<string, number> = {};
-      frenchPolarityLabels.forEach((frenchLabel, index) => {
-        const translatedLabel = polarityLabels[index];
-        totalByPolarity[translatedLabel] = 0;
-        newspaperList.forEach(journal => {
-          totalByPolarity[translatedLabel] += newspaperPolarityCounts[journal]?.[frenchLabel] || 0;
-        });
-      });
+		const newspaperList = Array.from(uniqueNewspapers).sort();
 
-      const pieData = polarityLabels
-        .filter(label => totalByPolarity[label] > 0)
-        .map((label, index) => ({
-          name: label,
-          value: totalByPolarity[label],
-          itemStyle: { color: polarityColors[frenchPolarityLabels[index] as keyof typeof polarityColors] }
-        }));
+		if (chartType === 'pie') {
+			// Pie chart: agrégation globale par polarité
+			const totalByPolarity: Record<string, number> = {};
+			frenchPolarityLabels.forEach((frenchLabel, index) => {
+				const translatedLabel = polarityLabels[index];
+				totalByPolarity[translatedLabel] = 0;
+				newspaperList.forEach((journal) => {
+					totalByPolarity[translatedLabel] += newspaperPolarityCounts[journal]?.[frenchLabel] || 0;
+				});
+			});
 
-      const pieStyle = getPieSeriesStyle(isMobile);
-      const tooltipConfig = getTooltipConfig(isMobile);
+			const pieData = polarityLabels
+				.filter((label) => totalByPolarity[label] > 0)
+				.map((label, index) => ({
+					name: label,
+					value: totalByPolarity[label],
+					itemStyle: {
+						color: polarityColors[frenchPolarityLabels[index] as keyof typeof polarityColors]
+					}
+				}));
 
-      return {
-        backgroundColor: 'transparent',
-        title: {
-          text: `${currentT.charts.globalDistribution} ${currentT.charts.polarityDistribution.toLowerCase()} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.common.articles})`,
-          left: 'center',
-          top: '2%',
-          textStyle: getTitleStyle(isMobile)
-        },
-        tooltip: {
-          ...tooltipConfig,
-          trigger: 'item',
-          formatter: createPieTooltipFormatter({
-            formatValue: (n) => formatNumber(n, currentLang)
-          })
-        },
-        legend: {
-          ...getLegendConfig(isMobile),
-          data: newspaperList,
-          top: isMobile ? '12%' : '8%'
-        },
-        series: [{
-          name: currentT.filters.polarity,
-          type: 'pie',
-          ...pieStyle,
-          ...getUniversalTransitionConfig(),
-          id: 'sentiment',
-          data: pieData
-        }]
-      } as EChartsOption;
-    
-    } else {
-      // Bar chart (original)
-      const seriesData: SeriesOption[] = newspaperList.map((journal, index) => {
-        return {
-          name: journal,
-          type: 'bar',
-          stack: 'total',
-          emphasis: getEmphasisConfig(),
-          ...getUniversalTransitionConfig(),
-          ...getStaggeredAnimationDelay(),
-          id: `sentiment-${index}`,
-          data: frenchPolarityLabels.map(frenchLabel => newspaperPolarityCounts[journal]?.[frenchLabel] || 0),
-          itemStyle: {
-            color: seriesColorPalette[index % seriesColorPalette.length],
-            borderRadius: [2, 2, 0, 0]
-          }
-        };
-      });
+			const pieStyle = getPieSeriesStyle(isMobile);
+			const tooltipConfig = getTooltipConfig(isMobile);
 
-      const tooltipConfig = getTooltipConfig(isMobile);
+			return {
+				backgroundColor: 'transparent',
+				title: {
+					text: `${currentT.charts.globalDistribution} ${currentT.charts.polarityDistribution.toLowerCase()} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.common.articles})`,
+					left: 'center',
+					top: '2%',
+					textStyle: getTitleStyle(isMobile)
+				},
+				tooltip: {
+					...tooltipConfig,
+					trigger: 'item',
+					formatter: createPieTooltipFormatter({
+						formatValue: (n) => formatNumber(n, currentLang)
+					})
+				},
+				legend: {
+					...getLegendConfig(isMobile),
+					data: newspaperList,
+					top: isMobile ? '12%' : '8%'
+				},
+				series: [
+					{
+						name: currentT.filters.polarity,
+						type: 'pie',
+						...pieStyle,
+						...getUniversalTransitionConfig(),
+						id: 'sentiment',
+						data: pieData
+					}
+				]
+			} as EChartsOption;
+		} else {
+			// Bar chart (original)
+			const seriesData: SeriesOption[] = newspaperList.map((journal, index) => {
+				return {
+					name: journal,
+					type: 'bar',
+					stack: 'total',
+					emphasis: getEmphasisConfig(),
+					...getUniversalTransitionConfig(),
+					...getStaggeredAnimationDelay(),
+					id: `sentiment-${index}`,
+					data: frenchPolarityLabels.map(
+						(frenchLabel) => newspaperPolarityCounts[journal]?.[frenchLabel] || 0
+					),
+					itemStyle: {
+						color: seriesColorPalette[index % seriesColorPalette.length],
+						borderRadius: [2, 2, 0, 0]
+					}
+				};
+			});
 
-      return {
-        backgroundColor: 'transparent',
-        title: {
-          text: isMobile 
-            ? `${currentT.charts.polarityDistribution} ${currentT.charts.byJournal}\n(${formatNumber(articlesAnalyzed, currentLang)} ${currentT.charts.articlesAnalyzed})`
-            : `${currentT.charts.polarityDistribution} ${currentT.charts.byJournal} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.charts.articlesAnalyzed})`,
-          left: 'center',
-          top: '1%',
-          textStyle: {
-            ...getTitleStyle(isMobile),
-            lineHeight: isMobile ? 16 : 20
-          }
-        },
-        tooltip: {
-          ...tooltipConfig,
-          trigger: 'axis',
-          triggerOn: 'mousemove',
-          enterable: true,
-          axisPointer: {
-            type: 'shadow',
-            shadowStyle: {
-              color: 'rgba(59, 130, 246, 0.08)'
-            }
-          },
-          confine: true,
-          formatter: createStackedBarTooltipFormatter({
-            getTotalLabel: () => currentT.common.total,
-            getIsMobile: () => isMobile,
-            scrollableList: true
-          })
-        },
-        legend: {
-          ...getLegendConfig(isMobile),
-          data: newspaperList,
-          bottom: isMobile ? '8%' : undefined,
-          top: isMobile ? undefined : '8%'
-        },
-        grid: getGridConfig(isMobile, { 
-          hasLegendTop: !isMobile, 
-          legendPosition: isMobile ? 'bottom' : 'top' 
-        }),
-        xAxis: {
-          type: 'category',
-          data: polarityLabels,
-          axisTick: {
-            alignWithLabel: true,
-            lineStyle: { color: 'rgba(255, 255, 255, 0.2)' }
-          },
-          axisLine: getAxisLineStyle(),
-          axisLabel: {
-            ...getAxisLabelStyle(isMobile),
-            rotate: isMobile ? 45 : 30,
-            interval: 0
-          }
-        },
-        yAxis: {
-          type: 'value',
-          minInterval: 1,
-          axisLine: getAxisLineStyle(),
-          splitLine: getSplitLineStyle(),
-          axisLabel: {
-            ...getAxisLabelStyle(isMobile),
-            formatter: (value: number) => Math.floor(value).toString()
-          }
-        },
-        series: seriesData
-      } as EChartsOption;
-    }
-  });
+			const tooltipConfig = getTooltipConfig(isMobile);
+
+			return {
+				backgroundColor: 'transparent',
+				title: {
+					text: isMobile
+						? `${currentT.charts.polarityDistribution} ${currentT.charts.byJournal}\n(${formatNumber(articlesAnalyzed, currentLang)} ${currentT.charts.articlesAnalyzed})`
+						: `${currentT.charts.polarityDistribution} ${currentT.charts.byJournal} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.charts.articlesAnalyzed})`,
+					left: 'center',
+					top: '1%',
+					textStyle: {
+						...getTitleStyle(isMobile),
+						lineHeight: isMobile ? 16 : 20
+					}
+				},
+				tooltip: {
+					...tooltipConfig,
+					trigger: 'axis',
+					triggerOn: 'mousemove',
+					enterable: true,
+					axisPointer: {
+						type: 'shadow',
+						shadowStyle: {
+							color: 'rgba(59, 130, 246, 0.08)'
+						}
+					},
+					confine: true,
+					formatter: createStackedBarTooltipFormatter({
+						getTotalLabel: () => currentT.common.total,
+						getIsMobile: () => isMobile,
+						scrollableList: true
+					})
+				},
+				legend: {
+					...getLegendConfig(isMobile),
+					data: newspaperList,
+					bottom: isMobile ? '8%' : undefined,
+					top: isMobile ? undefined : '8%'
+				},
+				grid: getGridConfig(isMobile, {
+					hasLegendTop: !isMobile,
+					legendPosition: isMobile ? 'bottom' : 'top'
+				}),
+				xAxis: {
+					type: 'category',
+					data: polarityLabels,
+					axisTick: {
+						alignWithLabel: true,
+						lineStyle: { color: 'rgba(255, 255, 255, 0.2)' }
+					},
+					axisLine: getAxisLineStyle(),
+					axisLabel: {
+						...getAxisLabelStyle(isMobile),
+						rotate: isMobile ? 45 : 30,
+						interval: 0
+					}
+				},
+				yAxis: {
+					type: 'value',
+					minInterval: 1,
+					axisLine: getAxisLineStyle(),
+					splitLine: getSplitLineStyle(),
+					axisLabel: {
+						...getAxisLabelStyle(isMobile),
+						formatter: (value: number) => Math.floor(value).toString()
+					}
+				},
+				series: seriesData
+			} as EChartsOption;
+		}
+	});
 </script>
 
 {#if $filteredArticles.length > 0}
-  <!-- Dataset badge and Chart type selection buttons -->
-  <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
-    <DatasetBadge size="sm" />
-    
-    <div class="flex flex-wrap gap-2 justify-center">
-      <button 
-        class="btn btn-sm hover-lift transition-all duration-200 {chartType === 'bar' ? 'variant-filled-primary shadow-lg scale-105' : 'variant-soft-surface hover:variant-soft-primary'}"
-        onclick={() => chartType = 'bar'}
-      >
-        📊 {$t.charts.bars}
-      </button>
-      <button 
-        class="btn btn-sm hover-lift transition-all duration-200 {chartType === 'pie' ? 'variant-filled-primary shadow-lg scale-105' : 'variant-soft-surface hover:variant-soft-primary'}"
-        onclick={() => chartType = 'pie'}
-      >
-        🥧 {$t.charts.pie}
-      </button>
-    </div>
-  </div>
+	<!-- Dataset badge and Chart type selection buttons -->
+	<div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+		<DatasetBadge size="sm" />
 
-  <div 
-    bind:this={chartContainer}
-    style="height: {isMobile ? '350px' : '450px'}; position: relative;" 
-    class="chart-container glass-medium rounded-lg p-2 sm:p-4"
-  >
-    <Chart {init} {options} />
-  </div>
+		<div class="flex flex-wrap gap-2 justify-center">
+			<button
+				class="btn btn-sm hover-lift transition-all duration-200 {chartType === 'bar'
+					? 'variant-filled-primary shadow-lg scale-105'
+					: 'variant-soft-surface hover:variant-soft-primary'}"
+				onclick={() => (chartType = 'bar')}
+			>
+				📊 {$t.charts.bars}
+			</button>
+			<button
+				class="btn btn-sm hover-lift transition-all duration-200 {chartType === 'pie'
+					? 'variant-filled-primary shadow-lg scale-105'
+					: 'variant-soft-surface hover:variant-soft-primary'}"
+				onclick={() => (chartType = 'pie')}
+			>
+				🥧 {$t.charts.pie}
+			</button>
+		</div>
+	</div>
+
+	<div
+		bind:this={chartContainer}
+		style="height: {isMobile ? '350px' : '450px'}; position: relative;"
+		class="chart-container glass-medium rounded-lg p-2 sm:p-4"
+	>
+		<Chart {init} {options} />
+	</div>
 {:else}
-  <p class="text-center py-8 text-white/80 text-sm sm:text-base">{$t.table.noFilteredArticles}</p>
+	<p class="text-center py-8 text-white/80 text-sm sm:text-base">{$t.table.noFilteredArticles}</p>
 {/if}

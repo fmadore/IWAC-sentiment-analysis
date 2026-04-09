@@ -1,6 +1,6 @@
 /**
  * Filter Components Barrel Export
- * 
+ *
  * All filter-related components for data filtering functionality.
  */
 

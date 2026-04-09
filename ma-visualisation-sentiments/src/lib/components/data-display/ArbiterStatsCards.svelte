@@ -23,7 +23,7 @@
 
 	// Get model logo from datasets
 	function getModelLogo(modelName: string): string | null {
-		const dataset = $availableDatasets.find(d => d.name === modelName);
+		const dataset = $availableDatasets.find((d) => d.name === modelName);
 		return dataset?.logo ?? null;
 	}
 
@@ -61,7 +61,7 @@
 	<div class="stat-card">
 		<div class="stat-icon model-a">
 			{#if modelALogo}
-				<img src="{base}{modelALogo}" alt="{modelAName}" class="model-logo" />
+				<img src="{base}{modelALogo}" alt={modelAName} class="model-logo" />
 			{/if}
 		</div>
 		<div class="stat-content">
@@ -75,7 +75,7 @@
 	<div class="stat-card">
 		<div class="stat-icon model-b">
 			{#if modelBLogo}
-				<img src="{base}{modelBLogo}" alt="{modelBName}" class="model-logo" />
+				<img src="{base}{modelBLogo}" alt={modelBName} class="model-logo" />
 			{/if}
 		</div>
 		<div class="stat-content">
@@ -115,7 +115,7 @@
 	{@const leadingLogo = getModelLogo(leadingModel)}
 	<div class="lead-indicator mt-4">
 		{#if leadingLogo}
-			<img src="{base}{leadingLogo}" alt="{leadingModel}" class="lead-logo" />
+			<img src="{base}{leadingLogo}" alt={leadingModel} class="lead-logo" />
 		{/if}
 		<span class="lead-text">
 			<strong>{leadingModel}</strong> leads by <strong>{leadPercentage}%</strong> in overall preferences
@@ -137,7 +137,7 @@
 			<div class="comparison-labels">
 				<div class="model-label model-a-label">
 					{#if modelALogo}
-						<img src="{base}{modelALogo}" alt="{modelAName}" class="comparison-logo" />
+						<img src="{base}{modelALogo}" alt={modelAName} class="comparison-logo" />
 					{/if}
 					<span>{modelAName}</span>
 					<strong>{modelAPercent.toFixed(1)}%</strong>
@@ -146,18 +146,18 @@
 					<strong>{modelBPercent.toFixed(1)}%</strong>
 					<span>{modelBName}</span>
 					{#if modelBLogo}
-						<img src="{base}{modelBLogo}" alt="{modelBName}" class="comparison-logo" />
+						<img src="{base}{modelBLogo}" alt={modelBName} class="comparison-logo" />
 					{/if}
 				</div>
 			</div>
 			<div class="comparison-bar">
-				<div 
-					class="bar-segment model-a-segment" 
+				<div
+					class="bar-segment model-a-segment"
 					style="width: {modelAPercent}%"
 					title="{modelAName}: {stats.overallModelAWins} ({modelAPercent.toFixed(1)}%)"
 				></div>
-				<div 
-					class="bar-segment model-b-segment" 
+				<div
+					class="bar-segment model-b-segment"
 					style="width: {modelBPercent}%"
 					title="{modelBName}: {stats.overallModelBWins} ({modelBPercent.toFixed(1)}%)"
 				></div>
@@ -407,7 +407,11 @@
 		background: linear-gradient(
 			90deg,
 			var(--sentiment-polarity-very-positive),
-			color-mix(in oklab, var(--sentiment-polarity-very-positive) 80%, var(--sentiment-polarity-positive))
+			color-mix(
+				in oklab,
+				var(--sentiment-polarity-very-positive) 80%,
+				var(--sentiment-polarity-positive)
+			)
 		);
 	}
 
@@ -430,7 +434,11 @@
 	}
 
 	.model-a-count {
-		color: color-mix(in oklab, var(--sentiment-polarity-very-positive) 70%, var(--color-surface-50));
+		color: color-mix(
+			in oklab,
+			var(--sentiment-polarity-very-positive) 70%,
+			var(--color-surface-50)
+		);
 	}
 
 	.model-b-count {

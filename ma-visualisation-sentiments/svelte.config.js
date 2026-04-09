@@ -27,7 +27,7 @@ const config = {
 			base: process.env.NODE_ENV === 'production' ? '/IWAC-sentiment-analysis' : ''
 		},
 		alias: {
-			'$lib': 'src/lib',
+			$lib: 'src/lib',
 			'$lib/*': 'src/lib/*'
 		}
 	}

@@ -11,6 +11,9 @@
 		"url": "git+https://github.com/fmadore/IWAC-sentiment-analysis.git"
 	},
 	"homepage": "https://fmadore.github.io/IWAC-sentiment-analysis/",
+	"engines": {
+		"node": ">=24"
+	},
 	"bugs": {
 		"url": "https://github.com/fmadore/IWAC-sentiment-analysis/issues"
 	},

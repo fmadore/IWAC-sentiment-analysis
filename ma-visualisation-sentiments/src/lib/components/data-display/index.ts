@@ -1,6 +1,6 @@
 /**
  * Data Display Components Barrel Export
- * 
+ *
  * Components for displaying article and comparison data.
  */
 

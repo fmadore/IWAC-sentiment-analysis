@@ -20,7 +20,18 @@ export default ts.config(
 		languageOptions: {
 			globals: { ...globals.browser, ...globals.node }
 		},
-		rules: { 'no-undef': 'off' }
+		rules: {
+			'no-undef': 'off',
+			'@typescript-eslint/no-unused-vars': [
+				'error',
+				{
+					argsIgnorePattern: '^_',
+					varsIgnorePattern: '^_',
+					caughtErrorsIgnorePattern: '^_',
+					destructuredArrayIgnorePattern: '^_'
+				}
+			]
+		}
 	},
 	{
 		files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
@@ -31,6 +42,19 @@ export default ts.config(
 				parser: ts.parser,
 				svelteConfig
 			}
+		}
+	},
+	{
+		// These components render external URLs (islam.zmo.de article links),
+		// not SvelteKit routes, so resolve() is not applicable.
+		files: [
+			'**/components/common/ArbiterArticleDetailModal.svelte',
+			'**/components/data-display/ArticleDetail.svelte',
+			'**/components/data-display/ComparisonDetail.svelte',
+			'**/components/viz/IIIFViewer.svelte'
+		],
+		rules: {
+			'svelte/no-navigation-without-resolve': 'off'
 		}
 	}
 );

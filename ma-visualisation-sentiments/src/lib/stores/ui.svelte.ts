@@ -1,6 +1,6 @@
 /**
  * UI State Module
- * 
+ *
  * Manages UI-related state using Svelte 5 runes.
  * Provides both modern $state-based API and legacy store compatibility.
  */
@@ -26,95 +26,92 @@ let _isLoadingArbiter = $state<boolean>(false);
 /**
  * UI state object with reactive getters and setters.
  * Use this API for new code.
- * 
+ *
  * @example
  * // Read state
  * const view = uiState.activeView;
- * 
+ *
  * // Write state
  * uiState.activeView = 'table';
- * 
+ *
  * // Toggle
  * uiState.toggleSidebar();
  */
 export const uiState = {
-    // Sidebar
-    get sidebarExpanded() {
-        return _sidebarExpanded;
-    },
-    set sidebarExpanded(value: boolean) {
-        _sidebarExpanded = value;
-        sidebarExpanded.set(value);
-    },
-    toggleSidebar() {
-        _sidebarExpanded = !_sidebarExpanded;
-        sidebarExpanded.set(_sidebarExpanded);
-    },
+	// Sidebar
+	get sidebarExpanded() {
+		return _sidebarExpanded;
+	},
+	set sidebarExpanded(value: boolean) {
+		_sidebarExpanded = value;
+		sidebarExpanded.set(value);
+	},
+	toggleSidebar() {
+		_sidebarExpanded = !_sidebarExpanded;
+		sidebarExpanded.set(_sidebarExpanded);
+	},
 
-    // Active view
-    get activeView() {
-        return _activeView;
-    },
-    set activeView(value: string) {
-        _activeView = value;
-        activeView.set(value);
-    },
+	// Active view
+	get activeView() {
+		return _activeView;
+	},
+	set activeView(value: string) {
+		_activeView = value;
+		activeView.set(value);
+	},
 
-    // Mobile menu
-    get mobileMenuOpen() {
-        return _mobileMenuOpen;
-    },
-    set mobileMenuOpen(value: boolean) {
-        _mobileMenuOpen = value;
-        mobileMenuOpen.set(value);
-    },
-    toggleMobileMenu() {
-        _mobileMenuOpen = !_mobileMenuOpen;
-        mobileMenuOpen.set(_mobileMenuOpen);
-    },
+	// Mobile menu
+	get mobileMenuOpen() {
+		return _mobileMenuOpen;
+	},
+	set mobileMenuOpen(value: boolean) {
+		_mobileMenuOpen = value;
+		mobileMenuOpen.set(value);
+	},
+	toggleMobileMenu() {
+		_mobileMenuOpen = !_mobileMenuOpen;
+		mobileMenuOpen.set(_mobileMenuOpen);
+	},
 
-    // Loading states
-    get isLoadingDataset() {
-        return _isLoadingDataset;
-    },
-    set isLoadingDataset(value: boolean) {
-        _isLoadingDataset = value;
-        isLoadingDataset.set(value);
-    },
+	// Loading states
+	get isLoadingDataset() {
+		return _isLoadingDataset;
+	},
+	set isLoadingDataset(value: boolean) {
+		_isLoadingDataset = value;
+		isLoadingDataset.set(value);
+	},
 
-    get isLoadingExtremeAnalysis() {
-        return _isLoadingExtremeAnalysis;
-    },
-    set isLoadingExtremeAnalysis(value: boolean) {
-        _isLoadingExtremeAnalysis = value;
-        isLoadingExtremeAnalysis.set(value);
-    },
+	get isLoadingExtremeAnalysis() {
+		return _isLoadingExtremeAnalysis;
+	},
+	set isLoadingExtremeAnalysis(value: boolean) {
+		_isLoadingExtremeAnalysis = value;
+		isLoadingExtremeAnalysis.set(value);
+	},
 
-    get isLoadingComparison() {
-        return _isLoadingComparison;
-    },
-    set isLoadingComparison(value: boolean) {
-        _isLoadingComparison = value;
-        isLoadingComparison.set(value);
-    },
+	get isLoadingComparison() {
+		return _isLoadingComparison;
+	},
+	set isLoadingComparison(value: boolean) {
+		_isLoadingComparison = value;
+		isLoadingComparison.set(value);
+	},
 
-    get isLoadingArbiter() {
-        return _isLoadingArbiter;
-    },
-    set isLoadingArbiter(value: boolean) {
-        _isLoadingArbiter = value;
-        isLoadingArbiter.set(value);
-    },
+	get isLoadingArbiter() {
+		return _isLoadingArbiter;
+	},
+	set isLoadingArbiter(value: boolean) {
+		_isLoadingArbiter = value;
+		isLoadingArbiter.set(value);
+	},
 
-    // Utility: Check if anything is loading
-    get isLoading() {
-        return (
-            _isLoadingDataset ||
-            _isLoadingExtremeAnalysis ||
-            _isLoadingComparison ||
-            _isLoadingArbiter
-        );
-    }
+	// Utility: Check if anything is loading
+	get isLoading() {
+		return (
+			_isLoadingDataset || _isLoadingExtremeAnalysis || _isLoadingComparison || _isLoadingArbiter
+		);
+	}
 };
 
 // ============================================
@@ -157,10 +154,24 @@ export const isLoadingComparison = writable<boolean>(false);
 export const isLoadingArbiter = writable<boolean>(false);
 
 // Sync legacy stores to runes state
-sidebarExpanded.subscribe(value => { _sidebarExpanded = value; });
-activeView.subscribe(value => { _activeView = value; });
-mobileMenuOpen.subscribe(value => { _mobileMenuOpen = value; });
-isLoadingDataset.subscribe(value => { _isLoadingDataset = value; });
-isLoadingExtremeAnalysis.subscribe(value => { _isLoadingExtremeAnalysis = value; });
-isLoadingComparison.subscribe(value => { _isLoadingComparison = value; });
-isLoadingArbiter.subscribe(value => { _isLoadingArbiter = value; });
+sidebarExpanded.subscribe((value) => {
+	_sidebarExpanded = value;
+});
+activeView.subscribe((value) => {
+	_activeView = value;
+});
+mobileMenuOpen.subscribe((value) => {
+	_mobileMenuOpen = value;
+});
+isLoadingDataset.subscribe((value) => {
+	_isLoadingDataset = value;
+});
+isLoadingExtremeAnalysis.subscribe((value) => {
+	_isLoadingExtremeAnalysis = value;
+});
+isLoadingComparison.subscribe((value) => {
+	_isLoadingComparison = value;
+});
+isLoadingArbiter.subscribe((value) => {
+	_isLoadingArbiter = value;
+});

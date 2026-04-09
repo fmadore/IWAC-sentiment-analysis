@@ -6,30 +6,42 @@
 		<link rel="apple-touch-icon" href="%sveltekit.assets%/icons/icon-192x192.png" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>Sentiment Analysis - IWAC</title>
-		
+
 		<!-- SEO Meta Tags -->
-		<meta name="description" content="Interactive visualization of sentiment analysis results from the Islam West Africa Collection (IWAC). Explore media coverage of Islam and Muslims in Francophone West Africa through advanced AI analysis by ChatGPT and Gemini models." />
-		<meta name="keywords" content="sentiment analysis, IWAC, Islam West Africa, media analysis, AI analysis, ChatGPT, Gemini, data visualization, research tool" />
+		<meta
+			name="description"
+			content="Interactive visualization of sentiment analysis results from the Islam West Africa Collection (IWAC). Explore media coverage of Islam and Muslims in Francophone West Africa through advanced AI analysis by ChatGPT and Gemini models."
+		/>
+		<meta
+			name="keywords"
+			content="sentiment analysis, IWAC, Islam West Africa, media analysis, AI analysis, ChatGPT, Gemini, data visualization, research tool"
+		/>
 		<meta name="author" content="Frédérick Madore" />
 		<meta name="robots" content="index, follow" />
 		<meta name="language" content="French" />
-		
+
 		<!-- Open Graph Meta Tags -->
 		<meta property="og:title" content="Sentiment Analysis - Islam West Africa Collection (IWAC)" />
-		<meta property="og:description" content="Interactive visualization of sentiment analysis results from the Islam West Africa Collection. Explore media coverage of Islam and Muslims in Francophone West Africa through advanced AI analysis." />
+		<meta
+			property="og:description"
+			content="Interactive visualization of sentiment analysis results from the Islam West Africa Collection. Explore media coverage of Islam and Muslims in Francophone West Africa through advanced AI analysis."
+		/>
 		<meta property="og:type" content="website" />
 		<meta property="og:url" content="https://fmadore.github.io/IWAC-sentiment-analysis/" />
 		<meta property="og:site_name" content="IWAC Sentiment Analysis" />
 		<meta property="og:locale" content="fr_FR" />
 		<meta property="og:locale:alternate" content="en_US" />
-		
+
 		<!-- Twitter Card Meta Tags -->
 		<meta name="twitter:card" content="summary_large_image" />
 		<meta name="twitter:title" content="Sentiment Analysis - Islam West Africa Collection (IWAC)" />
-		<meta name="twitter:description" content="Interactive visualization of sentiment analysis results from the Islam West Africa Collection. Explore media coverage of Islam and Muslims in Francophone West Africa." />
-		
+		<meta
+			name="twitter:description"
+			content="Interactive visualization of sentiment analysis results from the Islam West Africa Collection. Explore media coverage of Islam and Muslims in Francophone West Africa."
+		/>
+
 		<!-- Canonical URL is handled dynamically by SEOHead.svelte -->
-		
+
 		<!-- Additional SEO optimizations -->
 		<meta name="msapplication-TileColor" content="#1e293b" />
 		<!-- PWA Configuration -->
@@ -42,70 +54,101 @@
 		<meta name="theme-color" content="#1e293b" />
 		<meta name="msapplication-TileColor" content="#1e293b" />
 		<meta name="msapplication-config" content="%sveltekit.assets%/browserconfig.xml" />
-		
+
 		<!-- Structured Data for better search results -->
 		<script type="application/ld+json">
-		{
-			"@context": "https://schema.org",
-			"@type": "WebApplication",
-			"name": "IWAC Sentiment Analysis",
-			"description": "Interactive visualization of sentiment analysis results from the Islam West Africa Collection",
-			"url": "https://fmadore.github.io/IWAC-sentiment-analysis/",
-			"applicationCategory": "DataVisualization",
-			"operatingSystem": "Web Browser",
-			"author": {
-				"@type": "Person",
-				"name": "Frédérick Madore",
-				"url": "https://www.frederickmadore.com/"
-			},
-			"inLanguage": ["fr", "en"],
-			"keywords": ["sentiment analysis", "Islam West Africa", "data visualization", "AI analysis", "research tool"]
-		}
+			{
+				"@context": "https://schema.org",
+				"@type": "WebApplication",
+				"name": "IWAC Sentiment Analysis",
+				"description": "Interactive visualization of sentiment analysis results from the Islam West Africa Collection",
+				"url": "https://fmadore.github.io/IWAC-sentiment-analysis/",
+				"applicationCategory": "DataVisualization",
+				"operatingSystem": "Web Browser",
+				"author": {
+					"@type": "Person",
+					"name": "Frédérick Madore",
+					"url": "https://www.frederickmadore.com/"
+				},
+				"inLanguage": ["fr", "en"],
+				"keywords": [
+					"sentiment analysis",
+					"Islam West Africa",
+					"data visualization",
+					"AI analysis",
+					"research tool"
+				]
+			}
 		</script>
-		
+
 		<!-- Font preloading to prevent CLS -->
-		<link rel="preconnect" href="https://fonts.googleapis.com">
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-		<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap"></noscript>
-		
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			rel="preload"
+			href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap"
+			as="style"
+			onload="
+				this.onload = null;
+				this.rel = 'stylesheet';
+			"
+		/>
+		<noscript
+			><link
+				rel="stylesheet"
+				href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap"
+		/></noscript>
+
 		<!-- Font display fallbacks to prevent invisible text -->
 		<style>
 			/* System font fallback to prevent CLS */
 			body {
-				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+				font-family:
+					-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+					sans-serif;
 			}
-			
+
 			/* Font loading optimization */
 			.font-loading {
-				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+				font-family:
+					-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+					sans-serif;
 			}
-			
+
 			/* Prevent accordion layout shift */
 			.accordion-content {
 				will-change: height;
 				overflow: hidden;
 			}
-			
+
 			/* Reserve space for loading states */
 			.loading-skeleton {
-				background: linear-gradient(90deg, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 75%);
+				background: linear-gradient(
+					90deg,
+					rgba(255, 255, 255, 0.1) 25%,
+					rgba(255, 255, 255, 0.2) 50%,
+					rgba(255, 255, 255, 0.1) 75%
+				);
 				background-size: 200% 100%;
 				animation: loading 1.5s infinite;
 			}
-			
+
 			@keyframes loading {
-				0% { background-position: 200% 0; }
-				100% { background-position: -200% 0; }
+				0% {
+					background-position: 200% 0;
+				}
+				100% {
+					background-position: -200% 0;
+				}
 			}
 		</style>
-		
+
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover" data-theme="cerberus">
 		<!-- GitHub Pages SPA redirect restoration script -->
 		<script>
-			(function() {
+			(function () {
 				// Check if we have a redirect stored from 404.html
 				var redirectData = sessionStorage.getItem('spa-redirect');
 				if (redirectData) {
@@ -113,7 +156,7 @@
 					try {
 						var data = JSON.parse(redirectData);
 						var newUrl = window.location.pathname;
-						
+
 						// Reconstruct the URL with query params and hash
 						if (data.search) {
 							newUrl += data.search;
@@ -121,7 +164,7 @@
 						if (data.hash) {
 							newUrl += data.hash;
 						}
-						
+
 						// Use replaceState to restore the original URL without reload
 						if (data.search || data.hash) {
 							window.history.replaceState(null, '', newUrl);

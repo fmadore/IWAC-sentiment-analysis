@@ -1,9 +1,9 @@
 /**
  * Components Barrel Export
- * 
+ *
  * Central export point for all components.
  * Provides clean import paths throughout the application.
- * 
+ *
  * Usage:
  * import { FilterCard, SentimentBadge, SentimentChart } from '$lib/components';
  * import { CountryFilter, PolarityFilter } from '$lib/components/filters';
@@ -13,7 +13,7 @@
 // Common - Base reusable components
 export * from './common';
 
-// Layout - Page structure components  
+// Layout - Page structure components
 export * from './layout';
 
 // Filters - All filter components

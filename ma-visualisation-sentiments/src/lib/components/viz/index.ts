@@ -1,6 +1,6 @@
 /**
  * Visualization Components Barrel Export
- * 
+ *
  * ECharts-based data visualization components.
  */
 
