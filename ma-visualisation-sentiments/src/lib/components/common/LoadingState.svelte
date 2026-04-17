@@ -127,12 +127,7 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
-		background: linear-gradient(
-			90deg,
-			transparent 0%,
-			var(--surface-hover) 50%,
-			transparent 100%
-		);
+		background: linear-gradient(90deg, transparent 0%, var(--surface-hover) 50%, transparent 100%);
 		animation: shimmer 1.6s infinite;
 	}
 

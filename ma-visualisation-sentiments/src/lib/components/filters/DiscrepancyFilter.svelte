@@ -359,7 +359,7 @@
 		padding: var(--space-1-5) var(--space-3);
 		font-size: var(--font-size-xs);
 		font-weight: var(--font-weight-medium);
-		border-radius: 9999px;
+		border-radius: var(--radius-full);
 		cursor: pointer;
 		white-space: nowrap;
 		background: var(--surface-muted);
@@ -376,7 +376,7 @@
 	.filter-chip:hover {
 		background: var(--surface-hover);
 		border-color: var(--border-hover);
-		color: var(--color-surface-50);
+		color: var(--text-primary);
 		transform: translateY(-1px);
 	}
 
@@ -384,7 +384,7 @@
 		background: var(--gradient-comparison);
 		border-color: color-mix(in oklab, var(--sentiment-comparison-light) 40%, transparent);
 		color: white;
-		box-shadow: 0 2px 8px color-mix(in oklab, var(--sentiment-comparison) 30%, transparent);
+		box-shadow: var(--shadow-sm);
 	}
 
 	.filter-chip.warning[data-selected='true'] {
@@ -407,7 +407,7 @@
 	.range-container {
 		position: relative;
 		height: 60px;
-		margin: 0 10px;
+		margin: 0 var(--space-2-5);
 	}
 
 	.range-track {
@@ -417,7 +417,7 @@
 		right: 0;
 		height: 4px;
 		background: var(--surface-subtle);
-		border-radius: 2px;
+		border-radius: var(--space-0-5);
 	}
 
 	.range-highlight {
@@ -425,7 +425,7 @@
 		top: 20px;
 		height: 4px;
 		background: var(--gradient-comparison);
-		border-radius: 2px;
+		border-radius: var(--space-0-5);
 		transition:
 			left var(--timing-fast) var(--easing-default),
 			width var(--timing-fast) var(--easing-default);
@@ -509,10 +509,10 @@
 	/* Toggle switch styles */
 	.toggle-switch {
 		position: relative;
-		width: 44px;
-		height: 24px;
+		width: var(--size-control-xl);
+		height: var(--size-icon-lg);
 		background: var(--surface-active);
-		border-radius: 12px;
+		border-radius: var(--radius-xl);
 		border: none;
 		cursor: pointer;
 		transition: background-color var(--timing-normal) var(--easing-default);
@@ -520,7 +520,7 @@
 	}
 
 	.toggle-switch:hover {
-		background: color-mix(in oklab, var(--color-surface-50) 30%, transparent);
+		background: var(--border-strong);
 	}
 
 	.toggle-switch[data-active='true'] {
@@ -558,12 +558,12 @@
 		}
 
 		.filter-chip {
-			padding: 0.3125rem var(--space-2-5);
+			padding: var(--space-1) var(--space-2-5);
 			font-size: var(--font-size-2xs);
 		}
 
 		.toggle-switch {
-			width: 40px;
+			width: var(--size-control-lg);
 			height: 22px;
 		}
 
@@ -591,9 +591,9 @@
 		height: var(--size-icon-sm);
 		background: var(--surface-active);
 		color: var(--text-secondary);
-		border-radius: 50%;
-		font-size: 11px;
-		font-weight: bold;
+		border-radius: var(--radius-full);
+		font-size: var(--font-size-2xs);
+		font-weight: var(--font-weight-bold);
 		cursor: help;
 		transition:
 			background-color var(--timing-fast) var(--easing-default),
@@ -601,13 +601,13 @@
 	}
 
 	.info-icon:hover {
-		background: color-mix(in oklab, var(--color-surface-50) 30%, transparent);
-		color: var(--color-surface-50);
+		background: var(--border-strong);
+		color: var(--text-primary);
 	}
 
 	.tooltip-content {
 		position: absolute;
-		top: -10px;
+		top: calc(var(--space-2-5) * -1);
 		left: 50%;
 		transform: translateX(-50%) translateY(-100%);
 		background: color-mix(in oklab, black 95%, transparent);
@@ -624,7 +624,7 @@
 			visibility var(--timing-normal) var(--easing-default),
 			transform var(--timing-normal) var(--easing-default);
 		z-index: var(--z-modal);
-		box-shadow: 0 8px 32px color-mix(in oklab, black 40%, transparent);
+		box-shadow: var(--shadow-xl);
 	}
 
 	.info-tooltip:hover .tooltip-content {
@@ -645,7 +645,7 @@
 
 	.tooltip-text {
 		font-size: var(--font-size-xs);
-		color: color-mix(in oklab, var(--color-surface-50) 90%, transparent);
+		color: var(--text-secondary);
 		margin: 0 0 var(--space-2) 0;
 	}
 

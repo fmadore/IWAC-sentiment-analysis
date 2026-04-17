@@ -165,7 +165,11 @@
 	}
 
 	.chart-card:hover {
-		border-color: color-mix(in oklab, var(--accent, var(--color-surface-50)) 40%, var(--border-hover));
+		border-color: color-mix(
+			in oklab,
+			var(--accent, var(--color-surface-50)) 40%,
+			var(--border-hover)
+		);
 		transform: translateY(-2px);
 		box-shadow: var(--elevation-card-hover);
 	}

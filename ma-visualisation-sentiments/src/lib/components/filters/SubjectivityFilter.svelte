@@ -80,10 +80,10 @@
 	}
 
 	.legend-badge {
-		padding: 0.1875rem var(--space-2);
+		padding: var(--space-0-5) var(--space-2);
 		font-size: var(--font-size-2xs);
 		font-weight: var(--font-weight-medium);
-		border-radius: 9999px;
+		border-radius: var(--radius-full);
 	}
 
 	.legend-badge.subjectivity-1 {
@@ -111,7 +111,7 @@
 
 	@media (max-width: 768px) {
 		.legend-badge {
-			font-size: 0.625rem;
+			font-size: var(--font-size-2xs);
 			padding: var(--space-0-5) var(--space-1-5);
 		}
 		.legend-text {

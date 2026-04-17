@@ -253,7 +253,7 @@
 	/* Responsive adjustments */
 	@media (max-width: 640px) {
 		.csv-export-btn {
-			padding: 0.6rem 1.2rem;
+			padding: var(--space-2-5) var(--space-5);
 			font-size: var(--font-size-base);
 		}
 	}
@@ -264,10 +264,10 @@
 		}
 
 		.csv-export-btn {
-			padding: 0.6rem;
-			border-radius: 50%;
-			width: 2.5rem;
-			height: 2.5rem;
+			padding: var(--space-2-5);
+			border-radius: var(--radius-full);
+			width: var(--size-control-lg);
+			height: var(--size-control-lg);
 			justify-content: center;
 		}
 	}

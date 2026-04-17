@@ -241,7 +241,7 @@
 	@media (max-width: 640px) {
 		.csv-export-btn {
 			padding: var(--space-2) var(--space-4);
-			font-size: 0.8rem;
+			font-size: var(--font-size-sm);
 		}
 
 		.button-text {

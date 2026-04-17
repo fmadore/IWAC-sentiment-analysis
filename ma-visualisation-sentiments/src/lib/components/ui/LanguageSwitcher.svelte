@@ -46,8 +46,8 @@
 
 <style>
 	.language-label {
-		font-size: 0.875rem;
-		font-weight: 500;
+		font-size: var(--font-size-base);
+		font-weight: var(--font-weight-medium);
 		white-space: nowrap;
 	}
 
@@ -58,14 +58,14 @@
 
 	.check-mark {
 		color: var(--color-success-500);
-		font-weight: bold;
-		font-size: 1rem;
+		font-weight: var(--font-weight-bold);
+		font-size: var(--font-size-lg);
 	}
 
 	/* Responsive Design */
 	@media (max-width: 640px) {
 		.language-label {
-			font-size: 0.8125rem;
+			font-size: var(--font-size-sm);
 		}
 	}
 

@@ -670,21 +670,13 @@ body {
 
 /* Glass with accent colors (for heroic / highlighted cards) */
 .preset-glass-primary {
-	background: color-mix(
-		in oklab,
-		var(--color-primary-500) 12%,
-		var(--surface-card)
-	);
+	background: color-mix(in oklab, var(--color-primary-500) 12%, var(--surface-card));
 	backdrop-filter: blur(var(--glass-blur-md));
 	border: 1px solid color-mix(in oklab, var(--color-primary-500) 22%, transparent);
 }
 
 .preset-glass-secondary {
-	background: color-mix(
-		in oklab,
-		var(--color-secondary-500) 12%,
-		var(--surface-card)
-	);
+	background: color-mix(in oklab, var(--color-secondary-500) 12%, var(--surface-card));
 	backdrop-filter: blur(var(--glass-blur-md));
 	border: 1px solid color-mix(in oklab, var(--color-secondary-500) 22%, transparent);
 }

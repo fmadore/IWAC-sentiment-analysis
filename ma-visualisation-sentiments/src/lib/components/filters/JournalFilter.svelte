@@ -119,7 +119,7 @@
 	.toggle-btn:hover {
 		background: var(--surface-subtle);
 		border-color: var(--border-hover);
-		color: var(--color-surface-50);
+		color: var(--text-primary);
 	}
 
 	/* Reduced motion */

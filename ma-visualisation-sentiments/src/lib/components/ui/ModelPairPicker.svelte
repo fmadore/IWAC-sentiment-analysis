@@ -131,101 +131,103 @@
 	.picker-button {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
-		padding: 0.5rem 0.75rem;
-		background: color-mix(in oklab, var(--color-surface-50) 6%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-		border-radius: 0.5rem;
-		color: var(--color-surface-50);
+		gap: var(--space-2);
+		padding: var(--space-2) var(--space-3);
+		background: var(--surface-muted);
+		border: 1px solid var(--border-default);
+		border-radius: var(--radius-md);
+		color: var(--text-primary);
 		cursor: pointer;
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default);
 	}
 
 	.picker-button:hover {
-		background: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+		background: var(--surface-subtle);
+		border-color: var(--border-hover);
 	}
 
 	.selected-pair {
 		display: flex;
 		align-items: center;
-		gap: 0.375rem;
+		gap: var(--space-1-5);
 	}
 
 	.pair-logo {
-		width: 1.25rem;
-		height: 1.25rem;
+		width: var(--space-5);
+		height: var(--space-5);
 		object-fit: contain;
 	}
 
 	.vs-label {
-		font-size: 0.625rem;
-		font-weight: 600;
+		font-size: var(--font-size-2xs);
+		font-weight: var(--font-weight-semibold);
 		text-transform: uppercase;
 		color: var(--sentiment-comparison-light);
-		letter-spacing: 0.05em;
+		letter-spacing: var(--tracking-wider);
 	}
 
 	.dropdown-menu {
 		position: absolute;
-		top: calc(100% + 0.25rem);
+		top: calc(100% + var(--space-1));
 		left: 0;
 		min-width: 200px;
 		background: color-mix(in oklab, var(--color-surface-900) 95%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-		border-radius: 0.5rem;
-		box-shadow: 0 10px 25px -5px color-mix(in oklab, black 50%, transparent);
+		border: 1px solid var(--border-hover);
+		border-radius: var(--radius-md);
+		box-shadow: var(--shadow-lg);
 		backdrop-filter: blur(var(--glass-blur-lg));
-		z-index: 100;
+		z-index: var(--z-dropdown);
 		overflow: hidden;
-		padding: 0.25rem;
+		padding: var(--space-1);
 	}
 
 	.dropdown-item {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
+		gap: var(--space-3);
 		width: 100%;
-		padding: 0.625rem 0.75rem;
+		padding: var(--space-2-5) var(--space-3);
 		background: transparent;
 		border: none;
-		border-radius: 0.375rem;
-		color: var(--color-surface-100);
+		border-radius: var(--radius-sm);
+		color: var(--text-secondary);
 		cursor: pointer;
-		transition: all var(--timing-fast) var(--easing-default);
+		transition: background-color var(--timing-fast) var(--easing-default);
 		text-align: left;
 	}
 
 	.dropdown-item:hover {
-		background: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+		background: var(--surface-subtle);
 	}
 
 	.dropdown-item.selected {
-		background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+		background: var(--surface-hover);
 		box-shadow: inset 2px 0 0 var(--color-primary-400);
 	}
 
 	.pair-logos {
 		display: flex;
 		align-items: center;
-		gap: 0.25rem;
+		gap: var(--space-1);
 	}
 
 	.pair-logo-sm {
-		width: 1rem;
-		height: 1rem;
+		width: var(--size-icon-sm);
+		height: var(--size-icon-sm);
 		object-fit: contain;
 	}
 
 	.vs-label-sm {
-		font-size: 0.5rem;
-		font-weight: 600;
+		font-size: 0.5rem; /* below 2xs */
+		font-weight: var(--font-weight-semibold);
 		text-transform: uppercase;
 		color: var(--sentiment-comparison-light);
 	}
 
 	.pair-label {
-		font-size: 0.8125rem;
-		font-weight: 500;
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-medium);
 	}
 </style>

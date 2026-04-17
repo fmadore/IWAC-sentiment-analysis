@@ -165,7 +165,7 @@
 		justify-content: center;
 		width: var(--size-control-md);
 		height: var(--size-control-md);
-		border-radius: 10px;
+		border-radius: var(--radius-lg);
 		background: var(--sentiment-extreme-icon-bg);
 		border: 1px solid var(--sentiment-extreme-border);
 	}
@@ -187,14 +187,14 @@
 	.control-label {
 		font-size: var(--font-size-sm);
 		font-weight: var(--font-weight-semibold);
-		color: color-mix(in oklab, var(--color-surface-50) 90%, transparent);
+		color: var(--text-secondary);
 	}
 
 	/* Select Input */
 	.select-input {
 		background: var(--surface-subtle);
 		border: 1px solid var(--border-hover);
-		color: var(--color-surface-50);
+		color: var(--text-primary);
 		padding: var(--space-2) var(--space-3);
 		border-radius: var(--radius-md);
 		transition:
@@ -221,7 +221,7 @@
 	/* Fix dropdown options styling */
 	.select-input option {
 		background: var(--color-surface-800);
-		color: var(--color-surface-50);
+		color: var(--text-primary);
 		padding: var(--space-2);
 		border: none;
 	}
@@ -283,7 +283,7 @@
 
 	.btn-toggle:hover {
 		background: var(--surface-subtle);
-		color: var(--color-surface-50);
+		color: var(--text-primary);
 	}
 
 	.btn-toggle:hover::before {
@@ -305,7 +305,7 @@
 	.number-input {
 		background: var(--surface-subtle);
 		border: 1px solid var(--border-hover);
-		color: var(--color-surface-50);
+		color: var(--text-primary);
 		padding: var(--space-2) var(--space-3);
 		border-radius: var(--radius-md);
 		transition:
@@ -350,7 +350,7 @@
 		}
 
 		@media (max-width: 480px) {
-			font-size: 0.9rem !important;
+			font-size: var(--font-size-md) !important;
 			margin-bottom: var(--space-2) !important;
 		}
 	}

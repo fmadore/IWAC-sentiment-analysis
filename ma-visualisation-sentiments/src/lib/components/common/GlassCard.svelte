@@ -96,12 +96,7 @@
 		left: 0;
 		right: 0;
 		height: 1px;
-		background: linear-gradient(
-			90deg,
-			transparent 10%,
-			var(--border-active) 50%,
-			transparent 90%
-		);
+		background: linear-gradient(90deg, transparent 10%, var(--border-active) 50%, transparent 90%);
 		opacity: 0.5;
 		border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
 	}
