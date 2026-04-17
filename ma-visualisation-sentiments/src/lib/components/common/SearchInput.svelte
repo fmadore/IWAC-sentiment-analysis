@@ -78,104 +78,104 @@
 	/* Applied to Lucide icon component */
 	.search-wrapper :global(.search-icon) {
 		position: absolute;
-		left: 0.75rem;
+		left: var(--space-3);
 		top: 50%;
 		transform: translateY(-50%);
-		color: color-mix(in oklab, var(--color-surface-50) 50%, transparent);
+		color: var(--text-subtle);
 		pointer-events: none;
 	}
 
 	.search-input {
 		width: 100%;
-		padding: 0.5rem 2rem 0.5rem 0.75rem;
-		font-size: 0.8125rem;
-		border-radius: 0.5rem;
-		background: color-mix(in oklab, var(--color-surface-50) 6%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		color: var(--color-surface-50);
-		transition: all var(--timing-fast) var(--easing-default);
+		padding: var(--space-2) var(--space-8) var(--space-2) var(--space-3);
+		font-size: var(--font-size-sm);
+		border-radius: var(--radius-md);
+		background: var(--surface-subtle);
+		border: 1px solid var(--border-default);
+		color: var(--text-primary);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			box-shadow var(--timing-fast) var(--easing-default);
 	}
 
 	.search-input.has-icon {
-		padding-left: 2.25rem;
+		padding-left: var(--space-8);
 	}
 
 	.search-input.has-clear {
-		padding-right: 2rem;
+		padding-right: var(--space-8);
 	}
 
 	.search-input::placeholder {
-		color: color-mix(in oklab, var(--color-surface-50) 40%, transparent);
+		color: var(--text-subtle);
 	}
 
 	.search-input:hover {
-		border-color: color-mix(in oklab, var(--color-surface-50) 18%, transparent);
-		background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+		border-color: var(--border-hover);
+		background: var(--surface-hover);
 	}
 
 	.search-input:focus {
 		outline: none;
 		border-color: var(--color-primary-500);
-		background: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary-500) 15%, transparent);
+		background: var(--surface-hover);
+		box-shadow: var(--ring-focus);
 	}
 
 	.search-clear {
 		position: absolute;
-		right: 0.5rem;
+		right: var(--space-2);
 		top: 50%;
 		transform: translateY(-50%);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: 0.25rem;
+		padding: var(--space-1);
 		background: none;
 		border: none;
-		color: color-mix(in oklab, var(--color-surface-50) 50%, transparent);
+		color: var(--text-subtle);
 		cursor: pointer;
-		border-radius: 0.25rem;
-		transition: all var(--timing-fast) var(--easing-default);
+		border-radius: var(--radius-xs);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
 	}
 
 	.search-clear:hover {
-		color: var(--color-surface-50);
-		background: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-	}
-
-	.search-clear:focus-visible {
-		outline: 2px solid var(--color-primary-500);
-		outline-offset: 1px;
+		color: var(--text-primary);
+		background: var(--surface-hover);
 	}
 
 	/* Size variants */
 	.size-sm .search-input {
-		padding: 0.375rem 1.75rem 0.375rem 0.625rem;
-		font-size: 0.75rem;
-		border-radius: 0.375rem;
+		padding: var(--space-1-5) var(--space-7) var(--space-1-5) var(--space-2-5);
+		font-size: var(--font-size-xs);
+		border-radius: var(--radius-sm);
 	}
 
 	.size-sm .search-input.has-icon {
-		padding-left: 1.875rem;
+		padding-left: var(--space-7);
 	}
 
 	.size-sm :global(.search-icon) {
-		left: 0.625rem;
+		left: var(--space-2-5);
 	}
 
 	.size-sm .search-clear {
-		right: 0.375rem;
-		padding: 0.125rem;
+		right: var(--space-1-5);
+		padding: var(--space-0-5);
 	}
 
 	/* Responsive */
 	@media (max-width: 768px) {
 		.search-input {
-			padding: 0.4375rem 1.75rem 0.4375rem 0.625rem;
-			font-size: 0.75rem;
+			padding: var(--space-1-5) var(--space-7) var(--space-1-5) var(--space-2-5);
+			font-size: var(--font-size-xs);
 		}
 
 		.search-input.has-icon {
-			padding-left: 2rem;
+			padding-left: var(--space-8);
 		}
 	}
 

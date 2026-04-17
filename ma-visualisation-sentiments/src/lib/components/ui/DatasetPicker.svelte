@@ -62,26 +62,26 @@
 
 <style>
 	.dataset-logo {
-		width: 1.25rem;
-		height: 1.25rem;
+		width: var(--space-5);
+		height: var(--space-5);
 		object-fit: contain;
 		flex-shrink: 0;
 	}
 
 	.dataset-logo.menu-logo {
-		width: 1.5rem;
-		height: 1.5rem;
+		width: var(--space-6);
+		height: var(--space-6);
 	}
 
 	.picker-label {
-		font-size: 0.875rem;
-		font-weight: 500;
+		font-size: var(--font-size-base);
+		font-weight: var(--font-weight-medium);
 		white-space: nowrap;
 	}
 
 	.dataset-icon {
-		font-size: 1.25rem;
-		width: 1.5rem;
+		font-size: var(--font-size-2xl);
+		width: var(--space-6);
 		text-align: center;
 	}
 
@@ -92,18 +92,18 @@
 
 	.check-mark {
 		color: var(--color-success-500);
-		font-weight: bold;
-		font-size: 1rem;
+		font-weight: var(--font-weight-bold);
+		font-size: var(--font-size-lg);
 	}
 
 	/* Responsive Design */
 	@media (max-width: 640px) {
 		.picker-label {
-			font-size: 0.8125rem;
+			font-size: var(--font-size-sm);
 		}
 
 		.dataset-icon {
-			font-size: 1rem;
+			font-size: var(--font-size-lg);
 		}
 	}
 

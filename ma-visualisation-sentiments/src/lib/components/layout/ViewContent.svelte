@@ -279,8 +279,8 @@
 <style>
 	/* Common View Header Styles */
 	.view-header {
-		border-bottom: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		padding-bottom: 1.5rem;
+		border-bottom: 1px solid var(--border-subtle);
+		padding-bottom: var(--space-6);
 	}
 
 	.view-icon {
@@ -294,7 +294,7 @@
 
 	.view-title {
 		font-size: 1.75rem;
-		font-weight: 700;
+		font-weight: var(--font-weight-bold);
 	}
 
 	/* Charts View */
@@ -391,7 +391,7 @@
 		display: flex;
 		align-items: flex-start;
 		justify-content: space-between;
-		gap: 1rem;
+		gap: var(--space-4);
 	}
 
 	.table-icon {
@@ -444,7 +444,7 @@
 
 	@media (max-width: 768px) {
 		.view-title {
-			font-size: 1.5rem;
+			font-size: var(--font-size-3xl);
 		}
 
 		.view-icon {

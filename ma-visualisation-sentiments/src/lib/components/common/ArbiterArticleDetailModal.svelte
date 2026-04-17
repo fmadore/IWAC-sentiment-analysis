@@ -223,18 +223,18 @@
 		inset: 0;
 		background: color-mix(in oklab, black 70%, transparent);
 		backdrop-filter: blur(4px);
-		z-index: 100;
+		z-index: var(--z-modal);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: 1rem;
+		padding: var(--space-4);
 		overflow-y: auto;
 	}
 
 	.modal-content {
 		background: linear-gradient(
 			135deg,
-			color-mix(in oklab, var(--color-surface-900) 95%, transparent),
+			var(--surface-card-elevated),
 			color-mix(in oklab, var(--sentiment-arbiter) 5%, var(--color-surface-900))
 		);
 		border: 1px solid var(--sentiment-arbiter-border);
@@ -261,8 +261,8 @@
 	}
 
 	.modal-title {
-		font-size: 1.25rem;
-		font-weight: 600;
+		font-size: var(--font-size-2xl);
+		font-weight: var(--font-weight-semibold);
 		color: var(--text-primary);
 		background: linear-gradient(135deg, var(--sentiment-arbiter-light), var(--sentiment-arbiter));
 		-webkit-background-clip: text;
@@ -274,14 +274,16 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 40px;
-		height: 40px;
+		width: var(--size-control-lg);
+		height: var(--size-control-lg);
 		border-radius: var(--radius-md);
 		background: var(--surface-hover);
 		border: 1px solid var(--border-default);
 		color: var(--text-primary);
 		cursor: pointer;
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			background var(--timing-fast) var(--easing-default),
+			transform var(--timing-fast) var(--easing-default);
 	}
 
 	.close-button:hover {
@@ -294,11 +296,11 @@
 	}
 
 	.article-title {
-		font-size: 1.5rem;
-		font-weight: 600;
+		font-size: var(--font-size-3xl);
+		font-weight: var(--font-weight-semibold);
 		color: var(--text-primary);
 		margin-bottom: var(--space-4);
-		line-height: 1.3;
+		line-height: var(--line-height-snug);
 	}
 
 	.meta-grid {
@@ -315,8 +317,8 @@
 
 	.meta-label {
 		display: block;
-		font-size: 0.75rem;
-		font-weight: 600;
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
 		text-transform: uppercase;
 		color: var(--text-muted);
 		margin-bottom: var(--space-2);
@@ -324,17 +326,19 @@
 
 	.meta-value {
 		color: var(--text-primary);
-		font-weight: 500;
+		font-weight: var(--font-weight-medium);
 	}
 
 	.article-link {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.5rem;
+		gap: var(--space-2);
 		color: var(--color-primary-400);
-		font-weight: 500;
+		font-weight: var(--font-weight-medium);
 		text-decoration: none;
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			color var(--timing-fast) var(--easing-default),
+			transform var(--timing-fast) var(--easing-default);
 	}
 
 	.article-link:hover {
@@ -343,12 +347,12 @@
 	}
 
 	.section-title {
-		font-size: 1rem;
-		font-weight: 600;
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-semibold);
 		color: var(--text-primary);
 		margin-bottom: var(--space-4);
 		text-transform: uppercase;
-		letter-spacing: 0.05em;
+		letter-spacing: var(--tracking-wider);
 	}
 
 	.comparison-grid {
@@ -381,8 +385,8 @@
 	}
 
 	.model-name {
-		font-weight: 600;
-		font-size: 0.875rem;
+		font-weight: var(--font-weight-semibold);
+		font-size: var(--font-size-base);
 		color: var(--text-primary);
 	}
 
@@ -408,7 +412,7 @@
 	}
 
 	.dimension-label {
-		font-size: 0.625rem;
+		font-size: var(--font-size-2xs);
 		text-transform: uppercase;
 		color: var(--text-subtle);
 	}
@@ -418,14 +422,14 @@
 		align-items: center;
 		justify-content: center;
 		align-self: center;
-		width: 40px;
-		height: 40px;
+		width: var(--size-control-lg);
+		height: var(--size-control-lg);
 		border-radius: var(--radius-full);
 		background: var(--sentiment-arbiter-bg);
 		border: 1px solid var(--sentiment-arbiter-border);
 		color: var(--sentiment-arbiter-light);
-		font-weight: 700;
-		font-size: 0.75rem;
+		font-weight: var(--font-weight-bold);
+		font-size: var(--font-size-xs);
 	}
 
 	/* Responsive */
@@ -443,7 +447,7 @@
 		}
 
 		.article-title {
-			font-size: 1.25rem;
+			font-size: var(--font-size-2xl);
 		}
 
 		.comparison-grid {

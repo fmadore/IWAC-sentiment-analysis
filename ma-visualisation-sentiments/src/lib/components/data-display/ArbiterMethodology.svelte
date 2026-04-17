@@ -336,11 +336,11 @@ Provide your independent evaluation for each dimension, determine which model is
      Info Card Base Styles
      ========================================================================== */
 	.info-card {
-		background: color-mix(in oklab, var(--color-surface-900) 85%, transparent);
+		background: var(--surface-card-elevated);
 		backdrop-filter: blur(var(--glass-blur-lg));
 		border: 1px solid color-mix(in oklab, var(--sentiment-arbiter) 20%, transparent);
-		border-radius: 1rem;
-		margin-bottom: 1.5rem;
+		border-radius: var(--radius-2xl);
+		margin-bottom: var(--space-6);
 		overflow: hidden;
 	}
 
@@ -352,7 +352,7 @@ Provide your independent evaluation for each dimension, determine which model is
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 1rem 1.25rem;
+		padding: var(--space-4) var(--space-5);
 		background: transparent;
 		border: none;
 		cursor: pointer;
@@ -367,9 +367,9 @@ Provide your independent evaluation for each dimension, determine which model is
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 36px;
-		height: 36px;
-		border-radius: 8px;
+		width: var(--size-control-md);
+		height: var(--size-control-md);
+		border-radius: var(--radius-md);
 		background: var(--sentiment-arbiter-icon-bg);
 		border: 1px solid var(--sentiment-arbiter-border);
 	}
@@ -385,8 +385,8 @@ Provide your independent evaluation for each dimension, determine which model is
 	}
 
 	.info-title {
-		font-size: 1rem;
-		font-weight: 600;
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-semibold);
 		color: var(--color-surface-50);
 	}
 
@@ -394,34 +394,34 @@ Provide your independent evaluation for each dimension, determine which model is
      Content Styles
      ========================================================================== */
 	.info-content {
-		padding: 0 1.25rem 1.25rem;
+		padding: 0 var(--space-5) var(--space-5);
 	}
 
 	/* Key Info Grid */
 	.key-info-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-		gap: 1rem;
-		margin-bottom: 1.5rem;
+		gap: var(--space-4);
+		margin-bottom: var(--space-6);
 	}
 
 	.key-info-card {
 		display: flex;
 		align-items: flex-start;
-		gap: 0.75rem;
-		padding: 1rem;
-		background: color-mix(in oklab, var(--color-surface-900) 60%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		border-radius: 0.75rem;
+		gap: var(--space-3);
+		padding: var(--space-4);
+		background: var(--surface-nested);
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-xl);
 	}
 
 	.key-info-icon {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 40px;
-		height: 40px;
-		border-radius: 10px;
+		width: var(--size-control-lg);
+		height: var(--size-control-lg);
+		border-radius: var(--radius-lg);
 		flex-shrink: 0;
 	}
 
@@ -452,17 +452,16 @@ Provide your independent evaluation for each dimension, determine which model is
 	}
 
 	.key-info-title {
-		font-size: 0.875rem;
-		font-weight: 600;
+		font-size: var(--font-size-base);
+		font-weight: var(--font-weight-semibold);
 		color: var(--color-surface-50);
-		margin-bottom: 0.25rem;
+		margin-bottom: var(--space-1);
 	}
 
 	.key-info-desc {
-		font-size: 0.75rem;
-		color: var(--color-surface-50);
-		opacity: 0.7;
-		line-height: 1.4;
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
+		line-height: var(--line-height-snug);
 	}
 
 	/* ==========================================================================
@@ -471,11 +470,11 @@ Provide your independent evaluation for each dimension, determine which model is
 	.accordion-container {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
-		background: color-mix(in oklab, var(--color-surface-900) 50%, transparent);
-		border-radius: 0.75rem;
-		padding: 0.5rem;
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 5%, transparent);
+		gap: var(--space-2);
+		background: var(--surface-nested);
+		border-radius: var(--radius-xl);
+		padding: var(--space-2);
+		border: 1px solid var(--border-subtle);
 	}
 
 	/* ==========================================================================
@@ -484,93 +483,92 @@ Provide your independent evaluation for each dimension, determine which model is
 	.methodology-content {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
+		gap: var(--space-4);
 	}
 
 	.methodology-section {
-		padding: 0.75rem;
-		background: color-mix(in oklab, var(--color-surface-900) 40%, transparent);
-		border-radius: 0.5rem;
+		padding: var(--space-3);
+		background: var(--surface-nested);
+		border-radius: var(--radius-md);
 	}
 
 	.section-title {
-		font-size: 0.875rem;
-		font-weight: 600;
+		font-size: var(--font-size-base);
+		font-weight: var(--font-weight-semibold);
 		color: var(--sentiment-arbiter);
-		margin-bottom: 0.5rem;
+		margin-bottom: var(--space-2);
 	}
 
 	.section-text {
-		font-size: 0.8125rem;
+		font-size: var(--font-size-sm);
 		color: var(--color-surface-50);
 		opacity: 0.85;
-		line-height: 1.5;
+		line-height: var(--line-height-normal);
 	}
 
 	.process-list {
 		list-style: decimal;
-		padding-left: 1.25rem;
+		padding-left: var(--space-5);
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		gap: var(--space-2);
 	}
 
 	.process-list li {
-		font-size: 0.8125rem;
-		color: var(--color-surface-50);
-		opacity: 0.85;
-		line-height: 1.4;
+		font-size: var(--font-size-sm);
+		color: var(--text-secondary);
+		line-height: var(--line-height-snug);
 	}
 
 	.config-list {
 		list-style: disc;
-		padding-left: 1.25rem;
-		margin-top: 0.75rem;
+		padding-left: var(--space-5);
+		margin-top: var(--space-3);
 	}
 
 	.config-list li {
-		font-size: 0.8125rem;
+		font-size: var(--font-size-sm);
 		color: var(--color-surface-50);
 		opacity: 0.8;
-		line-height: 1.6;
+		line-height: var(--line-height-relaxed);
 	}
 
 	/* ==========================================================================
      Model Card Styles
      ========================================================================== */
 	.model-card-single {
-		background: color-mix(in oklab, var(--color-surface-900) 50%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		border-radius: 0.75rem;
-		padding: 1rem;
+		background: var(--surface-nested);
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-xl);
+		padding: var(--space-4);
 	}
 
 	.model-header {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		margin-bottom: 0.75rem;
+		gap: var(--space-3);
+		margin-bottom: var(--space-3);
 	}
 
 	.model-logo {
-		width: 40px;
-		height: 40px;
+		width: var(--size-control-lg);
+		height: var(--size-control-lg);
 	}
 
 	.model-name {
-		font-size: 1rem;
-		font-weight: 600;
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-semibold);
 		color: var(--color-surface-50);
 	}
 
 	.model-badge {
 		display: inline-block;
-		padding: 0.25rem 0.5rem;
-		font-size: 0.625rem;
-		font-weight: 600;
-		border-radius: 9999px;
+		padding: var(--space-1) var(--space-2);
+		font-size: var(--font-size-2xs);
+		font-weight: var(--font-weight-semibold);
+		border-radius: var(--radius-full);
 		text-transform: uppercase;
-		letter-spacing: 0.05em;
+		letter-spacing: var(--tracking-wider);
 	}
 
 	.model-badge.gemini {
@@ -580,11 +578,11 @@ Provide your independent evaluation for each dimension, determine which model is
 	}
 
 	.model-description {
-		font-size: 0.8125rem;
+		font-size: var(--font-size-sm);
 		color: var(--color-surface-50);
 		opacity: 0.8;
-		line-height: 1.5;
-		margin-bottom: 0.75rem;
+		line-height: var(--line-height-normal);
+		margin-bottom: var(--space-3);
 	}
 
 	/* ==========================================================================
@@ -593,13 +591,13 @@ Provide your independent evaluation for each dimension, determine which model is
 	.scales-content {
 		display: flex;
 		flex-direction: column;
-		gap: 1.25rem;
+		gap: var(--space-5);
 	}
 
 	.scale-section {
-		padding: 0.75rem;
-		background: color-mix(in oklab, var(--color-surface-900) 40%, transparent);
-		border-radius: 0.5rem;
+		padding: var(--space-3);
+		background: var(--surface-nested);
+		border-radius: var(--radius-md);
 	}
 
 	.sentiment-list {
@@ -607,22 +605,22 @@ Provide your independent evaluation for each dimension, determine which model is
 		padding: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		gap: var(--space-2);
 	}
 
 	.sentiment-list li {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		font-size: 0.8125rem;
+		gap: var(--space-3);
+		font-size: var(--font-size-sm);
 	}
 
 	.sentiment-label {
 		display: inline-block;
-		padding: 0.25rem 0.5rem;
-		font-size: 0.75rem;
-		font-weight: 600;
-		border-radius: 0.25rem;
+		padding: var(--space-1) var(--space-2);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		border-radius: var(--radius-xs);
 		min-width: 90px;
 		text-align: center;
 	}
@@ -659,20 +657,21 @@ Provide your independent evaluation for each dimension, determine which model is
 		justify-content: center;
 		width: 28px;
 		height: 28px;
-		font-size: 0.75rem;
-		font-weight: 700;
-		border-radius: 50%;
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-bold);
+		border-radius: var(--radius-full);
 		background: var(--sentiment-subjectivity-3-bg);
 		color: var(--sentiment-subjectivity-3);
 		border: 1px solid var(--sentiment-subjectivity-3-border);
 	}
+	/* 28px kept — not a standard control size token */
 
 	.centrality-label {
 		display: inline-block;
-		padding: 0.25rem 0.5rem;
-		font-size: 0.75rem;
-		font-weight: 600;
-		border-radius: 0.25rem;
+		padding: var(--space-1) var(--space-2);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		border-radius: var(--radius-xs);
 		min-width: 90px;
 		text-align: center;
 	}
@@ -712,21 +711,21 @@ Provide your independent evaluation for each dimension, determine which model is
      Prompt Section Styles
      ========================================================================== */
 	.prompt-section {
-		padding: 0.75rem;
+		padding: var(--space-3);
 	}
 
 	.prompt-btn {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.5rem;
-		margin-top: 0.75rem;
-		padding: 0.625rem 1rem;
-		font-size: 0.8125rem;
-		font-weight: 600;
+		gap: var(--space-2);
+		margin-top: var(--space-3);
+		padding: var(--space-2-5) var(--space-4);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
 		color: var(--sentiment-arbiter);
 		background: var(--sentiment-arbiter-bg);
 		border: 1px solid var(--sentiment-arbiter-border);
-		border-radius: 0.5rem;
+		border-radius: var(--radius-md);
 		cursor: pointer;
 		transition: all var(--timing-fast) var(--easing-default);
 	}
@@ -740,35 +739,34 @@ Provide your independent evaluation for each dimension, determine which model is
      Prompt Body Content Styles (rendered inside shared PromptModal)
      ========================================================================== */
 	.prompt-section-header {
-		margin-bottom: 0.75rem;
+		margin-bottom: var(--space-3);
 	}
 
 	.prompt-section-header h4 {
-		font-size: 0.875rem;
-		font-weight: 600;
+		font-size: var(--font-size-base);
+		font-weight: var(--font-weight-semibold);
 		color: var(--sentiment-arbiter);
 		text-transform: uppercase;
-		letter-spacing: 0.05em;
+		letter-spacing: var(--tracking-wider);
 	}
 
 	.prompt-section-header:not(:first-child) {
-		margin-top: 1.5rem;
+		margin-top: var(--space-6);
 	}
 
 	.prompt-code-container {
 		background: color-mix(in oklab, black 40%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		border-radius: 0.5rem;
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-md);
 		overflow: hidden;
 	}
 
 	.prompt-code {
-		padding: 1rem;
+		padding: var(--space-4);
 		font-family: 'JetBrains Mono', 'Fira Code', monospace;
-		font-size: 0.75rem;
-		line-height: 1.6;
-		color: var(--color-surface-50);
-		opacity: 0.9;
+		font-size: var(--font-size-xs);
+		line-height: var(--line-height-relaxed);
+		color: var(--text-secondary);
 		white-space: pre-wrap;
 		word-break: break-word;
 		overflow-x: auto;
@@ -783,7 +781,7 @@ Provide your independent evaluation for each dimension, determine which model is
 		}
 
 		.prompt-code {
-			font-size: 0.6875rem;
+			font-size: var(--font-size-2xs);
 		}
 	}
 

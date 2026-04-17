@@ -163,75 +163,52 @@
 		align-items: center;
 		justify-content: center;
 		min-width: var(--button-min-width);
-		height: 2.5rem;
-		padding: 0 0.75rem;
-		border-radius: 0.75rem;
-		background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		backdrop-filter: blur(var(--glass-blur-md));
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-		color: var(--color-surface-50);
+		height: var(--size-control-lg);
+		padding: 0 var(--space-3);
+		border-radius: var(--radius-lg);
+		background: var(--surface-subtle);
+		backdrop-filter: blur(var(--glass-blur-sm));
+		border: 1px solid var(--border-default);
+		color: var(--text-primary);
 		cursor: pointer;
-		transition: all var(--timing-normal) var(--easing-default);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
 		position: relative;
-		overflow: hidden;
-		/* Mobile touch optimizations */
 		-webkit-tap-highlight-color: transparent;
 		touch-action: manipulation;
 		user-select: none;
 		-webkit-user-select: none;
 	}
 
-	.dropdown-trigger::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: -100%;
-		width: 100%;
-		height: 100%;
-		background: linear-gradient(
-			90deg,
-			transparent,
-			color-mix(in oklab, var(--color-surface-50) 15%, transparent),
-			transparent
-		);
-		transition: left var(--timing-slow) var(--easing-default);
-	}
-
-	.dropdown-trigger:hover::before {
-		left: 100%;
-	}
-
 	.dropdown-trigger:hover {
-		background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-		border-color: color-mix(in oklab, var(--color-surface-50) 25%, transparent);
-		transform: translateY(-1px);
-		box-shadow:
-			0 8px 25px color-mix(in oklab, black 15%, transparent),
-			0 0 20px color-mix(in oklab, var(--color-primary-500) 10%, transparent);
+		background: var(--surface-hover);
+		border-color: var(--border-hover);
 	}
 
 	.dropdown-trigger:active {
-		transform: translateY(0);
-		box-shadow: 0 2px 6px color-mix(in oklab, black 10%, transparent);
+		background: var(--surface-active);
 	}
 
 	.trigger-content {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
+		gap: var(--space-2);
 		position: relative;
 		z-index: 1;
 	}
 
 	.trigger-label {
-		font-size: 0.875rem;
-		font-weight: 500;
+		font-size: var(--font-size-base);
+		font-weight: var(--font-weight-medium);
 		white-space: nowrap;
 	}
 
 	.trigger-content :global(.chevron) {
 		transition: transform var(--timing-fast) var(--easing-default);
 		flex-shrink: 0;
+		color: var(--text-muted);
 	}
 
 	.trigger-content :global(.rotate-180) {
@@ -240,26 +217,23 @@
 
 	.dropdown-menu {
 		position: absolute;
-		top: calc(100% + 0.5rem);
+		top: calc(100% + var(--space-2));
 		left: 0;
 		min-width: var(--menu-min-width);
-		background: color-mix(in oklab, var(--color-surface-900) 95%, transparent);
+		background: color-mix(in oklab, var(--color-surface-900) 94%, transparent);
 		backdrop-filter: blur(var(--glass-blur-lg));
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-		border-radius: 0.75rem;
-		box-shadow:
-			0 20px 40px color-mix(in oklab, black 30%, transparent),
-			0 8px 16px color-mix(in oklab, black 20%, transparent),
-			inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+		border: 1px solid var(--border-default);
+		border-radius: var(--radius-xl);
+		box-shadow: var(--elevation-modal);
 		overflow: hidden;
-		animation: dropdownFadeIn var(--timing-fast) ease-out;
+		animation: dropdownFadeIn var(--timing-fast) var(--easing-default);
 		z-index: calc(var(--z-index) + 1);
 	}
 
 	@keyframes dropdownFadeIn {
 		from {
 			opacity: 0;
-			transform: translateY(-8px) scale(0.95);
+			transform: translateY(-6px) scale(0.97);
 		}
 		to {
 			opacity: 1;
@@ -268,45 +242,47 @@
 	}
 
 	.menu-section {
-		padding: 0.5rem 0.75rem 0.25rem;
+		padding: var(--space-2) var(--space-3) var(--space-1);
 	}
 
 	.section-label {
 		display: block;
-		font-size: 0.75rem;
-		font-weight: 600;
-		color: color-mix(in oklab, var(--color-surface-50) 50%, transparent);
+		font-size: var(--font-size-2xs);
+		font-weight: var(--font-weight-semibold);
+		color: var(--text-muted);
 		text-transform: uppercase;
-		letter-spacing: 0.05em;
+		letter-spacing: var(--tracking-wider);
 	}
 
 	.menu-items {
-		padding: 0.25rem 0.5rem 0.5rem;
+		padding: var(--space-1) var(--space-2) var(--space-2);
 	}
 
 	.menu-item {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
+		gap: var(--space-3);
 		width: 100%;
-		padding: 0.625rem 0.75rem;
+		padding: var(--space-2-5) var(--space-3);
 		background: transparent;
 		border: none;
-		color: var(--color-surface-50);
+		color: var(--text-secondary);
 		cursor: pointer;
-		transition: all var(--timing-fast) var(--easing-default);
-		font-size: 0.875rem;
-		font-weight: 500;
-		border-radius: 0.5rem;
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
+		font-size: var(--font-size-base);
+		font-weight: var(--font-weight-medium);
+		border-radius: var(--radius-md);
 		position: relative;
-		/* Mobile touch optimizations */
 		-webkit-tap-highlight-color: transparent;
 		touch-action: manipulation;
-		min-height: 44px;
+		min-height: var(--size-control-xl);
 	}
 
 	.menu-item:hover:not(:disabled) {
-		background: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+		background: var(--surface-hover);
+		color: var(--text-primary);
 	}
 
 	.menu-item:disabled {
@@ -315,19 +291,19 @@
 	}
 
 	.menu-item.active {
-		background: color-mix(in oklab, var(--color-primary-500) 20%, transparent);
-		color: var(--color-primary-400);
+		background: color-mix(in oklab, var(--color-primary-500) 16%, transparent);
+		color: var(--color-primary-300);
 	}
 
 	.menu-item.active:hover {
-		background: color-mix(in oklab, var(--color-primary-500) 30%, transparent);
+		background: color-mix(in oklab, var(--color-primary-500) 22%, transparent);
 	}
 
 	.item-icon {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 1.5rem;
+		width: var(--size-icon-lg);
 		flex-shrink: 0;
 	}
 
@@ -337,26 +313,26 @@
 	}
 
 	.check-mark {
-		color: var(--color-success-500);
-		font-weight: bold;
-		font-size: 1rem;
+		color: var(--color-primary-300);
+		font-weight: var(--font-weight-bold);
+		font-size: var(--font-size-lg);
 	}
 
 	/* Responsive Design */
 	@media (max-width: 640px) {
 		.dropdown-trigger {
 			min-width: 100px;
-			height: 2.25rem;
-			padding: 0 0.625rem;
+			height: var(--size-control-md);
+			padding: 0 var(--space-2-5);
 		}
 
 		.trigger-label {
-			font-size: 0.8125rem;
+			font-size: var(--font-size-sm);
 		}
 
 		.trigger-content :global(svg) {
-			width: 16px;
-			height: 16px;
+			width: var(--size-icon-sm);
+			height: var(--size-icon-sm);
 		}
 
 		.dropdown-menu {
@@ -365,18 +341,17 @@
 		}
 
 		.menu-item {
-			padding: 0.75rem 0.5rem;
-			font-size: 0.8125rem;
-			min-height: 48px;
+			padding: var(--space-3) var(--space-2);
+			font-size: var(--font-size-sm);
 		}
 	}
 
 	@media (max-width: 480px) {
 		.dropdown-trigger {
-			min-width: 2.5rem;
+			min-width: var(--size-control-lg);
 			width: auto;
-			height: 2rem;
-			padding: 0 0.5rem;
+			height: var(--size-control-sm);
+			padding: 0 var(--space-2);
 		}
 
 		.trigger-label {
@@ -384,7 +359,7 @@
 		}
 
 		.trigger-content {
-			gap: 0.25rem;
+			gap: var(--space-1);
 		}
 
 		.dropdown-menu {
@@ -395,9 +370,8 @@
 		}
 
 		.menu-item {
-			padding: 0.75rem 0.5rem;
-			font-size: 0.875rem;
-			min-height: 44px;
+			padding: var(--space-3) var(--space-2);
+			font-size: var(--font-size-base);
 		}
 	}
 
@@ -405,12 +379,12 @@
 	@media (prefers-contrast: high) {
 		.dropdown-trigger {
 			border-width: 2px;
-			border-color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
+			border-color: var(--border-strong);
 		}
 
 		.dropdown-menu {
 			border-width: 2px;
-			border-color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
+			border-color: var(--border-strong);
 		}
 
 		.menu-item.active {
@@ -421,8 +395,7 @@
 	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
 		.dropdown-trigger,
-		.menu-item,
-		.dropdown-trigger::before {
+		.menu-item {
 			transition: none;
 		}
 

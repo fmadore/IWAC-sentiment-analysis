@@ -68,14 +68,14 @@
 	.prompt-modal-backdrop {
 		position: fixed;
 		inset: 0;
-		z-index: 1000;
+		z-index: var(--z-modal);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: 1rem;
+		padding: var(--space-4);
 		background: color-mix(in oklab, var(--color-surface-950) 85%, transparent);
 		backdrop-filter: blur(var(--glass-blur-sm));
-		animation: fadeIn 0.2s var(--easing-default);
+		animation: fadeIn var(--timing-fast) var(--easing-default);
 	}
 
 	@keyframes fadeIn {
@@ -93,14 +93,14 @@
 		max-height: 90vh;
 		display: flex;
 		flex-direction: column;
-		background: color-mix(in oklab, var(--color-surface-900) 95%, transparent);
+		background: var(--surface-card-elevated);
 		backdrop-filter: blur(var(--glass-blur-lg));
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-		border-radius: 1rem;
+		border: 1px solid var(--border-default);
+		border-radius: var(--radius-2xl);
 		box-shadow:
 			0 16px 64px color-mix(in oklab, black 30%, transparent),
 			0 0 40px color-mix(in oklab, var(--color-primary-500) 10%, transparent);
-		animation: scaleIn 0.25s var(--easing-default);
+		animation: scaleIn var(--timing-normal) var(--easing-default);
 		overflow: hidden;
 	}
 
@@ -136,67 +136,73 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 1.25rem 1.5rem;
-		border-bottom: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		background: color-mix(in oklab, var(--color-surface-50) 3%, transparent);
+		padding: var(--space-5) var(--space-6);
+		border-bottom: 1px solid var(--border-subtle);
+		background: var(--surface-subtle);
 	}
 
 	.prompt-modal-title {
-		font-size: 1.125rem;
-		font-weight: 600;
-		color: var(--color-surface-50);
+		font-size: var(--font-size-xl);
+		font-weight: var(--font-weight-semibold);
+		color: var(--text-primary);
 		margin: 0;
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
+		gap: var(--space-2);
 	}
 
 	.modal-close-btn {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 2rem;
-		height: 2rem;
-		background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-		border-radius: 0.5rem;
-		color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
-		font-size: 1rem;
+		width: var(--size-control-sm);
+		height: var(--size-control-sm);
+		background: var(--surface-subtle);
+		border: 1px solid var(--border-default);
+		border-radius: var(--radius-md);
+		color: var(--text-secondary);
+		font-size: var(--font-size-lg);
 		cursor: pointer;
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			background var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default),
+			transform var(--timing-fast) var(--easing-default);
 	}
 
 	.modal-close-btn:hover {
-		background: color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-		border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
-		color: var(--color-surface-50);
+		background: var(--surface-active);
+		border-color: var(--border-hover);
+		color: var(--text-primary);
 		transform: translateY(-1px);
 	}
 
 	.prompt-modal-body {
 		flex: 1;
 		overflow-y: auto;
-		padding: 1.5rem;
+		padding: var(--space-6);
 	}
 
 	.prompt-modal-footer {
 		display: flex;
 		justify-content: flex-end;
-		padding: 1rem 1.5rem;
-		border-top: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		background: color-mix(in oklab, var(--color-surface-50) 2%, transparent);
+		padding: var(--space-4) var(--space-6);
+		border-top: 1px solid var(--border-subtle);
+		background: var(--surface-subtle);
 	}
 
 	.close-btn {
-		padding: 0.5rem 1.25rem;
-		font-size: 0.875rem;
-		font-weight: 500;
+		padding: var(--space-2) var(--space-5);
+		font-size: var(--font-size-base);
+		font-weight: var(--font-weight-medium);
 		background: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
 		border: none;
-		border-radius: 0.5rem;
+		border-radius: var(--radius-md);
 		color: white;
 		cursor: pointer;
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			transform var(--timing-fast) var(--easing-default),
+			box-shadow var(--timing-fast) var(--easing-default);
 	}
 
 	.close-btn:hover {
@@ -207,15 +213,15 @@
 	@media (max-width: 640px) {
 		.prompt-modal {
 			max-height: 95vh;
-			border-radius: 0.875rem;
+			border-radius: var(--radius-xl);
 		}
 
 		.prompt-modal-header {
-			padding: 1rem;
+			padding: var(--space-4);
 		}
 
 		.prompt-modal-body {
-			padding: 1rem;
+			padding: var(--space-4);
 		}
 	}
 

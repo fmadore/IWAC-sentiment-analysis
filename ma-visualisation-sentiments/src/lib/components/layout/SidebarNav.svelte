@@ -94,9 +94,9 @@
 		display: block;
 		position: fixed;
 		inset: 0;
-		z-index: 40;
-		background: color-mix(in oklab, black 60%, transparent);
-		backdrop-filter: blur(4px);
+		z-index: var(--z-overlay);
+		background: color-mix(in oklab, black 55%, transparent);
+		backdrop-filter: blur(6px);
 		border: none;
 		cursor: pointer;
 	}
@@ -110,46 +110,25 @@
 	/* ===== Sidebar Container ===== */
 	.sidebar {
 		position: fixed;
-		top: 0; /* Full height starting from top */
+		top: 0;
 		left: 0;
-		z-index: 60; /* Higher than header (50) */
+		z-index: var(--z-sidebar);
 		height: 100dvh;
-		padding-top: 1rem;
+		padding-top: var(--space-4);
 
 		/* Collapsed width */
 		width: 4.5rem;
 
-		/* Glass morphism styling */
-		background: color-mix(in oklab, var(--color-surface-900) 92%, transparent);
+		background: color-mix(in oklab, var(--color-surface-950) 82%, transparent);
 		backdrop-filter: blur(var(--glass-blur-xl));
-		border-right: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		box-shadow:
-			4px 0 24px color-mix(in oklab, black 8%, transparent),
-			inset 1px 0 0 color-mix(in oklab, var(--color-surface-50) 5%, transparent);
+		border-right: 1px solid var(--border-subtle);
+		box-shadow: 0 4px 20px color-mix(in oklab, black 18%, transparent);
 
-		/* Smooth transition */
 		transition:
 			width var(--timing-normal) var(--easing-default),
 			transform var(--timing-normal) var(--easing-default);
 
-		/* Hidden on mobile by default */
 		transform: translateX(-100%);
-	}
-
-	.sidebar::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		bottom: 0;
-		width: 1px;
-		background: linear-gradient(
-			180deg,
-			var(--color-primary-500) 0%,
-			var(--color-secondary-500) 50%,
-			transparent 100%
-		);
-		opacity: 0.3;
 	}
 
 	/* Expanded state */
@@ -173,29 +152,32 @@
 	/* ===== Toggle Button (Desktop) ===== */
 	.toggle-btn {
 		position: absolute;
-		top: 1.5rem;
+		top: var(--space-6);
 		right: -0.75rem;
 		z-index: 10;
 
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 1.5rem;
-		height: 1.5rem;
+		width: var(--size-icon-lg);
+		height: var(--size-icon-lg);
 
-		border-radius: 50%;
+		border-radius: var(--radius-full);
 		background: var(--color-surface-800);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-		color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
+		border: 1px solid var(--border-default);
+		color: var(--text-muted);
 		cursor: pointer;
 
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
 	}
 
 	.toggle-btn:hover {
 		background: var(--color-surface-700);
-		color: var(--color-surface-50);
-		border-color: color-mix(in oklab, var(--color-surface-50) 25%, transparent);
+		color: var(--text-primary);
+		border-color: var(--border-hover);
 	}
 
 	.desktop-only {
@@ -212,62 +194,60 @@
 	.nav-items {
 		display: flex;
 		flex-direction: column;
-		gap: 0.375rem;
-		padding: 0.5rem 0.75rem;
+		gap: var(--space-1);
+		padding: var(--space-2) var(--space-3);
 		overflow-y: auto;
 		max-height: calc(100dvh - 2rem);
 	}
 
 	/* ===== Navigation Item ===== */
 	.nav-item {
+		position: relative;
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 0.75rem;
-		border-radius: 0.75rem;
+		gap: var(--space-3);
+		padding: var(--space-2-5) var(--space-3);
+		border-radius: var(--radius-lg);
 
 		background: transparent;
 		border: 1px solid transparent;
-		color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
+		color: var(--text-muted);
 
-		font-weight: 500;
-		font-size: 0.875rem;
+		font-weight: var(--font-weight-medium);
+		font-size: var(--font-size-base);
 		text-align: left;
 		white-space: nowrap;
 		cursor: pointer;
 
-		transition: all var(--timing-normal) var(--easing-default);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
 	}
 
 	.nav-item:hover {
-		background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		border-color: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-		color: var(--color-surface-50);
-		transform: translateX(2px);
+		background: var(--surface-hover);
+		color: var(--text-primary);
 	}
 
+	/* Active state: tonal fill with a precise accent rail on the left */
 	.nav-item[data-state='active'] {
-		background: linear-gradient(
-			135deg,
-			color-mix(in oklab, var(--color-primary-500) 25%, transparent) 0%,
-			color-mix(in oklab, var(--color-secondary-500) 20%, transparent) 100%
-		);
-		border-color: color-mix(in oklab, var(--color-primary-400) 40%, transparent);
-		color: var(--color-surface-50);
-		box-shadow:
-			0 4px 16px color-mix(in oklab, var(--color-primary-500) 20%, transparent),
-			inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+		background: color-mix(in oklab, var(--color-primary-500) 14%, transparent);
+		color: var(--text-primary);
+	}
+
+	.nav-item[data-state='active']::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 20%;
+		bottom: 20%;
+		width: 3px;
+		border-radius: var(--radius-full);
+		background: var(--color-primary-400);
 	}
 
 	.nav-item[data-state='active'] .nav-icon {
-		color: var(--color-primary-400);
-	}
-
-	.nav-item[data-state='active']:hover {
-		transform: translateX(2px);
-		box-shadow:
-			0 6px 20px color-mix(in oklab, var(--color-primary-500) 30%, transparent),
-			inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+		color: var(--color-primary-300);
 	}
 
 	/* ===== Icon ===== */
@@ -276,8 +256,8 @@
 		align-items: center;
 		justify-content: center;
 		flex-shrink: 0;
-		width: 1.5rem;
-		height: 1.5rem;
+		width: var(--size-icon-md);
+		height: var(--size-icon-md);
 		transition: color var(--timing-fast) var(--easing-default);
 	}
 

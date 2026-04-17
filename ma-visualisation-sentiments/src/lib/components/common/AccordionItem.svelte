@@ -65,7 +65,7 @@
 
 <style>
 	.accordion-item {
-		border-bottom: 1px solid color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+		border-bottom: 1px solid var(--border-subtle);
 	}
 
 	.accordion-item:last-child {
@@ -77,24 +77,26 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 0.875rem 1rem;
-		background: color-mix(in oklab, var(--color-surface-50) 3%, transparent);
+		padding: var(--space-3-5) var(--space-4);
+		background: var(--surface-muted);
 		border: none;
-		color: var(--color-surface-50);
-		font-size: 0.9375rem;
-		font-weight: 600;
+		color: var(--text-primary);
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-semibold);
 		cursor: pointer;
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
 		text-align: left;
 	}
 
 	.accordion-trigger:hover {
-		background: color-mix(in oklab, var(--color-surface-50) 6%, transparent);
+		background: var(--surface-hover);
 	}
 
 	.accordion-trigger[data-state='open'] {
 		background: color-mix(in oklab, var(--color-primary-500) 10%, transparent);
-		border-left: 3px solid var(--color-primary-500);
+		box-shadow: inset 3px 0 0 var(--color-primary-500);
 	}
 
 	.accordion-trigger-text {
@@ -102,20 +104,22 @@
 	}
 
 	.accordion-icon {
-		font-size: 0.75rem;
-		color: color-mix(in oklab, var(--color-surface-50) 60%, transparent);
-		transition: transform var(--timing-fast) var(--easing-default);
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
+		transition:
+			transform var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
 	}
 
 	.accordion-icon[data-state='open'] {
 		transform: rotate(180deg);
-		color: var(--color-primary-400);
+		color: var(--color-primary-300);
 	}
 
 	.accordion-panel {
-		padding: 1rem 1.25rem;
-		background: color-mix(in oklab, var(--color-surface-950) 80%, transparent);
-		animation: slideDown 0.2s var(--easing-default);
+		padding: var(--space-4) var(--space-5);
+		background: var(--surface-nested);
+		animation: slideDown var(--timing-normal) var(--easing-default);
 	}
 
 	@keyframes slideDown {
@@ -132,12 +136,12 @@
 	/* Responsive */
 	@media (max-width: 640px) {
 		.accordion-trigger {
-			padding: 0.75rem;
-			font-size: 0.875rem;
+			padding: var(--space-3);
+			font-size: var(--font-size-base);
 		}
 
 		.accordion-panel {
-			padding: 0.875rem 1rem;
+			padding: var(--space-3-5) var(--space-4);
 		}
 	}
 

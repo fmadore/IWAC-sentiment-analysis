@@ -114,26 +114,29 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		font-weight: 500;
-		border-radius: 9999px;
+		font-weight: var(--font-weight-medium);
+		line-height: var(--line-height-snug);
+		border-radius: var(--radius-full);
 		white-space: nowrap;
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default);
 	}
 
 	/* Size variants */
 	.sentiment-badge.size-sm {
-		padding: 0.1875rem 0.5rem;
-		font-size: 0.6875rem;
+		padding: var(--space-0-5) var(--space-2);
+		font-size: var(--font-size-2xs);
 	}
 
 	.sentiment-badge.size-md {
-		padding: 0.25rem 0.625rem;
-		font-size: 0.75rem;
+		padding: var(--space-1) var(--space-2-5);
+		font-size: var(--font-size-xs);
 	}
 
 	.sentiment-badge.size-lg {
-		padding: 0.375rem 0.875rem;
-		font-size: 0.8125rem;
+		padding: var(--space-1-5) var(--space-3-5);
+		font-size: var(--font-size-sm);
 	}
 
 	/* ============================================

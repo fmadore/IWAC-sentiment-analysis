@@ -544,15 +544,13 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
      INFO CARD - Main Container
      ========================================================================== */
 	.info-card {
-		background: color-mix(in oklab, var(--color-surface-900) 85%, transparent);
+		background: var(--surface-card);
 		backdrop-filter: blur(var(--glass-blur-md));
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		border-radius: 1rem;
-		padding: 1.25rem;
-		margin-bottom: 1.5rem;
-		box-shadow:
-			0 4px 24px color-mix(in oklab, black 10%, transparent),
-			inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 6%, transparent);
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-2xl);
+		padding: var(--space-5);
+		margin-bottom: var(--space-6);
+		box-shadow: var(--elevation-card);
 	}
 
 	/* ==========================================================================
@@ -568,38 +566,38 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 		border: none;
 		cursor: pointer;
 		text-align: left;
-		transition: all var(--timing-fast) var(--easing-default);
-	}
-
-	.info-header-btn:hover .info-title {
-		opacity: 0.9;
+		transition: color var(--timing-fast) var(--easing-default);
 	}
 
 	.info-header-btn:hover .header-icon {
-		background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
+		background: var(--surface-hover);
+		color: var(--text-primary);
 	}
 
 	.header-icon {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 2rem;
-		height: 2rem;
-		border-radius: 0.5rem;
-		background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
-		transition: all var(--timing-fast) var(--easing-default);
+		width: var(--size-control-sm);
+		height: var(--size-control-sm);
+		border-radius: var(--radius-md);
+		background: var(--surface-subtle);
+		color: var(--text-muted);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default),
+			transform var(--timing-normal) var(--easing-default);
 		flex-shrink: 0;
 	}
 
 	.header-icon[data-state='open'] {
 		transform: rotate(180deg);
-		color: var(--color-primary-400);
+		color: var(--color-primary-300);
 	}
 
 	.info-content {
-		margin-top: 1rem;
-		animation: slideDown 0.25s var(--easing-default);
+		margin-top: var(--space-4);
+		animation: slideDown var(--timing-normal) var(--easing-default);
 	}
 
 	.info-content[data-state='open'] {
@@ -607,37 +605,37 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 	}
 
 	.info-title {
-		font-size: 1.25rem;
-		font-weight: 700;
-		background: linear-gradient(135deg, var(--color-primary-400), var(--color-secondary-400));
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
+		font-size: var(--font-size-xl);
+		font-weight: var(--font-weight-semibold);
+		color: var(--text-primary);
+		letter-spacing: var(--tracking-snug);
+		line-height: var(--line-height-tight);
 		margin: 0;
 	}
 
-	/* Article count highlight */
 	.article-count {
-		color: var(--color-primary-400);
-		font-weight: 700;
+		color: var(--color-primary-300);
+		font-weight: var(--font-weight-semibold);
+		font-variant-numeric: tabular-nums;
 	}
 
 	.info-description {
-		color: color-mix(in oklab, var(--color-surface-50) 85%, transparent);
-		line-height: 1.7;
-		font-size: 0.9375rem;
-		margin-bottom: 1.25rem;
+		color: var(--text-secondary);
+		line-height: var(--line-height-relaxed);
+		font-size: var(--font-size-md);
+		margin-bottom: var(--space-5);
 	}
 
 	.info-link {
-		color: var(--color-primary-400);
+		color: var(--color-primary-300);
 		text-decoration: underline;
-		text-underline-offset: 2px;
+		text-underline-offset: 3px;
+		text-decoration-thickness: 1px;
 		transition: color var(--timing-fast) var(--easing-default);
 	}
 
 	.info-link:hover {
-		color: var(--color-primary-300);
+		color: var(--color-primary-200);
 	}
 
 	/* ==========================================================================
@@ -647,10 +645,10 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 		display: flex;
 		flex-direction: column;
 		gap: 0;
-		background: color-mix(in oklab, var(--color-surface-950) 60%, transparent);
+		background: var(--surface-nested);
 		backdrop-filter: blur(var(--glass-blur-sm));
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		border-radius: 0.875rem;
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-xl);
 		overflow: hidden;
 	}
 
@@ -658,10 +656,10 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
      PANEL CONTENT STYLES
      ========================================================================== */
 	.panel-description {
-		color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
-		font-size: 0.875rem;
-		line-height: 1.6;
-		margin-bottom: 1rem;
+		color: var(--text-secondary);
+		font-size: var(--font-size-base);
+		line-height: var(--line-height-relaxed);
+		margin-bottom: var(--space-4);
 	}
 
 	.sentiment-list {
@@ -670,24 +668,24 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 		margin: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 0.625rem;
+		gap: var(--space-2-5);
 	}
 
 	.sentiment-list li {
 		display: flex;
 		align-items: flex-start;
-		gap: 0.625rem;
-		font-size: 0.875rem;
-		line-height: 1.5;
+		gap: var(--space-2-5);
+		font-size: var(--font-size-base);
+		line-height: var(--line-height-normal);
 	}
 
 	.sentiment-desc {
-		color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
+		color: var(--text-muted);
 	}
 
 	.subjectivity-label {
-		color: var(--color-surface-50);
-		font-weight: 500;
+		color: var(--text-primary);
+		font-weight: var(--font-weight-medium);
 	}
 
 	/* ==========================================================================
@@ -696,47 +694,47 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 	.methodology-content {
 		display: flex;
 		flex-direction: column;
-		gap: 1.5rem;
+		gap: var(--space-6);
 	}
 
 	.methodology-section {
 		display: flex;
 		flex-direction: column;
-		gap: 0.75rem;
+		gap: var(--space-3);
 	}
 
 	.section-title {
-		font-size: 0.875rem;
-		font-weight: 600;
-		color: var(--color-surface-50);
+		font-size: var(--font-size-base);
+		font-weight: var(--font-weight-semibold);
+		color: var(--text-primary);
 		margin: 0;
 	}
 
 	.section-text {
-		color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
-		font-size: 0.875rem;
-		line-height: 1.6;
+		color: var(--text-secondary);
+		font-size: var(--font-size-base);
+		line-height: var(--line-height-relaxed);
 		margin: 0;
 	}
 
 	.section-note {
-		color: color-mix(in oklab, var(--color-surface-50) 60%, transparent);
-		font-size: 0.8125rem;
+		color: var(--text-muted);
+		font-size: var(--font-size-sm);
 		font-style: italic;
 		margin: 0;
 	}
 
 	.config-list {
 		list-style: disc;
-		padding-left: 1.25rem;
+		padding-left: var(--space-5);
 		margin: 0;
-		color: color-mix(in oklab, var(--color-surface-50) 75%, transparent);
-		font-size: 0.8125rem;
-		line-height: 1.6;
+		color: var(--text-secondary);
+		font-size: var(--font-size-sm);
+		line-height: var(--line-height-relaxed);
 	}
 
 	.config-list li {
-		margin-bottom: 0.25rem;
+		margin-bottom: var(--space-1);
 	}
 
 	/* ==========================================================================
@@ -745,8 +743,8 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 	.model-grid {
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
-		gap: 0.875rem;
-		margin-top: 0.5rem;
+		gap: var(--space-3-5);
+		margin-top: var(--space-2);
 	}
 
 	@media (max-width: 900px) {
@@ -762,54 +760,58 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 	}
 
 	.model-card {
-		background: color-mix(in oklab, var(--color-surface-900) 60%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		border-radius: 0.75rem;
-		padding: 1rem;
-		transition: all var(--timing-fast) var(--easing-default);
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-xl);
+		padding: var(--space-4);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			box-shadow var(--timing-normal) var(--easing-default),
+			transform var(--timing-normal) var(--easing-default);
 	}
 
 	.model-card:hover {
-		background: color-mix(in oklab, var(--color-surface-900) 70%, transparent);
-		border-color: color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+		background: var(--surface-card-hover);
+		border-color: var(--border-hover);
 		transform: translateY(-2px);
-		box-shadow: 0 4px 12px color-mix(in oklab, black 15%, transparent);
+		box-shadow: var(--elevation-card-hover);
 	}
 
 	.model-header {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
-		margin-bottom: 0.5rem;
+		gap: var(--space-2);
+		margin-bottom: var(--space-2);
 	}
 
 	.model-name {
-		font-weight: 600;
-		font-size: 0.875rem;
-		color: var(--color-surface-50);
+		font-weight: var(--font-weight-semibold);
+		font-size: var(--font-size-base);
+		color: var(--text-primary);
 	}
 
 	.model-description {
-		font-size: 0.75rem;
-		color: color-mix(in oklab, var(--color-surface-50) 65%, transparent);
-		line-height: 1.5;
-		margin: 0 0 0.5rem 0;
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
+		line-height: var(--line-height-normal);
+		margin: 0 0 var(--space-2) 0;
 	}
 
 	.model-link {
-		font-size: 0.75rem;
-		color: var(--color-primary-400);
+		font-size: var(--font-size-xs);
+		color: var(--color-primary-300);
 		text-decoration: none;
 		transition: color var(--timing-fast) var(--easing-default);
 	}
 
 	.model-link:hover {
-		color: var(--color-primary-300);
+		color: var(--color-primary-200);
 	}
 
 	.model-logo {
-		width: 1.5rem;
-		height: 1.5rem;
+		width: var(--size-icon-lg);
+		height: var(--size-icon-lg);
 		object-fit: contain;
 		flex-shrink: 0;
 	}
@@ -817,49 +819,52 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 	.model-badge {
 		display: inline-flex;
 		align-items: center;
-		padding: 0.25rem 0.625rem;
-		font-size: 0.8125rem;
-		font-weight: 600;
-		border-radius: 0.375rem;
+		padding: var(--space-1) var(--space-2-5);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		border-radius: var(--radius-sm);
 		text-decoration: none;
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default);
 	}
 
 	.model-badge.chatgpt {
-		background: color-mix(in oklab, var(--color-primary-500) 20%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-primary-500) 30%, transparent);
+		background: color-mix(in oklab, var(--color-primary-500) 18%, transparent);
+		border: 1px solid color-mix(in oklab, var(--color-primary-500) 32%, transparent);
 		color: var(--color-primary-300);
 	}
 
 	.model-badge.chatgpt:hover {
-		background: color-mix(in oklab, var(--color-primary-500) 30%, transparent);
+		background: color-mix(in oklab, var(--color-primary-500) 28%, transparent);
 	}
 
 	.model-badge.gemini {
-		background: color-mix(in oklab, var(--color-secondary-500) 20%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-secondary-500) 30%, transparent);
+		background: color-mix(in oklab, var(--color-secondary-500) 18%, transparent);
+		border: 1px solid color-mix(in oklab, var(--color-secondary-500) 32%, transparent);
 		color: var(--color-secondary-300);
 	}
 
 	.model-badge.gemini:hover {
-		background: color-mix(in oklab, var(--color-secondary-500) 30%, transparent);
+		background: color-mix(in oklab, var(--color-secondary-500) 28%, transparent);
 	}
 
+	/* Mistral brand red — intentionally hardcoded */
 	.model-badge.mistral {
-		background: color-mix(in oklab, #f54e42 20%, transparent);
-		border: 1px solid color-mix(in oklab, #f54e42 30%, transparent);
-		color: #f54e42;
+		background: color-mix(in oklab, #f54e42 18%, transparent);
+		border: 1px solid color-mix(in oklab, #f54e42 32%, transparent);
+		color: #f87a71;
 	}
 
 	.model-badge.mistral:hover {
-		background: color-mix(in oklab, #f54e42 30%, transparent);
+		background: color-mix(in oklab, #f54e42 28%, transparent);
 	}
 
 	.model-detail {
 		display: block;
-		margin-top: 0.5rem;
-		font-size: 0.8125rem;
-		color: color-mix(in oklab, var(--color-surface-50) 60%, transparent);
+		margin-top: var(--space-2);
+		font-size: var(--font-size-sm);
+		color: var(--text-muted);
 		font-style: italic;
 	}
 
@@ -869,21 +874,24 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 	.prompt-btn {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.5rem;
-		padding: 0.5rem 1rem;
-		margin-top: 0.75rem;
-		font-size: 0.8125rem;
-		font-weight: 500;
-		background: color-mix(in oklab, var(--color-primary-500) 15%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-primary-500) 25%, transparent);
-		border-radius: 0.5rem;
-		color: var(--color-primary-300);
+		gap: var(--space-2);
+		padding: var(--space-2) var(--space-4);
+		margin-top: var(--space-3);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-medium);
+		background: color-mix(in oklab, var(--color-primary-500) 14%, transparent);
+		border: 1px solid color-mix(in oklab, var(--color-primary-500) 26%, transparent);
+		border-radius: var(--radius-md);
+		color: var(--color-primary-200);
 		cursor: pointer;
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			transform var(--timing-fast) var(--easing-default);
 	}
 
 	.prompt-btn:hover {
-		background: color-mix(in oklab, var(--color-primary-500) 25%, transparent);
+		background: color-mix(in oklab, var(--color-primary-500) 24%, transparent);
 		border-color: color-mix(in oklab, var(--color-primary-500) 40%, transparent);
 		transform: translateY(-1px);
 	}
@@ -892,20 +900,21 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
      COMPARISON NOTICE
      ========================================================================== */
 	.comparison-notice {
-		margin-top: 1rem;
-		padding: 1rem;
+		margin-top: var(--space-4);
+		padding: var(--space-4);
 		background: color-mix(in oklab, var(--color-warning-500) 10%, transparent);
 		border: 1px solid color-mix(in oklab, var(--color-warning-500) 25%, transparent);
-		border-radius: 0.625rem;
+		border-left: 3px solid var(--color-warning-500);
+		border-radius: var(--radius-lg);
 	}
 
 	.comparison-notice .section-title {
 		color: var(--color-warning-300);
-		margin-bottom: 0.5rem;
+		margin-bottom: var(--space-2);
 	}
 
 	.comparison-notice .config-list {
-		color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
+		color: var(--text-secondary);
 	}
 
 	/* ==========================================================================
@@ -913,33 +922,34 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
      (styles for content rendered inside PromptModal from this component)
      ========================================================================== */
 	.translation-notice {
-		padding: 0.875rem 1rem;
-		margin-bottom: 1rem;
+		padding: var(--space-3-5) var(--space-4);
+		margin-bottom: var(--space-4);
 		background: color-mix(in oklab, var(--color-warning-500) 12%, transparent);
 		border: 1px solid color-mix(in oklab, var(--color-warning-500) 25%, transparent);
-		border-radius: 0.625rem;
+		border-left: 3px solid var(--color-warning-500);
+		border-radius: var(--radius-lg);
 	}
 
 	.translation-notice p {
 		color: var(--color-warning-300);
-		font-size: 0.8125rem;
-		line-height: 1.5;
+		font-size: var(--font-size-sm);
+		line-height: var(--line-height-normal);
 		margin: 0;
 	}
 
 	.prompt-code-container {
 		background: color-mix(in oklab, var(--color-surface-950) 80%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		border-radius: 0.625rem;
-		padding: 1rem;
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-lg);
+		padding: var(--space-4);
 		overflow-x: auto;
 	}
 
 	.prompt-code {
-		font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
-		font-size: 0.8125rem;
-		line-height: 1.6;
-		color: color-mix(in oklab, var(--color-surface-50) 85%, transparent);
+		font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, 'SF Mono', 'Courier New', monospace;
+		font-size: var(--font-size-sm);
+		line-height: var(--line-height-relaxed);
+		color: var(--text-secondary);
 		white-space: pre-wrap;
 		word-wrap: break-word;
 		margin: 0;
@@ -950,16 +960,16 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
      ========================================================================== */
 	@media (max-width: 640px) {
 		.info-card {
-			padding: 1rem;
-			border-radius: 0.875rem;
+			padding: var(--space-4);
+			border-radius: var(--radius-xl);
 		}
 
 		.info-title {
-			font-size: 1.125rem;
+			font-size: var(--font-size-lg);
 		}
 
 		.info-description {
-			font-size: 0.875rem;
+			font-size: var(--font-size-base);
 		}
 
 		.header-icon {

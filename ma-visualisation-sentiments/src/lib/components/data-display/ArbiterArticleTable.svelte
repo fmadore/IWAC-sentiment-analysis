@@ -520,7 +520,7 @@
 
 <style>
 	.table-container {
-		max-height: 600px;
+		max-height: var(--height-chart-lg);
 		overflow-y: auto;
 	}
 
@@ -576,11 +576,11 @@
 	.cards-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-		gap: 1rem;
+		gap: var(--space-4);
 	}
 
 	.arbiter-cards-grid {
-		gap: 1.25rem;
+		gap: var(--space-5);
 	}
 
 	.arbiter-card {
@@ -616,8 +616,8 @@
 		align-items: center;
 		gap: var(--space-1);
 		padding: var(--space-2) var(--space-3);
-		font-size: 0.875rem;
-		font-weight: 500;
+		font-size: var(--font-size-base);
+		font-weight: var(--font-weight-medium);
 		color: var(--text-secondary);
 		background: var(--surface-hover);
 		border: 1px solid var(--border-hover);
@@ -650,18 +650,18 @@
 
 	/* Results info text */
 	.results-info {
-		font-size: 0.875rem;
+		font-size: var(--font-size-base);
 		color: var(--text-secondary);
 	}
 
 	.results-info strong {
 		color: var(--text-primary);
-		font-weight: 600;
+		font-weight: var(--font-weight-semibold);
 	}
 
 	/* Items per page label */
 	.items-per-page-label {
-		font-size: 0.875rem;
+		font-size: var(--font-size-base);
 		color: var(--text-secondary);
 		white-space: nowrap;
 		cursor: pointer;
@@ -670,8 +670,8 @@
 	/* Items per page select */
 	.items-per-page-select {
 		padding: var(--space-1) var(--space-2);
-		font-size: 0.875rem;
-		font-weight: 500;
+		font-size: var(--font-size-base);
+		font-weight: var(--font-weight-medium);
 		color: var(--text-primary);
 		background: var(--surface-hover);
 		border: 1px solid var(--border-active);
@@ -706,11 +706,11 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		min-width: 2.5rem;
-		height: 2.5rem;
+		min-width: var(--size-control-lg);
+		height: var(--size-control-lg);
 		padding: var(--space-2) var(--space-3);
-		font-size: 0.875rem;
-		font-weight: 500;
+		font-size: var(--font-size-base);
+		font-weight: var(--font-weight-medium);
 		color: var(--text-secondary);
 		background: var(--surface-hover);
 		border: 1px solid var(--border-hover);
@@ -731,7 +731,7 @@
 	}
 
 	.pagination-btn.page-number {
-		min-width: 2.5rem;
+		min-width: var(--size-control-lg);
 		padding: var(--space-2);
 	}
 
@@ -747,8 +747,8 @@
 	}
 
 	.pagination-controls button {
-		min-width: 2.5rem;
-		height: 2.5rem;
+		min-width: var(--size-control-lg);
+		height: var(--size-control-lg);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -762,8 +762,8 @@
 
 	.badge {
 		padding: var(--space-1) var(--space-2);
-		font-size: 0.75rem;
-		font-weight: 500;
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-medium);
 		border-radius: var(--radius-full);
 		border: 1px solid;
 		display: inline-flex;
@@ -771,8 +771,8 @@
 	}
 
 	.badge-sm {
-		padding: 0.2rem 0.4rem;
-		font-size: 0.625rem;
+		padding: var(--space-1) var(--space-1-5);
+		font-size: var(--font-size-2xs);
 	}
 
 	.line-clamp-2 {
@@ -785,7 +785,7 @@
 
 	.select-sm {
 		padding: var(--space-1) var(--space-2);
-		font-size: 0.875rem;
+		font-size: var(--font-size-base);
 		border-radius: var(--radius-sm);
 	}
 
@@ -825,22 +825,22 @@
 		}
 
 		.arbiter-card {
-			padding: 0.75rem;
+			padding: var(--space-3);
 		}
 
 		.controls-section {
-			padding: 0.75rem;
+			padding: var(--space-3);
 		}
 
 		.pagination-controls {
-			gap: 0.25rem;
+			gap: var(--space-1);
 		}
 
 		.pagination-controls button {
-			min-width: 2rem;
-			height: 2rem;
-			font-size: 0.75rem;
-			padding: 0.25rem;
+			min-width: var(--size-control-sm);
+			height: var(--size-control-sm);
+			font-size: var(--font-size-xs);
+			padding: var(--space-1);
 		}
 	}
 

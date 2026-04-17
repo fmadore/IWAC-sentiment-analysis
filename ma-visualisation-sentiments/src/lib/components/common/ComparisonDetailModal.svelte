@@ -71,11 +71,11 @@
 	.discrepancy-badge {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.375rem;
-		padding: 0.375rem 0.75rem;
-		font-size: 0.75rem;
-		font-weight: 600;
-		border-radius: 9999px;
+		gap: var(--space-1-5);
+		padding: var(--space-1-5) var(--space-3);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		border-radius: var(--radius-full);
 		background: var(--sentiment-discrepancy-bg);
 		border: 1px solid var(--sentiment-discrepancy-border);
 		color: var(--sentiment-discrepancy-light);

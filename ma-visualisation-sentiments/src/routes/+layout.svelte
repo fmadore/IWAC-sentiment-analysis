@@ -32,11 +32,11 @@
 
 	@media (min-width: 1024px) {
 		.app-content {
-			margin-left: 4.5rem; /* Matches collapsed sidebar width */
+			margin-left: 4.5rem; /* collapsed sidebar width — not a standard spacing token */
 		}
 
 		.app-content.expanded {
-			margin-left: 14rem; /* Matches expanded sidebar width */
+			margin-left: 14rem; /* expanded sidebar width — not a standard spacing token */
 		}
 	}
 

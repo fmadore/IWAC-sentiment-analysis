@@ -382,21 +382,11 @@
 </div>
 
 <style>
-	/* Glass Heavy - Darker glass effect */
-	.glass-heavy {
-		background: color-mix(in oklab, var(--color-surface-900) 92%, transparent) !important;
-		backdrop-filter: blur(var(--glass-blur-lg));
-	}
-
-	:global(.glass-dark) {
-		background: color-mix(in oklab, var(--color-surface-900) 75%, transparent) !important;
-		backdrop-filter: blur(var(--glass-blur-md));
-	}
-
-	/* Arbiter Section Styles */
+	/* Arbiter section — uses the shared card surface with an arbiter-tinted gradient */
 	.arbiter-section {
 		position: relative;
 		overflow: hidden;
+		border-radius: var(--radius-2xl);
 	}
 
 	.arbiter-section::before {
@@ -405,53 +395,55 @@
 		top: 0;
 		left: 0;
 		right: 0;
-		height: 3px;
+		height: 2px;
 		background: linear-gradient(
 			90deg,
 			var(--sentiment-arbiter),
 			var(--sentiment-arbiter-light),
 			var(--sentiment-arbiter)
 		);
-		opacity: 0.8;
+		opacity: 0.75;
 	}
 
 	.arbiter-gradient {
 		background: linear-gradient(
 			135deg,
-			color-mix(in oklab, var(--color-surface-900) 92%, transparent),
-			color-mix(in oklab, var(--sentiment-arbiter) 4%, var(--color-surface-900))
+			var(--surface-card-elevated),
+			color-mix(in oklab, var(--sentiment-arbiter) 4%, var(--surface-card-elevated))
 		) !important;
 	}
 
 	.arbiter-header {
 		cursor: pointer;
-		transition: all var(--timing-fast) var(--easing-default);
-		border-radius: 0.5rem;
-		padding: 0.5rem;
-		margin: -0.5rem;
+		transition: background-color var(--timing-fast) var(--easing-default);
+		border-radius: var(--radius-md);
+		padding: var(--space-2);
+		margin: calc(-1 * var(--space-2));
 	}
 
 	.arbiter-header:hover {
-		background: color-mix(in oklab, var(--color-surface-50) 5%, transparent);
+		background: var(--surface-hover);
 	}
 
 	.arbiter-icon {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 40px;
-		height: 40px;
-		border-radius: 10px;
+		width: var(--size-control-lg);
+		height: var(--size-control-lg);
+		border-radius: var(--radius-lg);
 		background: var(--sentiment-arbiter-icon-bg);
 		border: 1px solid var(--sentiment-arbiter-border);
 	}
 
 	.arbiter-verdict-panel {
 		border: 1px solid color-mix(in oklab, var(--sentiment-arbiter) 15%, transparent);
-		border-radius: 0.5rem;
-		padding: 1rem;
+		border-radius: var(--radius-lg);
+		padding: var(--space-4);
 		background: color-mix(in oklab, var(--sentiment-arbiter) 3%, transparent);
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default);
 	}
 
 	.arbiter-verdict-panel:hover {
@@ -459,31 +451,30 @@
 		background: color-mix(in oklab, var(--sentiment-arbiter) 5%, transparent);
 	}
 
-	/* Badge styles */
+	/* Component-local badge overrides (compact) */
 	.badge {
-		padding: 0.375rem 0.75rem;
-		font-size: 0.75rem;
-		font-weight: 600;
-		border-radius: 9999px;
-		transition: all var(--timing-fast) var(--easing-default);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+		padding: var(--space-1-5) var(--space-3);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		border-radius: var(--radius-full);
+		border: 1px solid var(--border-default);
 		cursor: default;
 	}
 
 	.badge-sm {
-		padding: 0.25rem 0.5rem;
-		font-size: 0.625rem;
-		font-weight: 500;
+		padding: var(--space-1) var(--space-2);
+		font-size: var(--font-size-2xs);
+		font-weight: var(--font-weight-medium);
 	}
 
 	/* Loading spinner */
 	.loading-spinner {
-		width: 24px;
-		height: 24px;
-		border: 2px solid color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+		width: var(--size-icon-lg);
+		height: var(--size-icon-lg);
+		border: 2px solid var(--surface-active);
 		border-top-color: var(--sentiment-arbiter);
-		border-radius: 50%;
-		animation: spin 1s linear infinite;
+		border-radius: var(--radius-full);
+		animation: spin 0.9s linear infinite;
 	}
 
 	@keyframes spin {
@@ -495,16 +486,13 @@
 	/* Hover effects */
 	:global(.hover-lift-sm:hover) {
 		transform: translateY(-2px);
-		box-shadow:
-			0 10px 25px -5px color-mix(in oklab, black 30%, transparent),
-			0 10px 10px -5px color-mix(in oklab, black 10%, transparent),
-			0 0 20px color-mix(in oklab, var(--color-primary-500) 10%, transparent);
-		border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+		box-shadow: var(--elevation-card-hover);
+		border-color: var(--border-hover);
 	}
 
 	:global(.border-gradient) {
 		position: relative;
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+		border: 1px solid var(--border-subtle);
 	}
 
 	/* Reduced motion */
