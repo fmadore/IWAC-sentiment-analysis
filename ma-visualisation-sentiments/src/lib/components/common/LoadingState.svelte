@@ -100,24 +100,24 @@
 	.skeleton-item {
 		position: relative;
 		overflow: hidden;
-		background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		border-radius: 0.75rem;
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-xl);
 	}
 
 	.header-skeleton {
 		height: 8rem;
-		border-radius: 1rem;
+		border-radius: var(--radius-2xl);
 	}
 
 	.filter-skeleton {
-		height: 2.75rem;
-		animation: skeletonPulse 1.5s ease-in-out infinite;
+		height: var(--size-control-xl);
+		animation: skeletonPulse 1.6s ease-in-out infinite;
 	}
 
 	.content-skeleton-inner {
 		height: 24rem;
-		border-radius: 1rem;
+		border-radius: var(--radius-2xl);
 	}
 
 	/* Shimmer effect */
@@ -127,13 +127,8 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
-		background: linear-gradient(
-			90deg,
-			transparent 0%,
-			color-mix(in oklab, var(--color-surface-50) 5%, transparent) 50%,
-			transparent 100%
-		);
-		animation: shimmer 1.5s infinite;
+		background: linear-gradient(90deg, transparent 0%, var(--surface-hover) 50%, transparent 100%);
+		animation: shimmer 1.6s infinite;
 	}
 
 	@keyframes shimmer {
@@ -159,37 +154,35 @@
 	.loading-message-card {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 1rem 1.25rem;
-		background: color-mix(in oklab, var(--color-surface-900) 85%, transparent);
+		gap: var(--space-3);
+		padding: var(--space-4) var(--space-5);
+		background: var(--surface-card);
 		backdrop-filter: blur(var(--glass-blur-md));
-		border: 1px solid color-mix(in oklab, var(--color-primary-500) 20%, transparent);
-		border-radius: 0.75rem;
-		box-shadow:
-			0 4px 16px color-mix(in oklab, black 10%, transparent),
-			inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 5%, transparent);
+		border: 1px solid color-mix(in oklab, var(--color-primary-500) 22%, transparent);
+		border-radius: var(--radius-xl);
+		box-shadow: var(--elevation-card);
 	}
 
 	.loading-icon {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 2rem;
-		height: 2rem;
-		border-radius: 0.5rem;
-		background: color-mix(in oklab, var(--color-primary-500) 15%, transparent);
-		color: var(--color-primary-400);
+		width: var(--size-icon-xl);
+		height: var(--size-icon-xl);
+		border-radius: var(--radius-md);
+		background: color-mix(in oklab, var(--color-primary-500) 14%, transparent);
+		color: var(--color-primary-300);
 	}
 
 	.loading-text {
-		font-size: 0.9375rem;
-		font-weight: 500;
-		color: var(--color-surface-50);
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-medium);
+		color: var(--text-primary);
 	}
 
 	/* Animate spin for loader icon */
 	.loading-container :global(.animate-spin) {
-		animation: spin 1s linear infinite;
+		animation: spin 0.9s linear infinite;
 	}
 
 	@keyframes spin {
@@ -212,11 +205,11 @@
 		}
 
 		.loading-message-card {
-			padding: 0.875rem 1rem;
+			padding: var(--space-3-5) var(--space-4);
 		}
 
 		.loading-text {
-			font-size: 0.875rem;
+			font-size: var(--font-size-base);
 		}
 	}
 
@@ -228,7 +221,7 @@
 
 		.skeleton-shimmer {
 			animation: none;
-			background: color-mix(in oklab, var(--color-surface-50) 3%, transparent);
+			background: var(--surface-subtle);
 		}
 
 		.filter-skeleton {

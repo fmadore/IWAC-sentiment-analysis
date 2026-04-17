@@ -163,9 +163,9 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 36px;
-		height: 36px;
-		border-radius: 10px;
+		width: var(--size-control-md);
+		height: var(--size-control-md);
+		border-radius: var(--radius-lg);
 		background: var(--sentiment-extreme-icon-bg);
 		border: 1px solid var(--sentiment-extreme-border);
 	}
@@ -174,31 +174,34 @@
 	.controls-grid {
 		display: grid;
 		grid-template-columns: 2fr 2fr 1fr;
-		gap: 1rem;
+		gap: var(--space-4);
 		align-items: flex-end;
 	}
 
 	.control-group {
 		display: flex;
 		flex-direction: column;
-		gap: 0.375rem;
+		gap: var(--space-1-5);
 	}
 
 	.control-label {
-		font-size: 0.8125rem;
-		font-weight: 600;
-		color: color-mix(in oklab, var(--color-surface-50) 90%, transparent);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		color: var(--text-secondary);
 	}
 
 	/* Select Input */
 	.select-input {
-		background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-		color: var(--color-surface-50);
-		padding: 0.5rem 0.75rem;
-		border-radius: 0.5rem;
-		transition: all var(--timing-fast) var(--easing-default);
-		font-size: 0.8125rem;
+		background: var(--surface-subtle);
+		border: 1px solid var(--border-hover);
+		color: var(--text-primary);
+		padding: var(--space-2) var(--space-3);
+		border-radius: var(--radius-md);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			box-shadow var(--timing-fast) var(--easing-default);
+		font-size: var(--font-size-sm);
 		min-height: 38px;
 		width: 100%;
 		cursor: pointer;
@@ -206,8 +209,8 @@
 	}
 
 	.select-input:hover {
-		background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-		border-color: color-mix(in oklab, var(--color-surface-50) 25%, transparent);
+		background: var(--surface-hover);
+		border-color: var(--border-active);
 	}
 
 	.select-input:focus {
@@ -218,8 +221,8 @@
 	/* Fix dropdown options styling */
 	.select-input option {
 		background: var(--color-surface-800);
-		color: var(--color-surface-50);
-		padding: 0.5rem;
+		color: var(--text-primary);
+		padding: var(--space-2);
 		border: none;
 	}
 
@@ -236,28 +239,30 @@
 	.btn-group-toggle {
 		display: flex;
 		gap: 0;
-		border-radius: 0.5rem;
+		border-radius: var(--radius-md);
 		overflow: hidden;
-		background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+		background: var(--surface-subtle);
+		border: 1px solid var(--border-hover);
 	}
 
 	.btn-toggle {
 		flex: 1;
-		padding: 0.5rem 0.875rem;
+		padding: var(--space-2) var(--space-3-5);
 		border: none;
 		background: transparent;
-		color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
-		font-size: 0.8125rem;
-		font-weight: 500;
-		transition: all var(--timing-fast) var(--easing-default);
+		color: var(--text-secondary);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-medium);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
 		cursor: pointer;
 		position: relative;
 		overflow: hidden;
 	}
 
 	.btn-toggle:not(:last-child) {
-		border-right: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+		border-right: 1px solid var(--border-hover);
 	}
 
 	.btn-toggle::before {
@@ -277,8 +282,8 @@
 	}
 
 	.btn-toggle:hover {
-		background: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		color: var(--color-surface-50);
+		background: var(--surface-subtle);
+		color: var(--text-primary);
 	}
 
 	.btn-toggle:hover::before {
@@ -292,19 +297,22 @@
 			color-mix(in oklab, var(--sentiment-extreme-light) 20%, transparent)
 		);
 		color: var(--sentiment-extreme-accent);
-		font-weight: 600;
+		font-weight: var(--font-weight-semibold);
 		border-color: var(--sentiment-extreme-border);
 	}
 
 	/* Number Input */
 	.number-input {
-		background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-		color: var(--color-surface-50);
-		padding: 0.5rem 0.75rem;
-		border-radius: 0.5rem;
-		transition: all var(--timing-fast) var(--easing-default);
-		font-size: 0.8125rem;
+		background: var(--surface-subtle);
+		border: 1px solid var(--border-hover);
+		color: var(--text-primary);
+		padding: var(--space-2) var(--space-3);
+		border-radius: var(--radius-md);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			box-shadow var(--timing-fast) var(--easing-default);
+		font-size: var(--font-size-sm);
 		min-height: 38px;
 		width: 100%;
 		max-width: 100px;
@@ -312,8 +320,8 @@
 	}
 
 	.number-input:hover {
-		background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-		border-color: color-mix(in oklab, var(--color-surface-50) 25%, transparent);
+		background: var(--surface-hover);
+		border-color: var(--border-active);
 	}
 
 	.number-input:focus {
@@ -337,13 +345,13 @@
 	/* Responsive title adjustments */
 	.responsive-title {
 		@media (max-width: 768px) {
-			font-size: 1rem !important;
-			margin-bottom: 0.75rem !important;
+			font-size: var(--font-size-lg) !important;
+			margin-bottom: var(--space-3) !important;
 		}
 
 		@media (max-width: 480px) {
-			font-size: 0.9rem !important;
-			margin-bottom: 0.5rem !important;
+			font-size: var(--font-size-md) !important;
+			margin-bottom: var(--space-2) !important;
 		}
 	}
 
@@ -351,7 +359,7 @@
 	@media (max-width: 1024px) {
 		.controls-grid {
 			grid-template-columns: 1fr 1fr;
-			gap: 1rem;
+			gap: var(--space-4);
 		}
 
 		.control-group:last-child {
@@ -367,7 +375,7 @@
 	@media (max-width: 768px) {
 		.controls-grid {
 			grid-template-columns: 1fr;
-			gap: 1rem;
+			gap: var(--space-4);
 		}
 
 		.control-group {
@@ -375,14 +383,14 @@
 		}
 
 		.control-label {
-			font-size: 0.8125rem;
+			font-size: var(--font-size-sm);
 		}
 
 		.select-input,
 		.btn-toggle,
 		.number-input {
-			font-size: 0.8125rem;
-			padding: 0.5rem 0.75rem;
+			font-size: var(--font-size-sm);
+			padding: var(--space-2) var(--space-3);
 			min-height: 38px;
 		}
 
@@ -393,18 +401,18 @@
 
 	@media (max-width: 480px) {
 		.controls-grid {
-			gap: 0.75rem;
+			gap: var(--space-3);
 		}
 
 		.control-label {
-			font-size: 0.75rem;
+			font-size: var(--font-size-xs);
 		}
 
 		.select-input,
 		.btn-toggle,
 		.number-input {
-			font-size: 0.75rem;
-			padding: 0.375rem 0.625rem;
+			font-size: var(--font-size-xs);
+			padding: var(--space-1-5) var(--space-2-5);
 			min-height: 34px;
 		}
 	}
@@ -412,7 +420,7 @@
 	/* Large Screens */
 	@media (min-width: 1200px) {
 		.controls-grid {
-			gap: 2rem;
+			gap: var(--space-8);
 		}
 	}
 

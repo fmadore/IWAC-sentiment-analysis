@@ -404,7 +404,7 @@
      Table Container - Glass morphism wrapper
      ============================================== */
 	.table-container {
-		max-height: 600px;
+		max-height: var(--height-chart-lg);
 		overflow-y: auto;
 		position: relative;
 		/* Glass effect with primary gradient hint */
@@ -434,7 +434,7 @@
 
 	th,
 	td {
-		padding: 0.75rem 1rem;
+		padding: var(--space-3) var(--space-4);
 		text-align: left;
 		border-bottom: 1px solid var(--border-subtle);
 	}
@@ -460,7 +460,7 @@
 	.article-title:hover {
 		color: var(--color-primary-400);
 		text-decoration: underline;
-		font-weight: 500;
+		font-weight: var(--font-weight-medium);
 	}
 
 	/* ==============================================
@@ -489,7 +489,7 @@
      ============================================== */
 	.pagination-info {
 		background: color-mix(in oklab, var(--color-primary-500) 5%, transparent);
-		padding: 1rem;
+		padding: var(--space-4);
 		border-radius: var(--radius-lg);
 		border: 1px solid color-mix(in oklab, var(--color-primary-500) 15%, transparent);
 		backdrop-filter: blur(var(--glass-blur-sm));
@@ -498,12 +498,12 @@
 	.pagination-controls {
 		flex-wrap: wrap;
 		justify-content: center;
-		gap: 0.5rem;
+		gap: var(--space-2);
 	}
 
 	.pagination-controls button {
-		min-width: 2.5rem;
-		height: 2.5rem;
+		min-width: var(--size-control-lg);
+		height: var(--size-control-lg);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -521,14 +521,14 @@
 
 	.pagination-bottom {
 		background: color-mix(in oklab, var(--color-primary-500) 3%, transparent);
-		padding: 0.75rem 1rem;
+		padding: var(--space-3) var(--space-4);
 		border-radius: var(--radius-lg);
 		border: 1px solid color-mix(in oklab, var(--color-primary-500) 10%, transparent);
 	}
 
 	.select-sm {
-		padding: 0.25rem 0.5rem;
-		font-size: 0.875rem;
+		padding: var(--space-1) var(--space-2);
+		font-size: var(--font-size-base);
 		border-radius: var(--radius-md);
 	}
 
@@ -555,7 +555,7 @@
      Mobile Card Styles
      ============================================== */
 	.mobile-cards {
-		max-height: 600px;
+		max-height: var(--height-chart-lg);
 		overflow-y: auto;
 	}
 
@@ -564,7 +564,10 @@
 		background: color-mix(in oklab, var(--color-primary-500) 5%, transparent) !important;
 		border: 1px solid color-mix(in oklab, var(--color-primary-500) 12%, transparent) !important;
 		backdrop-filter: blur(var(--glass-blur-sm));
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			transform var(--timing-fast) var(--easing-default);
 	}
 
 	.mobile-card:hover {
@@ -587,28 +590,28 @@
      ============================================== */
 	@media (max-width: 768px) {
 		.pagination-info {
-			padding: 0.75rem;
+			padding: var(--space-3);
 		}
 
 		.pagination-controls {
-			gap: 0.25rem;
+			gap: var(--space-1);
 		}
 
 		.pagination-controls button {
-			min-width: 2rem;
-			height: 2rem;
-			font-size: 0.75rem;
-			padding: 0.25rem;
+			min-width: var(--size-control-sm);
+			height: var(--size-control-sm);
+			font-size: var(--font-size-xs);
+			padding: var(--space-1);
 		}
 
 		.table-container {
-			max-height: 500px;
+			max-height: var(--height-chart-md);
 		}
 
 		th,
 		td {
-			padding: 0.5rem;
-			font-size: 0.875rem;
+			padding: var(--space-2);
+			font-size: var(--font-size-base);
 		}
 	}
 
@@ -617,15 +620,15 @@
 		.pagination-controls button {
 			min-width: 1.75rem;
 			height: 1.75rem;
-			font-size: 0.625rem;
+			font-size: var(--font-size-2xs);
 		}
 
 		.mobile-card {
-			padding: 0.75rem !important;
+			padding: var(--space-3) !important;
 		}
 
 		.mobile-card h3 {
-			font-size: 0.875rem;
+			font-size: var(--font-size-base);
 		}
 	}
 

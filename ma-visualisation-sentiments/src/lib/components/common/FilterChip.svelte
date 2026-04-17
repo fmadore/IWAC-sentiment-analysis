@@ -77,24 +77,29 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		padding: 0.375rem 0.75rem;
-		font-size: 0.8125rem;
-		font-weight: 500;
-		line-height: 1.4;
-		border-radius: 9999px;
+		padding: var(--space-1-5) var(--space-3);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-medium);
+		line-height: var(--line-height-snug);
+		border-radius: var(--radius-full);
 		cursor: pointer;
 		white-space: nowrap;
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default),
+			transform var(--timing-fast) var(--easing-default);
 
 		/* Default unselected state */
-		background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-		color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
+		background: var(--surface-subtle);
+		border: 1px solid var(--border-default);
+		color: var(--text-secondary);
 	}
 
 	.filter-chip:hover:not(:disabled) {
-		background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-		border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+		background: var(--surface-hover);
+		border-color: var(--border-hover);
+		color: var(--text-primary);
 		transform: translateY(-1px);
 	}
 
@@ -105,9 +110,9 @@
 
 	/* Default selected state */
 	.filter-chip.default[data-selected='true'] {
-		background: color-mix(in oklab, var(--color-primary-500) 20%, transparent);
-		border-color: color-mix(in oklab, var(--color-primary-500) 40%, transparent);
-		color: var(--color-primary-400);
+		background: color-mix(in oklab, var(--color-primary-500) 16%, transparent);
+		border-color: color-mix(in oklab, var(--color-primary-500) 42%, transparent);
+		color: var(--color-primary-300);
 	}
 
 	/* ============================================
@@ -222,8 +227,8 @@
 	/* Responsive */
 	@media (max-width: 480px) {
 		.filter-chip {
-			padding: 0.3125rem 0.625rem;
-			font-size: 0.75rem;
+			padding: var(--space-1) var(--space-2-5);
+			font-size: var(--font-size-xs);
 		}
 	}
 

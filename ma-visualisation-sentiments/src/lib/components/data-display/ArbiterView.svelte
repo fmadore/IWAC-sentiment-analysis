@@ -247,20 +247,20 @@
 <style>
 	.evaluated-articles-section {
 		border-top: 1px solid color-mix(in oklab, var(--sentiment-arbiter) 15%, transparent);
-		padding-top: 2rem;
+		padding-top: var(--space-8);
 	}
 
 	.section-header {
-		padding-bottom: 1rem;
+		padding-bottom: var(--space-4);
 	}
 
 	.section-icon {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 48px;
-		height: 48px;
-		border-radius: 12px;
+		width: var(--size-control-xl);
+		height: var(--size-control-xl);
+		border-radius: var(--radius-xl);
 		background: var(--sentiment-arbiter-icon-bg);
 		border: 1px solid var(--sentiment-arbiter-border);
 	}
@@ -276,8 +276,8 @@
 	}
 
 	.arbiter-header {
-		border-bottom: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		padding-bottom: 1.5rem;
+		border-bottom: 1px solid var(--border-default);
+		padding-bottom: var(--space-6);
 	}
 
 	.arbiter-icon {
@@ -286,14 +286,14 @@
 		justify-content: center;
 		width: 56px;
 		height: 56px;
-		border-radius: 14px;
+		border-radius: var(--radius-xl);
 		background: var(--sentiment-arbiter-icon-bg);
 		border: 1px solid var(--sentiment-arbiter-border);
 	}
 
 	.arbiter-title {
-		font-size: 1.75rem;
-		font-weight: 700;
+		font-size: 1.75rem; /* between 3xl and 4xl */
+		font-weight: var(--font-weight-bold);
 		background: linear-gradient(135deg, var(--sentiment-arbiter-light), var(--sentiment-arbiter));
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
@@ -303,29 +303,32 @@
 	.arbiter-model-badge {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.375rem;
-		padding: 0.375rem 0.75rem;
-		border-radius: 9999px;
+		gap: var(--space-1-5);
+		padding: var(--space-1-5) var(--space-3);
+		border-radius: var(--radius-full);
 		background: var(--sentiment-arbiter-bg);
 		border: 1px solid var(--sentiment-arbiter-border);
 	}
 
 	.dimension-chip {
-		padding: 0.5rem 1rem;
-		border-radius: 9999px;
-		font-size: 0.875rem;
-		font-weight: 500;
-		background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-		color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
+		padding: var(--space-2) var(--space-4);
+		border-radius: var(--radius-full);
+		font-size: var(--font-size-base);
+		font-weight: var(--font-weight-medium);
+		background: var(--surface-subtle);
+		border: 1px solid var(--border-default);
+		color: var(--text-secondary);
 		cursor: pointer;
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
 	}
 
 	.dimension-chip:hover {
-		background: color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-		border-color: color-mix(in oklab, var(--color-surface-50) 25%, transparent);
-		color: var(--color-surface-50);
+		background: var(--surface-hover);
+		border-color: var(--border-hover);
+		color: var(--text-primary);
 	}
 
 	.dimension-chip.active {
@@ -341,7 +344,7 @@
 	.charts-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-		gap: 1.5rem;
+		gap: var(--space-6);
 	}
 
 	.charts-grid :global(.full-width) {
@@ -350,9 +353,9 @@
 
 	/* Loading spinner */
 	.loading-spinner {
-		width: 48px;
-		height: 48px;
-		border: 3px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+		width: var(--size-control-xl);
+		height: var(--size-control-xl);
+		border: 3px solid var(--border-default);
 		border-top-color: var(--sentiment-arbiter);
 		border-radius: 50%;
 		animation: spin 1s linear infinite;
@@ -371,12 +374,12 @@
 		}
 
 		.arbiter-title {
-			font-size: 1.5rem;
+			font-size: var(--font-size-3xl);
 		}
 
 		.arbiter-icon {
-			width: 48px;
-			height: 48px;
+			width: var(--size-control-xl);
+			height: var(--size-control-xl);
 		}
 	}
 

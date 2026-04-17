@@ -266,7 +266,7 @@
 		);
 		border: 1px solid var(--sentiment-arbiter-border);
 		color: var(--sentiment-arbiter);
-		font-weight: 600;
+		font-weight: var(--font-weight-semibold);
 		padding: var(--space-3) var(--space-6);
 		border-radius: var(--radius-lg);
 		backdrop-filter: blur(var(--glass-blur-md));
@@ -280,7 +280,7 @@
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
-		font-size: 0.875rem;
+		font-size: var(--font-size-base);
 		white-space: nowrap;
 	}
 
@@ -343,7 +343,7 @@
 	@media (max-width: 640px) {
 		.csv-export-btn {
 			padding: var(--space-2) var(--space-4);
-			font-size: 0.8rem;
+			font-size: var(--font-size-xs);
 		}
 
 		.button-text {

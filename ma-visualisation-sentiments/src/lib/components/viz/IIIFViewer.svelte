@@ -207,18 +207,18 @@
 
 <style>
 	.iiif-viewer-wrapper {
-		border-radius: 0.75rem;
+		border-radius: var(--radius-xl);
 		overflow: hidden;
-		background: color-mix(in oklab, var(--color-surface-950) 80%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+		background: var(--surface-nested);
+		border: 1px solid var(--border-default);
 	}
 
 	.iiif-viewer-wrapper[data-expanded='true'] {
 		position: fixed;
-		inset: 1rem;
-		z-index: 900;
-		border-radius: 1rem;
-		box-shadow: 0 16px 64px color-mix(in oklab, black 50%, transparent);
+		inset: var(--space-4);
+		z-index: var(--z-tooltip);
+		border-radius: var(--radius-2xl);
+		box-shadow: var(--shadow-xl);
 	}
 
 	.osd-container {
@@ -236,14 +236,14 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: 0.75rem;
+		gap: var(--space-3);
 		height: 200px;
 	}
 
 	.viewer-spinner {
-		width: 32px;
-		height: 32px;
-		border: 2px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+		width: var(--size-icon-xl);
+		height: var(--size-icon-xl);
+		border: 2px solid var(--border-hover);
 		border-top-color: var(--color-primary-400);
 		border-radius: 50%;
 		animation: spin 0.8s linear infinite;
@@ -259,21 +259,21 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 0.5rem 0.75rem;
+		padding: var(--space-2) var(--space-3);
 		background: color-mix(in oklab, var(--color-surface-900) 90%, transparent);
-		border-bottom: 1px solid color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		min-height: 44px;
+		border-bottom: 1px solid var(--border-subtle);
+		min-height: var(--size-control-xl);
 	}
 
 	.page-nav {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
+		gap: var(--space-2);
 	}
 
 	.page-indicator {
-		font-size: 0.8125rem;
-		color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
+		font-size: var(--font-size-sm);
+		color: var(--text-muted);
 		min-width: 3rem;
 		text-align: center;
 	}
@@ -281,7 +281,7 @@
 	.toolbar-actions {
 		display: flex;
 		align-items: center;
-		gap: 0.375rem;
+		gap: var(--space-1-5);
 		margin-left: auto;
 	}
 
@@ -289,20 +289,22 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 2rem;
-		height: 2rem;
-		border-radius: 0.375rem;
+		width: var(--size-control-sm);
+		height: var(--size-control-sm);
+		border-radius: var(--radius-sm);
 		border: none;
-		background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
+		background: var(--surface-subtle);
+		color: var(--text-muted);
 		cursor: pointer;
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
 		text-decoration: none;
 	}
 
 	.viewer-btn:hover:not(:disabled) {
-		background: color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-		color: var(--color-surface-50);
+		background: var(--surface-hover);
+		color: var(--text-primary);
 	}
 
 	.viewer-btn:disabled {
@@ -313,9 +315,9 @@
 	.viewer-fallback-link {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.375rem;
+		gap: var(--space-1-5);
 		color: var(--color-primary-400);
-		font-size: 0.875rem;
+		font-size: var(--font-size-base);
 		text-decoration: underline;
 		text-underline-offset: 2px;
 	}

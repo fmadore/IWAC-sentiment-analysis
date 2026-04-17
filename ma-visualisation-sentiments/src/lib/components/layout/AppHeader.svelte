@@ -40,7 +40,7 @@
 	});
 </script>
 
-<header class="app-header sticky top-0 z-50">
+<header class="app-header sticky top-0">
 	<div class="header-toolbar">
 		<!-- Lead: Logo/Brand Section -->
 		<div class="header-lead">
@@ -96,32 +96,15 @@
 </header>
 
 <style>
-	/* App Header Container - using modern color-mix */
+	/* App Header Container */
 	.app-header {
-		background: color-mix(in oklab, var(--color-surface-900) 85%, transparent);
-		backdrop-filter: blur(24px);
-		border-bottom: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-		box-shadow:
-			0 4px 24px color-mix(in oklab, black 10%, transparent),
-			inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		position: relative;
-	}
-
-	.app-header::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		height: 1px;
-		background: linear-gradient(
-			90deg,
-			transparent 10%,
-			var(--color-primary-500) 40%,
-			var(--color-secondary-500) 60%,
-			transparent 90%
-		);
-		opacity: 0.5;
+		z-index: var(--z-header);
+		background: color-mix(in oklab, var(--color-surface-900) 78%, transparent);
+		backdrop-filter: blur(var(--glass-blur-lg));
+		-webkit-backdrop-filter: blur(var(--glass-blur-lg));
+		border-bottom: 1px solid var(--border-subtle);
+		box-shadow: var(--elevation-sticky);
+		position: sticky;
 	}
 
 	/* Header Toolbar - Grid Layout */
@@ -129,15 +112,13 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		gap: 1rem;
-		padding: 0.75rem 1rem;
+		gap: var(--space-4);
+		padding: var(--space-3) var(--space-4);
 		max-width: 1400px;
 		margin: 0 auto;
 		position: relative;
-		z-index: 1;
 	}
 
-	/* On md and up, use grid for proper 3-column centering */
 	@media (min-width: 768px) {
 		.header-toolbar {
 			display: grid;
@@ -145,48 +126,35 @@
 		}
 	}
 
-	/* Lead Section */
 	.header-lead {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
+		gap: var(--space-3);
 	}
 
-	/* Mobile Menu Button */
+	/* Mobile Menu Button — restrained, tonal instead of glowing gradient */
 	.mobile-menu-btn {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 2.5rem;
-		height: 2.5rem;
-		border-radius: 0.625rem;
-		background: linear-gradient(
-			135deg,
-			var(--color-primary-500) 0%,
-			var(--color-secondary-500) 100%
-		);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 20%, transparent);
-		color: white;
+		width: var(--size-control-lg);
+		height: var(--size-control-lg);
+		border-radius: var(--radius-lg);
+		background: var(--surface-subtle);
+		border: 1px solid var(--border-default);
+		color: var(--text-primary);
 		cursor: pointer;
-		transition: all var(--timing-normal, 0.2s) ease;
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default);
 		flex-shrink: 0;
-		box-shadow:
-			0 4px 16px color-mix(in oklab, var(--color-primary-500) 30%, transparent),
-			0 2px 8px color-mix(in oklab, black 15%, transparent);
 	}
 
 	.mobile-menu-btn:hover {
-		transform: scale(1.05);
-		box-shadow:
-			0 6px 20px color-mix(in oklab, var(--color-primary-500) 40%, transparent),
-			0 3px 10px color-mix(in oklab, black 20%, transparent);
+		background: var(--surface-hover);
+		border-color: var(--border-hover);
 	}
 
-	.mobile-menu-btn:active {
-		transform: scale(0.95);
-	}
-
-	/* Hide on desktop */
 	@media (min-width: 1024px) {
 		.mobile-menu-btn {
 			display: none;
@@ -194,7 +162,6 @@
 	}
 
 	/* Headline Section (Center) */
-	/* Note: display is controlled by Tailwind's hidden/md:flex classes */
 	.header-headline {
 		align-items: center;
 		justify-content: center;
@@ -204,57 +171,55 @@
 	.header-trail {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
+		gap: var(--space-2);
 		justify-content: flex-end;
 	}
 
 	.brand-text {
 		display: flex;
 		flex-direction: column;
-		gap: 0.125rem;
+		gap: var(--space-0-5);
 	}
 
 	.brand-title {
-		font-size: 1.25rem;
-		font-weight: 700;
-		color: var(--color-surface-50);
-		line-height: 1.2;
-		letter-spacing: -0.02em;
+		font-size: var(--font-size-xl);
+		font-weight: var(--font-weight-semibold);
+		color: var(--text-primary);
+		line-height: var(--line-height-tight);
+		letter-spacing: var(--tracking-tight);
 	}
 
 	.brand-subtitle {
-		font-size: 0.75rem;
-		font-weight: 500;
-		color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
-		line-height: 1.3;
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-medium);
+		color: var(--text-muted);
+		line-height: var(--line-height-snug);
 		max-width: 280px;
 	}
 
-	/* Fullscreen Button - using btn-icon pattern */
+	/* Fullscreen Button */
 	.fullscreen-btn {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 2.25rem;
-		height: 2.25rem;
-		border-radius: 0.5rem;
-		background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-		color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
+		width: var(--size-control-md);
+		height: var(--size-control-md);
+		border-radius: var(--radius-md);
+		background: var(--surface-subtle);
+		border: 1px solid var(--border-default);
+		color: var(--text-secondary);
 		cursor: pointer;
-		transition: all var(--timing-normal, 0.2s) ease;
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
 		flex-shrink: 0;
 	}
 
 	.fullscreen-btn:hover {
-		background: color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-		border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
-		color: var(--color-surface-50);
-		transform: translateY(-1px);
-	}
-
-	.fullscreen-btn:active {
-		transform: translateY(0);
+		background: var(--surface-hover);
+		border-color: var(--border-hover);
+		color: var(--text-primary);
 	}
 
 	.btn-content {
@@ -263,70 +228,70 @@
 		justify-content: center;
 	}
 
-	/* Responsive Design */
+	/* Responsive */
 	@media (max-width: 640px) {
 		.header-toolbar {
-			padding: 0.5rem 0.75rem;
-			gap: 0.5rem;
+			padding: var(--space-2) var(--space-3);
+			gap: var(--space-2);
 		}
 
 		.header-lead {
-			gap: 0.5rem;
+			gap: var(--space-2);
 		}
 
 		.fullscreen-btn {
-			width: 2rem;
-			height: 2rem;
+			width: var(--size-control-sm);
+			height: var(--size-control-sm);
 		}
 
 		.brand-title {
-			font-size: 1rem;
+			font-size: var(--font-size-base);
 		}
 
 		.header-trail {
-			gap: 0.375rem;
+			gap: var(--space-1-5);
 		}
 	}
 
 	@media (max-width: 480px) {
 		.header-toolbar {
-			padding: 0.5rem;
-			gap: 0.25rem;
+			padding: var(--space-2);
+			gap: var(--space-1);
 		}
 
 		.header-lead {
-			gap: 0.375rem;
+			gap: var(--space-1-5);
 		}
 
 		.brand-title {
-			font-size: 0.9rem;
+			font-size: var(--font-size-sm);
 		}
 
 		.header-trail {
-			gap: 0.25rem;
+			gap: var(--space-1);
 		}
 	}
 
-	/* Large screens enhancement */
 	@media (min-width: 1024px) {
 		.header-toolbar {
-			padding: 0.875rem 2rem;
-			gap: 1.5rem;
+			padding: var(--space-3-5) var(--space-8);
+			gap: var(--space-6);
 		}
 
 		.brand-title {
-			font-size: 1.375rem;
+			font-size: var(--font-size-2xl);
 		}
 
 		.brand-subtitle {
-			font-size: 0.8125rem;
+			font-size: var(--font-size-sm);
 			max-width: 320px;
 		}
 	}
 
 	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
-		.fullscreen-btn {
+		.fullscreen-btn,
+		.mobile-menu-btn {
 			transition: none;
 		}
 	}

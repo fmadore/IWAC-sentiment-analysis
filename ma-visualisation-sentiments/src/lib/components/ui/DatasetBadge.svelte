@@ -72,14 +72,18 @@
 	.dataset-badge {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.5rem;
-		border-radius: 9999px;
-		font-weight: 500;
-		background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+		gap: var(--space-2);
+		border-radius: var(--radius-full);
+		font-weight: var(--font-weight-medium);
+		background: var(--surface-subtle);
 		backdrop-filter: blur(var(--glass-blur-sm));
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-		color: var(--color-surface-50);
-		transition: all var(--timing-fast) var(--easing-default);
+		border: 1px solid var(--border-hover);
+		color: var(--text-primary);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			transform var(--timing-fast) var(--easing-default),
+			box-shadow var(--timing-fast) var(--easing-default);
 		position: relative;
 		overflow: hidden;
 	}
@@ -105,9 +109,9 @@
 	}
 
 	.dataset-badge:hover {
-		border-color: color-mix(in oklab, var(--color-surface-50) 25%, transparent);
+		border-color: var(--border-active);
 		transform: translateY(-1px);
-		box-shadow: 0 4px 12px color-mix(in oklab, black 15%, transparent);
+		box-shadow: var(--shadow-sm);
 	}
 
 	.comparison-mode {
@@ -145,7 +149,7 @@
 	/* Responsive adjustments */
 	@media (max-width: 640px) {
 		.dataset-badge {
-			font-size: 0.75rem;
+			font-size: var(--font-size-xs);
 		}
 
 		.badge-label {

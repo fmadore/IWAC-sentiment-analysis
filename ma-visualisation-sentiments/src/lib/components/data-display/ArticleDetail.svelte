@@ -269,8 +269,11 @@
 	.anchor {
 		color: var(--color-primary-400);
 		text-decoration: none;
-		font-weight: 500;
-		transition: all var(--timing-fast) var(--easing-default);
+		font-weight: var(--font-weight-medium);
+		transition:
+			color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			transform var(--timing-fast) var(--easing-default);
 		border-bottom: 1px solid color-mix(in oklab, var(--color-primary-400) 30%, transparent);
 		padding-bottom: 1px;
 	}
@@ -287,16 +290,16 @@
 	blockquote {
 		position: relative;
 		font-style: italic;
-		line-height: 1.6;
+		line-height: var(--line-height-relaxed);
 	}
 
 	blockquote::before {
 		content: '"';
 		position: absolute;
-		top: -0.5rem;
-		left: -0.5rem;
-		font-size: 2rem;
-		color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+		top: calc(var(--space-2) * -1);
+		left: calc(var(--space-2) * -1);
+		font-size: var(--font-size-4xl);
+		color: var(--text-disabled);
 		font-family: serif;
 	}
 
@@ -360,8 +363,8 @@
      ============================================== */
 	@media (max-width: 640px) {
 		blockquote {
-			font-size: 0.875rem;
-			padding: 0.75rem;
+			font-size: var(--font-size-base);
+			padding: var(--space-3);
 		}
 
 		:global(.hover-lift-sm:hover) {

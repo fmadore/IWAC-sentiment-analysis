@@ -70,20 +70,20 @@
 	.legend {
 		display: flex;
 		flex-direction: column;
-		gap: 0.375rem;
+		gap: var(--space-1-5);
 	}
 
 	.legend-item {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
+		gap: var(--space-2);
 	}
 
 	.legend-badge {
-		padding: 0.1875rem 0.5rem;
-		font-size: 0.6875rem;
-		font-weight: 500;
-		border-radius: 9999px;
+		padding: var(--space-0-5) var(--space-2);
+		font-size: var(--font-size-2xs);
+		font-weight: var(--font-weight-medium);
+		border-radius: var(--radius-full);
 	}
 
 	.legend-badge.subjectivity-1 {
@@ -105,17 +105,17 @@
 	}
 
 	.legend-text {
-		font-size: 0.75rem;
-		color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
 	}
 
 	@media (max-width: 768px) {
 		.legend-badge {
-			font-size: 0.625rem;
-			padding: 0.125rem 0.375rem;
+			font-size: var(--font-size-2xs);
+			padding: var(--space-0-5) var(--space-1-5);
 		}
 		.legend-text {
-			font-size: 0.6875rem;
+			font-size: var(--font-size-2xs);
 		}
 	}
 </style>

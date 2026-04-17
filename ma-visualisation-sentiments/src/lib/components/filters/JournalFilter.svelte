@@ -89,34 +89,37 @@
 
 <style>
 	.search-container {
-		margin-bottom: 0.75rem;
+		margin-bottom: var(--space-3);
 	}
 
 	.results-count {
-		font-size: 0.75rem;
-		color: color-mix(in oklab, var(--color-surface-50) 60%, transparent);
-		margin-bottom: 0.5rem;
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
+		margin-bottom: var(--space-2);
 	}
 
 	.toggle-btn {
 		display: inline-flex;
 		align-items: center;
-		margin-top: 0.5rem;
-		padding: 0.375rem 0.75rem;
-		font-size: 0.75rem;
-		font-weight: 500;
-		border-radius: 0.5rem;
+		margin-top: var(--space-2);
+		padding: var(--space-1-5) var(--space-3);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-medium);
+		border-radius: var(--radius-md);
 		cursor: pointer;
 		background: transparent;
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
-		transition: all var(--timing-fast) var(--easing-default);
+		border: 1px solid var(--border-default);
+		color: var(--text-muted);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
 	}
 
 	.toggle-btn:hover {
-		background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		border-color: color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-		color: var(--color-surface-50);
+		background: var(--surface-subtle);
+		border-color: var(--border-hover);
+		color: var(--text-primary);
 	}
 
 	/* Reduced motion */

@@ -258,7 +258,7 @@
 
 <style>
 	.loading-container {
-		animation: fadeIn 0.3s ease-in-out;
+		animation: fadeIn var(--timing-normal) ease-in-out;
 	}
 
 	@keyframes loading {
@@ -280,11 +280,11 @@
 	}
 
 	.loading-spinner {
-		width: 48px;
-		height: 48px;
-		border: 3px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		border-top-color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
-		border-radius: 50%;
+		width: var(--size-control-xl);
+		height: var(--size-control-xl);
+		border: 3px solid var(--border-default);
+		border-top-color: var(--text-secondary);
+		border-radius: var(--radius-full);
 		animation: spin 1s linear infinite;
 		margin: 0 auto;
 	}
@@ -301,15 +301,17 @@
 
 	/* Chart Container */
 	.chart-container {
-		background: color-mix(in oklab, var(--color-surface-50) 2%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 5%, transparent);
+		background: var(--surface-muted);
+		border: 1px solid var(--border-subtle);
 	}
 
 	.extreme-chart-container {
 		background: color-mix(in oklab, var(--sentiment-extreme) 3%, transparent);
 		border: 1px solid color-mix(in oklab, var(--sentiment-extreme) 12%, transparent);
 		backdrop-filter: blur(var(--glass-blur-md));
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default);
 	}
 
 	.extreme-chart-container:hover {
@@ -322,11 +324,13 @@
 		background: color-mix(in oklab, var(--sentiment-extreme) 8%, transparent);
 		border: 1px solid color-mix(in oklab, var(--sentiment-extreme) 15%, transparent);
 		border-left: 3px solid var(--sentiment-extreme);
-		border-radius: 0.5rem;
-		padding: 1rem;
-		margin-bottom: 1rem;
+		border-radius: var(--radius-md);
+		padding: var(--space-4);
+		margin-bottom: var(--space-4);
 		backdrop-filter: blur(var(--glass-blur-sm));
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default);
 	}
 
 	.extreme-description-card:hover {
@@ -338,11 +342,13 @@
 	.extreme-stats-card {
 		background: color-mix(in oklab, var(--sentiment-extreme) 5%, transparent);
 		border: 1px solid color-mix(in oklab, var(--sentiment-extreme) 12%, transparent);
-		border-radius: 0.75rem;
-		padding: 1rem;
-		margin-top: 1rem;
+		border-radius: var(--radius-xl);
+		padding: var(--space-4);
+		margin-top: var(--space-4);
 		backdrop-filter: blur(var(--glass-blur-sm));
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default);
 	}
 
 	.extreme-stats-card:hover {
@@ -354,26 +360,26 @@
 	.statistics-row {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 2rem;
+		gap: var(--space-8);
 		justify-content: center;
 	}
 
 	.stat-item {
 		display: flex;
-		gap: 0.5rem;
+		gap: var(--space-2);
 		align-items: center;
 	}
 
 	.stat-label {
-		color: rgba(255, 255, 255, 0.7);
-		font-size: 0.875rem;
-		font-weight: 500;
+		color: var(--text-muted);
+		font-size: var(--font-size-base);
+		font-weight: var(--font-weight-medium);
 	}
 
 	.stat-value {
-		color: white;
-		font-weight: 700;
-		font-size: 1rem;
+		color: var(--text-primary);
+		font-weight: var(--font-weight-bold);
+		font-size: var(--font-size-lg);
 	}
 
 	.extreme-stat-value {
@@ -383,22 +389,22 @@
 	/* Mobile Responsiveness */
 	@media (max-width: 768px) {
 		.statistics-row {
-			gap: 1.5rem;
+			gap: var(--space-6);
 		}
 
 		.stat-label {
-			font-size: 0.8125rem;
+			font-size: var(--font-size-sm);
 		}
 
 		.stat-value {
-			font-size: 0.9375rem;
+			font-size: var(--font-size-md);
 		}
 	}
 
 	@media (max-width: 480px) {
 		.statistics-row {
 			flex-direction: column;
-			gap: 0.75rem;
+			gap: var(--space-3);
 			align-items: center;
 		}
 

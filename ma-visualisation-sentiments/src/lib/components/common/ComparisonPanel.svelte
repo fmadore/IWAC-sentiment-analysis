@@ -100,11 +100,13 @@
 <style>
 	.comparison-panel {
 		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 15%, transparent);
-		border-radius: 0.75rem;
-		padding: 1.25rem;
+		border-radius: var(--radius-xl);
+		padding: var(--space-5);
 		background: color-mix(in oklab, var(--sentiment-comparison) 5%, transparent);
 		backdrop-filter: blur(var(--glass-blur-sm));
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			background var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default);
 	}
 
 	.comparison-panel:hover {
@@ -114,7 +116,7 @@
 
 	/* Glass variants */
 	:global(.glass-dark) {
-		background: color-mix(in oklab, var(--color-surface-900) 75%, transparent) !important;
+		background: var(--surface-card) !important;
 		backdrop-filter: blur(var(--glass-blur-md));
 	}
 
@@ -122,8 +124,8 @@
 	blockquote {
 		position: relative;
 		font-style: italic;
-		line-height: 1.6;
-		padding-left: 1.5rem;
+		line-height: var(--line-height-relaxed);
+		padding-left: var(--space-6);
 		background: color-mix(in oklab, var(--sentiment-comparison) 3%, transparent);
 		border-color: var(--sentiment-comparison-light) !important;
 	}
@@ -133,7 +135,7 @@
 		position: absolute;
 		top: -0.25rem;
 		left: 0;
-		font-size: 2rem;
+		font-size: var(--font-size-3xl);
 		color: var(--sentiment-comparison-light);
 		font-family: serif;
 		opacity: 0.5;
@@ -142,12 +144,12 @@
 	/* Mobile responsive adjustments */
 	@media (max-width: 640px) {
 		.comparison-panel {
-			padding: 0.75rem;
+			padding: var(--space-3);
 		}
 
 		blockquote {
-			font-size: 0.875rem;
-			padding: 0.75rem;
+			font-size: var(--font-size-base);
+			padding: var(--space-3);
 		}
 	}
 </style>

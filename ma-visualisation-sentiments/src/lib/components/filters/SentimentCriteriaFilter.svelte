@@ -106,12 +106,12 @@
 	.sentiment-criteria-container {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
+		gap: var(--space-4);
 	}
 
 	@media (max-width: 768px) {
 		.sentiment-criteria-container {
-			gap: 0.75rem;
+			gap: var(--space-3);
 		}
 	}
 </style>

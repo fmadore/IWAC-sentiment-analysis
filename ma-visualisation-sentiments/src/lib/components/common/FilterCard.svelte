@@ -87,97 +87,101 @@
 
 <style>
 	.filter-card {
-		background: color-mix(in oklab, var(--color-surface-900) 85%, transparent);
+		background: var(--surface-card);
 		backdrop-filter: blur(var(--glass-blur-md));
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		border-radius: 0.875rem;
-		padding: 1rem;
-		box-shadow:
-			0 4px 16px color-mix(in oklab, black 8%, transparent),
-			inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 6%, transparent);
-		transition: all var(--timing-normal) var(--easing-default);
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-xl);
+		padding: var(--space-4);
+		box-shadow: var(--elevation-card);
+		transition:
+			border-color var(--timing-fast) var(--easing-default),
+			box-shadow var(--timing-normal) var(--easing-default);
 	}
 
 	.filter-card:hover {
-		border-color: color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+		border-color: var(--border-hover);
 	}
 
 	.filter-header {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
-		margin-bottom: 0.875rem;
+		gap: var(--space-2);
+		margin-bottom: var(--space-3-5);
 	}
 
 	.filter-title {
-		font-size: 0.9375rem;
-		font-weight: 600;
-		color: var(--color-surface-50);
+		font-size: var(--font-size-md);
+		font-weight: var(--font-weight-semibold);
+		color: var(--text-primary);
 		margin: 0;
-		letter-spacing: -0.01em;
+		letter-spacing: var(--tracking-snug);
 	}
 
 	.filter-count {
-		font-size: 0.8125rem;
-		color: color-mix(in oklab, var(--color-surface-50) 60%, transparent);
+		font-size: var(--font-size-sm);
+		color: var(--text-muted);
 		margin-left: auto;
+		font-variant-numeric: tabular-nums;
 	}
 
 	.filter-chips {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.5rem;
-		margin-bottom: 0.5rem;
+		gap: var(--space-2);
+		margin-bottom: var(--space-2);
 	}
 
 	.clear-btn {
 		display: inline-flex;
 		align-items: center;
-		margin-top: 0.5rem;
-		padding: 0.375rem 0.75rem;
-		font-size: 0.75rem;
-		font-weight: 500;
-		border-radius: 0.5rem;
+		margin-top: var(--space-2);
+		padding: var(--space-1-5) var(--space-3);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-medium);
+		border-radius: var(--radius-md);
 		cursor: pointer;
-		background: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 12%, transparent);
-		color: color-mix(in oklab, var(--color-surface-50) 70%, transparent);
-		transition: all var(--timing-fast) var(--easing-default);
+		background: var(--surface-subtle);
+		border: 1px solid var(--border-default);
+		color: var(--text-muted);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
 	}
 
 	.clear-btn:hover {
-		background: color-mix(in oklab, var(--color-error-500) 15%, transparent);
+		background: color-mix(in oklab, var(--color-error-500) 12%, transparent);
 		border-color: color-mix(in oklab, var(--color-error-500) 30%, transparent);
 		color: var(--color-error-400);
 	}
 
 	.filter-footer {
-		margin-top: 0.75rem;
+		margin-top: var(--space-3);
 	}
 
 	/* Responsive */
 	@media (max-width: 768px) {
 		.filter-card {
-			padding: 0.875rem;
+			padding: var(--space-3-5);
 		}
 		.filter-title {
-			font-size: 0.875rem;
+			font-size: var(--font-size-base);
 		}
 		.filter-header {
-			margin-bottom: 0.75rem;
+			margin-bottom: var(--space-3);
 		}
 	}
 
 	@media (max-width: 480px) {
 		.filter-card {
-			padding: 0.75rem;
+			padding: var(--space-3);
 		}
 		.filter-title {
-			font-size: 0.8125rem;
+			font-size: var(--font-size-sm);
 		}
 		.clear-btn {
-			font-size: 0.6875rem;
-			padding: 0.3125rem 0.625rem;
+			font-size: var(--font-size-2xs);
+			padding: var(--space-1) var(--space-2-5);
 		}
 	}
 

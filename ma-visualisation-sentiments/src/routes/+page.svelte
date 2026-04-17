@@ -275,18 +275,18 @@
 	/* Main Container */
 	.main-container {
 		margin-top: 0;
-		padding-top: 0.5rem;
+		padding-top: var(--space-2);
 	}
 
 	@media (min-width: 640px) {
 		.main-container {
-			padding-top: 0.75rem;
+			padding-top: var(--space-3);
 		}
 	}
 
 	@media (min-width: 1024px) {
 		.main-container {
-			padding-top: 1rem;
+			padding-top: var(--space-4);
 		}
 	}
 </style>
