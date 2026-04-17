@@ -171,21 +171,26 @@
 		);
 		border: 1px solid color-mix(in oklab, var(--color-success-500) 30%, transparent);
 		color: var(--color-success-500);
-		font-weight: 600;
-		padding: 0.75rem 1.5rem;
-		border-radius: 0.75rem;
+		font-weight: var(--font-weight-semibold);
+		padding: var(--space-3) var(--space-6);
+		border-radius: var(--radius-xl);
 		backdrop-filter: blur(var(--glass-blur-md));
 		box-shadow:
 			0 4px 12px color-mix(in oklab, var(--color-success-500) 15%, transparent),
 			inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		transition: all var(--timing-normal) var(--easing-default);
+		transition:
+			background-color var(--timing-normal) var(--easing-default),
+			border-color var(--timing-normal) var(--easing-default),
+			color var(--timing-normal) var(--easing-default),
+			transform var(--timing-normal) var(--easing-default),
+			box-shadow var(--timing-normal) var(--easing-default);
 		position: relative;
 		overflow: hidden;
 		cursor: pointer;
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
-		font-size: 0.875rem;
+		gap: var(--space-2);
+		font-size: var(--font-size-base);
 		white-space: nowrap;
 	}
 
@@ -249,7 +254,7 @@
 	@media (max-width: 640px) {
 		.csv-export-btn {
 			padding: 0.6rem 1.2rem;
-			font-size: 0.875rem;
+			font-size: var(--font-size-base);
 		}
 	}
 

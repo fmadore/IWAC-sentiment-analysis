@@ -238,25 +238,28 @@
 
 <style>
 	.badge {
-		padding: 0.375rem 0.75rem;
-		font-size: 0.75rem;
-		font-weight: 600;
-		border-radius: 9999px;
-		transition: all var(--timing-fast) var(--easing-default);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+		padding: var(--space-1-5) var(--space-3);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-semibold);
+		border-radius: var(--radius-full);
+		transition:
+			transform var(--timing-fast) var(--easing-default),
+			box-shadow var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default);
+		border: 1px solid var(--border-default);
 		cursor: default;
 	}
 
 	.badge:hover {
 		transform: translateY(-1px);
-		box-shadow: 0 4px 12px color-mix(in oklab, black 20%, transparent);
-		border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+		box-shadow: var(--shadow-sm);
+		border-color: var(--border-hover);
 	}
 
 	.badge-lg {
-		padding: 0.5rem 1rem;
-		font-size: 0.875rem;
-		font-weight: 600;
+		padding: var(--space-2) var(--space-4);
+		font-size: var(--font-size-base);
+		font-weight: var(--font-weight-semibold);
 		cursor: default;
 	}
 
@@ -297,8 +300,11 @@
 	.anchor {
 		color: var(--color-primary-400);
 		text-decoration: none;
-		font-weight: 500;
-		transition: all var(--timing-fast) var(--easing-default);
+		font-weight: var(--font-weight-medium);
+		transition:
+			color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			transform var(--timing-fast) var(--easing-default);
 		border-bottom: 1px solid color-mix(in oklab, var(--color-primary-400) 30%, transparent);
 		padding-bottom: 1px;
 	}
@@ -497,8 +503,8 @@
 	/* Mobile responsive adjustments */
 	@media (max-width: 640px) {
 		.badge-lg {
-			padding: 0.375rem 0.75rem;
-			font-size: 0.75rem;
+			padding: var(--space-1-5) var(--space-3);
+			font-size: var(--font-size-xs);
 		}
 
 		/* Reduce hover effects on mobile */

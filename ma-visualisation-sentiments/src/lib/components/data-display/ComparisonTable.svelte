@@ -451,14 +451,14 @@
 
 <style>
 	.table-container {
-		max-height: 600px;
+		max-height: var(--height-chart-lg);
 		overflow-y: auto;
 	}
 
 	/* Comparison table wrapper with gradient accent */
 	.comparison-table-wrapper {
-		background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+		background: var(--surface-card-hover);
+		border: 1px solid var(--border-default);
 		backdrop-filter: blur(var(--glass-blur-md));
 	}
 
@@ -469,7 +469,7 @@
 	}
 
 	.sortable-header:hover {
-		background-color: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+		background-color: var(--surface-hover);
 	}
 
 	/* Sticky table headers */
@@ -478,22 +478,25 @@
 		top: 0;
 		z-index: 1;
 		background-color: var(--color-surface-800);
-		box-shadow: 0 1px 0 color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+		box-shadow: 0 1px 0 var(--border-hover);
 	}
 
 	/* Ensure all clickable elements have pointer cursor */
 	.comparison-card {
 		cursor: pointer;
-		background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+		background: var(--surface-card);
+		border: 1px solid var(--border-default);
 		backdrop-filter: blur(var(--glass-blur-sm));
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			transform var(--timing-fast) var(--easing-default);
 	}
 
 	.comparison-card:hover {
 		cursor: pointer;
-		background: color-mix(in oklab, var(--color-surface-900) 90%, transparent);
-		border-color: color-mix(in oklab, var(--color-surface-50) 18%, transparent);
+		background: var(--surface-card-elevated);
+		border-color: var(--border-hover);
 		transform: translateY(-2px);
 	}
 
@@ -505,43 +508,43 @@
 
 	tbody tr:hover {
 		cursor: pointer;
-		background-color: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+		background-color: var(--surface-subtle);
 	}
 
 	.cards-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-		gap: 1rem;
+		gap: var(--space-4);
 	}
 
 	.comparison-cards-grid {
-		gap: 1.25rem;
+		gap: var(--space-5);
 	}
 
 	.comparison-grid {
 		display: flex;
 		flex-direction: column;
-		gap: 0.75rem;
+		gap: var(--space-3);
 	}
 
 	.comparison-row {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		gap: var(--space-2);
 	}
 
 	.dimension-label {
-		font-size: 0.75rem;
+		font-size: var(--font-size-xs);
 		color: var(--sentiment-comparison-light);
-		font-weight: 600;
+		font-weight: var(--font-weight-semibold);
 		text-transform: uppercase;
-		letter-spacing: 0.05em;
+		letter-spacing: var(--tracking-wider);
 	}
 
 	.values-grid {
 		display: grid;
 		grid-template-columns: 1fr auto 1fr;
-		gap: 0.5rem;
+		gap: var(--space-2);
 		align-items: center;
 	}
 
@@ -549,31 +552,31 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 0.25rem;
+		gap: var(--space-1);
 	}
 
 	.model-label {
-		font-size: 0.625rem;
-		color: color-mix(in oklab, var(--color-surface-50) 50%, transparent);
+		font-size: var(--font-size-2xs);
+		color: var(--text-subtle);
 	}
 
 	.diff-indicator {
-		font-size: 0.875rem;
-		font-weight: 600;
+		font-size: var(--font-size-base);
+		font-weight: var(--font-weight-semibold);
 		text-align: center;
 	}
 
 	.badge {
-		padding: 0.25rem 0.5rem;
-		font-size: 0.75rem;
-		font-weight: 500;
-		border-radius: 9999px;
+		padding: var(--space-1) var(--space-2);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-medium);
+		border-radius: var(--radius-full);
 		cursor: inherit; /* Inherit cursor from parent */
 	}
 
 	.badge-lg {
-		padding: 0.375rem 0.75rem;
-		font-size: 0.875rem;
+		padding: var(--space-1-5) var(--space-3);
+		font-size: var(--font-size-base);
 		cursor: inherit; /* Inherit cursor from parent */
 	}
 
@@ -587,27 +590,27 @@
 
 	/* Pagination styles */
 	.controls-section {
-		background: color-mix(in oklab, var(--color-surface-50) 5%, transparent);
-		padding: 1rem;
-		border-radius: 0.75rem;
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+		background: var(--surface-muted);
+		padding: var(--space-4);
+		border-radius: var(--radius-xl);
+		border: 1px solid var(--border-default);
 		backdrop-filter: blur(var(--glass-blur-sm));
 	}
 
 	.comparison-controls {
-		background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+		background: var(--surface-card);
+		border: 1px solid var(--border-default);
 	}
 
 	.pagination-controls {
 		flex-wrap: wrap;
 		justify-content: center;
-		gap: 0.5rem;
+		gap: var(--space-2);
 	}
 
 	.pagination-controls button {
-		min-width: 2.5rem;
-		height: 2.5rem;
+		min-width: var(--size-control-lg);
+		height: var(--size-control-lg);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -624,9 +627,9 @@
 	}
 
 	.select-sm {
-		padding: 0.25rem 0.5rem;
-		font-size: 0.875rem;
-		border-radius: 0.375rem;
+		padding: var(--space-1) var(--space-2);
+		font-size: var(--font-size-base);
+		border-radius: var(--radius-sm);
 	}
 
 	/* Text gradient styling */
@@ -672,22 +675,22 @@
 		}
 
 		.comparison-card {
-			padding: 0.75rem;
+			padding: var(--space-3);
 		}
 
 		.controls-section {
-			padding: 0.75rem;
+			padding: var(--space-3);
 		}
 
 		.pagination-controls {
-			gap: 0.25rem;
+			gap: var(--space-1);
 		}
 
 		.pagination-controls button {
-			min-width: 2rem;
-			height: 2rem;
-			font-size: 0.75rem;
-			padding: 0.25rem;
+			min-width: var(--size-control-sm);
+			height: var(--size-control-sm);
+			font-size: var(--font-size-xs);
+			padding: var(--space-1);
 		}
 	}
 

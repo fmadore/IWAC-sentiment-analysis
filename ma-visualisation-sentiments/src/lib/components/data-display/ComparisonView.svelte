@@ -145,36 +145,36 @@
 	.comparison-view {
 		display: flex;
 		flex-direction: column;
-		gap: 1.5rem;
+		gap: var(--space-6);
 	}
 
 	.empty-state,
 	.empty-results {
-		margin: 2rem auto;
+		margin: var(--space-8) auto;
 		max-width: 600px;
 	}
 
 	/* Comparison-specific empty states */
 	.comparison-empty-state,
 	.comparison-empty-results {
-		background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+		background: var(--surface-card);
+		border: 1px solid var(--border-default);
 		backdrop-filter: blur(var(--glass-blur-md));
 	}
 
 	/* Comparison loading card */
 	.comparison-loading-card {
-		background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+		background: var(--surface-card);
+		border: 1px solid var(--border-default);
 		backdrop-filter: blur(var(--glass-blur-md));
 	}
 
 	/* Loading spinner - using CSS custom properties */
 	.loading-spinner {
-		width: 48px;
-		height: 48px;
-		border: 3px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		border-top-color: color-mix(in oklab, var(--color-surface-50) 80%, transparent);
+		width: var(--size-control-xl);
+		height: var(--size-control-xl);
+		border: 3px solid var(--border-default);
+		border-top-color: var(--text-secondary);
 		border-radius: 50%;
 		animation: spin 1s linear infinite;
 		margin: 0 auto;
@@ -188,10 +188,10 @@
 	.comparison-pair-picker {
 		position: relative;
 		z-index: 10;
-		background: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		border-radius: 0.75rem;
-		padding: 1rem;
+		background: var(--surface-card);
+		border: 1px solid var(--border-default);
+		border-radius: var(--radius-xl);
+		padding: var(--space-4);
 		backdrop-filter: blur(var(--glass-blur-sm));
 	}
 
@@ -204,7 +204,7 @@
 	/* Responsive adjustments */
 	@media (max-width: 640px) {
 		.comparison-view {
-			gap: 1rem;
+			gap: var(--space-4);
 		}
 	}
 

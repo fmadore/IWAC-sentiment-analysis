@@ -431,8 +431,8 @@
 	}
 
 	.count {
-		font-size: 0.75rem;
-		color: color-mix(in oklab, var(--color-surface-50) 60%, transparent);
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
 	}
 
 	.model-a-count {
@@ -453,25 +453,25 @@
 		}
 
 		.stat-card {
-			padding: 1rem;
+			padding: var(--space-4);
 		}
 
 		.stat-value {
-			font-size: 1.5rem;
+			font-size: var(--font-size-3xl);
 		}
 
 		.stat-icon {
-			width: 36px;
-			height: 36px;
+			width: var(--size-control-md);
+			height: var(--size-control-md);
 		}
 
 		.model-logo {
-			width: 20px;
-			height: 20px;
+			width: var(--size-icon-md);
+			height: var(--size-icon-md);
 		}
 
 		.comparison-section {
-			padding: 1rem;
+			padding: var(--space-4);
 		}
 
 		.model-label span {
@@ -479,7 +479,7 @@
 		}
 
 		.comparison-bar {
-			height: 20px;
+			height: var(--size-icon-md);
 		}
 
 		.comparison-logo {

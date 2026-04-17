@@ -42,12 +42,12 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		margin-bottom: 1rem;
+		margin-bottom: var(--space-4);
 	}
 
 	@media (min-width: 640px) {
 		.clear-filters-container {
-			margin-bottom: 1.5rem;
+			margin-bottom: var(--space-6);
 		}
 	}
 
@@ -59,21 +59,26 @@
 		);
 		border: 1px solid color-mix(in oklab, var(--color-error-500) 30%, transparent);
 		color: var(--color-error-500);
-		font-weight: 600;
-		padding: 0.75rem 1.5rem;
-		border-radius: 0.75rem;
+		font-weight: var(--font-weight-semibold);
+		padding: var(--space-3) var(--space-6);
+		border-radius: var(--radius-xl);
 		backdrop-filter: blur(var(--glass-blur-md));
 		box-shadow:
 			0 4px 12px color-mix(in oklab, var(--color-error-500) 15%, transparent),
 			inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 10%, transparent);
-		transition: all var(--timing-normal) var(--easing-default);
+		transition:
+			background-color var(--timing-normal) var(--easing-default),
+			border-color var(--timing-normal) var(--easing-default),
+			color var(--timing-normal) var(--easing-default),
+			transform var(--timing-normal) var(--easing-default),
+			box-shadow var(--timing-normal) var(--easing-default);
 		position: relative;
 		overflow: hidden;
 		cursor: pointer;
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
-		font-size: 0.875rem;
+		gap: var(--space-2);
+		font-size: var(--font-size-base);
 		white-space: nowrap;
 	}
 
@@ -130,8 +135,8 @@
 	/* Responsive adjustments */
 	@media (max-width: 640px) {
 		.clear-filters-btn {
-			padding: 0.6rem 1.2rem;
-			font-size: 0.875rem;
+			padding: var(--space-2-5) var(--space-5);
+			font-size: var(--font-size-base);
 		}
 	}
 
@@ -141,10 +146,10 @@
 		}
 
 		.clear-filters-btn {
-			padding: 0.6rem;
-			border-radius: 50%;
-			width: 2.5rem;
-			height: 2.5rem;
+			padding: var(--space-2-5);
+			border-radius: var(--radius-full);
+			width: var(--size-control-lg);
+			height: var(--size-control-lg);
 			justify-content: center;
 		}
 	}
