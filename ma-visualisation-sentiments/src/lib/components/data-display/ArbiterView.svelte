@@ -107,21 +107,14 @@
 
 <div class="arbiter-view">
 	<!-- Header Section -->
-	<div class="arbiter-header mb-6">
-		<div class="flex items-start gap-4">
-			<div class="arbiter-icon">
-				<GavelIcon size={32} class="text-amber-400" />
-			</div>
-			<div class="flex-1">
-				<h1 class="h2 mb-2 text-white arbiter-title">
-					{$t.arbiter.viewTitle}
-				</h1>
-				<p class="text-base text-surface-300 leading-relaxed max-w-3xl">
-					{$t.arbiter.viewSubtitle}
-				</p>
-			</div>
+	<header class="arbiter-header mb-6">
+		<div class="arbiter-eyebrow">
+			<GavelIcon size={12} strokeWidth={2.25} aria-hidden="true" />
+			<span>{$t.arbiter.modelName}</span>
 		</div>
-	</div>
+		<h1 class="arbiter-title">{$t.arbiter.viewTitle}</h1>
+		<p class="arbiter-lede">{$t.arbiter.viewSubtitle}</p>
+	</header>
 
 	<!-- Model Pair Picker -->
 	<div class="pair-picker-section mb-6">
@@ -204,25 +197,19 @@
 		</div>
 
 		<!-- Evaluated Articles Section -->
-		<div class="evaluated-articles-section mt-8">
+		<section class="evaluated-articles-section mt-8">
 			<div class="section-header mb-4">
-				<div class="flex items-center gap-3">
-					<div class="section-icon">
-						<TableIcon size={24} class="text-amber-400" />
-					</div>
-					<div>
-						<h2 class="h3 text-white section-title">
-							{$t.arbiter?.evaluatedArticles || 'Evaluated Articles'}
-						</h2>
-						<p class="text-sm text-white/60">
-							{$t.arbiter?.evaluatedArticlesSubtitle ||
-								'Articles analyzed by the arbiter for disagreement resolution'}
-						</p>
-					</div>
+				<div class="section-eyebrow">
+					<TableIcon size={12} strokeWidth={2.25} aria-hidden="true" />
+					<span>{$t.arbiter?.evaluatedArticles || 'Evaluated articles'}</span>
 				</div>
+				<p class="section-lede">
+					{$t.arbiter?.evaluatedArticlesSubtitle ||
+						'Articles analyzed by the arbiter for disagreement resolution'}
+				</p>
 			</div>
 			<ArbiterArticleTable onSelectArticle={handleSelectArticle} />
-		</div>
+		</section>
 	{:else}
 		<!-- No Data State -->
 		<ChartCard>
@@ -245,59 +232,45 @@
 />
 
 <style>
-	.evaluated-articles-section {
-		border-top: 1px solid color-mix(in oklab, var(--sentiment-arbiter) 15%, transparent);
-		padding-top: var(--space-8);
-	}
-
-	.section-header {
-		padding-bottom: var(--space-4);
-	}
-
-	.section-icon {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: var(--size-control-xl);
-		height: var(--size-control-xl);
-		border-radius: var(--radius-xl);
-		background: var(--sentiment-arbiter-icon-bg);
-		border: 1px solid var(--sentiment-arbiter-border);
-	}
-
-	.section-title {
-		background: linear-gradient(135deg, var(--sentiment-arbiter-light), var(--sentiment-arbiter));
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
-	}
 	.arbiter-view {
 		width: 100%;
 	}
 
 	.arbiter-header {
-		border-bottom: 1px solid var(--border-default);
+		border-bottom: 1px solid var(--border-subtle);
 		padding-bottom: var(--space-6);
 	}
 
-	.arbiter-icon {
-		display: flex;
+	.arbiter-eyebrow {
+		display: inline-flex;
 		align-items: center;
-		justify-content: center;
-		width: 56px;
-		height: 56px;
-		border-radius: var(--radius-xl);
-		background: var(--sentiment-arbiter-icon-bg);
-		border: 1px solid var(--sentiment-arbiter-border);
+		gap: var(--space-2);
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--sentiment-arbiter-light);
+		margin-bottom: var(--space-3);
 	}
 
 	.arbiter-title {
-		font-size: 1.75rem; /* between 3xl and 4xl */
-		font-weight: var(--font-weight-bold);
-		background: linear-gradient(135deg, var(--sentiment-arbiter-light), var(--sentiment-arbiter));
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
+		font-family: var(--font-display);
+		font-size: clamp(1.75rem, 1.4rem + 1.5vw, 2.5rem);
+		font-weight: 600;
+		line-height: 1.05;
+		color: var(--text-primary);
+		margin: 0 0 var(--space-3);
+		letter-spacing: -0.01em;
+	}
+
+	.arbiter-lede {
+		font-family: var(--font-sans);
+		font-size: var(--font-size-base);
+		line-height: 1.6;
+		color: var(--text-secondary);
+		max-width: 60ch;
+		margin: 0;
 	}
 
 	.arbiter-model-badge {
@@ -305,19 +278,54 @@
 		align-items: center;
 		gap: var(--space-1-5);
 		padding: var(--space-1-5) var(--space-3);
-		border-radius: var(--radius-full);
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
 		background: var(--sentiment-arbiter-bg);
 		border: 1px solid var(--sentiment-arbiter-border);
 	}
 
+	.evaluated-articles-section {
+		border-top: 1px solid var(--border-subtle);
+		padding-top: var(--space-8);
+	}
+
+	.section-header {
+		padding-bottom: var(--space-4);
+	}
+
+	.section-eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--sentiment-arbiter-light);
+		margin-bottom: var(--space-2);
+	}
+
+	.section-lede {
+		font-family: var(--font-sans);
+		font-size: var(--font-size-sm);
+		line-height: 1.5;
+		color: var(--text-muted);
+		max-width: 60ch;
+		margin: 0;
+	}
+
 	.dimension-chip {
 		padding: var(--space-2) var(--space-4);
-		border-radius: var(--radius-full);
-		font-size: var(--font-size-base);
-		font-weight: var(--font-weight-medium);
-		background: var(--surface-subtle);
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		background: transparent;
 		border: 1px solid var(--border-default);
-		color: var(--text-secondary);
+		color: var(--text-muted);
 		cursor: pointer;
 		transition:
 			background-color var(--timing-fast) var(--easing-default),
@@ -332,11 +340,7 @@
 	}
 
 	.dimension-chip.active {
-		background: linear-gradient(
-			135deg,
-			color-mix(in oklab, var(--sentiment-arbiter) 25%, transparent),
-			color-mix(in oklab, var(--sentiment-arbiter-light) 15%, transparent)
-		);
+		background: var(--sentiment-arbiter-bg);
 		border-color: var(--sentiment-arbiter-border);
 		color: var(--sentiment-arbiter-light);
 	}
@@ -375,11 +379,6 @@
 
 		.arbiter-title {
 			font-size: var(--font-size-3xl);
-		}
-
-		.arbiter-icon {
-			width: var(--size-control-xl);
-			height: var(--size-control-xl);
 		}
 	}
 

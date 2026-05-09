@@ -36,6 +36,8 @@
 	import { t, currentLanguage } from '$lib/i18n';
 	import { getSentimentLabels, formatNumber } from '$lib/i18n/utils';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
+	import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
+	import PieChartIcon from '@lucide/svelte/icons/pie-chart';
 	import {
 		createPieTooltipFormatter,
 		createStackedBarTooltipFormatter
@@ -176,7 +178,7 @@
 					),
 					itemStyle: {
 						color: seriesColorPalette[index % seriesColorPalette.length],
-						borderRadius: [2, 2, 0, 0]
+						borderRadius: 0
 					}
 				};
 			});
@@ -255,26 +257,28 @@
 </script>
 
 {#if $filteredArticles.length > 0}
-	<!-- Dataset badge and Chart type selection buttons -->
-	<div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+	<!-- Dataset badge + chart-type toggle -->
+	<div class="chart-toolbar">
 		<DatasetBadge size="sm" />
 
-		<div class="flex flex-wrap gap-2 justify-center">
+		<div class="chart-type-toggle" role="group" aria-label={$t.charts.bars}>
 			<button
-				class="btn btn-sm hover-lift transition-all duration-200 {chartType === 'bar'
-					? 'variant-filled-primary shadow-lg scale-105'
-					: 'variant-soft-surface hover:variant-soft-primary'}"
+				class="chart-type-btn"
+				data-active={chartType === 'bar'}
 				onclick={() => (chartType = 'bar')}
+				aria-pressed={chartType === 'bar'}
 			>
-				📊 {$t.charts.bars}
+				<BarChart3Icon size={14} />
+				<span>{$t.charts.bars}</span>
 			</button>
 			<button
-				class="btn btn-sm hover-lift transition-all duration-200 {chartType === 'pie'
-					? 'variant-filled-primary shadow-lg scale-105'
-					: 'variant-soft-surface hover:variant-soft-primary'}"
+				class="chart-type-btn"
+				data-active={chartType === 'pie'}
 				onclick={() => (chartType = 'pie')}
+				aria-pressed={chartType === 'pie'}
 			>
-				🥧 {$t.charts.pie}
+				<PieChartIcon size={14} />
+				<span>{$t.charts.pie}</span>
 			</button>
 		</div>
 	</div>
@@ -282,10 +286,84 @@
 	<div
 		bind:this={chartContainer}
 		style="height: {isMobile ? '350px' : '450px'}; position: relative;"
-		class="chart-container glass-medium rounded-lg p-2 sm:p-4"
+		class="chart-container"
 	>
 		<Chart {init} {options} />
 	</div>
 {:else}
-	<p class="text-center py-8 text-white/80 text-sm sm:text-base">{$t.table.noFilteredArticles}</p>
+	<p class="empty-state">{$t.table.noFilteredArticles}</p>
 {/if}
+
+<style>
+	.chart-toolbar {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-3);
+		margin-bottom: var(--space-4);
+	}
+
+	@media (min-width: 640px) {
+		.chart-toolbar {
+			flex-direction: row;
+		}
+	}
+
+	.chart-type-toggle {
+		display: inline-flex;
+		gap: 1px;
+		padding: 2px;
+		background: var(--surface-nested);
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-md);
+	}
+
+	.chart-type-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-1-5);
+		padding: var(--space-1-5) var(--space-3);
+		font-family: var(--font-mono);
+		font-size: var(--font-size-xs);
+		font-weight: 500;
+		letter-spacing: var(--tracking-wide);
+		text-transform: uppercase;
+		color: var(--text-muted);
+		background: transparent;
+		border: none;
+		border-radius: var(--radius-sm);
+		cursor: pointer;
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
+	}
+
+	.chart-type-btn:hover:not([data-active='true']) {
+		color: var(--text-primary);
+		background: var(--surface-hover);
+	}
+
+	.chart-type-btn[data-active='true'] {
+		color: var(--accent);
+		background: var(--accent-soft);
+	}
+
+	.chart-container {
+		background: transparent;
+		padding: var(--space-2);
+	}
+
+	@media (min-width: 640px) {
+		.chart-container {
+			padding: var(--space-4);
+		}
+	}
+
+	.empty-state {
+		text-align: center;
+		padding: var(--space-8) 0;
+		color: var(--text-muted);
+		font-size: var(--font-size-sm);
+	}
+</style>

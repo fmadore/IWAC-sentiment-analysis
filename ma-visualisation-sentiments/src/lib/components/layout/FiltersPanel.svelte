@@ -187,9 +187,8 @@
 	   ========================================================================= */
 	.filters-panel {
 		background: var(--surface-card);
-		backdrop-filter: blur(var(--glass-blur-md));
 		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-2xl);
+		border-radius: var(--radius-xl);
 		padding: var(--space-5);
 		margin-bottom: var(--space-6);
 		box-shadow: var(--elevation-card);

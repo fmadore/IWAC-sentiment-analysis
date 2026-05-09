@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 	import { t } from '$lib/i18n';
 	import { sidebarExpanded, activeView, mobileMenuOpen } from '$lib/stores';
 	import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
@@ -12,6 +14,15 @@
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
+
+	// Default expanded on wider desktops where the labels fit and where the
+	// flame/gavel/git-compare icons aren't self-explanatory to a researcher.
+	// Below 1280 we keep collapsed to preserve chart real estate.
+	onMount(() => {
+		if (browser && window.innerWidth >= 1280) {
+			sidebarExpanded.set(true);
+		}
+	});
 
 	function change(view: string) {
 		if (view !== $activeView) $activeView = view;
@@ -95,8 +106,7 @@
 		position: fixed;
 		inset: 0;
 		z-index: var(--z-overlay);
-		background: color-mix(in oklab, black 55%, transparent);
-		backdrop-filter: blur(6px);
+		background: color-mix(in oklab, black 65%, transparent);
 		border: none;
 		cursor: pointer;
 	}
@@ -119,10 +129,9 @@
 		/* Collapsed width */
 		width: 4.5rem;
 
-		background: color-mix(in oklab, var(--color-surface-950) 82%, transparent);
-		backdrop-filter: blur(var(--glass-blur-xl));
+		background: var(--app-bg-elevated);
 		border-right: 1px solid var(--border-subtle);
-		box-shadow: 0 4px 20px color-mix(in oklab, black 18%, transparent);
+		box-shadow: 1px 0 0 color-mix(in oklab, black 30%, transparent);
 
 		transition:
 			width var(--timing-normal) var(--easing-default),
@@ -162,7 +171,7 @@
 		width: var(--size-icon-lg);
 		height: var(--size-icon-lg);
 
-		border-radius: var(--radius-full);
+		border-radius: var(--radius-sm);
 		background: var(--color-surface-800);
 		border: 1px solid var(--border-default);
 		color: var(--text-muted);

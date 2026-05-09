@@ -76,7 +76,7 @@
 <div class="comparison-table-container">
 	<!-- Header with title and export button -->
 	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-		<h2 class="h3 m-0 text-white comparison-text-gradient">
+		<h2 class="comparison-table-title">
 			{$t.datasets?.compareModels || 'Model Comparison'}
 		</h2>
 		<ComparisonCSVExportButton />
@@ -175,7 +175,7 @@
 
 	{#if viewMode === 'table' && !isMobile}
 		<!-- Table View -->
-		<div class="table-container comparison-table-wrapper card variant-glass overflow-hidden">
+		<div class="table-container comparison-table-wrapper overflow-hidden">
 			<table class="table">
 				<thead>
 					<tr class="bg-surface-800">
@@ -317,7 +317,7 @@
 		<div class="cards-grid comparison-cards-grid">
 			{#each paginatedComparisons as comparison (comparison.article['o:id'])}
 				<div
-					class="comparison-card card variant-glass p-4 hover-lift cursor-pointer"
+					class="comparison-card cursor-pointer"
 					onclick={() => selectComparison(comparison)}
 					onkeydown={(e) => {
 						if (e.key === 'Enter' || e.key === ' ') {
@@ -450,16 +450,24 @@
 </div>
 
 <style>
+	.comparison-table-title {
+		font-family: var(--font-display);
+		font-size: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
+		font-weight: 600;
+		line-height: 1.15;
+		color: var(--text-primary);
+		letter-spacing: -0.005em;
+		margin: 0;
+	}
+
 	.table-container {
 		max-height: var(--height-chart-lg);
 		overflow-y: auto;
 	}
 
-	/* Comparison table wrapper with gradient accent */
 	.comparison-table-wrapper {
-		background: var(--surface-card-hover);
-		border: 1px solid var(--border-default);
-		backdrop-filter: blur(var(--glass-blur-md));
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
 	}
 
 	.sortable-header {
@@ -481,23 +489,19 @@
 		box-shadow: 0 1px 0 var(--border-hover);
 	}
 
-	/* Ensure all clickable elements have pointer cursor */
 	.comparison-card {
 		cursor: pointer;
+		padding: var(--space-4);
 		background: var(--surface-card);
-		border: 1px solid var(--border-default);
-		backdrop-filter: blur(var(--glass-blur-sm));
+		border: 1px solid var(--border-subtle);
 		transition:
 			background-color var(--timing-fast) var(--easing-default),
-			border-color var(--timing-fast) var(--easing-default),
-			transform var(--timing-fast) var(--easing-default);
+			border-color var(--timing-fast) var(--easing-default);
 	}
 
 	.comparison-card:hover {
-		cursor: pointer;
 		background: var(--surface-card-elevated);
 		border-color: var(--border-hover);
-		transform: translateY(-2px);
 	}
 
 	/* Table rows */
@@ -534,11 +538,12 @@
 	}
 
 	.dimension-label {
-		font-size: var(--font-size-xs);
-		color: var(--sentiment-comparison-light);
-		font-weight: var(--font-weight-semibold);
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.14em;
 		text-transform: uppercase;
-		letter-spacing: var(--tracking-wider);
+		color: var(--text-muted);
 	}
 
 	.values-grid {
@@ -556,28 +561,37 @@
 	}
 
 	.model-label {
-		font-size: var(--font-size-2xs);
-		color: var(--text-subtle);
+		font-family: var(--font-mono);
+		font-size: 0.625rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--text-muted);
 	}
 
 	.diff-indicator {
+		font-family: var(--font-mono);
 		font-size: var(--font-size-base);
-		font-weight: var(--font-weight-semibold);
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
 		text-align: center;
 	}
 
 	.badge {
 		padding: var(--space-1) var(--space-2);
-		font-size: var(--font-size-xs);
-		font-weight: var(--font-weight-medium);
-		border-radius: var(--radius-full);
-		cursor: inherit; /* Inherit cursor from parent */
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		border-radius: 0;
+		border: 1px solid var(--border-default);
+		background: var(--surface-subtle);
+		cursor: inherit;
 	}
 
 	.badge-lg {
 		padding: var(--space-1-5) var(--space-3);
-		font-size: var(--font-size-base);
-		cursor: inherit; /* Inherit cursor from parent */
+		font-size: 0.75rem;
+		cursor: inherit;
 	}
 
 	.line-clamp-2 {
@@ -588,18 +602,15 @@
 		overflow: hidden;
 	}
 
-	/* Pagination styles */
 	.controls-section {
-		background: var(--surface-muted);
+		background: var(--surface-subtle);
 		padding: var(--space-4);
-		border-radius: var(--radius-xl);
-		border: 1px solid var(--border-default);
-		backdrop-filter: blur(var(--glass-blur-sm));
+		border: 1px solid var(--border-subtle);
 	}
 
 	.comparison-controls {
 		background: var(--surface-card);
-		border: 1px solid var(--border-default);
+		border: 1px solid var(--border-subtle);
 	}
 
 	.pagination-controls {
@@ -630,14 +641,6 @@
 		padding: var(--space-1) var(--space-2);
 		font-size: var(--font-size-base);
 		border-radius: var(--radius-sm);
-	}
-
-	/* Text gradient styling */
-	.comparison-text-gradient {
-		background: var(--gradient-comparison);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
 	}
 
 	/* View controls and other buttons */

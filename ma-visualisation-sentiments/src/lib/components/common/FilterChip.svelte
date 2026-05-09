@@ -81,14 +81,13 @@
 		font-size: var(--font-size-sm);
 		font-weight: var(--font-weight-medium);
 		line-height: var(--line-height-snug);
-		border-radius: var(--radius-full);
+		border-radius: var(--radius-sm);
 		cursor: pointer;
 		white-space: nowrap;
 		transition:
 			background-color var(--timing-fast) var(--easing-default),
 			border-color var(--timing-fast) var(--easing-default),
-			color var(--timing-fast) var(--easing-default),
-			transform var(--timing-fast) var(--easing-default);
+			color var(--timing-fast) var(--easing-default);
 
 		/* Default unselected state */
 		background: var(--surface-subtle);
@@ -100,7 +99,6 @@
 		background: var(--surface-hover);
 		border-color: var(--border-hover);
 		color: var(--text-primary);
-		transform: translateY(-1px);
 	}
 
 	.filter-chip:disabled {

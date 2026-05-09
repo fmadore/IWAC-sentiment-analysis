@@ -407,24 +407,9 @@
 		max-height: var(--height-chart-lg);
 		overflow-y: auto;
 		position: relative;
-		/* Glass effect with primary gradient hint */
-		background: color-mix(in oklab, var(--color-primary-500) 3%, transparent);
-		border: 1px solid color-mix(in oklab, var(--color-primary-500) 12%, transparent);
-		backdrop-filter: blur(var(--glass-blur-md));
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
 		border-radius: var(--radius-lg);
-	}
-
-	/* Gradient accent line at top */
-	.table-container::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		height: 2px;
-		background: var(--gradient-header);
-		z-index: 10;
-		border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 	}
 
 	table {
@@ -488,11 +473,10 @@
      Pagination Controls Section
      ============================================== */
 	.pagination-info {
-		background: color-mix(in oklab, var(--color-primary-500) 5%, transparent);
+		background: var(--surface-nested);
 		padding: var(--space-4);
-		border-radius: var(--radius-lg);
-		border: 1px solid color-mix(in oklab, var(--color-primary-500) 15%, transparent);
-		backdrop-filter: blur(var(--glass-blur-sm));
+		border-radius: var(--radius-md);
+		border: 1px solid var(--border-subtle);
 	}
 
 	.pagination-controls {
@@ -546,9 +530,8 @@
      Mobile Sort Controls
      ============================================== */
 	.mobile-sort-controls {
-		background: color-mix(in oklab, var(--color-primary-500) 5%, transparent) !important;
-		border: 1px solid color-mix(in oklab, var(--color-primary-500) 15%, transparent) !important;
-		backdrop-filter: blur(var(--glass-blur-sm));
+		background: var(--surface-nested) !important;
+		border: 1px solid var(--border-subtle) !important;
 	}
 
 	/* ==============================================
@@ -561,20 +544,16 @@
 
 	.mobile-card {
 		cursor: pointer;
-		background: color-mix(in oklab, var(--color-primary-500) 5%, transparent) !important;
-		border: 1px solid color-mix(in oklab, var(--color-primary-500) 12%, transparent) !important;
-		backdrop-filter: blur(var(--glass-blur-sm));
+		background: var(--surface-card) !important;
+		border: 1px solid var(--border-subtle) !important;
 		transition:
 			background-color var(--timing-fast) var(--easing-default),
-			border-color var(--timing-fast) var(--easing-default),
-			transform var(--timing-fast) var(--easing-default);
+			border-color var(--timing-fast) var(--easing-default);
 	}
 
 	.mobile-card:hover {
-		cursor: pointer;
-		background: color-mix(in oklab, var(--color-primary-500) 10%, transparent) !important;
-		border-color: color-mix(in oklab, var(--color-primary-500) 25%, transparent) !important;
-		transform: translateY(-2px);
+		background: var(--surface-card-hover) !important;
+		border-color: var(--border-hover) !important;
 	}
 
 	.line-clamp-2 {

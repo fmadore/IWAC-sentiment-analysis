@@ -336,10 +336,9 @@ Provide your independent evaluation for each dimension, determine which model is
      Info Card Base Styles
      ========================================================================== */
 	.info-card {
-		background: var(--surface-card-elevated);
-		backdrop-filter: blur(var(--glass-blur-lg));
-		border: 1px solid color-mix(in oklab, var(--sentiment-arbiter) 20%, transparent);
-		border-radius: var(--radius-2xl);
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
+		border-top: 2px solid var(--sentiment-arbiter);
 		margin-bottom: var(--space-6);
 		overflow: hidden;
 	}
@@ -426,11 +425,7 @@ Provide your independent evaluation for each dimension, determine which model is
 	}
 
 	.key-info-icon.blind {
-		background: linear-gradient(
-			135deg,
-			var(--sentiment-subjectivity-3-bg),
-			color-mix(in oklab, var(--sentiment-subjectivity-3) 10%, transparent)
-		);
+		background: var(--sentiment-subjectivity-3-bg);
 		border: 1px solid var(--sentiment-subjectivity-3-border);
 		color: var(--sentiment-subjectivity-3);
 	}
@@ -442,11 +437,7 @@ Provide your independent evaluation for each dimension, determine which model is
 	}
 
 	.key-info-icon.scale {
-		background: linear-gradient(
-			135deg,
-			var(--sentiment-polarity-very-positive-bg),
-			color-mix(in oklab, var(--sentiment-polarity-very-positive) 10%, transparent)
-		);
+		background: var(--sentiment-polarity-very-positive-bg);
 		border: 1px solid var(--sentiment-polarity-very-positive-border);
 		color: var(--sentiment-polarity-positive);
 	}
@@ -566,7 +557,7 @@ Provide your independent evaluation for each dimension, determine which model is
 		padding: var(--space-1) var(--space-2);
 		font-size: var(--font-size-2xs);
 		font-weight: var(--font-weight-semibold);
-		border-radius: var(--radius-full);
+		border-radius: var(--radius-sm);
 		text-transform: uppercase;
 		letter-spacing: var(--tracking-wider);
 	}

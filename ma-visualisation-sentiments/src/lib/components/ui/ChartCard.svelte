@@ -58,120 +58,26 @@
 </div>
 
 <style>
-	/* =============================================================================
-	   Variant color channels — each variant sets --accent and --accent-gradient
-	   so the single rule block below can reuse them.
-	   ============================================================================= */
-	.chart-card[data-variant='default'] {
-		--accent: transparent;
-		--accent-soft: transparent;
-		--accent-gradient: none;
-		--accent-border: var(--border-subtle);
-	}
-	.chart-card[data-variant='large'] {
-		--accent: transparent;
-		--accent-soft: transparent;
-		--accent-gradient: none;
-		--accent-border: var(--border-subtle);
-	}
-	.chart-card[data-variant='extreme'] {
-		--accent: var(--sentiment-extreme);
-		--accent-soft: var(--sentiment-extreme-bg);
-		--accent-gradient: var(--gradient-extreme);
-		--accent-border: var(--sentiment-extreme-border);
-	}
-	.chart-card[data-variant='arbiter'] {
-		--accent: var(--sentiment-arbiter);
-		--accent-soft: var(--sentiment-arbiter-bg);
-		--accent-gradient: linear-gradient(
-			90deg,
-			var(--sentiment-arbiter),
-			var(--sentiment-arbiter-light),
-			var(--sentiment-arbiter)
-		);
-		--accent-border: var(--sentiment-arbiter-border);
-	}
-	.chart-card[data-variant='comparison'] {
-		--accent: var(--sentiment-comparison);
-		--accent-soft: var(--sentiment-comparison-bg);
-		--accent-gradient: var(--gradient-comparison);
-		--accent-border: var(--sentiment-comparison-border);
-	}
-	.chart-card[data-variant='charts'] {
-		--accent: var(--sentiment-charts);
-		--accent-soft: var(--sentiment-charts-bg);
-		--accent-gradient: var(--gradient-charts);
-		--accent-border: var(--sentiment-charts-border);
-	}
-	.chart-card[data-variant='trends'] {
-		--accent: var(--sentiment-trends);
-		--accent-soft: var(--sentiment-trends-bg);
-		--accent-gradient: var(--gradient-trends);
-		--accent-border: var(--sentiment-trends-border);
-	}
-	.chart-card[data-variant='volume'] {
-		--accent: var(--sentiment-volume);
-		--accent-soft: var(--sentiment-volume-bg);
-		--accent-gradient: var(--gradient-volume);
-		--accent-border: var(--sentiment-volume-border);
-	}
-	.chart-card[data-variant='heatmap'] {
-		--accent: var(--sentiment-heatmap);
-		--accent-soft: var(--sentiment-heatmap-bg);
-		--accent-gradient: var(--gradient-heatmap);
-		--accent-border: var(--sentiment-heatmap-border);
-	}
-	.chart-card[data-variant='table'] {
-		--accent: var(--sentiment-table);
-		--accent-soft: var(--sentiment-table-bg);
-		--accent-gradient: var(--gradient-table);
-		--accent-border: var(--sentiment-table-border);
-	}
-	.chart-card[data-variant='correlation'] {
-		--accent: var(--sentiment-correlation);
-		--accent-soft: var(--sentiment-correlation-bg);
-		--accent-gradient: var(--gradient-correlation);
-		--accent-border: var(--sentiment-correlation-border);
-	}
+	/* ChartCard — editorial dataviz container.
+	   The chart inside IS the colour signal. The card is just a frame: opaque
+	   surface, hairline border, hairline rule under the header. No accent
+	   stripe, no per-variant gradient, no hover lift. The data-variant
+	   attribute is preserved as a hook for chart components that want to read
+	   it (e.g. for chart-internal accent colours), but it doesn't drive
+	   visual chrome here. */
 
-	/* =============================================================================
-	   Base card surface
-	   ============================================================================= */
 	.chart-card {
 		position: relative;
 		background: var(--surface-card);
-		backdrop-filter: blur(var(--glass-blur-md));
-		border: 1px solid var(--accent-border, var(--border-subtle));
-		border-radius: var(--radius-2xl);
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-xl);
 		box-shadow: var(--elevation-card);
 		overflow: hidden;
-		transition:
-			border-color var(--timing-fast) var(--easing-default),
-			box-shadow var(--timing-normal) var(--easing-default),
-			transform var(--timing-normal) var(--easing-default);
-	}
-
-	/* Accent top bar — only rendered for variants that have an accent gradient.
-	   Kept slim (2px) and subtle for a calmer, more editorial feel. */
-	.chart-card[data-variant]:not([data-variant='default']):not([data-variant='large'])::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		height: 2px;
-		background: var(--accent-gradient);
-		opacity: 0.75;
+		transition: border-color var(--timing-fast) var(--easing-default);
 	}
 
 	.chart-card:hover {
-		border-color: color-mix(
-			in oklab,
-			var(--accent, var(--color-surface-50)) 40%,
-			var(--border-hover)
-		);
-		transform: translateY(-2px);
-		box-shadow: var(--elevation-card-hover);
+		border-color: var(--border-hover);
 	}
 
 	/* Header */
@@ -184,11 +90,6 @@
 		border-bottom: 1px solid var(--border-subtle);
 	}
 
-	.chart-card[data-variant]:not([data-variant='default']):not([data-variant='large'])
-		.chart-card-header {
-		border-bottom-color: color-mix(in oklab, var(--accent) 18%, var(--border-subtle));
-	}
-
 	.header-content {
 		display: flex;
 		flex-direction: column;
@@ -197,8 +98,9 @@
 	}
 
 	.chart-title {
+		font-family: var(--font-display);
 		font-size: var(--font-size-xl);
-		font-weight: var(--font-weight-semibold);
+		font-weight: 600;
 		color: var(--text-primary);
 		line-height: var(--line-height-tight);
 		letter-spacing: var(--tracking-snug);
@@ -206,6 +108,7 @@
 	}
 
 	.chart-subtitle {
+		font-family: var(--font-sans);
 		font-size: var(--font-size-sm);
 		color: var(--text-muted);
 		line-height: var(--line-height-snug);
@@ -216,7 +119,7 @@
 		padding: var(--space-5);
 	}
 
-	/* Large variant — more breathing room, no accent */
+	/* Size variants — only kept where they meaningfully change layout */
 	.chart-card[data-variant='large'] {
 		min-height: var(--height-chart-md);
 	}
@@ -230,12 +133,10 @@
 		padding: var(--space-6);
 	}
 
-	/* Extreme variant — heroic size */
 	.chart-card[data-variant='extreme'] {
 		min-height: var(--height-chart-lg);
 	}
-	.chart-card[data-variant='extreme'] .chart-card-header,
-	.chart-card[data-variant='extreme'] .chart-card-body {
+	.chart-card[data-variant='extreme'] .chart-card-header {
 		padding: var(--space-5) var(--space-6);
 	}
 	.chart-card[data-variant='extreme'] .chart-card-body {
@@ -243,18 +144,14 @@
 	}
 	.chart-card[data-variant='extreme'] .chart-title {
 		font-size: var(--font-size-2xl);
-		font-weight: var(--font-weight-bold);
+		font-weight: 700;
 	}
 	.chart-card[data-variant='extreme'] .chart-subtitle {
 		font-size: var(--font-size-base);
-		max-width: 56ch;
+		max-width: var(--prose-width);
 		line-height: var(--line-height-normal);
 	}
 
-	/* Accent-colored variants: keep title calm (solid color), only the top bar hints the hue */
-	.chart-card[data-variant='arbiter'] .chart-title {
-		color: var(--sentiment-arbiter-light);
-	}
 	.chart-card[data-variant='comparison'] .chart-card-header,
 	.chart-card[data-variant='arbiter'] .chart-card-header {
 		padding: var(--space-5) var(--space-6);
@@ -263,10 +160,7 @@
 	.chart-card[data-variant='arbiter'] .chart-card-body {
 		padding: var(--space-6);
 	}
-	.chart-card[data-variant='comparison'] .chart-title {
-		font-size: var(--font-size-2xl);
-		font-weight: var(--font-weight-semibold);
-	}
+	.chart-card[data-variant='comparison'] .chart-title,
 	.chart-card[data-variant='arbiter'] .chart-title {
 		font-size: var(--font-size-2xl);
 	}
@@ -308,13 +202,9 @@
 		}
 	}
 
-	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
 		.chart-card {
 			transition: none;
-		}
-		.chart-card:hover {
-			transform: none;
 		}
 	}
 </style>

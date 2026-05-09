@@ -75,7 +75,7 @@
 		padding: var(--space-1-5) var(--space-3);
 		font-size: var(--font-size-xs);
 		font-weight: var(--font-weight-semibold);
-		border-radius: var(--radius-full);
+		border-radius: var(--radius-sm);
 		background: var(--sentiment-discrepancy-bg);
 		border: 1px solid var(--sentiment-discrepancy-border);
 		color: var(--sentiment-discrepancy-light);

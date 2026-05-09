@@ -259,93 +259,43 @@
 
 <style>
 	.csv-export-btn {
-		background: linear-gradient(
-			135deg,
-			var(--sentiment-arbiter-bg),
-			color-mix(in oklab, var(--sentiment-arbiter) 10%, transparent)
-		);
+		background: var(--sentiment-arbiter-bg);
 		border: 1px solid var(--sentiment-arbiter-border);
-		color: var(--sentiment-arbiter);
-		font-weight: var(--font-weight-semibold);
-		padding: var(--space-3) var(--space-6);
-		border-radius: var(--radius-lg);
-		backdrop-filter: blur(var(--glass-blur-md));
-		box-shadow:
-			0 4px 12px var(--sentiment-arbiter-bg),
-			inset 0 1px 0 var(--surface-subtle);
-		transition: all var(--timing-normal) var(--easing-default);
-		position: relative;
-		overflow: hidden;
+		color: var(--sentiment-arbiter-light);
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		padding: var(--space-2-5) var(--space-4);
+		border-radius: 0;
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
 		cursor: pointer;
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
-		font-size: var(--font-size-base);
 		white-space: nowrap;
 	}
 
-	.csv-export-btn::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: -100%;
-		width: 100%;
-		height: 100%;
-		background: linear-gradient(90deg, transparent, var(--surface-subtle), transparent);
-		transition: left var(--timing-slow) ease;
-	}
-
 	.csv-export-btn:hover:not(:disabled) {
-		background: linear-gradient(
-			135deg,
-			color-mix(in oklab, var(--sentiment-arbiter) 25%, transparent),
-			color-mix(in oklab, var(--sentiment-arbiter) 15%, transparent)
-		);
-		border-color: color-mix(in oklab, var(--sentiment-arbiter) 50%, transparent);
-		color: var(--sentiment-arbiter-light);
-		transform: translateY(-2px);
-		box-shadow:
-			0 8px 25px color-mix(in oklab, var(--sentiment-arbiter) 25%, transparent),
-			inset 0 1px 0 var(--surface-active);
-	}
-
-	.csv-export-btn:hover:not(:disabled)::before {
-		left: 100%;
-	}
-
-	.csv-export-btn:active:not(:disabled) {
-		transform: translateY(-1px);
-		box-shadow:
-			0 4px 12px var(--sentiment-arbiter-bg),
-			inset 0 1px 0 var(--surface-subtle);
+		background: color-mix(in oklab, var(--sentiment-arbiter) 22%, transparent);
+		border-color: color-mix(in oklab, var(--sentiment-arbiter) 55%, transparent);
+		color: var(--text-primary);
 	}
 
 	.csv-export-btn:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
-		transform: none;
-	}
-
-	.button-text {
-		transition: all var(--timing-fast) var(--easing-default);
 	}
 
 	.csv-export-btn :global(svg) {
-		transition: transform var(--timing-normal) var(--easing-default);
 		flex-shrink: 0;
 	}
 
-	.csv-export-btn:hover:not(:disabled) :global(svg) {
-		transform: scale(1.1);
-	}
-
-	/* Responsive adjustments */
 	@media (max-width: 640px) {
-		.csv-export-btn {
-			padding: var(--space-2) var(--space-4);
-			font-size: var(--font-size-xs);
-		}
-
 		.button-text {
 			display: none;
 		}
@@ -378,15 +328,8 @@
 
 	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
-		.csv-export-btn,
-		.csv-export-btn::before,
-		.button-text,
-		.csv-export-btn :global(svg) {
+		.csv-export-btn {
 			transition: none;
-		}
-
-		.csv-export-btn:hover:not(:disabled) {
-			transform: none;
 		}
 
 		:global(.animate-bounce) {

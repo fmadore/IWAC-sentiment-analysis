@@ -42,7 +42,7 @@
 </script>
 
 <div class="stats-grid">
-	<div class="stat-card comparison-stat-card card variant-glass p-4 hover-lift">
+	<div class="stat-card comparison-stat-card">
 		<div class="stat-header">
 			<div class="stat-icon-container comparison-icon">
 				<GitCompareArrowsIcon size={24} class="text-purple-400" />
@@ -53,7 +53,7 @@
 		<div class="stat-detail">{$t.comparison?.articlesAnalyzed || 'Articles analyzed'}</div>
 	</div>
 
-	<div class="stat-card comparison-stat-card card variant-glass p-4 hover-lift">
+	<div class="stat-card comparison-stat-card">
 		<div class="stat-header">
 			<div class="stat-icon-container discrepancy-icon">
 				<AlertCircleIcon size={24} class="text-amber-400" />
@@ -69,7 +69,7 @@
 		</div>
 	</div>
 
-	<div class="stat-card comparison-stat-card card variant-glass p-4 hover-lift">
+	<div class="stat-card comparison-stat-card">
 		<div class="stat-header">
 			<div class="stat-icon-container success-icon">
 				<TrendingUpIcon size={24} class="text-green-400" />
@@ -87,7 +87,7 @@
 		<div class="stat-detail">{$t.comparison?.pointsPerArticle || 'Points per article'}</div>
 	</div>
 
-	<div class="stat-card comparison-stat-card card variant-glass p-4 hover-lift">
+	<div class="stat-card comparison-stat-card">
 		<div class="stat-header">
 			<div class="stat-icon-container conflict-icon">
 				<BarChart3Icon size={24} class="text-pink-400" />
@@ -265,53 +265,48 @@
 
 	.stat-card {
 		position: relative;
-		overflow: hidden;
+		padding: var(--space-4);
 	}
 
-	/* Stat cards with neutral glass style */
 	.comparison-stat-card {
-		background: var(--surface-card-hover);
-		border: 1px solid var(--border-default);
-		backdrop-filter: blur(var(--glass-blur-md));
-		transition:
-			border-color var(--timing-fast) var(--easing-default),
-			transform var(--timing-fast) var(--easing-default);
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
+		transition: border-color var(--timing-fast) var(--easing-default);
 	}
 
 	.comparison-stat-card:hover {
 		border-color: var(--border-hover);
-		transform: translateY(-2px);
 	}
 
-	/* Icon containers */
 	.stat-icon-container {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: var(--size-control-lg);
-		height: var(--size-control-lg);
-		border-radius: var(--radius-lg);
+		width: var(--size-control-md);
+		height: var(--size-control-md);
 		flex-shrink: 0;
+		border: 1px solid var(--border-subtle);
+		background: var(--surface-subtle);
 	}
 
 	.comparison-icon {
 		background: var(--sentiment-comparison-icon-bg);
-		border: 1px solid var(--sentiment-comparison-border);
+		border-color: var(--sentiment-comparison-border);
 	}
 
 	.discrepancy-icon {
-		background: color-mix(in oklab, var(--sentiment-discrepancy-light) 15%, transparent);
-		border: 1px solid color-mix(in oklab, var(--sentiment-discrepancy-light) 30%, transparent);
+		background: color-mix(in oklab, var(--sentiment-discrepancy-light) 12%, transparent);
+		border-color: color-mix(in oklab, var(--sentiment-discrepancy-light) 28%, transparent);
 	}
 
 	.success-icon {
-		background: color-mix(in oklab, #22c55e 15%, transparent);
-		border: 1px solid color-mix(in oklab, #22c55e 30%, transparent);
+		background: color-mix(in oklab, var(--sentiment-polarity-very-positive) 12%, transparent);
+		border-color: color-mix(in oklab, var(--sentiment-polarity-very-positive) 28%, transparent);
 	}
 
 	.conflict-icon {
-		background: color-mix(in oklab, var(--sentiment-comparison-accent) 15%, transparent);
-		border: 1px solid color-mix(in oklab, var(--sentiment-comparison-accent) 30%, transparent);
+		background: color-mix(in oklab, var(--sentiment-comparison-accent) 12%, transparent);
+		border-color: color-mix(in oklab, var(--sentiment-comparison-accent) 28%, transparent);
 	}
 
 	.stat-header {
@@ -328,17 +323,23 @@
 	}
 
 	.stat-label {
-		font-size: var(--font-size-base);
-		color: var(--text-secondary);
-		font-weight: var(--font-weight-medium);
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--text-muted);
 	}
 
 	.stat-value {
-		font-size: var(--font-size-4xl);
-		font-weight: var(--font-weight-bold);
+		font-family: var(--font-display);
+		font-size: clamp(2rem, 1.5rem + 1.5vw, 2.75rem);
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
 		color: var(--text-primary);
-		line-height: var(--line-height-tight);
+		line-height: 1;
 		margin-bottom: var(--space-1);
+		letter-spacing: -0.02em;
 	}
 
 	.comparison-stat-value {
@@ -354,23 +355,20 @@
 	}
 
 	.stat-detail {
+		font-family: var(--font-sans);
 		font-size: var(--font-size-xs);
 		color: var(--text-muted);
 	}
 
-	/* Breakdown section */
 	.breakdown-section {
-		background: var(--surface-card-elevated);
-		backdrop-filter: blur(var(--glass-blur-md));
-		border-radius: var(--radius-xl);
+		background: var(--surface-card);
 		padding: var(--space-6);
-		border: 1px solid var(--border-default);
-		box-shadow: var(--elevation-card);
+		border: 1px solid var(--border-subtle);
 	}
 
 	.comparison-breakdown {
-		background: var(--surface-card-hover);
-		border: 1px solid var(--border-default);
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
 	}
 
 	.breakdown-grid {
@@ -387,9 +385,8 @@
 
 	.breakdown-bar {
 		position: relative;
-		height: 8px;
-		background: var(--surface-hover);
-		border-radius: var(--radius-xs);
+		height: 6px;
+		background: var(--surface-subtle);
 		overflow: hidden;
 	}
 
@@ -399,59 +396,46 @@
 		left: 0;
 		height: 100%;
 		width: var(--progress);
-		border-radius: var(--radius-xs);
 		transition: width var(--timing-slow) var(--easing-default);
 	}
 
 	.breakdown-fill.polarity {
-		background: linear-gradient(
-			90deg,
-			var(--sentiment-polarity-neutral),
-			color-mix(in oklab, var(--sentiment-polarity-neutral) 70%, white)
-		);
+		background: var(--sentiment-polarity-neutral);
 	}
 
 	.breakdown-fill.subjectivity {
-		background: linear-gradient(
-			90deg,
-			var(--sentiment-subjectivity-3),
-			color-mix(in oklab, var(--sentiment-subjectivity-3) 70%, white)
-		);
+		background: var(--sentiment-subjectivity-3);
 	}
 
 	.breakdown-fill.centrality {
-		background: linear-gradient(
-			90deg,
-			var(--sentiment-centrality-very-central),
-			var(--sentiment-centrality-central)
-		);
+		background: var(--sentiment-centrality-very-central);
 	}
 
 	.breakdown-info {
 		display: flex;
 		justify-content: space-between;
-		align-items: center;
+		align-items: baseline;
 	}
 
 	.breakdown-label {
-		font-size: var(--font-size-base);
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
 		color: var(--text-secondary);
-		font-weight: var(--font-weight-medium);
 	}
 
 	.breakdown-value {
-		font-size: var(--font-size-base);
-		color: var(--text-muted);
+		font-family: var(--font-mono);
+		font-size: var(--font-size-sm);
+		font-variant-numeric: tabular-nums;
+		color: var(--text-primary);
 	}
 
-	/* Responsive adjustments */
 	@media (max-width: 640px) {
 		.stats-grid {
 			grid-template-columns: 1fr;
-		}
-
-		.stat-value {
-			font-size: var(--font-size-3xl);
 		}
 
 		.breakdown-section {
@@ -459,7 +443,6 @@
 		}
 	}
 
-	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
 		.breakdown-fill,
 		.arbiter-stat-fill {
@@ -467,13 +450,10 @@
 		}
 	}
 
-	/* Arbiter section */
 	.arbiter-section {
-		background: var(--surface-card-elevated);
-		backdrop-filter: blur(var(--glass-blur-md));
-		border-radius: var(--radius-xl);
-		border: 1px solid color-mix(in oklab, var(--color-warning-500) 20%, transparent);
-		box-shadow: var(--elevation-card);
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
+		border-top: 2px solid var(--color-warning-500);
 		overflow: hidden;
 	}
 
@@ -519,9 +499,8 @@
 
 	.arbiter-stat-bar {
 		position: relative;
-		height: 8px;
-		background: var(--surface-hover);
-		border-radius: var(--radius-xs);
+		height: 6px;
+		background: var(--surface-subtle);
 		overflow: hidden;
 	}
 
@@ -531,28 +510,23 @@
 		left: 0;
 		height: 100%;
 		width: var(--progress);
-		border-radius: var(--radius-xs);
 		transition: width var(--timing-slow) var(--easing-default);
 	}
 
 	.arbiter-stat-fill.model-a {
-		background: linear-gradient(90deg, var(--color-success-500), var(--color-success-400));
+		background: var(--sentiment-polarity-very-positive);
 	}
 
 	.arbiter-stat-fill.model-b {
-		background: linear-gradient(90deg, var(--color-primary-500), var(--color-primary-400));
+		background: var(--sentiment-comparison-light);
 	}
 
 	.arbiter-stat-fill.equal {
-		background: linear-gradient(90deg, var(--color-secondary-500), var(--color-secondary-400));
+		background: var(--sentiment-arbiter);
 	}
 
 	.arbiter-stat-fill.neither {
-		background: linear-gradient(
-			90deg,
-			var(--sentiment-polarity-na),
-			color-mix(in oklab, var(--sentiment-polarity-na) 70%, white)
-		);
+		background: var(--sentiment-polarity-na);
 	}
 
 	.arbiter-stat-info {
@@ -577,9 +551,8 @@
 		padding: var(--space-3) var(--space-4);
 		font-size: var(--font-size-sm);
 		color: var(--text-secondary);
-		background: color-mix(in oklab, var(--color-warning-500) 8%, transparent);
-		border-radius: var(--radius-md);
-		border-left: 3px solid var(--color-warning-500);
+		background: color-mix(in oklab, var(--color-warning-500) 6%, transparent);
+		border: 1px solid color-mix(in oklab, var(--color-warning-500) 22%, transparent);
 	}
 
 	@media (max-width: 640px) {

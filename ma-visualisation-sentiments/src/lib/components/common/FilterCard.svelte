@@ -88,14 +88,11 @@
 <style>
 	.filter-card {
 		background: var(--surface-card);
-		backdrop-filter: blur(var(--glass-blur-md));
 		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-lg);
 		padding: var(--space-4);
 		box-shadow: var(--elevation-card);
-		transition:
-			border-color var(--timing-fast) var(--easing-default),
-			box-shadow var(--timing-normal) var(--easing-default);
+		transition: border-color var(--timing-fast) var(--easing-default);
 	}
 
 	.filter-card:hover {

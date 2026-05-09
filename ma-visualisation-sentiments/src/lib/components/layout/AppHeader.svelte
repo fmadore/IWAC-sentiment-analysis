@@ -96,12 +96,10 @@
 </header>
 
 <style>
-	/* App Header Container */
+	/* App Header — opaque editorial bar, no backdrop blur. */
 	.app-header {
 		z-index: var(--z-header);
-		background: color-mix(in oklab, var(--color-surface-900) 78%, transparent);
-		backdrop-filter: blur(var(--glass-blur-lg));
-		-webkit-backdrop-filter: blur(var(--glass-blur-lg));
+		background: var(--app-bg-elevated);
 		border-bottom: 1px solid var(--border-subtle);
 		box-shadow: var(--elevation-sticky);
 		position: sticky;
@@ -181,20 +179,25 @@
 		gap: var(--space-0-5);
 	}
 
+	/* Brand: Source Serif 4 for the project name (reads as "research artefact"
+	   not "product name"); JetBrains Mono for the subtitle (wire-service caption). */
 	.brand-title {
+		font-family: var(--font-display);
 		font-size: var(--font-size-xl);
-		font-weight: var(--font-weight-semibold);
+		font-weight: 700;
 		color: var(--text-primary);
 		line-height: var(--line-height-tight);
 		letter-spacing: var(--tracking-tight);
 	}
 
 	.brand-subtitle {
+		font-family: var(--font-mono);
 		font-size: var(--font-size-xs);
-		font-weight: var(--font-weight-medium);
+		font-weight: 400;
 		color: var(--text-muted);
 		line-height: var(--line-height-snug);
-		max-width: 280px;
+		letter-spacing: var(--tracking-normal);
+		max-width: 320px;
 	}
 
 	/* Fullscreen Button */

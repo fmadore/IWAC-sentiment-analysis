@@ -176,9 +176,7 @@
 	}
 </script>
 
-<div
-	class="arbiter-section card variant-glass glass-heavy p-5 hover-lift-sm border-gradient arbiter-gradient"
->
+<div class="arbiter-section">
 	<!-- Header with toggle -->
 	<button
 		class="arbiter-header w-full flex items-center justify-between gap-3 mb-4"
@@ -220,7 +218,7 @@
 			</div>
 		{:else if arbiterData}
 			<!-- Overall Verdict -->
-			<div class="card variant-glass glass-dark p-4 mb-4 border-l-4 border-l-amber-400/50">
+			<div class="overall-verdict-panel">
 				<div class="flex items-start gap-3">
 					<SparklesIcon size={20} class="text-amber-400 mt-1 flex-shrink-0" />
 					<div>
@@ -382,41 +380,16 @@
 </div>
 
 <style>
-	/* Arbiter section — uses the shared card surface with an arbiter-tinted gradient */
 	.arbiter-section {
-		position: relative;
-		overflow: hidden;
-		border-radius: var(--radius-2xl);
-	}
-
-	.arbiter-section::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		height: 2px;
-		background: linear-gradient(
-			90deg,
-			var(--sentiment-arbiter),
-			var(--sentiment-arbiter-light),
-			var(--sentiment-arbiter)
-		);
-		opacity: 0.75;
-	}
-
-	.arbiter-gradient {
-		background: linear-gradient(
-			135deg,
-			var(--surface-card-elevated),
-			color-mix(in oklab, var(--sentiment-arbiter) 4%, var(--surface-card-elevated))
-		) !important;
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
+		border-top: 2px solid var(--sentiment-arbiter);
+		padding: var(--space-5);
 	}
 
 	.arbiter-header {
 		cursor: pointer;
 		transition: background-color var(--timing-fast) var(--easing-default);
-		border-radius: var(--radius-md);
 		padding: var(--space-2);
 		margin: calc(-1 * var(--space-2));
 	}
@@ -429,49 +402,51 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: var(--size-control-lg);
-		height: var(--size-control-lg);
-		border-radius: var(--radius-lg);
-		background: var(--sentiment-arbiter-icon-bg);
+		width: var(--size-control-md);
+		height: var(--size-control-md);
 		border: 1px solid var(--sentiment-arbiter-border);
+		background: var(--sentiment-arbiter-bg);
+	}
+
+	.overall-verdict-panel {
+		background: var(--surface-subtle);
+		border: 1px solid var(--border-subtle);
+		border-top: 2px solid var(--sentiment-arbiter);
+		padding: var(--space-4);
+		margin-bottom: var(--space-4);
 	}
 
 	.arbiter-verdict-panel {
-		border: 1px solid color-mix(in oklab, var(--sentiment-arbiter) 15%, transparent);
-		border-radius: var(--radius-lg);
+		border: 1px solid var(--border-subtle);
 		padding: var(--space-4);
-		background: color-mix(in oklab, var(--sentiment-arbiter) 3%, transparent);
-		transition:
-			background-color var(--timing-fast) var(--easing-default),
-			border-color var(--timing-fast) var(--easing-default);
+		background: var(--surface-subtle);
+		transition: border-color var(--timing-fast) var(--easing-default);
 	}
 
 	.arbiter-verdict-panel:hover {
-		border-color: color-mix(in oklab, var(--sentiment-arbiter) 25%, transparent);
-		background: color-mix(in oklab, var(--sentiment-arbiter) 5%, transparent);
+		border-color: var(--sentiment-arbiter-border);
 	}
 
-	/* Component-local badge overrides (compact) */
 	.badge {
-		padding: var(--space-1-5) var(--space-3);
-		font-size: var(--font-size-xs);
-		font-weight: var(--font-weight-semibold);
-		border-radius: var(--radius-full);
+		padding: var(--space-1) var(--space-2-5);
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		border-radius: 0;
 		border: 1px solid var(--border-default);
 		cursor: default;
 	}
 
 	.badge-sm {
-		padding: var(--space-1) var(--space-2);
-		font-size: var(--font-size-2xs);
-		font-weight: var(--font-weight-medium);
+		padding: var(--space-0-5) var(--space-2);
+		font-size: 0.625rem;
 	}
 
-	/* Loading spinner */
 	.loading-spinner {
 		width: var(--size-icon-lg);
 		height: var(--size-icon-lg);
-		border: 2px solid var(--surface-active);
+		border: 2px solid var(--border-subtle);
 		border-top-color: var(--sentiment-arbiter);
 		border-radius: var(--radius-full);
 		animation: spin 0.9s linear infinite;
@@ -483,19 +458,6 @@
 		}
 	}
 
-	/* Hover effects */
-	:global(.hover-lift-sm:hover) {
-		transform: translateY(-2px);
-		box-shadow: var(--elevation-card-hover);
-		border-color: var(--border-hover);
-	}
-
-	:global(.border-gradient) {
-		position: relative;
-		border: 1px solid var(--border-subtle);
-	}
-
-	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
 		.arbiter-header,
 		.arbiter-verdict-panel,

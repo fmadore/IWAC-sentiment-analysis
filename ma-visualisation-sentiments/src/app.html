@@ -81,12 +81,18 @@
 			}
 		</script>
 
-		<!-- Font preloading to prevent CLS -->
+		<!--
+			Editorial typography pairing for an investigative-data-journalism feel:
+			- Source Serif 4: display headings, brand title, view titles
+			- Public Sans:    body, UI, labels (wire-service neutral)
+			- JetBrains Mono: eyebrows, tabular numbers, methodology metadata
+			Pre-connect + preload + onload-swap to avoid render-blocking.
+		-->
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
 			rel="preload"
-			href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap"
+			href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400..800;1,400..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..800;1,8..60,400..800&family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&display=swap"
 			as="style"
 			onload="
 				this.onload = null;
@@ -96,7 +102,7 @@
 		<noscript
 			><link
 				rel="stylesheet"
-				href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap"
+				href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400..800;1,400..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..800;1,8..60,400..800&family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&display=swap"
 		/></noscript>
 
 		<!-- Font display fallbacks to prevent invisible text -->
@@ -146,35 +152,6 @@
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover" data-theme="cerberus">
-		<!-- GitHub Pages SPA redirect restoration script -->
-		<script>
-			(function () {
-				// Check if we have a redirect stored from 404.html
-				var redirectData = sessionStorage.getItem('spa-redirect');
-				if (redirectData) {
-					sessionStorage.removeItem('spa-redirect');
-					try {
-						var data = JSON.parse(redirectData);
-						var newUrl = window.location.pathname;
-
-						// Reconstruct the URL with query params and hash
-						if (data.search) {
-							newUrl += data.search;
-						}
-						if (data.hash) {
-							newUrl += data.hash;
-						}
-
-						// Use replaceState to restore the original URL without reload
-						if (data.search || data.hash) {
-							window.history.replaceState(null, '', newUrl);
-						}
-					} catch (e) {
-						console.error('Failed to parse SPA redirect data:', e);
-					}
-				}
-			})();
-		</script>
 		<div class="app-container">%sveltekit.body%</div>
 	</body>
 </html>

@@ -167,7 +167,6 @@
 		padding: 0 var(--space-3);
 		border-radius: var(--radius-lg);
 		background: var(--surface-subtle);
-		backdrop-filter: blur(var(--glass-blur-sm));
 		border: 1px solid var(--border-default);
 		color: var(--text-primary);
 		cursor: pointer;
@@ -220,10 +219,9 @@
 		top: calc(100% + var(--space-2));
 		left: 0;
 		min-width: var(--menu-min-width);
-		background: color-mix(in oklab, var(--color-surface-900) 94%, transparent);
-		backdrop-filter: blur(var(--glass-blur-lg));
+		background: var(--surface-card-elevated);
 		border: 1px solid var(--border-default);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-md);
 		box-shadow: var(--elevation-modal);
 		overflow: hidden;
 		animation: dropdownFadeIn var(--timing-fast) var(--easing-default);

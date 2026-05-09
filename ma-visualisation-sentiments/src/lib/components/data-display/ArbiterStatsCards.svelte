@@ -182,76 +182,50 @@
 		align-items: flex-start;
 		gap: var(--space-4);
 		padding: var(--space-5);
-		border-radius: var(--radius-xl);
-		background: var(--surface-card-hover);
-		backdrop-filter: blur(var(--glass-blur-md));
-		border: 1px solid var(--border-default);
-		transition:
-			border-color var(--timing-fast) var(--easing-default),
-			transform var(--timing-fast) var(--easing-default);
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
+		transition: border-color var(--timing-fast) var(--easing-default);
 	}
 
 	.stat-card:hover {
 		border-color: var(--border-hover);
-		transform: translateY(-2px);
 	}
 
 	.stat-icon {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: var(--size-control-xl);
-		height: var(--size-control-xl);
-		border-radius: var(--radius-xl);
+		width: var(--size-control-md);
+		height: var(--size-control-md);
 		flex-shrink: 0;
 	}
 
 	.stat-icon.evaluations {
-		background: linear-gradient(
-			135deg,
-			var(--sentiment-polarity-neutral-bg),
-			color-mix(in oklab, var(--sentiment-polarity-neutral) 10%, transparent)
-		);
+		background: var(--sentiment-polarity-neutral-bg);
 		color: var(--sentiment-polarity-neutral);
 		border: 1px solid var(--sentiment-polarity-neutral-border);
 	}
 
 	.stat-icon.model-a {
-		background: linear-gradient(
-			135deg,
-			var(--sentiment-polarity-very-positive-bg),
-			color-mix(in oklab, var(--sentiment-polarity-very-positive) 10%, transparent)
-		);
+		background: var(--sentiment-polarity-very-positive-bg);
 		color: var(--sentiment-polarity-very-positive);
 		border: 1px solid var(--sentiment-polarity-very-positive-border);
 	}
 
 	.stat-icon.model-b {
-		background: linear-gradient(
-			135deg,
-			var(--sentiment-subjectivity-3-bg),
-			color-mix(in oklab, var(--sentiment-subjectivity-3) 10%, transparent)
-		);
+		background: var(--sentiment-subjectivity-3-bg);
 		color: var(--sentiment-subjectivity-3);
 		border: 1px solid var(--sentiment-subjectivity-3-border);
 	}
 
 	.stat-icon.equal {
-		background: linear-gradient(
-			135deg,
-			var(--sentiment-arbiter-bg),
-			color-mix(in oklab, var(--sentiment-arbiter-light) 10%, transparent)
-		);
+		background: var(--sentiment-arbiter-bg);
 		color: var(--sentiment-arbiter-light);
 		border: 1px solid var(--sentiment-arbiter-border);
 	}
 
 	.stat-icon.neither {
-		background: linear-gradient(
-			135deg,
-			var(--sentiment-polarity-na-bg),
-			color-mix(in oklab, var(--sentiment-polarity-na) 10%, transparent)
-		);
+		background: var(--sentiment-polarity-na-bg);
 		color: var(--sentiment-polarity-na);
 		border: 1px solid var(--sentiment-polarity-na-border);
 	}
@@ -268,16 +242,23 @@
 	}
 
 	.stat-value {
-		font-size: 1.75rem; /* between 3xl and 4xl */
-		font-weight: var(--font-weight-bold);
+		font-family: var(--font-display);
+		font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem);
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
 		color: var(--text-primary);
-		line-height: var(--line-height-tight);
+		line-height: 1;
+		letter-spacing: -0.02em;
 	}
 
 	.stat-label {
-		font-size: var(--font-size-sm);
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
 		color: var(--text-muted);
-		margin-top: var(--space-0-5);
+		margin-top: var(--space-2);
 	}
 
 	.stat-percentage {
@@ -292,8 +273,7 @@
 		justify-content: center;
 		gap: var(--space-2);
 		padding: var(--space-3) var(--space-4);
-		border-radius: var(--radius-xl);
-		background: color-mix(in oklab, var(--sentiment-arbiter) 10%, transparent);
+		background: var(--sentiment-arbiter-bg);
 		border: 1px solid var(--sentiment-arbiter-border);
 	}
 
@@ -312,13 +292,10 @@
 		color: var(--sentiment-arbiter-light);
 	}
 
-	/* Head-to-Head Comparison Section */
 	.comparison-section {
 		padding: var(--space-5);
-		border-radius: var(--radius-xl);
-		background: var(--surface-card-hover);
-		backdrop-filter: blur(var(--glass-blur-md));
-		border: 1px solid var(--border-default);
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
 	}
 
 	.comparison-header {
@@ -406,23 +383,11 @@
 	}
 
 	.model-a-segment {
-		background: linear-gradient(
-			90deg,
-			var(--sentiment-polarity-very-positive),
-			color-mix(
-				in oklab,
-				var(--sentiment-polarity-very-positive) 80%,
-				var(--sentiment-polarity-positive)
-			)
-		);
+		background: var(--sentiment-polarity-very-positive);
 	}
 
 	.model-b-segment {
-		background: linear-gradient(
-			90deg,
-			color-mix(in oklab, var(--sentiment-subjectivity-3) 80%, var(--sentiment-subjectivity-4)),
-			var(--sentiment-subjectivity-3)
-		);
+		background: var(--sentiment-subjectivity-3);
 	}
 
 	.comparison-counts {

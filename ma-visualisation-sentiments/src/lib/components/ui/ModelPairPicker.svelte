@@ -173,11 +173,10 @@
 		top: calc(100% + var(--space-1));
 		left: 0;
 		min-width: 200px;
-		background: color-mix(in oklab, var(--color-surface-900) 95%, transparent);
-		border: 1px solid var(--border-hover);
-		border-radius: var(--radius-md);
+		background: var(--surface-card-elevated);
+		border: 1px solid var(--border-default);
+		border-radius: var(--radius-sm);
 		box-shadow: var(--shadow-lg);
-		backdrop-filter: blur(var(--glass-blur-lg));
 		z-index: var(--z-dropdown);
 		overflow: hidden;
 		padding: var(--space-1);

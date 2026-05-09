@@ -73,8 +73,7 @@
 		align-items: center;
 		justify-content: center;
 		padding: var(--space-4);
-		background: color-mix(in oklab, var(--color-surface-950) 85%, transparent);
-		backdrop-filter: blur(var(--glass-blur-sm));
+		background: color-mix(in oklab, black 70%, transparent);
 		animation: fadeIn var(--timing-fast) var(--easing-default);
 	}
 
@@ -94,12 +93,9 @@
 		display: flex;
 		flex-direction: column;
 		background: var(--surface-card-elevated);
-		backdrop-filter: blur(var(--glass-blur-lg));
 		border: 1px solid var(--border-default);
-		border-radius: var(--radius-2xl);
-		box-shadow:
-			0 16px 64px color-mix(in oklab, black 30%, transparent),
-			0 0 40px color-mix(in oklab, var(--color-primary-500) 10%, transparent);
+		border-radius: var(--radius-md);
+		box-shadow: var(--shadow-xl);
 		animation: scaleIn var(--timing-normal) var(--easing-default);
 		overflow: hidden;
 	}
@@ -122,14 +118,7 @@
 		left: 0;
 		right: 0;
 		height: 2px;
-		background: linear-gradient(
-			90deg,
-			transparent,
-			var(--color-primary-500),
-			var(--color-secondary-500),
-			transparent
-		);
-		opacity: 0.6;
+		background: var(--chrome-accent);
 	}
 
 	.prompt-modal-header {
@@ -174,7 +163,6 @@
 		background: var(--surface-active);
 		border-color: var(--border-hover);
 		color: var(--text-primary);
-		transform: translateY(-1px);
 	}
 
 	.prompt-modal-body {
@@ -192,22 +180,24 @@
 	}
 
 	.close-btn {
-		padding: var(--space-2) var(--space-5);
-		font-size: var(--font-size-base);
-		font-weight: var(--font-weight-medium);
-		background: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
-		border: none;
-		border-radius: var(--radius-md);
-		color: white;
+		padding: var(--space-2) var(--space-4);
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		background: var(--chrome-accent);
+		border: 1px solid var(--chrome-accent);
+		color: var(--app-bg);
 		cursor: pointer;
 		transition:
-			transform var(--timing-fast) var(--easing-default),
-			box-shadow var(--timing-fast) var(--easing-default);
+			background-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
 	}
 
 	.close-btn:hover {
-		transform: translateY(-1px);
-		box-shadow: 0 4px 12px color-mix(in oklab, var(--color-primary-500) 30%, transparent);
+		background: var(--text-primary);
+		border-color: var(--text-primary);
 	}
 
 	@media (max-width: 640px) {

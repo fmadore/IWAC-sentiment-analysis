@@ -278,7 +278,7 @@
 	<div
 		bind:this={chartContainer}
 		style="height: {isMobile ? '500px' : '600px'}; position: relative;"
-		class="chart-container glass-medium rounded-lg p-2 sm:p-4"
+		class="chart-container p-2 sm:p-4"
 	>
 		<Chart {init} {options} />
 	</div>
