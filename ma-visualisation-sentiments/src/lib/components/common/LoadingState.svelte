@@ -157,10 +157,7 @@
 		gap: var(--space-3);
 		padding: var(--space-4) var(--space-5);
 		background: var(--surface-card);
-		backdrop-filter: blur(var(--glass-blur-md));
 		border: 1px solid color-mix(in oklab, var(--color-primary-500) 22%, transparent);
-		border-radius: var(--radius-xl);
-		box-shadow: var(--elevation-card);
 	}
 
 	.loading-icon {

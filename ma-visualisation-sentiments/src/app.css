@@ -3,14 +3,30 @@
 @import '@skeletonlabs/skeleton/themes/cerberus';
 
 /* =============================================================================
-   IWAC SENTIMENT ANALYSIS - DESIGN SYSTEM
-   Optimized for Skeleton UI v4 + Tailwind CSS v4
+   IWAC SENTIMENT ANALYSIS — DESIGN SYSTEM
+   Investigative-data-journalism aesthetic. Dark only. Editorial type, restrained
+   chrome, opaque surfaces, perceptually-uniform sentiment palettes in OKLCH.
+   See REFACTORING-ROADMAP.md for the active design refactor.
    ============================================================================= */
 
 /* -----------------------------------------------------------------------------
-   CSS Custom Properties - Only project-specific additions
+   CSS Custom Properties
    ----------------------------------------------------------------------------- */
 :root {
+	/* ==========================================================================
+	   TYPOGRAPHY — editorial pairing
+	   - Source Serif 4: display headings, brand title, view titles
+	   - Public Sans:    body, UI, paragraph
+	   - JetBrains Mono: eyebrows, tabular numerals when emphasized, methodology
+	   ========================================================================== */
+	--font-display: 'Source Serif 4', 'Source Serif Pro', Georgia, 'Times New Roman', Times, serif;
+	--font-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	--font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+	/* Skeleton Cerberus expects --base-font-family — point it at our sans */
+	--base-font-family: var(--font-sans);
+	--heading-font-family: var(--font-display);
+
 	/* ==========================================================================
 	   MOTION
 	   ========================================================================== */
@@ -18,269 +34,348 @@
 	--timing-fast: 150ms;
 	--timing-normal: 220ms;
 	--timing-slow: 320ms;
-	--easing-default: cubic-bezier(0.32, 0.72, 0, 1); /* Apple-style out-expo */
+	--easing-default: cubic-bezier(0.32, 0.72, 0, 1); /* out-expo */
 	--easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
 	--easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
 
-	/* Glass blur intensities */
-	--glass-blur-sm: 8px;
-	--glass-blur-md: 16px;
-	--glass-blur-lg: 24px;
-	--glass-blur-xl: 36px;
+	/* ==========================================================================
+	   SENTIMENT PALETTES — perceptually-uniform OKLCH ramps
+	   Construction principles:
+	   - Polarity: diverging red ↔ green through low-chroma blue (neutral)
+	     Equal lightness at the poles so a 'Très négatif' bar reads no
+	     brighter than a 'Très positif' bar at equal area.
+	   - Subjectivity: single-hue lightness ramp from cool desaturated to warm.
+	     Score 1 (objective) is cool/calm; score 5 (subjective) is warm/loud.
+	   - Centrality: single-hue amber ramp by lightness/chroma.
+	   ========================================================================== */
+
+	/* --- Polarity (diverging) --- */
+	--sentiment-polarity-very-negative: oklch(0.62 0.2 25);
+	--sentiment-polarity-very-negative-bg: color-mix(
+		in oklab,
+		var(--sentiment-polarity-very-negative) 18%,
+		transparent
+	);
+	--sentiment-polarity-very-negative-border: color-mix(
+		in oklab,
+		var(--sentiment-polarity-very-negative) 36%,
+		transparent
+	);
+
+	--sentiment-polarity-negative: oklch(0.7 0.14 25);
+	--sentiment-polarity-negative-bg: color-mix(
+		in oklab,
+		var(--sentiment-polarity-negative) 16%,
+		transparent
+	);
+	--sentiment-polarity-negative-border: color-mix(
+		in oklab,
+		var(--sentiment-polarity-negative) 32%,
+		transparent
+	);
+
+	--sentiment-polarity-neutral: oklch(0.66 0.045 250);
+	--sentiment-polarity-neutral-bg: color-mix(
+		in oklab,
+		var(--sentiment-polarity-neutral) 16%,
+		transparent
+	);
+	--sentiment-polarity-neutral-border: color-mix(
+		in oklab,
+		var(--sentiment-polarity-neutral) 32%,
+		transparent
+	);
+
+	--sentiment-polarity-positive: oklch(0.7 0.13 150);
+	--sentiment-polarity-positive-bg: color-mix(
+		in oklab,
+		var(--sentiment-polarity-positive) 16%,
+		transparent
+	);
+	--sentiment-polarity-positive-border: color-mix(
+		in oklab,
+		var(--sentiment-polarity-positive) 32%,
+		transparent
+	);
+
+	--sentiment-polarity-very-positive: oklch(0.62 0.18 150);
+	--sentiment-polarity-very-positive-bg: color-mix(
+		in oklab,
+		var(--sentiment-polarity-very-positive) 18%,
+		transparent
+	);
+	--sentiment-polarity-very-positive-border: color-mix(
+		in oklab,
+		var(--sentiment-polarity-very-positive) 36%,
+		transparent
+	);
+
+	--sentiment-polarity-na: oklch(0.55 0.01 260);
+	--sentiment-polarity-na-bg: color-mix(in oklab, var(--sentiment-polarity-na) 14%, transparent);
+	--sentiment-polarity-na-border: color-mix(
+		in oklab,
+		var(--sentiment-polarity-na) 28%,
+		transparent
+	);
+
+	/* --- Subjectivity (Score 1→5, sequential cool→warm by lightness) --- */
+	--sentiment-subjectivity-1: oklch(0.72 0.06 220); /* objective: cool, calm */
+	--sentiment-subjectivity-2: oklch(0.7 0.085 200);
+	--sentiment-subjectivity-3: oklch(0.68 0.09 130); /* mixed: muted green-yellow */
+	--sentiment-subjectivity-4: oklch(0.68 0.13 60);
+	--sentiment-subjectivity-5: oklch(0.66 0.17 35); /* subjective: warm, loud */
+
+	--sentiment-subjectivity-1-bg: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-1) 16%,
+		transparent
+	);
+	--sentiment-subjectivity-1-border: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-1) 32%,
+		transparent
+	);
+	--sentiment-subjectivity-2-bg: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-2) 16%,
+		transparent
+	);
+	--sentiment-subjectivity-2-border: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-2) 32%,
+		transparent
+	);
+	--sentiment-subjectivity-3-bg: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-3) 16%,
+		transparent
+	);
+	--sentiment-subjectivity-3-border: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-3) 32%,
+		transparent
+	);
+	--sentiment-subjectivity-4-bg: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-4) 16%,
+		transparent
+	);
+	--sentiment-subjectivity-4-border: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-4) 32%,
+		transparent
+	);
+	--sentiment-subjectivity-5-bg: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-5) 16%,
+		transparent
+	);
+	--sentiment-subjectivity-5-border: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-5) 32%,
+		transparent
+	);
+
+	/* --- Centrality (sequential single-hue amber, more = brighter) --- */
+	--sentiment-centrality-not-addressed: oklch(0.42 0.005 80);
+	--sentiment-centrality-marginal: oklch(0.52 0.04 80);
+	--sentiment-centrality-secondary: oklch(0.62 0.075 80);
+	--sentiment-centrality-central: oklch(0.72 0.115 80);
+	--sentiment-centrality-very-central: oklch(0.82 0.14 80);
+
+	--sentiment-centrality-not-addressed-bg: color-mix(
+		in oklab,
+		var(--sentiment-centrality-not-addressed) 18%,
+		transparent
+	);
+	--sentiment-centrality-not-addressed-border: color-mix(
+		in oklab,
+		var(--sentiment-centrality-not-addressed) 36%,
+		transparent
+	);
+	--sentiment-centrality-marginal-bg: color-mix(
+		in oklab,
+		var(--sentiment-centrality-marginal) 16%,
+		transparent
+	);
+	--sentiment-centrality-marginal-border: color-mix(
+		in oklab,
+		var(--sentiment-centrality-marginal) 32%,
+		transparent
+	);
+	--sentiment-centrality-secondary-bg: color-mix(
+		in oklab,
+		var(--sentiment-centrality-secondary) 16%,
+		transparent
+	);
+	--sentiment-centrality-secondary-border: color-mix(
+		in oklab,
+		var(--sentiment-centrality-secondary) 32%,
+		transparent
+	);
+	--sentiment-centrality-central-bg: color-mix(
+		in oklab,
+		var(--sentiment-centrality-central) 16%,
+		transparent
+	);
+	--sentiment-centrality-central-border: color-mix(
+		in oklab,
+		var(--sentiment-centrality-central) 32%,
+		transparent
+	);
+	--sentiment-centrality-very-central-bg: color-mix(
+		in oklab,
+		var(--sentiment-centrality-very-central) 18%,
+		transparent
+	);
+	--sentiment-centrality-very-central-border: color-mix(
+		in oklab,
+		var(--sentiment-centrality-very-central) 36%,
+		transparent
+	);
+
+	/* --- Arbiter (verdicts/judge): warm amber, kept distinct from centrality
+	   by being more saturated. Used only in the arbiter view. --- */
+	--sentiment-arbiter: oklch(0.74 0.16 75);
+	--sentiment-arbiter-light: oklch(0.82 0.14 80);
+	--sentiment-arbiter-bg: color-mix(in oklab, var(--sentiment-arbiter) 14%, transparent);
+	--sentiment-arbiter-border: color-mix(in oklab, var(--sentiment-arbiter) 30%, transparent);
+
+	/* --- Comparison: muted steel-blue, pairs the two-model comparison views --- */
+	--sentiment-comparison: oklch(0.7 0.08 240);
+	--sentiment-comparison-light: oklch(0.78 0.06 240);
+	--sentiment-comparison-accent: oklch(0.74 0.12 320);
+	--sentiment-comparison-secondary: oklch(0.72 0.07 215);
+	--sentiment-comparison-bg: color-mix(in oklab, var(--sentiment-comparison) 14%, transparent);
+	--sentiment-comparison-border: color-mix(in oklab, var(--sentiment-comparison) 30%, transparent);
+
+	/* --- Discrepancy: reuses polarity-very-negative so disagreement reads as
+	   "negative signal", not as a new color category --- */
+	--sentiment-discrepancy: var(--sentiment-polarity-very-negative);
+	--sentiment-discrepancy-light: var(--sentiment-polarity-negative);
+	--sentiment-discrepancy-bg: var(--sentiment-polarity-very-negative-bg);
+	--sentiment-discrepancy-border: var(--sentiment-polarity-very-negative-border);
+
+	/* --- Extreme: reuses subjectivity-5 (warm/loud) so 'extreme' reads as
+	   intensity, not a separate brand --- */
+	--sentiment-extreme: var(--sentiment-subjectivity-5);
+	--sentiment-extreme-light: var(--sentiment-subjectivity-4);
+	--sentiment-extreme-accent: var(--sentiment-subjectivity-3);
+	--sentiment-extreme-bg: var(--sentiment-subjectivity-5-bg);
+	--sentiment-extreme-border: var(--sentiment-subjectivity-5-border);
 
 	/* ==========================================================================
-     SEMANTIC COLORS - Sentiment Analysis Color System
-     Consistent colors for polarity, subjectivity, and centrality across the app
+     PAGE BACKDROP — flat, slightly-cool dark grey. No radial brand glows.
      ========================================================================== */
-
-	/* --- Polarity Colors --- */
-	/* Very Positive: Bright green */
-	--sentiment-polarity-very-positive: #22c55e;
-	--sentiment-polarity-very-positive-bg: color-mix(in oklab, #22c55e 20%, transparent);
-	--sentiment-polarity-very-positive-border: color-mix(in oklab, #22c55e 35%, transparent);
-
-	/* Positive: Softer green */
-	--sentiment-polarity-positive: #4ade80;
-	--sentiment-polarity-positive-bg: color-mix(in oklab, #4ade80 15%, transparent);
-	--sentiment-polarity-positive-border: color-mix(in oklab, #4ade80 30%, transparent);
-
-	/* Neutral: Blue */
-	--sentiment-polarity-neutral: #3b82f6;
-	--sentiment-polarity-neutral-bg: color-mix(in oklab, #3b82f6 15%, transparent);
-	--sentiment-polarity-neutral-border: color-mix(in oklab, #3b82f6 30%, transparent);
-
-	/* Negative: Softer red */
-	--sentiment-polarity-negative: #f87171;
-	--sentiment-polarity-negative-bg: color-mix(in oklab, #f87171 15%, transparent);
-	--sentiment-polarity-negative-border: color-mix(in oklab, #f87171 30%, transparent);
-
-	/* Very Negative: Bright red */
-	--sentiment-polarity-very-negative: #ef4444;
-	--sentiment-polarity-very-negative-bg: color-mix(in oklab, #ef4444 20%, transparent);
-	--sentiment-polarity-very-negative-border: color-mix(in oklab, #ef4444 35%, transparent);
-
-	/* Not Applicable: Gray */
-	--sentiment-polarity-na: #6b7280;
-	--sentiment-polarity-na-bg: color-mix(in oklab, #6b7280 15%, transparent);
-	--sentiment-polarity-na-border: color-mix(in oklab, #6b7280 30%, transparent);
-
-	/* --- Subjectivity Colors (Score 1-5) --- */
-	/* 1 - Very Objective: Cyan/Teal */
-	--sentiment-subjectivity-1: #06b6d4;
-	--sentiment-subjectivity-1-bg: color-mix(in oklab, #06b6d4 20%, transparent);
-	--sentiment-subjectivity-1-border: color-mix(in oklab, #06b6d4 35%, transparent);
-
-	/* 2 - Rather Objective: Light blue */
-	--sentiment-subjectivity-2: #22d3ee;
-	--sentiment-subjectivity-2-bg: color-mix(in oklab, #22d3ee 15%, transparent);
-	--sentiment-subjectivity-2-border: color-mix(in oklab, #22d3ee 30%, transparent);
-
-	/* 3 - Mixed: Purple/Violet */
-	--sentiment-subjectivity-3: #8b5cf6;
-	--sentiment-subjectivity-3-bg: color-mix(in oklab, #8b5cf6 15%, transparent);
-	--sentiment-subjectivity-3-border: color-mix(in oklab, #8b5cf6 30%, transparent);
-
-	/* 4 - Rather Subjective: Orange */
-	--sentiment-subjectivity-4: #fb923c;
-	--sentiment-subjectivity-4-bg: color-mix(in oklab, #fb923c 15%, transparent);
-	--sentiment-subjectivity-4-border: color-mix(in oklab, #fb923c 30%, transparent);
-
-	/* 5 - Very Subjective: Deep orange/Red */
-	--sentiment-subjectivity-5: #f97316;
-	--sentiment-subjectivity-5-bg: color-mix(in oklab, #f97316 20%, transparent);
-	--sentiment-subjectivity-5-border: color-mix(in oklab, #f97316 35%, transparent);
-
-	/* --- Centrality Colors --- */
-	/* Very Central: Gold/Yellow */
-	--sentiment-centrality-very-central: #fbbf24;
-	--sentiment-centrality-very-central-bg: color-mix(in oklab, #fbbf24 20%, transparent);
-	--sentiment-centrality-very-central-border: color-mix(in oklab, #fbbf24 35%, transparent);
-
-	/* Central: Amber */
-	--sentiment-centrality-central: #fcd34d;
-	--sentiment-centrality-central-bg: color-mix(in oklab, #fcd34d 15%, transparent);
-	--sentiment-centrality-central-border: color-mix(in oklab, #fcd34d 30%, transparent);
-
-	/* Secondary: Slate/Gray-blue */
-	--sentiment-centrality-secondary: #94a3b8;
-	--sentiment-centrality-secondary-bg: color-mix(in oklab, #94a3b8 15%, transparent);
-	--sentiment-centrality-secondary-border: color-mix(in oklab, #94a3b8 30%, transparent);
-
-	/* Marginal: Cool gray */
-	--sentiment-centrality-marginal: #64748b;
-	--sentiment-centrality-marginal-bg: color-mix(in oklab, #64748b 15%, transparent);
-	--sentiment-centrality-marginal-border: color-mix(in oklab, #64748b 30%, transparent);
-
-	/* Not Addressed: Dark gray */
-	--sentiment-centrality-not-addressed: #475569;
-	--sentiment-centrality-not-addressed-bg: color-mix(in oklab, #475569 15%, transparent);
-	--sentiment-centrality-not-addressed-border: color-mix(in oklab, #475569 30%, transparent);
-
-	/* --- Arbiter Colors (AI Judge/Evaluator) --- */
-	/* Primary: Amber/Gold for AI arbiter elements */
-	--sentiment-arbiter: #f59e0b;
-	--sentiment-arbiter-light: #fbbf24;
-	--sentiment-arbiter-bg: color-mix(in oklab, #f59e0b 15%, transparent);
-	--sentiment-arbiter-border: color-mix(in oklab, #f59e0b 30%, transparent);
-	--sentiment-arbiter-icon-bg: linear-gradient(
-		135deg,
-		color-mix(in oklab, #f59e0b 20%, transparent),
-		color-mix(in oklab, #fbbf24 10%, transparent)
-	);
-
-	/* --- Comparison View Colors --- */
-	/* Primary: Purple/Pink for comparison elements */
-	--sentiment-comparison: #a78bfa;
-	--sentiment-comparison-light: #c4b5fd;
-	--sentiment-comparison-accent: #f472b6;
-	--sentiment-comparison-secondary: #60a5fa;
-	--sentiment-comparison-bg: color-mix(in oklab, #a78bfa 15%, transparent);
-	--sentiment-comparison-border: color-mix(in oklab, #a78bfa 30%, transparent);
-	--sentiment-comparison-icon-bg: linear-gradient(
-		135deg,
-		color-mix(in oklab, #a78bfa 20%, transparent),
-		color-mix(in oklab, #f472b6 10%, transparent)
-	);
-
-	/* --- Discrepancy Colors --- */
-	/* Used for comparison discrepancy indicators */
-	--sentiment-discrepancy: #ef4444;
-	--sentiment-discrepancy-light: #f97316;
-	--sentiment-discrepancy-bg: color-mix(in oklab, #ef4444 15%, transparent);
-	--sentiment-discrepancy-border: color-mix(in oklab, #ef4444 30%, transparent);
-
-	/* --- Extreme Analysis Colors --- */
-	/* Primary: Orange/Gold for extreme analysis elements */
-	--sentiment-extreme: #ff6b35;
-	--sentiment-extreme-light: #f7931e;
-	--sentiment-extreme-accent: #ffd23f;
-	--sentiment-extreme-bg: color-mix(in oklab, #ff6b35 15%, transparent);
-	--sentiment-extreme-border: color-mix(in oklab, #ff6b35 30%, transparent);
-	--sentiment-extreme-icon-bg: linear-gradient(
-		135deg,
-		color-mix(in oklab, #ff6b35 20%, transparent),
-		color-mix(in oklab, #f7931e 10%, transparent)
-	);
-
-	/* --- Chart View Colors --- */
-	/* Charts/Distribution view: Blue/Cyan */
-	--sentiment-charts: #3b82f6;
-	--sentiment-charts-light: #60a5fa;
-	--sentiment-charts-bg: color-mix(in oklab, #3b82f6 15%, transparent);
-	--sentiment-charts-border: color-mix(in oklab, #3b82f6 30%, transparent);
-	--sentiment-charts-icon-bg: linear-gradient(
-		135deg,
-		color-mix(in oklab, #3b82f6 20%, transparent),
-		color-mix(in oklab, #60a5fa 10%, transparent)
-	);
-
-	/* Trends view: Green/Teal */
-	--sentiment-trends: #10b981;
-	--sentiment-trends-light: #34d399;
-	--sentiment-trends-bg: color-mix(in oklab, #10b981 15%, transparent);
-	--sentiment-trends-border: color-mix(in oklab, #10b981 30%, transparent);
-	--sentiment-trends-icon-bg: linear-gradient(
-		135deg,
-		color-mix(in oklab, #10b981 20%, transparent),
-		color-mix(in oklab, #34d399 10%, transparent)
-	);
-
-	/* Volume view: Indigo/Purple */
-	--sentiment-volume: #6366f1;
-	--sentiment-volume-light: #818cf8;
-	--sentiment-volume-bg: color-mix(in oklab, #6366f1 15%, transparent);
-	--sentiment-volume-border: color-mix(in oklab, #6366f1 30%, transparent);
-	--sentiment-volume-icon-bg: linear-gradient(
-		135deg,
-		color-mix(in oklab, #6366f1 20%, transparent),
-		color-mix(in oklab, #818cf8 10%, transparent)
-	);
-
-	/* Heatmap view: Amber/Yellow (related to centrality) */
-	--sentiment-heatmap: #f59e0b;
-	--sentiment-heatmap-light: #fbbf24;
-	--sentiment-heatmap-bg: color-mix(in oklab, #f59e0b 15%, transparent);
-	--sentiment-heatmap-border: color-mix(in oklab, #f59e0b 30%, transparent);
-	--sentiment-heatmap-icon-bg: linear-gradient(
-		135deg,
-		color-mix(in oklab, #f59e0b 20%, transparent),
-		color-mix(in oklab, #fbbf24 10%, transparent)
-	);
-
-	/* Table view: Slate/Neutral */
-	--sentiment-table: #64748b;
-	--sentiment-table-light: #94a3b8;
-	--sentiment-table-bg: color-mix(in oklab, #64748b 15%, transparent);
-	--sentiment-table-border: color-mix(in oklab, #64748b 30%, transparent);
-	--sentiment-table-icon-bg: linear-gradient(
-		135deg,
-		color-mix(in oklab, #64748b 20%, transparent),
-		color-mix(in oklab, #94a3b8 10%, transparent)
-	);
-
-	/* Correlation/Distribution view: Pink/Rose */
-	--sentiment-correlation: #ec4899;
-	--sentiment-correlation-light: #f472b6;
-	--sentiment-correlation-bg: color-mix(in oklab, #ec4899 15%, transparent);
-	--sentiment-correlation-border: color-mix(in oklab, #ec4899 30%, transparent);
-	--sentiment-correlation-icon-bg: linear-gradient(
-		135deg,
-		color-mix(in oklab, #ec4899 20%, transparent),
-		color-mix(in oklab, #f472b6 10%, transparent)
-	);
-
-	/* --- Gradient Definitions --- */
-	/* Extreme Analysis gradient (orange/gold) */
-	--gradient-extreme: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ffd23f 100%);
-	/* Header gradient (blue/purple) */
-	--gradient-header: linear-gradient(90deg, var(--color-primary-500), var(--color-secondary-500));
-	/* Comparison gradient (blue/purple/pink) */
-	--gradient-comparison: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
-	/* Primary action gradient */
-	--gradient-primary: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
-	/* Chart view gradients */
-	--gradient-charts: linear-gradient(135deg, #3b82f6, #60a5fa, #06b6d4);
-	--gradient-trends: linear-gradient(135deg, #10b981, #34d399, #14b8a6);
-	--gradient-volume: linear-gradient(135deg, #6366f1, #818cf8, #a78bfa);
-	--gradient-heatmap: linear-gradient(135deg, #f59e0b, #fbbf24, #fcd34d);
-	--gradient-table: linear-gradient(135deg, #64748b, #94a3b8, #cbd5e1);
-	--gradient-correlation: linear-gradient(135deg, #ec4899, #f472b6, #a78bfa);
+	--app-bg: oklch(0.16 0.012 260);
+	--app-bg-elevated: oklch(0.19 0.014 260);
 
 	/* ==========================================================================
      DESIGN SYSTEM TOKENS
-     Reusable tokens for consistent styling across components
      ========================================================================== */
 
-	/* --- Surface/Interaction States (for controls and tints over dark bg) --- */
+	/* --- Tonal control surfaces (used inside cards, on top of --app-bg) --- */
 	--surface-muted: color-mix(in oklab, var(--color-surface-50) 4%, transparent);
 	--surface-subtle: color-mix(in oklab, var(--color-surface-50) 6%, transparent);
 	--surface-hover: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
 	--surface-active: color-mix(in oklab, var(--color-surface-50) 14%, transparent);
 	--surface-elevated: color-mix(in oklab, var(--color-surface-50) 18%, transparent);
 
-	/* --- Card Surfaces (semantic) --- */
-	/* Standard card panel over the app background */
-	--surface-card: color-mix(in oklab, var(--color-surface-900) 72%, transparent);
-	--surface-card-hover: color-mix(in oklab, var(--color-surface-900) 80%, transparent);
-	--surface-card-elevated: color-mix(in oklab, var(--color-surface-900) 85%, transparent);
+	/* --- Card Surfaces — OPAQUE editorial panels.
+	   Investigative dashboards earn gravitas from solid matte surfaces.
+	   No backdrop-filter: cards are flat. --- */
+	--surface-card: oklch(0.205 0.012 260);
+	--surface-card-hover: oklch(0.225 0.014 260);
+	--surface-card-elevated: oklch(0.235 0.015 260);
 	/* Nested panel inside a card */
-	--surface-nested: color-mix(in oklab, var(--color-surface-950) 55%, transparent);
-	--surface-nested-hover: color-mix(in oklab, var(--color-surface-950) 65%, transparent);
+	--surface-nested: oklch(0.175 0.011 260);
+	--surface-nested-hover: oklch(0.195 0.012 260);
 
 	/* --- Border States --- */
-	--border-subtle: color-mix(in oklab, var(--color-surface-50) 7%, transparent);
-	--border-default: color-mix(in oklab, var(--color-surface-50) 11%, transparent);
-	--border-hover: color-mix(in oklab, var(--color-surface-50) 18%, transparent);
-	--border-active: color-mix(in oklab, var(--color-surface-50) 24%, transparent);
-	--border-strong: color-mix(in oklab, var(--color-surface-50) 32%, transparent);
+	--border-subtle: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+	--border-default: color-mix(in oklab, var(--color-surface-50) 13%, transparent);
+	--border-hover: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+	--border-active: color-mix(in oklab, var(--color-surface-50) 28%, transparent);
+	--border-strong: color-mix(in oklab, var(--color-surface-50) 36%, transparent);
 
 	/* --- Text Colors --- */
-	--text-on-light: #0f172a; /* For text on light/bright backgrounds */
-	--text-primary: var(--color-surface-50);
-	--text-secondary: color-mix(in oklab, var(--color-surface-50) 82%, transparent);
-	--text-muted: color-mix(in oklab, var(--color-surface-50) 64%, transparent);
-	--text-subtle: color-mix(in oklab, var(--color-surface-50) 46%, transparent);
-	--text-disabled: color-mix(in oklab, var(--color-surface-50) 30%, transparent);
+	--text-on-light: oklch(0.18 0.014 260); /* For text on light/bright backgrounds */
+	--text-primary: oklch(0.97 0.005 260);
+	--text-secondary: color-mix(in oklab, var(--text-primary) 84%, transparent);
+	--text-muted: color-mix(in oklab, var(--text-primary) 64%, transparent);
+	--text-subtle: color-mix(in oklab, var(--text-primary) 46%, transparent);
+	--text-disabled: color-mix(in oklab, var(--text-primary) 30%, transparent);
+
+	/* --- Editorial accent — replaces Skeleton Cerberus's purple primary.
+	   A muted ochre/amber that reads as "investigative wire" rather than
+	   "brand". Used for the single primary action, focus rings, and the
+	   left-rail active rule on nav items. Never used for chart fills. --- */
+	--accent: oklch(0.78 0.13 80);
+	--accent-strong: oklch(0.72 0.15 78);
+	--accent-soft: color-mix(in oklab, var(--accent) 14%, transparent);
+	--accent-border: color-mix(in oklab, var(--accent) 32%, transparent);
+
+	/* Override Skeleton's Cerberus primary/secondary so any built-in component
+	   that inherits these reads in our voice. Cerberus exposes the shades
+	   --color-primary-{50..950} via its theme stylesheet; we override the
+	   ones any UI is likely to use. */
+	--color-primary-300: oklch(0.86 0.1 80);
+	--color-primary-400: oklch(0.82 0.12 80);
+	--color-primary-500: var(--accent);
+	--color-primary-600: var(--accent-strong);
+	--color-primary-700: oklch(0.66 0.15 76);
+	--color-secondary-300: oklch(0.8 0.06 240);
+	--color-secondary-400: oklch(0.74 0.07 240);
+	--color-secondary-500: oklch(0.66 0.08 240);
+	--color-secondary-600: oklch(0.58 0.08 240);
+
+	/* --- Prose width — caps body paragraphs at a comfortable read --- */
+	--prose-width: 65ch;
+
+	/* ==========================================================================
+	   BACK-COMPAT SHIMS
+	   Components still reference the pre-refactor tokens (per-view gradients,
+	   glass-blur sizes, glow shadows, color-tertiary, view icon-bg gradients).
+	   These shims map them all to the editorial vocabulary so the old code
+	   keeps working without an exhaustive sweep. Migrate callers opportunistically
+	   when you next touch the file. Do NOT introduce new references to these
+	   tokens — use the canonical ones instead.
+	   ========================================================================== */
+
+	/* glass-blur-* → 0 (we are flat now). Components that wrap their use in
+	   `backdrop-filter: blur(var(--glass-blur-md))` will resolve to blur(0)
+	   which is a no-op visually but valid CSS (no warnings). */
+	--glass-blur-sm: 0px;
+	--glass-blur-md: 0px;
+	--glass-blur-lg: 0px;
+	--glass-blur-xl: 0px;
+
+	/* Per-view "icon-bg" gradients → solid tinted surfaces. The decorative
+	   icon-tile pattern was retired in Phase 1 but a few callers still use
+	   these for chip/badge backgrounds. */
+	--sentiment-arbiter-icon-bg: var(--sentiment-arbiter-bg);
+	--sentiment-comparison-icon-bg: var(--sentiment-comparison-bg);
+	--sentiment-extreme-icon-bg: var(--sentiment-extreme-bg);
+
+	/* Multi-stop gradient tokens → solid editorial accents. Anything that was
+	   painted with these now reads as a solid colour. */
+	--gradient-primary: var(--accent);
+	--gradient-header: var(--accent);
+	--gradient-comparison: var(--sentiment-comparison);
+	--gradient-extreme: var(--sentiment-extreme);
+
+	/* Glow shadows → none. The "card with primary-coloured glow" effect was
+	   the most-flagged AI tell; resolve to no shadow. */
+	--shadow-glow-sm: none;
+	--shadow-glow-md: none;
+	--shadow-glow-lg: none;
+
+	/* Skeleton Cerberus exposes a tertiary palette we don't use. Map it to
+	   the secondary so existing references blend in rather than stand out. */
+	--color-tertiary-300: var(--color-secondary-300);
+	--color-tertiary-400: var(--color-secondary-400);
+	--color-tertiary-500: var(--color-secondary-500);
+	--color-tertiary-600: var(--color-secondary-600);
 
 	/* --- Spacing Scale (4px base) --- */
 	--space-0: 0;
@@ -301,27 +396,34 @@
 	--space-12: 3rem; /* 48px */
 	--space-16: 4rem; /* 64px */
 
-	/* --- Border Radius Scale --- */
-	--radius-xs: 0.25rem; /* 4px - tight tokens */
-	--radius-sm: 0.375rem; /* 6px - small elements */
-	--radius-md: 0.5rem; /* 8px - compact buttons, inputs */
-	--radius-lg: 0.625rem; /* 10px - pills, icon buttons */
-	--radius-xl: 0.75rem; /* 12px - cards, panels */
-	--radius-2xl: 1rem; /* 16px - elevated cards */
-	--radius-3xl: 1.25rem; /* 20px - hero sections */
-	--radius-full: 9999px; /* Pills, avatars */
+	/* --- Border Radius Scale ---
+	   Editorial direction: surfaces are square. The scale collapses to a
+	   near-flat 0–2px range so cards, panels, and chips read as documents,
+	   not rounded SaaS tiles. --radius-full is preserved for true circles
+	   (avatars, dot indicators, spinner ring borders) — pill elements
+	   should NOT use it; switch to --radius-sm or 0 instead. --- */
+	--radius-xs: 0;
+	--radius-sm: 1px;
+	--radius-md: 2px;
+	--radius-lg: 2px;
+	--radius-xl: 2px;
+	--radius-2xl: 2px;
+	--radius-3xl: 2px;
+	--radius-full: 9999px; /* Reserved for circles (avatars, dots), not pills */
 
-	/* --- Font Size Scale (fluid-ready) --- */
-	--font-size-2xs: 0.6875rem; /* 11px - tiny captions */
-	--font-size-xs: 0.75rem; /* 12px - captions, labels */
+	/* --- Font Size Scale — wider distance between display steps to give
+	   real hierarchy, not a flat ramp. Editorial type wants ~1.33× steps
+	   between display sizes; UI sizes stay tight. --- */
+	--font-size-2xs: 0.6875rem; /* 11px - kept for legacy callers, avoid in new code */
+	--font-size-xs: 0.75rem; /* 12px - captions, eyebrows, mono labels */
 	--font-size-sm: 0.8125rem; /* 13px - secondary text, chips */
-	--font-size-base: 0.875rem; /* 14px - body, controls */
-	--font-size-md: 0.9375rem; /* 15px - prominent body */
-	--font-size-lg: 1rem; /* 16px - emphasized body */
-	--font-size-xl: 1.125rem; /* 18px - card titles */
-	--font-size-2xl: 1.25rem; /* 20px - section titles */
-	--font-size-3xl: 1.5rem; /* 24px - display */
-	--font-size-4xl: 2rem; /* 32px - hero */
+	--font-size-base: 0.9375rem; /* 15px - body, controls */
+	--font-size-md: 0.9375rem; /* 15px - alias of base, kept for legacy callers */
+	--font-size-lg: 1.0625rem; /* 17px - emphasized body, lede */
+	--font-size-xl: 1.25rem; /* 20px - chart card title */
+	--font-size-2xl: 1.625rem; /* 26px - section title */
+	--font-size-3xl: 2.125rem; /* 34px - view title */
+	--font-size-4xl: 2.875rem; /* 46px - hero numeric */
 
 	/* --- Font Weight Scale --- */
 	--font-weight-regular: 400;
@@ -331,17 +433,18 @@
 	--font-weight-black: 800;
 
 	/* --- Line Heights --- */
-	--line-height-tight: 1.2;
+	--line-height-tight: 1.15;
 	--line-height-snug: 1.35;
-	--line-height-normal: 1.5;
-	--line-height-relaxed: 1.65;
+	--line-height-normal: 1.55;
+	--line-height-relaxed: 1.7;
 
-	/* --- Letter Spacing --- */
-	--tracking-tight: -0.02em;
-	--tracking-snug: -0.01em;
-	--tracking-normal: 0;
-	--tracking-wide: 0.02em;
-	--tracking-wider: 0.05em;
+	/* --- Letter Spacing — only display sizes get tight tracking.
+	   Body text reads better at 0; eyebrows/labels get wide. --- */
+	--tracking-tight: -0.018em; /* display ≥26px */
+	--tracking-snug: -0.008em; /* large UI 20–22px */
+	--tracking-normal: 0; /* body, chips, small UI */
+	--tracking-wide: 0.04em; /* labels */
+	--tracking-wider: 0.08em; /* eyebrows, small uppercase */
 
 	/* --- Icon Size Scale --- */
 	--size-icon-xs: 0.875rem; /* 14px */
@@ -390,72 +493,53 @@
 		0 8px 16px color-mix(in oklab, black 18%, transparent),
 		0 32px 64px color-mix(in oklab, black 28%, transparent);
 
-	/* Semantic elevation (layered with inner highlight for glass) */
-	--elevation-card:
-		0 1px 2px color-mix(in oklab, black 15%, transparent),
-		0 8px 24px color-mix(in oklab, black 18%, transparent),
-		inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 6%, transparent);
+	/* Semantic elevation. No inset highlight — that was a glassmorphism cue
+	   and panels are opaque now. Shadows are quieter on dark editorial UIs;
+	   the card differentiates by lightness step, not by drop shadow. */
+	--elevation-card: 0 1px 2px color-mix(in oklab, black 35%, transparent);
 	--elevation-card-hover:
-		0 2px 4px color-mix(in oklab, black 18%, transparent),
-		0 16px 40px color-mix(in oklab, black 24%, transparent),
-		inset 0 1px 0 color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+		0 1px 2px color-mix(in oklab, black 35%, transparent),
+		0 8px 24px color-mix(in oklab, black 22%, transparent);
 	--elevation-sticky:
-		0 1px 2px color-mix(in oklab, black 10%, transparent),
-		0 4px 20px color-mix(in oklab, black 16%, transparent);
+		0 1px 2px color-mix(in oklab, black 30%, transparent),
+		0 4px 14px color-mix(in oklab, black 22%, transparent);
 	--elevation-modal:
-		0 8px 16px color-mix(in oklab, black 24%, transparent),
-		0 32px 64px color-mix(in oklab, black 40%, transparent);
+		0 8px 16px color-mix(in oklab, black 36%, transparent),
+		0 32px 64px color-mix(in oklab, black 44%, transparent);
 
-	/* Focus ring (reusable) */
-	--ring-focus: 0 0 0 3px color-mix(in oklab, var(--color-primary-500) 35%, transparent);
+	/* Focus ring — uses the editorial accent (warm amber) */
+	--ring-focus: 0 0 0 3px color-mix(in oklab, var(--accent) 38%, transparent);
 	--ring-focus-error: 0 0 0 3px color-mix(in oklab, var(--color-error-500) 35%, transparent);
-
-	/* Glow shadows for primary actions — toned down vs before */
-	--shadow-glow-sm: 0 2px 10px color-mix(in oklab, var(--color-primary-500) 22%, transparent);
-	--shadow-glow-md: 0 4px 14px color-mix(in oklab, var(--color-primary-500) 25%, transparent);
-	--shadow-glow-lg: 0 6px 20px color-mix(in oklab, var(--color-primary-500) 30%, transparent);
 
 	/* Force dark scheme for this app */
 	color-scheme: dark;
 }
 
 /* -----------------------------------------------------------------------------
-   Base Styles
+   Base Styles — flat editorial dark surface, opaque, no ambient brand glow.
+   Tabular numerals enabled globally so columns of stats line up by default.
    ----------------------------------------------------------------------------- */
 html {
 	scroll-behavior: smooth;
 }
 
 body {
-	font-family:
-		'Inter',
-		system-ui,
-		-apple-system,
-		BlinkMacSystemFont,
-		'Segoe UI',
-		sans-serif;
-	font-feature-settings:
-		'cv11' 1,
-		'ss01' 1,
-		'ss03' 1;
+	font-family: var(--font-sans);
+	font-feature-settings: 'ss01' 1; /* Public Sans stylistic set 1: alt 'a' / 'g' */
+	font-variant-numeric: tabular-nums;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	text-rendering: optimizeLegibility;
 	color: var(--text-secondary);
-	background: oklch(0.17 0.02 265);
-	background-image:
-		radial-gradient(
-			ellipse 90% 70% at 10% -10%,
-			oklch(from var(--color-primary-500) l c h / 0.07) 0%,
-			transparent 60%
-		),
-		radial-gradient(
-			ellipse 80% 60% at 100% 100%,
-			oklch(from var(--color-secondary-500) l c h / 0.05) 0%,
-			transparent 65%
-		);
-	background-attachment: fixed;
+	background: var(--app-bg);
 	min-height: 100vh;
+}
+
+/* Display headings inherit the serif by default. Components can opt out via
+   font-family override when a sans heading is intentional. */
+h1,
+h2,
+h3 {
+	font-family: var(--font-display);
 }
 
 /* Enhanced focus styles for accessibility */
@@ -466,122 +550,149 @@ body {
 }
 
 ::selection {
-	background: color-mix(in oklab, var(--color-primary-500) 40%, transparent);
+	background: color-mix(in oklab, var(--accent) 35%, transparent);
 	color: var(--text-primary);
 }
 
 /* -----------------------------------------------------------------------------
-   Typography Presets (Skeleton Pattern)
-   Semantic typography classes for consistent text styling
+   Typography Presets — editorial pairing
    ----------------------------------------------------------------------------- */
 
-/* Display headings - hero sections and major titles */
+/* Display headings — Source Serif 4 at heavy display weight. Optical sizing
+   makes the largest cuts more characterful; the variable opsz axis matters. */
 .preset-typo-display-1 {
-	font-size: clamp(2.25rem, 4.5vw, 3.5rem);
-	font-weight: var(--font-weight-black);
+	font-family: var(--font-display);
+	font-size: clamp(2.5rem, 5vw, 3.75rem);
+	font-weight: 700;
 	line-height: var(--line-height-tight);
 	letter-spacing: var(--tracking-tight);
 	color: var(--text-primary);
+	font-variation-settings: 'opsz' 60;
 }
 
 .preset-typo-display-2 {
-	font-size: clamp(1.75rem, 3.5vw, 2.5rem);
-	font-weight: var(--font-weight-bold);
+	font-family: var(--font-display);
+	font-size: clamp(2rem, 3.8vw, 2.875rem);
+	font-weight: 700;
 	line-height: var(--line-height-tight);
 	letter-spacing: var(--tracking-tight);
 	color: var(--text-primary);
+	font-variation-settings: 'opsz' 48;
 }
 
-/* Headings - section titles */
+/* Section titles — still serif, slightly more sober */
 .preset-typo-heading-1 {
+	font-family: var(--font-display);
 	font-size: var(--font-size-3xl);
-	font-weight: var(--font-weight-semibold);
+	font-weight: 700;
 	line-height: var(--line-height-tight);
 	letter-spacing: var(--tracking-tight);
 	color: var(--text-primary);
 }
 
 .preset-typo-heading-2 {
+	font-family: var(--font-display);
 	font-size: var(--font-size-2xl);
-	font-weight: var(--font-weight-semibold);
+	font-weight: 600;
 	line-height: var(--line-height-snug);
-	letter-spacing: var(--tracking-snug);
+	letter-spacing: var(--tracking-tight);
 	color: var(--text-primary);
 }
 
 .preset-typo-heading-3 {
+	font-family: var(--font-display);
 	font-size: var(--font-size-xl);
-	font-weight: var(--font-weight-semibold);
+	font-weight: 600;
 	line-height: var(--line-height-snug);
 	letter-spacing: var(--tracking-snug);
 	color: var(--text-primary);
 }
 
+/* Heading-4 reads as a label rather than a true heading — keep it sans */
 .preset-typo-heading-4 {
-	font-size: var(--font-size-md);
-	font-weight: var(--font-weight-semibold);
+	font-family: var(--font-sans);
+	font-size: var(--font-size-base);
+	font-weight: 600;
 	line-height: var(--line-height-snug);
+	letter-spacing: var(--tracking-normal);
 	color: var(--text-primary);
 }
 
-/* Body text */
+/* Body text — Public Sans, body width capped via prose-width on parent */
 .preset-typo-body-lg {
+	font-family: var(--font-sans);
 	font-size: var(--font-size-lg);
 	line-height: var(--line-height-relaxed);
 	color: var(--text-secondary);
 }
 
 .preset-typo-body {
+	font-family: var(--font-sans);
 	font-size: var(--font-size-base);
 	line-height: var(--line-height-normal);
 	color: var(--text-secondary);
 }
 
 .preset-typo-body-sm {
+	font-family: var(--font-sans);
 	font-size: var(--font-size-sm);
 	line-height: var(--line-height-normal);
 	color: var(--text-secondary);
 }
 
-/* Caption and labels */
+/* Caption / label / eyebrow — JetBrains Mono. Eyebrows + small uppercase
+   are where the wire-service voice lives; the mono distinguishes them
+   from the serif headings and the sans body. */
 .preset-typo-caption {
+	font-family: var(--font-mono);
 	font-size: var(--font-size-xs);
 	line-height: var(--line-height-snug);
 	color: var(--text-muted);
 }
 
 .preset-typo-label {
-	font-size: var(--font-size-2xs);
-	font-weight: var(--font-weight-semibold);
+	font-family: var(--font-mono);
+	font-size: var(--font-size-xs);
+	font-weight: 500;
 	text-transform: uppercase;
 	letter-spacing: var(--tracking-wider);
 	color: var(--text-muted);
 }
 
 .preset-typo-eyebrow {
-	font-size: var(--font-size-2xs);
-	font-weight: var(--font-weight-semibold);
+	font-family: var(--font-mono);
+	font-size: var(--font-size-xs);
+	font-weight: 500;
 	text-transform: uppercase;
 	letter-spacing: var(--tracking-wider);
-	color: var(--color-primary-400);
+	color: var(--text-muted);
 }
 
 /* Menu and button text */
 .preset-typo-menu {
+	font-family: var(--font-sans);
 	font-size: var(--font-size-base);
-	font-weight: var(--font-weight-medium);
+	font-weight: 500;
 	color: var(--text-secondary);
 }
 
 .preset-typo-button {
+	font-family: var(--font-sans);
 	font-size: var(--font-size-base);
-	font-weight: var(--font-weight-semibold);
-	letter-spacing: var(--tracking-snug);
+	font-weight: 600;
+	letter-spacing: var(--tracking-normal);
 }
 
+/* Tabular numerals utility — body already enables them globally, but this
+   class is kept for explicit emphasis on numeric columns in tables. */
 .preset-typo-number {
 	font-variant-numeric: tabular-nums;
 	font-feature-settings: 'tnum' 1;
+}
+
+/* Prose width helper for paragraph blocks */
+.prose-bound {
+	max-width: var(--prose-width);
 }
 
 /* -----------------------------------------------------------------------------
@@ -625,82 +736,49 @@ body {
    Surface Presets
    Canonical card/panel backgrounds — use these instead of redefining in components.
    ----------------------------------------------------------------------------- */
-.preset-surface-card {
+/* Editorial surfaces — opaque panels, no backdrop-filter. The legacy
+   `.preset-glass-*` and `.glass-*` aliases now resolve to flat surfaces too,
+   so any component still using them gets the new look automatically. */
+.preset-surface-card,
+.preset-glass,
+.variant-glass,
+.glass-medium {
 	background: var(--surface-card);
-	backdrop-filter: blur(var(--glass-blur-md));
 	border: 1px solid var(--border-subtle);
 	border-radius: var(--radius-2xl);
 	box-shadow: var(--elevation-card);
 }
 
-.preset-surface-card-sm {
+.preset-surface-card-sm,
+.preset-glass-sm,
+.glass-light {
 	background: var(--surface-card);
-	backdrop-filter: blur(var(--glass-blur-sm));
 	border: 1px solid var(--border-subtle);
 	border-radius: var(--radius-xl);
 }
 
-.preset-surface-nested {
+.preset-surface-nested,
+.glass-dark {
 	background: var(--surface-nested);
 	border: 1px solid var(--border-subtle);
 	border-radius: var(--radius-xl);
 }
 
-/* Legacy glass aliases — kept for components that use them directly */
-.preset-glass,
-.variant-glass {
-	background: var(--surface-card);
-	backdrop-filter: blur(var(--glass-blur-md));
-	border: 1px solid var(--border-subtle);
-	box-shadow: var(--elevation-card);
-}
-
-.preset-glass-sm {
-	background: color-mix(in oklab, var(--color-surface-900) 60%, transparent);
-	backdrop-filter: blur(var(--glass-blur-sm));
-	border: 1px solid var(--border-subtle);
-}
-
-.preset-glass-lg {
+.preset-glass-lg,
+.glass-heavy {
 	background: var(--surface-card-elevated);
-	backdrop-filter: blur(var(--glass-blur-lg));
 	border: 1px solid var(--border-default);
 	box-shadow: var(--elevation-card-hover);
 }
 
-/* Glass with accent colors (for heroic / highlighted cards) */
 .preset-glass-primary {
-	background: color-mix(in oklab, var(--color-primary-500) 12%, var(--surface-card));
-	backdrop-filter: blur(var(--glass-blur-md));
-	border: 1px solid color-mix(in oklab, var(--color-primary-500) 22%, transparent);
+	background: color-mix(in oklab, var(--accent) 10%, var(--surface-card));
+	border: 1px solid var(--accent-border);
 }
 
 .preset-glass-secondary {
-	background: color-mix(in oklab, var(--color-secondary-500) 12%, var(--surface-card));
-	backdrop-filter: blur(var(--glass-blur-md));
+	background: color-mix(in oklab, var(--color-secondary-500) 10%, var(--surface-card));
 	border: 1px solid color-mix(in oklab, var(--color-secondary-500) 22%, transparent);
-}
-
-/* Glass intensity variants */
-.glass-light {
-	background: color-mix(in oklab, var(--color-surface-900) 48%, transparent);
-	backdrop-filter: blur(var(--glass-blur-sm));
-}
-
-.glass-medium {
-	background: var(--surface-card);
-	backdrop-filter: blur(var(--glass-blur-md));
-}
-
-.glass-heavy {
-	background: var(--surface-card-elevated);
-	backdrop-filter: blur(var(--glass-blur-lg));
-}
-
-.glass-dark {
-	background: var(--surface-nested);
-	backdrop-filter: blur(var(--glass-blur-lg));
-	border: 1px solid var(--border-subtle);
 }
 
 /* -----------------------------------------------------------------------------
@@ -723,26 +801,7 @@ body {
 }
 
 .card-hover:hover {
-	transform: translateY(-2px);
-	box-shadow: var(--elevation-card-hover);
 	border-color: var(--border-hover);
-}
-
-/* Card with top accent line */
-.card-accent {
-	position: relative;
-	overflow: hidden;
-}
-
-.card-accent::before {
-	content: '';
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	height: 2px;
-	background: var(--gradient-primary);
-	opacity: 0.7;
 }
 
 /* Interactive cards - respond to focus within for accessibility */
@@ -774,24 +833,17 @@ body {
 		transform var(--timing-fast) var(--easing-default);
 }
 
-.btn:hover:not(:disabled) {
-	transform: translateY(-1px);
-}
-
-.btn:active:not(:disabled) {
-	transform: translateY(0);
-}
-
+/* Buttons are not floating UI; hover should feel grounded, not lifted.
+   Color shift only — no transform. */
 .btn-gradient {
-	background: var(--gradient-primary);
-	color: white;
+	background: var(--accent-strong);
+	color: var(--text-on-light);
 	border: none;
 	font-weight: var(--font-weight-semibold);
 }
 
 .btn-gradient:hover:not(:disabled) {
-	background: linear-gradient(135deg, var(--color-primary-600), var(--color-secondary-600));
-	box-shadow: var(--shadow-glow-md);
+	background: var(--accent);
 }
 
 .btn-icon {
@@ -802,8 +854,7 @@ body {
 	padding: var(--space-2);
 	transition:
 		background-color var(--timing-fast) var(--easing-default),
-		border-color var(--timing-fast) var(--easing-default),
-		transform var(--timing-fast) var(--easing-default);
+		border-color var(--timing-fast) var(--easing-default);
 	background: var(--surface-subtle);
 	border: 1px solid var(--border-default);
 	color: var(--text-secondary);
@@ -813,7 +864,6 @@ body {
 	background: var(--surface-hover);
 	border-color: var(--border-hover);
 	color: var(--text-primary);
-	transform: translateY(-1px);
 }
 
 /* -----------------------------------------------------------------------------
@@ -825,7 +875,6 @@ body {
 	gap: var(--space-2);
 	padding: var(--space-1);
 	background: var(--surface-card);
-	backdrop-filter: blur(var(--glass-blur-sm));
 	border-radius: var(--radius-xl);
 	border: 1px solid var(--border-subtle);
 }
@@ -880,9 +929,8 @@ body {
 }
 
 .nav-tab-mobile[data-state='active'] {
-	background: var(--gradient-primary);
-	color: white;
-	box-shadow: var(--shadow-glow-sm);
+	background: var(--accent-soft);
+	color: var(--accent);
 }
 
 /* -----------------------------------------------------------------------------
@@ -892,7 +940,7 @@ body {
 	display: inline-flex;
 	align-items: center;
 	padding: var(--space-1-5) var(--space-3);
-	border-radius: var(--radius-full);
+	border-radius: var(--radius-sm);
 	font-size: var(--font-size-xs);
 	font-weight: var(--font-weight-medium);
 	transition:
@@ -910,14 +958,12 @@ body {
 	background: var(--surface-hover);
 	border-color: var(--border-hover);
 	color: var(--text-primary);
-	transform: translateY(-1px);
 }
 
 .filter-chip[data-selected='true'] {
-	background: var(--gradient-primary);
-	border-color: var(--border-hover);
-	color: white;
-	box-shadow: var(--shadow-glow-sm);
+	background: var(--accent-soft);
+	border-color: var(--accent-border);
+	color: var(--accent);
 }
 
 /* -----------------------------------------------------------------------------
@@ -961,44 +1007,39 @@ body {
 /* -----------------------------------------------------------------------------
    Alert/Notification System
    ----------------------------------------------------------------------------- */
+/* Alerts: tinted fill + 1px hairline border. No 3px side stripe. Callers
+   should compose with a leading Lucide icon at 16-18px in the alert color
+   for an unambiguous status cue. */
 .alert {
-	border-radius: var(--radius-xl);
-	padding: var(--space-4);
+	border-radius: var(--radius-md);
+	padding: var(--space-3) var(--space-4);
 	position: relative;
-	overflow: hidden;
 	font-size: var(--font-size-base);
 	line-height: var(--line-height-normal);
-	backdrop-filter: blur(var(--glass-blur-sm));
-	border-left-width: 3px;
-	border-left-style: solid;
 }
 
 .alert-warning {
 	background: color-mix(in oklab, var(--color-warning-500) 12%, transparent);
-	border: 1px solid color-mix(in oklab, var(--color-warning-500) 26%, transparent);
-	border-left-color: var(--color-warning-500);
+	border: 1px solid color-mix(in oklab, var(--color-warning-500) 28%, transparent);
 	color: var(--color-warning-200);
 }
 
 .alert-error {
 	background: color-mix(in oklab, var(--color-error-500) 12%, transparent);
-	border: 1px solid color-mix(in oklab, var(--color-error-500) 26%, transparent);
-	border-left-color: var(--color-error-500);
+	border: 1px solid color-mix(in oklab, var(--color-error-500) 28%, transparent);
 	color: var(--color-error-200);
 }
 
 .alert-success {
 	background: color-mix(in oklab, var(--color-success-500) 12%, transparent);
-	border: 1px solid color-mix(in oklab, var(--color-success-500) 26%, transparent);
-	border-left-color: var(--color-success-500);
+	border: 1px solid color-mix(in oklab, var(--color-success-500) 28%, transparent);
 	color: var(--color-success-200);
 }
 
 .alert-info {
-	background: color-mix(in oklab, var(--color-primary-500) 12%, transparent);
-	border: 1px solid color-mix(in oklab, var(--color-primary-500) 26%, transparent);
-	border-left-color: var(--color-primary-500);
-	color: var(--color-primary-200);
+	background: var(--accent-soft);
+	border: 1px solid var(--accent-border);
+	color: var(--text-primary);
 }
 
 /* -----------------------------------------------------------------------------
@@ -1008,7 +1049,6 @@ body {
 	border-radius: var(--radius-xl);
 	overflow: hidden;
 	background: var(--surface-card);
-	backdrop-filter: blur(var(--glass-blur-md));
 	border: 1px solid var(--border-subtle);
 }
 
@@ -1073,8 +1113,7 @@ body {
 	align-items: center;
 	justify-content: center;
 	padding: var(--space-4);
-	background: color-mix(in oklab, black 55%, transparent);
-	backdrop-filter: blur(6px);
+	background: color-mix(in oklab, black 70%, transparent);
 	animation: fadeIn var(--timing-normal) var(--easing-default);
 }
 
@@ -1082,12 +1121,11 @@ body {
 	width: 100%;
 	max-width: 48rem;
 	max-height: 90vh;
-	border-radius: var(--radius-2xl);
+	border-radius: var(--radius-md);
 	overflow: hidden;
 	display: flex;
 	flex-direction: column;
-	background: color-mix(in oklab, var(--color-surface-900) 92%, transparent);
-	backdrop-filter: blur(var(--glass-blur-xl));
+	background: var(--surface-card-elevated);
 	border: 1px solid var(--border-default);
 	box-shadow: var(--elevation-modal);
 	animation: slideUp var(--timing-normal) var(--easing-default);
@@ -1123,10 +1161,9 @@ dialog[open]::backdrop {
 
 /* Styled native dialog */
 dialog.dialog-styled {
-	border: none;
-	border-radius: var(--radius-2xl);
-	background: color-mix(in oklab, var(--color-surface-900) 92%, transparent);
-	backdrop-filter: blur(var(--glass-blur-xl));
+	border: 1px solid var(--border-default);
+	border-radius: var(--radius-md);
+	background: var(--surface-card-elevated);
 	color: inherit;
 	max-width: min(90vw, 640px);
 	padding: 0;
@@ -1134,8 +1171,7 @@ dialog.dialog-styled {
 }
 
 dialog.dialog-styled::backdrop {
-	background: color-mix(in oklab, black 55%, transparent);
-	backdrop-filter: blur(6px);
+	background: color-mix(in oklab, black 70%, transparent);
 }
 
 .modal-header {
@@ -1212,7 +1248,7 @@ dialog.dialog-styled::backdrop {
 	display: inline-flex;
 	align-items: center;
 	padding: var(--space-0-5) var(--space-2-5);
-	border-radius: var(--radius-full);
+	border-radius: var(--radius-sm);
 	font-size: var(--font-size-xs);
 	font-weight: var(--font-weight-medium);
 }
@@ -1495,10 +1531,9 @@ dialog.dialog-styled::backdrop {
 }
 
 .pagination-btn[data-active='true'] {
-	background: var(--gradient-primary);
-	border-color: transparent;
-	color: white;
-	box-shadow: var(--shadow-glow-sm);
+	background: var(--accent-soft);
+	border-color: var(--accent-border);
+	color: var(--accent);
 }
 
 .pagination-btn:disabled {
@@ -1548,25 +1583,6 @@ dialog.dialog-styled::backdrop {
 /* -----------------------------------------------------------------------------
    Text Utilities
    ----------------------------------------------------------------------------- */
-.text-gradient {
-	background: linear-gradient(
-		135deg,
-		var(--color-primary-400),
-		var(--color-secondary-400),
-		var(--color-tertiary-400)
-	);
-	-webkit-background-clip: text;
-	background-clip: text;
-	-webkit-text-fill-color: transparent;
-}
-
-.text-gradient-primary {
-	background: linear-gradient(135deg, var(--color-primary-400), var(--color-secondary-400));
-	-webkit-background-clip: text;
-	background-clip: text;
-	-webkit-text-fill-color: transparent;
-}
-
 /* Muted text with proper contrast */
 .text-muted {
 	color: var(--text-muted);
@@ -1679,21 +1695,9 @@ dialog.dialog-styled::backdrop {
 /* -----------------------------------------------------------------------------
    Utility Classes
    ----------------------------------------------------------------------------- */
-.hover-lift {
-	transition: transform var(--timing-normal) var(--easing-default);
-}
-
-.hover-lift:hover {
-	transform: translateY(-2px);
-}
-
-.hover-glow {
-	transition: box-shadow var(--timing-normal) var(--easing-default);
-}
-
-.hover-glow:hover {
-	box-shadow: var(--shadow-glow-md);
-}
+/* Hover-lift / hover-glow utilities removed — investigative dashboards
+   don't float UI under the cursor. Replace callers with a border-color shift
+   if a hover affordance is needed. */
 
 /* Divider */
 .divider {

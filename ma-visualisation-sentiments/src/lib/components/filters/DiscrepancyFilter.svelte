@@ -234,15 +234,9 @@
 <style>
 	.filter-card {
 		background: var(--surface-card);
-		backdrop-filter: blur(var(--glass-blur-md));
-		border: 1px solid var(--border-default);
-		border-radius: var(--radius-xl);
+		border: 1px solid var(--border-subtle);
 		padding: var(--space-4);
-		box-shadow: var(--elevation-card);
-		transition:
-			background-color var(--timing-normal) var(--easing-default),
-			border-color var(--timing-normal) var(--easing-default),
-			box-shadow var(--timing-normal) var(--easing-default);
+		transition: border-color var(--timing-normal) var(--easing-default);
 	}
 
 	/* Comparison-specific filter card — neutral glass like other filter cards */
@@ -285,10 +279,7 @@
 	}
 
 	.comparison-filter-title {
-		background: var(--gradient-comparison);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
+		color: var(--sentiment-comparison-light);
 	}
 
 	.filter-section {
@@ -359,7 +350,7 @@
 		padding: var(--space-1-5) var(--space-3);
 		font-size: var(--font-size-xs);
 		font-weight: var(--font-weight-medium);
-		border-radius: var(--radius-full);
+		border-radius: var(--radius-sm);
 		cursor: pointer;
 		white-space: nowrap;
 		background: var(--surface-muted);
@@ -377,19 +368,18 @@
 		background: var(--surface-hover);
 		border-color: var(--border-hover);
 		color: var(--text-primary);
-		transform: translateY(-1px);
 	}
 
 	.filter-chip[data-selected='true'] {
-		background: var(--gradient-comparison);
-		border-color: color-mix(in oklab, var(--sentiment-comparison-light) 40%, transparent);
-		color: white;
-		box-shadow: var(--shadow-sm);
+		background: var(--sentiment-comparison-bg);
+		border-color: var(--sentiment-comparison-border);
+		color: var(--sentiment-comparison-light);
 	}
 
 	.filter-chip.warning[data-selected='true'] {
-		background: linear-gradient(135deg, var(--color-warning-500) 0%, var(--color-warning-600) 100%);
-		box-shadow: 0 2px 8px color-mix(in oklab, var(--color-warning-500) 30%, transparent);
+		background: color-mix(in oklab, var(--color-warning-500) 18%, transparent);
+		border-color: color-mix(in oklab, var(--color-warning-500) 45%, transparent);
+		color: var(--color-warning-300);
 	}
 
 	.toggle-row {
@@ -424,7 +414,7 @@
 		position: absolute;
 		top: 20px;
 		height: 4px;
-		background: var(--gradient-comparison);
+		background: var(--sentiment-comparison-light);
 		border-radius: var(--space-0-5);
 		transition:
 			left var(--timing-fast) var(--easing-default),
@@ -610,10 +600,9 @@
 		top: calc(var(--space-2-5) * -1);
 		left: 50%;
 		transform: translateX(-50%) translateY(-100%);
-		background: color-mix(in oklab, black 95%, transparent);
-		backdrop-filter: blur(var(--glass-blur-md));
-		border: 1px solid var(--border-active);
-		border-radius: var(--radius-md);
+		background: var(--tooltip-bg, #13161c);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-sm);
 		padding: var(--space-3);
 		min-width: 320px;
 		max-width: 400px;

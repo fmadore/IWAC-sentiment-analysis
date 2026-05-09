@@ -116,7 +116,7 @@
 		justify-content: center;
 		font-weight: var(--font-weight-medium);
 		line-height: var(--line-height-snug);
-		border-radius: var(--radius-full);
+		border-radius: var(--radius-sm);
 		white-space: nowrap;
 		transition:
 			background-color var(--timing-fast) var(--easing-default),

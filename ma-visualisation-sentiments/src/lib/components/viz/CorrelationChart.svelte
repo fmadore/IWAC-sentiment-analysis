@@ -104,7 +104,7 @@
 			data: polarityOrder.map((polarity) => data[polarity][subjScore]),
 			itemStyle: {
 				color: subjectivityColors[subjScore as keyof typeof subjectivityColors],
-				borderRadius: [3, 3, 0, 0]
+				borderRadius: 0
 			},
 			emphasis: getEmphasisConfig(),
 			...getStaggeredAnimationDelay()
@@ -185,7 +185,7 @@
 	<div
 		bind:this={chartContainer}
 		style="height: {isMobile ? '450px' : '500px'}; position: relative;"
-		class="chart-container glass-medium rounded-lg p-2 sm:p-4"
+		class="chart-container p-2 sm:p-4"
 	>
 		<Chart {init} {options} />
 	</div>

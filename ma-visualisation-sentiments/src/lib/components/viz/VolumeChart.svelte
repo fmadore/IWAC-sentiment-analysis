@@ -31,6 +31,8 @@
 	import { t, currentLanguage } from '$lib/i18n';
 	import { formatNumber } from '$lib/i18n/utils';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
+	import AreaChartIcon from '@lucide/svelte/icons/area-chart';
+	import LineChartIcon from '@lucide/svelte/icons/line-chart';
 	import { createTrendTooltipFormatter } from '$lib/utils/chartFormatters';
 
 	// Import centralized chart theme
@@ -165,26 +167,27 @@
 </script>
 
 {#if $filteredArticles.length > 0}
-	<!-- Dataset badge and chart type selection buttons -->
-	<div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+	<div class="chart-toolbar">
 		<DatasetBadge size="sm" />
 
-		<div class="flex flex-wrap gap-2 justify-center">
+		<div class="chart-type-toggle" role="group" aria-label={$t.charts.lines}>
 			<button
-				class="btn btn-sm hover-lift {chartType === 'area'
-					? 'variant-filled-primary'
-					: 'variant-soft-surface'}"
+				class="chart-type-btn"
+				data-active={chartType === 'area'}
 				onclick={() => (chartType = 'area')}
+				aria-pressed={chartType === 'area'}
 			>
-				📈 {$t.charts.stackedAreas}
+				<AreaChartIcon size={14} />
+				<span>{$t.charts.stackedAreas}</span>
 			</button>
 			<button
-				class="btn btn-sm hover-lift {chartType === 'line'
-					? 'variant-filled-primary'
-					: 'variant-soft-surface'}"
+				class="chart-type-btn"
+				data-active={chartType === 'line'}
 				onclick={() => (chartType = 'line')}
+				aria-pressed={chartType === 'line'}
 			>
-				📊 {$t.charts.lines}
+				<LineChartIcon size={14} />
+				<span>{$t.charts.lines}</span>
 			</button>
 		</div>
 	</div>
@@ -192,10 +195,84 @@
 	<div
 		bind:this={chartContainer}
 		style="height: {isMobile ? '400px' : '500px'}; position: relative;"
-		class="chart-container glass-medium rounded-lg p-2 sm:p-4"
+		class="chart-container"
 	>
 		<Chart {init} {options} />
 	</div>
 {:else}
-	<p class="text-center py-8 text-white/80 text-sm sm:text-base">{$t.table.noFilteredArticles}</p>
+	<p class="empty-state">{$t.table.noFilteredArticles}</p>
 {/if}
+
+<style>
+	.chart-toolbar {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-3);
+		margin-bottom: var(--space-4);
+	}
+
+	@media (min-width: 640px) {
+		.chart-toolbar {
+			flex-direction: row;
+		}
+	}
+
+	.chart-type-toggle {
+		display: inline-flex;
+		gap: 1px;
+		padding: 2px;
+		background: var(--surface-nested);
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-md);
+	}
+
+	.chart-type-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-1-5);
+		padding: var(--space-1-5) var(--space-3);
+		font-family: var(--font-mono);
+		font-size: var(--font-size-xs);
+		font-weight: 500;
+		letter-spacing: var(--tracking-wide);
+		text-transform: uppercase;
+		color: var(--text-muted);
+		background: transparent;
+		border: none;
+		border-radius: var(--radius-sm);
+		cursor: pointer;
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
+	}
+
+	.chart-type-btn:hover:not([data-active='true']) {
+		color: var(--text-primary);
+		background: var(--surface-hover);
+	}
+
+	.chart-type-btn[data-active='true'] {
+		color: var(--accent);
+		background: var(--accent-soft);
+	}
+
+	.chart-container {
+		background: transparent;
+		padding: var(--space-2);
+	}
+
+	@media (min-width: 640px) {
+		.chart-container {
+			padding: var(--space-4);
+		}
+	}
+
+	.empty-state {
+		text-align: center;
+		padding: var(--space-8) 0;
+		color: var(--text-muted);
+		font-size: var(--font-size-sm);
+	}
+</style>

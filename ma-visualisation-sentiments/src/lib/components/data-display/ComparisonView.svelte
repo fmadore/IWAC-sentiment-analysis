@@ -84,7 +84,7 @@
 <div class="comparison-view">
 	{#if !$comparisonMode}
 		<!-- Not in comparison mode -->
-		<div class="empty-state comparison-empty-state preset-glass p-8 text-center rounded-xl">
+		<div class="empty-state comparison-empty-state p-8 text-center">
 			<AlertCircleIcon size={48} class="mx-auto mb-4 text-purple-400/60" />
 			<h3 class="h3 mb-2 text-white">
 				{$t.comparison?.enableComparisonMode || 'Enable Comparison Mode'}
@@ -97,7 +97,7 @@
 	{:else if $isLoadingComparison}
 		<!-- Loading state for comparison data -->
 		<div class="loading-section mb-6">
-			<div class="comparison-loading-card preset-glass p-8 text-center rounded-xl">
+			<div class="comparison-loading-card p-8 text-center">
 				<div class="loading-spinner comparison-spinner mb-4"></div>
 				<p class="text-white/80">{$t.messages?.loading || 'Loading comparison data...'}</p>
 			</div>
@@ -127,7 +127,7 @@
 				<ComparisonTable />
 			</div>
 		{:else}
-			<div class="empty-results comparison-empty-results preset-glass p-8 text-center rounded-xl">
+			<div class="empty-results comparison-empty-results p-8 text-center">
 				<AlertCircleIcon size={48} class="mx-auto mb-4 text-purple-400/60" />
 				<h3 class="h4 mb-2 text-white">
 					{$t.comparison?.noDiscrepancies || 'No Discrepancies Found'}
@@ -154,19 +154,15 @@
 		max-width: 600px;
 	}
 
-	/* Comparison-specific empty states */
 	.comparison-empty-state,
 	.comparison-empty-results {
 		background: var(--surface-card);
-		border: 1px solid var(--border-default);
-		backdrop-filter: blur(var(--glass-blur-md));
+		border: 1px solid var(--border-subtle);
 	}
 
-	/* Comparison loading card */
 	.comparison-loading-card {
 		background: var(--surface-card);
-		border: 1px solid var(--border-default);
-		backdrop-filter: blur(var(--glass-blur-md));
+		border: 1px solid var(--border-subtle);
 	}
 
 	/* Loading spinner - using CSS custom properties */
@@ -189,10 +185,8 @@
 		position: relative;
 		z-index: 10;
 		background: var(--surface-card);
-		border: 1px solid var(--border-default);
-		border-radius: var(--radius-xl);
+		border: 1px solid var(--border-subtle);
 		padding: var(--space-4);
-		backdrop-filter: blur(var(--glass-blur-sm));
 	}
 
 	@keyframes spin {

@@ -221,8 +221,7 @@
 	.modal-overlay {
 		position: fixed;
 		inset: 0;
-		background: color-mix(in oklab, black 70%, transparent);
-		backdrop-filter: blur(4px);
+		background: color-mix(in oklab, black 75%, transparent);
 		z-index: var(--z-modal);
 		display: flex;
 		align-items: center;
@@ -232,20 +231,15 @@
 	}
 
 	.modal-content {
-		background: linear-gradient(
-			135deg,
-			var(--surface-card-elevated),
-			color-mix(in oklab, var(--sentiment-arbiter) 5%, var(--color-surface-900))
-		);
-		border: 1px solid var(--sentiment-arbiter-border);
-		border-radius: var(--radius-xl);
+		background: var(--surface-card-elevated);
+		border: 1px solid var(--border-default);
+		border-top: 2px solid var(--sentiment-arbiter);
+		border-radius: var(--radius-md);
 		width: 100%;
 		max-width: 900px;
 		max-height: 90vh;
 		overflow-y: auto;
-		box-shadow:
-			var(--shadow-xl),
-			0 0 40px var(--sentiment-arbiter-bg);
+		box-shadow: var(--shadow-xl);
 	}
 
 	.modal-header {
@@ -253,21 +247,19 @@
 		align-items: center;
 		justify-content: space-between;
 		padding: var(--space-5) var(--space-6);
-		border-bottom: 1px solid var(--sentiment-arbiter-border);
+		border-bottom: 1px solid var(--border-subtle);
 		position: sticky;
 		top: 0;
-		background: inherit;
+		background: var(--surface-card-elevated);
 		z-index: 1;
 	}
 
 	.modal-title {
+		font-family: var(--font-display);
 		font-size: var(--font-size-2xl);
-		font-weight: var(--font-weight-semibold);
+		font-weight: 600;
 		color: var(--text-primary);
-		background: linear-gradient(135deg, var(--sentiment-arbiter-light), var(--sentiment-arbiter));
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
+		letter-spacing: -0.005em;
 	}
 
 	.close-button {
@@ -276,19 +268,21 @@
 		justify-content: center;
 		width: var(--size-control-lg);
 		height: var(--size-control-lg);
-		border-radius: var(--radius-md);
-		background: var(--surface-hover);
+		border-radius: var(--radius-sm);
+		background: transparent;
 		border: 1px solid var(--border-default);
-		color: var(--text-primary);
+		color: var(--text-muted);
 		cursor: pointer;
 		transition:
 			background var(--timing-fast) var(--easing-default),
-			transform var(--timing-fast) var(--easing-default);
+			color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default);
 	}
 
 	.close-button:hover {
-		background: var(--surface-elevated);
-		transform: scale(1.05);
+		background: var(--surface-hover);
+		border-color: var(--border-hover);
+		color: var(--text-primary);
 	}
 
 	.modal-body {
@@ -333,26 +327,32 @@
 		display: inline-flex;
 		align-items: center;
 		gap: var(--space-2);
-		color: var(--color-primary-400);
-		font-weight: var(--font-weight-medium);
+		color: var(--sentiment-arbiter-light);
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		font-weight: 500;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
 		text-decoration: none;
+		border-bottom: 1px solid transparent;
 		transition:
 			color var(--timing-fast) var(--easing-default),
-			transform var(--timing-fast) var(--easing-default);
+			border-color var(--timing-fast) var(--easing-default);
 	}
 
 	.article-link:hover {
-		color: var(--color-primary-300);
-		transform: translateX(4px);
+		color: var(--text-primary);
+		border-bottom-color: currentColor;
 	}
 
 	.section-title {
-		font-size: var(--font-size-lg);
-		font-weight: var(--font-weight-semibold);
-		color: var(--text-primary);
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--text-muted);
 		margin-bottom: var(--space-4);
 		text-transform: uppercase;
-		letter-spacing: var(--tracking-wider);
+		letter-spacing: 0.14em;
 	}
 
 	.comparison-grid {
@@ -365,16 +365,16 @@
 	.model-column {
 		background: var(--surface-subtle);
 		border: 1px solid var(--border-default);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-md);
 		padding: var(--space-4);
 	}
 
 	.model-a {
-		border-color: color-mix(in oklab, #10b981 30%, transparent);
+		border-top: 2px solid var(--sentiment-trends);
 	}
 
 	.model-b {
-		border-color: color-mix(in oklab, #8b5cf6 30%, transparent);
+		border-top: 2px solid var(--sentiment-subjectivity-3);
 	}
 
 	.model-header {
@@ -422,14 +422,16 @@
 		align-items: center;
 		justify-content: center;
 		align-self: center;
-		width: var(--size-control-lg);
-		height: var(--size-control-lg);
-		border-radius: var(--radius-full);
-		background: var(--sentiment-arbiter-bg);
+		width: var(--size-control-md);
+		height: var(--size-control-md);
+		border-radius: 0;
+		background: transparent;
 		border: 1px solid var(--sentiment-arbiter-border);
 		color: var(--sentiment-arbiter-light);
-		font-weight: var(--font-weight-bold);
-		font-size: var(--font-size-xs);
+		font-family: var(--font-mono);
+		font-weight: 600;
+		font-size: 0.625rem;
+		letter-spacing: 0.1em;
 	}
 
 	/* Responsive */
@@ -468,11 +470,6 @@
 		.close-button,
 		.article-link {
 			transition: none;
-		}
-
-		.close-button:hover,
-		.article-link:hover {
-			transform: none;
 		}
 	}
 </style>

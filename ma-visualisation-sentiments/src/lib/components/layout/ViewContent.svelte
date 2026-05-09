@@ -20,6 +20,8 @@
 	import type { Article } from '$lib/types/data';
 	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
 	import { t } from '$lib/i18n';
+	import { datasetState, articleState, filteredArticles, availableDatasets } from '$lib/stores';
+	import { getModelDisplayName } from '$lib/utils/format';
 
 	// Charts
 	import {
@@ -38,16 +40,6 @@
 
 	// UI
 	import { CSVExportButton, ChartCard } from '$lib/components/ui';
-
-	// Icons
-	import FlameIcon from '@lucide/svelte/icons/flame';
-	import GitCompareArrowsIcon from '@lucide/svelte/icons/git-compare-arrows';
-	import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
-	import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
-	import ActivityIcon from '@lucide/svelte/icons/activity';
-	import GridIcon from '@lucide/svelte/icons/grid-3x3';
-	import TableIcon from '@lucide/svelte/icons/table';
-	import ScatterChartIcon from '@lucide/svelte/icons/scatter-chart';
 
 	interface ViewContentProps {
 		/** Currently active view */
@@ -69,205 +61,170 @@
 		showTopN,
 		onShowDetails
 	}: ViewContentProps = $props();
+
+	// Methodology metadata for the eyebrow rule under each view title.
+	// Uses the active dataset (model) and the corpus size — surface what's
+	// most load-bearing for an academic reader at a glance.
+	let modelLabel = $derived(getModelDisplayName(datasetState.selected, $availableDatasets));
+	let totalCount = $derived((articleState.datasets[datasetState.selected] || []).length);
+	let filteredCount = $derived($filteredArticles?.length ?? totalCount);
+	let comparisonMode = $derived(datasetState.isComparisonMode);
+
+	function formatNum(n: number): string {
+		try {
+			return n.toLocaleString();
+		} catch {
+			return String(n);
+		}
+	}
+
+	let methodologyLine = $derived.by(() => {
+		if (comparisonMode) {
+			// Comparison mode pairs two models; the ComparisonView handles its own
+			// methodology surface. Suppress here.
+			return null;
+		}
+		if (totalCount === 0) return null;
+		const parts: string[] = [];
+		parts.push(`Model · ${modelLabel}`);
+		if (filteredCount === totalCount) {
+			parts.push(`Sample · ${formatNum(totalCount)} articles`);
+		} else {
+			parts.push(`Sample · ${formatNum(filteredCount)} of ${formatNum(totalCount)} articles`);
+		}
+		return parts.join('  ·  ');
+	});
+
+	type ViewKey =
+		| 'charts'
+		| 'trends'
+		| 'correlation'
+		| 'volume'
+		| 'heatmap'
+		| 'table'
+		| 'comparison'
+		| 'extremes';
+
+	type ViewMeta = {
+		eyebrow: string;
+		title: string;
+		lede: string;
+	};
+
+	let viewMeta = $derived<Record<ViewKey, ViewMeta>>({
+		charts: {
+			eyebrow: $t.nav.charts,
+			title: $t.nav.charts,
+			lede:
+				$t.charts?.subtitle ||
+				'Visualize sentiment distribution across polarity and subjectivity dimensions.'
+		},
+		trends: {
+			eyebrow: $t.nav.trends,
+			title: $t.nav.trends,
+			lede: $t.trends?.subtitle || 'Track sentiment evolution over time across publications.'
+		},
+		correlation: {
+			eyebrow: $t.nav.distribution,
+			title: $t.nav.distribution,
+			lede:
+				$t.correlation?.subtitle ||
+				'Analyze the relationship between polarity and subjectivity dimensions.'
+		},
+		volume: {
+			eyebrow: $t.nav.volume,
+			title: $t.nav.volume,
+			lede: $t.volume?.subtitle || 'Analyze publication volume and temporal patterns in the corpus.'
+		},
+		heatmap: {
+			eyebrow: $t.nav.heatmap,
+			title: $t.nav.heatmap,
+			lede:
+				$t.heatmap?.subtitle ||
+				'Explore centrality patterns across countries and themes with interactive visualization.'
+		},
+		table: {
+			eyebrow: $t.table.title,
+			title: $t.table.title,
+			lede: $t.table?.subtitle || 'Browse and search all articles with detailed sentiment data.'
+		},
+		comparison: {
+			eyebrow: $t.nav.comparison,
+			title: $t.nav.comparison,
+			lede:
+				$t.comparison.subtitle ||
+				'Compare sentiment analyses between different AI models and identify significant discrepancies.'
+		},
+		extremes: {
+			eyebrow: $t.extremeAnalysis.title,
+			title: $t.extremeAnalysis.title,
+			lede: $t.extremeAnalysis.subtitle
+		}
+	});
 </script>
 
-{#if activeView === 'charts'}
-	<div class="charts-analysis-view mb-6">
-		<!-- Header Section -->
-		<div class="view-header charts-header mb-6">
-			<div class="flex items-start gap-4">
-				<div class="view-icon charts-icon">
-					<BarChart3Icon size={32} class="text-blue-400" />
-				</div>
-				<div class="flex-1">
-					<h1 class="h2 mb-2 text-white view-title charts-title">
-						{$t.nav.charts}
-					</h1>
-					<p class="text-base text-surface-300 leading-relaxed max-w-3xl">
-						{$t.charts?.subtitle ||
-							'Visualize sentiment distribution across polarity and subjectivity dimensions.'}
-					</p>
-				</div>
-			</div>
+{#snippet header(view: ViewKey, trail: import('svelte').Snippet | null = null)}
+	{@const meta = viewMeta[view]}
+	<header class="view-header">
+		<div class="view-header-text">
+			<p class="view-eyebrow">{meta.eyebrow}</p>
+			<h1 class="view-title">{meta.title}</h1>
+			<p class="view-lede">{meta.lede}</p>
+			{#if methodologyLine}
+				<p class="view-methodology">{methodologyLine}</p>
+			{/if}
 		</div>
+		{#if trail}
+			<div class="view-header-trail">{@render trail()}</div>
+		{/if}
+	</header>
+{/snippet}
 
+{#if activeView === 'charts'}
+	<div class="view mb-6">
+		{@render header('charts')}
 		<div class="space-y-4 sm:space-y-6">
-			<ChartCard variant="charts">
-				<SentimentChart />
-			</ChartCard>
-			<ChartCard variant="charts">
-				<SubjectivityChart />
-			</ChartCard>
+			<ChartCard variant="charts"><SentimentChart /></ChartCard>
+			<ChartCard variant="charts"><SubjectivityChart /></ChartCard>
 		</div>
 	</div>
 {:else if activeView === 'trends'}
-	<div class="trends-analysis-view mb-6">
-		<!-- Header Section -->
-		<div class="view-header trends-header mb-6">
-			<div class="flex items-start gap-4">
-				<div class="view-icon trends-icon">
-					<TrendingUpIcon size={32} class="text-emerald-400" />
-				</div>
-				<div class="flex-1">
-					<h1 class="h2 mb-2 text-white view-title trends-title">
-						{$t.nav.trends}
-					</h1>
-					<p class="text-base text-surface-300 leading-relaxed max-w-3xl">
-						{$t.trends?.subtitle || 'Track sentiment evolution over time across publications.'}
-					</p>
-				</div>
-			</div>
-		</div>
-
-		<!-- Polarity Trends Chart -->
-		<ChartCard variant="trends" class="mb-6">
-			<SentimentTrendsChart />
-		</ChartCard>
-
-		<!-- Subjectivity Trends Chart -->
-		<ChartCard variant="trends">
-			<SubjectivityTrendsChart />
-		</ChartCard>
+	<div class="view mb-6">
+		{@render header('trends')}
+		<ChartCard variant="trends" class="mb-6"><SentimentTrendsChart /></ChartCard>
+		<ChartCard variant="trends"><SubjectivityTrendsChart /></ChartCard>
 	</div>
 {:else if activeView === 'correlation'}
-	<div class="correlation-analysis-view mb-6">
-		<!-- Header Section -->
-		<div class="view-header correlation-header mb-6">
-			<div class="flex items-start gap-4">
-				<div class="view-icon correlation-icon">
-					<ScatterChartIcon size={32} class="text-pink-400" />
-				</div>
-				<div class="flex-1">
-					<h1 class="h2 mb-2 text-white view-title correlation-title">
-						{$t.nav.distribution}
-					</h1>
-					<p class="text-base text-surface-300 leading-relaxed max-w-3xl">
-						{$t.correlation?.subtitle ||
-							'Analyze the relationship between polarity and subjectivity dimensions.'}
-					</p>
-				</div>
-			</div>
-		</div>
-
-		<ChartCard variant="correlation">
-			<CorrelationChart />
-		</ChartCard>
+	<div class="view mb-6">
+		{@render header('correlation')}
+		<ChartCard variant="correlation"><CorrelationChart /></ChartCard>
 	</div>
 {:else if activeView === 'volume'}
-	<div class="volume-analysis-view mb-6">
-		<!-- Header Section -->
-		<div class="view-header volume-header mb-6">
-			<div class="flex items-start gap-4">
-				<div class="view-icon volume-icon">
-					<ActivityIcon size={32} class="text-indigo-400" />
-				</div>
-				<div class="flex-1">
-					<h1 class="h2 mb-2 text-white view-title volume-title">
-						{$t.nav.volume}
-					</h1>
-					<p class="text-base text-surface-300 leading-relaxed max-w-3xl">
-						{$t.volume?.subtitle ||
-							'Analyze publication volume and temporal patterns in the corpus.'}
-					</p>
-				</div>
-			</div>
-		</div>
-
-		<ChartCard variant="volume">
-			<VolumeChart />
-		</ChartCard>
+	<div class="view mb-6">
+		{@render header('volume')}
+		<ChartCard variant="volume"><VolumeChart /></ChartCard>
 	</div>
 {:else if activeView === 'heatmap'}
-	<div class="heatmap-analysis-view mb-6">
-		<!-- Header Section -->
-		<div class="view-header heatmap-header mb-6">
-			<div class="flex items-start gap-4">
-				<div class="view-icon heatmap-icon">
-					<GridIcon size={32} class="text-amber-400" />
-				</div>
-				<div class="flex-1">
-					<h1 class="h2 mb-2 text-white view-title heatmap-title">
-						{$t.nav.heatmap}
-					</h1>
-					<p class="text-base text-surface-300 leading-relaxed max-w-3xl">
-						{$t.heatmap?.subtitle ||
-							'Explore centrality patterns across countries and themes with interactive visualization.'}
-					</p>
-				</div>
-			</div>
-		</div>
-
-		<ChartCard variant="heatmap">
-			<CentralityHeatmap />
-		</ChartCard>
+	<div class="view mb-6">
+		{@render header('heatmap')}
+		<ChartCard variant="heatmap"><CentralityHeatmap /></ChartCard>
 	</div>
 {:else if activeView === 'table'}
-	<div class="table-analysis-view mb-6">
-		<!-- Header Section -->
-		<div class="view-header table-header mb-6">
-			<div class="flex items-start gap-4 flex-1">
-				<div class="view-icon table-icon">
-					<TableIcon size={32} class="text-slate-400" />
-				</div>
-				<div class="flex-1">
-					<h1 class="h2 mb-2 text-white view-title table-title">
-						{$t.table.title}
-					</h1>
-					<p class="text-base text-surface-300 leading-relaxed max-w-3xl">
-						{$t.table?.subtitle || 'Browse and search all articles with detailed sentiment data.'}
-					</p>
-				</div>
-			</div>
+	<div class="view mb-6">
+		{#snippet tableTrail()}
 			<CSVExportButton />
-		</div>
-
-		<ChartCard variant="table">
-			<ArticleTable {onShowDetails} />
-		</ChartCard>
+		{/snippet}
+		{@render header('table', tableTrail)}
+		<ChartCard variant="table"><ArticleTable {onShowDetails} /></ChartCard>
 	</div>
 {:else if activeView === 'comparison'}
-	<div class="comparison-analysis-view mb-6">
-		<!-- Header Section -->
-		<div class="view-header comparison-header mb-6">
-			<div class="flex items-start gap-4">
-				<div class="view-icon comparison-icon">
-					<GitCompareArrowsIcon size={32} class="text-purple-400" />
-				</div>
-				<div class="flex-1">
-					<h1 class="h2 mb-2 text-white view-title comparison-title">
-						{$t.nav.comparison}
-					</h1>
-					<p class="text-base text-surface-300 leading-relaxed max-w-3xl">
-						{$t.comparison.subtitle ||
-							'Compare sentiment analyses between different AI models and identify significant discrepancies.'}
-					</p>
-				</div>
-			</div>
-		</div>
-
-		<!-- Comparison Content -->
+	<div class="view comparison-view mb-6">
+		{@render header('comparison')}
 		<ComparisonView />
 	</div>
 {:else if activeView === 'extremes'}
-	<div class="extreme-analysis-view mb-6">
-		<!-- Header Section -->
-		<div class="view-header extreme-header mb-6">
-			<div class="flex items-start gap-4">
-				<div class="view-icon extreme-icon">
-					<FlameIcon size={32} class="text-orange-400" />
-				</div>
-				<div class="flex-1">
-					<h1 class="h2 mb-2 text-white view-title extreme-title">
-						{$t.extremeAnalysis.title}
-					</h1>
-					<p class="text-base text-surface-300 leading-relaxed max-w-3xl">
-						{$t.extremeAnalysis.subtitle}
-					</p>
-				</div>
-			</div>
-		</div>
-
-		<!-- Chart Card -->
+	<div class="view extreme-view mb-6">
+		{@render header('extremes')}
 		<ChartCard variant="extreme">
 			<KeywordFrequencyChart {selectedCategory} {selectedKeywordType} {showTopN} />
 		</ChartCard>
@@ -277,190 +234,93 @@
 {/if}
 
 <style>
-	/* Common View Header Styles */
+	/* Editorial view header — eyebrow + title + lede.
+	   No icon tile, no gradient text, no per-view colour theme. The chart that
+	   follows IS the colour signal. */
+	.view {
+		width: 100%;
+	}
+
 	.view-header {
-		border-bottom: 1px solid var(--border-subtle);
-		padding-bottom: var(--space-6);
-	}
-
-	.view-icon {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 56px;
-		height: 56px;
-		border-radius: 14px;
-	}
-
-	.view-title {
-		font-size: 1.75rem;
-		font-weight: var(--font-weight-bold);
-	}
-
-	/* Charts View */
-	.charts-analysis-view {
-		width: 100%;
-	}
-
-	.charts-icon {
-		background: var(--sentiment-charts-icon-bg);
-		border: 1px solid var(--sentiment-charts-border);
-	}
-
-	.charts-title {
-		background: var(--gradient-charts);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
-	}
-
-	/* Trends View */
-	.trends-analysis-view {
-		width: 100%;
-	}
-
-	.trends-icon {
-		background: var(--sentiment-trends-icon-bg);
-		border: 1px solid var(--sentiment-trends-border);
-	}
-
-	.trends-title {
-		background: var(--gradient-trends);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
-	}
-
-	/* Volume View */
-	.volume-analysis-view {
-		width: 100%;
-	}
-
-	.volume-icon {
-		background: var(--sentiment-volume-icon-bg);
-		border: 1px solid var(--sentiment-volume-border);
-	}
-
-	.volume-title {
-		background: var(--gradient-volume);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
-	}
-
-	/* Heatmap View */
-	.heatmap-analysis-view {
-		width: 100%;
-	}
-
-	.heatmap-icon {
-		background: var(--sentiment-heatmap-icon-bg);
-		border: 1px solid var(--sentiment-heatmap-border);
-	}
-
-	.heatmap-title {
-		background: var(--gradient-heatmap);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
-	}
-
-	/* Correlation/Distribution View */
-	.correlation-analysis-view {
-		width: 100%;
-	}
-
-	.correlation-icon {
-		background: var(--sentiment-correlation-icon-bg);
-		border: 1px solid var(--sentiment-correlation-border);
-	}
-
-	.correlation-title {
-		background: var(--gradient-correlation);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
-	}
-
-	/* Table View */
-	.table-analysis-view {
-		width: 100%;
-	}
-
-	.table-header {
 		display: flex;
 		align-items: flex-start;
 		justify-content: space-between;
-		gap: var(--space-4);
+		gap: var(--space-6);
+		padding-bottom: var(--space-5);
+		margin-bottom: var(--space-6);
+		border-bottom: 1px solid var(--border-subtle);
 	}
 
-	.table-icon {
-		background: var(--sentiment-table-icon-bg);
-		border: 1px solid var(--sentiment-table-border);
+	.view-header-text {
+		min-width: 0;
+		flex: 1;
 	}
 
-	.table-title {
-		background: var(--gradient-table);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
+	.view-eyebrow {
+		font-family: var(--font-mono);
+		font-size: var(--font-size-xs);
+		font-weight: 500;
+		text-transform: uppercase;
+		letter-spacing: var(--tracking-wider);
+		color: var(--text-muted);
+		margin: 0 0 var(--space-2);
 	}
 
-	/* Comparison Analysis View */
-	.comparison-analysis-view {
-		width: 100%;
+	.view-title {
+		font-family: var(--font-display);
+		font-size: var(--font-size-3xl);
+		font-weight: 700;
+		line-height: var(--line-height-tight);
+		letter-spacing: var(--tracking-tight);
+		color: var(--text-primary);
+		margin: 0 0 var(--space-3);
+	}
+
+	.view-lede {
+		font-family: var(--font-sans);
+		font-size: var(--font-size-lg);
+		line-height: var(--line-height-relaxed);
+		color: var(--text-secondary);
+		max-width: var(--prose-width);
+		margin: 0 0 var(--space-3);
+	}
+
+	/* Methodology metadata rule — wire-service style. Single line, monospace,
+	   tabular numerals (inherited from body), reads first to anyone looking for
+	   the methodological grounding of the chart below. */
+	.view-methodology {
+		font-family: var(--font-mono);
+		font-size: var(--font-size-xs);
+		font-weight: 500;
+		color: var(--text-muted);
+		letter-spacing: var(--tracking-normal);
+		padding-top: var(--space-3);
+		border-top: 1px dashed var(--border-subtle);
+		margin: 0;
+		max-width: var(--prose-width);
+	}
+
+	.view-header-trail {
+		flex-shrink: 0;
+	}
+
+	.comparison-view,
+	.extreme-view {
 		min-height: calc(100vh - 200px);
-	}
-
-	.comparison-icon {
-		background: var(--sentiment-comparison-icon-bg);
-		border: 1px solid var(--sentiment-comparison-border);
-	}
-
-	.comparison-title {
-		background: var(--gradient-comparison);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
-	}
-
-	/* Extreme Analysis View */
-	.extreme-analysis-view {
-		width: 100%;
-		min-height: calc(100vh - 200px);
-	}
-
-	.extreme-icon {
-		background: var(--sentiment-extreme-icon-bg);
-		border: 1px solid var(--sentiment-extreme-border);
-	}
-
-	.extreme-title {
-		background: var(--gradient-extreme);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
 	}
 
 	@media (max-width: 768px) {
-		.view-title {
-			font-size: var(--font-size-3xl);
-		}
-
-		.view-icon {
-			width: 48px;
-			height: 48px;
-		}
-
-		.table-header {
+		.view-header {
 			flex-direction: column;
-			align-items: stretch;
+			gap: var(--space-3);
 		}
-	}
 
-	@media (min-width: 1024px) {
 		.view-title {
-			font-size: 2rem;
+			font-size: var(--font-size-2xl);
+		}
+
+		.view-lede {
+			font-size: var(--font-size-base);
 		}
 	}
 </style>

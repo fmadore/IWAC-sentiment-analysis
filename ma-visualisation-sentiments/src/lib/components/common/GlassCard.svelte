@@ -54,17 +54,17 @@
 </div>
 
 <style>
+	/* GlassCard — name kept for API stability, but the visual is now a flat
+	   editorial panel: opaque surface, hairline border, no backdrop-filter,
+	   no hover lift. The component-level 'gradient border' decoration was
+	   removed (decorative gradients are an AI design tell). */
 	.glass-card {
 		position: relative;
 		background: var(--surface-card);
-		backdrop-filter: blur(var(--glass-blur-md));
 		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-2xl);
+		border-radius: var(--radius-xl);
 		box-shadow: var(--elevation-card);
-		transition:
-			border-color var(--timing-fast) var(--easing-default),
-			box-shadow var(--timing-normal) var(--easing-default),
-			transform var(--timing-normal) var(--easing-default);
+		transition: border-color var(--timing-fast) var(--easing-default);
 	}
 
 	/* Padding variants */
@@ -81,35 +81,15 @@
 		padding: var(--space-6);
 	}
 
-	/* Hover effects */
+	/* Hover — colour shift only, no transform */
 	.glass-card[data-hover='true']:hover {
 		border-color: var(--border-hover);
-		transform: translateY(-2px);
-		box-shadow: var(--elevation-card-hover);
 	}
 
-	/* Gradient border effect */
-	.glass-card[data-gradient-border='true']::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		height: 1px;
-		background: linear-gradient(90deg, transparent 10%, var(--border-active) 50%, transparent 90%);
-		opacity: 0.5;
-		border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-	}
-
-	.glass-card[data-gradient-border='true']:hover::before {
-		opacity: 0.8;
-	}
-
-	/* Large variant - more prominent */
+	/* Variants — they only change padding/elevation now. Surface stays flat. */
 	.glass-card[data-variant='large'] {
 		background: var(--surface-card-elevated);
-		backdrop-filter: blur(var(--glass-blur-lg));
-		border-radius: var(--radius-3xl);
+		border-radius: var(--radius-2xl);
 	}
 
 	.glass-card[data-variant='large'][data-padding='md'] {
@@ -119,17 +99,13 @@
 		padding: var(--space-8);
 	}
 
-	/* Extreme variant - for extreme analysis view */
 	.glass-card[data-variant='extreme'] {
 		background: var(--surface-card-elevated);
-		backdrop-filter: blur(var(--glass-blur-xl));
 		border-color: var(--border-default);
 	}
 
-	/* Subtle variant - less prominent */
 	.glass-card[data-variant='subtle'] {
-		background: color-mix(in oklab, var(--color-surface-900) 55%, transparent);
-		backdrop-filter: blur(var(--glass-blur-sm));
+		background: var(--surface-nested);
 		box-shadow: var(--shadow-sm);
 	}
 

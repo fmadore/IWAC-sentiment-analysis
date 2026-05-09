@@ -10,8 +10,7 @@
 		getTooltipConfig,
 		getAxisLineStyle,
 		getAxisLabelStyle,
-		getSplitLineStyle,
-		adjustBrightness
+		getSplitLineStyle
 	} from '$lib/utils/chartTheme';
 
 	// ECharts imports
@@ -161,32 +160,14 @@
 					data: reversedData.map((item) => ({
 						value: item.count,
 						itemStyle: {
-							color: {
-								type: 'linear',
-								x: 0,
-								y: 0,
-								x2: 1,
-								y2: 0,
-								colorStops: [
-									{
-										offset: 0,
-										color: categoryConfig?.color || '#3B82F6'
-									},
-									{
-										offset: 1,
-										color: adjustBrightness(categoryConfig?.color || '#3B82F6', -30)
-									}
-								]
-							},
-							borderRadius: [0, 4, 4, 0]
+							color: categoryConfig?.color || '#E3AD4B',
+							borderRadius: 0
 						}
 					})),
 					emphasis: {
 						focus: 'series' as const,
 						itemStyle: {
-							shadowBlur: 15,
-							shadowColor: 'rgba(0, 0, 0, 0.4)',
-							borderColor: 'rgba(255, 255, 255, 0.4)',
+							borderColor: '#F3F5F9',
 							borderWidth: 1
 						}
 					},
@@ -202,7 +183,7 @@
 {#if isLoading}
 	<!-- Loading State -->
 	<div class="loading-container">
-		<div class="chart-container extreme-chart-container rounded-lg p-4" style="min-height: 500px;">
+		<div class="chart-container extreme-chart-container p-4" style="min-height: 500px;">
 			<div class="flex items-center justify-center h-full">
 				<div class="text-center">
 					<div class="loading-spinner extreme-spinner mb-4"></div>
@@ -231,7 +212,7 @@
 	<!-- Chart Container -->
 	<div
 		style="height: {isMobile ? '400px' : '500px'}; position: relative;"
-		class="chart-container extreme-chart-container rounded-lg p-2 sm:p-4"
+		class="chart-container extreme-chart-container p-2 sm:p-4"
 	>
 		<Chart {init} {options} />
 	</div>
@@ -306,54 +287,31 @@
 	}
 
 	.extreme-chart-container {
-		background: color-mix(in oklab, var(--sentiment-extreme) 3%, transparent);
-		border: 1px solid color-mix(in oklab, var(--sentiment-extreme) 12%, transparent);
-		backdrop-filter: blur(var(--glass-blur-md));
-		transition:
-			background-color var(--timing-fast) var(--easing-default),
-			border-color var(--timing-fast) var(--easing-default);
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
+		border-top: 2px solid var(--sentiment-extreme);
+		transition: border-color var(--timing-fast) var(--easing-default);
 	}
 
 	.extreme-chart-container:hover {
-		border-color: color-mix(in oklab, var(--sentiment-extreme) 20%, transparent);
-		background: color-mix(in oklab, var(--sentiment-extreme) 5%, transparent);
+		border-color: var(--border-hover);
+		border-top-color: var(--sentiment-extreme);
 	}
 
 	/* Description Card */
 	.extreme-description-card {
-		background: color-mix(in oklab, var(--sentiment-extreme) 8%, transparent);
-		border: 1px solid color-mix(in oklab, var(--sentiment-extreme) 15%, transparent);
-		border-left: 3px solid var(--sentiment-extreme);
-		border-radius: var(--radius-md);
+		background: color-mix(in oklab, var(--sentiment-extreme) 6%, transparent);
+		border: 1px solid color-mix(in oklab, var(--sentiment-extreme) 18%, transparent);
 		padding: var(--space-4);
 		margin-bottom: var(--space-4);
-		backdrop-filter: blur(var(--glass-blur-sm));
-		transition:
-			background-color var(--timing-fast) var(--easing-default),
-			border-color var(--timing-fast) var(--easing-default);
-	}
-
-	.extreme-description-card:hover {
-		background: color-mix(in oklab, var(--sentiment-extreme) 10%, transparent);
-		border-color: color-mix(in oklab, var(--sentiment-extreme) 25%, transparent);
 	}
 
 	/* Statistics Card */
 	.extreme-stats-card {
-		background: color-mix(in oklab, var(--sentiment-extreme) 5%, transparent);
-		border: 1px solid color-mix(in oklab, var(--sentiment-extreme) 12%, transparent);
-		border-radius: var(--radius-xl);
+		background: var(--surface-subtle);
+		border: 1px solid var(--border-subtle);
 		padding: var(--space-4);
 		margin-top: var(--space-4);
-		backdrop-filter: blur(var(--glass-blur-sm));
-		transition:
-			background-color var(--timing-fast) var(--easing-default),
-			border-color var(--timing-fast) var(--easing-default);
-	}
-
-	.extreme-stats-card:hover {
-		background: color-mix(in oklab, var(--sentiment-extreme) 8%, transparent);
-		border-color: color-mix(in oklab, var(--sentiment-extreme) 20%, transparent);
 	}
 
 	/* Statistics Row */

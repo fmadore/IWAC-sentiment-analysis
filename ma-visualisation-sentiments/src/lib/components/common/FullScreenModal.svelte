@@ -146,8 +146,7 @@
 		position: absolute;
 		inset: 0;
 		z-index: 0;
-		background: color-mix(in oklab, var(--color-surface-950) 92%, transparent);
-		backdrop-filter: blur(var(--glass-blur-xl));
+		background: var(--app-bg);
 		animation: fadeIn var(--timing-normal) var(--easing-default);
 	}
 
@@ -165,9 +164,8 @@
 	.fs-modal-header {
 		position: relative;
 		flex-shrink: 0;
-		background: color-mix(in oklab, var(--color-surface-900) 88%, transparent);
+		background: var(--surface-card-elevated);
 		border-bottom: 1px solid var(--border-subtle);
-		backdrop-filter: blur(var(--glass-blur-md));
 	}
 
 	/* Accent line variants */
@@ -182,24 +180,19 @@
 	}
 
 	.fs-modal-header[data-accent='primary']::before {
-		background: var(--gradient-header);
+		background: var(--chrome-accent);
 	}
 
 	.fs-modal-header[data-accent='comparison']::before {
-		background: var(--gradient-comparison);
+		background: var(--sentiment-comparison-light);
 	}
 
 	.fs-modal-header[data-accent='extreme']::before {
-		background: var(--gradient-extreme);
+		background: var(--sentiment-extreme);
 	}
 
 	.fs-modal-header[data-accent='arbiter']::before {
-		background: linear-gradient(
-			90deg,
-			var(--sentiment-arbiter),
-			var(--sentiment-arbiter-light),
-			var(--sentiment-arbiter)
-		);
+		background: var(--sentiment-arbiter);
 	}
 
 	.header-content {

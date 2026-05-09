@@ -178,7 +178,7 @@
 					...getStaggeredAnimationDelay(),
 					itemStyle: {
 						color: arbiterVerdictColors.neither,
-						borderRadius: [4, 4, 0, 0]
+						borderRadius: 0
 					},
 					data: dimensionData.map((d) => d.neither)
 				}

@@ -40,9 +40,7 @@
 	}
 </script>
 
-<div
-	class="extreme-controls card variant-glass glass-heavy p-3 hover-lift-sm border-gradient extreme-gradient"
->
+<div class="extreme-controls">
 	<div class="flex items-center gap-3 mb-4">
 		<div class="extreme-controls-icon">
 			<SlidersHorizontalIcon size={18} class="text-orange-400" />
@@ -60,7 +58,7 @@
 				id="category-select"
 				bind:value={selectedCategory}
 				onchange={handleCategoryChange}
-				class="select-input glass-medium"
+				class="select-input"
 			>
 				<option value="subjectivity_extreme_high">
 					{$t.extremeAnalysis.categories.subjectivityHigh}
@@ -90,14 +88,14 @@
 			</span>
 			<div class="btn-group-toggle">
 				<button
-					class="btn-toggle hover-lift {selectedKeywordType === 'subject' ? 'active' : ''}"
+					class="btn-toggle {selectedKeywordType === 'subject' ? 'active' : ''}"
 					onclick={() => handleKeywordTypeChange('subject')}
 					aria-pressed={selectedKeywordType === 'subject'}
 				>
 					{$t.extremeAnalysis.subjectKeywords}
 				</button>
 				<button
-					class="btn-toggle hover-lift {selectedKeywordType === 'spatial' ? 'active' : ''}"
+					class="btn-toggle {selectedKeywordType === 'spatial' ? 'active' : ''}"
 					onclick={() => handleKeywordTypeChange('spatial')}
 					aria-pressed={selectedKeywordType === 'spatial'}
 				>
@@ -118,45 +116,18 @@
 				max="25"
 				bind:value={showTopN}
 				onchange={handleTopNChange}
-				class="number-input glass-medium"
+				class="number-input"
 			/>
 		</div>
 	</div>
 </div>
 
 <style>
-	/* Extreme Controls Styling */
 	.extreme-controls {
-		position: relative;
-		overflow: hidden;
-	}
-
-	.extreme-controls::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		height: 3px;
-		background: linear-gradient(
-			90deg,
-			var(--sentiment-extreme),
-			var(--sentiment-extreme-light),
-			var(--sentiment-extreme-accent)
-		);
-		opacity: 0.8;
-	}
-
-	.extreme-gradient {
-		background: linear-gradient(
-			135deg,
-			color-mix(in oklab, var(--color-surface-900) 92%, transparent),
-			color-mix(in oklab, var(--sentiment-extreme) 4%, var(--color-surface-900))
-		) !important;
-	}
-
-	.glass-heavy {
-		backdrop-filter: blur(var(--glass-blur-lg));
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
+		border-top: 2px solid var(--sentiment-extreme);
+		padding: var(--space-3);
 	}
 
 	.extreme-controls-icon {
@@ -165,7 +136,6 @@
 		justify-content: center;
 		width: var(--size-control-md);
 		height: var(--size-control-md);
-		border-radius: var(--radius-lg);
 		background: var(--sentiment-extreme-icon-bg);
 		border: 1px solid var(--sentiment-extreme-border);
 	}
@@ -265,40 +235,15 @@
 		border-right: 1px solid var(--border-hover);
 	}
 
-	.btn-toggle::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: linear-gradient(
-			135deg,
-			color-mix(in oklab, var(--color-surface-50) 10%, transparent),
-			color-mix(in oklab, var(--color-surface-50) 5%, transparent)
-		);
-		opacity: 0;
-		transition: opacity var(--timing-fast) var(--easing-default);
-	}
-
 	.btn-toggle:hover {
-		background: var(--surface-subtle);
+		background: var(--surface-hover);
 		color: var(--text-primary);
 	}
 
-	.btn-toggle:hover::before {
-		opacity: 1;
-	}
-
 	.btn-toggle.active {
-		background: linear-gradient(
-			135deg,
-			color-mix(in oklab, var(--sentiment-extreme) 30%, transparent),
-			color-mix(in oklab, var(--sentiment-extreme-light) 20%, transparent)
-		);
+		background: var(--sentiment-extreme-bg);
 		color: var(--sentiment-extreme-accent);
-		font-weight: var(--font-weight-semibold);
-		border-color: var(--sentiment-extreme-border);
+		font-weight: 600;
 	}
 
 	/* Number Input */

@@ -29,44 +29,47 @@ export async function loadExtremeAnalysisData(
 }
 
 /**
- * Configuration for extreme categories with display properties
+ * Configuration for extreme categories with display properties.
+ * Colours mirror the OKLCH-derived editorial sentiment palette in app.css /
+ * chartTheme.ts so the extremes view stays coherent with the rest of the
+ * dashboard. Hex values (not OKLCH) because ECharts/zrender needs them.
  */
 export const extremeCategoryConfigs: ExtremeCategoryConfig[] = [
 	{
 		id: 'subjectivity_extreme_high',
 		labelKey: 'extremeAnalysis.categories.subjectivityHigh',
-		color: '#DC2626', // red-600
-		gradient: 'linear-gradient(135deg, #DC2626 0%, #991B1B 100%)'
+		color: '#E76444', // subjectivity_5 — warm, loud
+		gradient: 'linear-gradient(135deg, #E76444 0%, #D2833B 100%)'
 	},
 	{
 		id: 'subjectivity_extreme_low',
 		labelKey: 'extremeAnalysis.categories.subjectivityLow',
-		color: '#2563EB', // blue-600
-		gradient: 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)'
+		color: '#7AAEBF', // subjectivity_1 — cool, calm
+		gradient: 'linear-gradient(135deg, #7AAEBF 0%, #56AFB3 100%)'
 	},
 	{
 		id: 'polarity_very_negative',
 		labelKey: 'extremeAnalysis.categories.polarityNegative',
-		color: '#991B1B', // red-800
-		gradient: 'linear-gradient(135deg, #991B1B 0%, #7F1D1D 100%)'
+		color: '#E64343', // polarity_very_negative
+		gradient: 'linear-gradient(135deg, #E64343 0%, #E97871 100%)'
 	},
 	{
 		id: 'polarity_very_positive',
 		labelKey: 'extremeAnalysis.categories.polarityPositive',
-		color: '#059669', // emerald-600
-		gradient: 'linear-gradient(135deg, #059669 0%, #047857 100%)'
+		color: '#00A245', // polarity_very_positive
+		gradient: 'linear-gradient(135deg, #00A245 0%, #5CB572 100%)'
 	},
 	{
 		id: 'centrality_very_central',
 		labelKey: 'extremeAnalysis.categories.centralityHigh',
-		color: '#7C3AED', // violet-600
-		gradient: 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)'
+		color: '#F3B94C', // centrality_very_central — bright amber
+		gradient: 'linear-gradient(135deg, #F3B94C 0%, #CA9C48 100%)'
 	},
 	{
 		id: 'centrality_not_central',
 		labelKey: 'extremeAnalysis.categories.centralityLow',
-		color: '#6B7280', // gray-500
-		gradient: 'linear-gradient(135deg, #6B7280 0%, #4B5563 100%)'
+		color: '#4E4D4A', // centrality_not_addressed — dark neutral
+		gradient: 'linear-gradient(135deg, #4E4D4A 0%, #75674F 100%)'
 	}
 ];
 

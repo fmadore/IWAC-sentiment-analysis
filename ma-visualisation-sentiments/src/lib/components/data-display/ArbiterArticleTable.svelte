@@ -466,7 +466,7 @@
 			<div class="cards-grid arbiter-cards-grid">
 				{#each paginatedArticles as article (article.articleId)}
 					<div
-						class="arbiter-card card variant-glass p-4 hover-lift cursor-pointer"
+						class="arbiter-card cursor-pointer"
 						onclick={() => handleRowClick(article)}
 						onkeydown={(e) => {
 							if (e.key === 'Enter' || e.key === ' ') {
@@ -510,8 +510,8 @@
 		{/if}
 	{:else}
 		<!-- Empty state -->
-		<div class="empty-state card variant-glass p-8 text-center">
-			<p class="text-white/60">
+		<div class="empty-state">
+			<p class="empty-state-lede">
 				{$t.arbiter?.noEvaluatedArticles || 'No evaluated articles available'}
 			</p>
 		</div>
@@ -525,25 +525,10 @@
 	}
 
 	.arbiter-table-wrapper {
-		background: color-mix(in oklab, var(--sentiment-arbiter) 3%, transparent);
-		border: 1px solid color-mix(in oklab, var(--sentiment-arbiter) 12%, transparent);
-		backdrop-filter: blur(var(--glass-blur-md));
-	}
-
-	.arbiter-table-wrapper::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		height: 2px;
-		background: linear-gradient(
-			90deg,
-			var(--sentiment-arbiter),
-			var(--sentiment-arbiter-light),
-			var(--sentiment-arbiter)
-		);
-		z-index: 10;
+		position: relative;
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
+		border-top: 2px solid var(--sentiment-arbiter);
 	}
 
 	.sortable-header {
@@ -585,28 +570,41 @@
 
 	.arbiter-card {
 		cursor: pointer;
-		background: color-mix(in oklab, var(--sentiment-arbiter) 5%, transparent);
-		border: 1px solid color-mix(in oklab, var(--sentiment-arbiter) 12%, transparent);
-		backdrop-filter: blur(var(--glass-blur-sm));
-		transition: all var(--timing-fast) var(--easing-default);
+		padding: var(--space-4);
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default);
 	}
 
 	.arbiter-card:hover {
-		background: color-mix(in oklab, var(--sentiment-arbiter) 10%, transparent);
-		border-color: color-mix(in oklab, var(--sentiment-arbiter) 25%, transparent);
-		transform: translateY(-2px);
+		background: var(--surface-card-elevated);
+		border-color: var(--sentiment-arbiter-border);
+	}
+
+	.empty-state {
+		padding: var(--space-8);
+		text-align: center;
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
+	}
+
+	.empty-state-lede {
+		font-family: var(--font-sans);
+		font-size: var(--font-size-sm);
+		color: var(--text-muted);
+		margin: 0;
 	}
 
 	.controls-section {
 		background: var(--surface-subtle);
 		padding: var(--space-4);
-		border-radius: var(--radius-lg);
-		border: 1px solid var(--border-default);
-		backdrop-filter: blur(var(--glass-blur-sm));
+		border: 1px solid var(--border-subtle);
 	}
 
 	.arbiter-controls {
-		background: color-mix(in oklab, var(--sentiment-arbiter) 8%, var(--color-surface-900));
+		background: var(--surface-subtle);
 		border: 1px solid var(--sentiment-arbiter-border);
 	}
 
@@ -764,7 +762,7 @@
 		padding: var(--space-1) var(--space-2);
 		font-size: var(--font-size-xs);
 		font-weight: var(--font-weight-medium);
-		border-radius: var(--radius-full);
+		border-radius: var(--radius-sm);
 		border: 1px solid;
 		display: inline-flex;
 		align-items: center;

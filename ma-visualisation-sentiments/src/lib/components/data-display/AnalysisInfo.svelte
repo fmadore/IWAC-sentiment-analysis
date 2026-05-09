@@ -545,12 +545,9 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
      ========================================================================== */
 	.info-card {
 		background: var(--surface-card);
-		backdrop-filter: blur(var(--glass-blur-md));
 		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-2xl);
 		padding: var(--space-5);
 		margin-bottom: var(--space-6);
-		box-shadow: var(--elevation-card);
 	}
 
 	/* ==========================================================================
@@ -624,6 +621,7 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 		line-height: var(--line-height-relaxed);
 		font-size: var(--font-size-md);
 		margin-bottom: var(--space-5);
+		max-width: var(--prose-width);
 	}
 
 	.info-link {
@@ -646,9 +644,7 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 		flex-direction: column;
 		gap: 0;
 		background: var(--surface-nested);
-		backdrop-filter: blur(var(--glass-blur-sm));
 		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-xl);
 		overflow: hidden;
 	}
 
@@ -660,6 +656,7 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 		font-size: var(--font-size-base);
 		line-height: var(--line-height-relaxed);
 		margin-bottom: var(--space-4);
+		max-width: var(--prose-width);
 	}
 
 	.sentiment-list {
@@ -774,8 +771,6 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 	.model-card:hover {
 		background: var(--surface-card-hover);
 		border-color: var(--border-hover);
-		transform: translateY(-2px);
-		box-shadow: var(--elevation-card-hover);
 	}
 
 	.model-header {
@@ -893,7 +888,6 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 	.prompt-btn:hover {
 		background: color-mix(in oklab, var(--color-primary-500) 24%, transparent);
 		border-color: color-mix(in oklab, var(--color-primary-500) 40%, transparent);
-		transform: translateY(-1px);
 	}
 
 	/* ==========================================================================
@@ -902,10 +896,20 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 	.comparison-notice {
 		margin-top: var(--space-4);
 		padding: var(--space-4);
-		background: color-mix(in oklab, var(--color-warning-500) 10%, transparent);
+		background: color-mix(in oklab, var(--color-warning-500) 8%, transparent);
 		border: 1px solid color-mix(in oklab, var(--color-warning-500) 25%, transparent);
-		border-left: 3px solid var(--color-warning-500);
-		border-radius: var(--radius-lg);
+	}
+
+	.comparison-notice::before {
+		content: 'Note';
+		display: block;
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--color-warning-300);
+		margin-bottom: var(--space-2);
 	}
 
 	.comparison-notice .section-title {
@@ -924,10 +928,8 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 	.translation-notice {
 		padding: var(--space-3-5) var(--space-4);
 		margin-bottom: var(--space-4);
-		background: color-mix(in oklab, var(--color-warning-500) 12%, transparent);
+		background: color-mix(in oklab, var(--color-warning-500) 8%, transparent);
 		border: 1px solid color-mix(in oklab, var(--color-warning-500) 25%, transparent);
-		border-left: 3px solid var(--color-warning-500);
-		border-radius: var(--radius-lg);
 	}
 
 	.translation-notice p {

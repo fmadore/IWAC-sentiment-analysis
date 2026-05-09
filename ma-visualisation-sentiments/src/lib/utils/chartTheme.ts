@@ -16,92 +16,105 @@
 // =============================================================================
 
 /**
- * Polarity colors matching --sentiment-polarity-* CSS variables
+ * Polarity colors. Diverging red ↔ green ramp through low-chroma blue (neutral).
+ * Equal lightness at the poles so 'Très négatif' and 'Très positif' areas read
+ * with the same visual weight.
+ *
+ * NOTE: ECharts (zrender) does not parse modern CSS color spaces — `oklch()`
+ * and `color-mix()` both fall back to #000000, which makes hover-brightening
+ * turn bars invisible. Every value here is the sRGB-hex translation of the
+ * OKLCH tokens in app.css. Source-of-truth conversion script:
+ * `scripts/oklch-to-hex.py`.
  */
 export const polarityColors = {
-	'Très positif': '#22C55E', // --sentiment-polarity-very-positive
-	Positif: '#4ADE80', // --sentiment-polarity-positive
-	Neutre: '#3B82F6', // --sentiment-polarity-neutral
-	Négatif: '#F87171', // --sentiment-polarity-negative
-	'Très négatif': '#EF4444', // --sentiment-polarity-very-negative
-	'Non applicable': '#6B7280' // --sentiment-polarity-na
+	'Très positif': '#00A245', // oklch(0.62 0.18 150)
+	Positif: '#5CB572', // oklch(0.70 0.13 150)
+	Neutre: '#7E95AD', // oklch(0.66 0.045 250)
+	Négatif: '#E97871', // oklch(0.70 0.14 25)
+	'Très négatif': '#E64343', // oklch(0.62 0.20 25)
+	'Non applicable': '#6E7278' // oklch(0.55 0.01 260)
 } as const;
 
 /**
- * Subjectivity colors matching --sentiment-subjectivity-* CSS variables
+ * Subjectivity colors. Sequential cool→warm ramp by lightness (NOT a rainbow).
+ * Score 1 = objective/calm; Score 5 = subjective/loud.
  */
 export const subjectivityColors = {
-	1: '#06B6D4', // --sentiment-subjectivity-1 (Very Objective)
-	2: '#22D3EE', // --sentiment-subjectivity-2 (Rather Objective)
-	3: '#8B5CF6', // --sentiment-subjectivity-3 (Mixed)
-	4: '#FB923C', // --sentiment-subjectivity-4 (Rather Subjective)
-	5: '#F97316' // --sentiment-subjectivity-5 (Very Subjective)
+	1: '#7AAEBF', // oklch(0.72 0.06 220)
+	2: '#56AFB3', // oklch(0.70 0.085 200)
+	3: '#86A468', // oklch(0.68 0.09 130)
+	4: '#D2833B', // oklch(0.68 0.13 60)
+	5: '#E76444' // oklch(0.66 0.17 35)
 } as const;
 
 /**
  * Legacy subjectivity colors mapped by French labels (for backwards compatibility)
  */
 export const subjectivityColorsByLabel = {
-	Factuel: '#06B6D4', // Score 1 - Very Objective
-	'Plutôt factuel': '#22D3EE', // Score 2 - Rather Objective
-	Mixte: '#8B5CF6', // Score 3 - Mixed
-	'Plutôt subjectif': '#FB923C', // Score 4 - Rather Subjective
-	Subjectif: '#F97316', // Score 5 - Very Subjective
-	'Non applicable': '#6B7280' // N/A - Gray
+	Factuel: '#7AAEBF',
+	'Plutôt factuel': '#56AFB3',
+	Mixte: '#86A468',
+	'Plutôt subjectif': '#D2833B',
+	Subjectif: '#E76444',
+	'Non applicable': '#6E7278'
 } as const;
 
 /**
- * Centrality colors matching --sentiment-centrality-* CSS variables
+ * Centrality colors. Sequential single-hue amber ramp — more central = brighter.
+ * No jump from gray to yellow like before; "more of one variable" reads as one
+ * visual variable now.
  */
 export const centralityColors = {
-	'Non abordé': '#475569', // --sentiment-centrality-not-addressed
-	Marginal: '#64748B', // --sentiment-centrality-marginal
-	Secondaire: '#94A3B8', // --sentiment-centrality-secondary
-	Central: '#FCD34D', // --sentiment-centrality-central
-	'Très central': '#FBBF24' // --sentiment-centrality-very-central
+	'Non abordé': '#4E4D4A', // oklch(0.42 0.005 80)
+	Marginal: '#75674F', // oklch(0.52 0.04 80)
+	Secondaire: '#9E8150', // oklch(0.62 0.075 80)
+	Central: '#CA9C48', // oklch(0.72 0.115 80)
+	'Très central': '#F3B94C' // oklch(0.82 0.14 80)
 } as const;
 
 /**
- * Arbiter verdict colors - for model comparison results
- * Uses semantic colors that represent model preference outcomes
+ * Arbiter verdict colors. Reuses comparison-palette steel-blue for model A/B
+ * to avoid implying that "model A wins" is positive (green) — verdicts are
+ * descriptive, not evaluative. 'both' is the warm arbiter amber; 'neither'
+ * is neutral grey.
  */
 export const arbiterVerdictColors = {
-	model_a: '#22C55E', // --sentiment-polarity-very-positive (Green for first model)
-	model_b: '#8B5CF6', // --sentiment-subjectivity-3 (Purple for second model)
-	both: '#FBBF24', // --sentiment-arbiter-light (Amber for equal)
-	neither: '#6B7280' // --sentiment-polarity-na (Gray for neither)
+	model_a: '#6FA5CB', // oklch(0.70 0.08 240)
+	model_b: '#CC91DA', // oklch(0.74 0.12 320)
+	both: '#E3AD4B', // oklch(0.78 0.13 80)
+	neither: '#6E7278' // oklch(0.55 0.01 260)
 } as const;
 
 /**
- * Arbiter confidence level colors
- * Indicates how confident the arbiter is in its verdict
+ * Arbiter confidence colors. Stays inside the diverging polarity ramp so a
+ * 'low confidence' chart reads with the same visual weight as a 'low signal'
+ * sentiment chart elsewhere.
  */
 export const arbiterConfidenceColors = {
-	high: '#22C55E', // --sentiment-polarity-very-positive (Green for high confidence)
-	medium: '#FBBF24', // --sentiment-arbiter-light (Amber for medium)
-	low: '#EF4444' // --sentiment-polarity-very-negative (Red for low)
+	high: '#00A245',
+	medium: '#E3AD4B',
+	low: '#E64343'
 } as const;
 
 /**
- * Modern color palette for multi-series charts (countries, journals, etc.)
- * Uses a harmonious set of colors that work well on dark backgrounds
+ * Categorical palette for multi-series charts (countries, journals, etc.).
+ * EXPLICITLY avoids the polarity reds and greens so a journal series can
+ * never be confused with a sentiment series. Muted, low-to-medium chroma —
+ * categorical encoding shouldn't shout. Hues spaced ≥40° apart.
  */
 export const seriesColorPalette = [
-	'#3B82F6', // Blue
-	'#22C55E', // Green
-	'#F97316', // Orange
-	'#8B5CF6', // Purple
-	'#EC4899', // Pink
-	'#06B6D4', // Cyan
-	'#FBBF24', // Amber
-	'#EF4444', // Red
-	'#14B8A6', // Teal
-	'#A855F7', // Violet
-	'#10B981', // Emerald
-	'#6366F1', // Indigo
-	'#F59E0B', // Yellow
-	'#84CC16', // Lime
-	'#F43F5E' // Rose
+	'#6DABDF', // steel blue
+	'#50BFBE', // teal
+	'#E3AD4B', // amber
+	'#C38ECF', // muted magenta
+	'#5DC0A7', // sea green (cooler than polarity green)
+	'#9FA5E3', // dusty violet
+	'#E7A875', // ochre
+	'#6EB1BD', // slate
+	'#C9B773', // wheat
+	'#D48AAD', // muted rose (cooler than polarity red)
+	'#84B3CA', // pale steel
+	'#A0BC86' // sage
 ] as const;
 
 // =============================================================================
@@ -110,33 +123,46 @@ export const seriesColorPalette = [
 // =============================================================================
 
 /**
- * Chart color constants for consistent styling
- * These mirror CSS custom properties for use in ECharts (which needs raw color values)
+ * Chart color constants. ECharts (zrender) only parses hex / rgb(a) / hsl(a) /
+ * named colors — `oklch()` and `color-mix()` fall back to #000000, which
+ * makes hover brightness adjustments turn bars invisible. So everything
+ * here is hex / rgba, derived from the OKLCH tokens in app.css via
+ * `scripts/oklch-to-hex.py`. Backgrounds and chrome are OPAQUE — tooltip
+ * blur was an AI dataviz tell. Text is tinted toward the brand hue (260)
+ * so it integrates with the editorial dark surface.
  */
 export const chartColors = {
-	// Text colors
 	text: {
-		primary: 'rgba(255, 255, 255, 0.95)',
-		secondary: 'rgba(255, 255, 255, 0.85)',
-		muted: 'rgba(255, 255, 255, 0.75)',
-		subtle: 'rgba(255, 255, 255, 0.7)',
-		faint: 'rgba(255, 255, 255, 0.3)'
+		primary: '#F3F5F9', // oklch(0.97 0.005 260)
+		secondary: '#D5D7DB', // oklch(0.88 0.005 260)
+		muted: '#A9ABAE', // oklch(0.74 0.005 260)
+		subtle: '#848689', // oklch(0.62 0.005 260)
+		faint: '#4B4D50' // oklch(0.42 0.005 260)
 	},
-	// Background colors
 	background: {
-		tooltip: 'rgba(15, 23, 42, 0.9)',
-		dark: 'rgba(15, 23, 42, 0.9)'
+		// Opaque editorial tooltip — high contrast, hairline border.
+		tooltip: '#13161C', // oklch(0.20 0.012 260)
+		dark: '#13161C'
 	},
-	// Border colors
 	border: {
-		subtle: 'rgba(255, 255, 255, 0.08)',
-		light: 'rgba(255, 255, 255, 0.15)',
-		medium: 'rgba(255, 255, 255, 0.2)'
+		subtle: 'rgba(243, 245, 249, 0.08)',
+		light: 'rgba(243, 245, 249, 0.14)',
+		medium: 'rgba(243, 245, 249, 0.22)'
 	},
-	// Shadow colors
 	shadow: {
-		default: 'rgba(0, 0, 0, 0.3)',
-		emphasis: 'rgba(0, 0, 0, 0.4)'
+		default: 'rgba(0, 0, 0, 0.35)',
+		emphasis: 'rgba(0, 0, 0, 0.45)'
+	},
+	/**
+	 * Chrome accent for chart UI affordances (DataZoom handle, brush, axis-pointer
+	 * highlights). Uses the editorial amber primary so it doesn't collide with
+	 * the polarity-neutral blue (which used to be the same #3B82F6 — that was
+	 * the bug DataZoom carried).
+	 */
+	chrome: {
+		accent: '#E3AD4B', // oklch(0.78 0.13 80)
+		accentSoft: 'rgba(227, 173, 75, 0.22)',
+		accentFaint: 'rgba(227, 173, 75, 0.12)'
 	}
 } as const;
 
@@ -161,33 +187,37 @@ export function getFontSize(
 }
 
 /**
- * Common title style configuration
+ * Common title style configuration. Charts inside ChartCard now get their
+ * title from the card header, so this is rarely used — kept for charts that
+ * render standalone (heatmap legend titles, etc.).
  */
 export function getTitleStyle(isMobile: boolean) {
 	return {
 		color: chartColors.text.primary,
-		fontWeight: 'bold' as const,
+		fontWeight: 600 as const,
 		fontSize: getFontSize(isMobile, 'title'),
-		fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
+		fontFamily: '"Source Serif 4", "Source Serif Pro", Georgia, "Times New Roman", Times, serif'
 	};
 }
 
 /**
- * Common tooltip configuration with glass morphism effect
+ * Tooltip — opaque editorial panel, no backdrop blur. Tooltips appear *over*
+ * chart canvases; blur there read as cheap glass-over-data. FT/Bloomberg
+ * tooltips are flat and high-contrast.
  */
-export function getTooltipConfig(isMobile: boolean) {
+export function getTooltipConfig(_isMobile: boolean) {
 	return {
 		backgroundColor: chartColors.background.tooltip,
-		borderColor: chartColors.border.light,
+		borderColor: chartColors.border.medium,
 		borderWidth: 1,
-		borderRadius: 8,
-		padding: [12, 16],
+		borderRadius: 6,
+		padding: [10, 14],
 		textStyle: {
 			color: chartColors.text.secondary,
-			fontSize: getFontSize(isMobile, 'tooltip'),
-			fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
+			fontSize: getFontSize(_isMobile, 'tooltip'),
+			fontFamily: '"Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
 		},
-		extraCssText: `backdrop-filter: blur(12px); box-shadow: 0 8px 32px ${chartColors.shadow.default};`
+		extraCssText: `box-shadow: 0 8px 24px ${chartColors.shadow.emphasis};`
 	};
 }
 
@@ -202,7 +232,7 @@ export function getLegendConfig(
 		textStyle: {
 			color: chartColors.text.secondary,
 			fontSize: getFontSize(isMobile, 'legend'),
-			fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
+			fontFamily: '"Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
 		},
 		type: 'scroll' as const,
 		orient: isMobile && orientation === 'horizontal' ? 'vertical' : orientation,
@@ -255,7 +285,7 @@ export function getAxisLabelStyle(isMobile: boolean) {
 	return {
 		color: chartColors.text.muted,
 		fontSize: getFontSize(isMobile, 'label'),
-		fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
+		fontFamily: '"Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
 	};
 }
 
@@ -310,7 +340,9 @@ export function getGridConfig(
 }
 
 /**
- * Common DataZoom configuration for time-series charts
+ * DataZoom for time-series charts. Uses the editorial amber chrome accent
+ * so the selection band can never be confused with the polarity-neutral
+ * series colour (the previous #3B82F6 collision).
  */
 export function getDataZoomConfig(isMobile: boolean) {
 	return [
@@ -319,33 +351,44 @@ export function getDataZoomConfig(isMobile: boolean) {
 			start: 0,
 			end: 100,
 			bottom: isMobile ? '5%' : '2%',
-			height: isMobile ? 18 : 24,
-			backgroundColor: 'rgba(255, 255, 255, 0.05)',
-			borderColor: 'rgba(255, 255, 255, 0.15)',
-			fillerColor: 'rgba(59, 130, 246, 0.2)',
+			height: isMobile ? 18 : 22,
+			backgroundColor: chartColors.border.subtle,
+			borderColor: chartColors.border.light,
+			fillerColor: chartColors.chrome.accentFaint,
 			handleStyle: {
-				color: '#3B82F6',
-				borderColor: 'rgba(255, 255, 255, 0.5)',
-				borderWidth: 1
+				color: chartColors.chrome.accent,
+				borderColor: chartColors.chrome.accent,
+				borderWidth: 0
+			},
+			moveHandleStyle: {
+				color: chartColors.chrome.accent,
+				opacity: 0.6
+			},
+			emphasis: {
+				handleStyle: {
+					borderWidth: 0
+				}
 			},
 			textStyle: {
-				color: 'rgba(255, 255, 255, 0.7)',
-				fontSize: isMobile ? 9 : 10
+				color: chartColors.text.muted,
+				fontFamily: '"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace',
+				fontSize: isMobile ? 10 : 11
 			},
 			dataBackground: {
 				lineStyle: {
-					color: 'rgba(255, 255, 255, 0.2)'
+					color: chartColors.border.medium,
+					width: 1
 				},
 				areaStyle: {
-					color: 'rgba(255, 255, 255, 0.05)'
+					color: chartColors.border.subtle
 				}
 			},
 			selectedDataBackground: {
 				lineStyle: {
-					color: 'rgba(59, 130, 246, 0.5)'
+					color: chartColors.chrome.accentSoft
 				},
 				areaStyle: {
-					color: 'rgba(59, 130, 246, 0.1)'
+					color: chartColors.chrome.accentFaint
 				}
 			}
 		},
@@ -368,84 +411,82 @@ export function getEmphasisConfig() {
 }
 
 /**
- * Common line series style
+ * Line series — flat strokes, no drop shadow. Drop shadows on lines were
+ * a 2010s polish gesture; investigative line charts are crisp and matte.
  */
 export function getLineSeriesStyle(isMobile: boolean, color: string) {
 	return {
 		lineStyle: {
-			width: isMobile ? 2 : 3,
-			shadowColor: 'rgba(0, 0, 0, 0.2)',
-			shadowBlur: 4,
-			shadowOffsetY: 2
+			width: isMobile ? 1.75 : 2
 		},
-		symbolSize: isMobile ? 5 : 7,
+		symbolSize: isMobile ? 4 : 6,
 		symbol: 'circle' as const,
 		itemStyle: {
 			color,
-			borderColor: 'rgba(255, 255, 255, 0.8)',
-			borderWidth: 1
+			borderWidth: 0
 		}
 	};
 }
 
 /**
- * Common bar series style with gradient
+ * Bar series — FLAT fill, no gradient, no rounded corners. FT/Reuters/
+ * Bellingcat all use flat square-cornered bars. A gradient implies a change;
+ * the bars here are constants, so the gradient is decoration.
  */
-export function getBarSeriesStyle(color: string, horizontal: boolean = false) {
-	const gradientDirection = horizontal
-		? { x: 0, y: 0, x2: 1, y2: 0 }
-		: { x: 0, y: 1, x2: 0, y2: 0 };
-
+export function getBarSeriesStyle(color: string, _horizontal: boolean = false) {
 	return {
 		itemStyle: {
-			color: {
-				type: 'linear' as const,
-				...gradientDirection,
-				colorStops: [
-					{ offset: 0, color },
-					{ offset: 1, color: adjustBrightness(color, -20) }
-				]
-			},
-			borderRadius: horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0]
+			color,
+			borderRadius: 0
 		}
 	};
 }
 
 /**
- * Pie chart series style
+ * Pie / donut series — flat fills, no shadow on emphasis. Hover signal is
+ * a 2px white border on the active slice. Donut radius slightly leaner than
+ * the previous 42/72 to leave room for centre labels.
  */
 export function getPieSeriesStyle(isMobile: boolean) {
 	return {
-		radius: ['42%', '72%'],
-		center: ['50%', '55%'],
+		radius: ['38%', '70%'],
+		center: ['50%', '54%'],
+		itemStyle: {
+			borderColor: '#0A0D12', // app-bg in hex — slices don't bleed into each other on dark surface
+			borderWidth: 1
+		},
 		label: {
-			color: 'rgba(255, 255, 255, 0.9)',
+			color: chartColors.text.secondary,
 			fontSize: getFontSize(isMobile, 'label'),
-			fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
+			fontFamily: '"Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
 		},
 		labelLine: {
 			lineStyle: {
-				color: 'rgba(255, 255, 255, 0.3)'
+				color: chartColors.border.medium
 			}
 		},
 		emphasis: {
 			label: {
-				fontWeight: 'bold' as const
+				fontWeight: 600 as const
 			},
 			itemStyle: {
-				shadowBlur: 20,
-				shadowOffsetX: 0,
-				shadowColor: 'rgba(0, 0, 0, 0.4)'
+				borderColor: chartColors.text.primary,
+				borderWidth: 1.5,
+				shadowBlur: 0
 			}
 		}
 	};
 }
 
 /**
- * Adjust color brightness
+ * Adjust color brightness. Hex input gets channel-shifted; OKLCH input passes
+ * through unchanged (callers should be migrated off bar-gradient styling
+ * per the Phase 2 dataviz refactor — investigative charts use flat fills).
  */
 export function adjustBrightness(color: string, percent: number): string {
+	if (!color.startsWith('#')) return color;
 	const num = parseInt(color.replace('#', ''), 16);
+	if (Number.isNaN(num)) return color;
 	const amt = Math.round(2.55 * percent);
 	const R = Math.max(0, Math.min(255, (num >> 16) + amt));
 	const G = Math.max(0, Math.min(255, ((num >> 8) & 0x00ff) + amt));
@@ -454,14 +495,19 @@ export function adjustBrightness(color: string, percent: number): string {
 }
 
 /**
- * Get color with opacity
+ * Get color with opacity. Hex → rgba; OKLCH → color-mix with transparent
+ * (ECharts ≥6 accepts modern CSS color syntax).
  */
 export function withOpacity(color: string, opacity: number): string {
-	const hex = color.replace('#', '');
-	const r = parseInt(hex.substring(0, 2), 16);
-	const g = parseInt(hex.substring(2, 4), 16);
-	const b = parseInt(hex.substring(4, 6), 16);
-	return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+	if (color.startsWith('#')) {
+		const hex = color.replace('#', '');
+		const r = parseInt(hex.substring(0, 2), 16);
+		const g = parseInt(hex.substring(2, 4), 16);
+		const b = parseInt(hex.substring(4, 6), 16);
+		return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+	}
+	const pct = Math.round(opacity * 100);
+	return `color-mix(in oklab, ${color} ${pct}%, transparent)`;
 }
 
 /**

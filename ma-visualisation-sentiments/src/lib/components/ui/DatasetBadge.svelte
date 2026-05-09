@@ -73,10 +73,9 @@
 		display: inline-flex;
 		align-items: center;
 		gap: var(--space-2);
-		border-radius: var(--radius-full);
+		border-radius: var(--radius-sm);
 		font-weight: var(--font-weight-medium);
 		background: var(--surface-subtle);
-		backdrop-filter: blur(var(--glass-blur-sm));
 		border: 1px solid var(--border-hover);
 		color: var(--text-primary);
 		transition:
@@ -88,30 +87,8 @@
 		overflow: hidden;
 	}
 
-	.dataset-badge::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: linear-gradient(
-			135deg,
-			var(--dataset-color, var(--color-primary-500)) 0%,
-			transparent 60%
-		);
-		opacity: 0.2;
-		transition: opacity var(--timing-fast) var(--easing-default);
-	}
-
-	.dataset-badge:hover::before {
-		opacity: 0.3;
-	}
-
 	.dataset-badge:hover {
 		border-color: var(--border-active);
-		transform: translateY(-1px);
-		box-shadow: var(--shadow-sm);
 	}
 
 	.comparison-mode {

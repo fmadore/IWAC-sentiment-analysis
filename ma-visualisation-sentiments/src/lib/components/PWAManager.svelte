@@ -102,17 +102,65 @@
 <!-- Update notification -->
 {#if updateAvailable}
 	<div class="fixed bottom-4 right-4 z-50">
-		<div class="bg-blue-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3">
+		<div class="pwa-update-banner">
 			<div class="flex-1">
-				<p class="font-medium">Update Available</p>
-				<p class="text-sm opacity-90">A new version of the app is ready.</p>
+				<p class="pwa-update-title">Update Available</p>
+				<p class="pwa-update-detail">A new version of the app is ready.</p>
 			</div>
-			<button
-				onclick={updateApp}
-				class="bg-white text-blue-600 px-3 py-1 rounded font-medium hover:bg-blue-50 transition-colors"
-			>
-				Update
-			</button>
+			<button onclick={updateApp} class="pwa-update-button">Update</button>
 		</div>
 	</div>
 {/if}
+
+<style>
+	.pwa-update-banner {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		padding: var(--space-3) var(--space-4);
+		background: var(--surface-card-elevated);
+		border: 1px solid var(--border-default);
+		border-top: 2px solid var(--chrome-accent);
+		box-shadow: var(--shadow-lg);
+		max-width: 24rem;
+	}
+
+	.pwa-update-title {
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--chrome-accent);
+		margin: 0 0 var(--space-1);
+	}
+
+	.pwa-update-detail {
+		font-family: var(--font-sans);
+		font-size: var(--font-size-sm);
+		color: var(--text-secondary);
+		margin: 0;
+	}
+
+	.pwa-update-button {
+		flex-shrink: 0;
+		background: transparent;
+		border: 1px solid var(--chrome-accent);
+		color: var(--chrome-accent);
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		padding: var(--space-2) var(--space-3);
+		cursor: pointer;
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
+	}
+
+	.pwa-update-button:hover {
+		background: var(--chrome-accent);
+		color: var(--app-bg);
+	}
+</style>

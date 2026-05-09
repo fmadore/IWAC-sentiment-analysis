@@ -42,27 +42,19 @@
 
 {#if comparison}
 	<div class="space-y-6">
-		<h3 class="h3 text-white text-balance comparison-detail-title">
+		<h3 class="comparison-detail-title">
 			{comparison.article['o:title'] ?? $t.article.titleNotAvailable}
 		</h3>
 
 		<!-- Article metadata -->
 		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-			<div
-				class="comparison-metadata-card card variant-glass glass-heavy p-4 hover-lift-sm border-gradient"
-			>
-				<span class="text-xs uppercase font-bold opacity-75 text-purple-300/80"
-					>{$t.filters.journal}</span
-				>
-				<p class="text-white mt-2 font-medium">{getJournalName(comparison.article)}</p>
+			<div class="comparison-metadata-card">
+				<span class="meta-label">{$t.filters.journal}</span>
+				<p class="meta-value">{getJournalName(comparison.article)}</p>
 			</div>
-			<div
-				class="comparison-metadata-card card variant-glass glass-heavy p-4 hover-lift-sm border-gradient"
-			>
-				<span class="text-xs uppercase font-bold opacity-75 text-purple-300/80"
-					>{$t.article.publicationDate}</span
-				>
-				<p class="text-white mt-2 font-medium">{formatDate(comparison.article.publication_date)}</p>
+			<div class="comparison-metadata-card">
+				<span class="meta-label">{$t.article.publicationDate}</span>
+				<p class="meta-value">{formatDate(comparison.article.publication_date)}</p>
 			</div>
 		</div>
 
@@ -75,17 +67,14 @@
 		{/if}
 
 		<!-- Link to full article -->
-		<div
-			class="comparison-metadata-card card variant-glass glass-heavy p-4 hover-lift-sm border-gradient"
-		>
-			<span class="text-xs uppercase font-bold opacity-75 text-white/60"
-				>{$t.article.linkToFullArticle}</span
-			>
-			<p class="text-white mt-2">
+		<div class="comparison-metadata-card">
+			<span class="meta-label">{$t.article.linkToFullArticle}</span>
+			<p class="meta-value">
 				<a
 					href={getArticleUrl(comparison.article['o:id'])}
 					target="_blank"
-					class="anchor comparison-anchor hover-glow focus-ring"
+					rel="noopener noreferrer"
+					class="comparison-anchor focus-ring"
 				>
 					{$t.article.consultOriginalArticle}
 				</a>
@@ -93,11 +82,9 @@
 		</div>
 
 		<!-- Overall discrepancy summary -->
-		<div
-			class="discrepancy-section card variant-glass glass-heavy p-5 hover-lift-sm border-gradient discrepancy-gradient"
-		>
-			<div class="flex items-center justify-between mb-4">
-				<h4 class="h4 text-white">{$t.comparison.totalDiscrepancy}</h4>
+		<div class="comparison-section discrepancy-section">
+			<div class="section-head">
+				<span class="section-eyebrow">{$t.comparison.totalDiscrepancy}</span>
 				<span class="badge badge-lg {getDiffBadgeClass(comparison.discrepancies.totalDiff)}">
 					{comparison.discrepancies.totalDiff}
 					{comparison.discrepancies.totalDiff === 1
@@ -105,30 +92,26 @@
 						: $t.comparison.pointsDifference}
 				</span>
 			</div>
-			<div class="grid grid-cols-3 gap-4 text-center">
-				<div>
-					<div class="text-sm text-white/60 mb-1">{$t.comparison.polarity}</div>
-					<div class="text-lg font-semibold {getDiffClass(comparison.discrepancies.polarityDiff)}">
+			<div class="diff-grid">
+				<div class="diff-cell">
+					<div class="diff-cell-label">{$t.comparison.polarity}</div>
+					<div class="diff-cell-value {getDiffClass(comparison.discrepancies.polarityDiff)}">
 						{comparison.discrepancies.polarityDiff > 0
 							? `±${comparison.discrepancies.polarityDiff}`
 							: '='}
 					</div>
 				</div>
-				<div>
-					<div class="text-sm text-white/60 mb-1">{$t.comparison.subjectivity}</div>
-					<div
-						class="text-lg font-semibold {getDiffClass(comparison.discrepancies.subjectivityDiff)}"
-					>
+				<div class="diff-cell">
+					<div class="diff-cell-label">{$t.comparison.subjectivity}</div>
+					<div class="diff-cell-value {getDiffClass(comparison.discrepancies.subjectivityDiff)}">
 						{comparison.discrepancies.subjectivityDiff > 0
 							? `±${comparison.discrepancies.subjectivityDiff}`
 							: '='}
 					</div>
 				</div>
-				<div>
-					<div class="text-sm text-white/60 mb-1">{$t.comparison.centrality}</div>
-					<div
-						class="text-lg font-semibold {getDiffClass(comparison.discrepancies.centralityDiff)}"
-					>
+				<div class="diff-cell">
+					<div class="diff-cell-label">{$t.comparison.centrality}</div>
+					<div class="diff-cell-value {getDiffClass(comparison.discrepancies.centralityDiff)}">
 						{comparison.discrepancies.centralityDiff > 0
 							? `±${comparison.discrepancies.centralityDiff}`
 							: '='}
@@ -138,11 +121,9 @@
 		</div>
 
 		<!-- Centralité Comparison -->
-		<div
-			class="centrality-section card variant-glass glass-heavy p-5 hover-lift-sm border-gradient centrality-gradient"
-		>
-			<div class="flex items-center gap-3 mb-4">
-				<h4 class="h4 text-white">{$t.analysis.centralitySection}</h4>
+		<div class="comparison-section centrality-section">
+			<div class="section-head">
+				<span class="section-eyebrow">{$t.analysis.centralitySection}</span>
 				<span class="badge {getDiffBadgeClass(comparison.discrepancies.centralityDiff)}">
 					{comparison.discrepancies.centralityDiff > 0
 						? `±${comparison.discrepancies.centralityDiff}`
@@ -157,17 +138,13 @@
 				{modelBName}
 				modelBValue={comparison.modelB?.centralite_islam_musulmans}
 				modelBJustification={comparison.modelB?.centralite_justification}
-				borderColorA="border-l-blue-400/50"
-				borderColorB="border-l-green-400/50"
 			/>
 		</div>
 
 		<!-- Polarité Comparison -->
-		<div
-			class="polarity-section card variant-glass glass-heavy p-5 hover-lift-sm border-gradient polarity-gradient"
-		>
-			<div class="flex items-center gap-3 mb-4">
-				<h4 class="h4 text-white">{$t.analysis.polaritySection}</h4>
+		<div class="comparison-section polarity-section">
+			<div class="section-head">
+				<span class="section-eyebrow">{$t.analysis.polaritySection}</span>
 				<span class="badge {getDiffBadgeClass(comparison.discrepancies.polarityDiff)}">
 					{comparison.discrepancies.polarityDiff > 0
 						? `±${comparison.discrepancies.polarityDiff}`
@@ -182,17 +159,13 @@
 				{modelBName}
 				modelBValue={comparison.modelB?.polarite}
 				modelBJustification={comparison.modelB?.polarite_justification}
-				borderColorA="border-l-purple-400/50"
-				borderColorB="border-l-purple-400/50"
 			/>
 		</div>
 
 		<!-- Subjectivité Comparison -->
-		<div
-			class="subjectivity-section card variant-glass glass-heavy p-5 hover-lift-sm border-gradient subjectivity-gradient"
-		>
-			<div class="flex items-center gap-3 mb-4">
-				<h4 class="h4 text-white">{$t.filters.subjectivityScore}</h4>
+		<div class="comparison-section subjectivity-section">
+			<div class="section-head">
+				<span class="section-eyebrow">{$t.filters.subjectivityScore}</span>
 				<span class="badge {getDiffBadgeClass(comparison.discrepancies.subjectivityDiff)}">
 					{comparison.discrepancies.subjectivityDiff > 0
 						? `±${comparison.discrepancies.subjectivityDiff}`
@@ -207,8 +180,6 @@
 				{modelBName}
 				modelBValue={comparison.modelB?.subjectivite_score}
 				modelBJustification={comparison.modelB?.subjectivite_justification}
-				borderColorA="border-l-green-400/50"
-				borderColorB="border-l-green-400/50"
 			/>
 		</div>
 
@@ -218,11 +189,9 @@
 		{/if}
 	</div>
 {:else}
-	<div
-		class="card variant-glass glass-heavy p-8 flex flex-col items-center justify-center min-h-[300px] text-center hover-lift-sm border-gradient"
-	>
-		<div class="mb-4 opacity-50">
-			<svg class="w-16 h-16 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+	<div class="comparison-empty">
+		<div class="comparison-empty-icon" aria-hidden="true">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"
@@ -231,296 +200,217 @@
 				/>
 			</svg>
 		</div>
-		<h4 class="h4 text-white/80 mb-2">{$t.article.noArticleSelected}</h4>
-		<p class="text-white/60 text-balance max-w-md">{$t.article.selectArticlePrompt}</p>
+		<h4 class="comparison-empty-title">{$t.article.noArticleSelected}</h4>
+		<p class="comparison-empty-lede">{$t.article.selectArticlePrompt}</p>
 	</div>
 {/if}
 
 <style>
-	.badge {
-		padding: var(--space-1-5) var(--space-3);
-		font-size: var(--font-size-xs);
-		font-weight: var(--font-weight-semibold);
-		border-radius: var(--radius-full);
-		transition:
-			transform var(--timing-fast) var(--easing-default),
-			box-shadow var(--timing-fast) var(--easing-default),
-			border-color var(--timing-fast) var(--easing-default);
-		border: 1px solid var(--border-default);
-		cursor: default;
-	}
-
-	.badge:hover {
-		transform: translateY(-1px);
-		box-shadow: var(--shadow-sm);
-		border-color: var(--border-hover);
-	}
-
-	.badge-lg {
-		padding: var(--space-2) var(--space-4);
-		font-size: var(--font-size-base);
-		font-weight: var(--font-weight-semibold);
-		cursor: default;
-	}
-
-	/* Comparison Title */
 	.comparison-detail-title {
-		background: var(--gradient-comparison);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
+		font-family: var(--font-display);
+		font-size: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
+		font-weight: 600;
+		line-height: 1.15;
+		color: var(--text-primary);
+		letter-spacing: -0.005em;
+		margin: 0;
+		max-width: 60ch;
 	}
 
-	/* Comparison Metadata Cards */
 	.comparison-metadata-card {
-		background: color-mix(in oklab, var(--sentiment-comparison) 5%, transparent) !important;
-		border: 1px solid color-mix(in oklab, var(--sentiment-comparison) 15%, transparent) !important;
+		background: var(--surface-subtle);
+		border: 1px solid var(--border-subtle);
+		padding: var(--space-4);
 	}
 
-	.comparison-metadata-card:hover {
-		background: color-mix(in oklab, var(--sentiment-comparison) 8%, transparent) !important;
-		border-color: color-mix(in oklab, var(--sentiment-comparison) 25%, transparent) !important;
+	.meta-label {
+		display: block;
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--text-muted);
 	}
 
-	/* Comparison Anchor */
+	.meta-value {
+		font-family: var(--font-sans);
+		font-size: var(--font-size-base);
+		color: var(--text-primary);
+		margin-top: var(--space-2);
+	}
+
 	.comparison-anchor {
-		color: var(--sentiment-comparison-light) !important;
-		border-bottom-color: color-mix(
-			in oklab,
-			var(--sentiment-comparison-light) 40%,
-			transparent
-		) !important;
+		display: inline-flex;
+		align-items: center;
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		font-weight: 500;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--sentiment-comparison-light);
+		text-decoration: none;
+		border-bottom: 1px solid currentColor;
+		padding-bottom: 1px;
+		transition: color var(--timing-fast) var(--easing-default);
 	}
 
 	.comparison-anchor:hover {
-		color: var(--sentiment-comparison-accent) !important;
-		border-bottom-color: var(--sentiment-comparison-accent) !important;
+		color: var(--text-primary);
 	}
 
-	.anchor {
-		color: var(--color-primary-400);
-		text-decoration: none;
-		font-weight: var(--font-weight-medium);
-		transition:
-			color var(--timing-fast) var(--easing-default),
-			border-color var(--timing-fast) var(--easing-default),
-			transform var(--timing-fast) var(--easing-default);
-		border-bottom: 1px solid color-mix(in oklab, var(--color-primary-400) 30%, transparent);
-		padding-bottom: 1px;
+	.comparison-section {
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
+		padding: var(--space-5);
 	}
 
-	.anchor:hover {
-		color: var(--color-primary-300);
-		border-bottom-color: color-mix(in oklab, var(--color-primary-300) 60%, transparent);
-		transform: translateY(-1px);
-	}
-
-	/* ============================================ */
-	/* Glass Heavy - Darker glass effect */
-	/* ============================================ */
-
-	:global(.glass-heavy) {
-		background: color-mix(in oklab, var(--color-surface-900) 92%, transparent) !important;
-		backdrop-filter: blur(var(--glass-blur-lg));
-	}
-
-	/* ============================================ */
-	/* Section Styles with Accent Lines */
-	/* ============================================ */
-
-	/* Discrepancy Section - Red/Orange accent */
 	.discrepancy-section {
-		position: relative;
-		overflow: hidden;
+		border-top: 2px solid var(--sentiment-discrepancy);
 	}
 
-	.discrepancy-section::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		height: 3px;
-		background: linear-gradient(
-			90deg,
-			var(--sentiment-discrepancy),
-			var(--sentiment-discrepancy-light),
-			var(--sentiment-discrepancy)
-		);
-		opacity: 0.8;
-	}
-
-	.discrepancy-gradient {
-		background: linear-gradient(
-			135deg,
-			color-mix(in oklab, var(--color-surface-900) 92%, transparent),
-			color-mix(in oklab, var(--sentiment-discrepancy) 4%, var(--color-surface-900))
-		) !important;
-	}
-
-	/* Centrality Section - Gold/Yellow accent */
 	.centrality-section {
-		position: relative;
-		overflow: hidden;
+		border-top: 2px solid var(--sentiment-centrality-very-central);
 	}
 
-	.centrality-section::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		height: 3px;
-		background: linear-gradient(
-			90deg,
-			var(--sentiment-centrality-very-central),
-			var(--sentiment-centrality-central),
-			var(--sentiment-centrality-very-central)
-		);
-		opacity: 0.8;
-	}
-
-	.centrality-gradient {
-		background: linear-gradient(
-			135deg,
-			color-mix(in oklab, var(--color-surface-900) 92%, transparent),
-			color-mix(in oklab, var(--sentiment-centrality-very-central) 4%, var(--color-surface-900))
-		) !important;
-	}
-
-	/* Polarity Section - Blue/Green accent */
 	.polarity-section {
-		position: relative;
-		overflow: hidden;
+		border-top: 2px solid var(--sentiment-polarity-neutral);
 	}
 
-	.polarity-section::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		height: 3px;
-		background: linear-gradient(
-			90deg,
-			var(--sentiment-polarity-positive),
-			var(--sentiment-polarity-neutral),
-			var(--sentiment-polarity-negative)
-		);
-		opacity: 0.8;
-	}
-
-	.polarity-gradient {
-		background: linear-gradient(
-			135deg,
-			color-mix(in oklab, var(--color-surface-900) 92%, transparent),
-			color-mix(in oklab, var(--sentiment-polarity-neutral) 4%, var(--color-surface-900))
-		) !important;
-	}
-
-	/* Subjectivity Section - Purple/Cyan accent */
 	.subjectivity-section {
-		position: relative;
-		overflow: hidden;
+		border-top: 2px solid var(--sentiment-subjectivity-3);
 	}
 
-	.subjectivity-section::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		height: 3px;
-		background: linear-gradient(
-			90deg,
-			var(--sentiment-subjectivity-1),
-			var(--sentiment-subjectivity-3),
-			var(--sentiment-subjectivity-5)
-		);
-		opacity: 0.8;
+	.section-head {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: var(--space-3);
+		margin-bottom: var(--space-4);
+		padding-bottom: var(--space-3);
+		border-bottom: 1px solid var(--border-subtle);
 	}
 
-	.subjectivity-gradient {
-		background: linear-gradient(
-			135deg,
-			color-mix(in oklab, var(--color-surface-900) 92%, transparent),
-			color-mix(in oklab, var(--sentiment-subjectivity-3) 4%, var(--color-surface-900))
-		) !important;
+	.section-eyebrow {
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--text-secondary);
 	}
 
-	/* Hover effects for cards */
-	:global(.hover-lift-sm:hover) {
-		transform: translateY(-2px);
-		box-shadow:
-			0 10px 25px -5px color-mix(in oklab, black 30%, transparent),
-			0 10px 10px -5px color-mix(in oklab, black 10%, transparent),
-			0 0 20px color-mix(in oklab, var(--color-primary-500) 10%, transparent);
-		border-color: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+	.badge {
+		display: inline-flex;
+		align-items: center;
+		padding: var(--space-1) var(--space-2-5);
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		border-radius: 0;
+		border: 1px solid var(--border-default);
+		background: var(--surface-subtle);
+		color: var(--text-primary);
+		font-variant-numeric: tabular-nums;
 	}
 
-	:global(.border-gradient) {
-		position: relative;
-		border: 1px solid color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+	.badge-lg {
+		padding: var(--space-1-5) var(--space-3);
+		font-size: 0.75rem;
 	}
 
-	:global(.border-gradient::before) {
-		content: '';
-		position: absolute;
-		top: -1px;
-		left: -1px;
-		right: -1px;
-		bottom: -1px;
-		background: linear-gradient(
-			135deg,
-			color-mix(in oklab, var(--color-primary-500) 30%, transparent),
-			color-mix(in oklab, var(--color-secondary-500) 30%, transparent),
-			color-mix(in oklab, var(--color-tertiary-500) 30%, transparent)
-		);
-		border-radius: inherit;
-		z-index: -1;
-		opacity: 0;
-		transition: opacity var(--timing-normal) var(--easing-default);
+	.diff-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: var(--space-4);
 	}
 
-	:global(.border-gradient:hover::before) {
-		opacity: 1;
+	.diff-cell {
+		text-align: center;
+		padding: var(--space-3) 0;
+		border-left: 1px solid var(--border-subtle);
 	}
 
-	/* Ensure proper cursor behavior */
-	:global(.card) {
-		cursor: default;
+	.diff-cell:first-child {
+		border-left: none;
 	}
 
-	:global(.card *) {
-		cursor: inherit;
+	.diff-cell-label {
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--text-muted);
+		margin-bottom: var(--space-2);
 	}
 
-	/* Override cursor for clickable elements */
-	:global(.anchor) {
-		cursor: pointer !important;
+	.diff-cell-value {
+		font-family: var(--font-mono);
+		font-size: 1.5rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		color: var(--text-primary);
 	}
 
-	/* Mobile responsive adjustments */
+	.comparison-empty {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		min-height: 300px;
+		padding: var(--space-8);
+		text-align: center;
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
+	}
+
+	.comparison-empty-icon {
+		width: 3rem;
+		height: 3rem;
+		color: var(--text-faint);
+		margin-bottom: var(--space-3);
+	}
+
+	.comparison-empty-icon svg {
+		width: 100%;
+		height: 100%;
+	}
+
+	.comparison-empty-title {
+		font-family: var(--font-display);
+		font-size: var(--font-size-lg);
+		font-weight: 600;
+		color: var(--text-primary);
+		margin: 0 0 var(--space-2);
+	}
+
+	.comparison-empty-lede {
+		font-family: var(--font-sans);
+		font-size: var(--font-size-sm);
+		color: var(--text-muted);
+		max-width: 40ch;
+		margin: 0;
+	}
+
 	@media (max-width: 640px) {
 		.badge-lg {
-			padding: var(--space-1-5) var(--space-3);
-			font-size: var(--font-size-xs);
+			padding: var(--space-1) var(--space-2);
+			font-size: 0.625rem;
 		}
 
-		/* Reduce hover effects on mobile */
-		:global(.hover-lift-sm:hover) {
-			transform: translateY(-1px);
+		.diff-grid {
+			grid-template-columns: 1fr;
 		}
-	}
 
-	/* Reduced motion */
-	@media (prefers-reduced-motion: reduce) {
-		.badge,
-		.anchor,
-		:global(.hover-lift-sm),
-		:global(.border-gradient::before) {
-			transition: none;
-			animation: none;
+		.diff-cell {
+			border-left: none;
+			border-top: 1px solid var(--border-subtle);
+		}
+
+		.diff-cell:first-child {
+			border-top: none;
 		}
 	}
 </style>

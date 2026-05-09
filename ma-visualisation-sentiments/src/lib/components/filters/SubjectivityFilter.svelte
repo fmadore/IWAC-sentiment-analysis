@@ -83,7 +83,7 @@
 		padding: var(--space-0-5) var(--space-2);
 		font-size: var(--font-size-2xs);
 		font-weight: var(--font-weight-medium);
-		border-radius: var(--radius-full);
+		border-radius: var(--radius-sm);
 	}
 
 	.legend-badge.subjectivity-1 {
