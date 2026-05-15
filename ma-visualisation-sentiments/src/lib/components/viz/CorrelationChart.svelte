@@ -22,7 +22,8 @@
 		getSplitLineStyle,
 		getGridConfig,
 		getEmphasisConfig,
-		getStaggeredAnimationDelay
+		getStaggeredAnimationDelay,
+		chartColors
 	} from '$lib/utils/chartTheme';
 
 	// Ordre des polarités pour l'affichage (French values for data operations)
@@ -116,7 +117,7 @@
 				axisPointer: {
 					type: 'shadow',
 					shadowStyle: {
-						color: 'rgba(59, 130, 246, 0.08)'
+						color: chartColors.axis.pointerShadow
 					}
 				},
 				formatter: createStackedBarTooltipFormatter({
@@ -145,7 +146,7 @@
 				axisLine: getAxisLineStyle(),
 				axisTick: {
 					alignWithLabel: true,
-					lineStyle: { color: 'rgba(255, 255, 255, 0.2)' }
+					lineStyle: { color: chartColors.axis.tickLine }
 				}
 			},
 			yAxis: {
