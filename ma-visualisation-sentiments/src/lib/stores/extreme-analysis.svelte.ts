@@ -8,8 +8,8 @@
 import { writable, derived, get } from 'svelte/store';
 import type { ExtremeAnalysisData } from '$lib/types/extremeAnalysis';
 import { loadExtremeAnalysisData, filterExtremeAnalysisData } from '$lib/utils/extremeAnalysis';
-import { selectedDataset } from './datasets.svelte';
-import { countryFilters } from './filters.svelte';
+import { selectedDataset, datasetState } from './datasets.svelte';
+import { countryFilters, filterState } from './filters.svelte';
 import { isLoadingExtremeAnalysis } from './ui.svelte';
 
 // ============================================
@@ -56,6 +56,15 @@ export const filteredExtremeAnalysis = derived(
 	([$currentExtremeAnalysis, $countryFilters]) => {
 		return filterExtremeAnalysisData($currentExtremeAnalysis, $countryFilters, []);
 	}
+);
+
+// Runes-based mirrors (reactive via `extremeState`)
+const _currentExtremeAnalysisRune = $derived(
+	_extremeAnalysisData[datasetState.selected] || null
+);
+
+const _filteredExtremeAnalysisRune = $derived.by(() =>
+	filterExtremeAnalysisData(_currentExtremeAnalysisRune, filterState.countries, [])
 );
 
 // ============================================
@@ -117,14 +126,14 @@ export const extremeState = {
 		return _extremeAnalysisData;
 	},
 
-	// Current dataset's extreme analysis (from derived store)
+	// Current dataset's extreme analysis (reactive runes-based derivation)
 	get current() {
-		return get(currentExtremeAnalysis);
+		return _currentExtremeAnalysisRune;
 	},
 
-	// Filtered extreme analysis (from derived store)
+	// Filtered extreme analysis (reactive runes-based derivation)
 	get filtered() {
-		return get(filteredExtremeAnalysis);
+		return _filteredExtremeAnalysisRune;
 	},
 
 	// Update data for a dataset

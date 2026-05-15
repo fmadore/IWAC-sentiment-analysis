@@ -9,16 +9,17 @@ import { writable, derived, get } from 'svelte/store';
 import { SvelteSet } from 'svelte/reactivity';
 import type { Article } from '$lib/types/data';
 import { base } from '$app/paths';
-import { getJournalName } from '$lib/utils';
-import { selectedDataset, comparisonMode, availableDatasets } from './datasets.svelte';
+import { selectedDataset, comparisonMode, availableDatasets, datasetState } from './datasets.svelte';
 import {
 	countryFilters,
 	journalFilters,
 	polarityFilters,
 	subjectivityFilters,
-	centralityFilters
+	centralityFilters,
+	filterState
 } from './filters.svelte';
 import { isLoadingDataset } from './ui.svelte';
+import { filterArticles, computeAvailableJournals } from './derivations';
 
 // ============================================
 // Svelte 5 Runes State
@@ -89,52 +90,12 @@ export const filteredArticles = derived(
 			return [];
 		}
 
-		const articles = $datasets[$currentDataset] || [];
-
-		return articles.filter((article) => {
-			// Filter by country (priority)
-			if ($countries.length > 0 && !$countries.includes(article.Country || '')) {
-				return false;
-			}
-
-			// Filter by journal (only from selected countries)
-			if ($journals.length > 0) {
-				const journalName = getJournalName(article);
-				if (!$journals.includes(journalName)) {
-					return false;
-				}
-			}
-
-			// Filter by polarity
-			if (
-				$polarities.length > 0 &&
-				!$polarities.includes(article.sentiment_analysis?.polarite || 'Non applicable')
-			) {
-				return false;
-			}
-
-			// Filter by subjectivity
-			if ($subjectivities.length > 0) {
-				const score = article.sentiment_analysis?.subjectivite_score;
-				if (score === null || score === undefined) {
-					return false;
-				}
-				if (!$subjectivities.includes(score.toString())) {
-					return false;
-				}
-			}
-
-			// Filter by centrality
-			if (
-				$centralities.length > 0 &&
-				!$centralities.includes(
-					article.sentiment_analysis?.centralite_islam_musulmans || 'Non abordé'
-				)
-			) {
-				return false;
-			}
-
-			return true;
+		return filterArticles($datasets[$currentDataset] || [], {
+			countries: $countries,
+			journals: $journals,
+			polarities: $polarities,
+			subjectivities: $subjectivities,
+			centralities: $centralities
 		});
 	}
 );
@@ -147,23 +108,32 @@ export const availableJournals = derived(
 			? [...($datasets['chatgpt'] || []), ...($datasets['gemini'] || [])]
 			: $datasets[$currentDataset] || [];
 
-		let filteredArticles = articles;
-
-		// If countries are selected, filter by country first
-		if ($countries.length > 0) {
-			filteredArticles = articles.filter((article) => $countries.includes(article.Country || ''));
-		}
-
-		// Extract unique journals
-		return [
-			...new SvelteSet(
-				filteredArticles
-					.map((article) => getJournalName(article))
-					.filter((name): name is string => !!name)
-			)
-		].sort((a, b) => a.localeCompare(b));
+		return computeAvailableJournals(articles, $countries);
 	}
 );
+
+// Runes-based mirrors of the derived stores. These read the source-of-truth
+// runes (kept current by the legacy-store sync) so they stay reactive when
+// accessed through the `articleState` accessor in component scope.
+const _filteredArticlesRune = $derived.by(() => {
+	if (datasetState.isComparisonMode) {
+		return [];
+	}
+	return filterArticles(_datasetArticles[datasetState.selected] || [], {
+		countries: filterState.countries,
+		journals: filterState.journals,
+		polarities: filterState.polarities,
+		subjectivities: filterState.subjectivities,
+		centralities: filterState.centralities
+	});
+});
+
+const _availableJournalsRune = $derived.by(() => {
+	const articles = datasetState.isComparisonMode
+		? [...(_datasetArticles['chatgpt'] || []), ...(_datasetArticles['gemini'] || [])]
+		: _datasetArticles[datasetState.selected] || [];
+	return computeAvailableJournals(articles, filterState.countries);
+});
 
 // ============================================
 // Prefetch Tracking
@@ -440,14 +410,14 @@ export const articleState = {
 		selectedArticle.set(value);
 	},
 
-	// Filtered articles (reads from derived store)
+	// Filtered articles (reactive runes-based derivation)
 	get filtered() {
-		return get(filteredArticles);
+		return _filteredArticlesRune;
 	},
 
-	// Available journals (reads from derived store)
+	// Available journals (reactive runes-based derivation)
 	get journals() {
-		return get(availableJournals);
+		return _availableJournalsRune;
 	},
 
 	// Update datasets
