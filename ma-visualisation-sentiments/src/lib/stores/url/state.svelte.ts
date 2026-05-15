@@ -11,17 +11,10 @@ import type { ValidDataset } from './constants';
 
 // Import directly from individual store modules to avoid circular dependencies
 // (importing from '$lib/stores' would create a cycle since stores/index.ts re-exports from url/)
-import {
-	countryFilters,
-	journalFilters,
-	polarityFilters,
-	subjectivityFilters,
-	centralityFilters,
-	discrepancyFilters
-} from '../filters.svelte';
-import { selectedDataset, comparisonMode, comparisonPair } from '../datasets.svelte';
-import { selectedArticle } from '../articles.svelte';
-import { selectedComparison } from '../comparison.svelte';
+import { filterState } from '../filters.svelte';
+import { datasetState } from '../datasets.svelte';
+import { articleState } from '../articles.svelte';
+import { comparisonState } from '../comparison.svelte';
 
 // ============================================
 // Svelte 5 Runes State
@@ -79,23 +72,23 @@ export const pendingComparisonArticleState = {
  * Reads all filter and selection stores to build the current URL state.
  */
 export function getCurrentState(): URLState {
-	const filters = get(discrepancyFilters);
-	const isComparisonMode = get(comparisonMode);
-	const currentArticle = get(selectedArticle);
+	const filters = filterState.discrepancy;
+	const isComparisonMode = datasetState.isComparisonMode;
+	const currentArticle = articleState.selected;
 
 	const state: URLState = {
-		countries: get(countryFilters),
-		journals: get(journalFilters),
-		polarities: get(polarityFilters),
-		subjectivities: get(subjectivityFilters),
-		centralities: get(centralityFilters),
+		countries: filterState.countries,
+		journals: filterState.journals,
+		polarities: filterState.polarities,
+		subjectivities: filterState.subjectivities,
+		centralities: filterState.centralities,
 		lang: get(currentLanguage)
 	};
 
 	// Only include dataset when not in comparison mode
 	// In comparison mode, datasets are derived from the pair parameter
 	if (!isComparisonMode) {
-		state.dataset = get(selectedDataset) as ValidDataset;
+		state.dataset = datasetState.selected as ValidDataset;
 	}
 
 	// Include selected article ID if there is one
@@ -106,14 +99,14 @@ export function getCurrentState(): URLState {
 	// Only include comparison-related parameters when in comparison mode
 	if (isComparisonMode) {
 		state.compare = true;
-		state.pair = get(comparisonPair);
+		state.pair = datasetState.pair;
 		// Always include diffMin/diffMax for the general comparison view
 		// (they will be conditionally excluded when a specific article is selected in buildURLSearchParams)
 		state.diffMin = filters.minDifference;
 		state.diffMax = filters.maxDifference;
 
 		// Include selected comparison article ID if there is one
-		const currentComparison = get(selectedComparison);
+		const currentComparison = comparisonState.selected;
 		if (currentComparison) {
 			state.comparisonArticleId = currentComparison.article['o:id'];
 		}

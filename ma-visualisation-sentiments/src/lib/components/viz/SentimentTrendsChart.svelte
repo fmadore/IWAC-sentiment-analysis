@@ -25,7 +25,7 @@
 		DataZoomComponent
 	]);
 
-	import { filteredArticles } from '$lib';
+	import { articleState } from '$lib';
 	import type { Article } from '$lib';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { getSentimentLabels, formatNumber } from '$lib/i18n/utils';
@@ -67,7 +67,7 @@
 
 	// Use $derived for proper reactivity in Svelte 5
 	let options = $derived.by(() => {
-		const articles = $filteredArticles; // Direct reactive dependency
+		const articles = articleState.filtered; // Direct reactive dependency
 		const currentT = $t; // Capture current translations for reactive updates
 		const currentLang = $currentLanguage; // Capture current language for reactive updates
 		const yearlyData: Record<string, Record<PolarityType, number>> = {};
@@ -156,7 +156,7 @@
 	});
 </script>
 
-{#if $filteredArticles.length > 0}
+{#if articleState.filtered.length > 0}
 	<div class="mb-4">
 		<DatasetBadge size="sm" />
 	</div>

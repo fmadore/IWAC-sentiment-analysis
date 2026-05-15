@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { discrepancyFilters } from '$lib/stores';
+	import { filterState } from '$lib/stores';
 	import { t } from '$lib/i18n';
 	import FilterIcon from '@lucide/svelte/icons/filter';
 	import SlidersIcon from '@lucide/svelte/icons/sliders';
@@ -11,7 +11,7 @@
 
 	// Sync with store
 	$effect(() => {
-		const filters = $discrepancyFilters;
+		const filters = filterState.discrepancy;
 		minDiff = filters.minDifference;
 		maxDiff = filters.maxDifference;
 		selectedDimensions = [...filters.dimensions];
@@ -19,12 +19,12 @@
 	});
 
 	function updateFilters() {
-		discrepancyFilters.set({
+		filterState.discrepancy = {
 			minDifference: minDiff,
 			maxDifference: maxDiff,
 			dimensions: selectedDimensions as ('polarity' | 'subjectivity' | 'centrality')[],
 			excludeNonApplicable: excludeNonApplicable
-		});
+		};
 	}
 
 	function setRange(min: number, max: number) {

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { filteredArticles } from '$lib/stores';
+	import { articleState } from '$lib/stores';
 	import { getJournalName } from '$lib/utils';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
@@ -110,7 +110,7 @@
 		isExporting = true;
 
 		try {
-			const articles = $filteredArticles;
+			const articles = articleState.filtered;
 
 			if (articles.length === 0) {
 				alert($t.export.noDataToExport);
@@ -143,7 +143,7 @@
 	}
 
 	// Get the count of filtered articles
-	const articleCount = $derived($filteredArticles.length);
+	const articleCount = $derived(articleState.filtered.length);
 </script>
 
 <button

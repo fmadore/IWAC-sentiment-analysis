@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t, currentLanguage } from '$lib/i18n';
-	import { selectedDataset, comparisonMode, datasetArticles } from '$lib/stores';
+	import { datasetState, articleState } from '$lib/stores';
 	import { AccordionItem, PromptModal } from '$lib/components/common';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import { base } from '$app/paths';
@@ -16,7 +16,7 @@
 
 	// Compute total article count from all datasets
 	let totalArticleCount = $derived.by(() => {
-		const datasets = $datasetArticles;
+		const datasets = articleState.datasets;
 		const firstDataset = Object.values(datasets)[0];
 		return firstDataset?.length ?? 0;
 	});
@@ -177,7 +177,7 @@
 					<div class="methodology-content">
 						<div class="methodology-section">
 							<h4 class="section-title">{$t.analysis.modelUsed}</h4>
-							{#if $comparisonMode}
+							{#if datasetState.isComparisonMode}
 								<p class="section-text">
 									{$currentLanguage === 'en'
 										? 'The analysis uses three large language models (LLMs) to provide comparative insights:'
@@ -266,7 +266,7 @@
 								</p>
 							{:else}
 								<p class="section-text">
-									{$selectedDataset === 'chatgpt'
+									{datasetState.selected === 'chatgpt'
 										? $currentLanguage === 'en'
 											? 'The analysis was performed using '
 											: "L'analyse a été réalisée avec "
@@ -274,7 +274,7 @@
 											? 'The analysis was performed using '
 											: "L'analyse a été réalisée avec "}
 
-									{#if $selectedDataset === 'chatgpt'}
+									{#if datasetState.selected === 'chatgpt'}
 										<a
 											href="https://platform.openai.com/docs/models/gpt-5-mini"
 											target="_blank"
@@ -291,7 +291,7 @@
 												? "GPT-5 mini is a faster, more cost-efficient version of GPT-5. It's great for well-defined tasks and precise prompts."
 												: 'GPT-5 mini est une version plus rapide et économique de GPT-5. Idéal pour des tâches bien définies et des invites précises.'}</span
 										>
-									{:else if $selectedDataset === 'gemini'}
+									{:else if datasetState.selected === 'gemini'}
 										<a
 											href="https://ai.google.dev/gemini-api/docs/models#gemini-3-flash"
 											target="_blank"
@@ -308,7 +308,7 @@
 												? 'Gemini 3 Flash is optimized for speed and efficiency while maintaining high-quality outputs for text analysis tasks.'
 												: "Gemini 3 Flash est optimisé pour la rapidité et l'efficacité tout en maintenant des sorties de haute qualité pour les tâches d'analyse textuelle."}</span
 										>
-									{:else if $selectedDataset === 'mistral'}
+									{:else if datasetState.selected === 'mistral'}
 										<a
 											href="https://docs.mistral.ai/models/ministral-3-14b-25-12"
 											target="_blank"
@@ -333,18 +333,18 @@
 						<div class="methodology-section">
 							<h4 class="section-title">{$t.analysis.technicalConfiguration}</h4>
 							<ul class="config-list">
-								{#if $comparisonMode}
+								{#if datasetState.isComparisonMode}
 									<li>
 										{$currentLanguage === 'en' ? 'Gemini: ' : 'Gemini : '}{$t.analysis
 											.temperatureConfig}
 									</li>
-								{:else if $selectedDataset === 'gemini'}
+								{:else if datasetState.selected === 'gemini'}
 									<li>{$t.analysis.temperatureConfig}</li>
 								{/if}
 								<li>{$t.analysis.outputFormat}</li>
 								<li>{$t.analysis.cacheSystem}</li>
 								<li>{$t.analysis.errorHandling}</li>
-								{#if $comparisonMode}
+								{#if datasetState.isComparisonMode}
 									<li>
 										{$currentLanguage === 'en'
 											? 'Parallel processing: Both models analyze the same articles independently'
@@ -367,7 +367,7 @@
 						<div class="methodology-section">
 							<h4 class="section-title">{$t.analysis.analysisPrompt}</h4>
 							<p class="section-text">
-								{$comparisonMode
+								{datasetState.isComparisonMode
 									? $currentLanguage === 'en'
 										? 'Both models use the same standardized prompt to ensure consistent analysis criteria across different AI systems:'
 										: "Les deux modèles utilisent le même prompt standardisé pour assurer des critères d'analyse cohérents entre les différents systèmes d'IA :"
@@ -379,7 +379,7 @@
 								<li>{$t.analysis.promptFeature3}</li>
 								<li>{$t.analysis.promptFeature4}</li>
 								<li>{$t.analysis.promptFeature5}</li>
-								{#if $comparisonMode}
+								{#if datasetState.isComparisonMode}
 									<li>
 										{$currentLanguage === 'en'
 											? 'Identical prompt ensures fair comparison between models'
@@ -401,7 +401,7 @@
 					onToggle={() => accordion.toggle('limites')}
 				>
 					<p class="panel-description">{$t.analysis.limitationsDescription}</p>
-					{#if $comparisonMode}
+					{#if datasetState.isComparisonMode}
 						<div class="comparison-notice">
 							<h4 class="section-title">
 								{$currentLanguage === 'en'

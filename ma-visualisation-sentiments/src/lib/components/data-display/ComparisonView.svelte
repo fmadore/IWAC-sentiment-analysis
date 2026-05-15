@@ -1,10 +1,8 @@
 <script lang="ts">
 	import {
-		filteredComparisons,
-		comparisonMode,
-		selectedComparison,
-		isLoadingComparison,
-		comparisonData,
+		comparisonState,
+		datasetState,
+		uiState,
 		setupArbiterPairReactivity,
 		loadArbiterEvaluations
 	} from '$lib/stores';
@@ -22,8 +20,8 @@
 	} from '$lib/urlState';
 	import { onMount } from 'svelte';
 
-	const hasData = $derived($filteredComparisons.length > 0);
-	const showDetailModal = $derived($selectedComparison !== null);
+	const hasData = $derived(comparisonState.filtered.length > 0);
+	const showDetailModal = $derived(comparisonState.selected !== null);
 
 	function closeDetailModal() {
 		// Clear the comparison and update URL to remove the articleId param
@@ -53,7 +51,7 @@
 
 	// Watch for selectedComparison changes and update URL
 	$effect(() => {
-		const currentComparison = $selectedComparison;
+		const currentComparison = comparisonState.selected;
 		const currentId = currentComparison?.article['o:id'] ?? null;
 
 		// Only update URL if the selection actually changed
@@ -66,7 +64,7 @@
 
 	// Watch for comparison data loading and handle pending selection from URL
 	$effect(() => {
-		const comparisons = $comparisonData;
+		const comparisons = comparisonState.data;
 		if (comparisons && comparisons.length > 0) {
 			// Try to handle any pending comparison article selection from URL
 			handlePendingComparisonArticleSelection();
@@ -76,13 +74,13 @@
 
 <!-- Comparison Detail Modal (full-screen) -->
 <ComparisonDetailModal
-	comparison={$selectedComparison}
+	comparison={comparisonState.selected}
 	open={showDetailModal}
 	onClose={closeDetailModal}
 />
 
 <div class="comparison-view">
-	{#if !$comparisonMode}
+	{#if !datasetState.isComparisonMode}
 		<!-- Not in comparison mode -->
 		<div class="empty-state comparison-empty-state p-8 text-center">
 			<AlertCircleIcon size={48} class="mx-auto mb-4 text-purple-400/60" />
@@ -94,7 +92,7 @@
 					'Click the comparison button in the dataset picker to compare ChatGPT and Gemini analyses.'}
 			</p>
 		</div>
-	{:else if $isLoadingComparison}
+	{:else if uiState.isLoadingComparison}
 		<!-- Loading state for comparison data -->
 		<div class="loading-section mb-6">
 			<div class="comparison-loading-card p-8 text-center">

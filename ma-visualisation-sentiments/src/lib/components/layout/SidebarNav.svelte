@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { t } from '$lib/i18n';
-	import { sidebarExpanded, activeView, mobileMenuOpen } from '$lib/stores';
+	import { uiState } from '$lib/stores';
 	import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
 	import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
 	import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
@@ -20,18 +20,18 @@
 	// Below 1280 we keep collapsed to preserve chart real estate.
 	onMount(() => {
 		if (browser && window.innerWidth >= 1280) {
-			sidebarExpanded.set(true);
+			uiState.sidebarExpanded = true;
 		}
 	});
 
 	function change(view: string) {
-		if (view !== $activeView) $activeView = view;
+		if (view !== uiState.activeView) uiState.activeView = view;
 		// Close mobile menu after selection
-		if ($mobileMenuOpen) $mobileMenuOpen = false;
+		if (uiState.mobileMenuOpen) uiState.mobileMenuOpen = false;
 	}
 
 	function toggleSidebar() {
-		$sidebarExpanded = !$sidebarExpanded;
+		uiState.sidebarExpanded = !uiState.sidebarExpanded;
 	}
 
 	const navItems = [
@@ -48,10 +48,10 @@
 </script>
 
 <!-- Mobile Overlay -->
-{#if $mobileMenuOpen}
+{#if uiState.mobileMenuOpen}
 	<button
 		class="mobile-overlay"
-		onclick={() => ($mobileMenuOpen = false)}
+		onclick={() => (uiState.mobileMenuOpen = false)}
 		aria-label="Close navigation"
 	></button>
 {/if}
@@ -59,18 +59,18 @@
 <!-- Sidebar Navigation -->
 <nav
 	class="sidebar"
-	class:expanded={$sidebarExpanded}
-	class:mobile-open={$mobileMenuOpen}
+	class:expanded={uiState.sidebarExpanded}
+	class:mobile-open={uiState.mobileMenuOpen}
 	aria-label="Main navigation"
 >
 	<!-- Desktop Toggle Button -->
 	<button
 		class="toggle-btn desktop-only"
 		onclick={toggleSidebar}
-		aria-label={$sidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
-		aria-expanded={$sidebarExpanded}
+		aria-label={uiState.sidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
+		aria-expanded={uiState.sidebarExpanded}
 	>
-		{#if $sidebarExpanded}
+		{#if uiState.sidebarExpanded}
 			<ChevronLeftIcon size={18} />
 		{:else}
 			<ChevronRightIcon size={18} />
@@ -82,11 +82,11 @@
 		{#each navItems as item (item.id)}
 			<button
 				class="nav-item"
-				data-state={$activeView === item.id ? 'active' : 'inactive'}
+				data-state={uiState.activeView === item.id ? 'active' : 'inactive'}
 				onclick={() => change(item.id)}
 				role="menuitem"
-				aria-current={$activeView === item.id ? 'page' : undefined}
-				title={!$sidebarExpanded ? $t.nav[item.labelKey] || item.id : undefined}
+				aria-current={uiState.activeView === item.id ? 'page' : undefined}
+				title={!uiState.sidebarExpanded ? $t.nav[item.labelKey] || item.id : undefined}
 			>
 				<span class="nav-icon">
 					<item.icon size={20} />

@@ -1,22 +1,16 @@
 <script lang="ts">
 	import FilterXIcon from '@lucide/svelte/icons/filter-x';
 	import { clearAllFilters } from '$lib/urlState';
-	import {
-		countryFilters,
-		journalFilters,
-		polarityFilters,
-		subjectivityFilters,
-		centralityFilters
-	} from '$lib/stores';
+	import { filterState } from '$lib/stores';
 	import { t } from '$lib/i18n';
 
 	// Track if we have any active filters
 	let hasActiveFilters = $derived(
-		$countryFilters.length > 0 ||
-			$journalFilters.length > 0 ||
-			$polarityFilters.length > 0 ||
-			$subjectivityFilters.length > 0 ||
-			$centralityFilters.length > 0
+		filterState.countries.length > 0 ||
+			filterState.journals.length > 0 ||
+			filterState.polarities.length > 0 ||
+			filterState.subjectivities.length > 0 ||
+			filterState.centralities.length > 0
 	);
 
 	function handleClearFilters() {

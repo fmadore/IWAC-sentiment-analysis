@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { filteredComparisons, availableDatasets } from '$lib/stores';
+	import { comparisonState, datasetState } from '$lib/stores';
 	import { getJournalName } from '$lib/utils';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
@@ -16,8 +16,8 @@
 
 		// Get model names from first comparison (they're all the same pair)
 		const firstComp = comparisons[0];
-		const modelAName = getModelDisplayName(firstComp.modelAId, $availableDatasets);
-		const modelBName = getModelDisplayName(firstComp.modelBId, $availableDatasets);
+		const modelAName = getModelDisplayName(firstComp.modelAId, datasetState.available);
+		const modelBName = getModelDisplayName(firstComp.modelBId, datasetState.available);
 
 		// Define CSV headers based on current language
 		const headers = [
@@ -115,7 +115,7 @@
 		isExporting = true;
 
 		try {
-			const comparisons = $filteredComparisons;
+			const comparisons = comparisonState.filtered;
 
 			if (comparisons.length === 0) {
 				alert($t.export.noDataToExport);
@@ -133,7 +133,7 @@
 	}
 
 	// Get the count of filtered comparisons
-	const comparisonCount = $derived($filteredComparisons.length);
+	const comparisonCount = $derived(comparisonState.filtered.length);
 </script>
 
 <button

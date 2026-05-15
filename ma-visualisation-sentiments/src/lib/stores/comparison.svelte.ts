@@ -5,18 +5,12 @@
  * Provides both modern $state-based API and legacy store compatibility.
  */
 
-import { writable, derived, get } from 'svelte/store';
 import type { ComparisonData } from '$lib/types/data';
 import { getModelsFromPair } from '$lib/types/data';
-import { comparisonMode, comparisonPair, datasetState } from './datasets.svelte';
-import {
-	discrepancyFilters,
-	countryFilters,
-	journalFilters,
-	filterState
-} from './filters.svelte';
-import { isLoadingComparison } from './ui.svelte';
-import { datasetArticles, loadSpecificDataset, articleState } from './articles.svelte';
+import { datasetState } from './datasets.svelte';
+import { filterState } from './filters.svelte';
+import { uiState } from './ui.svelte';
+import { loadSpecificDataset, articleState } from './articles.svelte';
 import {
 	buildComparisonData,
 	filterComparisons,
@@ -33,45 +27,7 @@ export type { ComparisonStatistics };
 let _selectedComparison = $state<ComparisonData | null>(null);
 
 // ============================================
-// Legacy Stores
-// ============================================
-
-/**
- * @deprecated Use comparisonState.selected instead
- */
-export const selectedComparison = writable<ComparisonData | null>(null);
-
-// Sync legacy store to runes state
-selectedComparison.subscribe((value) => {
-	_selectedComparison = value;
-});
-
-// ============================================
-// Derived Stores (transitional legacy API)
-// ============================================
-
-/** Comparison data between two models */
-export const comparisonData = derived(
-	[datasetArticles, comparisonMode, comparisonPair],
-	([$datasets, $isComparison, $pair]) => buildComparisonData($datasets, $isComparison, $pair)
-);
-
-/** Filtered comparisons based on discrepancy filters */
-export const filteredComparisons = derived(
-	[comparisonData, discrepancyFilters, countryFilters, journalFilters],
-	([$comparisons, $filters, $countries, $journals]) =>
-		filterComparisons($comparisons, $filters, $countries, $journals)
-);
-
-/** Comparison statistics */
-export const comparisonStatistics = derived(
-	[comparisonData, filteredComparisons, countryFilters, journalFilters],
-	([$allComparisons, $filteredComparisons, $countries, $journals]) =>
-		computeComparisonStatistics($allComparisons, $filteredComparisons, $countries, $journals)
-);
-
-// ============================================
-// Runes-based mirrors (reactive via `comparisonState`)
+// Derived State (reactive runes)
 // ============================================
 
 const _comparisonDataRune = $derived.by(() =>
@@ -102,8 +58,8 @@ const _comparisonStatisticsRune = $derived.by(() =>
 
 /** Load datasets needed for comparison mode */
 export const loadComparisonDatasets = async (fetchFunction: typeof fetch): Promise<void> => {
-	const currentDatasets = get(datasetArticles);
-	const currentPair = get(comparisonPair);
+	const currentDatasets = articleState.datasets;
+	const currentPair = datasetState.pair;
 
 	const [modelAId, modelBId] = getModelsFromPair(currentPair);
 	const datasetsToLoad: string[] = [];
@@ -120,7 +76,7 @@ export const loadComparisonDatasets = async (fetchFunction: typeof fetch): Promi
 			`Loading missing comparison datasets for ${currentPair}: ${datasetsToLoad.join(', ')}`
 		);
 
-		isLoadingComparison.set(true);
+		uiState.isLoadingComparison = true;
 
 		try {
 			// Use showLoading: false since we manage our own loading state (isLoadingComparison)
@@ -131,7 +87,7 @@ export const loadComparisonDatasets = async (fetchFunction: typeof fetch): Promi
 			);
 			console.log('Comparison datasets loaded successfully');
 		} finally {
-			isLoadingComparison.set(false);
+			uiState.isLoadingComparison = false;
 		}
 	} else {
 		console.log('All comparison datasets already loaded (likely from background prefetching)');
@@ -163,7 +119,6 @@ export const comparisonState = {
 	},
 	set selected(value: ComparisonData | null) {
 		_selectedComparison = value;
-		selectedComparison.set(value);
 	},
 
 	// Comparison data (reactive runes-based derivation)

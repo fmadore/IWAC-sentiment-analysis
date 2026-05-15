@@ -20,7 +20,7 @@
 	import type { Article } from '$lib/types/data';
 	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
 	import { t } from '$lib/i18n';
-	import { datasetState, articleState, filteredArticles, availableDatasets } from '$lib/stores';
+	import { datasetState, articleState } from '$lib/stores';
 	import { getModelDisplayName } from '$lib/utils/format';
 
 	// Charts
@@ -65,9 +65,9 @@
 	// Methodology metadata for the eyebrow rule under each view title.
 	// Uses the active dataset (model) and the corpus size — surface what's
 	// most load-bearing for an academic reader at a glance.
-	let modelLabel = $derived(getModelDisplayName(datasetState.selected, $availableDatasets));
+	let modelLabel = $derived(getModelDisplayName(datasetState.selected, datasetState.available));
 	let totalCount = $derived((articleState.datasets[datasetState.selected] || []).length);
-	let filteredCount = $derived($filteredArticles?.length ?? totalCount);
+	let filteredCount = $derived(articleState.filtered?.length ?? totalCount);
 	let comparisonMode = $derived(datasetState.isComparisonMode);
 
 	function formatNum(n: number): string {

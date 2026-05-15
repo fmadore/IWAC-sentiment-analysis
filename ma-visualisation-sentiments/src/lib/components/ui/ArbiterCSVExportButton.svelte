@@ -12,16 +12,14 @@
 <script lang="ts">
 	import {
 		arbiterEvaluations,
-		comparisonData,
-		availableDatasets,
-		comparisonPair,
+		comparisonState,
+		datasetState,
 		getActualModelName
 	} from '$lib/stores';
 	import { getJournalName } from '$lib/utils';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
 	import { getModelsFromPair, type ArbiterEvaluationData } from '$lib/types/data';
-	import { get } from 'svelte/store';
 	import DownloadIcon from '@lucide/svelte/icons/download';
 	import { escapeCSVField, formatDateForCSV, downloadCSVFile } from '$lib/utils/csv';
 
@@ -29,8 +27,8 @@
 
 	// Get model names from current pair
 	const modelNames = $derived.by(() => {
-		const [modelAId, modelBId] = getModelsFromPair($comparisonPair);
-		const datasets = $availableDatasets;
+		const [modelAId, modelBId] = getModelsFromPair(datasetState.pair);
+		const datasets = datasetState.available;
 		const modelAName = datasets.find((d) => d.id === modelAId)?.name || modelAId;
 		const modelBName = datasets.find((d) => d.id === modelBId)?.name || modelBId;
 		return { modelAName, modelBName };
@@ -75,7 +73,7 @@
 	function convertToCSV(evaluations: ArbiterEvaluationItem[]): string {
 		if (evaluations.length === 0) return '';
 
-		const comparisons = get(comparisonData);
+		const comparisons = comparisonState.data;
 
 		// Define CSV headers based on current language
 		const headers = [

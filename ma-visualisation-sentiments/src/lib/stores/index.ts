@@ -1,12 +1,13 @@
 /**
  * Stores Index
  *
- * Central export point for all store modules.
- * Re-exports both new state accessors and legacy compatibility exports.
+ * Central export point for all store modules. State is exposed exclusively
+ * through the runes-based accessor objects (filterState, datasetState, …);
+ * data-loading functions are re-exported alongside them.
  */
 
 // ============================================
-// New Runes-based State (Recommended)
+// Runes-based State Accessors
 // ============================================
 
 export { filterState } from './filters.svelte';
@@ -45,61 +46,24 @@ export {
 } from './url';
 
 // ============================================
-// Legacy Compatibility Exports
+// Data-loading Functions
 // ============================================
 
-// Filters
 export {
-	countryFilters,
-	journalFilters,
-	polarityFilters,
-	subjectivityFilters,
-	centralityFilters,
-	discrepancyFilters
-} from './filters.svelte';
-
-// UI State
-export {
-	sidebarExpanded,
-	activeView,
-	mobileMenuOpen,
-	isLoadingDataset,
-	isLoadingExtremeAnalysis,
-	isLoadingComparison,
-	isLoadingArbiter
-} from './ui.svelte';
-
-// Dataset State
-export {
-	availableDatasets,
-	selectedDataset,
-	comparisonMode,
-	comparisonPair
-} from './datasets.svelte';
-
-// Article State
-export {
-	datasetArticles,
-	currentDatasetArticles,
-	selectedArticle,
-	filteredArticles,
-	availableJournals,
 	loadDatasetArticles,
 	loadSpecificDataset,
 	loadAllDatasets,
 	loadCurrentDataset
 } from './articles.svelte';
 
-// Comparison State
-export {
-	selectedComparison,
-	comparisonData,
-	filteredComparisons,
-	comparisonStatistics,
-	loadComparisonDatasets
-} from './comparison.svelte';
+export { loadComparisonDatasets } from './comparison.svelte';
 
-// Arbiter State
+export { loadCurrentExtremeAnalysis } from './extreme-analysis.svelte';
+
+// ============================================
+// Arbiter Accessors (already runes-based)
+// ============================================
+
 export {
 	arbiterEvaluations,
 	currentArbiterPair,
@@ -110,11 +74,3 @@ export {
 	loadArbiterEvaluations,
 	setupArbiterPairReactivity
 } from './arbiter.svelte';
-
-// Extreme Analysis State
-export {
-	extremeAnalysisData,
-	currentExtremeAnalysis,
-	filteredExtremeAnalysis,
-	loadCurrentExtremeAnalysis
-} from './extreme-analysis.svelte';

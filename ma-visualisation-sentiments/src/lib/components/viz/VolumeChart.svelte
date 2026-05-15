@@ -26,7 +26,7 @@
 		DataZoomComponent
 	]);
 
-	import { filteredArticles } from '$lib';
+	import { articleState } from '$lib';
 	import type { Article } from '$lib';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { formatNumber } from '$lib/i18n/utils';
@@ -58,7 +58,7 @@
 	let chartType = $state<'area' | 'line'>('area');
 
 	let options = $derived.by(() => {
-		const articles = $filteredArticles;
+		const articles = articleState.filtered;
 		const currentT = $t; // Capture current translations for reactive updates
 		const currentLang = $currentLanguage; // Capture current language for reactive updates
 		const countryYearData: Record<string, Record<string, number>> = {};
@@ -166,7 +166,7 @@
 	});
 </script>
 
-{#if $filteredArticles.length > 0}
+{#if articleState.filtered.length > 0}
 	<div class="chart-toolbar">
 		<DatasetBadge size="sm" />
 

@@ -19,9 +19,8 @@
 		arbiterStatistics,
 		loadArbiterEvaluations,
 		setupArbiterPairReactivity,
-		isLoadingArbiter,
-		comparisonPair,
-		availableDatasets
+		uiState,
+		datasetState
 	} from '$lib/stores';
 	import { getModelsFromPair } from '$lib/types/data';
 	import { t } from '$lib/i18n';
@@ -65,8 +64,8 @@
 
 	// Get model names from current pair
 	const modelNames = $derived.by(() => {
-		const [modelAId, modelBId] = getModelsFromPair($comparisonPair);
-		const datasets = $availableDatasets;
+		const [modelAId, modelBId] = getModelsFromPair(datasetState.pair);
+		const datasets = datasetState.available;
 		const modelAName = datasets.find((d) => d.id === modelAId)?.name || modelAId;
 		const modelBName = datasets.find((d) => d.id === modelBId)?.name || modelBId;
 		return { modelAName, modelBName };
@@ -130,7 +129,7 @@
 		</div>
 	</div>
 
-	{#if $isLoadingArbiter}
+	{#if uiState.isLoadingArbiter}
 		<!-- Loading State -->
 		<div class="loading-section">
 			<ChartCard>

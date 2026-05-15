@@ -30,7 +30,7 @@
 		CanvasRenderer
 	]);
 
-	import { filteredArticles } from '$lib';
+	import { articleState } from '$lib';
 	import type { Article } from '$lib';
 	import { getJournalName } from '$lib/utils';
 	import { t, currentLanguage } from '$lib/i18n';
@@ -80,7 +80,7 @@
 
 	// Use $derived for proper reactivity in Svelte 5
 	let options = $derived.by(() => {
-		const articles = $filteredArticles; // Direct reactive dependency
+		const articles = articleState.filtered; // Direct reactive dependency
 		const currentT = $t; // Capture current translations for reactive updates
 		const currentLang = $currentLanguage; // Capture current language for reactive updates
 		let articlesAnalyzed = 0;
@@ -256,7 +256,7 @@
 	});
 </script>
 
-{#if $filteredArticles.length > 0}
+{#if articleState.filtered.length > 0}
 	<!-- Dataset badge + chart-type toggle -->
 	<div class="chart-toolbar">
 		<DatasetBadge size="sm" />

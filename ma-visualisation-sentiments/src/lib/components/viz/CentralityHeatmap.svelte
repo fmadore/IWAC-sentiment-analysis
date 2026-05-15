@@ -24,7 +24,7 @@
 		CanvasRenderer
 	]);
 
-	import { filteredArticles } from '$lib';
+	import { articleState } from '$lib';
 	import type { Article } from '$lib';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue } from '$lib/i18n/utils';
@@ -71,7 +71,7 @@
 	let chartContainer = $state<HTMLDivElement>();
 
 	let options = $derived.by(() => {
-		const articles = $filteredArticles;
+		const articles = articleState.filtered;
 		const countryYearCentrality: Record<
 			string,
 			Record<string, { total: number; count: number }>
@@ -270,7 +270,7 @@
 	});
 </script>
 
-{#if $filteredArticles.length > 0}
+{#if articleState.filtered.length > 0}
 	<div class="mb-4">
 		<DatasetBadge size="sm" />
 	</div>

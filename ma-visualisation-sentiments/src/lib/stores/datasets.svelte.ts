@@ -5,7 +5,6 @@
  * Provides both modern $state-based API and legacy store compatibility.
  */
 
-import { writable } from 'svelte/store';
 import type { DatasetOption, ModelPair } from '$lib/types/data';
 
 // ============================================
@@ -63,8 +62,8 @@ let _comparisonPair = $state<ModelPair>('chatgpt-gemini');
  * const config = datasetState.getById('chatgpt');
  */
 export const datasetState = {
-	// Available datasets (static, no setter needed)
-	get available(): readonly DatasetOption[] {
+	// Available datasets (static config; matches the legacy store's type)
+	get available(): DatasetOption[] {
 		return DATASETS;
 	},
 
@@ -74,7 +73,6 @@ export const datasetState = {
 	},
 	set selected(value: string) {
 		_selectedDataset = value;
-		selectedDataset.set(value);
 	},
 
 	// Comparison mode
@@ -83,11 +81,9 @@ export const datasetState = {
 	},
 	set isComparisonMode(value: boolean) {
 		_comparisonMode = value;
-		comparisonMode.set(value);
 	},
 	toggleComparisonMode() {
 		_comparisonMode = !_comparisonMode;
-		comparisonMode.set(_comparisonMode);
 	},
 
 	// Comparison pair
@@ -96,7 +92,6 @@ export const datasetState = {
 	},
 	set pair(value: ModelPair) {
 		_comparisonPair = value;
-		comparisonPair.set(value);
 	},
 
 	// Utility: Get dataset by ID
@@ -109,38 +104,3 @@ export const datasetState = {
 		return DATASETS.find((d) => d.id === _selectedDataset);
 	}
 };
-
-// ============================================
-// Legacy Store Compatibility
-// ============================================
-
-/**
- * @deprecated Use datasetState.available instead
- */
-export const availableDatasets = writable<DatasetOption[]>(DATASETS);
-
-/**
- * @deprecated Use datasetState.selected instead
- */
-export const selectedDataset = writable<string>('chatgpt');
-
-/**
- * @deprecated Use datasetState.isComparisonMode instead
- */
-export const comparisonMode = writable<boolean>(false);
-
-/**
- * @deprecated Use datasetState.pair instead
- */
-export const comparisonPair = writable<ModelPair>('chatgpt-gemini');
-
-// Sync legacy stores to runes state
-selectedDataset.subscribe((value) => {
-	_selectedDataset = value;
-});
-comparisonMode.subscribe((value) => {
-	_comparisonMode = value;
-});
-comparisonPair.subscribe((value) => {
-	_comparisonPair = value;
-});

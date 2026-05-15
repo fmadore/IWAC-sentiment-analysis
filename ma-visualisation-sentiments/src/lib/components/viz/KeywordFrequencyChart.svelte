@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
-	import { isLoadingExtremeAnalysis, filteredExtremeAnalysis } from '$lib/stores';
+	import { uiState, extremeState } from '$lib/stores';
 	import { t } from '$lib/i18n';
 	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
 	import { getExtremeCategoryConfig, getTopKeywords } from '$lib/utils/extremeAnalysis';
@@ -51,12 +51,12 @@
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
 
 	// Loading state - use specific loading state for better UX
-	let isLoading = $derived($isLoadingExtremeAnalysis || !$filteredExtremeAnalysis);
+	let isLoading = $derived(uiState.isLoadingExtremeAnalysis || !extremeState.filtered);
 
 	// Derived data
 	let categoryData = $derived.by(() => {
-		if (!$filteredExtremeAnalysis) return null;
-		return $filteredExtremeAnalysis.analysis[selectedCategory];
+		if (!extremeState.filtered) return null;
+		return extremeState.filtered.analysis[selectedCategory];
 	});
 
 	// Chart options
@@ -192,7 +192,7 @@
 			</div>
 		</div>
 	</div>
-{:else if $filteredExtremeAnalysis && options}
+{:else if extremeState.filtered && options}
 	<!-- Category Description -->
 	{#if selectedCategory}
 		{@const descriptionKey = selectedCategory

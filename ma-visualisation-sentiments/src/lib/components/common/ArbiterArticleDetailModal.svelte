@@ -12,14 +12,13 @@
 -->
 <script lang="ts">
 	import type { ArbiterAnalysis } from '$lib/types/data';
-	import { comparisonData, availableDatasets, comparisonPair } from '$lib/stores';
+	import { comparisonState, datasetState } from '$lib/stores';
 	import { getModelsFromPair } from '$lib/types/data';
 	import { t } from '$lib/i18n';
 	import { getJournalName } from '$lib/utils';
 	import { formatDate, getArticleUrl } from '$lib/utils/format';
 	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
 	import { SentimentBadge, ArbiterSection } from '$lib/components/common';
-	import { get } from 'svelte/store';
 	import XIcon from '@lucide/svelte/icons/x';
 	import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
 
@@ -34,14 +33,14 @@
 	// Get comparison data for this article
 	const comparison = $derived.by(() => {
 		if (!articleId) return null;
-		const comparisons = get(comparisonData);
+		const comparisons = comparisonState.data;
 		return comparisons?.find((c) => String(c.article['o:id']) === String(articleId)) || null;
 	});
 
 	// Get model names
 	const modelNames = $derived.by(() => {
-		const [modelAId, modelBId] = getModelsFromPair($comparisonPair);
-		const datasets = $availableDatasets;
+		const [modelAId, modelBId] = getModelsFromPair(datasetState.pair);
+		const datasets = datasetState.available;
 		const modelAName = datasets.find((d) => d.id === modelAId)?.name || modelAId;
 		const modelBName = datasets.find((d) => d.id === modelBId)?.name || modelBId;
 		return { modelAName, modelBName };

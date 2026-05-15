@@ -9,7 +9,7 @@
   This creates a natural filtering flow: Country → Journal → Sentiment criteria
 -->
 <script lang="ts">
-	import { currentDatasetArticles, countryFilters } from '$lib/stores';
+	import { articleState, filterState } from '$lib/stores';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { FilterCard, FilterChip } from '$lib/components/common';
 	import type { Article } from '$lib/types/data';
@@ -30,11 +30,11 @@
 	}
 
 	// Variables locales
-	let selectedCountries = $derived($countryFilters);
+	let selectedCountries = $derived(filterState.countries);
 	let countries = $derived(
 		[
 			...new Set(
-				($currentDatasetArticles as Article[])
+				(articleState.current as Article[])
 					.map((article) => article.Country)
 					.filter((country): country is string => !!country)
 			)
@@ -53,11 +53,11 @@
 		const updated = selectedCountries.includes(country)
 			? selectedCountries.filter((c) => c !== country)
 			: [...selectedCountries, country];
-		countryFilters.set(updated);
+		filterState.countries = updated;
 	}
 
 	function clearSelection() {
-		countryFilters.set([]);
+		filterState.countries = [];
 	}
 </script>
 
