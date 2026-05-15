@@ -4,11 +4,12 @@
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption, SeriesOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
-	import { SvelteSet } from 'svelte/reactivity';
 
 	import { articleState } from '$lib';
-	import type { Article } from '$lib';
-	import { getJournalName } from '$lib/utils';
+	import {
+		aggregateByJournalAndDimension,
+		getSubjectivityLabel
+	} from '$lib/utils/chartAggregators';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { getSentimentLabels, formatNumber } from '$lib/i18n/utils';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
@@ -49,26 +50,6 @@
 		'Non applicable'
 	];
 
-	// Function that converts numeric score to French label (for data operations)
-	function getSubjectivityLabel(score: number | null): string {
-		if (score === null || score === undefined) return 'Non applicable';
-
-		switch (score) {
-			case 1:
-				return 'Factuel';
-			case 2:
-				return 'Plutôt factuel';
-			case 3:
-				return 'Mixte';
-			case 4:
-				return 'Plutôt subjectif';
-			case 5:
-				return 'Subjectif';
-			default:
-				return 'Non applicable';
-		}
-	}
-
 	// Reactive window width for responsive behavior
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
 	let chartContainer = $state<HTMLDivElement>();
@@ -79,35 +60,15 @@
 		const articles = articleState.filtered; // Direct reactive dependency
 		const currentT = $t; // Capture current translations for reactive updates
 		const currentLang = $currentLanguage; // Capture current language for reactive updates
-		let articlesAnalyzed = 0;
-		const newspaperSubjectivityCounts: Record<string, Record<string, number>> = {};
-		const uniqueNewspapers = new SvelteSet<string>();
 
-		articles.forEach((article: Article) => {
-			if (article.sentiment_analysis?.subjectivite_score !== undefined) {
-				const subjectivityScore = article.sentiment_analysis.subjectivite_score;
-				const subjectivityKey = getSubjectivityLabel(subjectivityScore);
-				const journal = getJournalName(article); // Use the utility function
-				uniqueNewspapers.add(journal);
-
-				if (!newspaperSubjectivityCounts[journal]) {
-					newspaperSubjectivityCounts[journal] = Object.fromEntries(
-						frenchSubjectivityLabels.map((l) => [l, 0])
-					);
-				}
-				if (
-					Object.prototype.hasOwnProperty.call(
-						newspaperSubjectivityCounts[journal],
-						subjectivityKey
-					)
-				) {
-					newspaperSubjectivityCounts[journal][subjectivityKey]++;
-				}
-				articlesAnalyzed++;
-			}
+		const {
+			newspaperCounts: newspaperSubjectivityCounts,
+			newspaperList,
+			articlesAnalyzed
+		} = aggregateByJournalAndDimension(articles, frenchSubjectivityLabels, (article) => {
+			const score = article.sentiment_analysis?.subjectivite_score;
+			return score === undefined ? null : getSubjectivityLabel(score);
 		});
-
-		const newspaperList = Array.from(uniqueNewspapers).sort();
 
 		if (chartType === 'pie') {
 			// Pie chart: global aggregation by subjectivity

@@ -5,11 +5,9 @@
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption, SeriesOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
-	import { SvelteSet } from 'svelte/reactivity';
 
 	import { articleState } from '$lib';
-	import type { Article } from '$lib';
-	import { getJournalName } from '$lib/utils';
+	import { aggregateByJournalAndDimension } from '$lib/utils/chartAggregators';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { getSentimentLabels, formatNumber } from '$lib/i18n/utils';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
@@ -60,29 +58,16 @@
 		const articles = articleState.filtered; // Direct reactive dependency
 		const currentT = $t; // Capture current translations for reactive updates
 		const currentLang = $currentLanguage; // Capture current language for reactive updates
-		let articlesAnalyzed = 0;
-		const newspaperPolarityCounts: Record<string, Record<string, number>> = {};
-		const uniqueNewspapers = new SvelteSet<string>();
 
-		articles.forEach((article: Article) => {
-			if (article.sentiment_analysis?.polarite) {
-				const polarityKey = article.sentiment_analysis.polarite as string;
-				const journal = getJournalName(article); // Use the utility function
-				uniqueNewspapers.add(journal);
-
-				if (!newspaperPolarityCounts[journal]) {
-					newspaperPolarityCounts[journal] = Object.fromEntries(
-						frenchPolarityLabels.map((l) => [l, 0])
-					);
-				}
-				if (Object.prototype.hasOwnProperty.call(newspaperPolarityCounts[journal], polarityKey)) {
-					newspaperPolarityCounts[journal][polarityKey]++;
-				}
-				articlesAnalyzed++;
-			}
-		});
-
-		const newspaperList = Array.from(uniqueNewspapers).sort();
+		const {
+			newspaperCounts: newspaperPolarityCounts,
+			newspaperList,
+			articlesAnalyzed
+		} = aggregateByJournalAndDimension(articles, frenchPolarityLabels, (article) =>
+			article.sentiment_analysis?.polarite
+				? (article.sentiment_analysis.polarite as string)
+				: null
+		);
 
 		if (chartType === 'pie') {
 			// Pie chart: agrégation globale par polarité
