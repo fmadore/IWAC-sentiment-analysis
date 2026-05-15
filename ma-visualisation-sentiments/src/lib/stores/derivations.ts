@@ -87,9 +87,7 @@ export function filterArticles(
 
 		if (
 			centralities.length > 0 &&
-			!centralities.includes(
-				article.sentiment_analysis?.centralite_islam_musulmans || 'Non abordé'
-			)
+			!centralities.includes(article.sentiment_analysis?.centralite_islam_musulmans || 'Non abordé')
 		) {
 			return false;
 		}
@@ -206,9 +204,7 @@ export function filterComparisons(
 				subjectivityDiff: filters.dimensions.includes('subjectivity')
 					? originalDisc.subjectivityDiff
 					: 0,
-				centralityDiff: filters.dimensions.includes('centrality')
-					? originalDisc.centralityDiff
-					: 0,
+				centralityDiff: filters.dimensions.includes('centrality') ? originalDisc.centralityDiff : 0,
 				totalDiff: 0,
 				hasConflict: false
 			};

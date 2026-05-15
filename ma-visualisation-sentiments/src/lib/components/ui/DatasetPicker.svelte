@@ -4,9 +4,7 @@
 	import { base } from '$app/paths';
 	import { DropdownMenu } from '$lib/components/common';
 
-	let currentDataset = $derived(
-		datasetState.available.find((d) => d.id === datasetState.selected)
-	);
+	let currentDataset = $derived(datasetState.available.find((d) => d.id === datasetState.selected));
 
 	// Transform datasets to DropdownMenu items
 	let menuItems = $derived(

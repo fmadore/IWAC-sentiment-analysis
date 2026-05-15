@@ -51,7 +51,9 @@
 			'Article with Arbiter Verdict'
 	);
 	const modalSubtitle = $derived(
-		comparison ? `${getJournalName(comparison.article)} • ${formatDate(comparison.article.publication_date)}` : ''
+		comparison
+			? `${getJournalName(comparison.article)} • ${formatDate(comparison.article.publication_date)}`
+			: ''
 	);
 </script>
 

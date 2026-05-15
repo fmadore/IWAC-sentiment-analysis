@@ -1,9 +1,5 @@
 <script lang="ts">
-	import {
-		comparisonState,
-		arbiterStatistics,
-		datasetState
-	} from '$lib/stores';
+	import { comparisonState, arbiterStatistics, datasetState } from '$lib/stores';
 	import { getModelsFromPair } from '$lib/types/data';
 	import { t } from '$lib/i18n';
 	import TrendingUpIcon from '@lucide/svelte/icons/trending-up';

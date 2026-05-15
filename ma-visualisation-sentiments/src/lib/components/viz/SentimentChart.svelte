@@ -65,9 +65,7 @@
 			newspaperList,
 			articlesAnalyzed
 		} = aggregateByJournalAndDimension(articles, frenchPolarityLabels, (article) =>
-			article.sentiment_analysis?.polarite
-				? (article.sentiment_analysis.polarite as string)
-				: null
+			article.sentiment_analysis?.polarite ? (article.sentiment_analysis.polarite as string) : null
 		);
 
 		if (chartType === 'pie') {

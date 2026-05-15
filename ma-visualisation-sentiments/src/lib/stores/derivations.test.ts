@@ -53,10 +53,7 @@ describe('filterArticles', () => {
 	});
 
 	it('filters by country', () => {
-		const articles = [
-			article(1, { Country: 'Bénin' }),
-			article(2, { Country: 'Togo' })
-		];
+		const articles = [article(1, { Country: 'Bénin' }), article(2, { Country: 'Togo' })];
 		const result = filterArticles(articles, { ...noFilters, countries: ['Togo'] });
 		expect(result.map((a) => a['o:id'])).toEqual([2]);
 	});
@@ -171,7 +168,10 @@ describe('calculateDiscrepancies', () => {
 	});
 
 	it('flags no conflict when every dimension differs by less than 3', () => {
-		const result = calculateDiscrepancies(sa('Positif', 3, 'Central'), sa('Neutre', 2, 'Secondaire'));
+		const result = calculateDiscrepancies(
+			sa('Positif', 3, 'Central'),
+			sa('Neutre', 2, 'Secondaire')
+		);
 		expect(result.hasConflict).toBe(false);
 	});
 });
@@ -228,23 +228,13 @@ describe('filterComparisons', () => {
 			comparison(1, 'Très positif', 'Très négatif'), // polarityDiff 4
 			comparison(2, 'Positif', 'Neutre') // polarityDiff 1
 		];
-		const result = filterComparisons(
-			rows,
-			{ ...baseFilter, minDifference: 3 },
-			[],
-			[]
-		);
+		const result = filterComparisons(rows, { ...baseFilter, minDifference: 3 }, [], []);
 		expect(result.map((c) => c.article['o:id'])).toEqual([1]);
 	});
 
 	it('zeroes out dimensions that are not selected', () => {
 		const rows = [comparison(1, 'Très positif', 'Très négatif')];
-		const result = filterComparisons(
-			rows,
-			{ ...baseFilter, dimensions: ['subjectivity'] },
-			[],
-			[]
-		);
+		const result = filterComparisons(rows, { ...baseFilter, dimensions: ['subjectivity'] }, [], []);
 		expect(result).toHaveLength(0); // polarity masked out, nothing left to differ
 	});
 

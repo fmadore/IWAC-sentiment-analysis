@@ -4,9 +4,7 @@
 	import { base } from '$app/paths';
 	import GitCompareIcon from '@lucide/svelte/icons/git-compare';
 
-	let currentDataset = $derived(
-		datasetState.available.find((d) => d.id === datasetState.selected)
-	);
+	let currentDataset = $derived(datasetState.available.find((d) => d.id === datasetState.selected));
 
 	interface Props {
 		size?: 'sm' | 'md' | 'lg';

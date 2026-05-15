@@ -127,7 +127,10 @@
 						translateSubjectivityScore(comparison?.modelA?.subjectivite_score, $currentLanguage)
 					),
 					escapeCSVField(
-						translateSentimentValue(comparison?.modelA?.centralite_islam_musulmans, $currentLanguage)
+						translateSentimentValue(
+							comparison?.modelA?.centralite_islam_musulmans,
+							$currentLanguage
+						)
 					),
 
 					escapeCSVField(translateSentimentValue(comparison?.modelB?.polarite, $currentLanguage)),
@@ -135,7 +138,10 @@
 						translateSubjectivityScore(comparison?.modelB?.subjectivite_score, $currentLanguage)
 					),
 					escapeCSVField(
-						translateSentimentValue(comparison?.modelB?.centralite_islam_musulmans, $currentLanguage)
+						translateSentimentValue(
+							comparison?.modelB?.centralite_islam_musulmans,
+							$currentLanguage
+						)
 					),
 
 					escapeCSVField(translateVerdict(evaluation.arbiter.overall_winner)),

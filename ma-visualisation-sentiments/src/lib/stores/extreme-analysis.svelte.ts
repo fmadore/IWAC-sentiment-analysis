@@ -26,9 +26,7 @@ let _extremeAnalysisData = $state<Record<string, ExtremeAnalysisData | null>>({
 // ============================================
 
 /** Current extreme analysis for the selected dataset */
-const _currentExtremeAnalysisRune = $derived(
-	_extremeAnalysisData[datasetState.selected] || null
-);
+const _currentExtremeAnalysisRune = $derived(_extremeAnalysisData[datasetState.selected] || null);
 
 /** Filtered extreme analysis (respects country filters only) */
 const _filteredExtremeAnalysisRune = $derived.by(() =>
