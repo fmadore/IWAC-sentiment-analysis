@@ -46,7 +46,7 @@ from dotenv import load_dotenv
 
 from shared import (
     safe_int_convert, load_iwac_dataset, calculate_discrepancies,
-    get_webapp_data_dir, save_json, MODEL_NAMES
+    get_webapp_data_dir, save_json, MODEL_NAMES, extract_model_analysis
 )
 
 # Model pair configuration
@@ -354,23 +354,8 @@ def find_significant_differences(df: pd.DataFrame, model_a: str = 'chatgpt', mod
         item = row.to_dict()
         
         # Dynamically build column names based on model prefixes
-        model_a_analysis = {
-            'polarite': item.get(f'{model_a}_polarite'),
-            'polarite_justification': item.get(f'{model_a}_polarite_justification'),
-            'subjectivite_score': item.get(f'{model_a}_subjectivite_score'),
-            'subjectivite_justification': item.get(f'{model_a}_subjectivite_justification'),
-            'centralite_islam_musulmans': item.get(f'{model_a}_centralite_islam_musulmans'),
-            'centralite_justification': item.get(f'{model_a}_centralite_justification')
-        }
-        
-        model_b_analysis = {
-            'polarite': item.get(f'{model_b}_polarite'),
-            'polarite_justification': item.get(f'{model_b}_polarite_justification'),
-            'subjectivite_score': item.get(f'{model_b}_subjectivite_score'),
-            'subjectivite_justification': item.get(f'{model_b}_subjectivite_justification'),
-            'centralite_islam_musulmans': item.get(f'{model_b}_centralite_islam_musulmans'),
-            'centralite_justification': item.get(f'{model_b}_centralite_justification')
-        }
+        model_a_analysis = extract_model_analysis(item, model_a)
+        model_b_analysis = extract_model_analysis(item, model_b)
         
         discrepancies = calculate_discrepancies(model_a_analysis, model_b_analysis)
         

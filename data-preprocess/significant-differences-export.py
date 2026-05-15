@@ -14,7 +14,7 @@ from tqdm import tqdm
 import random
 from datetime import datetime
 
-from shared import load_iwac_dataset, calculate_discrepancies
+from shared import load_iwac_dataset, calculate_discrepancies, extract_model_analysis
 
 def extract_significant_differences(dataset):
     """Extrait les articles avec des différences significatives"""
@@ -30,23 +30,8 @@ def extract_significant_differences(dataset):
     
     for item in tqdm(dataset, desc="Processing articles"):
         # Extraire les analyses des deux modèles
-        chatgpt_analysis = {
-            'polarite': item.get('chatgpt_polarite'),
-            'polarite_justification': item.get('chatgpt_polarite_justification'),
-            'subjectivite_score': item.get('chatgpt_subjectivite_score'),
-            'subjectivite_justification': item.get('chatgpt_subjectivite_justification'),
-            'centralite_islam_musulmans': item.get('chatgpt_centralite_islam_musulmans'),
-            'centralite_justification': item.get('chatgpt_centralite_justification')
-        }
-        
-        gemini_analysis = {
-            'polarite': item.get('gemini_polarite'),
-            'polarite_justification': item.get('gemini_polarite_justification'),
-            'subjectivite_score': item.get('gemini_subjectivite_score'),
-            'subjectivite_justification': item.get('gemini_subjectivite_justification'),
-            'centralite_islam_musulmans': item.get('gemini_centralite_islam_musulmans'),
-            'centralite_justification': item.get('gemini_centralite_justification')
-        }
+        chatgpt_analysis = extract_model_analysis(item, 'chatgpt')
+        gemini_analysis = extract_model_analysis(item, 'gemini')
         
         # Calculer les divergences
         discrepancies = calculate_discrepancies(chatgpt_analysis, gemini_analysis)

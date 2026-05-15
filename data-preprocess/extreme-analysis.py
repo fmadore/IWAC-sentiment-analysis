@@ -21,7 +21,18 @@ from collections import Counter, defaultdict
 from tqdm import tqdm
 import re
 
-from shared import safe_int_convert, load_iwac_dataset, get_webapp_data_dir, save_json
+from shared import (
+    safe_int_convert,
+    load_iwac_dataset,
+    get_webapp_data_dir,
+    save_json,
+    EXTREME_SUBJECTIVITY_HIGH,
+    EXTREME_SUBJECTIVITY_LOW,
+    EXTREME_POLARITY_VERY_NEGATIVE,
+    EXTREME_POLARITY_VERY_POSITIVE,
+    EXTREME_CENTRALITY_VERY_CENTRAL,
+    EXTREME_CENTRALITY_MARGINAL,
+)
 
 def clean_and_split_keywords(text):
     """
@@ -285,7 +296,7 @@ def analyze_extreme_keywords(dataset, model_prefix, top_n=50):
         # Analyser la subjectivité extrême haute (4-5)
         # Articles très subjectifs : opinions marquées, émotions fortes
         subj_score = safe_int_convert(subjectivity)
-        if subj_score and subj_score >= 4:
+        if subj_score and subj_score >= EXTREME_SUBJECTIVITY_HIGH:
             stats["subjectivity_high_count"] += 1
             # Comptage global des mots-clés
             counters["subjectivity_high_subject"].update(subject_keywords)
@@ -303,7 +314,7 @@ def analyze_extreme_keywords(dataset, model_prefix, top_n=50):
         
         # Analyser la subjectivité extrême basse (1-2)
         # Articles très objectifs : faits, informations neutres
-        if subj_score and subj_score <= 2:
+        if subj_score and subj_score <= EXTREME_SUBJECTIVITY_LOW:
             stats["subjectivity_low_count"] += 1
             # Comptage global des mots-clés
             counters["subjectivity_low_subject"].update(subject_keywords)
@@ -321,7 +332,7 @@ def analyze_extreme_keywords(dataset, model_prefix, top_n=50):
         
         # Analyser la polarité très négative
         # Articles avec sentiment très négatif : critique, condamnation, stigmatisation
-        if polarity == "Très négatif":
+        if polarity == EXTREME_POLARITY_VERY_NEGATIVE:
             stats["polarity_very_negative_count"] += 1
             # Comptage global des mots-clés
             counters["polarity_very_negative_subject"].update(subject_keywords)
@@ -339,7 +350,7 @@ def analyze_extreme_keywords(dataset, model_prefix, top_n=50):
         
         # Analyser la polarité très positive
         # Articles avec sentiment très positif : éloge, valorisation, promotion
-        if polarity == "Très positif":
+        if polarity == EXTREME_POLARITY_VERY_POSITIVE:
             stats["polarity_very_positive_count"] += 1
             # Comptage global des mots-clés
             counters["polarity_very_positive_subject"].update(subject_keywords)
@@ -357,7 +368,7 @@ def analyze_extreme_keywords(dataset, model_prefix, top_n=50):
         
         # Analyser la centralité très élevée
         # Articles où l'islam/musulmans sont au cœur du sujet principal
-        if centrality == "Très central":
+        if centrality == EXTREME_CENTRALITY_VERY_CENTRAL:
             stats["centrality_very_central_count"] += 1
             # Comptage global des mots-clés
             counters["centrality_very_central_subject"].update(subject_keywords)
@@ -375,7 +386,7 @@ def analyze_extreme_keywords(dataset, model_prefix, top_n=50):
         
         # Analyser la centralité très faible
         # Articles où l'islam/musulmans sont mentionnés de manière périphérique
-        if centrality == "Marginal":
+        if centrality == EXTREME_CENTRALITY_MARGINAL:
             stats["centrality_not_central_count"] += 1
             # Comptage global des mots-clés
             counters["centrality_not_central_subject"].update(subject_keywords)
