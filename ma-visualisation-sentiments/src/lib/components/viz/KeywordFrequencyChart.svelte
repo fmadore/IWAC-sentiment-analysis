@@ -14,29 +14,9 @@
 	} from '$lib/utils/chartTheme';
 
 	// ECharts imports
-	import { init, use } from 'echarts/core';
-	import { BarChart } from 'echarts/charts';
-	import {
-		TitleComponent,
-		TooltipComponent,
-		GridComponent,
-		LegendComponent
-	} from 'echarts/components';
-	import { LabelLayout } from 'echarts/features';
-	import { CanvasRenderer } from 'echarts/renderers';
+	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { createSimpleTooltipFormatter } from '$lib/utils/chartFormatters';
-
-	// Register the required components
-	use([
-		TitleComponent,
-		TooltipComponent,
-		GridComponent,
-		LegendComponent,
-		BarChart,
-		LabelLayout,
-		CanvasRenderer
-	]);
 
 	// Component props
 	interface Props {

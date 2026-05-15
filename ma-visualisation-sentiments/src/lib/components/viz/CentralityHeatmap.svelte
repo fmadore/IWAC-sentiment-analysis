@@ -1,28 +1,9 @@
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
-	import { init, use } from 'echarts/core';
-	import { HeatmapChart } from 'echarts/charts';
-	import {
-		TitleComponent,
-		TooltipComponent,
-		GridComponent,
-		VisualMapComponent
-	} from 'echarts/components';
-	import { LabelLayout } from 'echarts/features';
-	import { CanvasRenderer } from 'echarts/renderers';
+	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 	import { SvelteSet } from 'svelte/reactivity';
-
-	use([
-		TitleComponent,
-		TooltipComponent,
-		GridComponent,
-		VisualMapComponent,
-		HeatmapChart,
-		LabelLayout,
-		CanvasRenderer
-	]);
 
 	import { articleState } from '$lib';
 	import type { Article } from '$lib';

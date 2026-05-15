@@ -6,19 +6,9 @@
 -->
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
-	import { init, use } from 'echarts/core';
-	import { BarChart } from 'echarts/charts';
-	import {
-		TitleComponent,
-		TooltipComponent,
-		LegendComponent,
-		GridComponent
-	} from 'echarts/components';
-	import { CanvasRenderer } from 'echarts/renderers';
+	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
-
-	use([TitleComponent, TooltipComponent, LegendComponent, GridComponent, BarChart, CanvasRenderer]);
 
 	import { arbiterEvaluations, arbiterModelAIsFirst } from '$lib/stores';
 	import { t } from '$lib/i18n';

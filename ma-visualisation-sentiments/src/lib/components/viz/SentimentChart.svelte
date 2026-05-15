@@ -2,33 +2,10 @@
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
 
-	// ECharts core and modules for tree-shaking
-	import { init, use } from 'echarts/core';
-	import { BarChart, PieChart } from 'echarts/charts';
-	import {
-		TitleComponent,
-		TooltipComponent,
-		GridComponent,
-		LegendComponent
-	} from 'echarts/components';
-	import { LabelLayout, UniversalTransition } from 'echarts/features';
-	import { CanvasRenderer } from 'echarts/renderers';
+	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption, SeriesOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 	import { SvelteSet } from 'svelte/reactivity';
-
-	// Register the required components
-	use([
-		TitleComponent,
-		TooltipComponent,
-		GridComponent,
-		LegendComponent,
-		BarChart,
-		PieChart,
-		LabelLayout,
-		UniversalTransition,
-		CanvasRenderer
-	]);
 
 	import { articleState } from '$lib';
 	import type { Article } from '$lib';

@@ -1,29 +1,8 @@
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
-	import { init, use } from 'echarts/core';
-	import { LineChart } from 'echarts/charts';
-	import {
-		TitleComponent,
-		TooltipComponent,
-		GridComponent,
-		LegendComponent,
-		DataZoomComponent
-	} from 'echarts/components';
-	import { LabelLayout } from 'echarts/features';
-	import { CanvasRenderer } from 'echarts/renderers';
+	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
-
-	use([
-		TitleComponent,
-		TooltipComponent,
-		GridComponent,
-		LegendComponent,
-		LineChart,
-		LabelLayout,
-		CanvasRenderer,
-		DataZoomComponent
-	]);
 
 	import { articleState } from '$lib';
 	import type { Article } from '$lib';
