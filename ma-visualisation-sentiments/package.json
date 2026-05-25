@@ -109,7 +109,7 @@
 		"@lucide/svelte": "^1.16.0",
 		"@skeletonlabs/skeleton-svelte": "^4.15.2",
 		"@sveltejs/kit": "^2.60.1",
-		"echarts": "^6.0.0",
+		"echarts": "^6.1.0",
 		"esm-env": "^1.2.2",
 		"openseadragon": "^6.0.2",
 		"svelte-echarts": "^1.0.0"
