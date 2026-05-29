@@ -1023,7 +1023,11 @@ h3 {
    ----------------------------------------------------------------------------- */
 .table-container {
 	border-radius: var(--radius-xl);
-	overflow: hidden;
+	/* `auto`, not `hidden`: when the content column is narrow (e.g. beside the
+	   filter rail) a wide multi-column table must scroll horizontally rather than
+	   clip. Rounded corners still clip the scrolled content. Component rules add
+	   `max-height` + `overflow-y: auto` for vertical scroll. */
+	overflow: auto;
 	background: var(--surface-card);
 	border: 1px solid var(--border-subtle);
 }

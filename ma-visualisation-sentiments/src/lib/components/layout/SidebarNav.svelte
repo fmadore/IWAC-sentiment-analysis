@@ -122,7 +122,9 @@
 		position: fixed;
 		top: 0;
 		left: 0;
-		z-index: var(--z-sidebar);
+		/* Must sit ABOVE its own mobile scrim (--z-overlay); otherwise the scrim
+		   dims the drawer and swallows nav clicks. Mirrors the filter rail. */
+		z-index: calc(var(--z-overlay) + 1);
 		height: 100dvh;
 		padding-top: var(--space-4);
 

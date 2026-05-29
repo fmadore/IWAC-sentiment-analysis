@@ -307,7 +307,7 @@
 		</div>
 	{:else}
 		<!-- Desktop Table View -->
-		<div class="table-container card variant-glass overflow-hidden">
+		<div class="table-container card variant-glass">
 			<table class="table">
 				<thead>
 					<tr class="bg-surface-800">

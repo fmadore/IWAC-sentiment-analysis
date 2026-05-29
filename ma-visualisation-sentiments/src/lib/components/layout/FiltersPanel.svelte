@@ -104,11 +104,13 @@
 		display: flex;
 		flex-direction: column;
 
-		/* Drawer defaults (mobile) */
+		/* Drawer defaults (mobile). The drawer must sit ABOVE its own scrim, so it
+		   goes one step above --z-overlay (the scrim); otherwise the scrim dims it
+		   and swallows the clicks. */
 		position: fixed;
 		top: 0;
 		left: 0;
-		z-index: var(--z-sidebar);
+		z-index: calc(var(--z-overlay) + 1);
 		width: min(88vw, 22rem);
 		height: 100dvh;
 		background: var(--app-bg-elevated);

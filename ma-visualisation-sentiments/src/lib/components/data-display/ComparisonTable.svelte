@@ -175,7 +175,7 @@
 
 	{#if viewMode === 'table' && !isMobile}
 		<!-- Table View -->
-		<div class="table-container comparison-table-wrapper overflow-hidden">
+		<div class="table-container comparison-table-wrapper">
 			<table class="table">
 				<thead>
 					<tr class="bg-surface-800">
