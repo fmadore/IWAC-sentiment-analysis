@@ -180,7 +180,7 @@
 				<thead>
 					<tr class="bg-surface-800">
 						<th
-							class="text-white sortable-header"
+							class="sortable-header"
 							onclick={() => {
 								sortBy = 'title';
 								sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
@@ -191,17 +191,11 @@
 								<ArrowUpDownIcon size={14} class="inline ml-1" />
 							{/if}
 						</th>
-						<th class="text-white text-center" colspan="2"
-							>{$t.comparison?.polarity || 'Polarity'}</th
-						>
-						<th class="text-white text-center" colspan="2"
-							>{$t.comparison?.subjectivity || 'Subjectivity'}</th
-						>
-						<th class="text-white text-center" colspan="2"
-							>{$t.comparison?.centrality || 'Centrality'}</th
-						>
+						<th class="text-center" colspan="2">{$t.comparison?.polarity || 'Polarity'}</th>
+						<th class="text-center" colspan="2">{$t.comparison?.subjectivity || 'Subjectivity'}</th>
+						<th class="text-center" colspan="2">{$t.comparison?.centrality || 'Centrality'}</th>
 						<th
-							class="text-white sortable-header text-center"
+							class="sortable-header text-center"
 							onclick={() => {
 								sortBy = 'discrepancy';
 								sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
@@ -215,32 +209,32 @@
 					</tr>
 					<tr class="bg-surface-700/50 text-xs">
 						<th></th>
-						<th class="text-white/60 text-center font-normal"
+						<th class="col-subhead text-center"
 							>{paginatedComparisons[0]
 								? getModelDisplayName(paginatedComparisons[0].modelAId, datasetState.available)
 								: 'Model A'}</th
 						>
-						<th class="text-white/60 text-center font-normal"
+						<th class="col-subhead text-center"
 							>{paginatedComparisons[0]
 								? getModelDisplayName(paginatedComparisons[0].modelBId, datasetState.available)
 								: 'Model B'}</th
 						>
-						<th class="text-white/60 text-center font-normal"
+						<th class="col-subhead text-center"
 							>{paginatedComparisons[0]
 								? getModelDisplayName(paginatedComparisons[0].modelAId, datasetState.available)
 								: 'Model A'}</th
 						>
-						<th class="text-white/60 text-center font-normal"
+						<th class="col-subhead text-center"
 							>{paginatedComparisons[0]
 								? getModelDisplayName(paginatedComparisons[0].modelBId, datasetState.available)
 								: 'Model B'}</th
 						>
-						<th class="text-white/60 text-center font-normal"
+						<th class="col-subhead text-center"
 							>{paginatedComparisons[0]
 								? getModelDisplayName(paginatedComparisons[0].modelAId, datasetState.available)
 								: 'Model A'}</th
 						>
-						<th class="text-white/60 text-center font-normal"
+						<th class="col-subhead text-center"
 							>{paginatedComparisons[0]
 								? getModelDisplayName(paginatedComparisons[0].modelBId, datasetState.available)
 								: 'Model B'}</th
@@ -480,13 +474,21 @@
 		background-color: var(--surface-hover);
 	}
 
-	/* Sticky table headers */
+	/* Sticky table headers — typography (mono eyebrow) owned by the global `.table th` rule. */
 	th {
 		position: sticky;
 		top: 0;
 		z-index: 1;
 		background-color: var(--color-surface-800);
 		box-shadow: 0 1px 0 var(--border-hover);
+	}
+
+	/* Model-name sub-header row — subordinate to the dimension labels above */
+	.col-subhead {
+		font-size: 0.625rem;
+		font-weight: var(--font-weight-regular);
+		letter-spacing: 0.06em;
+		color: var(--text-muted);
 	}
 
 	.comparison-card {

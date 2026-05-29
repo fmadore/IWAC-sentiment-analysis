@@ -311,27 +311,27 @@
 			<table class="table">
 				<thead>
 					<tr class="bg-surface-800">
-						<th class="text-white sortable-header" onclick={() => sortBy('titre')}>
+						<th class="sortable-header" onclick={() => sortBy('titre')}>
 							{$t.table.articleTitle}
 							{sortColumn === 'titre' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
 						</th>
-						<th class="text-white sortable-header" onclick={() => sortBy('journal')}>
+						<th class="sortable-header" onclick={() => sortBy('journal')}>
 							{$t.filters.journal}
 							{sortColumn === 'journal' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
 						</th>
-						<th class="text-white sortable-header" onclick={() => sortBy('date')}>
+						<th class="sortable-header" onclick={() => sortBy('date')}>
 							{$t.table.date}
 							{sortColumn === 'date' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
 						</th>
-						<th class="text-white sortable-header" onclick={() => sortBy('centralite')}>
+						<th class="sortable-header" onclick={() => sortBy('centralite')}>
 							{$t.table.centrality}
 							{sortColumn === 'centralite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
 						</th>
-						<th class="text-white sortable-header" onclick={() => sortBy('polarite')}>
+						<th class="sortable-header" onclick={() => sortBy('polarite')}>
 							{$t.table.polarity}
 							{sortColumn === 'polarite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
 						</th>
-						<th class="text-white sortable-header" onclick={() => sortBy('subjectivite')}>
+						<th class="sortable-header" onclick={() => sortBy('subjectivite')}>
 							{$t.table.subjectivity}
 							{sortColumn === 'subjectivite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
 						</th>
@@ -457,6 +457,7 @@
 		z-index: 1;
 		background-color: var(--color-surface-800);
 		box-shadow: 0 1px 0 var(--border-default);
+		/* Header typography (mono eyebrow) is owned by the global `.table th` rule. */
 	}
 
 	.sortable-header {
