@@ -37,15 +37,6 @@ export interface Article {
 	dataset_id: string;
 }
 
-export type Dataset = Article[]; // Un fichier JSON est un Dataset
-
-export interface DatasetInfo {
-	// Pour le manifest
-	id: string; // Nom du fichier sans .json
-	name: string; // Nom lisible pour l'utilisateur (par ex., titre de l'item Omeka)
-	filePath: string; // Chemin vers le fichier JSON
-}
-
 // New types for multi-dataset support
 export interface DatasetOption {
 	id: string;
@@ -98,16 +89,6 @@ export interface DiscrepancyFilter {
 	maxDifference: number;
 	dimensions: ('polarity' | 'subjectivity' | 'centrality')[];
 	excludeNonApplicable: boolean;
-}
-
-export interface ComparisonStatistics {
-	totalArticles: number;
-	totalDiscrepancies: number;
-	averageDiscrepancy: number;
-	polarityConflicts: number;
-	subjectivityConflicts: number;
-	centralityConflicts: number;
-	highConflictArticles: number;
 }
 
 // Arbiter (Gemini 3 Pro) evaluation types

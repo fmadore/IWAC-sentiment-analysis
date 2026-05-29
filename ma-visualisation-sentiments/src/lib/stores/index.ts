@@ -15,7 +15,7 @@ export { uiState } from './ui.svelte';
 export { datasetState } from './datasets.svelte';
 export { articleState } from './articles.svelte';
 export { comparisonState } from './comparison.svelte';
-export { arbiterState, type ArbiterStatistics } from './arbiter.svelte';
+export { type ArbiterStatistics } from './arbiter.svelte';
 export { extremeState } from './extreme-analysis.svelte';
 
 // URL State (New modular implementation)

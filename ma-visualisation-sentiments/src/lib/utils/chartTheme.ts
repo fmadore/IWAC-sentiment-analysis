@@ -486,38 +486,6 @@ export function getPieSeriesStyle(isMobile: boolean) {
 }
 
 /**
- * Adjust color brightness. Hex input gets channel-shifted; OKLCH input passes
- * through unchanged (callers should be migrated off bar-gradient styling
- * per the Phase 2 dataviz refactor — investigative charts use flat fills).
- */
-export function adjustBrightness(color: string, percent: number): string {
-	if (!color.startsWith('#')) return color;
-	const num = parseInt(color.replace('#', ''), 16);
-	if (Number.isNaN(num)) return color;
-	const amt = Math.round(2.55 * percent);
-	const R = Math.max(0, Math.min(255, (num >> 16) + amt));
-	const G = Math.max(0, Math.min(255, ((num >> 8) & 0x00ff) + amt));
-	const B = Math.max(0, Math.min(255, (num & 0x0000ff) + amt));
-	return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
-}
-
-/**
- * Get color with opacity. Hex → rgba; OKLCH → color-mix with transparent
- * (ECharts ≥6 accepts modern CSS color syntax).
- */
-export function withOpacity(color: string, opacity: number): string {
-	if (color.startsWith('#')) {
-		const hex = color.replace('#', '');
-		const r = parseInt(hex.substring(0, 2), 16);
-		const g = parseInt(hex.substring(2, 4), 16);
-		const b = parseInt(hex.substring(4, 6), 16);
-		return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-	}
-	const pct = Math.round(opacity * 100);
-	return `color-mix(in oklab, ${color} ${pct}%, transparent)`;
-}
-
-/**
  * VisualMap configuration for heatmaps
  */
 export function getVisualMapConfig(isMobile: boolean, min: number, max: number, colors: string[]) {
@@ -575,21 +543,6 @@ export function getUniversalTransitionConfig() {
 		universalTransition: {
 			enabled: true,
 			divideShape: 'clone' as const
-		}
-	};
-}
-
-/**
- * Accessibility configuration with decal patterns (v6 enhancement)
- * Adds visual patterns to chart elements for better colorblind accessibility
- */
-export function getAccessibilityConfig(enabled: boolean = true) {
-	return {
-		aria: {
-			enabled,
-			decal: {
-				show: enabled
-			}
 		}
 	};
 }

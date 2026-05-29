@@ -14,7 +14,6 @@ export { default as ArbiterArticleDetailModal } from './ArbiterArticleDetailModa
 // Layout & Containers
 export { default as AccordionItem } from './AccordionItem.svelte';
 export { default as FilterCard } from './FilterCard.svelte';
-export { default as GlassCard } from './GlassCard.svelte';
 
 // Interactive Elements
 export { default as DropdownMenu } from './DropdownMenu.svelte';

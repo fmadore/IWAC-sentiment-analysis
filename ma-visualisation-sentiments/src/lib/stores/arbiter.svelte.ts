@@ -319,32 +319,3 @@ export const setupArbiterPairReactivity = (fetchFunction: typeof fetch): (() => 
 		arbiterReactivitySetUp = false;
 	};
 };
-
-// ============================================
-// Modern State Accessors (for gradual migration)
-// ============================================
-
-export const arbiterState = {
-	get arbiterEvaluations() {
-		return _arbiterEvaluations;
-	},
-	set arbiterEvaluations(value: ArbiterEvaluationData | null) {
-		_arbiterEvaluations = value;
-	},
-	get currentArbiterPair() {
-		return _currentArbiterPair;
-	},
-	set currentArbiterPair(value: ModelPair | null) {
-		_currentArbiterPair = value;
-	},
-	get modelAIsFirst() {
-		const meta = _arbiterEvaluations?.metadata;
-		return meta?.arbiter_model_a === meta?.pair_first_model;
-	},
-	get statistics(): ArbiterStatistics {
-		return computeArbiterStatistics();
-	},
-	getForArticle(articleId: string | number): ArbiterAnalysis | null {
-		return getArbiterForArticle(articleId);
-	}
-};
