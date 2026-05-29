@@ -1,31 +1,10 @@
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
-	import { init, use } from 'echarts/core';
-	import { LineChart } from 'echarts/charts';
-	import {
-		TitleComponent,
-		TooltipComponent,
-		GridComponent,
-		LegendComponent,
-		DataZoomComponent
-	} from 'echarts/components';
-	import { LabelLayout } from 'echarts/features';
-	import { CanvasRenderer } from 'echarts/renderers';
+	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	use([
-		TitleComponent,
-		TooltipComponent,
-		GridComponent,
-		LegendComponent,
-		LineChart,
-		LabelLayout,
-		CanvasRenderer,
-		DataZoomComponent
-	]);
-
-	import { filteredArticles } from '$lib';
+	import { articleState } from '$lib';
 	import type { Article } from '$lib';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { getSentimentLabels, formatNumber } from '$lib/i18n/utils';
@@ -61,7 +40,7 @@
 
 	// Use $derived for proper reactivity in Svelte 5
 	let options = $derived.by(() => {
-		const articles = $filteredArticles; // Direct reactive dependency
+		const articles = articleState.filtered; // Direct reactive dependency
 		const currentT = $t; // Capture current translations for reactive updates
 		const currentLang = $currentLanguage; // Capture current language for reactive updates
 		const yearlyData: Record<string, Record<SubjectivityScore, number>> = {};
@@ -151,7 +130,7 @@
 	});
 </script>
 
-{#if $filteredArticles.length > 0}
+{#if articleState.filtered.length > 0}
 	<div class="mb-4">
 		<DatasetBadge size="sm" />
 	</div>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
-	import { isLoadingExtremeAnalysis, filteredExtremeAnalysis } from '$lib/stores';
+	import { uiState, extremeState } from '$lib/stores';
 	import { t } from '$lib/i18n';
 	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
 	import { getExtremeCategoryConfig, getTopKeywords } from '$lib/utils/extremeAnalysis';
@@ -14,29 +14,9 @@
 	} from '$lib/utils/chartTheme';
 
 	// ECharts imports
-	import { init, use } from 'echarts/core';
-	import { BarChart } from 'echarts/charts';
-	import {
-		TitleComponent,
-		TooltipComponent,
-		GridComponent,
-		LegendComponent
-	} from 'echarts/components';
-	import { LabelLayout } from 'echarts/features';
-	import { CanvasRenderer } from 'echarts/renderers';
+	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { createSimpleTooltipFormatter } from '$lib/utils/chartFormatters';
-
-	// Register the required components
-	use([
-		TitleComponent,
-		TooltipComponent,
-		GridComponent,
-		LegendComponent,
-		BarChart,
-		LabelLayout,
-		CanvasRenderer
-	]);
 
 	// Component props
 	interface Props {
@@ -51,12 +31,12 @@
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
 
 	// Loading state - use specific loading state for better UX
-	let isLoading = $derived($isLoadingExtremeAnalysis || !$filteredExtremeAnalysis);
+	let isLoading = $derived(uiState.isLoadingExtremeAnalysis || !extremeState.filtered);
 
 	// Derived data
 	let categoryData = $derived.by(() => {
-		if (!$filteredExtremeAnalysis) return null;
-		return $filteredExtremeAnalysis.analysis[selectedCategory];
+		if (!extremeState.filtered) return null;
+		return extremeState.filtered.analysis[selectedCategory];
 	});
 
 	// Chart options
@@ -192,7 +172,7 @@
 			</div>
 		</div>
 	</div>
-{:else if $filteredExtremeAnalysis && options}
+{:else if extremeState.filtered && options}
 	<!-- Category Description -->
 	{#if selectedCategory}
 		{@const descriptionKey = selectedCategory

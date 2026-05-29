@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { filteredComparisons, selectedComparison, availableDatasets } from '$lib/stores';
+	import { comparisonState, datasetState } from '$lib/stores';
 	import { t } from '$lib/i18n';
 	import { getJournalName } from '$lib/utils';
 	import { formatDate, getModelDisplayName } from '$lib/utils/format';
@@ -29,7 +29,7 @@
 
 	// Sort comparisons
 	const sortedComparisons = $derived(
-		[...$filteredComparisons].sort((a, b) => {
+		[...comparisonState.filtered].sort((a, b) => {
 			let valA, valB;
 
 			switch (sortBy) {
@@ -69,7 +69,7 @@
 	);
 
 	function selectComparison(comparison: ComparisonData) {
-		selectedComparison.set(comparison);
+		comparisonState.selected = comparison;
 	}
 </script>
 
@@ -217,32 +217,32 @@
 						<th></th>
 						<th class="text-white/60 text-center font-normal"
 							>{paginatedComparisons[0]
-								? getModelDisplayName(paginatedComparisons[0].modelAId, $availableDatasets)
+								? getModelDisplayName(paginatedComparisons[0].modelAId, datasetState.available)
 								: 'Model A'}</th
 						>
 						<th class="text-white/60 text-center font-normal"
 							>{paginatedComparisons[0]
-								? getModelDisplayName(paginatedComparisons[0].modelBId, $availableDatasets)
+								? getModelDisplayName(paginatedComparisons[0].modelBId, datasetState.available)
 								: 'Model B'}</th
 						>
 						<th class="text-white/60 text-center font-normal"
 							>{paginatedComparisons[0]
-								? getModelDisplayName(paginatedComparisons[0].modelAId, $availableDatasets)
+								? getModelDisplayName(paginatedComparisons[0].modelAId, datasetState.available)
 								: 'Model A'}</th
 						>
 						<th class="text-white/60 text-center font-normal"
 							>{paginatedComparisons[0]
-								? getModelDisplayName(paginatedComparisons[0].modelBId, $availableDatasets)
+								? getModelDisplayName(paginatedComparisons[0].modelBId, datasetState.available)
 								: 'Model B'}</th
 						>
 						<th class="text-white/60 text-center font-normal"
 							>{paginatedComparisons[0]
-								? getModelDisplayName(paginatedComparisons[0].modelAId, $availableDatasets)
+								? getModelDisplayName(paginatedComparisons[0].modelAId, datasetState.available)
 								: 'Model A'}</th
 						>
 						<th class="text-white/60 text-center font-normal"
 							>{paginatedComparisons[0]
-								? getModelDisplayName(paginatedComparisons[0].modelBId, $availableDatasets)
+								? getModelDisplayName(paginatedComparisons[0].modelBId, datasetState.available)
 								: 'Model B'}</th
 						>
 						<th></th>
@@ -349,7 +349,7 @@
 							<div class="values-grid">
 								<div class="value-cell">
 									<span class="model-label"
-										>{getModelDisplayName(comparison.modelAId, $availableDatasets)}</span
+										>{getModelDisplayName(comparison.modelAId, datasetState.available)}</span
 									>
 									<SentimentBadge type="polarity" value={comparison.modelA?.polarite} size="sm" />
 								</div>
@@ -360,7 +360,7 @@
 								</div>
 								<div class="value-cell">
 									<span class="model-label"
-										>{getModelDisplayName(comparison.modelBId, $availableDatasets)}</span
+										>{getModelDisplayName(comparison.modelBId, datasetState.available)}</span
 									>
 									<SentimentBadge type="polarity" value={comparison.modelB?.polarite} size="sm" />
 								</div>
@@ -373,7 +373,7 @@
 							<div class="values-grid">
 								<div class="value-cell">
 									<span class="model-label"
-										>{getModelDisplayName(comparison.modelAId, $availableDatasets)}</span
+										>{getModelDisplayName(comparison.modelAId, datasetState.available)}</span
 									>
 									<SentimentBadge
 										type="subjectivity"
@@ -390,7 +390,7 @@
 								</div>
 								<div class="value-cell">
 									<span class="model-label"
-										>{getModelDisplayName(comparison.modelBId, $availableDatasets)}</span
+										>{getModelDisplayName(comparison.modelBId, datasetState.available)}</span
 									>
 									<SentimentBadge
 										type="subjectivity"
@@ -407,7 +407,7 @@
 							<div class="values-grid">
 								<div class="value-cell">
 									<span class="model-label"
-										>{getModelDisplayName(comparison.modelAId, $availableDatasets)}</span
+										>{getModelDisplayName(comparison.modelAId, datasetState.available)}</span
 									>
 									<SentimentBadge
 										type="centrality"
@@ -422,7 +422,7 @@
 								</div>
 								<div class="value-cell">
 									<span class="model-label"
-										>{getModelDisplayName(comparison.modelBId, $availableDatasets)}</span
+										>{getModelDisplayName(comparison.modelBId, datasetState.available)}</span
 									>
 									<SentimentBadge
 										type="centrality"

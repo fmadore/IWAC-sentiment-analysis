@@ -4,7 +4,7 @@
   Filter for centrality values using reusable FilterCard and FilterChip components.
 -->
 <script lang="ts">
-	import { centralityFilters } from '$lib/stores';
+	import { filterState } from '$lib/stores';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue } from '$lib/i18n/utils';
 	import { FilterCard, FilterChip } from '$lib/components/common';
@@ -18,7 +18,7 @@
 		{ value: 'Non abordé', variant: 'centrality-not-addressed' as const }
 	];
 
-	let selectedCentralities = $derived($centralityFilters);
+	let selectedCentralities = $derived(filterState.centralities);
 
 	// Get translated labels for display
 	const translatedOptions = $derived(
@@ -34,11 +34,11 @@
 		const updated = selectedCentralities.includes(centrality)
 			? selectedCentralities.filter((c) => c !== centrality)
 			: [...selectedCentralities, centrality];
-		centralityFilters.set(updated);
+		filterState.centralities = updated;
 	}
 
 	function clearSelection() {
-		centralityFilters.set([]);
+		filterState.centralities = [];
 	}
 </script>
 

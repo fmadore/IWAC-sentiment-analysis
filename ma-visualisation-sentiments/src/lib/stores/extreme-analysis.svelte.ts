@@ -5,12 +5,11 @@
  * Provides both modern $state-based API and legacy store compatibility.
  */
 
-import { writable, derived, get } from 'svelte/store';
 import type { ExtremeAnalysisData } from '$lib/types/extremeAnalysis';
 import { loadExtremeAnalysisData, filterExtremeAnalysisData } from '$lib/utils/extremeAnalysis';
-import { selectedDataset } from './datasets.svelte';
-import { countryFilters } from './filters.svelte';
-import { isLoadingExtremeAnalysis } from './ui.svelte';
+import { datasetState } from './datasets.svelte';
+import { filterState } from './filters.svelte';
+import { uiState } from './ui.svelte';
 
 // ============================================
 // Svelte 5 Runes State
@@ -23,39 +22,15 @@ let _extremeAnalysisData = $state<Record<string, ExtremeAnalysisData | null>>({
 });
 
 // ============================================
-// Legacy Stores
-// ============================================
-
-/**
- * @deprecated Use extremeState.data instead
- */
-export const extremeAnalysisData = writable<Record<string, ExtremeAnalysisData | null>>({
-	chatgpt: null,
-	gemini: null,
-	mistral: null
-});
-
-// Sync legacy store to runes state
-extremeAnalysisData.subscribe((value) => {
-	_extremeAnalysisData = value;
-});
-
-// ============================================
-// Derived Stores
+// Derived State (reactive runes)
 // ============================================
 
 /** Current extreme analysis for the selected dataset */
-export const currentExtremeAnalysis = derived(
-	[extremeAnalysisData, selectedDataset],
-	([$extremeAnalysisData, $selectedDataset]) => $extremeAnalysisData[$selectedDataset] || null
-);
+const _currentExtremeAnalysisRune = $derived(_extremeAnalysisData[datasetState.selected] || null);
 
 /** Filtered extreme analysis (respects country filters only) */
-export const filteredExtremeAnalysis = derived(
-	[currentExtremeAnalysis, countryFilters],
-	([$currentExtremeAnalysis, $countryFilters]) => {
-		return filterExtremeAnalysisData($currentExtremeAnalysis, $countryFilters, []);
-	}
+const _filteredExtremeAnalysisRune = $derived.by(() =>
+	filterExtremeAnalysisData(_currentExtremeAnalysisRune, filterState.countries, [])
 );
 
 // ============================================
@@ -64,36 +39,29 @@ export const filteredExtremeAnalysis = derived(
 
 /** Load extreme analysis data for the current dataset */
 export const loadCurrentExtremeAnalysis = async (fetchFunction: typeof fetch): Promise<void> => {
-	const currentDatasetId = get(selectedDataset);
-	const currentExtremeData = get(extremeAnalysisData);
+	const currentDatasetId = datasetState.selected;
 
-	if (currentExtremeData[currentDatasetId]) {
+	if (_extremeAnalysisData[currentDatasetId]) {
 		console.log(`Extreme analysis for ${currentDatasetId} already loaded`);
 		return;
 	}
 
 	console.log(`Loading extreme analysis data for ${currentDatasetId}...`);
 
-	isLoadingExtremeAnalysis.set(true);
+	uiState.isLoadingExtremeAnalysis = true;
 
 	try {
 		const data = await loadExtremeAnalysisData(
 			currentDatasetId as 'chatgpt' | 'gemini' | 'mistral',
 			fetchFunction
 		);
-		extremeAnalysisData.update((current) => ({
-			...current,
-			[currentDatasetId]: data
-		}));
+		extremeState.updateData(currentDatasetId, data);
 		console.log(`Successfully loaded extreme analysis data for ${currentDatasetId}`);
 	} catch (error) {
 		console.error(`Failed to load extreme analysis data for ${currentDatasetId}:`, error);
-		extremeAnalysisData.update((current) => ({
-			...current,
-			[currentDatasetId]: null
-		}));
+		extremeState.updateData(currentDatasetId, null);
 	} finally {
-		isLoadingExtremeAnalysis.set(false);
+		uiState.isLoadingExtremeAnalysis = false;
 	}
 };
 
@@ -117,19 +85,18 @@ export const extremeState = {
 		return _extremeAnalysisData;
 	},
 
-	// Current dataset's extreme analysis (from derived store)
+	// Current dataset's extreme analysis (reactive runes-based derivation)
 	get current() {
-		return get(currentExtremeAnalysis);
+		return _currentExtremeAnalysisRune;
 	},
 
-	// Filtered extreme analysis (from derived store)
+	// Filtered extreme analysis (reactive runes-based derivation)
 	get filtered() {
-		return get(filteredExtremeAnalysis);
+		return _filteredExtremeAnalysisRune;
 	},
 
 	// Update data for a dataset
 	updateData(datasetId: string, data: ExtremeAnalysisData | null) {
 		_extremeAnalysisData = { ..._extremeAnalysisData, [datasetId]: data };
-		extremeAnalysisData.set(_extremeAnalysisData);
 	}
 };

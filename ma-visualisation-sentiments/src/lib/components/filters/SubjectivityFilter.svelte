@@ -4,7 +4,7 @@
   Filter for subjectivity scores (1-5) using reusable FilterCard and FilterChip components.
 -->
 <script lang="ts">
-	import { subjectivityFilters } from '$lib/stores';
+	import { filterState } from '$lib/stores';
 	import { t } from '$lib/i18n';
 	import { FilterCard, FilterChip } from '$lib/components/common';
 
@@ -17,18 +17,18 @@
 		{ value: 5, variant: 'subjectivity-5' as const }
 	];
 
-	let selectedScores = $derived($subjectivityFilters);
+	let selectedScores = $derived(filterState.subjectivities);
 
 	function toggleScore(score: number) {
 		const scoreStr = score.toString();
 		const updated = selectedScores.includes(scoreStr)
 			? selectedScores.filter((s) => s !== scoreStr)
 			: [...selectedScores, scoreStr];
-		subjectivityFilters.set(updated);
+		filterState.subjectivities = updated;
 	}
 
 	function clearSelection() {
-		subjectivityFilters.set([]);
+		filterState.subjectivities = [];
 	}
 </script>
 

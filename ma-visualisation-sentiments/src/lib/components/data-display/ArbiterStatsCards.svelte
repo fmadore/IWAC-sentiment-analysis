@@ -6,7 +6,7 @@
 -->
 <script lang="ts">
 	import type { ArbiterStatistics } from '$lib/stores';
-	import { availableDatasets } from '$lib/stores';
+	import { datasetState } from '$lib/stores';
 	import { t } from '$lib/i18n';
 	import { base } from '$app/paths';
 	import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
@@ -23,7 +23,7 @@
 
 	// Get model logo from datasets
 	function getModelLogo(modelName: string): string | null {
-		const dataset = $availableDatasets.find((d) => d.name === modelName);
+		const dataset = datasetState.available.find((d) => d.name === modelName);
 		return dataset?.logo ?? null;
 	}
 

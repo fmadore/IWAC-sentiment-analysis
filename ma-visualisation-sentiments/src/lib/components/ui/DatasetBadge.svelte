@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { selectedDataset, availableDatasets, comparisonMode } from '$lib/stores';
+	import { datasetState } from '$lib/stores';
 	import { t } from '$lib/i18n';
 	import { base } from '$app/paths';
 	import GitCompareIcon from '@lucide/svelte/icons/git-compare';
 
-	let currentDataset = $derived($availableDatasets.find((d) => d.id === $selectedDataset));
+	let currentDataset = $derived(datasetState.available.find((d) => d.id === datasetState.selected));
 
 	interface Props {
 		size?: 'sm' | 'md' | 'lg';
@@ -34,7 +34,7 @@
 	};
 </script>
 
-{#if $comparisonMode}
+{#if datasetState.isComparisonMode}
 	<div class="dataset-badge comparison-mode {sizeClasses[size]}">
 		{#if showIcon}
 			<GitCompareIcon size={iconSizes[size]} />

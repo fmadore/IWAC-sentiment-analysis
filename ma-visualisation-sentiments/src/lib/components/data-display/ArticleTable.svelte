@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { filteredArticles, selectedArticle } from '$lib/stores';
+	import { articleState } from '$lib/stores';
 	import type { Article } from '$lib/types/data';
 	import { getJournalName } from '$lib/utils';
 	import { formatDate } from '$lib/utils/format';
@@ -18,7 +18,7 @@
 	} = $props();
 
 	// Reactive articles from store
-	let articles = $derived($filteredArticles);
+	let articles = $derived(articleState.filtered);
 
 	// Reactive mobile detection using svelte/reactivity/window
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
@@ -33,7 +33,7 @@
 	// Dispatcher is removed
 
 	function selectArticle(article: Article, event: MouseEvent) {
-		selectedArticle.set(article);
+		articleState.selected = article;
 
 		// Update URL to include the selected article ID
 		updateURL(undefined, true);

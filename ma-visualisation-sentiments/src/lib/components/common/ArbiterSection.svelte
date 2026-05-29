@@ -20,11 +20,10 @@
 	import { t } from '$lib/i18n';
 	import {
 		getArbiterForArticle,
-		isLoadingArbiter,
 		arbiterModelAIsFirst,
-		comparisonPair,
-		availableDatasets,
-		getActualModelName
+		getActualModelName,
+		uiState,
+		datasetState
 	} from '$lib/stores';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
@@ -53,8 +52,8 @@
 
 	// Get model names from the current comparison pair
 	const modelNames = $derived.by(() => {
-		const [modelAId, modelBId] = getModelsFromPair($comparisonPair);
-		const datasets = $availableDatasets;
+		const [modelAId, modelBId] = getModelsFromPair(datasetState.pair);
+		const datasets = datasetState.available;
 		const modelAName = datasets.find((d) => d.id === modelAId)?.name || modelAId;
 		const modelBName = datasets.find((d) => d.id === modelBId)?.name || modelBId;
 		return { modelAName, modelBName };
@@ -211,7 +210,7 @@
 	</button>
 
 	{#if showArbiter}
-		{#if $isLoadingArbiter}
+		{#if uiState.isLoadingArbiter}
 			<div class="flex items-center justify-center p-8">
 				<div class="loading-spinner"></div>
 				<span class="ml-3 text-white/60">{$t.arbiter.loadingArbiter}</span>

@@ -7,7 +7,7 @@
 	import { browser } from '$app/environment';
 	import { t } from '$lib/i18n';
 	import { LanguageSwitcher, DatasetPicker } from '$lib/components/ui';
-	import { mobileMenuOpen } from '$lib/stores';
+	import { uiState } from '$lib/stores';
 
 	let isFullscreen = $state(false);
 
@@ -47,11 +47,11 @@
 			<!-- Mobile Menu Toggle -->
 			<button
 				class="mobile-menu-btn"
-				onclick={() => ($mobileMenuOpen = !$mobileMenuOpen)}
-				aria-label={$mobileMenuOpen ? 'Close navigation' : 'Open navigation'}
-				aria-expanded={$mobileMenuOpen}
+				onclick={() => (uiState.mobileMenuOpen = !uiState.mobileMenuOpen)}
+				aria-label={uiState.mobileMenuOpen ? 'Close navigation' : 'Open navigation'}
+				aria-expanded={uiState.mobileMenuOpen}
 			>
-				{#if $mobileMenuOpen}
+				{#if uiState.mobileMenuOpen}
 					<XIcon size={22} />
 				{:else}
 					<MenuIcon size={22} />

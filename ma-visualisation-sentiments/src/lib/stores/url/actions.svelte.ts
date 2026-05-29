@@ -13,17 +13,10 @@ import { initializeLanguage } from '$lib/i18n';
 
 // Import directly from individual store modules to avoid circular dependencies
 // (importing from '$lib/stores' would create a cycle since stores/index.ts re-exports from url/)
-import {
-	countryFilters,
-	journalFilters,
-	polarityFilters,
-	subjectivityFilters,
-	centralityFilters,
-	discrepancyFilters
-} from '../filters.svelte';
-import { selectedDataset, comparisonMode, comparisonPair } from '../datasets.svelte';
-import { selectedArticle, datasetArticles } from '../articles.svelte';
-import { selectedComparison, comparisonData } from '../comparison.svelte';
+import { filterState } from '../filters.svelte';
+import { datasetState } from '../datasets.svelte';
+import { articleState } from '../articles.svelte';
+import { comparisonState } from '../comparison.svelte';
 
 import { VALID_PAIRS, type ValidView } from './constants';
 import type { URLState } from './types';
@@ -43,52 +36,51 @@ export function applyURLState(state: URLState): string | undefined {
 	initializeLanguage(state.lang);
 
 	if (state.countries) {
-		countryFilters.set(state.countries);
+		filterState.countries = state.countries;
 	}
 
 	if (state.journals) {
-		journalFilters.set(state.journals);
+		filterState.journals = state.journals;
 	}
 
 	if (state.polarities) {
-		polarityFilters.set(state.polarities);
+		filterState.polarities = state.polarities;
 	}
 
 	if (state.subjectivities) {
-		subjectivityFilters.set(state.subjectivities);
+		filterState.subjectivities = state.subjectivities;
 	}
 
 	if (state.centralities) {
-		centralityFilters.set(state.centralities);
+		filterState.centralities = state.centralities;
 	}
 
 	if (state.dataset) {
-		selectedDataset.set(state.dataset);
+		datasetState.selected = state.dataset;
 	}
 
 	if (state.compare === true) {
-		comparisonMode.set(true);
+		datasetState.isComparisonMode = true;
 	}
 
 	if (state.pair && (VALID_PAIRS as readonly string[]).includes(state.pair)) {
-		comparisonPair.set(state.pair);
+		datasetState.pair = state.pair;
 	}
 
 	if (state.diffMin !== undefined || state.diffMax !== undefined) {
-		const currentFilters = get(discrepancyFilters);
-		discrepancyFilters.set({
+		const currentFilters = filterState.discrepancy;
+		filterState.discrepancy = {
 			...currentFilters,
 			minDifference: state.diffMin ?? currentFilters.minDifference,
 			maxDifference: state.diffMax ?? currentFilters.maxDifference
-		});
+		};
 	}
 
 	// Handle article selection from URL
 	if (state.articleId !== undefined) {
 		// Get the current dataset articles
-		const currentDataset = state.dataset || get(selectedDataset);
-		const allDatasetArticles = get(datasetArticles);
-		const articlesForDataset = allDatasetArticles[currentDataset];
+		const currentDataset = state.dataset || datasetState.selected;
+		const articlesForDataset = articleState.datasets[currentDataset];
 
 		if (articlesForDataset && articlesForDataset.length > 0) {
 			// Find the article with matching ID
@@ -99,13 +91,13 @@ export function applyURLState(state: URLState): string | undefined {
 			);
 
 			if (targetArticle) {
-				selectedArticle.set(targetArticle);
+				articleState.selected = targetArticle;
 				// Clear any pending selection since we found the article
 				pendingArticleState.clear();
 				console.log(`[URL] Selected article from URL: ${targetArticle['o:title']}`);
 			} else {
 				// Article not found, clear the selection
-				selectedArticle.set(null);
+				articleState.selected = null;
 				console.warn(
 					`[URL] Article with ID ${state.articleId} not found in dataset ${currentDataset}`
 				);
@@ -125,7 +117,7 @@ export function applyURLState(state: URLState): string | undefined {
 	// Handle comparison article selection from URL
 	if (state.comparisonArticleId !== undefined && state.compare === true) {
 		// Try to find and select the comparison article
-		const comparisons = get(comparisonData);
+		const comparisons = comparisonState.data;
 
 		if (comparisons && comparisons.length > 0) {
 			const targetComparison = comparisons.find(
@@ -135,7 +127,7 @@ export function applyURLState(state: URLState): string | undefined {
 			);
 
 			if (targetComparison) {
-				selectedComparison.set(targetComparison);
+				comparisonState.selected = targetComparison;
 				pendingComparisonArticleState.clear();
 				console.log(
 					`[URL] Selected comparison article from URL: ${targetComparison.article['o:title']}`
@@ -199,11 +191,11 @@ export function initializeURLState(): string | undefined {
  * Clear all filters and update URL
  */
 export function clearAllFilters(): void {
-	countryFilters.set([]);
-	journalFilters.set([]);
-	polarityFilters.set([]);
-	subjectivityFilters.set([]);
-	centralityFilters.set([]);
+	filterState.countries = [];
+	filterState.journals = [];
+	filterState.polarities = [];
+	filterState.subjectivities = [];
+	filterState.centralities = [];
 	// Don't reset dataset selection or comparison mode when clearing filters
 
 	updateURL(undefined, true);
@@ -213,7 +205,7 @@ export function clearAllFilters(): void {
  * Clear selected article and update URL
  */
 export function clearSelectedArticle(): void {
-	selectedArticle.set(null);
+	articleState.selected = null;
 	// Also clear any pending article selection
 	pendingArticleState.clear();
 	updateURL(undefined, true);
@@ -223,7 +215,7 @@ export function clearSelectedArticle(): void {
  * Clear only the selected article without affecting pending selections or URL
  */
 export function clearSelectedArticleOnly(): void {
-	selectedArticle.set(null);
+	articleState.selected = null;
 }
 
 /**
@@ -233,8 +225,7 @@ export function handlePendingArticleSelection(): void {
 	const pending = pendingArticleState.current;
 	if (!pending) return;
 
-	const allDatasetArticles = get(datasetArticles);
-	const articlesForDataset = allDatasetArticles[pending.dataset];
+	const articlesForDataset = articleState.datasets[pending.dataset];
 
 	if (articlesForDataset && articlesForDataset.length > 0) {
 		// Find the article with matching ID
@@ -245,7 +236,7 @@ export function handlePendingArticleSelection(): void {
 		);
 
 		if (targetArticle) {
-			selectedArticle.set(targetArticle);
+			articleState.selected = targetArticle;
 			console.log(
 				`[URL] Selected article ${pending.articleId} after dataset loading: ${targetArticle['o:title']}`
 			);
@@ -267,7 +258,7 @@ export function handlePendingComparisonArticleSelection(): void {
 	const pending = pendingComparisonArticleState.current;
 	if (!pending) return;
 
-	const comparisons = get(comparisonData);
+	const comparisons = comparisonState.data;
 
 	if (comparisons && comparisons.length > 0) {
 		// Find the comparison with matching article ID
@@ -277,7 +268,7 @@ export function handlePendingComparisonArticleSelection(): void {
 		);
 
 		if (targetComparison) {
-			selectedComparison.set(targetComparison);
+			comparisonState.selected = targetComparison;
 			console.log(
 				`[URL] Selected comparison article ${pending} after data loading: ${targetComparison.article['o:title']}`
 			);
@@ -294,7 +285,7 @@ export function handlePendingComparisonArticleSelection(): void {
  * Clear selected comparison article and update URL
  */
 export function clearSelectedComparison(): void {
-	selectedComparison.set(null);
+	comparisonState.selected = null;
 	pendingComparisonArticleState.clear();
 	updateURL(undefined, true);
 }

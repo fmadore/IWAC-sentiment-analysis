@@ -5,20 +5,13 @@
  * Provides both modern $state-based API and legacy store compatibility.
  */
 
-import { writable, derived, get } from 'svelte/store';
 import { SvelteSet } from 'svelte/reactivity';
 import type { Article } from '$lib/types/data';
 import { base } from '$app/paths';
-import { getJournalName } from '$lib/utils';
-import { selectedDataset, comparisonMode, availableDatasets } from './datasets.svelte';
-import {
-	countryFilters,
-	journalFilters,
-	polarityFilters,
-	subjectivityFilters,
-	centralityFilters
-} from './filters.svelte';
-import { isLoadingDataset } from './ui.svelte';
+import { datasetState } from './datasets.svelte';
+import { filterState } from './filters.svelte';
+import { uiState } from './ui.svelte';
+import { filterArticles, computeAvailableJournals } from './derivations';
 
 // ============================================
 // Svelte 5 Runes State
@@ -29,141 +22,30 @@ let _currentDatasetArticles = $state<Article[]>([]);
 let _selectedArticle = $state<Article | null>(null);
 
 // ============================================
-// Legacy Stores (for derived store compatibility)
-// ============================================
-
-/**
- * @deprecated Use articleState.datasets instead
- */
-export const datasetArticles = writable<Record<string, Article[]>>({});
-
-/**
- * @deprecated Use articleState.current instead
- */
-export const currentDatasetArticles = writable<Article[]>([]);
-
-/**
- * @deprecated Use articleState.selected instead
- */
-export const selectedArticle = writable<Article | null>(null);
-
-// Sync legacy stores to runes state
-datasetArticles.subscribe((value) => {
-	_datasetArticles = value;
-});
-currentDatasetArticles.subscribe((value) => {
-	_currentDatasetArticles = value;
-});
-selectedArticle.subscribe((value) => {
-	_selectedArticle = value;
-});
-
-// ============================================
-// Derived Stores
+// Derived State (reactive runes)
 // ============================================
 
 /** Filtered articles based on all active filters */
-export const filteredArticles = derived(
-	[
-		datasetArticles,
-		selectedDataset,
-		countryFilters,
-		journalFilters,
-		polarityFilters,
-		subjectivityFilters,
-		centralityFilters,
-		comparisonMode
-	],
-	([
-		$datasets,
-		$currentDataset,
-		$countries,
-		$journals,
-		$polarities,
-		$subjectivities,
-		$centralities,
-		$isComparison
-	]) => {
-		// In comparison mode, we don't filter by dataset
-		if ($isComparison) {
-			return [];
-		}
-
-		const articles = $datasets[$currentDataset] || [];
-
-		return articles.filter((article) => {
-			// Filter by country (priority)
-			if ($countries.length > 0 && !$countries.includes(article.Country || '')) {
-				return false;
-			}
-
-			// Filter by journal (only from selected countries)
-			if ($journals.length > 0) {
-				const journalName = getJournalName(article);
-				if (!$journals.includes(journalName)) {
-					return false;
-				}
-			}
-
-			// Filter by polarity
-			if (
-				$polarities.length > 0 &&
-				!$polarities.includes(article.sentiment_analysis?.polarite || 'Non applicable')
-			) {
-				return false;
-			}
-
-			// Filter by subjectivity
-			if ($subjectivities.length > 0) {
-				const score = article.sentiment_analysis?.subjectivite_score;
-				if (score === null || score === undefined) {
-					return false;
-				}
-				if (!$subjectivities.includes(score.toString())) {
-					return false;
-				}
-			}
-
-			// Filter by centrality
-			if (
-				$centralities.length > 0 &&
-				!$centralities.includes(
-					article.sentiment_analysis?.centralite_islam_musulmans || 'Non abordé'
-				)
-			) {
-				return false;
-			}
-
-			return true;
-		});
+const _filteredArticlesRune = $derived.by(() => {
+	if (datasetState.isComparisonMode) {
+		return [];
 	}
-);
+	return filterArticles(_datasetArticles[datasetState.selected] || [], {
+		countries: filterState.countries,
+		journals: filterState.journals,
+		polarities: filterState.polarities,
+		subjectivities: filterState.subjectivities,
+		centralities: filterState.centralities
+	});
+});
 
 /** Available journals based on selected countries */
-export const availableJournals = derived(
-	[datasetArticles, selectedDataset, countryFilters, comparisonMode],
-	([$datasets, $currentDataset, $countries, $isComparison]) => {
-		const articles: Article[] = $isComparison
-			? [...($datasets['chatgpt'] || []), ...($datasets['gemini'] || [])]
-			: $datasets[$currentDataset] || [];
-
-		let filteredArticles = articles;
-
-		// If countries are selected, filter by country first
-		if ($countries.length > 0) {
-			filteredArticles = articles.filter((article) => $countries.includes(article.Country || ''));
-		}
-
-		// Extract unique journals
-		return [
-			...new SvelteSet(
-				filteredArticles
-					.map((article) => getJournalName(article))
-					.filter((name): name is string => !!name)
-			)
-		].sort((a, b) => a.localeCompare(b));
-	}
-);
+const _availableJournalsRune = $derived.by(() => {
+	const articles = datasetState.isComparisonMode
+		? [...(_datasetArticles['chatgpt'] || []), ...(_datasetArticles['gemini'] || [])]
+		: _datasetArticles[datasetState.selected] || [];
+	return computeAvailableJournals(articles, filterState.countries);
+});
 
 // ============================================
 // Prefetch Tracking
@@ -250,12 +132,11 @@ export const loadSpecificDataset = async (
 
 	// Only show loading indicator for foreground loads, not background prefetch
 	if (showLoading) {
-		isLoadingDataset.set(true);
+		uiState.isLoadingDataset = true;
 	}
 
 	try {
-		const datasets = get(availableDatasets);
-		const dataset = datasets.find((d) => d.id === datasetId);
+		const dataset = datasetState.available.find((d) => d.id === datasetId);
 
 		if (!dataset) {
 			throw new Error(`Dataset ${datasetId} not found`);
@@ -263,43 +144,40 @@ export const loadSpecificDataset = async (
 
 		const articles = await loadDatasetArticles(dataset.file, datasetId, fetchFunction);
 
-		datasetArticles.update((current) => ({
-			...current,
-			[datasetId]: articles
-		}));
+		articleState.updateDatasets(datasetId, articles);
 
 		// Update currentDatasetArticles if this is the selected dataset
-		if (get(selectedDataset) === datasetId) {
-			currentDatasetArticles.set(articles);
+		if (datasetState.selected === datasetId) {
+			articleState.current = articles;
 		}
 	} finally {
 		if (showLoading) {
-			isLoadingDataset.set(false);
+			uiState.isLoadingDataset = false;
 		}
 	}
 };
 
 /** Load all available datasets */
 export const loadAllDatasets = async (fetchFunction: typeof fetch): Promise<void> => {
-	const datasets = get(availableDatasets);
-	await Promise.all(datasets.map((dataset) => loadSpecificDataset(dataset.id, fetchFunction)));
+	await Promise.all(
+		datasetState.available.map((dataset) => loadSpecificDataset(dataset.id, fetchFunction))
+	);
 };
 
 /** Load only the currently selected dataset (lazy loading) */
 export const loadCurrentDataset = async (fetchFunction: typeof fetch): Promise<void> => {
-	const currentDatasetId = get(selectedDataset);
-	const currentDatasets = get(datasetArticles);
+	const currentDatasetId = datasetState.selected;
+	const currentDatasets = _datasetArticles;
 
 	if (currentDatasets[currentDatasetId] && currentDatasets[currentDatasetId].length > 0) {
-		currentDatasetArticles.set(currentDatasets[currentDatasetId]);
+		articleState.current = currentDatasets[currentDatasetId];
 		prefetchOtherDatasets(currentDatasetId, fetchFunction);
 		return;
 	}
 
 	await loadSpecificDataset(currentDatasetId, fetchFunction);
 
-	const updatedDatasets = get(datasetArticles);
-	currentDatasetArticles.set(updatedDatasets[currentDatasetId] || []);
+	articleState.current = _datasetArticles[currentDatasetId] || [];
 
 	prefetchOtherDatasets(currentDatasetId, fetchFunction);
 };
@@ -358,8 +236,8 @@ const prefetchOtherDatasets = async (
 	currentDatasetId: string,
 	fetchFunction: typeof fetch
 ): Promise<void> => {
-	const datasets = get(availableDatasets);
-	const currentDatasets = get(datasetArticles);
+	const datasets = datasetState.available;
+	const currentDatasets = _datasetArticles;
 	const prefetchQueue: PrefetchTask[] = [];
 
 	// Priority 2: Other main datasets (for comparison mode)
@@ -428,7 +306,6 @@ export const articleState = {
 	},
 	set current(value: Article[]) {
 		_currentDatasetArticles = value;
-		currentDatasetArticles.set(value);
 	},
 
 	// Selected article
@@ -437,22 +314,20 @@ export const articleState = {
 	},
 	set selected(value: Article | null) {
 		_selectedArticle = value;
-		selectedArticle.set(value);
 	},
 
-	// Filtered articles (reads from derived store)
+	// Filtered articles (reactive runes-based derivation)
 	get filtered() {
-		return get(filteredArticles);
+		return _filteredArticlesRune;
 	},
 
-	// Available journals (reads from derived store)
+	// Available journals (reactive runes-based derivation)
 	get journals() {
-		return get(availableJournals);
+		return _availableJournalsRune;
 	},
 
 	// Update datasets
 	updateDatasets(datasetId: string, articles: Article[]) {
 		_datasetArticles = { ..._datasetArticles, [datasetId]: articles };
-		datasetArticles.set(_datasetArticles);
 	}
 };

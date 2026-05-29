@@ -4,7 +4,7 @@
   Combined filter for polarity and subjectivity using reusable FilterCard and FilterChip components.
 -->
 <script lang="ts">
-	import { polarityFilters, subjectivityFilters } from '$lib/stores';
+	import { filterState } from '$lib/stores';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue } from '$lib/i18n/utils';
 	import { FilterCard, FilterChip } from '$lib/components/common';
@@ -37,14 +37,14 @@
 		{ value: 5, variant: 'subjectivity-5' as const }
 	];
 
-	let selectedPolarities = $derived($polarityFilters);
-	let selectedScores = $derived($subjectivityFilters);
+	let selectedPolarities = $derived(filterState.polarities);
+	let selectedScores = $derived(filterState.subjectivities);
 
 	function togglePolarity(polarity: string) {
 		const updated = selectedPolarities.includes(polarity)
 			? selectedPolarities.filter((p) => p !== polarity)
 			: [...selectedPolarities, polarity];
-		polarityFilters.set(updated);
+		filterState.polarities = updated;
 	}
 
 	function toggleScore(score: number) {
@@ -52,15 +52,15 @@
 		const updated = selectedScores.includes(scoreStr)
 			? selectedScores.filter((s) => s !== scoreStr)
 			: [...selectedScores, scoreStr];
-		subjectivityFilters.set(updated);
+		filterState.subjectivities = updated;
 	}
 
 	function clearPolarities() {
-		polarityFilters.set([]);
+		filterState.polarities = [];
 	}
 
 	function clearScores() {
-		subjectivityFilters.set([]);
+		filterState.subjectivities = [];
 	}
 </script>
 

@@ -153,6 +153,13 @@ export const chartColors = {
 		default: 'rgba(0, 0, 0, 0.35)',
 		emphasis: 'rgba(0, 0, 0, 0.45)'
 	},
+	/** Axis affordances reused across the per-journal bar charts. */
+	axis: {
+		/** Soft blue band drawn behind the hovered category (axisPointer). */
+		pointerShadow: 'rgba(59, 130, 246, 0.08)',
+		/** Hairline tick color on the category axis. */
+		tickLine: 'rgba(255, 255, 255, 0.2)'
+	},
 	/**
 	 * Chrome accent for chart UI affordances (DataZoom handle, brush, axis-pointer
 	 * highlights). Uses the editorial amber primary so it doesn't collide with

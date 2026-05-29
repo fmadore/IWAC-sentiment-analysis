@@ -22,7 +22,7 @@
 	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
 	import { getDiffClass, getDiffBadgeClass } from '$lib/utils/discrepancy';
 	import { t } from '$lib/i18n';
-	import { availableDatasets, getArbiterForArticle } from '$lib/stores';
+	import { datasetState, getArbiterForArticle } from '$lib/stores';
 
 	// Props: Accept comparison data as a prop
 	let { comparison }: { comparison: ComparisonData | null } = $props();
@@ -33,10 +33,10 @@
 	);
 
 	const modelAName = $derived(
-		comparison ? getModelDisplayName(comparison.modelAId, $availableDatasets) : 'Model A'
+		comparison ? getModelDisplayName(comparison.modelAId, datasetState.available) : 'Model A'
 	);
 	const modelBName = $derived(
-		comparison ? getModelDisplayName(comparison.modelBId, $availableDatasets) : 'Model B'
+		comparison ? getModelDisplayName(comparison.modelBId, datasetState.available) : 'Model B'
 	);
 </script>
 

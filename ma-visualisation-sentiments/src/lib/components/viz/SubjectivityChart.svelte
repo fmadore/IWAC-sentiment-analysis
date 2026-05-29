@@ -1,37 +1,15 @@
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
 
-	// ECharts core and modules for tree-shaking
-	import { init, use } from 'echarts/core';
-	import { BarChart, PieChart } from 'echarts/charts';
-	import {
-		TitleComponent,
-		TooltipComponent,
-		GridComponent,
-		LegendComponent
-	} from 'echarts/components';
-	import { LabelLayout, UniversalTransition } from 'echarts/features';
-	import { CanvasRenderer } from 'echarts/renderers';
+	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption, SeriesOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
-	import { SvelteSet } from 'svelte/reactivity';
 
-	// Register the required components
-	use([
-		TitleComponent,
-		TooltipComponent,
-		GridComponent,
-		LegendComponent,
-		BarChart,
-		PieChart,
-		LabelLayout,
-		UniversalTransition,
-		CanvasRenderer
-	]);
-
-	import { filteredArticles } from '$lib';
-	import type { Article } from '$lib';
-	import { getJournalName } from '$lib/utils';
+	import { articleState } from '$lib';
+	import {
+		aggregateByJournalAndDimension,
+		getSubjectivityLabel
+	} from '$lib/utils/chartAggregators';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { getSentimentLabels, formatNumber } from '$lib/i18n/utils';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
@@ -56,7 +34,8 @@
 		getPieSeriesStyle,
 		getEmphasisConfig,
 		getUniversalTransitionConfig,
-		getStaggeredAnimationDelay
+		getStaggeredAnimationDelay,
+		chartColors
 	} from '$lib/utils/chartTheme';
 
 	// Get subjectivity labels in current language
@@ -72,26 +51,6 @@
 		'Non applicable'
 	];
 
-	// Function that converts numeric score to French label (for data operations)
-	function getSubjectivityLabel(score: number | null): string {
-		if (score === null || score === undefined) return 'Non applicable';
-
-		switch (score) {
-			case 1:
-				return 'Factuel';
-			case 2:
-				return 'Plutôt factuel';
-			case 3:
-				return 'Mixte';
-			case 4:
-				return 'Plutôt subjectif';
-			case 5:
-				return 'Subjectif';
-			default:
-				return 'Non applicable';
-		}
-	}
-
 	// Reactive window width for responsive behavior
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
 	let chartContainer = $state<HTMLDivElement>();
@@ -99,38 +58,18 @@
 
 	// Use $derived for proper reactivity in Svelte 5
 	let options = $derived.by(() => {
-		const articles = $filteredArticles; // Direct reactive dependency
+		const articles = articleState.filtered; // Direct reactive dependency
 		const currentT = $t; // Capture current translations for reactive updates
 		const currentLang = $currentLanguage; // Capture current language for reactive updates
-		let articlesAnalyzed = 0;
-		const newspaperSubjectivityCounts: Record<string, Record<string, number>> = {};
-		const uniqueNewspapers = new SvelteSet<string>();
 
-		articles.forEach((article: Article) => {
-			if (article.sentiment_analysis?.subjectivite_score !== undefined) {
-				const subjectivityScore = article.sentiment_analysis.subjectivite_score;
-				const subjectivityKey = getSubjectivityLabel(subjectivityScore);
-				const journal = getJournalName(article); // Use the utility function
-				uniqueNewspapers.add(journal);
-
-				if (!newspaperSubjectivityCounts[journal]) {
-					newspaperSubjectivityCounts[journal] = Object.fromEntries(
-						frenchSubjectivityLabels.map((l) => [l, 0])
-					);
-				}
-				if (
-					Object.prototype.hasOwnProperty.call(
-						newspaperSubjectivityCounts[journal],
-						subjectivityKey
-					)
-				) {
-					newspaperSubjectivityCounts[journal][subjectivityKey]++;
-				}
-				articlesAnalyzed++;
-			}
+		const {
+			newspaperCounts: newspaperSubjectivityCounts,
+			newspaperList,
+			articlesAnalyzed
+		} = aggregateByJournalAndDimension(articles, frenchSubjectivityLabels, (article) => {
+			const score = article.sentiment_analysis?.subjectivite_score;
+			return score === undefined ? null : getSubjectivityLabel(score);
 		});
-
-		const newspaperList = Array.from(uniqueNewspapers).sort();
 
 		if (chartType === 'pie') {
 			// Pie chart: global aggregation by subjectivity
@@ -233,7 +172,7 @@
 					axisPointer: {
 						type: 'shadow',
 						shadowStyle: {
-							color: 'rgba(59, 130, 246, 0.08)'
+							color: chartColors.axis.pointerShadow
 						}
 					},
 					confine: true,
@@ -258,7 +197,7 @@
 					data: subjectivityLabels,
 					axisTick: {
 						alignWithLabel: true,
-						lineStyle: { color: 'rgba(255, 255, 255, 0.2)' }
+						lineStyle: { color: chartColors.axis.tickLine }
 					},
 					axisLine: getAxisLineStyle(),
 					axisLabel: {
@@ -283,7 +222,7 @@
 	});
 </script>
 
-{#if $filteredArticles.length > 0}
+{#if articleState.filtered.length > 0}
 	<div class="chart-toolbar">
 		<DatasetBadge size="sm" />
 

@@ -1,20 +1,10 @@
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
-	import { init, use } from 'echarts/core';
-	import { BarChart } from 'echarts/charts';
-	import {
-		TitleComponent,
-		TooltipComponent,
-		GridComponent,
-		LegendComponent
-	} from 'echarts/components';
-	import { CanvasRenderer } from 'echarts/renderers';
+	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	use([TitleComponent, TooltipComponent, GridComponent, LegendComponent, BarChart, CanvasRenderer]);
-
-	import { filteredArticles } from '$lib';
+	import { articleState } from '$lib';
 	import type { Article } from '$lib';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue } from '$lib/i18n/utils';
@@ -32,7 +22,8 @@
 		getSplitLineStyle,
 		getGridConfig,
 		getEmphasisConfig,
-		getStaggeredAnimationDelay
+		getStaggeredAnimationDelay,
+		chartColors
 	} from '$lib/utils/chartTheme';
 
 	// Ordre des polarités pour l'affichage (French values for data operations)
@@ -67,7 +58,7 @@
 	let chartContainer = $state<HTMLDivElement>();
 
 	let options = $derived.by(() => {
-		const articles = $filteredArticles;
+		const articles = articleState.filtered;
 
 		// Structure: polarité -> subjectivité -> count
 		const data: Record<string, Record<number, number>> = {};
@@ -126,7 +117,7 @@
 				axisPointer: {
 					type: 'shadow',
 					shadowStyle: {
-						color: 'rgba(59, 130, 246, 0.08)'
+						color: chartColors.axis.pointerShadow
 					}
 				},
 				formatter: createStackedBarTooltipFormatter({
@@ -155,7 +146,7 @@
 				axisLine: getAxisLineStyle(),
 				axisTick: {
 					alignWithLabel: true,
-					lineStyle: { color: 'rgba(255, 255, 255, 0.2)' }
+					lineStyle: { color: chartColors.axis.tickLine }
 				}
 			},
 			yAxis: {
@@ -177,7 +168,7 @@
 	});
 </script>
 
-{#if $filteredArticles.length > 0}
+{#if articleState.filtered.length > 0}
 	<div class="mb-4">
 		<DatasetBadge size="sm" />
 	</div>

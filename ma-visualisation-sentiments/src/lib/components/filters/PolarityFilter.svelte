@@ -4,7 +4,7 @@
   Filter for sentiment polarity values using reusable FilterCard and FilterChip components.
 -->
 <script lang="ts">
-	import { polarityFilters } from '$lib/stores';
+	import { filterState } from '$lib/stores';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { getSentimentLabels, getFrenchSentimentValue } from '$lib/i18n/utils';
 	import { FilterCard, FilterChip } from '$lib/components/common';
@@ -35,7 +35,7 @@
 	// Sync local state with store values when language or store changes
 	$effect(() => {
 		// Convert French store values to translated labels for UI
-		const storeValues = $polarityFilters;
+		const storeValues = filterState.polarities;
 		selectedPolarities = storeValues.map((frenchValue) => {
 			// Find the index of the French value
 			const index = frenchPolarityOptions.findIndex((option) => option.value === frenchValue);
@@ -47,7 +47,7 @@
 	function updateSelection() {
 		// Convert translated values back to French for data filtering
 		const frenchValues = selectedPolarities.map((label) => getFrenchSentimentValue(label));
-		polarityFilters.set(frenchValues);
+		filterState.polarities = frenchValues;
 	}
 
 	function togglePolarity(translatedLabel: string) {

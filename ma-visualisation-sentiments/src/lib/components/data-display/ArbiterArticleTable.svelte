@@ -11,9 +11,8 @@
   - Click row to view article details
 -->
 <script lang="ts">
-	import { arbiterEvaluations, comparisonData, availableDatasets } from '$lib/stores';
+	import { arbiterEvaluations, comparisonState, datasetState } from '$lib/stores';
 	import { getModelsFromPair, type ArbiterAnalysis } from '$lib/types/data';
-	import { comparisonPair } from '$lib/stores';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { getJournalName } from '$lib/utils';
 	import { ArbiterCSVExportButton } from '$lib/components/ui';
@@ -54,8 +53,8 @@
 
 	// Get model names
 	const modelNames = $derived.by(() => {
-		const [modelAId, modelBId] = getModelsFromPair($comparisonPair);
-		const datasets = $availableDatasets;
+		const [modelAId, modelBId] = getModelsFromPair(datasetState.pair);
+		const datasets = datasetState.available;
 		const modelAName = datasets.find((d) => d.id === modelAId)?.name || modelAId;
 		const modelBName = datasets.find((d) => d.id === modelBId)?.name || modelBId;
 		return { modelAName, modelBName };
@@ -72,8 +71,8 @@
 
 	const articlesWithArbiter = $derived.by(() => {
 		const evaluations = arbiterEvaluations.current?.evaluations;
-		// Use $comparisonData to reactively subscribe to the store
-		const comparisons = $comparisonData;
+		// Use comparisonState.data to reactively subscribe to the store
+		const comparisons = comparisonState.data;
 
 		if (!evaluations || evaluations.length === 0) {
 			return [];

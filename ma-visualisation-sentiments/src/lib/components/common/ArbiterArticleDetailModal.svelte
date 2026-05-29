@@ -1,26 +1,22 @@
 <!--
   ArbiterArticleDetailModal Component
-  
-  Modal for displaying article details with arbiter evaluation.
-  Shows article metadata, both models' sentiment analyses, and the arbiter verdict.
-  
-  Features:
-  - Article metadata (title, date, journal, link)
-  - Side-by-side model comparison
-  - Arbiter verdict section
-  - Overlay click to close
+
+  Article details with arbiter evaluation: metadata, side-by-side model
+  comparison, and the arbiter verdict. Uses the shared FullScreenModal
+  wrapper (like ArticleDetailModal / ComparisonDetailModal) for consistent
+  chrome, scroll locking and Escape handling.
 -->
 <script lang="ts">
 	import type { ArbiterAnalysis } from '$lib/types/data';
-	import { comparisonData, availableDatasets, comparisonPair } from '$lib/stores';
+	import { comparisonState, datasetState } from '$lib/stores';
 	import { getModelsFromPair } from '$lib/types/data';
 	import { t } from '$lib/i18n';
 	import { getJournalName } from '$lib/utils';
 	import { formatDate, getArticleUrl } from '$lib/utils/format';
 	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
 	import { SentimentBadge, ArbiterSection } from '$lib/components/common';
-	import { get } from 'svelte/store';
-	import XIcon from '@lucide/svelte/icons/x';
+	import FullScreenModal from './FullScreenModal.svelte';
+	import ScaleIcon from '@lucide/svelte/icons/scale';
 	import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
 
 	interface ArbiterArticleDetailModalProps {
@@ -31,264 +27,167 @@
 
 	let { articleId, arbiterData, onClose }: ArbiterArticleDetailModalProps = $props();
 
+	const open = $derived(!!(articleId && arbiterData));
+
 	// Get comparison data for this article
 	const comparison = $derived.by(() => {
 		if (!articleId) return null;
-		const comparisons = get(comparisonData);
+		const comparisons = comparisonState.data;
 		return comparisons?.find((c) => String(c.article['o:id']) === String(articleId)) || null;
 	});
 
 	// Get model names
 	const modelNames = $derived.by(() => {
-		const [modelAId, modelBId] = getModelsFromPair($comparisonPair);
-		const datasets = $availableDatasets;
+		const [modelAId, modelBId] = getModelsFromPair(datasetState.pair);
+		const datasets = datasetState.available;
 		const modelAName = datasets.find((d) => d.id === modelAId)?.name || modelAId;
 		const modelBName = datasets.find((d) => d.id === modelBId)?.name || modelBId;
 		return { modelAName, modelBName };
 	});
 
-	// Handle overlay click
-	function handleOverlayClick(event: MouseEvent) {
-		if (event.target === event.currentTarget) {
-			onClose();
-		}
-	}
-
-	// Handle escape key
-	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape') {
-			onClose();
-		}
-	}
+	const modalTitle = $derived(
+		comparison?.article['o:title'] ||
+			$t.arbiter?.articleWithArbiter ||
+			'Article with Arbiter Verdict'
+	);
+	const modalSubtitle = $derived(
+		comparison
+			? `${getJournalName(comparison.article)} • ${formatDate(comparison.article.publication_date)}`
+			: ''
+	);
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
-
 {#if articleId && arbiterData}
-	<!-- Modal Overlay -->
-	<div
-		class="modal-overlay"
-		onclick={handleOverlayClick}
-		onkeydown={handleKeydown}
-		role="dialog"
-		aria-modal="true"
-		aria-labelledby="modal-title"
-		tabindex="-1"
+	<FullScreenModal
+		{open}
+		{onClose}
+		title={modalTitle}
+		subtitle={modalSubtitle}
+		accentVariant="arbiter"
 	>
-		<!-- Modal Content -->
-		<div class="modal-content">
-			<!-- Header -->
-			<div class="modal-header">
-				<h2 id="modal-title" class="modal-title">
-					{$t.arbiter?.articleWithArbiter || 'Article with Arbiter Verdict'}
-				</h2>
-				<button class="close-button" onclick={onClose} aria-label={$t.common?.close || 'Close'}>
-					<XIcon size={24} />
-				</button>
-			</div>
+		{#snippet headerIcon()}
+			<ScaleIcon size={20} />
+		{/snippet}
 
-			<!-- Body -->
-			<div class="modal-body">
-				{#if comparison}
-					<!-- Article Metadata -->
-					<div class="article-metadata mb-6">
-						<h3 class="article-title">
-							{comparison.article['o:title'] || $t.article?.titleNotAvailable}
-						</h3>
-
-						<div class="meta-grid">
-							<div class="meta-card card preset-glass p-4">
-								<span class="meta-label">{$t.filters?.journal || 'Newspaper'}</span>
-								<p class="meta-value">{getJournalName(comparison.article)}</p>
-							</div>
-							<div class="meta-card card preset-glass p-4">
-								<span class="meta-label">{$t.article?.publicationDate || 'Publication Date'}</span>
-								<p class="meta-value">{formatDate(comparison.article.publication_date)}</p>
-							</div>
-						</div>
-
-						{#if comparison.article.iiif_manifest}
-							<IIIFViewer
-								manifestUrl={comparison.article.iiif_manifest}
-								articleUrl={getArticleUrl(comparison.article['o:id'])}
-							/>
-						{/if}
-						<a
-							href={getArticleUrl(comparison.article['o:id'])}
-							target="_blank"
-							rel="noopener noreferrer"
-							class="article-link"
-						>
-							<ExternalLinkIcon size={16} />
-							{$t.article?.consultOriginalArticle || 'View original article →'}
-						</a>
+		{#if comparison}
+			<!-- Article Metadata -->
+			<div class="article-metadata mb-6">
+				<div class="meta-grid">
+					<div class="meta-card card preset-glass p-4">
+						<span class="meta-label">{$t.filters?.journal || 'Newspaper'}</span>
+						<p class="meta-value">{getJournalName(comparison.article)}</p>
 					</div>
-
-					<!-- Model Comparison -->
-					<div class="model-comparison mb-6">
-						<h4 class="section-title">
-							{$t.comparison?.compareDimensions || 'Compare Dimensions'}
-						</h4>
-
-						<div class="comparison-grid">
-							<!-- Model A Column -->
-							<div class="model-column model-a">
-								<div class="model-header">
-									<span class="model-name">{modelNames.modelAName}</span>
-								</div>
-								<div class="dimension-values">
-									<div class="dimension-row">
-										<span class="dimension-label">{$t.comparison?.polarity || 'Polarity'}</span>
-										<SentimentBadge type="polarity" value={comparison.modelA?.polarite} size="sm" />
-									</div>
-									<div class="dimension-row">
-										<span class="dimension-label"
-											>{$t.comparison?.subjectivity || 'Subjectivity'}</span
-										>
-										<SentimentBadge
-											type="subjectivity"
-											value={comparison.modelA?.subjectivite_score}
-											size="sm"
-										/>
-									</div>
-									<div class="dimension-row">
-										<span class="dimension-label">{$t.comparison?.centrality || 'Centrality'}</span>
-										<SentimentBadge
-											type="centrality"
-											value={comparison.modelA?.centralite_islam_musulmans}
-											size="sm"
-										/>
-									</div>
-								</div>
-							</div>
-
-							<!-- VS Divider -->
-							<div class="vs-divider">
-								<span>VS</span>
-							</div>
-
-							<!-- Model B Column -->
-							<div class="model-column model-b">
-								<div class="model-header">
-									<span class="model-name">{modelNames.modelBName}</span>
-								</div>
-								<div class="dimension-values">
-									<div class="dimension-row">
-										<span class="dimension-label">{$t.comparison?.polarity || 'Polarity'}</span>
-										<SentimentBadge type="polarity" value={comparison.modelB?.polarite} size="sm" />
-									</div>
-									<div class="dimension-row">
-										<span class="dimension-label"
-											>{$t.comparison?.subjectivity || 'Subjectivity'}</span
-										>
-										<SentimentBadge
-											type="subjectivity"
-											value={comparison.modelB?.subjectivite_score}
-											size="sm"
-										/>
-									</div>
-									<div class="dimension-row">
-										<span class="dimension-label">{$t.comparison?.centrality || 'Centrality'}</span>
-										<SentimentBadge
-											type="centrality"
-											value={comparison.modelB?.centralite_islam_musulmans}
-											size="sm"
-										/>
-									</div>
-								</div>
-							</div>
-						</div>
+					<div class="meta-card card preset-glass p-4">
+						<span class="meta-label">{$t.article?.publicationDate || 'Publication Date'}</span>
+						<p class="meta-value">{formatDate(comparison.article.publication_date)}</p>
 					</div>
+				</div>
 
-					<!-- Arbiter Section -->
-					<ArbiterSection {articleId} initiallyOpen={true} />
-				{:else}
-					<!-- Article not found in comparison data -->
-					<div class="article-metadata mb-6">
-						<h3 class="article-title">Article {articleId}</h3>
-						<p class="text-white/60">{$t.messages?.noData || 'Article data not available'}</p>
-					</div>
-
-					<!-- Still show arbiter section -->
-					<ArbiterSection {articleId} initiallyOpen={true} />
+				{#if comparison.article.iiif_manifest}
+					<IIIFViewer
+						manifestUrl={comparison.article.iiif_manifest}
+						articleUrl={getArticleUrl(comparison.article['o:id'])}
+					/>
 				{/if}
+				<a
+					href={getArticleUrl(comparison.article['o:id'])}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="article-link"
+				>
+					<ExternalLinkIcon size={16} />
+					{$t.article?.consultOriginalArticle || 'View original article →'}
+				</a>
 			</div>
-		</div>
-	</div>
+
+			<!-- Model Comparison -->
+			<div class="model-comparison mb-6">
+				<h4 class="section-title">
+					{$t.comparison?.compareDimensions || 'Compare Dimensions'}
+				</h4>
+
+				<div class="comparison-grid">
+					<!-- Model A Column -->
+					<div class="model-column model-a">
+						<div class="model-header">
+							<span class="model-name">{modelNames.modelAName}</span>
+						</div>
+						<div class="dimension-values">
+							<div class="dimension-row">
+								<span class="dimension-label">{$t.comparison?.polarity || 'Polarity'}</span>
+								<SentimentBadge type="polarity" value={comparison.modelA?.polarite} size="sm" />
+							</div>
+							<div class="dimension-row">
+								<span class="dimension-label">{$t.comparison?.subjectivity || 'Subjectivity'}</span>
+								<SentimentBadge
+									type="subjectivity"
+									value={comparison.modelA?.subjectivite_score}
+									size="sm"
+								/>
+							</div>
+							<div class="dimension-row">
+								<span class="dimension-label">{$t.comparison?.centrality || 'Centrality'}</span>
+								<SentimentBadge
+									type="centrality"
+									value={comparison.modelA?.centralite_islam_musulmans}
+									size="sm"
+								/>
+							</div>
+						</div>
+					</div>
+
+					<!-- VS Divider -->
+					<div class="vs-divider">
+						<span>VS</span>
+					</div>
+
+					<!-- Model B Column -->
+					<div class="model-column model-b">
+						<div class="model-header">
+							<span class="model-name">{modelNames.modelBName}</span>
+						</div>
+						<div class="dimension-values">
+							<div class="dimension-row">
+								<span class="dimension-label">{$t.comparison?.polarity || 'Polarity'}</span>
+								<SentimentBadge type="polarity" value={comparison.modelB?.polarite} size="sm" />
+							</div>
+							<div class="dimension-row">
+								<span class="dimension-label">{$t.comparison?.subjectivity || 'Subjectivity'}</span>
+								<SentimentBadge
+									type="subjectivity"
+									value={comparison.modelB?.subjectivite_score}
+									size="sm"
+								/>
+							</div>
+							<div class="dimension-row">
+								<span class="dimension-label">{$t.comparison?.centrality || 'Centrality'}</span>
+								<SentimentBadge
+									type="centrality"
+									value={comparison.modelB?.centralite_islam_musulmans}
+									size="sm"
+								/>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Arbiter Section -->
+			<ArbiterSection {articleId} initiallyOpen={true} />
+		{:else}
+			<!-- Article not found in comparison data -->
+			<div class="article-metadata mb-6">
+				<h3 class="article-title">Article {articleId}</h3>
+				<p class="text-white/60">{$t.messages?.noData || 'Article data not available'}</p>
+			</div>
+
+			<!-- Still show arbiter section -->
+			<ArbiterSection {articleId} initiallyOpen={true} />
+		{/if}
+	</FullScreenModal>
 {/if}
 
 <style>
-	.modal-overlay {
-		position: fixed;
-		inset: 0;
-		background: color-mix(in oklab, black 75%, transparent);
-		z-index: var(--z-modal);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: var(--space-4);
-		overflow-y: auto;
-	}
-
-	.modal-content {
-		background: var(--surface-card-elevated);
-		border: 1px solid var(--border-default);
-		border-top: 2px solid var(--sentiment-arbiter);
-		border-radius: var(--radius-md);
-		width: 100%;
-		max-width: 900px;
-		max-height: 90vh;
-		overflow-y: auto;
-		box-shadow: var(--shadow-xl);
-	}
-
-	.modal-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: var(--space-5) var(--space-6);
-		border-bottom: 1px solid var(--border-subtle);
-		position: sticky;
-		top: 0;
-		background: var(--surface-card-elevated);
-		z-index: 1;
-	}
-
-	.modal-title {
-		font-family: var(--font-display);
-		font-size: var(--font-size-2xl);
-		font-weight: 600;
-		color: var(--text-primary);
-		letter-spacing: -0.005em;
-	}
-
-	.close-button {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: var(--size-control-lg);
-		height: var(--size-control-lg);
-		border-radius: var(--radius-sm);
-		background: transparent;
-		border: 1px solid var(--border-default);
-		color: var(--text-muted);
-		cursor: pointer;
-		transition:
-			background var(--timing-fast) var(--easing-default),
-			color var(--timing-fast) var(--easing-default),
-			border-color var(--timing-fast) var(--easing-default);
-	}
-
-	.close-button:hover {
-		background: var(--surface-hover);
-		border-color: var(--border-hover);
-		color: var(--text-primary);
-	}
-
-	.modal-body {
-		padding: var(--space-6);
-	}
-
 	.article-title {
 		font-size: var(--font-size-3xl);
 		font-weight: var(--font-weight-semibold);
@@ -434,20 +333,7 @@
 		letter-spacing: 0.1em;
 	}
 
-	/* Responsive */
 	@media (max-width: 640px) {
-		.modal-content {
-			max-height: 95vh;
-		}
-
-		.modal-header {
-			padding: var(--space-4);
-		}
-
-		.modal-body {
-			padding: var(--space-4);
-		}
-
 		.article-title {
 			font-size: var(--font-size-2xl);
 		}
@@ -465,9 +351,7 @@
 		}
 	}
 
-	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
-		.close-button,
 		.article-link {
 			transition: none;
 		}

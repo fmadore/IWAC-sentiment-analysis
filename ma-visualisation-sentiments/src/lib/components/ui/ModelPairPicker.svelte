@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { comparisonPair, availableDatasets, activeView } from '$lib/stores';
+	import { datasetState, uiState } from '$lib/stores';
 	import type { ModelPair, DatasetOption } from '$lib/types/data';
 	import { getModelsFromPair } from '$lib/types/data';
 	import { t } from '$lib/i18n';
@@ -53,13 +53,13 @@
 	}
 
 	// Derived current logos for the selected pair
-	let currentLogos = $derived(getLogosForPair($comparisonPair, $availableDatasets));
+	let currentLogos = $derived(getLogosForPair(datasetState.pair, datasetState.available));
 
 	function selectPair(pair: ModelPair) {
-		comparisonPair.set(pair);
+		datasetState.pair = pair;
 		isOpen = false;
 		// Update URL to reflect the new pair, passing the current view
-		updateURL($activeView, true);
+		updateURL(uiState.activeView, true);
 	}
 
 	function handleClickOutside(event: MouseEvent) {
@@ -99,11 +99,11 @@
 	{#if isOpen}
 		<div class="dropdown-menu" role="listbox">
 			{#each pairs as pair (pair.id)}
-				{@const [logoA, logoB] = getLogosForPair(pair.id, $availableDatasets)}
+				{@const [logoA, logoB] = getLogosForPair(pair.id, datasetState.available)}
 				<button
-					class="dropdown-item {$comparisonPair === pair.id ? 'selected' : ''}"
+					class="dropdown-item {datasetState.pair === pair.id ? 'selected' : ''}"
 					role="option"
-					aria-selected={$comparisonPair === pair.id}
+					aria-selected={datasetState.pair === pair.id}
 					onclick={() => selectPair(pair.id)}
 				>
 					<div class="pair-logos">

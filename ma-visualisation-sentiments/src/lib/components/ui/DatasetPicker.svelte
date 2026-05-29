@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { selectedDataset, availableDatasets } from '$lib/stores';
+	import { datasetState } from '$lib/stores';
 	import { t } from '$lib/i18n';
 	import { base } from '$app/paths';
 	import { DropdownMenu } from '$lib/components/common';
 
-	let currentDataset = $derived($availableDatasets.find((d) => d.id === $selectedDataset));
+	let currentDataset = $derived(datasetState.available.find((d) => d.id === datasetState.selected));
 
 	// Transform datasets to DropdownMenu items
 	let menuItems = $derived(
-		$availableDatasets.map((dataset) => ({
+		datasetState.available.map((dataset) => ({
 			id: dataset.id,
 			label: dataset.name,
 			data: {
@@ -20,13 +20,13 @@
 	);
 
 	function handleSelect(id: string) {
-		selectedDataset.set(id);
+		datasetState.selected = id;
 	}
 </script>
 
 <DropdownMenu
 	items={menuItems}
-	selectedId={$selectedDataset}
+	selectedId={datasetState.selected}
 	onSelect={handleSelect}
 	sectionLabel={$t.datasets?.availableModels || 'Available Models'}
 	menuMinWidth="220px"

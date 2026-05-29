@@ -1,30 +1,11 @@
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
-	import { init, use } from 'echarts/core';
-	import { HeatmapChart } from 'echarts/charts';
-	import {
-		TitleComponent,
-		TooltipComponent,
-		GridComponent,
-		VisualMapComponent
-	} from 'echarts/components';
-	import { LabelLayout } from 'echarts/features';
-	import { CanvasRenderer } from 'echarts/renderers';
+	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 	import { SvelteSet } from 'svelte/reactivity';
 
-	use([
-		TitleComponent,
-		TooltipComponent,
-		GridComponent,
-		VisualMapComponent,
-		HeatmapChart,
-		LabelLayout,
-		CanvasRenderer
-	]);
-
-	import { filteredArticles } from '$lib';
+	import { articleState } from '$lib';
 	import type { Article } from '$lib';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue } from '$lib/i18n/utils';
@@ -71,7 +52,7 @@
 	let chartContainer = $state<HTMLDivElement>();
 
 	let options = $derived.by(() => {
-		const articles = $filteredArticles;
+		const articles = articleState.filtered;
 		const countryYearCentrality: Record<
 			string,
 			Record<string, { total: number; count: number }>
@@ -270,7 +251,7 @@
 	});
 </script>
 
-{#if $filteredArticles.length > 0}
+{#if articleState.filtered.length > 0}
 	<div class="mb-4">
 		<DatasetBadge size="sm" />
 	</div>

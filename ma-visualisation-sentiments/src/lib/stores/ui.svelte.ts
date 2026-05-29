@@ -5,8 +5,6 @@
  * Provides both modern $state-based API and legacy store compatibility.
  */
 
-import { writable } from 'svelte/store';
-
 // ============================================
 // Svelte 5 Runes State
 // ============================================
@@ -44,11 +42,9 @@ export const uiState = {
 	},
 	set sidebarExpanded(value: boolean) {
 		_sidebarExpanded = value;
-		sidebarExpanded.set(value);
 	},
 	toggleSidebar() {
 		_sidebarExpanded = !_sidebarExpanded;
-		sidebarExpanded.set(_sidebarExpanded);
 	},
 
 	// Active view
@@ -57,7 +53,6 @@ export const uiState = {
 	},
 	set activeView(value: string) {
 		_activeView = value;
-		activeView.set(value);
 	},
 
 	// Mobile menu
@@ -66,11 +61,9 @@ export const uiState = {
 	},
 	set mobileMenuOpen(value: boolean) {
 		_mobileMenuOpen = value;
-		mobileMenuOpen.set(value);
 	},
 	toggleMobileMenu() {
 		_mobileMenuOpen = !_mobileMenuOpen;
-		mobileMenuOpen.set(_mobileMenuOpen);
 	},
 
 	// Loading states
@@ -79,7 +72,6 @@ export const uiState = {
 	},
 	set isLoadingDataset(value: boolean) {
 		_isLoadingDataset = value;
-		isLoadingDataset.set(value);
 	},
 
 	get isLoadingExtremeAnalysis() {
@@ -87,7 +79,6 @@ export const uiState = {
 	},
 	set isLoadingExtremeAnalysis(value: boolean) {
 		_isLoadingExtremeAnalysis = value;
-		isLoadingExtremeAnalysis.set(value);
 	},
 
 	get isLoadingComparison() {
@@ -95,7 +86,6 @@ export const uiState = {
 	},
 	set isLoadingComparison(value: boolean) {
 		_isLoadingComparison = value;
-		isLoadingComparison.set(value);
 	},
 
 	get isLoadingArbiter() {
@@ -103,7 +93,6 @@ export const uiState = {
 	},
 	set isLoadingArbiter(value: boolean) {
 		_isLoadingArbiter = value;
-		isLoadingArbiter.set(value);
 	},
 
 	// Utility: Check if anything is loading
@@ -113,65 +102,3 @@ export const uiState = {
 		);
 	}
 };
-
-// ============================================
-// Legacy Store Compatibility
-// ============================================
-
-/**
- * @deprecated Use uiState.sidebarExpanded instead
- */
-export const sidebarExpanded = writable<boolean>(false);
-
-/**
- * @deprecated Use uiState.activeView instead
- */
-export const activeView = writable<string>('charts');
-
-/**
- * @deprecated Use uiState.mobileMenuOpen instead
- */
-export const mobileMenuOpen = writable<boolean>(false);
-
-/**
- * @deprecated Use uiState.isLoadingDataset instead
- */
-export const isLoadingDataset = writable<boolean>(false);
-
-/**
- * @deprecated Use uiState.isLoadingExtremeAnalysis instead
- */
-export const isLoadingExtremeAnalysis = writable<boolean>(false);
-
-/**
- * @deprecated Use uiState.isLoadingComparison instead
- */
-export const isLoadingComparison = writable<boolean>(false);
-
-/**
- * @deprecated Use uiState.isLoadingArbiter instead
- */
-export const isLoadingArbiter = writable<boolean>(false);
-
-// Sync legacy stores to runes state
-sidebarExpanded.subscribe((value) => {
-	_sidebarExpanded = value;
-});
-activeView.subscribe((value) => {
-	_activeView = value;
-});
-mobileMenuOpen.subscribe((value) => {
-	_mobileMenuOpen = value;
-});
-isLoadingDataset.subscribe((value) => {
-	_isLoadingDataset = value;
-});
-isLoadingExtremeAnalysis.subscribe((value) => {
-	_isLoadingExtremeAnalysis = value;
-});
-isLoadingComparison.subscribe((value) => {
-	_isLoadingComparison = value;
-});
-isLoadingArbiter.subscribe((value) => {
-	_isLoadingArbiter = value;
-});

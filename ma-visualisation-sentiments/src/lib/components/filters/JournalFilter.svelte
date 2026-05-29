@@ -1,16 +1,16 @@
 <!-- Composant JournalFilter.svelte -->
 <script lang="ts">
-	import { availableJournals, journalFilters } from '$lib/stores';
+	import { articleState, filterState } from '$lib/stores';
 	import { t } from '$lib/i18n';
 	import { FilterCard, FilterChip, SearchInput } from '$lib/components/common';
 
 	// Variables locales
-	let selectedJournals = $derived($journalFilters);
+	let selectedJournals = $derived(filterState.journals);
 	let searchTerm = $state('');
 	let showAll = $state(false);
 	const INITIAL_DISPLAY_COUNT = 8;
 
-	let journals = $derived($availableJournals);
+	let journals = $derived(articleState.journals);
 
 	// Filtrer les journaux selon le terme de recherche
 	let filteredJournals = $derived(
@@ -28,7 +28,7 @@
 		const updated = selectedJournals.includes(journal)
 			? selectedJournals.filter((j) => j !== journal)
 			: [...selectedJournals, journal];
-		journalFilters.set(updated);
+		filterState.journals = updated;
 	}
 
 	function toggleShowAll() {
@@ -36,7 +36,7 @@
 	}
 
 	function clearAll() {
-		journalFilters.set([]);
+		filterState.journals = [];
 	}
 </script>
 

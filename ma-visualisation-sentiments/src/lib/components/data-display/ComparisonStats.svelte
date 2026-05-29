@@ -1,10 +1,5 @@
 <script lang="ts">
-	import {
-		comparisonStatistics,
-		arbiterStatistics,
-		comparisonPair,
-		availableDatasets
-	} from '$lib/stores';
+	import { comparisonState, arbiterStatistics, datasetState } from '$lib/stores';
 	import { getModelsFromPair } from '$lib/types/data';
 	import { t } from '$lib/i18n';
 	import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
@@ -16,13 +11,13 @@
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import ChevronUpIcon from '@lucide/svelte/icons/chevron-up';
 
-	const stats = $derived($comparisonStatistics);
+	const stats = $derived(comparisonState.statistics);
 	const arbiterStats = $derived(arbiterStatistics.current);
 
 	// Get dynamic model names from current comparison pair
 	const modelNames = $derived.by(() => {
-		const [modelAId, modelBId] = getModelsFromPair($comparisonPair);
-		const datasets = $availableDatasets;
+		const [modelAId, modelBId] = getModelsFromPair(datasetState.pair);
+		const datasets = datasetState.available;
 		const modelAName = datasets.find((d) => d.id === modelAId)?.name || modelAId;
 		const modelBName = datasets.find((d) => d.id === modelBId)?.name || modelBId;
 		return { modelAName, modelBName };
