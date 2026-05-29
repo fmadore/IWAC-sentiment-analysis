@@ -169,7 +169,7 @@
 		font-weight: 500;
 		letter-spacing: 0.06em;
 		text-transform: uppercase;
-		color: var(--chrome-accent);
+		color: var(--accent);
 		text-decoration: none;
 		border-bottom: 1px solid currentColor;
 		padding-bottom: 1px;

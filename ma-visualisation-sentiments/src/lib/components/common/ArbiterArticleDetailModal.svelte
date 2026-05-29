@@ -269,7 +269,7 @@
 	}
 
 	.model-a {
-		border-top: 2px solid var(--sentiment-trends);
+		border-top: 2px solid var(--sentiment-comparison);
 	}
 
 	.model-b {
@@ -290,7 +290,7 @@
 	}
 
 	.model-a .model-name {
-		color: var(--sentiment-trends);
+		color: var(--sentiment-comparison);
 	}
 
 	.model-b .model-name {

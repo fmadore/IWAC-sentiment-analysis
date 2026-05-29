@@ -180,7 +180,7 @@
 	}
 
 	.fs-modal-header[data-accent='primary']::before {
-		background: var(--chrome-accent);
+		background: var(--accent);
 	}
 
 	.fs-modal-header[data-accent='comparison']::before {

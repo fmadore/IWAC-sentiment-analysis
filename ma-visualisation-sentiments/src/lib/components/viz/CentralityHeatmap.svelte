@@ -208,7 +208,8 @@
 				textStyle: {
 					color: 'rgba(255, 255, 255, 0.85)',
 					fontSize: isMobile ? 10 : 12,
-					fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
+					fontFamily:
+						'"Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
 				},
 				itemWidth: isMobile ? 15 : 20,
 				itemHeight: isMobile ? 100 : 140,

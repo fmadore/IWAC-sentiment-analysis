@@ -17,6 +17,16 @@
 			onClose();
 		}
 	}
+
+	// Prevent background scroll while the modal is open (matches FullScreenModal).
+	$effect(() => {
+		if (open && typeof document !== 'undefined') {
+			document.body.style.overflow = 'hidden';
+			return () => {
+				document.body.style.overflow = '';
+			};
+		}
+	});
 </script>
 
 {#if open}
@@ -118,7 +128,7 @@
 		left: 0;
 		right: 0;
 		height: 2px;
-		background: var(--chrome-accent);
+		background: var(--accent);
 	}
 
 	.prompt-modal-header {
@@ -186,8 +196,8 @@
 		font-weight: 600;
 		letter-spacing: 0.06em;
 		text-transform: uppercase;
-		background: var(--chrome-accent);
-		border: 1px solid var(--chrome-accent);
+		background: var(--accent);
+		border: 1px solid var(--accent);
 		color: var(--app-bg);
 		cursor: pointer;
 		transition:

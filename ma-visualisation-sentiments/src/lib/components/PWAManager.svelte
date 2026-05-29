@@ -120,7 +120,7 @@
 		padding: var(--space-3) var(--space-4);
 		background: var(--surface-card-elevated);
 		border: 1px solid var(--border-default);
-		border-top: 2px solid var(--chrome-accent);
+		border-top: 2px solid var(--accent);
 		box-shadow: var(--shadow-lg);
 		max-width: 24rem;
 	}
@@ -131,7 +131,7 @@
 		font-weight: 600;
 		letter-spacing: 0.14em;
 		text-transform: uppercase;
-		color: var(--chrome-accent);
+		color: var(--accent);
 		margin: 0 0 var(--space-1);
 	}
 
@@ -145,8 +145,8 @@
 	.pwa-update-button {
 		flex-shrink: 0;
 		background: transparent;
-		border: 1px solid var(--chrome-accent);
-		color: var(--chrome-accent);
+		border: 1px solid var(--accent);
+		color: var(--accent);
 		font-family: var(--font-mono);
 		font-size: 0.75rem;
 		font-weight: 600;
@@ -160,7 +160,7 @@
 	}
 
 	.pwa-update-button:hover {
-		background: var(--chrome-accent);
+		background: var(--accent);
 		color: var(--app-bg);
 	}
 </style>

@@ -190,7 +190,7 @@ export const fr: Translations = {
 		modelUsed: 'Modèle utilisé',
 		modelDescription: "L'analyse a été réalisée avec",
 		modelDetails:
-			", un grand modèle de langage développé par Google. Ce modèle a été choisi pour son excellent rapport qualité-prix, offrant des performances satisfaisantes pour l'analyse de texte en français à un coût accessible.",
+			", un modèle de la série GPT-5 d'OpenAI (« GPT-5 mini », août 2025). Il offre une fenêtre de contexte de 400 000 tokens et des capacités de raisonnement améliorées, alliant qualité et coût maîtrisé pour de grands corpus en français.",
 		modelSummary: 'Résumé du modèle',
 		modelUsageGuide: "Guide d'utilisation",
 		modelDocsLink: 'Documentation du modèle',
