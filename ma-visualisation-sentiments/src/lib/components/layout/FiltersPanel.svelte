@@ -9,8 +9,9 @@
 		ClearFiltersButton
 	} from '$lib/components/filters';
 	import { DatasetBadge } from '$lib/components/ui';
+	import { uiState } from '$lib/stores';
 	import { t } from '$lib/i18n';
-	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
+	import XIcon from '@lucide/svelte/icons/x';
 	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
 
 	let {
@@ -31,196 +32,131 @@
 		onTopNChange: (n: number) => void;
 	}>();
 
-	// State for collapsible filters panel
-	let isFiltersOpen = $state(true);
+	function closeDrawer() {
+		uiState.filtersDrawerOpen = false;
+	}
+
+	// On small screens the rail is an off-canvas drawer; Escape closes it.
+	function onKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape' && uiState.filtersDrawerOpen) closeDrawer();
+	}
 </script>
 
-<div class="filters-panel">
-	<!-- Collapsible Header -->
-	<button
-		class="filters-header-btn"
-		onclick={() => (isFiltersOpen = !isFiltersOpen)}
-		aria-expanded={isFiltersOpen}
-	>
-		<h2 class="filters-title">{$t.filters.title}</h2>
-		<span class="header-icon" data-state={isFiltersOpen ? 'open' : 'closed'}>
-			<ChevronDownIcon size={20} />
-		</span>
-	</button>
+<svelte:window onkeydown={onKeydown} />
 
-	{#if isFiltersOpen}
-		<div class="filters-content" data-state="open">
-			{#if activeView === 'extremes'}
-				<div class="mb-4"><DatasetBadge size="sm" /></div>
-				<div class="extreme-filters-layout mb-4 sm:mb-6">
-					<div class="filter-shell country"><CountryFilter /></div>
-					<div class="filter-shell extreme-controls">
-						<ExtremeAnalysisControls
-							{selectedCategory}
-							{selectedKeywordType}
-							{showTopN}
-							{onCategoryChange}
-							{onKeywordTypeChange}
-							{onTopNChange}
-						/>
-					</div>
+<!-- Mobile-only scrim behind the drawer -->
+{#if uiState.filtersDrawerOpen}
+	<button class="filters-overlay" onclick={closeDrawer} aria-label={$t.common.close}></button>
+{/if}
+
+<aside
+	class="filters-rail"
+	class:drawer-open={uiState.filtersDrawerOpen}
+	aria-label={$t.filters.title}
+>
+	<div class="rail-header">
+		<h2 class="rail-title">{$t.filters.title}</h2>
+		<button class="rail-close" onclick={closeDrawer} aria-label={$t.common.close}>
+			<XIcon size={20} />
+		</button>
+	</div>
+
+	<div class="rail-body">
+		{#if activeView === 'extremes'}
+			<div class="rail-dataset"><DatasetBadge size="sm" /></div>
+			<div class="rail-stack">
+				<div class="filter-shell"><CountryFilter /></div>
+				<div class="filter-shell">
+					<ExtremeAnalysisControls
+						{selectedCategory}
+						{selectedKeywordType}
+						{showTopN}
+						{onCategoryChange}
+						{onKeywordTypeChange}
+						{onTopNChange}
+					/>
 				</div>
-			{:else}
-				<div class="filters-grid-responsive masonry mb-4 sm:mb-6">
-					<div class="filter-shell country"><CountryFilter /></div>
-					<div class="filter-shell journal"><JournalFilter /></div>
-					<div class="filter-shell polarity"><PolarityFilter /></div>
-					<div class="filter-shell subjectivity"><SubjectivityFilter /></div>
-					<div class="filter-shell centrality"><CentralityFilter /></div>
-				</div>
-			{/if}
-			<ClearFiltersButton />
-		</div>
-	{/if}
-</div>
+			</div>
+		{:else}
+			<div class="rail-stack">
+				<div class="filter-shell"><CountryFilter /></div>
+				<div class="filter-shell"><JournalFilter /></div>
+				<div class="filter-shell"><PolarityFilter /></div>
+				<div class="filter-shell"><SubjectivityFilter /></div>
+				<div class="filter-shell"><CentralityFilter /></div>
+			</div>
+		{/if}
+		<div class="rail-clear"><ClearFiltersButton /></div>
+	</div>
+</aside>
 
 <style>
-	/* Auto-fit responsive grid for standard facets */
-	.filters-grid-responsive {
-		display: grid;
-		gap: var(--space-3-5);
-		align-items: start;
-		grid-auto-flow: row dense;
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-	}
-
-	/* Masonry mode with CSS columns */
-	.filters-grid-responsive.masonry {
-		display: block !important;
-	}
-
-	@media (min-width: 1024px) {
-		.filters-grid-responsive.masonry {
-			column-count: 2;
-			column-gap: var(--space-5);
-			column-width: 300px;
-		}
-	}
-
-	@media (min-width: 1280px) {
-		.filters-grid-responsive.masonry {
-			column-count: 3;
-			column-gap: var(--space-5);
-			column-width: 320px;
-		}
-	}
-
-	@media (min-width: 1600px) {
-		.filters-grid-responsive.masonry {
-			column-count: 4;
-			column-gap: var(--space-6);
-			column-width: 340px;
-		}
-	}
-
-	.filters-grid-responsive.masonry .filter-shell {
-		break-inside: avoid;
-		-webkit-column-break-inside: avoid;
-		page-break-inside: avoid;
-		margin: 0 0 var(--space-5);
-		width: 100%;
-	}
-
-	.filters-grid-responsive.masonry .filter-shell :global(.filter-card) {
-		height: auto !important;
-		display: block;
-		width: 100%;
-		transition:
-			border-color var(--timing-fast) var(--easing-default),
-			box-shadow var(--timing-normal) var(--easing-default);
-	}
-
-	/* Journal width hint for non-masonry grid */
-	@media (min-width: 1200px) {
-		.filters-grid-responsive:not(.masonry) .journal {
-			grid-column: span 2;
-		}
-	}
-
-	@media (min-width: 1600px) {
-		.filters-grid-responsive:not(.masonry) {
-			grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-		}
-		.filters-grid-responsive:not(.masonry) .journal {
-			grid-column: span 2;
-		}
-	}
-
-	/* Extreme layout with fluid columns */
-	.extreme-filters-layout {
-		display: grid;
-		gap: var(--space-6);
-		grid-template-columns: clamp(230px, 26%, 320px) 1fr;
-		align-items: start;
-	}
-
-	@media (max-width: 1100px) {
-		.extreme-filters-layout {
-			grid-template-columns: clamp(220px, 32%, 300px) 1fr;
-			gap: var(--space-5);
-		}
-	}
-
-	@media (max-width: 900px) {
-		.extreme-filters-layout {
-			grid-template-columns: 1fr;
-			gap: var(--space-4);
-		}
-	}
-
-	@media (max-width: 600px) {
-		.filters-grid-responsive {
-			gap: var(--space-2-5);
-		}
-		.extreme-filters-layout {
-			gap: var(--space-3);
-		}
-	}
-
 	/* =========================================================================
-	   COLLAPSIBLE PANEL
+	   FILTER RAIL
+	   Two presentations from one component:
+	   • < 1024px — off-canvas drawer, slid in from the left over a scrim, opened
+	     from the AppHeader "Filters" button (uiState.filtersDrawerOpen).
+	   • >= 1024px — a static, sticky left rail that lives in the page grid's
+	     first column; the close button and scrim are hidden.
 	   ========================================================================= */
-	.filters-panel {
-		background: var(--surface-card);
-		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-xl);
-		padding: var(--space-5);
-		margin-bottom: var(--space-6);
-		box-shadow: var(--elevation-card);
+
+	.filters-rail {
+		display: flex;
+		flex-direction: column;
+
+		/* Drawer defaults (mobile) */
+		position: fixed;
+		top: 0;
+		left: 0;
+		z-index: var(--z-sidebar);
+		width: min(88vw, 22rem);
+		height: 100dvh;
+		background: var(--app-bg-elevated);
+		border-right: 1px solid var(--border-subtle);
+		box-shadow: var(--elevation-overlay, 0 0 0 transparent);
+		transform: translateX(-100%);
+		transition: transform var(--timing-normal) var(--easing-default);
+		overflow-y: auto;
+		overscroll-behavior: contain;
 	}
 
-	.filters-header-btn {
-		width: 100%;
+	.filters-rail.drawer-open {
+		transform: translateX(0);
+	}
+
+	.filters-overlay {
+		position: fixed;
+		inset: 0;
+		z-index: var(--z-overlay);
+		background: color-mix(in oklab, black 65%, transparent);
+		border: none;
+		cursor: pointer;
+	}
+
+	/* Rail header — section label + (mobile) close affordance */
+	.rail-header {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 0;
-		background: none;
-		border: none;
-		cursor: pointer;
-		text-align: left;
+		gap: var(--space-3);
+		padding: var(--space-4) var(--space-4) var(--space-3);
+		position: sticky;
+		top: 0;
+		background: inherit;
+		z-index: 1;
 	}
 
-	.filters-header-btn:hover .header-icon {
-		background: var(--surface-hover);
-		color: var(--text-primary);
-	}
-
-	.filters-title {
-		font-size: var(--font-size-xl);
+	.rail-title {
+		font-family: var(--font-mono);
+		font-size: var(--font-size-xs);
 		font-weight: var(--font-weight-semibold);
-		color: var(--text-primary);
-		letter-spacing: var(--tracking-snug);
-		line-height: var(--line-height-tight);
+		text-transform: uppercase;
+		letter-spacing: var(--tracking-wider);
+		color: var(--text-muted);
 		margin: 0;
 	}
 
-	.header-icon {
+	.rail-close {
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -228,59 +164,87 @@
 		height: var(--size-control-sm);
 		border-radius: var(--radius-md);
 		background: var(--surface-subtle);
+		border: 1px solid var(--border-default);
 		color: var(--text-muted);
+		cursor: pointer;
+		flex-shrink: 0;
 		transition:
 			background-color var(--timing-fast) var(--easing-default),
-			color var(--timing-fast) var(--easing-default),
-			transform var(--timing-normal) var(--easing-default);
-		flex-shrink: 0;
+			color var(--timing-fast) var(--easing-default);
 	}
 
-	.header-icon[data-state='open'] {
-		transform: rotate(180deg);
-		color: var(--color-primary-300);
+	.rail-close:hover {
+		background: var(--surface-hover);
+		color: var(--text-primary);
 	}
 
-	.filters-content {
-		margin-top: var(--space-4);
-		animation: slideDown var(--timing-normal) var(--easing-default);
+	.rail-body {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+		padding: 0 var(--space-4) var(--space-5);
 	}
 
-	@keyframes slideDown {
-		from {
-			opacity: 0;
-			transform: translateY(-8px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
+	.rail-dataset {
+		margin-bottom: var(--space-1);
 	}
 
-	@media (max-width: 640px) {
-		.filters-panel {
-			padding: var(--space-4);
-			border-radius: var(--radius-xl);
+	.rail-stack {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+	}
+
+	.filter-shell :global(.filter-card) {
+		width: 100%;
+	}
+
+	.rail-clear {
+		margin-top: var(--space-1);
+	}
+
+	/* ---- Desktop: static sticky rail inside the page grid ------------------- */
+	@media (min-width: 1024px) {
+		.filters-rail {
+			/* Clears the sticky AppHeader (~96px tall at >=1024px) plus a small gap. */
+			--rail-top: 6.5rem;
+			position: sticky;
+			top: var(--rail-top);
+			left: auto;
+			z-index: auto;
+			width: 100%;
+			height: auto;
+			max-height: calc(100dvh - var(--rail-top) - var(--space-4));
+			background: transparent;
+			border-right: none;
+			box-shadow: none;
+			transform: none;
+			align-self: start;
 		}
 
-		.filters-title {
-			font-size: var(--font-size-lg);
+		.rail-header {
+			padding: 0 0 var(--space-3);
+			border-bottom: 1px solid var(--border-subtle);
+			background: var(--app-bg);
 		}
 
-		.header-icon {
-			width: 1.75rem;
-			height: 1.75rem;
+		.rail-close {
+			display: none;
+		}
+
+		.filters-overlay {
+			display: none;
+		}
+
+		.rail-body {
+			padding: var(--space-4) 0 0;
 		}
 	}
 
 	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
-		.filters-grid-responsive.masonry .filter-shell :global(.filter-card),
-		.filters-content,
-		.header-icon,
-		.filters-header-btn {
+		.filters-rail {
 			transition: none;
-			animation: none;
 		}
 	}
 </style>

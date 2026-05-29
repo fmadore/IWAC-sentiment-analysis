@@ -3,6 +3,7 @@
 	import MinimizeIcon from '@lucide/svelte/icons/minimize';
 	import MenuIcon from '@lucide/svelte/icons/menu';
 	import XIcon from '@lucide/svelte/icons/x';
+	import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { t } from '$lib/i18n';
@@ -10,6 +11,12 @@
 	import { uiState } from '$lib/stores';
 
 	let isFullscreen = $state(false);
+
+	// The filters drawer trigger is only meaningful on views that have a filter
+	// rail — arbiter and comparison carry their own internal controls instead.
+	let showFiltersButton = $derived(
+		uiState.activeView !== 'arbiter' && uiState.activeView !== 'comparison'
+	);
 
 	function toggleFullscreen() {
 		if (!document.fullscreenElement) {
@@ -57,6 +64,19 @@
 					<MenuIcon size={22} />
 				{/if}
 			</button>
+
+			<!-- Filters drawer toggle (small screens only; rail is always visible >=1024px) -->
+			{#if showFiltersButton}
+				<button
+					class="filters-trigger"
+					onclick={() => uiState.toggleFiltersDrawer()}
+					aria-label={$t.filters.title}
+					aria-expanded={uiState.filtersDrawerOpen}
+				>
+					<SlidersHorizontalIcon size={18} />
+					<span class="filters-trigger-label">{$t.filters.title}</span>
+				</button>
+			{/if}
 
 			<div class="brand-text">
 				<span class="brand-title">{$t.appTitle}</span>
@@ -155,6 +175,51 @@
 
 	@media (min-width: 1024px) {
 		.mobile-menu-btn {
+			display: none;
+		}
+	}
+
+	/* Filters drawer trigger — sits beside the mobile menu button with the same
+	   tonal treatment. Hidden once the rail is permanently visible (>=1024px). */
+	.filters-trigger {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		height: var(--size-control-lg);
+		padding: 0 var(--space-3);
+		border-radius: var(--radius-lg);
+		background: var(--surface-subtle);
+		border: 1px solid var(--border-default);
+		color: var(--text-primary);
+		cursor: pointer;
+		flex-shrink: 0;
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default);
+	}
+
+	.filters-trigger:hover {
+		background: var(--surface-hover);
+		border-color: var(--border-hover);
+	}
+
+	.filters-trigger-label {
+		font-family: var(--font-mono);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-medium);
+		text-transform: uppercase;
+		letter-spacing: var(--tracking-wider);
+		white-space: nowrap;
+	}
+
+	@media (max-width: 420px) {
+		.filters-trigger-label {
+			display: none;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.filters-trigger {
 			display: none;
 		}
 	}
@@ -294,7 +359,8 @@
 	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
 		.fullscreen-btn,
-		.mobile-menu-btn {
+		.mobile-menu-btn,
+		.filters-trigger {
 			transition: none;
 		}
 	}

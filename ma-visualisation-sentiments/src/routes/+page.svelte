@@ -52,6 +52,13 @@
 	let currentArticles = $derived(articleState.datasets[currentDatasetId] || []);
 	let currentSelectedArticle = $derived(articleState.selected);
 
+	// Close the mobile filters drawer whenever the active view changes (e.g. the
+	// user picks another view from the sidebar while the drawer is open).
+	$effect(() => {
+		void currentView;
+		uiState.filtersDrawerOpen = false;
+	});
+
 	// Load extreme analysis when view is 'extremes' and dataset changes
 	$effect(() => {
 		if (currentView === 'extremes' && currentDatasetId && browser && isInitialized) {
@@ -224,9 +231,8 @@
 <SEOHead view={currentView} comparisonMode={isComparisonMode} />
 
 <main
-	class="main-container container {currentView === 'extremes'
-		? 'max-w-7xl'
-		: 'max-w-6xl'} mx-auto p-2 sm:p-4 md:p-6"
+	class="main-container p-2 sm:p-4 md:p-6"
+	data-layout={currentView === 'arbiter' || currentView === 'comparison' ? 'full' : 'rail'}
 >
 	{#if currentView === 'arbiter'}
 		<ArbiterMethodology />
@@ -248,23 +254,27 @@
 			onShowDetails={handleShowDetails}
 		/>
 	{:else if currentArticles.length > 0}
-		<FiltersPanel
-			activeView={currentView}
-			{selectedCategory}
-			{selectedKeywordType}
-			{showTopN}
-			onCategoryChange={handleCategoryChange}
-			onKeywordTypeChange={handleKeywordTypeChange}
-			onTopNChange={handleTopNChange}
-		/>
+		<div class="content-layout">
+			<FiltersPanel
+				activeView={currentView}
+				{selectedCategory}
+				{selectedKeywordType}
+				{showTopN}
+				onCategoryChange={handleCategoryChange}
+				onKeywordTypeChange={handleKeywordTypeChange}
+				onTopNChange={handleTopNChange}
+			/>
 
-		<ViewContent
-			activeView={currentView}
-			{selectedCategory}
-			{selectedKeywordType}
-			{showTopN}
-			onShowDetails={handleShowDetails}
-		/>
+			<div class="content-col">
+				<ViewContent
+					activeView={currentView}
+					{selectedCategory}
+					{selectedKeywordType}
+					{showTopN}
+					onShowDetails={handleShowDetails}
+				/>
+			</div>
+		</div>
 	{:else}
 		<div class="alert alert-error p-4 mb-4 sm:mb-6">{$t.messages.noData}</div>
 	{/if}
@@ -274,10 +284,22 @@
 <ArticleDetailModal article={detailedArticle} open={showDetailsSidebar} onClose={closeDetails} />
 
 <style>
-	/* Main Container */
+	/* Main Container. Rail views drop the old narrow `max-w-6xl` and run wide
+	   (the rail reclaims the left gutter); the self-contained full-width views
+	   (arbiter, comparison) keep the prior, more readable cap so their text and
+	   methodology don't stretch. */
 	.main-container {
 		margin-top: 0;
 		padding-top: var(--space-2);
+		margin-inline: auto;
+	}
+
+	.main-container[data-layout='rail'] {
+		max-width: 105rem;
+	}
+
+	.main-container[data-layout='full'] {
+		max-width: 72rem;
 	}
 
 	@media (min-width: 640px) {
@@ -289,6 +311,27 @@
 	@media (min-width: 1024px) {
 		.main-container {
 			padding-top: var(--space-4);
+		}
+	}
+
+	/* Filter rail + content. Single column on small screens (the rail is an
+	   off-canvas drawer, removed from flow); two columns from 1024px up. */
+	.content-layout {
+		display: grid;
+		grid-template-columns: 1fr;
+	}
+
+	.content-col {
+		/* Allow charts/tables to shrink within the grid track instead of
+		   overflowing it (ECharts canvases otherwise force the column wider). */
+		min-width: 0;
+	}
+
+	@media (min-width: 1024px) {
+		.content-layout {
+			grid-template-columns: 20rem minmax(0, 1fr);
+			gap: var(--space-6);
+			align-items: start;
 		}
 	}
 </style>

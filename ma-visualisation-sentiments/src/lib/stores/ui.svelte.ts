@@ -12,6 +12,7 @@
 let _sidebarExpanded = $state<boolean>(false);
 let _activeView = $state<string>('charts');
 let _mobileMenuOpen = $state<boolean>(false);
+let _filtersDrawerOpen = $state<boolean>(false);
 let _isLoadingDataset = $state<boolean>(false);
 let _isLoadingExtremeAnalysis = $state<boolean>(false);
 let _isLoadingComparison = $state<boolean>(false);
@@ -64,6 +65,17 @@ export const uiState = {
 	},
 	toggleMobileMenu() {
 		_mobileMenuOpen = !_mobileMenuOpen;
+	},
+
+	// Mobile filters drawer (slide-out rail on < 1024px)
+	get filtersDrawerOpen() {
+		return _filtersDrawerOpen;
+	},
+	set filtersDrawerOpen(value: boolean) {
+		_filtersDrawerOpen = value;
+	},
+	toggleFiltersDrawer() {
+		_filtersDrawerOpen = !_filtersDrawerOpen;
 	},
 
 	// Loading states
