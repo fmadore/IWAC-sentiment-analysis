@@ -6,7 +6,7 @@
 		setupArbiterPairReactivity,
 		loadArbiterEvaluations
 	} from '$lib/stores';
-	import { DiscrepancyFilter } from '$lib/components/filters';
+	import { CountryFilter, JournalFilter, DiscrepancyFilter } from '$lib/components/filters';
 	import ComparisonTable from './ComparisonTable.svelte';
 	import ComparisonStats from './ComparisonStats.svelte';
 	import { ComparisonDetailModal } from '$lib/components/common';
@@ -114,8 +114,14 @@
 			<ComparisonStats />
 		</div>
 
-		<!-- Filters -->
+		<!-- Filters — comparison owns its own facets (Country/Journal scope the
+			 corpus; DiscrepancyFilter scopes by divergence). Country and Journal
+			 write the shared filterState that filterComparisons() reads. -->
 		<div class="filters-section mb-6">
+			<div class="comparison-facets">
+				<CountryFilter />
+				<JournalFilter />
+			</div>
 			<DiscrepancyFilter />
 		</div>
 
@@ -144,6 +150,21 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-6);
+	}
+
+	/* Comparison's own filter section: Country/Journal facets above the
+	   DiscrepancyFilter. Facets sit side by side on wide viewports, stack below. */
+	.filters-section {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+	}
+
+	.comparison-facets {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+		gap: var(--space-4);
+		align-items: start;
 	}
 
 	.empty-state,

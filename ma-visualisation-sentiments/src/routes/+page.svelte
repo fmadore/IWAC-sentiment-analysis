@@ -236,8 +236,10 @@
 
 	{#if isLoading}
 		<LoadingState />
-	{:else if currentView === 'arbiter'}
-		<!-- Arbiter view has its own internal filtering, no FiltersPanel needed -->
+	{:else if currentView === 'arbiter' || currentView === 'comparison'}
+		<!-- Self-contained views: each owns its internal filters, so no standard
+		     FiltersPanel and no filter rail. Arbiter has its own controls;
+		     ComparisonView carries Country/Journal/Discrepancy filters itself. -->
 		<ViewContent
 			activeView={currentView}
 			{selectedCategory}
