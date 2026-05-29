@@ -4,7 +4,7 @@
 
 **Operating principle.** Each phase lands as one or more atomic commits that pass `npm run lint && npm run check && npm run build`. No phase breaks the live dashboard.
 
-**Status: Phase 0, 1, 2, 3.1, 3.2, and all of Phase 4 landed. Phase 3.3–3.5 (filter-rail layout) deferred — see "Deferred work" at the bottom.** Verification on the final pass: `lint` ✓, `check` 0 errors / 0 warnings, `test:run` 119/119, `build` ✓, and live `localhost:5173` confirmed Public Sans + Source Serif 4 + JetBrains Mono are loading; methodology eyebrow, opaque cards, no rainbow icon tiles, no gradient text, no emoji in chart toolbar, no DataZoom blue-on-blue collision.
+**Status: Phases 0, 1, 2, all of Phase 3, and Phase 4 except 4.8 landed. Only 4.8 (badge-class consolidation) and the back-compat shim migration remain — see "Deferred work" at the bottom.** Latest pass (3.3–3.5 filter rail + 4.6/4.7 polish): `lint` ✓, `check` 0 errors / 0 warnings, `test:run` 126/126, `build` ✓, and live `localhost:5173` confirmed the sticky 320px filter rail (charts/trends/correlation/volume/heatmap/table/extremes), the off-canvas mobile filter drawer (opened from the AppHeader, overlay + close working), comparison/arbiter staying full-width with their own internal filters, monospace eyebrow table headers, and deduped filter-chip CSS.
 
 ---
 
@@ -63,17 +63,17 @@ The lowest-level changes. All later phases depend on these tokens being correct.
 | 2.8 | Drop chart-toolbar emojis (📊 🥧 📈) → Lucide icons + monospace caps labels with tonal accent active state | `SentimentChart`, `SubjectivityChart`, `VolumeChart` | ✅ — also stripped `hover-lift`, `variant-filled-primary`, and `glass-medium` from the same toolbars |
 | 2.9 _(skipped)_ | Switch ECharts internal chart titles off in favour of ChartCard header. Not strictly required for the editorial aesthetic; ECharts titles read fine inside opaque cards. Defer. | — | — |
 
-## Phase 3 — Layout & information architecture (partial)
+## Phase 3 — Layout & information architecture ✅ LANDED
 
 | # | Change | Files | Status |
 |---|---|---|---|
 | 3.1 | Surface a one-line methodology eyebrow under each view title (`Model · X · Sample · N articles`) | `ViewContent.svelte` | ✅ — inlined into the existing snippet rather than a new component; suppressed in comparison view since `ComparisonView` has its own |
 | 3.2 | Default sidebar **expanded** at viewport ≥1280px | `SidebarNav.svelte` | ✅ — flipped on mount only (preserves user toggle thereafter) |
-| 3.3 | Move filters from a top accordion to a persistent left rail (320px); chart area shifts right | `+page.svelte`, `FiltersPanel.svelte`, `SidebarNav.svelte` | ⏸ **Deferred** — see "Deferred work" |
-| 3.4 | Drop CSS-columns masonry filter layout in favor of stacked rail | `FiltersPanel.svelte` | ⏸ Deferred (depends on 3.3) |
-| 3.5 | Drop the `max-w-6xl mx-auto` container; use a 3-column grid | `+page.svelte` | ⏸ Deferred (depends on 3.3) |
+| 3.3 | Move filters from a top accordion to a persistent sticky left rail (320px); chart area shifts right. Mobile (<1024px) gets an off-canvas drawer opened from the AppHeader instead. | `+page.svelte`, `FiltersPanel.svelte`, `AppHeader.svelte`, `ui.svelte.ts`, `ComparisonView.svelte` | ✅ — comparison/arbiter stay full-width (own internal filters); comparison gained its own Country/Journal filters first so nothing was lost |
+| 3.4 | Drop CSS-columns masonry filter layout in favor of stacked rail | `FiltersPanel.svelte` | ✅ |
+| 3.5 | Drop the `max-w-6xl mx-auto` container; use a 2-column grid (rail / content) | `+page.svelte` | ✅ — rail views run wide (105rem); full-width views (arbiter/comparison) keep the prior 1152px cap via `data-layout` so text doesn't stretch |
 
-## Phase 4 — Polish & consolidation ✅ LANDED (with two items deferred)
+## Phase 4 — Polish & consolidation ✅ LANDED (4.8 deferred)
 
 | # | Change | Files | Status |
 |---|---|---|---|
@@ -82,30 +82,17 @@ The lowest-level changes. All later phases depend on these tokens being correct.
 | 4.3 _(was: badge consolidation)_ | Drop emoji from chart-toolbar (Bar/Pie/Lines controls) → Lucide icons | `SentimentChart`, `SubjectivityChart`, `VolumeChart` | ✅ |
 | 4.4 | Drop `--font-size-2xs` and `--font-size-md` from new code paths; keep as legacy aliases for unmigrated callers | `app.css` | ✅ |
 | 4.5 | Audit and add **back-compat shims** for the still-referenced legacy tokens (`--gradient-*`, `--shadow-glow-*`, `--glass-blur-*`, `--sentiment-{view}-icon-bg`, `--color-tertiary-*`). Resolves to the editorial vocabulary — no exhaustive sweep required. | `app.css` | ✅ |
-| 4.6 _(deferred)_ | Move `.filter-chip` base out of `app.css` into `FilterChip.svelte` (currently duplicated) | — | ⏸ |
-| 4.7 _(deferred)_ | Article tables: monospace eyebrow column headers, no gradient row hover | `ArticleTable.svelte`, `ComparisonTable.svelte` | ⏸ — table chrome already cleaned in Phase 1.11 (flat surfaces); the column-header monospace polish is the remaining piece |
+| 4.6 | Remove the duplicated global `.filter-chip` base + 16 sentiment variants from `app.css`; the component-scoped copies (`FilterChip.svelte`, `DiscrepancyFilter.svelte`) are the single source | `app.css` | ✅ — the old global copy had already drifted (full color vs `-border` token) |
+| 4.7 | Data-table column headers get the monospace eyebrow: added `font-mono` to the global `.table th` (single source for all three tables) and removed the per-component duplicates that caused an unstable specificity tie; added a subordinate `.col-subhead` for ComparisonTable's model-name sub-row | `app.css`, `ArticleTable.svelte`, `ComparisonTable.svelte` | ✅ |
 | 4.8 _(was: badge consolidation)_ | Consolidate sentiment badge classes via `[data-polarity]` attribute selectors | — | ⏸ — would require touching every caller; deferred until next refactor of `SentimentBadge.svelte` |
 
 ## Deferred work
 
-### 3.3–3.5 — Filter rail layout
+### 4.8 — Sentiment badge class consolidation
 
-The biggest remaining structural change. Current state: filters live in a top accordion above the chart, opened by default. To shift to investigative-journalism layout, we'd want:
+The last remaining roadmap item. Consolidate `.sentiment-{value}` / `.subjectivity-{n}` / `.centrality-{value}` classes (currently 16 individual classes × 3 places: `SentimentBadge.svelte`, `FilterChip.svelte`, and the standalone globals in `app.css`) into a single `.sentiment-badge` with `[data-polarity]` / `[data-subjectivity]` / `[data-centrality]` attribute selectors. Requires touching every caller, so deferred until the next refactor of `SentimentBadge.svelte`.
 
-- **Page container as 2-column grid** (filter rail 320px / content 1fr) on viewport ≥1024px
-- **`FiltersPanel`** moves from a wide accordion into the rail; sticky position so it stays visible when scrolling
-- **Drop the CSS-columns masonry** layout in favour of stacked filter cards
-- **Drop the `max-w-6xl mx-auto` container** — let content go wider once the rail is reclaimed
-- Need to special-case `arbiter` and `comparison` views (they don't use `FiltersPanel` at all — comparison uses its own internal filters, arbiter has no filter panel)
-- Mobile (<1024px) keeps the accordion but should reposition it to a slide-out drawer triggered from the AppHeader
-
-Risk: medium. Touches `+page.svelte`, `FiltersPanel.svelte`, breakpoint logic, and the interplay with `SidebarNav` (already at the left edge). Test all 9 views + FR/EN + 3 datasets + 3 viewports before merging.
-
-### 4.6, 4.7, 4.8 — Smaller polish items
-
-- **4.6** Move `.filter-chip` base CSS out of `app.css` and into `FilterChip.svelte` (currently duplicated — touching one without the other introduces drift).
-- **4.7** Apply monospace eyebrow column headers to `ArticleTable` / `ComparisonTable`. Surface chrome already flattened in Phase 1.11; only the header typography remains.
-- **4.8** Consolidate `.sentiment-{value}` / `.subjectivity-{n}` / `.centrality-{value}` classes (currently 16 individual classes × 3 places) into a single `.sentiment-badge` with `[data-polarity]` / `[data-subjectivity]` / `[data-centrality]` attribute selectors. Requires touching every caller.
+> **3.3–3.5 (filter rail) and 4.6/4.7 (polish) have landed** — see the phase tables above.
 
 ### Back-compat shims to migrate off
 
@@ -156,4 +143,4 @@ Plus a visual sanity pass on `localhost:5173`:
 
 ---
 
-_Roadmap last updated: 2026-05-08 — Phases 0, 1, 2, 3.1, 3.2, 4.1–4.5 landed; 3.3–3.5 and 4.6–4.8 deferred (see "Deferred work" above)._
+_Roadmap last updated: 2026-05-29 — Phases 0, 1, 2, all of 3, and 4.1–4.7 landed; only 4.8 (badge-class consolidation) and the back-compat shim migration remain (see "Deferred work" above)._
