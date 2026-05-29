@@ -6,7 +6,7 @@
  */
 
 import type { ArbiterEvaluationData, ArbiterAnalysis, ModelPair } from '$lib/types/data';
-import { getModelsFromPair } from '$lib/types/data';
+import { getPairModelNames } from '$lib/types/data';
 import { base } from '$app/paths';
 import { datasetState, uiState } from './index';
 
@@ -107,11 +107,7 @@ export interface ArbiterStatistics {
 
 /** Compute arbiter statistics */
 function computeArbiterStatistics(): ArbiterStatistics {
-	const pair = datasetState.pair;
-	const datasets = datasetState.available;
-	const [modelAId, modelBId] = getModelsFromPair(pair);
-	const modelAName = datasets.find((d) => d.id === modelAId)?.name || modelAId;
-	const modelBName = datasets.find((d) => d.id === modelBId)?.name || modelBId;
+	const { modelAName, modelBName } = getPairModelNames(datasetState.pair, datasetState.available);
 
 	if (
 		!_arbiterEvaluations ||

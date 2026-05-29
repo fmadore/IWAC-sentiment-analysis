@@ -6,7 +6,7 @@
 	import { t } from '$lib/i18n';
 	import { DatasetBadge } from '$lib/components/ui';
 	import { SentimentBadge } from '$lib/components/common';
-	import { updateURL } from '$lib/urlState';
+	import { updateURL } from '$lib/stores/url';
 	import { innerWidth } from 'svelte/reactivity/window';
 	import { createPagination } from '$lib/utils/pagination.svelte';
 

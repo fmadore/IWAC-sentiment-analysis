@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { comparisonState, arbiterStatistics, datasetState } from '$lib/stores';
-	import { getModelsFromPair } from '$lib/types/data';
+	import { getPairModelNames } from '$lib/types/data';
 	import { t } from '$lib/i18n';
 	import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
 	import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
@@ -15,13 +15,7 @@
 	const arbiterStats = $derived(arbiterStatistics.current);
 
 	// Get dynamic model names from current comparison pair
-	const modelNames = $derived.by(() => {
-		const [modelAId, modelBId] = getModelsFromPair(datasetState.pair);
-		const datasets = datasetState.available;
-		const modelAName = datasets.find((d) => d.id === modelAId)?.name || modelAId;
-		const modelBName = datasets.find((d) => d.id === modelBId)?.name || modelBId;
-		return { modelAName, modelBName };
-	});
+	const modelNames = $derived(getPairModelNames(datasetState.pair, datasetState.available));
 
 	// Create dynamic tooltip text with actual model names
 	const dynamicTooltips = $derived.by(() => {

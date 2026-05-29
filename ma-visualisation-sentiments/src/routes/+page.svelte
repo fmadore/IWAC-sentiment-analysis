@@ -32,7 +32,7 @@
 		clearSelectedArticle,
 		clearSelectedArticleOnly,
 		handlePendingArticleSelection
-	} from '$lib/urlState';
+	} from '$lib/stores/url';
 
 	// Application state
 	let detailedArticle: Article | null = $state(null);

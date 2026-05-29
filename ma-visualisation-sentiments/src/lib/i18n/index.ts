@@ -41,7 +41,7 @@ function createLanguageStore() {
 			// Update URL when language changes (avoid circular imports by using dynamic import)
 			// Only update URL if this is a user-initiated change (not during initialization)
 			if (browser && languageInitialized) {
-				import('../urlState.js').then(({ updateURL }) => {
+				import('../stores/url/index.js').then(({ updateURL }) => {
 					updateURL(undefined, true);
 				});
 			}

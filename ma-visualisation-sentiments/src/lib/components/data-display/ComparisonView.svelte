@@ -17,7 +17,7 @@
 		updateURL,
 		handlePendingComparisonArticleSelection,
 		clearSelectedComparison
-	} from '$lib/urlState';
+	} from '$lib/stores/url';
 	import { onMount } from 'svelte';
 
 	const hasData = $derived(comparisonState.filtered.length > 0);

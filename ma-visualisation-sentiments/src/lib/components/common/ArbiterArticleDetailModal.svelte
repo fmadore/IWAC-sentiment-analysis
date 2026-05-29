@@ -9,7 +9,7 @@
 <script lang="ts">
 	import type { ArbiterAnalysis } from '$lib/types/data';
 	import { comparisonState, datasetState } from '$lib/stores';
-	import { getModelsFromPair } from '$lib/types/data';
+	import { getPairModelNames } from '$lib/types/data';
 	import { t } from '$lib/i18n';
 	import { getJournalName } from '$lib/utils';
 	import { formatDate, getArticleUrl } from '$lib/utils/format';
@@ -37,13 +37,7 @@
 	});
 
 	// Get model names
-	const modelNames = $derived.by(() => {
-		const [modelAId, modelBId] = getModelsFromPair(datasetState.pair);
-		const datasets = datasetState.available;
-		const modelAName = datasets.find((d) => d.id === modelAId)?.name || modelAId;
-		const modelBName = datasets.find((d) => d.id === modelBId)?.name || modelBId;
-		return { modelAName, modelBName };
-	});
+	const modelNames = $derived(getPairModelNames(datasetState.pair, datasetState.available));
 
 	const modalTitle = $derived(
 		comparison?.article['o:title'] ||

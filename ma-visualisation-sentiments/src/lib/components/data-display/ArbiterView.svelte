@@ -22,7 +22,7 @@
 		uiState,
 		datasetState
 	} from '$lib/stores';
-	import { getModelsFromPair } from '$lib/types/data';
+	import { getPairModelNames } from '$lib/types/data';
 	import { t } from '$lib/i18n';
 	import { ChartCard } from '$lib/components/ui';
 	import ModelPairPicker from '$lib/components/ui/ModelPairPicker.svelte';
@@ -63,13 +63,7 @@
 	let cleanupArbiter: (() => void) | null = $state(null);
 
 	// Get model names from current pair
-	const modelNames = $derived.by(() => {
-		const [modelAId, modelBId] = getModelsFromPair(datasetState.pair);
-		const datasets = datasetState.available;
-		const modelAName = datasets.find((d) => d.id === modelAId)?.name || modelAId;
-		const modelBName = datasets.find((d) => d.id === modelBId)?.name || modelBId;
-		return { modelAName, modelBName };
-	});
+	const modelNames = $derived(getPairModelNames(datasetState.pair, datasetState.available));
 
 	// Check if we have arbiter data
 	const hasData = $derived(

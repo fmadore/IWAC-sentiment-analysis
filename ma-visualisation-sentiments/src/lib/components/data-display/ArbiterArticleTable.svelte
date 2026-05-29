@@ -12,7 +12,7 @@
 -->
 <script lang="ts">
 	import { arbiterEvaluations, comparisonState, datasetState } from '$lib/stores';
-	import { getModelsFromPair, type ArbiterAnalysis } from '$lib/types/data';
+	import { getPairModelNames, type ArbiterAnalysis } from '$lib/types/data';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { getJournalName } from '$lib/utils';
 	import { ArbiterCSVExportButton } from '$lib/components/ui';
@@ -52,13 +52,7 @@
 	});
 
 	// Get model names
-	const modelNames = $derived.by(() => {
-		const [modelAId, modelBId] = getModelsFromPair(datasetState.pair);
-		const datasets = datasetState.available;
-		const modelAName = datasets.find((d) => d.id === modelAId)?.name || modelAId;
-		const modelBName = datasets.find((d) => d.id === modelBId)?.name || modelBId;
-		return { modelAName, modelBName };
-	});
+	const modelNames = $derived(getPairModelNames(datasetState.pair, datasetState.available));
 
 	// Build article data by joining arbiter evaluations with comparison data
 	interface ArticleWithArbiter {

@@ -15,18 +15,12 @@
 	import { getJournalName } from '$lib/utils';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
-	import { getModelsFromPair, type ArbiterEvaluationData } from '$lib/types/data';
+	import { getPairModelNames, type ArbiterEvaluationData } from '$lib/types/data';
 	import { escapeCSVField, formatDateForCSV } from '$lib/utils/csv';
 	import CsvDownloadButton from './CsvDownloadButton.svelte';
 
 	// Get model names from current pair
-	const modelNames = $derived.by(() => {
-		const [modelAId, modelBId] = getModelsFromPair(datasetState.pair);
-		const datasets = datasetState.available;
-		const modelAName = datasets.find((d) => d.id === modelAId)?.name || modelAId;
-		const modelBName = datasets.find((d) => d.id === modelBId)?.name || modelBId;
-		return { modelAName, modelBName };
-	});
+	const modelNames = $derived(getPairModelNames(datasetState.pair, datasetState.available));
 
 	// Uses getActualModelName to correctly map arbiter's blind model_a/model_b
 	// to actual model names (arbiter_model_a/arbiter_model_b from metadata).

@@ -15,7 +15,7 @@
   <ArbiterSection articleId={article['o:id']} />
 -->
 <script lang="ts">
-	import { getModelsFromPair } from '$lib/types/data';
+	import { getPairModelNames } from '$lib/types/data';
 	import { SentimentBadge } from '$lib/components/common';
 	import { t } from '$lib/i18n';
 	import {
@@ -51,13 +51,7 @@
 	const arbiterData = $derived(getArbiterForArticle(articleId));
 
 	// Get model names from the current comparison pair
-	const modelNames = $derived.by(() => {
-		const [modelAId, modelBId] = getModelsFromPair(datasetState.pair);
-		const datasets = datasetState.available;
-		const modelAName = datasets.find((d) => d.id === modelAId)?.name || modelAId;
-		const modelBName = datasets.find((d) => d.id === modelBId)?.name || modelBId;
-		return { modelAName, modelBName };
-	});
+	const modelNames = $derived(getPairModelNames(datasetState.pair, datasetState.available));
 
 	// Get preferred model label using dynamic model names
 	// Uses getActualModelName which maps arbiter's model_a/model_b to actual model names via arbiter_model_a/b metadata

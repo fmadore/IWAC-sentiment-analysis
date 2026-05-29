@@ -64,6 +64,21 @@ export function getModelsFromPair(pair: ModelPair): [string, string] {
 	}
 }
 
+/**
+ * Resolve the display names for both models in a comparison pair.
+ * Falls back to the model id when no matching dataset is found.
+ */
+export function getPairModelNames(
+	pair: ModelPair,
+	datasets: { id: string; name: string }[]
+): { modelAName: string; modelBName: string } {
+	const [modelAId, modelBId] = getModelsFromPair(pair);
+	return {
+		modelAName: datasets.find((d) => d.id === modelAId)?.name || modelAId,
+		modelBName: datasets.find((d) => d.id === modelBId)?.name || modelBId
+	};
+}
+
 export interface ComparisonData {
 	article: Article;
 	/** Model A sentiment analysis (first model in pair) */

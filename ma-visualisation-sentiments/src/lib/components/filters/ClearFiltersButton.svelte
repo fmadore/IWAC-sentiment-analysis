@@ -1,6 +1,6 @@
 <script lang="ts">
 	import FilterXIcon from '@lucide/svelte/icons/filter-x';
-	import { clearAllFilters } from '$lib/urlState';
+	import { clearAllFilters } from '$lib/stores/url';
 	import { filterState } from '$lib/stores';
 	import { t } from '$lib/i18n';
 
