@@ -110,7 +110,10 @@
 				legend: {
 					...getLegendConfig(isMobile),
 					data: newspaperList,
-					top: isMobile ? '12%' : '8%'
+					// Pie keeps its legend at the top. Reset `bottom` to 'auto' (the bar
+					// variant anchors it to the bottom) so toggling bar→pie moves it back up.
+					top: isMobile ? '12%' : '8%',
+					bottom: 'auto'
 				},
 				series: [
 					{
@@ -180,8 +183,12 @@
 				legend: {
 					...getLegendConfig(isMobile),
 					data: newspaperList,
-					bottom: isMobile ? '8%' : undefined,
-					top: isMobile ? undefined : '8%'
+					// Mobile: anchor the horizontal legend to the bottom (the grid
+					// reserves space for it). Desktop: keep it at the top. Both anchors
+					// are explicit ('auto' neutralises the unused side) so the legend
+					// repositions cleanly when the viewport crosses the 768px breakpoint.
+					top: isMobile ? 'auto' : '8%',
+					bottom: isMobile ? 0 : 'auto'
 				},
 				grid: getGridConfig(isMobile, {
 					hasLegendTop: !isMobile,

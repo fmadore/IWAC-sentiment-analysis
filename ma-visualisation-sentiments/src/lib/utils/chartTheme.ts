@@ -242,8 +242,14 @@ export function getLegendConfig(
 			fontFamily: '"Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
 		},
 		type: 'scroll' as const,
-		orient: isMobile && orientation === 'horizontal' ? 'vertical' : orientation,
-		left: isMobile ? 'right' : 'center',
+		show: true,
+		// Keep the legend HORIZONTAL and centered on mobile so callers can anchor it
+		// along the BOTTOM (via `bottom`) and the plot keeps the full width. The old
+		// behaviour flipped mobile legends to a vertical column pinned to the right,
+		// which ate ~40% of the width and squashed the chart. An explicit
+		// `orientation` argument is still honoured if a caller needs vertical.
+		orient: orientation,
+		left: 'center',
 		itemWidth: isMobile ? 12 : 20,
 		itemHeight: isMobile ? 8 : 12,
 		itemGap: isMobile ? 8 : 12,

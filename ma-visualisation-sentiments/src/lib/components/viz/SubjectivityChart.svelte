@@ -185,8 +185,12 @@
 				legend: {
 					...getLegendConfig(isMobile),
 					data: newspaperList,
-					bottom: isMobile ? '8%' : undefined,
-					top: isMobile ? undefined : '8%'
+					// Mobile: anchor the horizontal legend to the bottom (the grid
+					// reserves space for it). Desktop: keep it at the top. Both anchors
+					// are explicit ('auto' neutralises the unused side) so the legend
+					// repositions cleanly when the viewport crosses the 768px breakpoint.
+					top: isMobile ? 'auto' : '8%',
+					bottom: isMobile ? 0 : 'auto'
 				},
 				grid: getGridConfig(isMobile, {
 					hasLegendTop: !isMobile,
