@@ -1,8 +1,24 @@
 // Service Worker for IWAC Sentiment Analysis PWA
-// Provides caching and offline functionality
+// Provides caching and offline functionality.
+//
+// IMPORTANT — cache strategy:
+//   • The HTML app shell is served NETWORK-FIRST. It must always be the latest,
+//     because it references content-hashed /_app/ chunk URLs. Serving a stale
+//     shell makes the browser load chunk hashes the server no longer has (or a
+//     mismatched mix), which surfaces as "X is not a constructor" at runtime.
+//   • Content-hashed build assets (/_app/, icons) are immutable, so cache-first
+//     is correct for them.
+//   • SW_VERSION is replaced at build time (see scripts/stamp-sw.mjs). Because it
+//     changes every deploy, this file's bytes change too, so the browser detects
+//     the updated worker and the old per-deploy caches are purged on activate.
 
-const CACHE_NAME = 'iwac-sentiment-analysis-v4';
-const STATIC_CACHE_NAME = 'iwac-static-v4';
+const SW_VERSION = '__BUILD_VERSION__';
+
+// App-shell + build assets change every deploy → version these per build so old
+// copies are purged. The data JSON is large and network-first, so keep its cache
+// stable to avoid re-downloading the whole corpus on every deploy.
+const STATIC_CACHE_NAME = `iwac-static-${SW_VERSION}`;
+const CACHE_NAME = `iwac-runtime-${SW_VERSION}`;
 const DATA_CACHE_NAME = 'iwac-data-v4';
 
 // Get base path for GitHub Pages deployment
@@ -10,9 +26,12 @@ const BASE_PATH = self.location.pathname.includes('/IWAC-sentiment-analysis')
 	? '/IWAC-sentiment-analysis'
 	: '';
 
-// Files to cache immediately on install
+// App-shell URL, served network-first and kept as the offline navigation fallback.
+const APP_SHELL = `${BASE_PATH}/`;
+
+// Files to cache on install (app shell first, then small static assets).
 const STATIC_FILES = [
-	`${BASE_PATH}/`,
+	APP_SHELL,
 	`${BASE_PATH}/favicon.png`,
 	`${BASE_PATH}/manifest.json`,
 	`${BASE_PATH}/browserconfig.xml`,
@@ -37,79 +56,80 @@ const DATA_FILES_PRIORITY = [
 	`${BASE_PATH}/data/iwac_extreme_analysis_mistral.json`
 ];
 
-// Legacy DATA_FILES for backward compatibility
+// Legacy alias kept for the background-sync helper below.
 const DATA_FILES = DATA_FILES_PRIORITY;
 
-// Install event - cache static files first, then data files progressively
+// Install event - cache static files (tolerantly), then data files progressively.
 self.addEventListener('install', (event) => {
-	console.log('[SW] Installing...');
+	console.log('[SW] Installing', SW_VERSION);
 
 	event.waitUntil(
 		(async () => {
-			// Step 1: Cache static files immediately (critical for app shell)
+			// Step 1: Cache static files. Do it tolerantly (per-file) so one missing
+			// asset can never fail the whole install — a failed install would leave
+			// the OLD worker in control and the stale cache unfixed.
 			const staticCache = await caches.open(STATIC_CACHE_NAME);
-			console.log('[SW] Caching static files');
-			await staticCache.addAll(STATIC_FILES);
+			await Promise.all(
+				STATIC_FILES.map(async (file) => {
+					try {
+						// `reload` bypasses the HTTP cache so the shell we store is fresh.
+						const response = await fetch(file, { cache: 'reload' });
+						if (response.ok) {
+							await staticCache.put(file, response);
+						} else {
+							console.log(`[SW] Skipped (not ok): ${file}`);
+						}
+					} catch (error) {
+						console.log(`[SW] Could not cache: ${file}`, error.message);
+					}
+				})
+			);
 
-			// Step 2: Cache data files progressively by priority
-			// This allows the service worker to activate faster while still caching data
+			// Step 2: Cache data files progressively by priority (also tolerant).
 			const dataCache = await caches.open(DATA_CACHE_NAME);
-			console.log('[SW] Caching data files progressively');
-
-			// Cache each data file individually, don't fail if one fails
 			for (const dataFile of DATA_FILES_PRIORITY) {
 				try {
 					const response = await fetch(dataFile);
 					if (response.ok) {
 						await dataCache.put(dataFile, response);
-						console.log(`[SW] Cached: ${dataFile}`);
-					} else {
-						console.log(`[SW] Skipped (not found): ${dataFile}`);
 					}
 				} catch (error) {
-					// Don't fail installation if a data file can't be cached
-					// The file might not exist yet (e.g., arbiter evaluations)
 					console.log(`[SW] Could not cache: ${dataFile}`, error.message);
 				}
 			}
 
 			console.log('[SW] Installation complete');
-			// Skip waiting to activate immediately
+			// Activate immediately; PWAManager also messages SKIP_WAITING on update.
 			return self.skipWaiting();
 		})()
 	);
 });
 
-// Activate event - clean up old caches
+// Activate event - delete any cache that isn't part of this version's set.
 self.addEventListener('activate', (event) => {
-	console.log('[SW] Activating...');
+	console.log('[SW] Activating', SW_VERSION);
 
 	event.waitUntil(
-		caches
-			.keys()
-			.then((cacheNames) => {
-				return Promise.all(
-					cacheNames.map((cacheName) => {
-						if (
-							cacheName !== STATIC_CACHE_NAME &&
-							cacheName !== DATA_CACHE_NAME &&
-							cacheName !== CACHE_NAME
-						) {
-							console.log('[SW] Deleting old cache:', cacheName);
-							return caches.delete(cacheName);
-						}
-					})
-				);
-			})
-			.then(() => {
-				console.log('[SW] Activation complete');
-				// Take control of all pages immediately
-				return self.clients.claim();
-			})
+		(async () => {
+			const keep = new Set([STATIC_CACHE_NAME, CACHE_NAME, DATA_CACHE_NAME]);
+			const cacheNames = await caches.keys();
+			await Promise.all(
+				cacheNames.map((cacheName) => {
+					if (!keep.has(cacheName)) {
+						console.log('[SW] Deleting old cache:', cacheName);
+						return caches.delete(cacheName);
+					}
+					return undefined;
+				})
+			);
+			console.log('[SW] Activation complete');
+			// Take control of all open pages immediately.
+			return self.clients.claim();
+		})()
 	);
 });
 
-// Fetch event - serve from cache when offline
+// Fetch event
 self.addEventListener('fetch', (event) => {
 	const { request } = event;
 	const url = new URL(request.url);
@@ -134,8 +154,8 @@ self.addEventListener('fetch', (event) => {
 		return;
 	}
 
-	// Skip cross-origin requests that we can't cache
-	// Use exact hostname matching to prevent subdomain attacks
+	// Skip cross-origin requests that we can't cache.
+	// Use exact hostname matching to prevent subdomain attacks.
 	const allowedExternalHosts = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 	const isAllowedExternalHost = allowedExternalHosts.some(
 		(host) => url.hostname === host || url.hostname.endsWith('.' + host)
@@ -144,36 +164,39 @@ self.addEventListener('fetch', (event) => {
 		return;
 	}
 
-	// Handle data files with network-first strategy
-	// Check if the pathname contains any of our data file names
+	// 1) HTML / navigation → NETWORK-FIRST. This must come before the static rule:
+	//    the app shell must always be the latest so its hashed chunk references
+	//    match what the server actually serves. Falls back to the cached shell
+	//    when offline.
+	if (request.mode === 'navigate') {
+		event.respondWith(networkFirstStrategy(request, CACHE_NAME, APP_SHELL));
+		return;
+	}
+
+	// 2) Data files → network-first (fresh data when online, cached fallback offline)
 	const isDataFile =
 		url.pathname.includes('/data/') &&
 		(url.pathname.includes('iwac_articles_') ||
 			url.pathname.includes('iwac_arbiter_evaluations_') ||
 			url.pathname.includes('iwac_extreme_analysis_'));
-
 	if (isDataFile) {
 		event.respondWith(networkFirstStrategy(request, DATA_CACHE_NAME));
 		return;
 	}
 
-	// Handle static files with cache-first strategy
-	if (
-		STATIC_FILES.some((file) => url.pathname === file || url.pathname.endsWith(file)) ||
-		url.pathname.includes('/icons/') ||
-		url.pathname.includes('/_app/')
-	) {
+	// 3) Content-hashed build assets + icons + small static images → cache-first.
+	//    These are immutable (hashed filenames), so cache-first is safe and fast.
+	//    The app shell ('/') is intentionally excluded — it's handled above.
+	const isImmutableAsset = url.pathname.includes('/_app/') || url.pathname.includes('/icons/');
+	const isStaticAsset = STATIC_FILES.some(
+		(file) => file !== APP_SHELL && (url.pathname === file || url.pathname.endsWith(file))
+	);
+	if (isImmutableAsset || isStaticAsset) {
 		event.respondWith(cacheFirstStrategy(request, STATIC_CACHE_NAME));
 		return;
 	}
 
-	// Handle navigation requests (HTML pages)
-	if (request.mode === 'navigate') {
-		event.respondWith(networkFirstStrategy(request, CACHE_NAME, `${BASE_PATH}/`));
-		return;
-	}
-
-	// For all other requests, try network first, then cache
+	// 4) Everything else → network-first, cache fallback.
 	event.respondWith(networkFirstStrategy(request, CACHE_NAME));
 });
 
@@ -198,7 +221,7 @@ async function networkFirstStrategy(request, cacheName, fallbackUrl = null) {
 		console.log('[SW] Network failed for:', request.url);
 	}
 
-	// Network failed, try cache
+	// Network failed, try cache (searches all caches)
 	const cachedResponse = await caches.match(request);
 	if (cachedResponse) {
 		return cachedResponse;
@@ -223,11 +246,11 @@ async function networkFirstStrategy(request, cacheName, fallbackUrl = null) {
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1">
           <style>
-            body { 
+            body {
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              text-align: center; 
-              padding: 2rem; 
-              background: #0f172a; 
+              text-align: center;
+              padding: 2rem;
+              background: #0f172a;
               color: #e2e8f0;
             }
             .container {

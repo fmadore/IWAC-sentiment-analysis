@@ -9,8 +9,9 @@
 		periodicSync?: { register(tag: string, options: { minInterval: number }): Promise<void> };
 	}
 
-	let updateAvailable = $state(false);
 	let registration = $state<ExtendedServiceWorkerRegistration | null>(null);
+	// Guards against a reload loop when the new worker takes control.
+	let refreshing = false;
 
 	onMount(async () => {
 		if (!browser || !('serviceWorker' in navigator)) {
@@ -36,29 +37,38 @@
 			// Ensure basePath ends with a slash for proper URL construction
 			const basePath = base ? (base.endsWith('/') ? base : `${base}/`) : '/';
 			registration = (await navigator.serviceWorker.register(`${basePath}sw.js`, {
-				scope: basePath
+				scope: basePath,
+				// Always revalidate the worker script against the network so a new
+				// deploy is detected immediately (never served from the HTTP cache).
+				updateViaCache: 'none'
 			})) as ExtendedServiceWorkerRegistration;
 
 			console.log('Service Worker registered successfully:', registration);
 
-			// Listen for updates
+			// When a new worker finishes installing, apply it right away. The active
+			// view/dataset/filters live in the URL, so the reload below restores state.
 			registration.addEventListener('updatefound', () => {
 				const newWorker = registration?.installing;
 				if (newWorker) {
 					newWorker.addEventListener('statechange', () => {
 						if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-							// New content is available
-							updateAvailable = true;
+							newWorker.postMessage({ type: 'SKIP_WAITING' });
 						}
 					});
 				}
 			});
 
-			// Listen for controlling service worker changes
+			// A new worker took control → reload once to run the latest assets.
 			navigator.serviceWorker.addEventListener('controllerchange', () => {
-				// A new service worker has taken control
+				if (refreshing) return;
+				refreshing = true;
 				window.location.reload();
 			});
+
+			// A worker updated on a previous visit may already be waiting — apply it.
+			if (registration.waiting && navigator.serviceWorker.controller) {
+				registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+			}
 
 			// Request background sync permission (if supported)
 			if ('sync' in window.ServiceWorkerRegistration.prototype && registration?.sync) {
@@ -91,76 +101,7 @@
 			console.error('Service Worker registration failed:', error);
 		}
 	});
-
-	function updateApp() {
-		if (registration?.waiting) {
-			registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-		}
-	}
 </script>
 
-<!-- Update notification -->
-{#if updateAvailable}
-	<div class="fixed bottom-4 right-4 z-50">
-		<div class="pwa-update-banner">
-			<div class="flex-1">
-				<p class="pwa-update-title">Update Available</p>
-				<p class="pwa-update-detail">A new version of the app is ready.</p>
-			</div>
-			<button onclick={updateApp} class="pwa-update-button">Update</button>
-		</div>
-	</div>
-{/if}
-
-<style>
-	.pwa-update-banner {
-		display: flex;
-		align-items: center;
-		gap: var(--space-3);
-		padding: var(--space-3) var(--space-4);
-		background: var(--surface-card-elevated);
-		border: 1px solid var(--border-default);
-		border-top: 2px solid var(--accent);
-		box-shadow: var(--shadow-lg);
-		max-width: 24rem;
-	}
-
-	.pwa-update-title {
-		font-family: var(--font-mono);
-		font-size: 0.6875rem;
-		font-weight: 600;
-		letter-spacing: 0.14em;
-		text-transform: uppercase;
-		color: var(--accent);
-		margin: 0 0 var(--space-1);
-	}
-
-	.pwa-update-detail {
-		font-family: var(--font-sans);
-		font-size: var(--font-size-sm);
-		color: var(--text-secondary);
-		margin: 0;
-	}
-
-	.pwa-update-button {
-		flex-shrink: 0;
-		background: transparent;
-		border: 1px solid var(--accent);
-		color: var(--accent);
-		font-family: var(--font-mono);
-		font-size: 0.75rem;
-		font-weight: 600;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		padding: var(--space-2) var(--space-3);
-		cursor: pointer;
-		transition:
-			background-color var(--timing-fast) var(--easing-default),
-			color var(--timing-fast) var(--easing-default);
-	}
-
-	.pwa-update-button:hover {
-		background: var(--accent);
-		color: var(--app-bg);
-	}
-</style>
+<!-- No UI: service-worker updates are applied automatically (see updatefound /
+     controllerchange handlers above), so there is no manual "update" banner. -->

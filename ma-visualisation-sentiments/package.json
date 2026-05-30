@@ -20,6 +20,7 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build && npm run prepack",
+		"postbuild": "node scripts/stamp-sw.mjs",
 		"preview": "vite preview",
 		"deploy": "npm run build && npx gh-pages -d build -t",
 		"prepare": "svelte-kit sync || echo ''",
