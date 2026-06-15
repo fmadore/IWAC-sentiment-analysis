@@ -107,7 +107,7 @@
 		}
 	},
 	"dependencies": {
-		"@lucide/svelte": "^1.17.0",
+		"@lucide/svelte": "^1.18.0",
 		"@skeletonlabs/skeleton-svelte": "^4.15.2",
 		"@sveltejs/kit": "^2.65.1",
 		"echarts": "^6.1.0",
