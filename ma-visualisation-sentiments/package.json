@@ -109,7 +109,7 @@
 	"dependencies": {
 		"@lucide/svelte": "^1.18.0",
 		"@skeletonlabs/skeleton-svelte": "^4.15.2",
-		"@sveltejs/kit": "^2.65.1",
+		"@sveltejs/kit": "^2.66.0",
 		"echarts": "^6.1.0",
 		"esm-env": "^1.2.2",
 		"openseadragon": "^6.0.2",
