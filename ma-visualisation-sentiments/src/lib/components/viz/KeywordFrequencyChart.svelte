@@ -10,7 +10,8 @@
 		getTooltipConfig,
 		getAxisLineStyle,
 		getAxisLabelStyle,
-		getSplitLineStyle
+		getSplitLineStyle,
+		chartColors
 	} from '$lib/utils/chartTheme';
 
 	// ECharts imports
@@ -85,7 +86,7 @@
 				axisPointer: {
 					type: 'shadow',
 					shadowStyle: {
-						color: 'rgba(255, 255, 255, 0.05)'
+						color: chartColors.axis.pointerShadowNeutral
 					}
 				},
 				formatter: createSimpleTooltipFormatter({
@@ -111,7 +112,7 @@
 				data: reversedData.map((item) => item.keyword),
 				axisLabel: {
 					...getAxisLabelStyle(isMobile),
-					color: 'rgba(255, 255, 255, 0.9)',
+					color: chartColors.text.secondary,
 					interval: 0,
 					// Allow larger labels; only ellipsize if still too long for computed width.
 					formatter: (value: string) => {
@@ -140,14 +141,14 @@
 					data: reversedData.map((item) => ({
 						value: item.count,
 						itemStyle: {
-							color: categoryConfig?.color || '#E3AD4B',
+							color: categoryConfig?.color || chartColors.chrome.accent,
 							borderRadius: 0
 						}
 					})),
 					emphasis: {
 						focus: 'series' as const,
 						itemStyle: {
-							borderColor: '#F3F5F9',
+							borderColor: chartColors.text.primary,
 							borderWidth: 1
 						}
 					},
@@ -193,6 +194,8 @@
 	<div
 		style="height: {isMobile ? '400px' : '500px'}; position: relative;"
 		class="chart-container extreme-chart-container p-2 sm:p-4"
+		role="img"
+		aria-label={$t.extremeAnalysis.topKeywords}
 	>
 		<Chart {init} {options} />
 	</div>

@@ -1,7 +1,9 @@
 <!--
-  VolumeChart Component
+  TrendsChart Component
 
-  Yearly article volume per country, as stacked areas or plain lines.
+  Shared line chart of yearly counts per sentiment-dimension bucket.
+  SentimentTrendsChart and SubjectivityTrendsChart are thin wrappers that
+  supply the dimension configuration (buckets, colors, labels).
 -->
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
@@ -10,18 +12,15 @@
 	import { innerWidth } from 'svelte/reactivity/window';
 
 	import { articleState } from '$lib/stores';
+	import type { Article } from '$lib/types/data';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { formatNumber } from '$lib/i18n/utils';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
-	import ChartTypeToggle from './ChartTypeToggle.svelte';
-	import AreaChartIcon from '@lucide/svelte/icons/area-chart';
-	import LineChartIcon from '@lucide/svelte/icons/line-chart';
 	import { createTrendTooltipFormatter } from '$lib/utils/chartFormatters';
-	import { aggregateByCountryAndYear } from '$lib/utils/chartAggregators';
+	import { aggregateByYearAndDimension } from '$lib/utils/chartAggregators';
 
 	// Import centralized chart theme
 	import {
-		seriesColorPalette,
 		getTitleStyle,
 		getTooltipConfig,
 		getLegendConfig,
@@ -32,39 +31,59 @@
 		getCountYAxis,
 		getDataZoomConfig,
 		getLineSeriesStyle,
-		getEmphasisConfig,
-		getUniversalTransitionConfig
+		getEmphasisConfig
 	} from '$lib/utils/chartTheme';
+
+	interface TrendsChartProps {
+		/** French dimension labels used as data-lookup keys, in series order */
+		frenchLabels: string[];
+		/** Translated series names (same order as frenchLabels) */
+		seriesLabels: string[];
+		/** Translated legend entries */
+		legendData: string[];
+		/** Resolve an article to its French dimension label, or null to skip it */
+		getKey: (article: Article) => string | null;
+		/** Line color for a French dimension label */
+		getColor: (frenchLabel: string, index: number) => string;
+		/** Translated chart title, e.g. t.charts.sentimentTrends */
+		title: string;
+		/** Accessible description of the rendered chart */
+		ariaLabel: string;
+	}
+
+	let {
+		frenchLabels,
+		seriesLabels,
+		legendData,
+		getKey,
+		getColor,
+		title,
+		ariaLabel
+	}: TrendsChartProps = $props();
 
 	// Reactive window width for responsive behavior
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
-	let chartType = $state<'area' | 'line'>('area');
 
+	// Use $derived for proper reactivity in Svelte 5
 	let options = $derived.by(() => {
-		const articles = articleState.filtered;
+		const articles = articleState.filtered; // Direct reactive dependency
 		const currentT = $t; // Capture current translations for reactive updates
 		const currentLang = $currentLanguage; // Capture current language for reactive updates
 
-		const { countryYearCounts, countries, years, articlesAnalyzed } =
-			aggregateByCountryAndYear(articles);
+		const { yearlyCounts, years, articlesAnalyzed } = aggregateByYearAndDimension(
+			articles,
+			frenchLabels,
+			getKey
+		);
 
-		const series = countries.map((country, index) => {
-			const color = seriesColorPalette[index % seriesColorPalette.length];
+		const series = frenchLabels.map((frenchLabel, index) => {
+			const color = getColor(frenchLabel, index);
 			const lineStyle = getLineSeriesStyle(isMobile, color);
 			return {
-				name: country,
+				name: seriesLabels[index],
 				type: 'line' as const,
-				stack: chartType === 'area' ? 'total' : undefined,
-				areaStyle:
-					chartType === 'area'
-						? {
-								opacity: 0.4
-							}
-						: undefined,
 				emphasis: getEmphasisConfig(),
-				...getUniversalTransitionConfig(),
-				id: `volume-${index}`,
-				data: years.map((year) => countryYearCounts[country][year] || 0),
+				data: years.map((year) => yearlyCounts[year][frenchLabel] || 0),
 				color,
 				...lineStyle,
 				smooth: true
@@ -76,7 +95,7 @@
 		return {
 			backgroundColor: 'transparent',
 			title: {
-				text: `${currentT.charts.volumeByCountry} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.common.articles})`,
+				text: `${title} ${currentT.charts.byYear} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.charts.articlesAnalyzed})`,
 				left: 'center',
 				top: '2%',
 				textStyle: getTitleStyle(isMobile)
@@ -86,13 +105,12 @@
 				trigger: 'axis',
 				axisPointer: getAxisPointerConfig(),
 				formatter: createTrendTooltipFormatter({
-					getTotalLabel: () => currentT.common.total,
-					sort: true
+					getTotalLabel: () => currentT.common.total
 				})
 			},
 			legend: {
 				...getLegendConfig(isMobile),
-				data: countries,
+				data: legendData,
 				top: isMobile ? '12%' : '8%'
 			},
 			grid: getGridConfig(isMobile, { hasLegendTop: true, hasDataZoom: true }),
@@ -114,63 +132,18 @@
 </script>
 
 {#if articleState.filtered.length > 0}
-	<div class="chart-toolbar">
+	<div class="mb-4">
 		<DatasetBadge size="sm" />
-
-		<ChartTypeToggle
-			options={[
-				{ value: 'area', label: $t.charts.stackedAreas, icon: AreaChartIcon },
-				{ value: 'line', label: $t.charts.lines, icon: LineChartIcon }
-			]}
-			value={chartType}
-			onChange={(value) => (chartType = value as 'area' | 'line')}
-			ariaLabel={$t.charts.volumeByCountry}
-		/>
 	</div>
 
 	<div
 		style="height: {isMobile ? '400px' : '500px'}; position: relative;"
-		class="chart-container"
+		class="chart-container p-2 sm:p-4"
 		role="img"
-		aria-label={$t.charts.volumeByCountry}
+		aria-label={ariaLabel}
 	>
 		<Chart {init} {options} />
 	</div>
 {:else}
-	<p class="empty-state">{$t.table.noFilteredArticles}</p>
+	<p class="text-center py-8 text-white/80 text-sm sm:text-base">{$t.table.noFilteredArticles}</p>
 {/if}
-
-<style>
-	.chart-toolbar {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: space-between;
-		gap: var(--space-3);
-		margin-bottom: var(--space-4);
-	}
-
-	@media (min-width: 640px) {
-		.chart-toolbar {
-			flex-direction: row;
-		}
-	}
-
-	.chart-container {
-		background: transparent;
-		padding: var(--space-2);
-	}
-
-	@media (min-width: 640px) {
-		.chart-container {
-			padding: var(--space-4);
-		}
-	}
-
-	.empty-state {
-		text-align: center;
-		padding: var(--space-8) 0;
-		color: var(--text-muted);
-		font-size: var(--font-size-sm);
-	}
-</style>

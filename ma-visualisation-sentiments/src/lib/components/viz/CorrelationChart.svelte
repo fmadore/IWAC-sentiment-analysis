@@ -55,7 +55,6 @@
 
 	// Reactive window width for responsive behavior
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
-	let chartContainer = $state<HTMLDivElement>();
 
 	let options = $derived.by(() => {
 		const articles = articleState.filtered;
@@ -158,7 +157,7 @@
 				axisLine: getAxisLineStyle(),
 				splitLine: getSplitLineStyle(),
 				nameTextStyle: {
-					color: 'rgba(255, 255, 255, 0.85)',
+					color: chartColors.text.secondary,
 					fontSize: isMobile ? 10 : 12,
 					fontFamily:
 						'"Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
@@ -175,9 +174,10 @@
 	</div>
 
 	<div
-		bind:this={chartContainer}
 		style="height: {isMobile ? '450px' : '500px'}; position: relative;"
 		class="chart-container p-2 sm:p-4"
+		role="img"
+		aria-label={$t.charts.polaritySubjectivityDistribution}
 	>
 		<Chart {init} {options} />
 	</div>
