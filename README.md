@@ -136,9 +136,10 @@ The project is structured as a modern SvelteKit application with Svelte 5 runes:
     -   `app.css`: Global CSS styles with CSS variables and theme.
 -   `static/`: Static files.
     -   `data/`: **IWAC corpus JSON data files.**
-        -   `iwac_articles_chatgpt.json`: Articles analyzed by ChatGPT.
-        -   `iwac_articles_gemini.json`: Articles analyzed by Gemini.
-        -   `iwac_articles_mistral.json`: Articles analyzed by Mistral.
+        -   `iwac_articles_base.json`: Shared article metadata (titles, newspapers, countries, dates).
+        -   `iwac_sentiment_chatgpt.json`: ChatGPT sentiment analyses, keyed by article id.
+        -   `iwac_sentiment_gemini.json`: Gemini sentiment analyses, keyed by article id.
+        -   `iwac_sentiment_mistral.json`: Mistral sentiment analyses, keyed by article id.
         -   `iwac_arbiter_evaluations_*.json`: Arbiter evaluations for each model pair.
         -   `iwac_extreme_analysis_*.json`: Lexical extreme analyses per model.
 -   `data-preprocess/`: Data preparation scripts.
@@ -157,9 +158,12 @@ The project is structured as a modern SvelteKit application with Svelte 5 runes:
 ### Data Format
 
 The application automatically loads the IWAC corpus from JSON files in `static/data/`:
-- `iwac_articles_chatgpt.json`: Articles analyzed by ChatGPT
-- `iwac_articles_gemini.json`: Articles analyzed by Gemini
-- `iwac_articles_mistral.json`: Articles analyzed by Mistral
+- `iwac_articles_base.json`: Shared article metadata, stored once for all models
+- `iwac_sentiment_chatgpt.json`: ChatGPT sentiment analyses, keyed by article id
+- `iwac_sentiment_gemini.json`: Gemini sentiment analyses, keyed by article id
+- `iwac_sentiment_mistral.json`: Mistral sentiment analyses, keyed by article id
+
+The frontend joins the base metadata with the selected model's sentiment file at load time, so switching models only downloads the sentiment payload.
 
 Each file contains a list of `Article` objects, where each article includes metadata (title, newspaper, country, date) and a `sentiment_analysis` object with analysis results (polarity, subjectivity, centrality, etc.).
 
@@ -402,7 +406,7 @@ To update the IWAC corpus data:
     ```bash
     python data-preprocess/data-fetch.py
     ```
-    This script automatically fetches data from the Hugging Face dataset and generates `iwac_articles_chatgpt.json`, `iwac_articles_gemini.json`, and `iwac_articles_mistral.json`.
+    This script automatically fetches data from the Hugging Face dataset and generates `iwac_articles_base.json` plus `iwac_sentiment_chatgpt.json`, `iwac_sentiment_gemini.json`, and `iwac_sentiment_mistral.json`.
 
 3.  **Generate arbiter evaluations (Admin only):**
     ```bash

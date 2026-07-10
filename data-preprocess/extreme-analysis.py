@@ -143,7 +143,7 @@ def _new_category_accumulator() -> dict:
         "by_newspaper": Counter(),
         "keywords_by_country": defaultdict(lambda: {"subject": Counter(), "spatial": Counter()}),
         "keywords_by_newspaper": defaultdict(lambda: {"subject": Counter(), "spatial": Counter()}),
-        "articles": [],
+        "article_ids": [],
     }
 
 
@@ -173,13 +173,19 @@ def analyze_extreme_keywords(records: list[dict], model_prefix: str, top_n: int 
                         "by_newspaper": {newspaper: article_count},
                         "keywords_by_country": {country: {"subject": {}, "spatial": {}}},
                         "keywords_by_newspaper": {newspaper: {"subject": {}, "spatial": {}}},
-                        "articles": [article_info, ...]
+                        "article_ids": ["<id>", ...]
                     },
                     ...
                 },
+                "articles_index": {"<id>": article_info, ...},
                 "statistics": {...},
                 "facets": {"countries": {...}, "newspapers": {...}}
             }
+
+    Article payloads are stored once in ``articles_index`` and referenced by
+    id from each category — an article can belong to several categories, and
+    embedding it per category duplicated ~7MB per output file. The webapp
+    denormalizes at load time (utils/extremeAnalysis.ts).
     """
     accumulators = {category.key: _new_category_accumulator() for category in CATEGORIES}
 
@@ -189,6 +195,7 @@ def analyze_extreme_keywords(records: list[dict], model_prefix: str, top_n: int 
 
     all_countries: Counter = Counter()
     all_newspapers: Counter = Counter()
+    articles_index: dict[str, dict] = {}
 
     logger.info("Analyzing extreme keywords for %s (%d articles)...", model_prefix, len(records))
 
@@ -211,6 +218,7 @@ def analyze_extreme_keywords(records: list[dict], model_prefix: str, top_n: int 
         subject_keywords = clean_and_split_keywords(item.get("subject"))
         spatial_keywords = clean_and_split_keywords(item.get("spatial"))
 
+        article_id = str(item.get("o:id"))
         article_info = {
             "id": item.get("o:id"),
             "title": item.get("title"),
@@ -237,7 +245,8 @@ def analyze_extreme_keywords(records: list[dict], model_prefix: str, top_n: int 
                 bucket["by_newspaper"][newspaper] += 1
                 bucket["keywords_by_newspaper"][newspaper]["subject"].update(subject_keywords)
                 bucket["keywords_by_newspaper"][newspaper]["spatial"].update(spatial_keywords)
-            bucket["articles"].append(article_info)
+            articles_index[article_id] = article_info
+            bucket["article_ids"].append(article_id)
 
     logger.info("Compiling results and generating keyword analysis by facets...")
 
@@ -251,11 +260,12 @@ def analyze_extreme_keywords(records: list[dict], model_prefix: str, top_n: int 
             "by_newspaper": dict(bucket["by_newspaper"].most_common()),
             "keywords_by_country": convert_keywords_by_facet(bucket["keywords_by_country"]),
             "keywords_by_newspaper": convert_keywords_by_facet(bucket["keywords_by_newspaper"]),
-            "articles": bucket["articles"],
+            "article_ids": bucket["article_ids"],
         }
 
     return {
         "model": model_prefix,
+        "articles_index": articles_index,
         "analysis": analysis,
         "statistics": stats,
         "facets": {

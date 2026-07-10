@@ -15,21 +15,21 @@ const DATASETS: DatasetOption[] = [
 	{
 		id: 'chatgpt',
 		name: 'ChatGPT',
-		file: '/data/iwac_articles_chatgpt.json',
+		file: '/data/iwac_sentiment_chatgpt.json',
 		logo: '/logo/ChatGPT_logo.svg',
 		color: '#10a37f'
 	},
 	{
 		id: 'gemini',
 		name: 'Gemini',
-		file: '/data/iwac_articles_gemini.json',
+		file: '/data/iwac_sentiment_gemini.json',
 		logo: '/logo/Gemini_logo.svg',
 		color: '#8e75b2'
 	},
 	{
 		id: 'mistral',
 		name: 'Mistral',
-		file: '/data/iwac_articles_mistral.json',
+		file: '/data/iwac_sentiment_mistral.json',
 		logo: '/logo/Mistral_AI_logo.svg',
 		color: '#F54E42'
 	}

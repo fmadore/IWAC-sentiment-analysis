@@ -100,32 +100,78 @@ export function mapArticleProperties(
 	};
 }
 
-/** Load articles from a dataset file */
+/**
+ * Article base metadata is stored once in iwac_articles_base.json — the
+ * per-model files carry only each model's sentiment analyses, keyed by
+ * article id (the three old combined files repeated identical metadata).
+ * The base file is fetched once and shared across all dataset loads.
+ */
+type BaseArticleRecord = Record<string, unknown> & Partial<Article>;
+
+interface SentimentFile {
+	model: string;
+	sentiments: Record<string, Article['sentiment_analysis']>;
+}
+
+let baseArticlesPromise: Promise<BaseArticleRecord[]> | null = null;
+
+const fetchJSON = async (filePath: string, fetchFunction: typeof fetch): Promise<unknown> => {
+	const resolvedPath = filePath.startsWith('http') ? filePath : `${base}${filePath}`;
+	const response = await fetchFunction(resolvedPath);
+	if (!response.ok) {
+		throw new Error(`Failed to fetch ${filePath}: ${response.statusText}`);
+	}
+	return response.json();
+};
+
+const loadArticleBase = (fetchFunction: typeof fetch): Promise<BaseArticleRecord[]> => {
+	if (!baseArticlesPromise) {
+		baseArticlesPromise = fetchJSON('/data/iwac_articles_base.json', fetchFunction).then((data) => {
+			if (!Array.isArray(data)) {
+				throw new Error('Unrecognized article base format');
+			}
+			return data as BaseArticleRecord[];
+		});
+		// Allow a retry on transient failure instead of caching the rejection
+		baseArticlesPromise.catch(() => {
+			baseArticlesPromise = null;
+		});
+	}
+	return baseArticlesPromise;
+};
+
+/** Join base metadata with a model's sentiment map (exported for tests) */
+export function joinArticles(
+	baseRecords: BaseArticleRecord[],
+	sentiments: SentimentFile['sentiments'],
+	datasetId: string
+): Article[] {
+	return baseRecords.map((record) =>
+		mapArticleProperties(
+			{ ...record, sentiment_analysis: sentiments[String(record['o:id'])] ?? null },
+			datasetId
+		)
+	);
+}
+
+/** Load articles for a dataset: shared base metadata + per-model sentiments */
 export const loadDatasetArticles = async (
 	filePath: string,
 	datasetId: string,
 	fetchFunction: typeof fetch
 ): Promise<Article[]> => {
 	try {
-		const resolvedPath = filePath.startsWith('http') ? filePath : `${base}${filePath}`;
-		const response = await fetchFunction(resolvedPath);
+		const [baseRecords, sentimentData] = await Promise.all([
+			loadArticleBase(fetchFunction),
+			fetchJSON(filePath, fetchFunction) as Promise<SentimentFile>
+		]);
 
-		if (!response.ok) {
-			throw new Error(`Failed to fetch dataset: ${response.statusText}`);
-		}
-
-		const data = await response.json();
-
-		if (Array.isArray(data)) {
-			return data.map((item: Record<string, unknown>) => mapArticleProperties(item, datasetId));
-		} else if (data.articles && Array.isArray(data.articles)) {
-			return data.articles.map((item: Record<string, unknown>) =>
-				mapArticleProperties(item, datasetId)
-			);
-		} else {
-			console.error('Unrecognized data format:', data);
+		if (!sentimentData || typeof sentimentData.sentiments !== 'object') {
+			console.error('Unrecognized sentiment data format:', sentimentData);
 			return [];
 		}
+
+		return joinArticles(baseRecords, sentimentData.sentiments, datasetId);
 	} catch (error) {
 		console.error(`Error fetching dataset ${datasetId}:`, error);
 		return [];

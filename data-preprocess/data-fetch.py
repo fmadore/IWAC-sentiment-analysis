@@ -1,6 +1,10 @@
 """
-Fetch the IWAC articles dataset from Hugging Face and write one JSON file per
-model (ChatGPT, Gemini, Mistral) into the webapp's static/data directory.
+Fetch the IWAC articles dataset from Hugging Face and write the webapp's
+article data: one shared base-metadata file (iwac_articles_base.json) plus
+one sentiment-only file per model (iwac_sentiment_<model>.json, analyses
+keyed by article id). The base metadata is identical across models, so
+storing it once instead of in three combined files saves ~2x the metadata
+volume; the frontend joins the two at load time (articles.svelte.ts).
 """
 
 import os
@@ -28,35 +32,37 @@ def main() -> None:
     records = load_iwac_records()
     logger.info("Dataset loaded successfully! Number of articles: %d", len(records))
 
-    # One output list per model, keyed by model id.
-    data_lists: dict[str, list[dict]] = {model_id: [] for model_id in MODEL_NAMES}
+    base_items: list[dict] = []
+    sentiments: dict[str, dict[str, dict | None]] = {model_id: {} for model_id in MODEL_NAMES}
 
     logger.info("Processing %d records...", len(records))
     for item in tqdm(records, desc="Processing articles"):
-        # Base item structure shared by every per-model dataset.
+        article_id = safe_int_convert(item.get("o:id"))
         iiif = safe_str(item.get("iiif_manifest"))
-        base_item = {
-            "o:id": safe_int_convert(item.get("o:id")),
+        base_items.append({
+            "o:id": article_id,
             "o:title": safe_str(item.get("title")),
             "Newspaper": safe_str(item.get("newspaper")),
             "Country": safe_str(item.get("country")),
             "dcterms:date": safe_str(item.get("pub_date")),
             **({"iiif_manifest": iiif} if iiif else {})
-        }
+        })
 
         for model_id in MODEL_NAMES:
-            model_item = base_item.copy()
-            model_item["sentiment_analysis"] = build_model_sentiment(item, model_id)
-            data_lists[model_id].append(model_item)
+            sentiments[model_id][str(article_id)] = build_model_sentiment(item, model_id)
 
-    # Save all model data
     output_dir = get_webapp_data_dir()
 
-    for model_name, data_list in data_lists.items():
-        json_path = os.path.join(output_dir, f"iwac_articles_{model_name}.json")
-        logger.info("Saving %s articles dataset to: %s", model_name, json_path)
-        safe_save_json(data_list, json_path)
-        logger.info("%s JSON file saved successfully! (%d records)", model_name, len(data_list))
+    base_path = os.path.join(output_dir, "iwac_articles_base.json")
+    logger.info("Saving shared article base metadata to: %s", base_path)
+    safe_save_json(base_items, base_path)
+    logger.info("Base metadata saved (%d records)", len(base_items))
+
+    for model_id, sentiment_map in sentiments.items():
+        json_path = os.path.join(output_dir, f"iwac_sentiment_{model_id}.json")
+        logger.info("Saving %s sentiment dataset to: %s", model_id, json_path)
+        safe_save_json({"model": model_id, "sentiments": sentiment_map}, json_path)
+        logger.info("%s JSON file saved successfully! (%d records)", model_id, len(sentiment_map))
 
 
 if __name__ == "__main__":
