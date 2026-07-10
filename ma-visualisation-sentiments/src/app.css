@@ -356,6 +356,20 @@
 	--color-tertiary-500: var(--color-secondary-500);
 	--color-tertiary-600: var(--color-secondary-600);
 
+	/* --- Layout constants --- */
+	/* Sidebar rail widths — consumed by SidebarNav (the rail itself) AND
+	   +layout.svelte (the content margin that clears it). Keep in sync via
+	   these tokens only. */
+	--sidebar-width-collapsed: 4.5rem;
+	--sidebar-width-expanded: 14rem;
+	--sidebar-width-mobile-drawer: 16rem;
+	/* Sticky filter-rail clearance below the AppHeader (~96px rendered header
+	   height + breathing room). If the header grows, adjust here once. */
+	--rail-top: 6.5rem;
+	/* NOTE on breakpoints: media queries cannot read custom properties, so the
+	   1024px desktop threshold is a repeated literal (SidebarNav, FiltersPanel,
+	   AppHeader, +layout, +page). Change them together. */
+
 	/* --- Spacing Scale (4px base) --- */
 	--space-0: 0;
 	--space-px: 1px;

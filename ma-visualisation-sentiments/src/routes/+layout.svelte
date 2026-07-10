@@ -53,11 +53,11 @@
 
 	@media (min-width: 1024px) {
 		.app-content {
-			margin-left: 4.5rem; /* collapsed sidebar width — not a standard spacing token */
+			margin-left: var(--sidebar-width-collapsed);
 		}
 
 		.app-content.expanded {
-			margin-left: 14rem; /* expanded sidebar width — not a standard spacing token */
+			margin-left: var(--sidebar-width-expanded);
 		}
 	}
 
