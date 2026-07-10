@@ -526,5 +526,73 @@ export const fr: Translations = {
 			centralityHigh: 'Islam/musulmans au cœur du sujet',
 			centralityLow: "Mention périphérique de l'islam/musulmans"
 		}
+	},
+
+	// Métadonnées SEO (SEOHead.svelte) — titres/descriptions/mots-clés par vue
+	meta: {
+		siteTitle: 'Analyse de sentiments IWAC',
+		comparisonTitle: 'Comparaison de modèles IA',
+		comparisonDescription:
+			"Comparez les résultats d'analyse de sentiments entre les modèles ChatGPT, Gemini et Mistral sur la Collection Islam Afrique de l'Ouest. Analysez les différences d'interprétation IA.",
+		comparisonKeywords:
+			'comparaison IA, ChatGPT vs Gemini vs Mistral, comparaison de modèles, analyse de sentiments, IWAC, évaluation IA',
+		viewDescriptionPrefix: 'Explorez ',
+		viewDescriptionSuffix:
+			" de l'analyse de sentiments de la Collection Islam Afrique de l'Ouest. Visualisation interactive de l'analyse de couverture médiatique utilisant des modèles IA avancés.",
+		baseKeywords: "analyse de sentiments, IWAC, Islam Afrique de l'Ouest, visualisation de données",
+		views: {
+			charts: {
+				title: 'Graphiques et distributions',
+				description: "les graphiques de distribution des sentiments et l'analyse de polarité",
+				keywords:
+					'graphiques, polarité, distribution des sentiments, graphiques en barres, camemberts'
+			},
+			trends: {
+				title: 'Tendances temporelles',
+				description: "l'évolution temporelle des tendances de sentiment",
+				keywords: 'tendances, analyse temporelle, séries chronologiques, évolution'
+			},
+			correlation: {
+				title: 'Distribution des sentiments',
+				description: "l'analyse de distribution croisée des sentiments",
+				keywords: 'corrélation, analyse croisée, distribution, relations'
+			},
+			volume: {
+				title: "Analyse du volume d'articles",
+				description: "le volume de publication d'articles et la distribution géographique",
+				keywords: 'volume, distribution géographique, tendances de publication'
+			},
+			heatmap: {
+				title: 'Carte de chaleur de centralité',
+				description: "la carte de chaleur de centralité de l'islam par pays et année",
+				keywords: 'carte de chaleur, centralité, analyse géographique, visualisation'
+			},
+			table: {
+				title: "Explorateur d'articles",
+				description: "l'exploration détaillée d'articles avec capacités de filtrage",
+				keywords: "tableau, explorateur d'articles, filtrage, recherche"
+			},
+			comparison: {
+				title: 'Comparaison de modèles',
+				description: "la comparaison de modèles IA et l'analyse des divergences",
+				keywords: 'comparaison, modèles IA, divergences, évaluation'
+			},
+			extremes: {
+				title: 'Analyse des sentiments extrêmes',
+				description: 'les catégories de sentiments les plus extrêmes et leurs mots-clés récurrents',
+				keywords: 'extrêmes, mots-clés, valeurs aberrantes, catégories de sentiments'
+			},
+			arbiter: {
+				title: "Évaluation de l'arbitre",
+				description:
+					"l'arbitrage en aveugle des désaccords entre modèles IA par un troisième modèle",
+				keywords: 'arbitre, évaluation en aveugle, désaccord de modèles, verdicts'
+			},
+			default: {
+				title: 'Visualisation de données',
+				description: 'la visualisation interactive de données',
+				keywords: 'visualisation, analyse, recherche'
+			}
+		}
 	}
 };
