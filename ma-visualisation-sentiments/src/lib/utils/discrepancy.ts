@@ -24,3 +24,10 @@ export function getDiffBadgeClass(diff: number): string {
 	if (diff === 2) return 'variant-soft-error';
 	return 'variant-filled-error';
 }
+
+/**
+ * Format a discrepancy value as the shared "±N" / "=" indicator.
+ */
+export function formatDiff(diff: number): string {
+	return diff > 0 ? `±${diff}` : '=';
+}

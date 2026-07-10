@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { articleState } from '$lib/stores';
-	import type { Article } from '$lib/types/data';
+	import { POLARITY_ORDER, CENTRALITY_ORDER, type Article } from '$lib/types/data';
 	import { getJournalName } from '$lib/utils/format';
 	import { formatDate } from '$lib/utils/format';
 	import { t } from '$lib/i18n';
@@ -9,6 +9,7 @@
 	import { updateURL } from '$lib/stores/url';
 	import { innerWidth } from 'svelte/reactivity/window';
 	import { createPagination } from '$lib/utils/pagination.svelte';
+	import PaginationControls from '$lib/components/common/PaginationControls.svelte';
 
 	// Props - for event dispatching
 	let {
@@ -47,25 +48,6 @@
 		}
 	}
 
-	// Ordre de tri pour les valeurs de polarité
-	const polarityOrder = {
-		'Très positif': 5,
-		Positif: 4,
-		Neutre: 3,
-		Négatif: 2,
-		'Très négatif': 1,
-		'Non applicable': 0
-	};
-
-	// Ordre de tri pour les valeurs de centralité
-	const centralityOrder = {
-		'Très central': 5,
-		Central: 4,
-		Secondaire: 3,
-		Marginal: 2,
-		'Non abordé': 1
-	};
-
 	// Fonction pour changer la colonne de tri
 	function sortBy(column: string) {
 		if (sortColumn === column) {
@@ -102,15 +84,15 @@
 				case 'centralite': {
 					const centralA = a.sentiment_analysis?.centralite_islam_musulmans || 'Non abordé';
 					const centralB = b.sentiment_analysis?.centralite_islam_musulmans || 'Non abordé';
-					valA = centralityOrder[centralA as keyof typeof centralityOrder] || 0;
-					valB = centralityOrder[centralB as keyof typeof centralityOrder] || 0;
+					valA = CENTRALITY_ORDER[centralA as keyof typeof CENTRALITY_ORDER] || 0;
+					valB = CENTRALITY_ORDER[centralB as keyof typeof CENTRALITY_ORDER] || 0;
 					break;
 				}
 				case 'polarite': {
 					const polA = a.sentiment_analysis?.polarite || 'Non applicable';
 					const polB = b.sentiment_analysis?.polarite || 'Non applicable';
-					valA = polarityOrder[polA as keyof typeof polarityOrder] || 0;
-					valB = polarityOrder[polB as keyof typeof polarityOrder] || 0;
+					valA = POLARITY_ORDER[polA as keyof typeof POLARITY_ORDER] || 0;
+					valB = POLARITY_ORDER[polB as keyof typeof POLARITY_ORDER] || 0;
 					break;
 				}
 				case 'subjectivite':
@@ -162,64 +144,15 @@
 
 	<!-- Informations et contrôles de pagination (en haut) -->
 	<div bind:this={tableContainerRef} class="pagination-info mb-4">
-		<!-- Première ligne : Informations et sélecteur -->
-		<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 mb-3">
-			<span class="text-xs sm:text-sm text-white">
-				{$t.table.showingItems}
-				{pagination.startIndex + 1} à {pagination.endIndex} sur {articles.length}
-				{$t.common.articles}
-			</span>
-			<div class="flex items-center gap-2">
-				<label for="items-per-page" class="text-xs sm:text-sm text-white whitespace-nowrap"
-					>{$t.table.itemsPerPage}:</label
-				>
-				<select
-					id="items-per-page"
-					bind:value={pagination.itemsPerPage}
-					onchange={(e) =>
-						pagination.changeItemsPerPage(Number((e.target as HTMLSelectElement)?.value))}
-					class="select select-sm bg-surface-700 text-white border-surface-500"
-				>
-					{#each pagination.itemsPerPageOptions as option (option)}
-						<option value={option}>{option}</option>
-					{/each}
-				</select>
-			</div>
-		</div>
-
-		<!-- Deuxième ligne : Navigation de pagination centrée -->
-		<div class="flex justify-center">
-			<div class="pagination-controls flex items-center gap-1 sm:gap-2">
-				<button
-					class="btn btn-sm variant-soft-surface"
-					onclick={pagination.previousPage}
-					disabled={pagination.currentPage === 1}
-					title={$t.common.previous || 'Previous page'}
-				>
-					←
-				</button>
-
-				{#each pagination.visiblePages as page (page)}
-					<button
-						class="btn btn-sm {page === pagination.currentPage
-							? 'variant-filled-primary'
-							: 'variant-soft-surface'}"
-						onclick={() => pagination.goToPage(page)}
-					>
-						{page}
-					</button>
-				{/each}
-
-				<button
-					class="btn btn-sm variant-soft-surface"
-					onclick={pagination.nextPage}
-					disabled={pagination.currentPage === pagination.totalPages}
-					title={$t.common.next || 'Next page'}
-				>
-					→
-				</button>
-			</div>
-		</div>
+		<PaginationControls {pagination} showLabels={false} showItemsPerPage selectId="items-per-page">
+			{#snippet resultsInfo()}
+				<span class="text-xs sm:text-sm text-white">
+					{$t.table.showingItems}
+					{pagination.startIndex + 1} à {pagination.endIndex} sur {articles.length}
+					{$t.common.articles}
+				</span>
+			{/snippet}
+		</PaginationControls>
 	</div>
 
 	<!-- Mobile Card View -->
@@ -370,30 +303,12 @@
 	{/if}
 
 	<!-- Navigation de pagination (en bas) -->
-	<div class="pagination-bottom mt-4 flex items-center justify-center">
-		<div class="pagination-controls flex items-center gap-2">
-			<button
-				class="btn btn-sm variant-soft-surface"
-				onclick={pagination.previousPage}
-				disabled={pagination.currentPage === 1}
-				title={$t.common.previous}
-			>
-				← {$t.common.previous}
-			</button>
-
-			<span class="text-sm text-white px-4">
+	<div class="pagination-bottom mt-4">
+		<PaginationControls {pagination} showPageNumbers={false}>
+			{#snippet status()}
 				Page {pagination.currentPage} sur {pagination.totalPages}
-			</span>
-
-			<button
-				class="btn btn-sm variant-soft-surface"
-				onclick={pagination.nextPage}
-				disabled={pagination.currentPage === pagination.totalPages}
-				title={$t.common.next}
-			>
-				{$t.common.next} →
-			</button>
-		</div>
+			{/snippet}
+		</PaginationControls>
 	</div>
 {:else}
 	<p class="text-center py-8 text-white">{$t.table.noFilteredArticles}</p>
@@ -480,30 +395,6 @@
 		border: 1px solid var(--border-subtle);
 	}
 
-	.pagination-controls {
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: var(--space-2);
-	}
-
-	.pagination-controls button {
-		min-width: var(--size-control-lg);
-		height: var(--size-control-lg);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-	}
-
-	.pagination-controls button:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-
-	.pagination-controls button:not(:disabled):hover {
-		cursor: pointer;
-	}
-
 	.pagination-bottom {
 		background: color-mix(in oklab, var(--color-primary-500) 3%, transparent);
 		padding: var(--space-3) var(--space-4);
@@ -573,17 +464,6 @@
 			padding: var(--space-3);
 		}
 
-		.pagination-controls {
-			gap: var(--space-1);
-		}
-
-		.pagination-controls button {
-			min-width: var(--size-control-sm);
-			height: var(--size-control-sm);
-			font-size: var(--font-size-xs);
-			padding: var(--space-1);
-		}
-
 		.table-container {
 			max-height: var(--height-chart-md);
 		}
@@ -597,12 +477,6 @@
 
 	/* Extra small screens */
 	@media (max-width: 480px) {
-		.pagination-controls button {
-			min-width: 1.75rem;
-			height: 1.75rem;
-			font-size: var(--font-size-2xs);
-		}
-
 		.mobile-card {
 			padding: var(--space-3) !important;
 		}

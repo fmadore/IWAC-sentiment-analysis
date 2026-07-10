@@ -16,6 +16,8 @@
 		modelBName?: string;
 		modelBValue: string | number | null | undefined;
 		modelBJustification?: string | null;
+		/** Tighter spacing for constrained contexts (e.g. modals) */
+		compact?: boolean;
 	}
 
 	let {
@@ -25,11 +27,12 @@
 		modelAJustification,
 		modelBName = 'Model B',
 		modelBValue,
-		modelBJustification
+		modelBJustification,
+		compact = false
 	}: ComparisonPanelProps = $props();
 </script>
 
-<div class="comparison-panel-grid">
+<div class="comparison-panel-grid" data-compact={compact ? 'true' : undefined}>
 	<div class="comparison-panel">
 		<div class="comparison-panel-head">
 			<span class="model-label">{modelAName}</span>
@@ -72,6 +75,14 @@
 		background: var(--surface-subtle);
 		border: 1px solid var(--border-subtle);
 		padding: var(--space-5);
+	}
+
+	.comparison-panel-grid[data-compact='true'] {
+		gap: var(--space-3);
+	}
+
+	.comparison-panel-grid[data-compact='true'] .comparison-panel {
+		padding: var(--space-4);
 	}
 
 	.comparison-panel-head {

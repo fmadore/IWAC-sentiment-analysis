@@ -17,6 +17,12 @@
 <script lang="ts">
 	import { getPairModelNames } from '$lib/types/data';
 	import { SentimentBadge } from '$lib/components/common';
+	import Spinner from './Spinner.svelte';
+	import {
+		getVerdictBadgeClass,
+		getConfidenceBadgeClass,
+		getConfidenceLabel
+	} from '$lib/utils/arbiter';
 	import { t } from '$lib/i18n';
 	import {
 		getArbiterForArticle,
@@ -71,24 +77,6 @@
 		}
 	}
 
-	// Get preferred model class
-	function getPreferredModelClass(
-		preferredModel: 'model_a' | 'model_b' | 'both' | 'neither'
-	): string {
-		switch (preferredModel) {
-			case 'model_a':
-				return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-			case 'model_b':
-				return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
-			case 'both':
-				return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-			case 'neither':
-				return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
-			default:
-				return 'variant-ghost';
-		}
-	}
-
 	// Get icon type for preferred model
 	function getPreferredModelIconType(
 		preferredModel: 'model_a' | 'model_b' | 'both' | 'neither'
@@ -96,34 +84,6 @@
 		if (preferredModel === 'model_a' || preferredModel === 'model_b') return 'check';
 		if (preferredModel === 'both') return 'both';
 		return 'neither';
-	}
-
-	// Get confidence level label
-	function getConfidenceLevelLabel(level: string): string {
-		switch (level) {
-			case 'high':
-				return $t.arbiter?.confidenceHigh || 'High confidence';
-			case 'medium':
-				return $t.arbiter?.confidenceMedium || 'Medium confidence';
-			case 'low':
-				return $t.arbiter?.confidenceLow || 'Low confidence';
-			default:
-				return level;
-		}
-	}
-
-	// Get confidence badge class
-	function getConfidenceBadgeClass(level: string): string {
-		switch (level) {
-			case 'high':
-				return 'bg-green-500/20 text-green-400 border-green-500/30';
-			case 'medium':
-				return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-			case 'low':
-				return 'bg-red-500/20 text-red-400 border-red-500/30';
-			default:
-				return 'variant-ghost';
-		}
 	}
 
 	// Decode Model A/B references in text to actual model names
@@ -192,7 +152,7 @@
 		<div class="flex items-center gap-2">
 			{#if arbiterData}
 				<span class="badge badge-sm {getConfidenceBadgeClass(arbiterData.confidence_level)}">
-					{getConfidenceLevelLabel(arbiterData.confidence_level)}
+					{getConfidenceLabel(arbiterData.confidence_level, $t)}
 				</span>
 			{/if}
 			{#if showArbiter}
@@ -206,7 +166,11 @@
 	{#if showArbiter}
 		{#if uiState.isLoadingArbiter}
 			<div class="flex items-center justify-center p-8">
-				<div class="loading-spinner"></div>
+				<Spinner
+					size="lg"
+					--spinner-track="var(--border-subtle)"
+					--spinner-accent="var(--sentiment-arbiter)"
+				/>
 				<span class="ml-3 text-white/60">{$t.arbiter.loadingArbiter}</span>
 			</div>
 		{:else if arbiterData}
@@ -237,9 +201,7 @@
 						<div class="flex items-center gap-2">
 							<SentimentBadge type="polarity" value={arbiterData.polarity.score} size="sm" />
 							<span
-								class="badge badge-sm {getPreferredModelClass(
-									arbiterData.polarity.preferred_model
-								)}"
+								class="badge badge-sm {getVerdictBadgeClass(arbiterData.polarity.preferred_model)}"
 							>
 								{#if getPreferredModelIconType(arbiterData.polarity.preferred_model) === 'check'}
 									<CheckCircleIcon size={12} class="mr-1" />
@@ -283,7 +245,7 @@
 								size="sm"
 							/>
 							<span
-								class="badge badge-sm {getPreferredModelClass(
+								class="badge badge-sm {getVerdictBadgeClass(
 									arbiterData.subjectivity.preferred_model
 								)}"
 							>
@@ -325,7 +287,7 @@
 						<div class="flex items-center gap-2">
 							<SentimentBadge type="centrality" value={arbiterData.centrality.score} size="sm" />
 							<span
-								class="badge badge-sm {getPreferredModelClass(
+								class="badge badge-sm {getVerdictBadgeClass(
 									arbiterData.centrality.preferred_model
 								)}"
 							>
@@ -436,27 +398,10 @@
 		font-size: 0.625rem;
 	}
 
-	.loading-spinner {
-		width: var(--size-icon-lg);
-		height: var(--size-icon-lg);
-		border: 2px solid var(--border-subtle);
-		border-top-color: var(--sentiment-arbiter);
-		border-radius: var(--radius-full);
-		animation: spin 0.9s linear infinite;
-	}
-
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
 	@media (prefers-reduced-motion: reduce) {
 		.arbiter-header,
-		.arbiter-verdict-panel,
-		.loading-spinner {
+		.arbiter-verdict-panel {
 			transition: none;
-			animation: none;
 		}
 	}
 </style>

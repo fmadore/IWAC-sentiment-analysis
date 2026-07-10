@@ -10,6 +10,25 @@ export type PolarityValue =
 /** Subjectivity score from 1 (very objective) to 5 (very subjective) */
 export type SubjectivityScore = 1 | 2 | 3 | 4 | 5;
 
+/** Canonical sort order for polarity values (higher = more positive). */
+export const POLARITY_ORDER: Record<PolarityValue, number> = {
+	'Très positif': 5,
+	Positif: 4,
+	Neutre: 3,
+	Négatif: 2,
+	'Très négatif': 1,
+	'Non applicable': 0
+};
+
+/** Canonical sort order for centrality values (higher = more central). */
+export const CENTRALITY_ORDER: Record<CentralityValue, number> = {
+	'Très central': 5,
+	Central: 4,
+	Secondaire: 3,
+	Marginal: 2,
+	'Non abordé': 1
+};
+
 export interface SentimentAnalysis {
 	centralite_islam_musulmans: CentralityValue | string | null;
 	centralite_justification: string | null;

@@ -15,7 +15,7 @@
 -->
 <script lang="ts">
 	import { t } from '$lib/i18n';
-	import LoaderIcon from '@lucide/svelte/icons/loader';
+	import Spinner from './Spinner.svelte';
 
 	interface LoadingStateProps {
 		/** Custom loading message (defaults to i18n loading message) */
@@ -53,7 +53,7 @@
 	<!-- Loading message card -->
 	<div class="loading-message-card mb-4 sm:mb-6">
 		<div class="loading-icon">
-			<LoaderIcon size={20} class="animate-spin" />
+			<Spinner size="md" --spinner-accent="currentColor" />
 		</div>
 		<span class="loading-text">{displayMessage}</span>
 	</div>
@@ -177,20 +177,6 @@
 		color: var(--text-primary);
 	}
 
-	/* Animate spin for loader icon */
-	.loading-container :global(.animate-spin) {
-		animation: spin 0.9s linear infinite;
-	}
-
-	@keyframes spin {
-		from {
-			transform: rotate(0deg);
-		}
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
 	/* Responsive */
 	@media (max-width: 640px) {
 		.header-skeleton {
@@ -222,10 +208,6 @@
 		}
 
 		.filter-skeleton {
-			animation: none;
-		}
-
-		.loading-container :global(.animate-spin) {
 			animation: none;
 		}
 	}

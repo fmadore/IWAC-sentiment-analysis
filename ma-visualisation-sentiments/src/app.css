@@ -241,6 +241,44 @@
 	--sentiment-arbiter-bg: color-mix(in oklab, var(--sentiment-arbiter) 14%, transparent);
 	--sentiment-arbiter-border: color-mix(in oklab, var(--sentiment-arbiter) 30%, transparent);
 
+	/* --- Arbiter verdict & confidence badge hues ---
+	   Provenance: these preserve the Tailwind palette classes they replaced
+	   (text = *-400, bg = *-500 at 20%, border = *-500 at 30%):
+	   win = emerald, loss = purple, both = blue, neither = gray;
+	   confidence high/medium/low = green/yellow/red. Values are Tailwind v4's
+	   own oklch definitions (node_modules/tailwindcss/theme.css), kept verbatim
+	   so the rendered colors are unchanged. Skeleton's --color-success/warning
+	   ramps were considered but do NOT visually match (Cerberus success is
+	   teal oklch(0.85 0.13 175), warning is amber oklch(0.85 0.12 78)). --- */
+	--verdict-win: oklch(76.5% 0.177 163.223); /* tailwind emerald-400 */
+	--verdict-win-strong: oklch(69.6% 0.17 162.48); /* tailwind emerald-500 */
+	--verdict-win-bg: color-mix(in oklab, var(--verdict-win-strong) 20%, transparent);
+	--verdict-win-border: color-mix(in oklab, var(--verdict-win-strong) 30%, transparent);
+	--verdict-loss: oklch(71.4% 0.203 305.504); /* tailwind purple-400 */
+	--verdict-loss-strong: oklch(62.7% 0.265 303.9); /* tailwind purple-500 */
+	--verdict-loss-bg: color-mix(in oklab, var(--verdict-loss-strong) 20%, transparent);
+	--verdict-loss-border: color-mix(in oklab, var(--verdict-loss-strong) 30%, transparent);
+	--verdict-both: oklch(70.7% 0.165 254.624); /* tailwind blue-400 */
+	--verdict-both-strong: oklch(62.3% 0.214 259.815); /* tailwind blue-500 */
+	--verdict-both-bg: color-mix(in oklab, var(--verdict-both-strong) 20%, transparent);
+	--verdict-both-border: color-mix(in oklab, var(--verdict-both-strong) 30%, transparent);
+	--verdict-neither: oklch(70.7% 0.022 261.325); /* tailwind gray-400 */
+	--verdict-neither-strong: oklch(55.1% 0.027 264.364); /* tailwind gray-500 */
+	--verdict-neither-bg: color-mix(in oklab, var(--verdict-neither-strong) 20%, transparent);
+	--verdict-neither-border: color-mix(in oklab, var(--verdict-neither-strong) 30%, transparent);
+	--confidence-high: oklch(79.2% 0.209 151.711); /* tailwind green-400 */
+	--confidence-high-strong: oklch(72.3% 0.219 149.579); /* tailwind green-500 */
+	--confidence-high-bg: color-mix(in oklab, var(--confidence-high-strong) 20%, transparent);
+	--confidence-high-border: color-mix(in oklab, var(--confidence-high-strong) 30%, transparent);
+	--confidence-medium: oklch(85.2% 0.199 91.936); /* tailwind yellow-400 */
+	--confidence-medium-strong: oklch(79.5% 0.184 86.047); /* tailwind yellow-500 */
+	--confidence-medium-bg: color-mix(in oklab, var(--confidence-medium-strong) 20%, transparent);
+	--confidence-medium-border: color-mix(in oklab, var(--confidence-medium-strong) 30%, transparent);
+	--confidence-low: oklch(70.4% 0.191 22.216); /* tailwind red-400 */
+	--confidence-low-strong: oklch(63.7% 0.237 25.331); /* tailwind red-500 */
+	--confidence-low-bg: color-mix(in oklab, var(--confidence-low-strong) 20%, transparent);
+	--confidence-low-border: color-mix(in oklab, var(--confidence-low-strong) 30%, transparent);
+
 	/* --- Comparison: muted steel-blue, pairs the two-model comparison views --- */
 	--sentiment-comparison: oklch(0.7 0.08 240);
 	--sentiment-comparison-light: oklch(0.78 0.06 240);
@@ -860,6 +898,52 @@ h3 {
 	background: var(--sentiment-centrality-not-addressed-bg);
 	border: 1px solid var(--sentiment-centrality-not-addressed-border);
 	color: var(--sentiment-centrality-not-addressed);
+}
+
+/* --- Arbiter Verdict & Confidence Badges ---
+   Semantic classes for the arbiter's preferred-model verdict and confidence
+   level, used by ArbiterSection and ArbiterArticleTable (via utils/arbiter.ts).
+   Backed by the --verdict-*/
+--confidence-* tokens above. */ .badge-verdict-win {
+	background: var(--verdict-win-bg);
+	border: 1px solid var(--verdict-win-border);
+	color: var(--verdict-win);
+}
+
+.badge-verdict-loss {
+	background: var(--verdict-loss-bg);
+	border: 1px solid var(--verdict-loss-border);
+	color: var(--verdict-loss);
+}
+
+.badge-verdict-both {
+	background: var(--verdict-both-bg);
+	border: 1px solid var(--verdict-both-border);
+	color: var(--verdict-both);
+}
+
+.badge-verdict-neither {
+	background: var(--verdict-neither-bg);
+	border: 1px solid var(--verdict-neither-border);
+	color: var(--verdict-neither);
+}
+
+.badge-confidence-high {
+	background: var(--confidence-high-bg);
+	border: 1px solid var(--confidence-high-border);
+	color: var(--confidence-high);
+}
+
+.badge-confidence-medium {
+	background: var(--confidence-medium-bg);
+	border: 1px solid var(--confidence-medium-border);
+	color: var(--confidence-medium);
+}
+
+.badge-confidence-low {
+	background: var(--confidence-low-bg);
+	border: 1px solid var(--confidence-low-border);
+	color: var(--confidence-low);
 }
 
 /* Selected filter-chip sentiment variants live in FilterChip.svelte (scoped).

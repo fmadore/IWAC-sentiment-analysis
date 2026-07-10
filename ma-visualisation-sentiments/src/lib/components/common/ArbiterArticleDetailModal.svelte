@@ -14,7 +14,7 @@
 	import { getJournalName } from '$lib/utils/format';
 	import { formatDate, getArticleUrl } from '$lib/utils/format';
 	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
-	import { SentimentBadge, ArbiterSection } from '$lib/components/common';
+	import { ComparisonPanel, ArbiterSection } from '$lib/components/common';
 	import FullScreenModal from './FullScreenModal.svelte';
 	import ScaleIcon from '@lucide/svelte/icons/scale';
 	import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
@@ -94,74 +94,51 @@
 				</a>
 			</div>
 
-			<!-- Model Comparison -->
+			<!-- Model Comparison — shared ComparisonPanel (same component as ComparisonDetail) -->
 			<div class="model-comparison mb-6">
 				<h4 class="section-title">
 					{$t.comparison?.compareDimensions || 'Compare Dimensions'}
 				</h4>
 
-				<div class="comparison-grid">
-					<!-- Model A Column -->
-					<div class="model-column model-a">
-						<div class="model-header">
-							<span class="model-name">{modelNames.modelAName}</span>
-						</div>
-						<div class="dimension-values">
-							<div class="dimension-row">
-								<span class="dimension-label">{$t.comparison?.polarity || 'Polarity'}</span>
-								<SentimentBadge type="polarity" value={comparison.modelA?.polarite} size="sm" />
-							</div>
-							<div class="dimension-row">
-								<span class="dimension-label">{$t.comparison?.subjectivity || 'Subjectivity'}</span>
-								<SentimentBadge
-									type="subjectivity"
-									value={comparison.modelA?.subjectivite_score}
-									size="sm"
-								/>
-							</div>
-							<div class="dimension-row">
-								<span class="dimension-label">{$t.comparison?.centrality || 'Centrality'}</span>
-								<SentimentBadge
-									type="centrality"
-									value={comparison.modelA?.centralite_islam_musulmans}
-									size="sm"
-								/>
-							</div>
-						</div>
+				<div class="dimension-sections">
+					<div>
+						<span class="dimension-eyebrow">{$t.comparison?.polarity || 'Polarity'}</span>
+						<ComparisonPanel
+							compact
+							dimension="polarity"
+							modelAName={modelNames.modelAName}
+							modelAValue={comparison.modelA?.polarite}
+							modelAJustification={comparison.modelA?.polarite_justification}
+							modelBName={modelNames.modelBName}
+							modelBValue={comparison.modelB?.polarite}
+							modelBJustification={comparison.modelB?.polarite_justification}
+						/>
 					</div>
-
-					<!-- VS Divider -->
-					<div class="vs-divider">
-						<span>VS</span>
+					<div>
+						<span class="dimension-eyebrow">{$t.comparison?.subjectivity || 'Subjectivity'}</span>
+						<ComparisonPanel
+							compact
+							dimension="subjectivity"
+							modelAName={modelNames.modelAName}
+							modelAValue={comparison.modelA?.subjectivite_score}
+							modelAJustification={comparison.modelA?.subjectivite_justification}
+							modelBName={modelNames.modelBName}
+							modelBValue={comparison.modelB?.subjectivite_score}
+							modelBJustification={comparison.modelB?.subjectivite_justification}
+						/>
 					</div>
-
-					<!-- Model B Column -->
-					<div class="model-column model-b">
-						<div class="model-header">
-							<span class="model-name">{modelNames.modelBName}</span>
-						</div>
-						<div class="dimension-values">
-							<div class="dimension-row">
-								<span class="dimension-label">{$t.comparison?.polarity || 'Polarity'}</span>
-								<SentimentBadge type="polarity" value={comparison.modelB?.polarite} size="sm" />
-							</div>
-							<div class="dimension-row">
-								<span class="dimension-label">{$t.comparison?.subjectivity || 'Subjectivity'}</span>
-								<SentimentBadge
-									type="subjectivity"
-									value={comparison.modelB?.subjectivite_score}
-									size="sm"
-								/>
-							</div>
-							<div class="dimension-row">
-								<span class="dimension-label">{$t.comparison?.centrality || 'Centrality'}</span>
-								<SentimentBadge
-									type="centrality"
-									value={comparison.modelB?.centralite_islam_musulmans}
-									size="sm"
-								/>
-							</div>
-						</div>
+					<div>
+						<span class="dimension-eyebrow">{$t.comparison?.centrality || 'Centrality'}</span>
+						<ComparisonPanel
+							compact
+							dimension="centrality"
+							modelAName={modelNames.modelAName}
+							modelAValue={comparison.modelA?.centralite_islam_musulmans}
+							modelAJustification={comparison.modelA?.centralite_justification}
+							modelBName={modelNames.modelBName}
+							modelBValue={comparison.modelB?.centralite_islam_musulmans}
+							modelBJustification={comparison.modelB?.centralite_justification}
+						/>
 					</div>
 				</div>
 			</div>
@@ -248,100 +225,26 @@
 		letter-spacing: 0.14em;
 	}
 
-	.comparison-grid {
-		display: grid;
-		grid-template-columns: 1fr auto 1fr;
+	.dimension-sections {
+		display: flex;
+		flex-direction: column;
 		gap: var(--space-4);
-		align-items: start;
 	}
 
-	.model-column {
-		background: var(--surface-subtle);
-		border: 1px solid var(--border-default);
-		border-radius: var(--radius-md);
-		padding: var(--space-4);
-	}
-
-	.model-a {
-		border-top: 2px solid var(--sentiment-comparison);
-	}
-
-	.model-b {
-		border-top: 2px solid var(--sentiment-subjectivity-3);
-	}
-
-	.model-header {
-		text-align: center;
-		margin-bottom: var(--space-4);
-		padding-bottom: var(--space-3);
-		border-bottom: 1px solid var(--border-subtle);
-	}
-
-	.model-name {
-		font-weight: var(--font-weight-semibold);
-		font-size: var(--font-size-base);
-		color: var(--text-primary);
-	}
-
-	.model-a .model-name {
-		color: var(--sentiment-comparison);
-	}
-
-	.model-b .model-name {
-		color: var(--sentiment-subjectivity-3);
-	}
-
-	.dimension-values {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-3);
-	}
-
-	.dimension-row {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--space-1);
-	}
-
-	.dimension-label {
-		font-size: var(--font-size-2xs);
-		text-transform: uppercase;
-		color: var(--text-subtle);
-	}
-
-	.vs-divider {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		align-self: center;
-		width: var(--size-control-md);
-		height: var(--size-control-md);
-		border-radius: 0;
-		background: transparent;
-		border: 1px solid var(--sentiment-arbiter-border);
-		color: var(--sentiment-arbiter-light);
+	.dimension-eyebrow {
+		display: block;
 		font-family: var(--font-mono);
+		font-size: 0.6875rem;
 		font-weight: 600;
-		font-size: 0.625rem;
-		letter-spacing: 0.1em;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--text-muted);
+		margin-bottom: var(--space-2);
 	}
 
 	@media (max-width: 640px) {
 		.article-title {
 			font-size: var(--font-size-2xl);
-		}
-
-		.comparison-grid {
-			grid-template-columns: 1fr;
-			gap: var(--space-2);
-		}
-
-		.vs-divider {
-			width: 100%;
-			height: auto;
-			padding: var(--space-2);
-			border-radius: var(--radius-md);
 		}
 	}
 
