@@ -11,7 +11,7 @@
 	import { comparisonState, datasetState } from '$lib/stores';
 	import { getPairModelNames } from '$lib/types/data';
 	import { t } from '$lib/i18n';
-	import { getJournalName } from '$lib/utils';
+	import { getJournalName } from '$lib/utils/format';
 	import { formatDate, getArticleUrl } from '$lib/utils/format';
 	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
 	import { SentimentBadge, ArbiterSection } from '$lib/components/common';

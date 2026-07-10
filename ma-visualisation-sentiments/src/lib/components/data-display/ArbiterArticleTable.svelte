@@ -14,7 +14,7 @@
 	import { arbiterEvaluations, comparisonState, datasetState } from '$lib/stores';
 	import { getPairModelNames, type ArbiterAnalysis } from '$lib/types/data';
 	import { t } from '$lib/i18n';
-	import { getJournalName } from '$lib/utils';
+	import { getJournalName } from '$lib/utils/format';
 	import { formatDate } from '$lib/utils/format';
 	import { createPagination } from '$lib/utils/pagination.svelte';
 	import { ArbiterCSVExportButton } from '$lib/components/ui';

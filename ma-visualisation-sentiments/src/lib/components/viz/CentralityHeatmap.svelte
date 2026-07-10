@@ -5,8 +5,8 @@
 	import { innerWidth } from 'svelte/reactivity/window';
 	import { SvelteSet } from 'svelte/reactivity';
 
-	import { articleState } from '$lib';
-	import type { Article } from '$lib';
+	import { articleState } from '$lib/stores';
+	import type { Article } from '$lib/types/data';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue } from '$lib/i18n/utils';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';

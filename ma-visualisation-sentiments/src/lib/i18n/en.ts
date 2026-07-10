@@ -1,6 +1,10 @@
-import type { Translations } from './types.js';
-
-export const en: Translations = {
+/**
+ * English catalog — the source of truth for the `Translations` type
+ * (types.ts derives it via `typeof en`). Do not annotate this object with
+ * `Translations`; that would be circular. fr.ts is annotated instead, which
+ * is what enforces EN/FR key parity at compile time.
+ */
+export const en = {
 	// App header and branding
 	appTitle: 'IWAC Sentiment Analysis',
 	appSubtitle: 'Islam West Africa Collection – Data visualization and exploration',

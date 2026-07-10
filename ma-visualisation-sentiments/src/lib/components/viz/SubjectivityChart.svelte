@@ -5,7 +5,7 @@
 	import type { EChartsOption, SeriesOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	import { articleState } from '$lib';
+	import { articleState } from '$lib/stores';
 	import {
 		aggregateByJournalAndDimension,
 		getSubjectivityLabel

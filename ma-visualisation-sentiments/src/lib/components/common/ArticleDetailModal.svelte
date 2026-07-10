@@ -15,7 +15,7 @@
 	import type { Article } from '$lib/types/data';
 	import { t } from '$lib/i18n';
 	import { ArticleDetail } from '$lib/components/data-display';
-	import { getJournalName } from '$lib/utils';
+	import { getJournalName } from '$lib/utils/format';
 	import FullScreenModal from './FullScreenModal.svelte';
 	import NewspaperIcon from '@lucide/svelte/icons/newspaper';
 

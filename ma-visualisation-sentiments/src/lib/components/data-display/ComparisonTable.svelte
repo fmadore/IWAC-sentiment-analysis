@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { comparisonState, datasetState } from '$lib/stores';
 	import { t } from '$lib/i18n';
-	import { getJournalName } from '$lib/utils';
+	import { getJournalName } from '$lib/utils/format';
 	import { formatDate, getModelDisplayName } from '$lib/utils/format';
 	import { getDiffClass, getDiffBadgeClass } from '$lib/utils/discrepancy';
 	import type { ComparisonData } from '$lib/types/data';

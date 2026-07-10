@@ -6,7 +6,7 @@
 	import type { EChartsOption, SeriesOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	import { articleState } from '$lib';
+	import { articleState } from '$lib/stores';
 	import { aggregateByJournalAndDimension } from '$lib/utils/chartAggregators';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { getSentimentLabels, formatNumber } from '$lib/i18n/utils';

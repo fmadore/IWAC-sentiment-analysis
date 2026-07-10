@@ -4,6 +4,7 @@
  * Consolidates duplicated formatting functions from across the component tree.
  */
 
+import type { Article } from '$lib/types/data';
 import { currentLanguage, t } from '$lib/i18n';
 import { get } from 'svelte/store';
 
@@ -51,4 +52,11 @@ export function getModelDisplayName(
 	datasets: { id: string; name: string }[]
 ): string {
 	return datasets.find((d) => d.id === modelId)?.name || modelId;
+}
+
+/**
+ * Get the journal name for an article consistently across the app.
+ */
+export function getJournalName(article: Article): string {
+	return article.journal_source || article.Newspaper || 'Inconnu';
 }

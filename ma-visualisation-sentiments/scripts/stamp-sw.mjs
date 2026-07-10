@@ -20,7 +20,7 @@ const version =
 try {
 	await access(SW_PATH);
 } catch {
-	// No build output (e.g. `prepack`/library-only run) — nothing to stamp.
+	// No build output — nothing to stamp.
 	console.warn('[stamp-sw] build/sw.js not found — skipping.');
 	process.exit(0);
 }

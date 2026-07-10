@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { articleState } from '$lib/stores';
 	import type { Article } from '$lib/types/data';
-	import { getJournalName } from '$lib/utils';
+	import { getJournalName } from '$lib/utils/format';
 	import { formatDate } from '$lib/utils/format';
 	import { t } from '$lib/i18n';
 	import { DatasetBadge } from '$lib/components/ui';

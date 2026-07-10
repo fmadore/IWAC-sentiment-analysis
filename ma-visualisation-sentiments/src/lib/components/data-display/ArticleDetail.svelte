@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Article } from '$lib/types/data';
-	import { getJournalName } from '$lib/utils';
+	import { getJournalName } from '$lib/utils/format';
 	import { formatDate, getArticleUrl } from '$lib/utils/format';
 	import { t } from '$lib/i18n';
 	import { SentimentBadge } from '$lib/components/common';

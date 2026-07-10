@@ -12,7 +12,7 @@
 		datasetState,
 		getActualModelName
 	} from '$lib/stores';
-	import { getJournalName } from '$lib/utils';
+	import { getJournalName } from '$lib/utils/format';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
 	import { getPairModelNames, type ArbiterEvaluationData } from '$lib/types/data';

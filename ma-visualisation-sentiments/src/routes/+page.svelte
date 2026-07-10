@@ -12,7 +12,7 @@
 		filterState
 	} from '$lib/stores';
 	import { t, currentLanguage } from '$lib/i18n';
-	import type { Article } from '$lib';
+	import type { Article } from '$lib/types/data';
 	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
 
 	// Layout

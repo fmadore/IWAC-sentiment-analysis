@@ -17,7 +17,7 @@
 <script lang="ts">
 	import type { ComparisonData } from '$lib/types/data';
 	import { ComparisonPanel, ArbiterSection } from '$lib/components/common';
-	import { getJournalName } from '$lib/utils';
+	import { getJournalName } from '$lib/utils/format';
 	import { formatDate, getArticleUrl, getModelDisplayName } from '$lib/utils/format';
 	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
 	import { getDiffClass, getDiffBadgeClass } from '$lib/utils/discrepancy';

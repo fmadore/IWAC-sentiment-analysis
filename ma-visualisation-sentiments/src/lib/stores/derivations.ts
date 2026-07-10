@@ -16,7 +16,7 @@ import type {
 	SentimentAnalysis
 } from '$lib/types/data';
 import { getModelsFromPair } from '$lib/types/data';
-import { getJournalName } from '$lib/utils';
+import { getJournalName } from '$lib/utils/format';
 
 // ============================================
 // Score Mappings
