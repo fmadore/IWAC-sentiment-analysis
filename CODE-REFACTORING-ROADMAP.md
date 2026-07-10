@@ -47,7 +47,7 @@ npm run build       # vite build (+ prepack until Batch E removes it)
 | D | Python preprocessing refactor | ✅ landed (July 2026 pass) |
 | E | Build config + i18n type derivation | ✅ landed (July 2026 pass) |
 | F | Viz modularity (twin-chart unification, aggregators, theme cleanup) | ✅ landed (July 2026 pass) |
-| G | Component modularity (Pagination, Spinner, scales) | 🔄 in progress (July 2026 pass) |
+| G | Component modularity (Pagination, Spinner, scales) | 🔶 mostly landed (July 2026 pass) — StatCard for ComparisonStats/ArbiterStatsCards still open |
 | H | Design-system token consistency sweep | 🔶 partially landed (dead-CSS purge, layout tokens; per-folder sweep still open) |
 | I | Docs & memory refresh | ✅ landed (July 2026 pass) |
 

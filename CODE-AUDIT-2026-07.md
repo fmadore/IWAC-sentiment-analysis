@@ -6,6 +6,16 @@ components, (2) viz/chart components, (3) stores & state architecture,
 (4) CSS/design system/layout, (5) Python preprocessing, i18n, build config, docs.
 Run against `main` @ `bdffc11`.
 
+> **Implementation status (July 10, 2026):** everything in this audit has been
+> implemented on `claude/dashboard-refactor-design-yva33p` — the §1 bugs, dead-CSS
+> purge, store typing/layering/loading-concurrency work, viz twin-chart merges,
+> component modularity (arbiter utils, PaginationControls, Spinner, EmptyState,
+> methodology split), filter refactor with a11y fixes, SEOHead i18n, Python
+> refactor, test-coverage batch, data-payload normalization (79 -> 50MB), and the
+> docs corrections. One item remains open: extracting a shared StatCard for
+> ComparisonStats/ArbiterStatsCards (roadmap Batch G) — the agent doing it was
+> cut off; the per-folder token-consistency sweep (Batch H) also stays open.
+
 **Relationship to existing roadmaps.** This audit cross-references
 [CODE-REFACTORING-ROADMAP.md](CODE-REFACTORING-ROADMAP.md) (batches A–C2 landed,
 C3–I pending) and [REFACTORING-ROADMAP.md](REFACTORING-ROADMAP.md) (design track,
