@@ -5,12 +5,7 @@ export type CentralityValue = 'Très central' | 'Central' | 'Secondaire' | 'Marg
 
 /** Known polarity values from the AI models */
 export type PolarityValue =
-	| 'Très positif'
-	| 'Positif'
-	| 'Neutre'
-	| 'Négatif'
-	| 'Très négatif'
-	| 'Non applicable';
+	'Très positif' | 'Positif' | 'Neutre' | 'Négatif' | 'Très négatif' | 'Non applicable';
 
 /** Subjectivity score from 1 (very objective) to 5 (very subjective) */
 export type SubjectivityScore = 1 | 2 | 3 | 4 | 5;

@@ -154,10 +154,7 @@ function computeArbiterStatistics(): ArbiterStatistics {
 		// Count dimension-level preferences
 		for (const dimension of ['polarity', 'subjectivity', 'centrality'] as const) {
 			const preferredModel = arbiter[dimension]?.preferred_model as
-				| 'model_a'
-				| 'model_b'
-				| 'both'
-				| 'neither';
+				'model_a' | 'model_b' | 'both' | 'neither';
 			if (preferredModel in counts) {
 				counts[preferredModel]++;
 			}
