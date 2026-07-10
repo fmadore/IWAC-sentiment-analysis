@@ -5,6 +5,7 @@
  * Uses Svelte 5 runes for reactivity.
  */
 
+import { SvelteMap } from 'svelte/reactivity';
 import type { ArbiterEvaluationData, ArbiterAnalysis, ModelPair } from '$lib/types/data';
 import { getPairModelNames } from '$lib/types/data';
 import { base } from '$app/paths';
@@ -251,14 +252,45 @@ export function getActualModelName(
 // Data Loading
 // ============================================
 
+/**
+ * Per-pair result cache (null = attempted, file not available) and in-flight
+ * dedup. Two effects in +page.svelte can both request arbiter data in the
+ * same tick (comparison-mode effect + activeView effect); without this the
+ * file was fetched twice on every entry into comparison/arbiter views.
+ */
+const arbiterCache = new SvelteMap<ModelPair, ArbiterEvaluationData | null>();
+const arbiterInFlight = new SvelteMap<ModelPair, Promise<void>>();
+
 /** Load arbiter evaluations for a specific model pair */
 export const loadArbiterEvaluations = async (
 	fetchFunction: typeof fetch,
 	pair?: ModelPair
 ): Promise<void> => {
-	uiState.isLoadingArbiter = true;
-
 	const targetPair: ModelPair = pair || datasetState.pair;
+
+	if (arbiterCache.has(targetPair)) {
+		_arbiterEvaluations = arbiterCache.get(targetPair) ?? null;
+		_currentArbiterPair = targetPair;
+		return;
+	}
+
+	const inFlight = arbiterInFlight.get(targetPair);
+	if (inFlight) {
+		return inFlight;
+	}
+
+	const load = fetchArbiterEvaluations(fetchFunction, targetPair).finally(() => {
+		arbiterInFlight.delete(targetPair);
+	});
+	arbiterInFlight.set(targetPair, load);
+	return load;
+};
+
+const fetchArbiterEvaluations = async (
+	fetchFunction: typeof fetch,
+	targetPair: ModelPair
+): Promise<void> => {
+	uiState.isLoadingArbiter = true;
 
 	try {
 		const pairSpecificPath = `${base}/data/iwac_arbiter_evaluations_${targetPair}.json`;
@@ -266,16 +298,19 @@ export const loadArbiterEvaluations = async (
 
 		if (!response.ok) {
 			console.log(`[Arbiter] Evaluations not found for pair ${targetPair} (this is optional data)`);
+			arbiterCache.set(targetPair, null);
 			_arbiterEvaluations = null;
 			_currentArbiterPair = targetPair;
 			return;
 		}
 
 		const data = (await response.json()) as ArbiterEvaluationData;
+		arbiterCache.set(targetPair, data);
 		_arbiterEvaluations = data;
 		_currentArbiterPair = targetPair;
 		console.log(`[Arbiter] Loaded ${data.evaluations?.length || 0} evaluations for ${targetPair}`);
 	} catch (error) {
+		// Transient (network) failure: don't cache, so a later call can retry.
 		console.log('[Arbiter] Evaluations not available:', error);
 		_arbiterEvaluations = null;
 		_currentArbiterPair = targetPair;
