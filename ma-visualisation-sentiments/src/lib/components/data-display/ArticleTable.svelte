@@ -196,7 +196,7 @@
 					disabled={pagination.currentPage === 1}
 					title={$t.common.previous || 'Previous page'}
 				>
-					{isMobile ? '←' : '←'}
+					←
 				</button>
 
 				{#each pagination.visiblePages as page (page)}
@@ -216,7 +216,7 @@
 					disabled={pagination.currentPage === pagination.totalPages}
 					title={$t.common.next || 'Next page'}
 				>
-					{isMobile ? '→' : '→'}
+					→
 				</button>
 			</div>
 		</div>

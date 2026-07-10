@@ -70,7 +70,9 @@ function mapArticleProperties(
 	item: Record<string, unknown> & Partial<Article>,
 	datasetId: string
 ): Article {
+	// Spread first so the computed fallbacks below win over null/empty raw values
 	return {
+		...item,
 		'o:id': item['o:id'] as string | number,
 		'o:title': item['o:title'] as string,
 		journal_source:
@@ -85,8 +87,7 @@ function mapArticleProperties(
 			((item as { 'dcterms:date'?: string })['dcterms:date'] as string) ||
 			'N/A',
 		sentiment_analysis: item.sentiment_analysis ?? null,
-		dataset_id: datasetId,
-		...item
+		dataset_id: datasetId
 	};
 }
 

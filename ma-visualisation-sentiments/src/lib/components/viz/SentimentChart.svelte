@@ -107,13 +107,10 @@
 						formatValue: (n) => formatNumber(n, currentLang)
 					})
 				},
+				// The pie is aggregated globally by polarity, so a journal legend would
+				// control nothing here; slice labels already name the categories.
 				legend: {
-					...getLegendConfig(isMobile),
-					data: newspaperList,
-					// Pie keeps its legend at the top. Reset `bottom` to 'auto' (the bar
-					// variant anchors it to the bottom) so toggling bar→pie moves it back up.
-					top: isMobile ? '12%' : '8%',
-					bottom: 'auto'
+					show: false
 				},
 				series: [
 					{

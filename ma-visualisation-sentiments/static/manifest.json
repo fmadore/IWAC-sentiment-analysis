@@ -55,22 +55,18 @@
 					"sizes": "192x192"
 				}
 			]
-		}
-	],
-	"screenshots": [
-		{
-			"src": "./screenshots/desktop.png",
-			"sizes": "1280x720",
-			"type": "image/png",
-			"form_factor": "wide",
-			"label": "IWAC Sentiment Analysis Dashboard"
 		},
 		{
-			"src": "./screenshots/mobile.png",
-			"sizes": "390x844",
-			"type": "image/png",
-			"form_factor": "narrow",
-			"label": "IWAC Mobile Analysis View"
+			"name": "Mistral Analysis",
+			"short_name": "Mistral",
+			"description": "View Mistral sentiment analysis results",
+			"url": "./?dataset=mistral",
+			"icons": [
+				{
+					"src": "./icons/icon-192x192.png",
+					"sizes": "192x192"
+				}
+			]
 		}
 	]
 }

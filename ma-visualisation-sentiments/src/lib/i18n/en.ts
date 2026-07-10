@@ -362,6 +362,8 @@ export const en: Translations = {
 		confidenceHigh: 'High',
 		confidenceMedium: 'Medium',
 		confidenceLow: 'Low',
+		evaluationsNoun: 'evaluations',
+		verdictsNoun: 'verdicts',
 		preferredModel: 'Preferred Model',
 		prefers: 'Prefers',
 		prefersChatGPT: 'ChatGPT is more accurate',

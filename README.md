@@ -17,7 +17,7 @@ Comparative analysis of results across three AI models (ChatGPT, Gemini, Mistral
 - Automatic discrepancy calculation between models
 - Advanced filters by disagreement level
 - Detailed convergence and conflict statistics
-- **Arbiter evaluations**: Gemini 2.5 Pro as third-party evaluator to determine which model is most relevant
+- **Arbiter evaluations**: Gemini 3 Pro as third-party evaluator to determine which model is most relevant
 - CSV export including compared model data
 
 ### Multilingual Interface
@@ -51,17 +51,16 @@ https://fmadore.github.io/IWAC-sentiment-analysis/?view=comparison&compare=true&
 
 ## Performance Optimizations
 
-The application has been optimized for high performance despite large data volumes (22MB of JSON):
+The application has been optimized for high performance despite large data volumes (three per-model article datasets of 12–18MB each, plus extreme-analysis and arbiter data):
 
 ### Lazy Loading
-- **50% reduction in initial transfer**: Only the selected dataset loads at startup (11MB instead of 22MB)
-- **On-demand loading**: The second dataset loads only when comparison mode is activated
+- **Reduced initial transfer**: Only the selected model's dataset loads at startup
+- **On-demand loading**: The other models' datasets load only when comparison mode is activated; arbiter and extreme-analysis data load with their views
 - **Smart caching**: Datasets remain in memory after loading for instant switching
 
 ### Data Compression
-- **Brotli compression**: 91% file size reduction (22MB -> 1.9MB)
-- **Gzip compression**: Alternative with 85% reduction (22MB -> 3.3MB)
-- **Automatic configuration**: Precompression enabled in SvelteKit with `vite-plugin-compression`
+- **Brotli/Gzip precompression**: Build assets are precompressed with `vite-plugin-compression` (~90% reduction for JSON)
+- **Automatic configuration**: Precompression enabled in the Vite build
 
 ### CLS Optimization (Cumulative Layout Shift)
 - Optimized font loading with preconnect and preload for Google Fonts
@@ -104,7 +103,7 @@ The project is structured as a modern SvelteKit application with Svelte 5 runes:
             -   `SEOHead.svelte`: Dynamic SEO metadata with multilingual support.
             -   `PWAManager.svelte`: PWA installation and update management.
         -   `stores/`: State management modules with Svelte 5 runes.
-            -   `arbiter.svelte.ts`: Gemini 2.5 Pro arbiter evaluation state.
+            -   `arbiter.svelte.ts`: Gemini 3 Pro arbiter evaluation state.
             -   `articles.svelte.ts`: Corpus article state.
             -   `comparison.svelte.ts`: Model comparison mode state.
             -   `datasets.svelte.ts`: Dataset and model selection state.
@@ -168,7 +167,7 @@ Comparison mode uses two datasets simultaneously (selected from the three possib
 
 ### Arbiter Data
 
-For each model pair, arbiter evaluations by Gemini 2.5 Pro are available:
+For each model pair, arbiter evaluations by Gemini 3 Pro are available:
 - `iwac_arbiter_evaluations_chatgpt-gemini.json`
 - `iwac_arbiter_evaluations_chatgpt-mistral.json`
 - `iwac_arbiter_evaluations_gemini-mistral.json`
@@ -280,7 +279,7 @@ The application uses state management modules based on **Svelte 5 runes** for op
 - `comparisonStatistics`: Comparison statistics and metrics
 
 ### `arbiter.svelte.ts`
-- `arbiterEvaluations`: Arbiter evaluations by Gemini 2.5 Pro
+- `arbiterEvaluations`: Arbiter evaluations by Gemini 3 Pro
 - `currentArbiterPair`: Model pair for which evaluations are loaded
 - `arbiterStatistics`: Arbiter verdict statistics
 - `getArbiterForArticle()`: Retrieves arbiter evaluation for an article
@@ -309,7 +308,7 @@ Comparison mode is an advanced feature that analyzes differences between sentime
 - **Potential biases**: Detecting systematic disagreement patterns
 - **Analysis reliability**: Evaluating result robustness
 - **Complex cases**: Spotting articles requiring human expertise
-- **Objective arbitration**: Gemini 2.5 Pro verdicts to adjudicate between models
+- **Objective arbitration**: Gemini 3 Pro verdicts to adjudicate between models
 
 ### How to Activate Comparison Mode
 

@@ -342,6 +342,8 @@ export interface Translations {
 		confidenceHigh: string;
 		confidenceMedium: string;
 		confidenceLow: string;
+		evaluationsNoun: string;
+		verdictsNoun: string;
 		preferredModel: string;
 		prefers: string;
 		prefersChatGPT: string;
