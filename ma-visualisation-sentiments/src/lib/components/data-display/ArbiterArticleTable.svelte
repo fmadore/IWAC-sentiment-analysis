@@ -13,8 +13,10 @@
 <script lang="ts">
 	import { arbiterEvaluations, comparisonState, datasetState } from '$lib/stores';
 	import { getPairModelNames, type ArbiterAnalysis } from '$lib/types/data';
-	import { t, currentLanguage } from '$lib/i18n';
+	import { t } from '$lib/i18n';
 	import { getJournalName } from '$lib/utils';
+	import { formatDate } from '$lib/utils/format';
+	import { createPagination } from '$lib/utils/pagination.svelte';
 	import { ArbiterCSVExportButton } from '$lib/components/ui';
 	import ArrowUpDownIcon from '@lucide/svelte/icons/arrow-up-down';
 	import LayoutGridIcon from '@lucide/svelte/icons/layout-grid';
@@ -38,11 +40,6 @@
 	// Sort state
 	let sortBy = $state<'title' | 'date' | 'verdict' | 'confidence'>('date');
 	let sortDirection = $state<'asc' | 'desc'>('desc');
-
-	// Pagination
-	let currentPage = $state(1);
-	let itemsPerPage = $state(25);
-	const itemsPerPageOptions = [10, 25, 50, 100];
 
 	// Switch to card view on mobile
 	$effect(() => {
@@ -137,32 +134,18 @@
 		})
 	);
 
-	// Pagination computed values
-	const totalItems = $derived(sortedArticles.length);
-	const totalPages = $derived(Math.ceil(totalItems / itemsPerPage));
-	const startIndex = $derived((currentPage - 1) * itemsPerPage);
-	const endIndex = $derived(Math.min(startIndex + itemsPerPage, totalItems));
-	const paginatedArticles = $derived(sortedArticles.slice(startIndex, endIndex));
-
-	// Generate visible page numbers
-	const visiblePages = $derived.by(() => {
-		const pages: number[] = [];
-		const maxVisible = isMobile ? 3 : 5;
-		const half = Math.floor(maxVisible / 2);
-
-		let start = Math.max(1, currentPage - half);
-		let end = Math.min(totalPages, start + maxVisible - 1);
-
-		if (end - start + 1 < maxVisible) {
-			start = Math.max(1, end - maxVisible + 1);
-		}
-
-		for (let i = start; i <= end; i++) {
-			pages.push(i);
-		}
-
-		return pages;
+	// Pagination via the shared composable (also used by ArticleTable and
+	// ComparisonTable); resets to page 1 when the total changes.
+	const pagination = createPagination({
+		totalItems: () => sortedArticles.length,
+		initialItemsPerPage: 25,
+		itemsPerPageOptions: [10, 25, 50, 100],
+		maxVisiblePages: () => (isMobile ? 3 : 5)
 	});
+
+	const paginatedArticles = $derived(
+		sortedArticles.slice(pagination.startIndex, pagination.endIndex)
+	);
 
 	// Helper functions
 	function getVerdictOrder(verdict: string): number {
@@ -191,18 +174,6 @@
 			default:
 				return 0;
 		}
-	}
-
-	function formatDate(dateStr: string | null): string {
-		if (!dateStr) return 'N/A';
-		const date = new Date(dateStr);
-		if (isNaN(date.getTime())) return dateStr;
-		const locale = $currentLanguage === 'en' ? 'en-US' : 'fr-FR';
-		return date.toLocaleDateString(locale, {
-			day: 'numeric',
-			month: 'short',
-			year: 'numeric'
-		});
 	}
 
 	function getVerdictLabel(verdict: 'model_a' | 'model_b' | 'both' | 'neither'): string {
@@ -261,26 +232,6 @@
 		}
 	}
 
-	// Pagination functions
-	function goToPage(page: number) {
-		if (page >= 1 && page <= totalPages) {
-			currentPage = page;
-		}
-	}
-
-	function previousPage() {
-		if (currentPage > 1) currentPage--;
-	}
-
-	function nextPage() {
-		if (currentPage < totalPages) currentPage++;
-	}
-
-	function changeItemsPerPage(newValue: number) {
-		itemsPerPage = newValue;
-		currentPage = 1;
-	}
-
 	function handleSort(column: typeof sortBy) {
 		if (sortBy === column) {
 			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
@@ -288,7 +239,7 @@
 			sortBy = column;
 			sortDirection = 'asc';
 		}
-		currentPage = 1;
+		pagination.currentPage = 1;
 	}
 
 	function handleRowClick(article: ArticleWithArbiter) {
@@ -327,9 +278,9 @@
 				<div class="flex items-center gap-4">
 					<div class="results-info">
 						{$t.table?.showingItems || 'Showing'}
-						<strong>{startIndex + 1}-{endIndex}</strong>
+						<strong>{pagination.startIndex + 1}-{pagination.endIndex}</strong>
 						{$t.common?.of || 'of'}
-						<strong>{totalItems}</strong>
+						<strong>{sortedArticles.length}</strong>
 					</div>
 					<div class="flex items-center gap-2">
 						<label for="arbiter-items-per-page" class="items-per-page-label"
@@ -337,11 +288,12 @@
 						>
 						<select
 							id="arbiter-items-per-page"
-							bind:value={itemsPerPage}
-							onchange={(e) => changeItemsPerPage(Number((e.target as HTMLSelectElement)?.value))}
+							value={pagination.itemsPerPage}
+							onchange={(e) =>
+								pagination.changeItemsPerPage(Number((e.target as HTMLSelectElement)?.value))}
 							class="items-per-page-select"
 						>
-							{#each itemsPerPageOptions as option (option)}
+							{#each pagination.itemsPerPageOptions as option (option)}
 								<option value={option}>{option}</option>
 							{/each}
 						</select>
@@ -350,25 +302,33 @@
 			</div>
 
 			<!-- Pagination controls -->
-			{#if totalPages > 1}
+			{#if pagination.totalPages > 1}
 				<div class="flex justify-center">
 					<div class="pagination-controls flex items-center gap-2">
-						<button class="pagination-btn" onclick={previousPage} disabled={currentPage === 1}>
+						<button
+							class="pagination-btn"
+							onclick={pagination.previousPage}
+							disabled={pagination.currentPage === 1}
+						>
 							← {isMobile ? '' : $t.common?.previous || 'Previous'}
 						</button>
 
-						{#each visiblePages as page (page)}
+						{#each pagination.visiblePages as page (page)}
 							<button
-								class="pagination-btn page-number {page === currentPage
+								class="pagination-btn page-number {page === pagination.currentPage
 									? 'pagination-btn-active'
 									: ''}"
-								onclick={() => goToPage(page)}
+								onclick={() => pagination.goToPage(page)}
 							>
 								{page}
 							</button>
 						{/each}
 
-						<button class="pagination-btn" onclick={nextPage} disabled={currentPage === totalPages}>
+						<button
+							class="pagination-btn"
+							onclick={pagination.nextPage}
+							disabled={pagination.currentPage === pagination.totalPages}
+						>
 							{isMobile ? '' : $t.common?.next || 'Next'} →
 						</button>
 					</div>

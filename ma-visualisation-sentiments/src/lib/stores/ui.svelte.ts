@@ -5,12 +5,14 @@
  * Provides both modern $state-based API and legacy store compatibility.
  */
 
+import type { ViewId } from '$lib/types/data';
+
 // ============================================
 // Svelte 5 Runes State
 // ============================================
 
 let _sidebarExpanded = $state<boolean>(false);
-let _activeView = $state<string>('charts');
+let _activeView = $state<ViewId>('charts');
 let _mobileMenuOpen = $state<boolean>(false);
 let _filtersDrawerOpen = $state<boolean>(false);
 let _isLoadingDataset = $state<boolean>(false);
@@ -48,12 +50,13 @@ export const uiState = {
 		_sidebarExpanded = !_sidebarExpanded;
 	},
 
-	// Active view
-	get activeView() {
+	// Active view. Getter narrowed to the ViewId union; setter stays
+	// permissive (string) so call sites holding plain strings keep compiling.
+	get activeView(): ViewId {
 		return _activeView;
 	},
 	set activeView(value: string) {
-		_activeView = value;
+		_activeView = value as ViewId;
 	},
 
 	// Mobile menu

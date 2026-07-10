@@ -8,7 +8,10 @@
 import type { ArbiterEvaluationData, ArbiterAnalysis, ModelPair } from '$lib/types/data';
 import { getPairModelNames } from '$lib/types/data';
 import { base } from '$app/paths';
-import { datasetState, uiState } from './index';
+// Import the leaf stores directly — importing from './index' would create a
+// cycle (the barrel re-exports this module). Same convention as url/*.
+import { datasetState } from './datasets.svelte';
+import { uiState } from './ui.svelte';
 
 // ============================================
 // Arbiter State (Svelte 5 Runes)

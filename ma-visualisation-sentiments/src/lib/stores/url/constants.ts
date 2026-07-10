@@ -4,25 +4,21 @@
  * Centralized constants for URL parameter names and valid values.
  */
 
-import type { ModelPair } from '$lib/types/data';
+import {
+	DATASET_IDS,
+	VIEW_IDS,
+	type DatasetId,
+	type ViewId,
+	type ModelPair
+} from '$lib/types/data';
 
-// Valid views that can be set in URL
-export const VALID_VIEWS = [
-	'charts',
-	'trends',
-	'correlation',
-	'volume',
-	'heatmap',
-	'table',
-	'comparison',
-	'extremes',
-	'arbiter'
-] as const;
-export type ValidView = (typeof VALID_VIEWS)[number];
+// Valid views that can be set in URL (canonical list lives in types/data)
+export const VALID_VIEWS = VIEW_IDS;
+export type ValidView = ViewId;
 
-// Valid datasets
-export const VALID_DATASETS = ['chatgpt', 'gemini', 'mistral'] as const;
-export type ValidDataset = (typeof VALID_DATASETS)[number];
+// Valid datasets (canonical list lives in types/data)
+export const VALID_DATASETS = DATASET_IDS;
+export type ValidDataset = DatasetId;
 
 // Valid comparison pairs
 export const VALID_PAIRS: readonly ModelPair[] = [

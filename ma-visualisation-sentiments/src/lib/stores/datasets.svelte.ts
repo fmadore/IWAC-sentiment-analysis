@@ -5,7 +5,7 @@
  * Provides both modern $state-based API and legacy store compatibility.
  */
 
-import type { DatasetOption, ModelPair } from '$lib/types/data';
+import type { DatasetId, DatasetOption, ModelPair } from '$lib/types/data';
 
 // ============================================
 // Dataset Configuration (Static)
@@ -39,7 +39,7 @@ const DATASETS: DatasetOption[] = [
 // Svelte 5 Runes State
 // ============================================
 
-let _selectedDataset = $state<string>('chatgpt');
+let _selectedDataset = $state<DatasetId>('chatgpt');
 let _comparisonMode = $state<boolean>(false);
 let _comparisonPair = $state<ModelPair>('chatgpt-gemini');
 
@@ -67,12 +67,14 @@ export const datasetState = {
 		return DATASETS;
 	},
 
-	// Selected dataset
-	get selected() {
+	// Selected dataset. The getter is narrowed to the DatasetId union; the
+	// setter stays permissive (string) so component call sites that hold a
+	// plain string keep compiling — the cast happens once, here.
+	get selected(): DatasetId {
 		return _selectedDataset;
 	},
 	set selected(value: string) {
-		_selectedDataset = value;
+		_selectedDataset = value as DatasetId;
 	},
 
 	// Comparison mode

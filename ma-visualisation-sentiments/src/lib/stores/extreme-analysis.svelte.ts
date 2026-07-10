@@ -51,10 +51,7 @@ export const loadCurrentExtremeAnalysis = async (fetchFunction: typeof fetch): P
 	uiState.isLoadingExtremeAnalysis = true;
 
 	try {
-		const data = await loadExtremeAnalysisData(
-			currentDatasetId as 'chatgpt' | 'gemini' | 'mistral',
-			fetchFunction
-		);
+		const data = await loadExtremeAnalysisData(currentDatasetId, fetchFunction);
 		extremeState.updateData(currentDatasetId, data);
 		console.log(`Successfully loaded extreme analysis data for ${currentDatasetId}`);
 	} catch (error) {

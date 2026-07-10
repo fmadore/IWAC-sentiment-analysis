@@ -32,9 +32,29 @@ export interface Article {
 	dataset_id: string;
 }
 
+/** Canonical model/dataset ids — single source of truth for the union that
+ *  was previously re-derived in url/constants, extreme-analysis and the
+ *  dataset config. */
+export const DATASET_IDS = ['chatgpt', 'gemini', 'mistral'] as const;
+export type DatasetId = (typeof DATASET_IDS)[number];
+
+/** Canonical view ids (sidebar navigation + `view` URL param). */
+export const VIEW_IDS = [
+	'charts',
+	'trends',
+	'correlation',
+	'volume',
+	'heatmap',
+	'table',
+	'comparison',
+	'extremes',
+	'arbiter'
+] as const;
+export type ViewId = (typeof VIEW_IDS)[number];
+
 // New types for multi-dataset support
 export interface DatasetOption {
-	id: string;
+	id: DatasetId;
 	name: string;
 	file: string;
 	/** Path to SVG logo (relative to static folder, e.g., '/logo/ChatGPT_logo.svg') */

@@ -2,6 +2,7 @@
  * Utility functions for extreme analysis data management
  */
 
+import type { DatasetId } from '$lib/types/data';
 import { base } from '$app/paths';
 import type {
 	ExtremeAnalysisData,
@@ -16,7 +17,7 @@ import type {
  * Load extreme analysis data for a specific model
  */
 export async function loadExtremeAnalysisData(
-	model: 'chatgpt' | 'gemini' | 'mistral',
+	model: DatasetId,
 	fetchFunction: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
 ): Promise<ExtremeAnalysisData> {
 	const filePath = `/data/iwac_extreme_analysis_${model}.json`;

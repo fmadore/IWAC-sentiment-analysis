@@ -7,7 +7,6 @@
 import { currentLanguage } from '$lib/i18n';
 import { get } from 'svelte/store';
 import type { URLState, PendingArticleSelection } from './types';
-import type { ValidDataset } from './constants';
 
 // Import directly from individual store modules to avoid circular dependencies
 // (importing from '$lib/stores' would create a cycle since stores/index.ts re-exports from url/)
@@ -88,7 +87,7 @@ export function getCurrentState(): URLState {
 	// Only include dataset when not in comparison mode
 	// In comparison mode, datasets are derived from the pair parameter
 	if (!isComparisonMode) {
-		state.dataset = datasetState.selected as ValidDataset;
+		state.dataset = datasetState.selected;
 	}
 
 	// Include selected article ID if there is one
