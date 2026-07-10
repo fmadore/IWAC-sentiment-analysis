@@ -7,109 +7,10 @@
  * - Comparison state management
  */
 import { describe, it, expect } from 'vitest';
-import type { SentimentAnalysis, DiscrepancyInfo } from '$lib/types/data';
-
-// ============================================
-// Score Mapping Tests (Replicating the mappings)
-// ============================================
-
-// These mappings match the ones in comparison.svelte.ts
-const polarityScores: Record<string, number> = {
-	'Très positif': 5,
-	Positif: 4,
-	Neutre: 3,
-	Négatif: 2,
-	'Très négatif': 1,
-	'Non applicable': 0
-};
-
-const centralityScores: Record<string, number> = {
-	'Très central': 5,
-	Central: 4,
-	Secondaire: 3,
-	Marginal: 2,
-	'Non abordé': 1
-};
-
-// Pure function replicating calculateDiscrepancies logic
-function calculateDiscrepancies(
-	modelA: SentimentAnalysis | null | undefined,
-	modelB: SentimentAnalysis | null | undefined
-): DiscrepancyInfo {
-	if (!modelA || !modelB) {
-		return {
-			polarityDiff: 0,
-			subjectivityDiff: 0,
-			centralityDiff: 0,
-			totalDiff: 0,
-			hasConflict: false
-		};
-	}
-
-	const polarityDiff = Math.abs(
-		(polarityScores[modelA.polarite || 'Non applicable'] || 0) -
-			(polarityScores[modelB.polarite || 'Non applicable'] || 0)
-	);
-
-	const subjectivityDiff = Math.abs(
-		(modelA.subjectivite_score || 0) - (modelB.subjectivite_score || 0)
-	);
-
-	const centralityDiff = Math.abs(
-		(centralityScores[modelA.centralite_islam_musulmans || 'Non abordé'] || 0) -
-			(centralityScores[modelB.centralite_islam_musulmans || 'Non abordé'] || 0)
-	);
-
-	const totalDiff = polarityDiff + subjectivityDiff + centralityDiff;
-	const hasConflict = polarityDiff >= 3 || subjectivityDiff >= 3 || centralityDiff >= 3;
-
-	return {
-		polarityDiff,
-		subjectivityDiff,
-		centralityDiff,
-		totalDiff,
-		hasConflict
-	};
-}
-
-// ============================================
-// Score Mapping Tests
-// ============================================
-
-describe('Polarity Score Mapping', () => {
-	it('assigns correct scores to all polarity values', () => {
-		expect(polarityScores['Très positif']).toBe(5);
-		expect(polarityScores['Positif']).toBe(4);
-		expect(polarityScores['Neutre']).toBe(3);
-		expect(polarityScores['Négatif']).toBe(2);
-		expect(polarityScores['Très négatif']).toBe(1);
-		expect(polarityScores['Non applicable']).toBe(0);
-	});
-
-	it('maintains descending order from positive to negative', () => {
-		const values = ['Très positif', 'Positif', 'Neutre', 'Négatif', 'Très négatif'];
-		for (let i = 0; i < values.length - 1; i++) {
-			expect(polarityScores[values[i]]).toBeGreaterThan(polarityScores[values[i + 1]]);
-		}
-	});
-});
-
-describe('Centrality Score Mapping', () => {
-	it('assigns correct scores to all centrality values', () => {
-		expect(centralityScores['Très central']).toBe(5);
-		expect(centralityScores['Central']).toBe(4);
-		expect(centralityScores['Secondaire']).toBe(3);
-		expect(centralityScores['Marginal']).toBe(2);
-		expect(centralityScores['Non abordé']).toBe(1);
-	});
-
-	it('maintains descending order from central to marginal', () => {
-		const values = ['Très central', 'Central', 'Secondaire', 'Marginal', 'Non abordé'];
-		for (let i = 0; i < values.length - 1; i++) {
-			expect(centralityScores[values[i]]).toBeGreaterThan(centralityScores[values[i + 1]]);
-		}
-	});
-});
+import type { SentimentAnalysis } from '$lib/types/data';
+// Test the REAL shipped function — this file previously exercised a local
+// re-implementation, which silently preserved bugs the real code had.
+import { calculateDiscrepancies } from './derivations';
 
 // ============================================
 // calculateDiscrepancies Tests
@@ -207,12 +108,16 @@ describe('calculateDiscrepancies', () => {
 			expect(result.subjectivityDiff).toBe(4);
 		});
 
-		it('handles null subjectivity scores', () => {
+		it('skips the subjectivity dimension when either score is missing', () => {
+			// Regression: a missing score used to be coerced to 0, manufacturing
+			// a spurious 4-point gap (and false "significant conflicts" sent to
+			// the paid arbiter). The dimension is now skipped instead.
 			const modelA = createAnalysis({ subjectivite_score: null });
 			const modelB = createAnalysis({ subjectivite_score: 4 });
 			const result = calculateDiscrepancies(modelA, modelB);
 
-			expect(result.subjectivityDiff).toBe(4); // 0 vs 4
+			expect(result.subjectivityDiff).toBe(0);
+			expect(result.hasConflict).toBe(false);
 		});
 	});
 

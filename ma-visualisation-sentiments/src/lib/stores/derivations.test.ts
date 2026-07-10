@@ -144,37 +144,8 @@ const sa = (
 	polarite_justification: null
 });
 
-describe('calculateDiscrepancies', () => {
-	it('returns zeros when either analysis is missing', () => {
-		expect(calculateDiscrepancies(null, sa('Positif', 3, 'Central'))).toEqual({
-			polarityDiff: 0,
-			subjectivityDiff: 0,
-			centralityDiff: 0,
-			totalDiff: 0,
-			hasConflict: false
-		});
-	});
-
-	it('computes per-dimension and total differences', () => {
-		const result = calculateDiscrepancies(
-			sa('Très positif', 5, 'Très central'),
-			sa('Très négatif', 1, 'Marginal')
-		);
-		expect(result.polarityDiff).toBe(4);
-		expect(result.subjectivityDiff).toBe(4);
-		expect(result.centralityDiff).toBe(3);
-		expect(result.totalDiff).toBe(11);
-		expect(result.hasConflict).toBe(true);
-	});
-
-	it('flags no conflict when every dimension differs by less than 3', () => {
-		const result = calculateDiscrepancies(
-			sa('Positif', 3, 'Central'),
-			sa('Neutre', 2, 'Secondaire')
-		);
-		expect(result.hasConflict).toBe(false);
-	});
-});
+// calculateDiscrepancies has its canonical, exhaustive suite in comparison.test.ts
+// (null handling, per-dimension diffs, conflict thresholds, edge cases).
 
 function comparisonArticle(id: number, country = 'Bénin'): Article {
 	return article(id, { Country: country });

@@ -74,8 +74,8 @@ interface PrefetchTask {
 // Data Loading Functions
 // ============================================
 
-/** Map article properties from different formats */
-function mapArticleProperties(
+/** Map article properties from different formats (exported for tests) */
+export function mapArticleProperties(
 	item: Record<string, unknown> & Partial<Article>,
 	datasetId: string
 ): Article {

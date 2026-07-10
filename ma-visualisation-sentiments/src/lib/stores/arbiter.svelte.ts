@@ -109,15 +109,17 @@ export interface ArbiterStatistics {
 	hasData: boolean;
 }
 
-/** Compute arbiter statistics */
-function computeArbiterStatistics(): ArbiterStatistics {
-	const { modelAName, modelBName } = getPairModelNames(datasetState.pair, datasetState.available);
-
-	if (
-		!_arbiterEvaluations ||
-		!_arbiterEvaluations.evaluations ||
-		_arbiterEvaluations.evaluations.length === 0
-	) {
+/**
+ * Compute arbiter statistics from evaluation data. Pure — exported so tests
+ * exercise the exact function the store ships instead of re-implementing the
+ * blind-evaluation verdict mapping.
+ */
+export function computeArbiterStatistics(
+	evaluationData: ArbiterEvaluationData | null,
+	modelAName: string,
+	modelBName: string
+): ArbiterStatistics {
+	if (!evaluationData || !evaluationData.evaluations || evaluationData.evaluations.length === 0) {
 		return {
 			totalEvaluated: 0,
 			modelAPreferred: 0,
@@ -152,7 +154,7 @@ function computeArbiterStatistics(): ArbiterStatistics {
 		tie: 0
 	};
 
-	for (const evaluation of _arbiterEvaluations.evaluations) {
+	for (const evaluation of evaluationData.evaluations) {
 		const arbiter = evaluation.arbiter;
 
 		// Count dimension-level preferences
@@ -184,7 +186,7 @@ function computeArbiterStatistics(): ArbiterStatistics {
 	// - Verdicts' "model_a"/"model_b" directly refer to these model names
 	//
 	// We want modelAPreferred to always mean "first model in pair" for consistent UI display
-	const meta = _arbiterEvaluations?.metadata;
+	const meta = evaluationData.metadata;
 	const modelAIsFirst = meta?.arbiter_model_a === meta?.pair_first_model;
 
 	// Map arbiter verdicts to pair order (first/second model in pair name)
@@ -196,7 +198,7 @@ function computeArbiterStatistics(): ArbiterStatistics {
 	const overallSecondWins = modelAIsFirst ? overallCounts.model_b : overallCounts.model_a;
 
 	return {
-		totalEvaluated: _arbiterEvaluations.evaluations.length,
+		totalEvaluated: evaluationData.evaluations.length,
 		modelAPreferred: firstModelPreferred,
 		modelBPreferred: secondModelPreferred,
 		bothEqual: counts.both,
@@ -217,7 +219,8 @@ function computeArbiterStatistics(): ArbiterStatistics {
 /** Arbiter statistics - exported as getter for reactivity */
 export const arbiterStatistics = {
 	get current(): ArbiterStatistics {
-		return computeArbiterStatistics();
+		const { modelAName, modelBName } = getPairModelNames(datasetState.pair, datasetState.available);
+		return computeArbiterStatistics(_arbiterEvaluations, modelAName, modelBName);
 	}
 };
 

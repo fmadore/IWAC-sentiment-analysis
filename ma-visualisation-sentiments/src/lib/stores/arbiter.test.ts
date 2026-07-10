@@ -7,7 +7,8 @@
  * - Statistics computation correctly swaps counts when needed
  */
 import { describe, it, expect } from 'vitest';
-import { getModelsFromPair, type ModelPair } from '$lib/types/data';
+import { getModelsFromPair, type ArbiterEvaluationData } from '$lib/types/data';
+import { computeArbiterStatistics } from './arbiter.svelte';
 
 // ============================================
 // getModelsFromPair Tests
@@ -34,115 +35,143 @@ describe('getModelsFromPair', () => {
 });
 
 // ============================================
-// Model Mapping Logic Tests
+// computeArbiterStatistics — tests the REAL shipped function
 // ============================================
 
-describe('Model Mapping Logic', () => {
-	// Test the pure logic that should be used in computeArbiterStatistics
+function makeEvaluation(
+	preferred: 'model_a' | 'model_b' | 'both' | 'neither',
+	winner: 'model_a' | 'model_b' | 'both' | 'neither'
+): ArbiterEvaluationData['evaluations'][number] {
+	const dim = {
+		score: 'Neutre',
+		justification: '',
+		preferred_model: preferred,
+		verdict_explanation: ''
+	};
+	return {
+		article_id: '1',
+		arbiter: {
+			article_id: '1',
+			polarity: dim,
+			subjectivity: dim,
+			centrality: dim,
+			overall_winner: winner,
+			overall_explanation: '',
+			confidence_level: 'high',
+			timestamp: ''
+		},
+		discrepancies: {
+			polarity_diff: 0,
+			subjectivity_diff: 0,
+			centrality_diff: 0,
+			total_diff: 0,
+			has_significant_conflict: false
+		}
+	};
+}
 
-	interface MockMetadata {
-		model_a_is_first: boolean;
-		model_a_name: string;
-		model_b_name: string;
-	}
+function makeEvaluationData(
+	evaluations: ArbiterEvaluationData['evaluations'],
+	arbiterModelA: string,
+	pairFirstModel: string
+): ArbiterEvaluationData {
+	return {
+		metadata: {
+			generated: '',
+			arbiter_model: 'test',
+			blind_evaluation: true,
+			arbiter_model_a: arbiterModelA,
+			arbiter_model_b: arbiterModelA === 'ChatGPT' ? 'Gemini' : 'ChatGPT',
+			pair: 'chatgpt-gemini',
+			pair_first_model: pairFirstModel,
+			pair_second_model: pairFirstModel === 'ChatGPT' ? 'Gemini' : 'ChatGPT',
+			total_articles: evaluations.length,
+			successful_evaluations: evaluations.length,
+			failed_evaluations: 0
+		},
+		evaluations
+	};
+}
 
-	interface MockCounts {
-		model_a: number;
-		model_b: number;
-		both: number;
-		neither: number;
-	}
+describe('computeArbiterStatistics', () => {
+	it('returns hasData: false with model names for null/empty data', () => {
+		const empty = computeArbiterStatistics(null, 'ChatGPT', 'Gemini');
+		expect(empty.hasData).toBe(false);
+		expect(empty.totalEvaluated).toBe(0);
+		expect(empty.modelAName).toBe('ChatGPT');
+		expect(empty.modelBName).toBe('Gemini');
 
-	/**
-	 * Pure function that replicates the mapping logic from computeArbiterStatistics
-	 */
-	function mapCountsToModels(
-		pair: ModelPair,
-		counts: MockCounts,
-		metadata: MockMetadata
-	): { firstModelPreferred: number; secondModelPreferred: number } {
-		const modelAIsFirst = metadata.model_a_is_first;
-
-		// When modelAIsFirst is true: JSON's model_a = first model, model_b = second model
-		// When modelAIsFirst is false: JSON's model_a = second model, model_b = first model (need to swap)
-		const firstModelPreferred = modelAIsFirst ? counts.model_a : counts.model_b;
-		const secondModelPreferred = modelAIsFirst ? counts.model_b : counts.model_a;
-
-		return { firstModelPreferred, secondModelPreferred };
-	}
-
-	describe('when model_a_is_first is true (chatgpt-mistral)', () => {
-		const mockMetadata: MockMetadata = {
-			model_a_is_first: true,
-			model_a_name: 'ChatGPT',
-			model_b_name: 'Mistral'
-		};
-
-		it('maps model_a counts to first model (ChatGPT)', () => {
-			const counts: MockCounts = { model_a: 10, model_b: 5, both: 2, neither: 1 };
-			const result = mapCountsToModels('chatgpt-mistral', counts, mockMetadata);
-
-			// model_a counts should go to first model (ChatGPT)
-			expect(result.firstModelPreferred).toBe(10);
-			// model_b counts should go to second model (Mistral)
-			expect(result.secondModelPreferred).toBe(5);
-		});
-
-		it('correctly handles zero counts', () => {
-			const counts: MockCounts = { model_a: 0, model_b: 0, both: 0, neither: 0 };
-			const result = mapCountsToModels('chatgpt-mistral', counts, mockMetadata);
-
-			expect(result.firstModelPreferred).toBe(0);
-			expect(result.secondModelPreferred).toBe(0);
-		});
+		const noEvals = computeArbiterStatistics(
+			makeEvaluationData([], 'ChatGPT', 'ChatGPT'),
+			'ChatGPT',
+			'Gemini'
+		);
+		expect(noEvals.hasData).toBe(false);
 	});
 
-	describe('when model_a_is_first is false (chatgpt-gemini)', () => {
-		const mockMetadata: MockMetadata = {
-			model_a_is_first: false,
-			model_a_name: 'ChatGPT',
-			model_b_name: 'Gemini'
-		};
+	it('counts dimension preferences without swapping when arbiter model A is the pair first model', () => {
+		// 2 evaluations preferring model_a on all 3 dimensions, 1 preferring model_b
+		const data = makeEvaluationData(
+			[
+				makeEvaluation('model_a', 'model_a'),
+				makeEvaluation('model_a', 'model_a'),
+				makeEvaluation('model_b', 'model_b')
+			],
+			'ChatGPT', // arbiter saw ChatGPT as "Model A"
+			'ChatGPT' // and ChatGPT is first in the pair -> no swap
+		);
+		const stats = computeArbiterStatistics(data, 'ChatGPT', 'Gemini');
 
-		it('swaps model counts - model_b goes to first model (ChatGPT)', () => {
-			const counts: MockCounts = { model_a: 10, model_b: 5, both: 2, neither: 1 };
-			const result = mapCountsToModels('chatgpt-gemini', counts, mockMetadata);
-
-			// When model_a_is_first is false, model_b in JSON = first model in pair
-			// So model_b counts (5) should be first model (ChatGPT)
-			expect(result.firstModelPreferred).toBe(5);
-			// And model_a counts (10) should be second model (Gemini)
-			expect(result.secondModelPreferred).toBe(10);
-		});
-
-		it('correctly swaps when model_a has more preferences', () => {
-			const counts: MockCounts = { model_a: 20, model_b: 3, both: 5, neither: 2 };
-			const result = mapCountsToModels('chatgpt-gemini', counts, mockMetadata);
-
-			// Model B (3 prefs) goes to first position (ChatGPT)
-			expect(result.firstModelPreferred).toBe(3);
-			// Model A (20 prefs) goes to second position (Gemini)
-			expect(result.secondModelPreferred).toBe(20);
-		});
+		expect(stats.hasData).toBe(true);
+		expect(stats.totalEvaluated).toBe(3);
+		// 3 dimensions per evaluation
+		expect(stats.modelAPreferred).toBe(6);
+		expect(stats.modelBPreferred).toBe(3);
+		expect(stats.overallModelAWins).toBe(2);
+		expect(stats.overallModelBWins).toBe(1);
+		expect(stats.overallTies).toBe(0);
 	});
 
-	describe('when model_a_is_first is false (gemini-mistral)', () => {
-		const mockMetadata: MockMetadata = {
-			model_a_is_first: false,
-			model_a_name: 'Gemini',
-			model_b_name: 'Mistral'
-		};
+	it('swaps counts when the arbiter saw the pair second model as "Model A"', () => {
+		const data = makeEvaluationData(
+			[
+				makeEvaluation('model_a', 'model_a'),
+				makeEvaluation('model_a', 'model_a'),
+				makeEvaluation('model_b', 'model_b')
+			],
+			'Gemini', // arbiter saw Gemini as "Model A"
+			'ChatGPT' // but ChatGPT is first in the pair -> swap
+		);
+		const stats = computeArbiterStatistics(data, 'ChatGPT', 'Gemini');
 
-		it('swaps model counts correctly for gemini-mistral', () => {
-			const counts: MockCounts = { model_a: 15, model_b: 8, both: 3, neither: 1 };
-			const result = mapCountsToModels('gemini-mistral', counts, mockMetadata);
+		// model_a counts (6) belong to Gemini, which is the pair SECOND model
+		expect(stats.modelAPreferred).toBe(3);
+		expect(stats.modelBPreferred).toBe(6);
+		expect(stats.overallModelAWins).toBe(1);
+		expect(stats.overallModelBWins).toBe(2);
+	});
 
-			// When model_a_is_first is false, model_b in JSON = first model in pair
-			// First model is Gemini, so it gets model_b counts (8)
-			expect(result.firstModelPreferred).toBe(8);
-			// Second model is Mistral, so it gets model_a counts (15)
-			expect(result.secondModelPreferred).toBe(15);
-		});
+	it('treats both/neither overall winners as ties and computes percentages over all verdicts', () => {
+		const data = makeEvaluationData(
+			[
+				makeEvaluation('both', 'both'),
+				makeEvaluation('neither', 'neither'),
+				makeEvaluation('model_a', 'model_a'),
+				makeEvaluation('model_b', 'model_b')
+			],
+			'ChatGPT',
+			'ChatGPT'
+		);
+		const stats = computeArbiterStatistics(data, 'ChatGPT', 'Gemini');
+
+		expect(stats.overallTies).toBe(2);
+		expect(stats.bothEqual).toBe(3);
+		expect(stats.neitherAccurate).toBe(3);
+		// 12 dimension verdicts total; 3 each of a/b/both/neither
+		expect(stats.modelAPercentage).toBeCloseTo(25);
+		expect(stats.modelBPercentage).toBeCloseTo(25);
+		expect(stats.bothPercentage).toBeCloseTo(25);
+		expect(stats.neitherPercentage).toBeCloseTo(25);
 	});
 });
 
