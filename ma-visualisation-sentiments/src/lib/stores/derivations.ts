@@ -134,9 +134,13 @@ export function calculateDiscrepancies(
 			(polarityScores[modelB.polarite || 'Non applicable'] || 0)
 	);
 
-	const subjectivityDiff = Math.abs(
-		(modelA.subjectivite_score || 0) - (modelB.subjectivite_score || 0)
-	);
+	// Skip the subjectivity dimension when either score is missing — coercing a
+	// missing score to 0 would manufacture a spurious 4-5 point gap against a
+	// present score (mirrors the 'Non applicable' handling on the other axes).
+	const subjectivityDiff =
+		modelA.subjectivite_score == null || modelB.subjectivite_score == null
+			? 0
+			: Math.abs(modelA.subjectivite_score - modelB.subjectivite_score);
 
 	const centralityDiff = Math.abs(
 		(centralityScores[modelA.centralite_islam_musulmans || 'Non abordé'] || 0) -

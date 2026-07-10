@@ -238,9 +238,13 @@ def calculate_discrepancies(analysis_a: dict, analysis_b: dict) -> Optional[dict
         POLARITY_SCORES.get(analysis_b.get('polarite', 'Non applicable'), 0)
     )
 
-    subj_a = safe_int_convert(analysis_a.get('subjectivite_score', 0)) or 0
-    subj_b = safe_int_convert(analysis_b.get('subjectivite_score', 0)) or 0
-    subjectivity_diff = abs(subj_a - subj_b)
+    # Skip the subjectivity dimension when either score is missing — coercing a
+    # missing score to 0 would manufacture a spurious 4-5 point gap against a
+    # present score, inflating the "significant conflict" set sent to the paid
+    # arbiter (mirrors the 'Non applicable' handling on the other axes).
+    subj_a = safe_int_convert(analysis_a.get('subjectivite_score'))
+    subj_b = safe_int_convert(analysis_b.get('subjectivite_score'))
+    subjectivity_diff = abs(subj_a - subj_b) if subj_a is not None and subj_b is not None else 0
 
     centrality_diff = abs(
         CENTRALITY_SCORES.get(analysis_a.get('centralite_islam_musulmans', 'Non applicable'), 0) -

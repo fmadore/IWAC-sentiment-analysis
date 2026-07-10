@@ -40,32 +40,32 @@ def linear_to_srgb_channel(c: float) -> float:
     return 1.055 * (c ** (1 / 2.4)) - 0.055
 
 
-def oklch_to_hex(L: float, C: float, h: float) -> str:
+def _clamp_byte(v: float) -> int:
+    return max(0, min(255, round(v * 255)))
+
+
+def oklch_to_srgb_bytes(L: float, C: float, h: float) -> tuple[int, int, int]:
+    """Run the full OKLCH -> OKLab -> linear sRGB -> sRGB pipeline.
+
+    Returns the (r, g, b) channels as clamped 0-255 integers.
+    """
     L_, a, b = oklch_to_oklab(L, C, h)
     r, g, bb = oklab_to_linear_srgb(L_, a, b)
-    rs = linear_to_srgb_channel(r)
-    gs = linear_to_srgb_channel(g)
-    bs = linear_to_srgb_channel(bb)
+    return (
+        _clamp_byte(linear_to_srgb_channel(r)),
+        _clamp_byte(linear_to_srgb_channel(g)),
+        _clamp_byte(linear_to_srgb_channel(bb)),
+    )
 
-    def clamp_byte(v: float) -> int:
-        return max(0, min(255, round(v * 255)))
 
-    return "#{:02X}{:02X}{:02X}".format(clamp_byte(rs), clamp_byte(gs), clamp_byte(bs))
+def oklch_to_hex(L: float, C: float, h: float) -> str:
+    r, g, b = oklch_to_srgb_bytes(L, C, h)
+    return "#{:02X}{:02X}{:02X}".format(r, g, b)
 
 
 def oklch_to_rgba(L: float, C: float, h: float, alpha: float) -> str:
-    L_, a, b = oklch_to_oklab(L, C, h)
-    r, g, bb = oklab_to_linear_srgb(L_, a, b)
-    rs = linear_to_srgb_channel(r)
-    gs = linear_to_srgb_channel(g)
-    bs = linear_to_srgb_channel(bb)
-
-    def clamp_byte(v: float) -> int:
-        return max(0, min(255, round(v * 255)))
-
-    return "rgba({}, {}, {}, {})".format(
-        clamp_byte(rs), clamp_byte(gs), clamp_byte(bs), round(alpha, 2)
-    )
+    r, g, b = oklch_to_srgb_bytes(L, C, h)
+    return "rgba({}, {}, {}, {})".format(r, g, b, round(alpha, 2))
 
 
 COLORS = {
