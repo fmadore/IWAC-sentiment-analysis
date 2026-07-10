@@ -51,7 +51,7 @@ https://fmadore.github.io/IWAC-sentiment-analysis/?view=comparison&compare=true&
 
 ## Performance Optimizations
 
-The application has been optimized for high performance despite large data volumes (three per-model article datasets of 12–18MB each, plus extreme-analysis and arbiter data):
+The application has been optimized for high performance despite large data volumes (a shared 2.4MB article-metadata file, per-model sentiment files of 8–14MB, plus extreme-analysis and arbiter data):
 
 ### Lazy Loading
 - **Reduced initial transfer**: Only the selected model's dataset loads at startup
@@ -94,7 +94,7 @@ The project is structured as a modern SvelteKit application with Svelte 5 runes:
 -   `src/`
     -   `lib/`: Main application logic.
         -   `components/`: Reusable Svelte components organized by category.
-            -   `common/`: Base reusable components (AccordionItem, ArbiterSection, FilterCard, FilterChip, GlassCard, SentimentBadge, modals, etc.).
+            -   `common/`: Base reusable components (AccordionItem, ArbiterSection, FilterCard, FilterChip, SentimentBadge, modals, etc.).
             -   `layout/`: Page structure (AppHeader, FiltersPanel, SidebarNav, ViewContent).
             -   `data-display/`: Data display components (AnalysisInfo, ArticleDetail, ArticleTable, ComparisonDetail, ComparisonStats, ComparisonTable, ComparisonView).
             -   `filters/`: Filter components (CentralityFilter, CountryFilter, DiscrepancyFilter, JournalFilter, PolarityFilter, SubjectivityFilter, etc.).
@@ -116,17 +116,12 @@ The project is structured as a modern SvelteKit application with Svelte 5 runes:
         -   `types/`: TypeScript definitions.
             -   `data.ts`: Data structures (Article, SentimentAnalysis, etc.) with named types (`PolarityValue`, `SubjectivityScore`, `CentralityValue`).
             -   `extremeAnalysis.ts`: Extreme analysis types.
-            -   `pwa.ts`: PWA types.
         -   `utils/`: Shared utility functions.
             -   `format.ts`: Shared formatting (`formatDate`, `getArticleUrl`, `getModelDisplayName`).
             -   `csv.ts`: CSV export (`escapeCSVField`, `formatDateForCSV`, `downloadCSVFile`).
             -   `discrepancy.ts`: Discrepancy display styling (`getDiffClass`, `getDiffBadgeClass`).
             -   `chartTheme.ts`: ECharts theme configuration.
             -   `extremeAnalysis.ts`: Extreme analysis utilities.
-            -   `pwa.ts`: PWA utilities.
-        -   `urlState.ts`: Legacy URL state management (for compatibility).
-        -   `utils.ts`: General utility functions.
-        -   `index.ts`: Central entry point for exports.
     -   `routes/`: Application pages.
         -   `+page.svelte`: Main visualization page component.
         -   `+layout.svelte`: Common layout for all pages.

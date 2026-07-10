@@ -14,10 +14,10 @@ IWAC-sentiment-analysis/
 │   ├── src/
 │   │   ├── lib/
 │   │   │   ├── components/        # Svelte components (common/, layout/, ui/, viz/, filters/, data-display/)
-│   │   │   ├── stores/            # State management (Svelte 5 runes + legacy writable stores)
+│   │   │   ├── stores/            # State management (Svelte 5 runes accessor objects)
 │   │   │   ├── i18n/              # Internationalization (en.ts, fr.ts, types.ts)
 │   │   │   ├── types/             # TypeScript type definitions
-│   │   │   └── utils/             # Utility functions (format, csv, discrepancy, chartTheme, extremeAnalysis, pwa)
+│   │   │   └── utils/             # Utility functions (format, csv, discrepancy, chartTheme, chartAggregators, extremeAnalysis, pagination, accordion)
 │   │   ├── routes/                # SvelteKit routes (single-page app)
 │   │   └── mocks/                 # Test mocks for $app/* modules
 │   ├── static/data/               # JSON data files served at runtime
@@ -52,7 +52,7 @@ cd ma-visualisation-sentiments
 
 # Development
 npm run dev              # Start dev server
-npm run build            # Production build (includes svelte-package + publint)
+npm run build            # Production build (vite build + service-worker stamp)
 npm run preview          # Preview production build
 
 # Quality
@@ -179,6 +179,13 @@ import MenuIcon from '@lucide/svelte/icons/menu';
 - **Subjectivity (`SubjectivityScore`):** 1 (Very Objective) to 5 (Very Subjective)
 - **Centrality (`CentralityValue`):** Tres central, Central, Secondaire, Marginal, Non aborde
 
+### Data files (static/data/)
+
+- `iwac_articles_base.json` — shared article metadata, stored once
+- `iwac_sentiment_{model}.json` — per-model sentiment analyses keyed by article id (joined with the base at load time in `articles.svelte.ts`)
+- `iwac_extreme_analysis_{model}.json` — normalized: `articles_index` + per-category `article_ids` (denormalized at load in `utils/extremeAnalysis.ts`)
+- `iwac_arbiter_evaluations_{pair}.json` — arbiter verdicts per model pair
+
 ### Datasets and Comparisons
 
 - Datasets: `chatgpt`, `gemini`, `mistral`
@@ -193,17 +200,14 @@ import MenuIcon from '@lucide/svelte/icons/menu';
 
 ## Deployment
 
-- Static site deployed to GitHub Pages via `peaceiris/actions-gh-pages@v4`
+- Static site deployed to GitHub Pages via the official `actions/upload-pages-artifact` + `actions/deploy-pages`
 - CI pipeline: checkout -> install -> test -> build -> deploy
 - Base path in production: `/IWAC-sentiment-analysis`
 - Triggered on push to `main`
 
 ## State Management Architecture
 
-The stores use a hybrid pattern with both Svelte 5 runes and legacy writable stores for backward compatibility. Each store module exports:
-1. A runes-based state accessor object (e.g., `filterState`, `datasetState`)
-2. Legacy individual writable stores for older consumers
-3. Bidirectional sync between the two systems
+State is exposed exclusively through runes-based accessor objects (e.g. `filterState`, `datasetState`, `uiState`) — there is no legacy writable-store layer (the only `writable` in the app is the i18n `currentLanguage` store). Store layering is enforced: leaf stores (filters/datasets/ui) import nothing from other stores, data stores (articles/comparison/extreme/arbiter) import leaf stores directly (never the `./index` barrel — that's a cycle), and `scripts/check-store-cycles.mjs` fails `npm run lint` if a cycle reappears. Data loading is idempotent with in-flight dedup (see articles.svelte.ts).
 
 URL state is managed through `$lib/stores/url/` with parser, builder, actions, and state modules.
 
@@ -236,8 +240,8 @@ URL state is managed through `$lib/stores/url/` with parser, builder, actions, a
 1. The base path differs between dev (`''`) and production (`'/IWAC-sentiment-analysis'`)
 2. Chart colors in `chartTheme.ts` use French strings as lookup keys
 3. The `AnalysisInfo.svelte` component is 1200+ lines -- be careful with edits
-4. Some URL state modules import directly from individual stores (not the barrel) to avoid circular dependencies
+4. Modules inside `stores/` must import individual store files, never the `./index` barrel (instant cycle — the barrel re-exports everything). `scripts/check-store-cycles.mjs` enforces this via `npm run lint`
 5. Skeleton UI v4 uses compound components (`AppBar.Toolbar`, not props)
 6. Tailwind v4 has no `tailwind.config.js` -- configuration is in CSS
 7. Component-level `@keyframes` duplication is intentional -- Svelte CSS scoping hashes animation names, so they must be defined alongside the scoped selectors that use them
-8. When tightening store types (e.g., `string` -> union type), `get()` returns the original wider type, requiring casts at store boundaries
+8. Store accessors read as narrow unions (`DatasetId`, `ViewId` from `types/data.ts`) but their setters deliberately accept `string` with one internal cast — don't 'fix' the setter signatures; a prior attempt caused cascading svelte-check errors at component call sites
