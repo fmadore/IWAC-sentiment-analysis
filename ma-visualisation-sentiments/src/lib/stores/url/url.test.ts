@@ -236,3 +236,50 @@ describe('parseURLState', () => {
 		expect(state.view).toBe('comparison');
 	});
 });
+
+// ============================================
+// Round-trip: build -> parse must reproduce the state
+// ============================================
+
+describe('build/parse round-trip', () => {
+	const roundTrip = (state: URLState): URLState => parseURLState(buildURLSearchParams(state));
+
+	it('reproduces a plain dataset view with filters', () => {
+		const state: URLState = {
+			view: 'table',
+			dataset: 'mistral',
+			lang: 'en',
+			countries: ['Benin', 'Togo'],
+			journals: ['La Nation'],
+			polarities: ['Positif'],
+			subjectivities: ['3'],
+			centralities: ['Central']
+		};
+		expect(roundTrip(state)).toMatchObject(state);
+	});
+
+	it('reproduces comparison mode with pair and discrepancy range', () => {
+		const state: URLState = {
+			view: 'comparison',
+			compare: true,
+			pair: 'gemini-mistral',
+			lang: 'fr',
+			diffMin: 2,
+			diffMax: 4
+		};
+		expect(roundTrip(state)).toMatchObject(state);
+	});
+
+	it('reproduces a selected-article deep link', () => {
+		const state: URLState = {
+			view: 'table',
+			dataset: 'chatgpt',
+			lang: 'fr',
+			articleId: '12345'
+		};
+		const parsed = roundTrip(state);
+		expect(String(parsed.articleId)).toBe('12345');
+		expect(parsed.view).toBe('table');
+		expect(parsed.dataset).toBe('chatgpt');
+	});
+});

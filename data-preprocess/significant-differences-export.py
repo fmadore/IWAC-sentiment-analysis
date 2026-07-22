@@ -1,163 +1,251 @@
 """
-Script d'exportation des articles avec différences significatives pour évaluation aveugle
+Export articles with significant model disagreements for blind evaluation.
 
-Ce script identifie et exporte les articles où les deux modèles d'IA ont des 
-divergences significatives (≥3 points sur une dimension) dans leurs analyses 
-de sentiment. Les données sont anonymisées pour un test aveugle.
+Identifies and exports the articles where two AI models (any pair among
+ChatGPT, Gemini, and Mistral) diverge significantly (>= 3 points on at least
+one dimension) in their sentiment analyses. The data is anonymised (Model A
+vs Model B) for a blind test.
 
-Sortie : CSV simple avec articles et analyses anonymisées (Model A vs Model B)
+Output: one directory per pair under exports/ containing a CSV with the
+anonymised analyses and a secret model-assignment key file.
+
+Usage:
+  python significant-differences-export.py                       # Default: chatgpt-gemini
+  python significant-differences-export.py --pair gemini-mistral
+  python significant-differences-export.py --all-pairs
 """
 
+from __future__ import annotations
+
+import argparse
 import os
-import pandas as pd
-from tqdm import tqdm
 import random
 from datetime import datetime
 
-from shared import load_iwac_dataset, calculate_discrepancies, extract_model_analysis
+import pandas as pd
+from tqdm import tqdm
 
-def extract_significant_differences(dataset):
-    """Extrait les articles avec des différences significatives"""
+from shared import (
+    MODEL_NAMES,
+    MODEL_PAIRS,
+    SIGNIFICANT_CONFLICT_THRESHOLD,
+    calculate_discrepancies,
+    extract_model_analysis,
+    get_article_text,
+    get_item_url,
+    get_logger,
+    get_models_from_pair,
+    load_iwac_records,
+)
+
+logger = get_logger(__name__)
+
+DEFAULT_PAIR = 'chatgpt-gemini'
+
+
+def extract_significant_differences(records: list[dict], model_a_id: str, model_b_id: str) -> tuple[list[dict], bool]:
+    """Extract articles where the two models disagree significantly.
+
+    The two models are anonymised as Model A and Model B; which real model is
+    presented as Model A is randomised once for the whole export.
+
+    Args:
+        records: IWAC article rows as plain dicts.
+        model_a_id: First model id of the pair (e.g. 'chatgpt').
+        model_b_id: Second model id of the pair (e.g. 'gemini').
+
+    Returns:
+        Tuple of (list of anonymised article rows for the CSV,
+        first_model_is_model_a flag for the secret key file).
+    """
     significant_articles = []
-    
-    # Randomiser l'ordre des modèles pour anonymisation
-    # True = ChatGPT est Model A, False = Gemini est Model A
-    model_assignment = random.choice([True, False])
-    assignment_key = "chatgpt_is_model_a" if model_assignment else "gemini_is_model_a"
-    
-    print(f"Processing {len(dataset)} articles for significant differences...")
-    print(f"Model assignment randomized for blind evaluation")
-    
-    for item in tqdm(dataset, desc="Processing articles"):
-        # Extraire les analyses des deux modèles
-        chatgpt_analysis = extract_model_analysis(item, 'chatgpt')
-        gemini_analysis = extract_model_analysis(item, 'gemini')
-        
-        # Calculer les divergences
-        discrepancies = calculate_discrepancies(chatgpt_analysis, gemini_analysis)
-        
-        if discrepancies and discrepancies["has_significant_conflict"]:
-            # Assigner anonymement les modèles
-            if model_assignment:  # ChatGPT = Model A
-                model_a = chatgpt_analysis
-                model_b = gemini_analysis
-            else:  # Gemini = Model A
-                model_a = gemini_analysis
-                model_b = chatgpt_analysis
-            
-            article_data = {
-                'article_id': item.get('o:id'),
-                'title': item.get('title'),
-                'country': item.get('country'),
-                'newspaper': item.get('newspaper'),
-                'pub_date': item.get('pub_date'),
-                'article_text': item.get('ocr'),  # Full OCR text
-                'url': f"https://islam.zmo.de/s/afrique_ouest/item/{item.get('o:id')}" if item.get('o:id') else None,
-                
-                # Discrepancies
-                'polarity_diff': discrepancies['polarity_diff'],
-                'subjectivity_diff': discrepancies['subjectivity_diff'],
-                'centrality_diff': discrepancies['centrality_diff'],
-                'total_diff': discrepancies['total_diff'],
-                
-                # Model A (anonymized)
-                'model_a_polarity': model_a['polarite'],
-                'model_a_polarity_justification': model_a['polarite_justification'],
-                'model_a_subjectivity': model_a['subjectivite_score'],
-                'model_a_subjectivity_justification': model_a['subjectivite_justification'],
-                'model_a_centrality': model_a['centralite_islam_musulmans'],
-                'model_a_centrality_justification': model_a['centralite_justification'],
-                
-                # Model B (anonymized)
-                'model_b_polarity': model_b['polarite'],
-                'model_b_polarity_justification': model_b['polarite_justification'],
-                'model_b_subjectivity': model_b['subjectivite_score'],
-                'model_b_subjectivity_justification': model_b['subjectivite_justification'],
-                'model_b_centrality': model_b['centralite_islam_musulmans'],
-                'model_b_centrality_justification': model_b['centralite_justification']
-            }
-            
-            significant_articles.append(article_data)
-    
-    return significant_articles, assignment_key
 
-def main():
-    """Fonction principale"""
-    print(f"\n{'='*60}")
-    print(f"IWAC Significant Differences Export - BLIND TEST")
-    print(f"{'='*60}")
-    
-    # Charger le dataset
-    try:
-        df = load_iwac_dataset()
-        dataset = df.to_dict('records')
-    except Exception as e:
-        print(f"Failed to load dataset: {e}")
+    # Randomise the Model A/B assignment for blind evaluation.
+    first_model_is_model_a = random.choice([True, False])
+
+    logger.info("Processing %d articles for significant differences...", len(records))
+    logger.info("Model assignment randomized for blind evaluation")
+
+    for item in tqdm(records, desc="Processing articles"):
+        first_analysis = extract_model_analysis(item, model_a_id)
+        second_analysis = extract_model_analysis(item, model_b_id)
+
+        discrepancies = calculate_discrepancies(first_analysis, second_analysis)
+
+        if not (discrepancies and discrepancies["has_significant_conflict"]):
+            continue
+
+        if first_model_is_model_a:
+            model_a = first_analysis
+            model_b = second_analysis
+        else:
+            model_a = second_analysis
+            model_b = first_analysis
+
+        significant_articles.append({
+            'article_id': item.get('o:id'),
+            'title': item.get('title'),
+            'country': item.get('country'),
+            'newspaper': item.get('newspaper'),
+            'pub_date': item.get('pub_date'),
+            'article_text': get_article_text(item),  # Full OCR text
+            'url': get_item_url(item.get('o:id')),
+
+            # Discrepancies
+            'polarity_diff': discrepancies['polarity_diff'],
+            'subjectivity_diff': discrepancies['subjectivity_diff'],
+            'centrality_diff': discrepancies['centrality_diff'],
+            'total_diff': discrepancies['total_diff'],
+
+            # Model A (anonymized)
+            'model_a_polarity': model_a['polarite'],
+            'model_a_polarity_justification': model_a['polarite_justification'],
+            'model_a_subjectivity': model_a['subjectivite_score'],
+            'model_a_subjectivity_justification': model_a['subjectivite_justification'],
+            'model_a_centrality': model_a['centralite_islam_musulmans'],
+            'model_a_centrality_justification': model_a['centralite_justification'],
+
+            # Model B (anonymized)
+            'model_b_polarity': model_b['polarite'],
+            'model_b_polarity_justification': model_b['polarite_justification'],
+            'model_b_subjectivity': model_b['subjectivite_score'],
+            'model_b_subjectivity_justification': model_b['subjectivite_justification'],
+            'model_b_centrality': model_b['centralite_islam_musulmans'],
+            'model_b_centrality_justification': model_b['centralite_justification'],
+        })
+
+    return significant_articles, first_model_is_model_a
+
+
+def write_assignment_key(key_path: str, first_model_is_model_a: bool,
+                         first_model_name: str, second_model_name: str,
+                         total_articles: int) -> None:
+    """Write the secret Model A/B assignment key file for one export."""
+    model_a_name = first_model_name if first_model_is_model_a else second_model_name
+    model_b_name = second_model_name if first_model_is_model_a else first_model_name
+
+    with open(key_path, 'w', encoding='utf-8') as f:
+        f.write("BLIND TEST MODEL ASSIGNMENT\n")
+        f.write("========================\n")
+        f.write(f"Generated: {datetime.now().isoformat()}\n")
+        f.write(f"Total articles: {total_articles}\n\n")
+        f.write(f"Model A = {model_a_name}\n")
+        f.write(f"Model B = {model_b_name}\n")
+        f.write("\nDO NOT REVEAL UNTIL EVALUATION IS COMPLETE!\n")
+
+
+def export_pair(records: list[dict], pair: str) -> None:
+    """Export the blind-evaluation dataset for one model pair.
+
+    Args:
+        records: IWAC article rows as plain dicts.
+        pair: Model pair string (e.g. 'chatgpt-gemini').
+    """
+    model_a_id, model_b_id = get_models_from_pair(pair)
+    first_model_name = MODEL_NAMES.get(model_a_id, model_a_id)
+    second_model_name = MODEL_NAMES.get(model_b_id, model_b_id)
+
+    logger.info("Exporting significant differences for %s vs %s", first_model_name, second_model_name)
+
+    significant_articles, first_model_is_model_a = extract_significant_differences(
+        records, model_a_id, model_b_id
+    )
+
+    if not significant_articles:
+        logger.warning("No articles with significant differences found for %s!", pair)
         return
-    
-    # Extraire les articles avec différences significatives
-    significant_articles, assignment_key = extract_significant_differences(dataset)
-    
-    if len(significant_articles) == 0:
-        print("No articles with significant differences found!")
-        return
-    
-    # Créer le répertoire de sortie
+
+    # Output directory. The default pair keeps the historical name
+    # (blind_test_<timestamp>); other pairs include the pair in the name.
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_dir = os.path.join(os.path.dirname(__file__), "..", "exports", f"blind_test_{timestamp}")
+    dir_name = f"blind_test_{timestamp}" if pair == DEFAULT_PAIR else f"blind_test_{pair}_{timestamp}"
+    output_dir = os.path.join(os.path.dirname(__file__), "..", "exports", dir_name)
     os.makedirs(output_dir, exist_ok=True)
-    
-    # Exporter en CSV
+
+    # CSV export
     df_export = pd.DataFrame(significant_articles)
     csv_path = os.path.join(output_dir, "blind_evaluation_dataset.csv")
     df_export.to_csv(csv_path, index=False, encoding='utf-8')
-    
-    # Créer le fichier de clé (à garder secret jusqu'à la fin de l'évaluation)
+
+    # Secret assignment key (keep unopened until the evaluation is complete)
     key_path = os.path.join(output_dir, "model_assignment_key.txt")
-    with open(key_path, 'w', encoding='utf-8') as f:
-        f.write(f"BLIND TEST MODEL ASSIGNMENT\n")
-        f.write(f"========================\n")
-        f.write(f"Generated: {datetime.now().isoformat()}\n")
-        f.write(f"Total articles: {len(significant_articles)}\n\n")
-        if assignment_key == "chatgpt_is_model_a":
-            f.write(f"Model A = ChatGPT\n")
-            f.write(f"Model B = Gemini\n")
-        else:
-            f.write(f"Model A = Gemini\n")
-            f.write(f"Model B = ChatGPT\n")
-        f.write(f"\nDO NOT REVEAL UNTIL EVALUATION IS COMPLETE!\n")
-    
-    print(f"\n{'='*60}")
-    print(f"EXPORT COMPLETE")
-    print(f"{'='*60}")
-    print(f"Output directory: {output_dir}")
-    print(f"\nFiles generated:")
-    print(f"  📊 {csv_path}")
-    print(f"     → Blind evaluation dataset (Model A vs Model B)")
-    print(f"  🔐 {key_path}")
-    print(f"     → Model assignment key (KEEP SECRET!)")
-    
-    print(f"\nDataset Summary:")
-    print(f"  Total articles with significant conflicts: {len(significant_articles)}")
-    
+    write_assignment_key(
+        key_path, first_model_is_model_a, first_model_name, second_model_name,
+        len(significant_articles)
+    )
+
+    logger.info("EXPORT COMPLETE")
+    logger.info("Output directory: %s", output_dir)
+    logger.info("Blind evaluation dataset (Model A vs Model B): %s", csv_path)
+    logger.info("Model assignment key (KEEP SECRET!): %s", key_path)
+    logger.info("Total articles with significant conflicts: %d", len(significant_articles))
+
     # Show a few examples without revealing model identity
-    print(f"\nExample conflicts (anonymized):")
+    logger.info("Example conflicts (anonymized):")
     for i, article in enumerate(significant_articles[:3], 1):
-        print(f"\n  Article {i}: {article['title'][:80]}...")
-        print(f"    Total difference: {article['total_diff']} points")
-        if article['polarity_diff'] >= 3:
-            print(f"    Polarity: Model A='{article['model_a_polarity']}' vs Model B='{article['model_b_polarity']}'")
-        if article['subjectivity_diff'] >= 3:
-            print(f"    Subjectivity: Model A={article['model_a_subjectivity']} vs Model B={article['model_b_subjectivity']}")
-        if article['centrality_diff'] >= 3:
-            print(f"    Centrality: Model A='{article['model_a_centrality']}' vs Model B='{article['model_b_centrality']}'")
-    
-    print(f"\n🔐 IMPORTANT:")
-    print(f"  The model assignment is randomized and stored in {key_path}")
-    print(f"  Do NOT open this file until your evaluation is complete!")
-    print(f"  The CSV contains full article text and anonymized analyses.")
+        logger.info("  Article %d: %.80s...", i, article['title'])
+        logger.info("    Total difference: %d points", article['total_diff'])
+        if article['polarity_diff'] >= SIGNIFICANT_CONFLICT_THRESHOLD:
+            logger.info("    Polarity: Model A='%s' vs Model B='%s'",
+                        article['model_a_polarity'], article['model_b_polarity'])
+        if article['subjectivity_diff'] >= SIGNIFICANT_CONFLICT_THRESHOLD:
+            logger.info("    Subjectivity: Model A=%s vs Model B=%s",
+                        article['model_a_subjectivity'], article['model_b_subjectivity'])
+        if article['centrality_diff'] >= SIGNIFICANT_CONFLICT_THRESHOLD:
+            logger.info("    Centrality: Model A='%s' vs Model B='%s'",
+                        article['model_a_centrality'], article['model_b_centrality'])
+
+    logger.info("IMPORTANT: the model assignment is randomized and stored in %s", key_path)
+    logger.info("Do NOT open this file until your evaluation is complete!")
+
+
+def main(pairs: list[str]) -> None:
+    """Run the blind-test export for each requested model pair."""
+    logger.info("IWAC Significant Differences Export - BLIND TEST")
+    logger.info("Processing %d model pair(s): %s", len(pairs), ", ".join(pairs))
+
+    try:
+        records = load_iwac_records()
+    except Exception as e:
+        logger.error("Failed to load dataset: %s", e)
+        return
+
+    for pair in pairs:
+        export_pair(records, pair)
+
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description='Export articles with significant model disagreements for blind evaluation',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python significant-differences-export.py                       # Default: chatgpt-gemini
+  python significant-differences-export.py --pair gemini-mistral
+  python significant-differences-export.py --all-pairs
+""",
+    )
+    parser.add_argument(
+        '--pair', '-p',
+        type=str,
+        choices=MODEL_PAIRS,
+        action='append',
+        dest='pairs',
+        help=f'Model pair(s) to export. Can be specified multiple times. Default: {DEFAULT_PAIR}',
+    )
+    parser.add_argument(
+        '--all-pairs',
+        action='store_true',
+        help='Export every model pair',
+    )
+
+    args = parser.parse_args()
+
+    if args.all_pairs:
+        pairs_to_process = MODEL_PAIRS
+    else:
+        pairs_to_process = args.pairs if args.pairs else [DEFAULT_PAIR]
+
     # Set random seed for reproducible model assignment
     random.seed(42)
-    main()
+    main(pairs_to_process)

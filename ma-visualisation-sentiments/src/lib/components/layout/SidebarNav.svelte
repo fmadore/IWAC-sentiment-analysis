@@ -129,7 +129,7 @@
 		padding-top: var(--space-4);
 
 		/* Collapsed width */
-		width: 4.5rem;
+		width: var(--sidebar-width-collapsed);
 
 		background: var(--app-bg-elevated);
 		border-right: 1px solid var(--border-subtle);
@@ -144,13 +144,13 @@
 
 	/* Expanded state */
 	.sidebar.expanded {
-		width: 14rem;
+		width: var(--sidebar-width-expanded);
 	}
 
 	/* Mobile open state */
 	.sidebar.mobile-open {
 		transform: translateX(0);
-		width: 16rem;
+		width: var(--sidebar-width-mobile-drawer);
 	}
 
 	/* Desktop: always visible */

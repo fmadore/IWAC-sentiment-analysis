@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { comparisonState, datasetState } from '$lib/stores';
 	import { t } from '$lib/i18n';
-	import { getJournalName } from '$lib/utils';
+	import { getJournalName } from '$lib/utils/format';
 	import { formatDate, getModelDisplayName } from '$lib/utils/format';
-	import { getDiffClass, getDiffBadgeClass } from '$lib/utils/discrepancy';
+	import { getDiffClass, getDiffBadgeClass, formatDiff } from '$lib/utils/discrepancy';
 	import type { ComparisonData } from '$lib/types/data';
 	import ArrowUpDownIcon from '@lucide/svelte/icons/arrow-up-down';
 	import LayoutGridIcon from '@lucide/svelte/icons/layout-grid';
@@ -12,6 +12,7 @@
 	import { SentimentBadge } from '$lib/components/common';
 	import { innerWidth } from 'svelte/reactivity/window';
 	import { createPagination } from '$lib/utils/pagination.svelte';
+	import PaginationControls from '$lib/components/common/PaginationControls.svelte';
 
 	let viewMode = $state<'table' | 'cards'>('table');
 	let sortBy = $state<'discrepancy' | 'date' | 'title'>('discrepancy');
@@ -138,38 +139,7 @@
 
 		<!-- Second row: Pagination controls -->
 		{#if pagination.totalPages > 1}
-			<div class="flex justify-center">
-				<div class="pagination-controls flex items-center gap-2">
-					<button
-						class="btn btn-sm variant-soft-surface"
-						onclick={pagination.previousPage}
-						disabled={pagination.currentPage === 1}
-						title={$t.common?.previous || 'Previous page'}
-					>
-						← {isMobile ? '' : $t.common?.previous || 'Previous'}
-					</button>
-
-					{#each pagination.visiblePages as page (page)}
-						<button
-							class="btn btn-sm {page === pagination.currentPage
-								? 'variant-filled-primary'
-								: 'variant-soft-surface'}"
-							onclick={() => pagination.goToPage(page)}
-						>
-							{page}
-						</button>
-					{/each}
-
-					<button
-						class="btn btn-sm variant-soft-surface"
-						onclick={pagination.nextPage}
-						disabled={pagination.currentPage === pagination.totalPages}
-						title={$t.common?.next || 'Next page'}
-					>
-						{isMobile ? '' : $t.common?.next || 'Next'} →
-					</button>
-				</div>
-			</div>
+			<PaginationControls {pagination} showLabels={!isMobile} />
 		{/if}
 	</div>
 
@@ -348,9 +318,7 @@
 									<SentimentBadge type="polarity" value={comparison.modelA?.polarite} size="sm" />
 								</div>
 								<div class="diff-indicator {getDiffClass(comparison.discrepancies.polarityDiff)}">
-									{comparison.discrepancies.polarityDiff > 0
-										? `±${comparison.discrepancies.polarityDiff}`
-										: '='}
+									{formatDiff(comparison.discrepancies.polarityDiff)}
 								</div>
 								<div class="value-cell">
 									<span class="model-label"
@@ -378,9 +346,7 @@
 								<div
 									class="diff-indicator {getDiffClass(comparison.discrepancies.subjectivityDiff)}"
 								>
-									{comparison.discrepancies.subjectivityDiff > 0
-										? `±${comparison.discrepancies.subjectivityDiff}`
-										: '='}
+									{formatDiff(comparison.discrepancies.subjectivityDiff)}
 								</div>
 								<div class="value-cell">
 									<span class="model-label"
@@ -410,9 +376,7 @@
 									/>
 								</div>
 								<div class="diff-indicator {getDiffClass(comparison.discrepancies.centralityDiff)}">
-									{comparison.discrepancies.centralityDiff > 0
-										? `±${comparison.discrepancies.centralityDiff}`
-										: '='}
+									{formatDiff(comparison.discrepancies.centralityDiff)}
 								</div>
 								<div class="value-cell">
 									<span class="model-label"
@@ -615,30 +579,6 @@
 		border: 1px solid var(--border-subtle);
 	}
 
-	.pagination-controls {
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: var(--space-2);
-	}
-
-	.pagination-controls button {
-		min-width: var(--size-control-lg);
-		height: var(--size-control-lg);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-	}
-
-	.pagination-controls button:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-
-	.pagination-controls button:not(:disabled):hover {
-		cursor: pointer;
-	}
-
 	.select-sm {
 		padding: var(--space-1) var(--space-2);
 		font-size: var(--font-size-base);
@@ -685,17 +625,6 @@
 
 		.controls-section {
 			padding: var(--space-3);
-		}
-
-		.pagination-controls {
-			gap: var(--space-1);
-		}
-
-		.pagination-controls button {
-			min-width: var(--size-control-sm);
-			height: var(--size-control-sm);
-			font-size: var(--font-size-xs);
-			padding: var(--space-1);
 		}
 	}
 

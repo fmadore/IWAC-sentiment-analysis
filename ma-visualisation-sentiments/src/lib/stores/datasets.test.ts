@@ -33,7 +33,7 @@ describe('datasetState.available', () => {
 
 	it('has valid file paths', () => {
 		datasetState.available.forEach((dataset) => {
-			expect(dataset.file).toMatch(/^\/data\/iwac_articles_\w+\.json$/);
+			expect(dataset.file).toMatch(/^\/data\/iwac_sentiment_\w+\.json$/);
 		});
 	});
 });

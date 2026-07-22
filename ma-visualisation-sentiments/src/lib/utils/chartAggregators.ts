@@ -6,7 +6,7 @@
  * once instead of being copy-pasted into each `$derived.by` block.
  */
 import type { Article } from '$lib/types/data';
-import { getJournalName } from '$lib/utils';
+import { getJournalName } from '$lib/utils/format';
 
 export interface JournalDimensionAggregation {
 	/** journal -> { frenchLabel -> count }, every label pre-seeded to 0 */
@@ -54,6 +54,100 @@ export function aggregateByJournalAndDimension(
 		newspaperList: Array.from(uniqueNewspapers).sort(),
 		articlesAnalyzed
 	};
+}
+
+/**
+ * Extract the 4-digit publication year of an article, or `null` when the
+ * publication date is missing. Matches the inline `publication_date` guards
+ * previously copy-pasted into the year-bucketing chart loops.
+ */
+export function extractYear(article: Article): string | null {
+	if (!article.publication_date) return null;
+	return article.publication_date.substring(0, 4);
+}
+
+export interface YearDimensionAggregation {
+	/** year -> { frenchLabel -> count }, every label pre-seeded to 0 */
+	yearlyCounts: Record<string, Record<string, number>>;
+	/** sorted list of years that had at least one counted article */
+	years: string[];
+	/** number of articles that contributed a value */
+	articlesAnalyzed: number;
+}
+
+/**
+ * Group articles by publication year and by a sentiment dimension label.
+ *
+ * Mirrors {@link aggregateByJournalAndDimension} but buckets by year. Unlike
+ * the journal variant, articles whose key is not in `frenchLabels` are skipped
+ * entirely (not counted), matching the trends charts' original inline loops.
+ */
+export function aggregateByYearAndDimension(
+	articles: Article[],
+	frenchLabels: string[],
+	getKey: (article: Article) => string | null
+): YearDimensionAggregation {
+	const yearlyCounts: Record<string, Record<string, number>> = {};
+	let articlesAnalyzed = 0;
+
+	articles.forEach((article) => {
+		const year = extractYear(article);
+		if (year === null) return;
+
+		const key = getKey(article);
+		if (key === null || !frenchLabels.includes(key)) return;
+
+		if (!yearlyCounts[year]) {
+			yearlyCounts[year] = Object.fromEntries(frenchLabels.map((l) => [l, 0]));
+		}
+		yearlyCounts[year][key]++;
+		articlesAnalyzed++;
+	});
+
+	return {
+		yearlyCounts,
+		years: Object.keys(yearlyCounts).sort(),
+		articlesAnalyzed
+	};
+}
+
+export interface CountryYearAggregation {
+	/** country -> { year -> count } */
+	countryYearCounts: Record<string, Record<string, number>>;
+	/** countries in first-seen order (matches the original inline loop) */
+	countries: string[];
+	/** sorted union of all years seen across countries */
+	years: string[];
+	/** number of articles that contributed a value */
+	articlesAnalyzed: number;
+}
+
+/**
+ * Count articles per country per publication year (VolumeChart's shape).
+ * Articles missing either the publication date or the country are skipped.
+ */
+export function aggregateByCountryAndYear(articles: Article[]): CountryYearAggregation {
+	const countryYearCounts: Record<string, Record<string, number>> = {};
+	let articlesAnalyzed = 0;
+
+	articles.forEach((article) => {
+		const year = extractYear(article);
+		if (year === null || !article.Country) return;
+
+		const country = article.Country;
+		if (!countryYearCounts[country]) {
+			countryYearCounts[country] = {};
+		}
+		countryYearCounts[country][year] = (countryYearCounts[country][year] || 0) + 1;
+		articlesAnalyzed++;
+	});
+
+	const countries = Object.keys(countryYearCounts);
+	const years = Array.from(
+		new Set(countries.flatMap((country) => Object.keys(countryYearCounts[country])))
+	).sort();
+
+	return { countryYearCounts, countries, years, articlesAnalyzed };
 }
 
 /** Numeric subjectivity score (1-5) to the French label used in the data. */

@@ -58,10 +58,7 @@
 			const arbiter = evaluation.arbiter;
 			for (const dim of dimensions) {
 				const preferred = arbiter[dim]?.preferred_model as
-					| 'model_a'
-					| 'model_b'
-					| 'both'
-					| 'neither';
+					'model_a' | 'model_b' | 'both' | 'neither';
 				if (preferred && result[dim]) {
 					result[dim][preferred]++;
 				}

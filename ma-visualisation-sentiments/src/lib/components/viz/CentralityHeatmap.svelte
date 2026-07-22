@@ -5,11 +5,12 @@
 	import { innerWidth } from 'svelte/reactivity/window';
 	import { SvelteSet } from 'svelte/reactivity';
 
-	import { articleState } from '$lib';
-	import type { Article } from '$lib';
+	import { articleState } from '$lib/stores';
+	import type { Article } from '$lib/types/data';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue } from '$lib/i18n/utils';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
+	import { extractYear } from '$lib/utils/chartAggregators';
 
 	// Import centralized chart theme
 	import {
@@ -17,7 +18,9 @@
 		getTitleStyle,
 		getTooltipConfig,
 		getAxisLineStyle,
-		getAxisLabelStyle
+		getAxisLabelStyle,
+		getVisualMapConfig,
+		chartColors
 	} from '$lib/utils/chartTheme';
 
 	// Mapping des centralités vers des valeurs numériques (toujours en français pour les données)
@@ -49,7 +52,6 @@
 
 	// Reactive window width for responsive behavior
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
-	let chartContainer = $state<HTMLDivElement>();
 
 	let options = $derived.by(() => {
 		const articles = articleState.filtered;
@@ -63,12 +65,12 @@
 		const currentTranslations = $t;
 
 		articles.forEach((article: Article) => {
+			const year = extractYear(article);
 			if (
-				article.publication_date &&
+				year !== null &&
 				article.Country &&
 				article.sentiment_analysis?.centralite_islam_musulmans
 			) {
-				const year = article.publication_date.substring(0, 4);
 				const country = article.Country;
 				const centralityValue =
 					centralityToNumber[
@@ -153,7 +155,7 @@
 					const centralityLabel = centralityLabels[Math.round(value)] || 'N/A';
 
 					return `<div style="min-width:160px;">
-            <div style="font-weight:600;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.15);">${country} - ${year}</div>
+            <div style="font-weight:600;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid ${chartColors.border.light};">${country} - ${year}</div>
             <div style="display:flex;justify-content:space-between;padding:2px 0;">
               <span>${currentTranslations.filters.averageCentrality}:</span>
               <strong>${value.toFixed(2)}</strong>
@@ -177,7 +179,7 @@
 				splitArea: {
 					show: true,
 					areaStyle: {
-						color: ['rgba(255, 255, 255, 0.02)', 'transparent']
+						color: [chartColors.background.stripe, 'transparent']
 					}
 				},
 				axisLabel: {
@@ -192,30 +194,14 @@
 				splitArea: {
 					show: true,
 					areaStyle: {
-						color: ['rgba(255, 255, 255, 0.02)', 'transparent']
+						color: [chartColors.background.stripe, 'transparent']
 					}
 				},
 				axisLabel: getAxisLabelStyle(isMobile),
 				axisLine: getAxisLineStyle()
 			},
 			visualMap: {
-				min: 0,
-				max: 4,
-				calculable: true,
-				orient: 'horizontal',
-				left: 'center',
-				bottom: '5%',
-				textStyle: {
-					color: 'rgba(255, 255, 255, 0.85)',
-					fontSize: isMobile ? 10 : 12,
-					fontFamily:
-						'"Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-				},
-				itemWidth: isMobile ? 15 : 20,
-				itemHeight: isMobile ? 100 : 140,
-				inRange: {
-					color: heatmapColors
-				},
+				...getVisualMapConfig(isMobile, 0, 4, heatmapColors),
 				text: [centralityLabels[4], centralityLabels[0]],
 				pieces: [
 					{ min: 0, max: 0.5, label: centralityLabels[0], color: heatmapColors[0] },
@@ -236,8 +222,8 @@
 					emphasis: {
 						itemStyle: {
 							shadowBlur: 15,
-							shadowColor: 'rgba(0, 0, 0, 0.4)',
-							borderColor: 'rgba(255, 255, 255, 0.5)',
+							shadowColor: 'rgba(0, 0, 0, 0.4)', // hover halo, between chartColors.shadow default/emphasis
+							borderColor: chartColors.border.strong,
 							borderWidth: 2
 						}
 					},
@@ -258,9 +244,10 @@
 	</div>
 
 	<div
-		bind:this={chartContainer}
 		style="height: {isMobile ? '500px' : '600px'}; position: relative;"
 		class="chart-container p-2 sm:p-4"
+		role="img"
+		aria-label={$t.charts.centralityHeatmap}
 	>
 		<Chart {init} {options} />
 	</div>

@@ -306,7 +306,8 @@
 
 	.comparison-view,
 	.extreme-view {
-		min-height: calc(100vh - 200px);
+		/* 200px ≈ header + view heading chrome above the chart area */
+		min-height: calc(100dvh - 200px);
 	}
 
 	@media (max-width: 768px) {

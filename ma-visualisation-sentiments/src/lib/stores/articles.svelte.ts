@@ -5,7 +5,7 @@
  * Provides both modern $state-based API and legacy store compatibility.
  */
 
-import { SvelteSet } from 'svelte/reactivity';
+import { SvelteMap } from 'svelte/reactivity';
 import type { Article } from '$lib/types/data';
 import { base } from '$app/paths';
 import { datasetState } from './datasets.svelte';
@@ -48,11 +48,20 @@ const _availableJournalsRune = $derived.by(() => {
 });
 
 // ============================================
-// Prefetch Tracking
+// In-flight Load Tracking
 // ============================================
 
-const prefetchingInProgress = new SvelteSet<string>();
-const prefetchCompleted = new SvelteSet<string>();
+/**
+ * One promise per dataset currently being fetched. Foreground loads,
+ * comparison loads and background prefetch all go through this map, so a
+ * dataset is never fetched twice concurrently (the old length-based checks
+ * were check-then-act races between the effects in +page.svelte and the
+ * prefetch queue). No AbortController: every dataset ends up cached for
+ * comparison/prefetch anyway, so a load started for a dataset the user
+ * switched away from is still useful — completion only touches
+ * `articleState.current` when that dataset is still the selected one.
+ */
+const inFlightLoads = new SvelteMap<string, Promise<Article[]>>();
 
 interface PrefetchTask {
 	id: string;
@@ -65,12 +74,14 @@ interface PrefetchTask {
 // Data Loading Functions
 // ============================================
 
-/** Map article properties from different formats */
-function mapArticleProperties(
+/** Map article properties from different formats (exported for tests) */
+export function mapArticleProperties(
 	item: Record<string, unknown> & Partial<Article>,
 	datasetId: string
 ): Article {
+	// Spread first so the computed fallbacks below win over null/empty raw values
 	return {
+		...item,
 		'o:id': item['o:id'] as string | number,
 		'o:title': item['o:title'] as string,
 		journal_source:
@@ -85,44 +96,97 @@ function mapArticleProperties(
 			((item as { 'dcterms:date'?: string })['dcterms:date'] as string) ||
 			'N/A',
 		sentiment_analysis: item.sentiment_analysis ?? null,
-		dataset_id: datasetId,
-		...item
+		dataset_id: datasetId
 	};
 }
 
-/** Load articles from a dataset file */
+/**
+ * Article base metadata is stored once in iwac_articles_base.json — the
+ * per-model files carry only each model's sentiment analyses, keyed by
+ * article id (the three old combined files repeated identical metadata).
+ * The base file is fetched once and shared across all dataset loads.
+ */
+type BaseArticleRecord = Record<string, unknown> & Partial<Article>;
+
+interface SentimentFile {
+	model: string;
+	sentiments: Record<string, Article['sentiment_analysis']>;
+}
+
+let baseArticlesPromise: Promise<BaseArticleRecord[]> | null = null;
+
+const fetchJSON = async (filePath: string, fetchFunction: typeof fetch): Promise<unknown> => {
+	const resolvedPath = filePath.startsWith('http') ? filePath : `${base}${filePath}`;
+	const response = await fetchFunction(resolvedPath);
+	if (!response.ok) {
+		throw new Error(`Failed to fetch ${filePath}: ${response.statusText}`);
+	}
+	return response.json();
+};
+
+const loadArticleBase = (fetchFunction: typeof fetch): Promise<BaseArticleRecord[]> => {
+	if (!baseArticlesPromise) {
+		baseArticlesPromise = fetchJSON('/data/iwac_articles_base.json', fetchFunction).then((data) => {
+			if (!Array.isArray(data)) {
+				throw new Error('Unrecognized article base format');
+			}
+			return data as BaseArticleRecord[];
+		});
+		// Allow a retry on transient failure instead of caching the rejection
+		baseArticlesPromise.catch(() => {
+			baseArticlesPromise = null;
+		});
+	}
+	return baseArticlesPromise;
+};
+
+/** Join base metadata with a model's sentiment map (exported for tests) */
+export function joinArticles(
+	baseRecords: BaseArticleRecord[],
+	sentiments: SentimentFile['sentiments'],
+	datasetId: string
+): Article[] {
+	return baseRecords.map((record) =>
+		mapArticleProperties(
+			{ ...record, sentiment_analysis: sentiments[String(record['o:id'])] ?? null },
+			datasetId
+		)
+	);
+}
+
+/** Load articles for a dataset: shared base metadata + per-model sentiments */
 export const loadDatasetArticles = async (
 	filePath: string,
 	datasetId: string,
 	fetchFunction: typeof fetch
 ): Promise<Article[]> => {
 	try {
-		const resolvedPath = filePath.startsWith('http') ? filePath : `${base}${filePath}`;
-		const response = await fetchFunction(resolvedPath);
+		const [baseRecords, sentimentData] = await Promise.all([
+			loadArticleBase(fetchFunction),
+			fetchJSON(filePath, fetchFunction) as Promise<SentimentFile>
+		]);
 
-		if (!response.ok) {
-			throw new Error(`Failed to fetch dataset: ${response.statusText}`);
-		}
-
-		const data = await response.json();
-
-		if (Array.isArray(data)) {
-			return data.map((item: Record<string, unknown>) => mapArticleProperties(item, datasetId));
-		} else if (data.articles && Array.isArray(data.articles)) {
-			return data.articles.map((item: Record<string, unknown>) =>
-				mapArticleProperties(item, datasetId)
-			);
-		} else {
-			console.error('Unrecognized data format:', data);
+		if (!sentimentData || typeof sentimentData.sentiments !== 'object') {
+			console.error('Unrecognized sentiment data format:', sentimentData);
 			return [];
 		}
+
+		return joinArticles(baseRecords, sentimentData.sentiments, datasetId);
 	} catch (error) {
 		console.error(`Error fetching dataset ${datasetId}:`, error);
 		return [];
 	}
 };
 
-/** Load a specific dataset into the store */
+/** True once a dataset's articles are in the store */
+const isDatasetLoaded = (datasetId: string): boolean =>
+	(_datasetArticles[datasetId]?.length ?? 0) > 0;
+
+/**
+ * Load a specific dataset into the store. Idempotent and race-free: an
+ * already-loaded dataset resolves immediately, and concurrent callers of a
+ * loading dataset await the same underlying fetch.
+ */
 export const loadSpecificDataset = async (
 	datasetId: string,
 	fetchFunction: typeof fetch,
@@ -130,23 +194,39 @@ export const loadSpecificDataset = async (
 ): Promise<void> => {
 	const { showLoading = true } = options;
 
+	if (isDatasetLoaded(datasetId)) {
+		if (datasetState.selected === datasetId) {
+			articleState.current = _datasetArticles[datasetId];
+		}
+		return;
+	}
+
+	let load = inFlightLoads.get(datasetId);
+	if (!load) {
+		const dataset = datasetState.available.find((d) => d.id === datasetId);
+		if (!dataset) {
+			throw new Error(`Dataset ${datasetId} not found`);
+		}
+		load = loadDatasetArticles(dataset.file, datasetId, fetchFunction)
+			.then((articles) => {
+				articleState.updateDatasets(datasetId, articles);
+				return articles;
+			})
+			.finally(() => {
+				inFlightLoads.delete(datasetId);
+			});
+		inFlightLoads.set(datasetId, load);
+	}
+
 	// Only show loading indicator for foreground loads, not background prefetch
 	if (showLoading) {
 		uiState.isLoadingDataset = true;
 	}
 
 	try {
-		const dataset = datasetState.available.find((d) => d.id === datasetId);
-
-		if (!dataset) {
-			throw new Error(`Dataset ${datasetId} not found`);
-		}
-
-		const articles = await loadDatasetArticles(dataset.file, datasetId, fetchFunction);
-
-		articleState.updateDatasets(datasetId, articles);
-
-		// Update currentDatasetArticles if this is the selected dataset
+		const articles = await load;
+		// Re-check the selection at completion time: if the user switched away
+		// while this was in flight, don't clobber the visible dataset.
 		if (datasetState.selected === datasetId) {
 			articleState.current = articles;
 		}
@@ -167,17 +247,8 @@ export const loadAllDatasets = async (fetchFunction: typeof fetch): Promise<void
 /** Load only the currently selected dataset (lazy loading) */
 export const loadCurrentDataset = async (fetchFunction: typeof fetch): Promise<void> => {
 	const currentDatasetId = datasetState.selected;
-	const currentDatasets = _datasetArticles;
-
-	if (currentDatasets[currentDatasetId] && currentDatasets[currentDatasetId].length > 0) {
-		articleState.current = currentDatasets[currentDatasetId];
-		prefetchOtherDatasets(currentDatasetId, fetchFunction);
-		return;
-	}
 
 	await loadSpecificDataset(currentDatasetId, fetchFunction);
-
-	articleState.current = _datasetArticles[currentDatasetId] || [];
 
 	prefetchOtherDatasets(currentDatasetId, fetchFunction);
 };
@@ -237,31 +308,23 @@ const prefetchOtherDatasets = async (
 	fetchFunction: typeof fetch
 ): Promise<void> => {
 	const datasets = datasetState.available;
-	const currentDatasets = _datasetArticles;
 	const prefetchQueue: PrefetchTask[] = [];
 
-	// Priority 2: Other main datasets (for comparison mode)
+	// Priority 2: Other main datasets (for comparison mode). Dedup against
+	// loaded data and in-flight loads happens inside loadSpecificDataset, so
+	// the queue only needs a cheap pre-filter to avoid useless queue entries.
 	datasets
 		.filter((dataset) => dataset.id !== currentDatasetId)
-		.filter((dataset) => !currentDatasets[dataset.id] || currentDatasets[dataset.id].length === 0)
+		.filter((dataset) => !isDatasetLoaded(dataset.id) && !inFlightLoads.has(dataset.id))
 		.forEach((dataset) => {
-			if (!prefetchingInProgress.has(dataset.id) && !prefetchCompleted.has(dataset.id)) {
-				prefetchQueue.push({
-					id: dataset.id,
-					type: 'dataset',
-					priority: 2,
-					loader: async () => {
-						prefetchingInProgress.add(dataset.id);
-						try {
-							// Use showLoading: false to prevent UI flashing during background prefetch
-							await loadSpecificDataset(dataset.id, fetchFunction, { showLoading: false });
-							prefetchCompleted.add(dataset.id);
-						} finally {
-							prefetchingInProgress.delete(dataset.id);
-						}
-					}
-				});
-			}
+			prefetchQueue.push({
+				id: dataset.id,
+				type: 'dataset',
+				priority: 2,
+				loader: () =>
+					// showLoading: false prevents UI flashing during background prefetch
+					loadSpecificDataset(dataset.id, fetchFunction, { showLoading: false })
+			});
 		});
 
 	if (prefetchQueue.length === 0) {

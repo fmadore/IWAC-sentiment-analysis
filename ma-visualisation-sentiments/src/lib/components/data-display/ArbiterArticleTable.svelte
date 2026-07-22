@@ -13,8 +13,18 @@
 <script lang="ts">
 	import { arbiterEvaluations, comparisonState, datasetState } from '$lib/stores';
 	import { getPairModelNames, type ArbiterAnalysis } from '$lib/types/data';
-	import { t, currentLanguage } from '$lib/i18n';
-	import { getJournalName } from '$lib/utils';
+	import { t } from '$lib/i18n';
+	import { getJournalName } from '$lib/utils/format';
+	import { formatDate } from '$lib/utils/format';
+	import { createPagination } from '$lib/utils/pagination.svelte';
+	import {
+		VERDICT_ORDER,
+		CONFIDENCE_ORDER,
+		getVerdictBadgeClass,
+		getConfidenceBadgeClass,
+		getConfidenceLabel
+	} from '$lib/utils/arbiter';
+	import PaginationControls from '$lib/components/common/PaginationControls.svelte';
 	import { ArbiterCSVExportButton } from '$lib/components/ui';
 	import ArrowUpDownIcon from '@lucide/svelte/icons/arrow-up-down';
 	import LayoutGridIcon from '@lucide/svelte/icons/layout-grid';
@@ -38,11 +48,6 @@
 	// Sort state
 	let sortBy = $state<'title' | 'date' | 'verdict' | 'confidence'>('date');
 	let sortDirection = $state<'asc' | 'desc'>('desc');
-
-	// Pagination
-	let currentPage = $state(1);
-	let itemsPerPage = $state(25);
-	const itemsPerPageOptions = [10, 25, 50, 100];
 
 	// Switch to card view on mobile
 	$effect(() => {
@@ -118,12 +123,12 @@
 					valB = b.date ? new Date(b.date).getTime() : 0;
 					break;
 				case 'verdict':
-					valA = getVerdictOrder(a.arbiter.overall_winner);
-					valB = getVerdictOrder(b.arbiter.overall_winner);
+					valA = VERDICT_ORDER[a.arbiter.overall_winner] ?? 0;
+					valB = VERDICT_ORDER[b.arbiter.overall_winner] ?? 0;
 					break;
 				case 'confidence':
-					valA = getConfidenceOrder(a.arbiter.confidence_level);
-					valB = getConfidenceOrder(b.arbiter.confidence_level);
+					valA = CONFIDENCE_ORDER[a.arbiter.confidence_level] ?? 0;
+					valB = CONFIDENCE_ORDER[b.arbiter.confidence_level] ?? 0;
 					break;
 				default:
 					return 0;
@@ -137,74 +142,20 @@
 		})
 	);
 
-	// Pagination computed values
-	const totalItems = $derived(sortedArticles.length);
-	const totalPages = $derived(Math.ceil(totalItems / itemsPerPage));
-	const startIndex = $derived((currentPage - 1) * itemsPerPage);
-	const endIndex = $derived(Math.min(startIndex + itemsPerPage, totalItems));
-	const paginatedArticles = $derived(sortedArticles.slice(startIndex, endIndex));
-
-	// Generate visible page numbers
-	const visiblePages = $derived.by(() => {
-		const pages: number[] = [];
-		const maxVisible = isMobile ? 3 : 5;
-		const half = Math.floor(maxVisible / 2);
-
-		let start = Math.max(1, currentPage - half);
-		let end = Math.min(totalPages, start + maxVisible - 1);
-
-		if (end - start + 1 < maxVisible) {
-			start = Math.max(1, end - maxVisible + 1);
-		}
-
-		for (let i = start; i <= end; i++) {
-			pages.push(i);
-		}
-
-		return pages;
+	// Pagination via the shared composable (also used by ArticleTable and
+	// ComparisonTable); resets to page 1 when the total changes.
+	const pagination = createPagination({
+		totalItems: () => sortedArticles.length,
+		initialItemsPerPage: 25,
+		itemsPerPageOptions: [10, 25, 50, 100],
+		maxVisiblePages: () => (isMobile ? 3 : 5)
 	});
 
+	const paginatedArticles = $derived(
+		sortedArticles.slice(pagination.startIndex, pagination.endIndex)
+	);
+
 	// Helper functions
-	function getVerdictOrder(verdict: string): number {
-		switch (verdict) {
-			case 'model_a':
-				return 4;
-			case 'model_b':
-				return 3;
-			case 'both':
-				return 2;
-			case 'neither':
-				return 1;
-			default:
-				return 0;
-		}
-	}
-
-	function getConfidenceOrder(confidence: string): number {
-		switch (confidence) {
-			case 'high':
-				return 3;
-			case 'medium':
-				return 2;
-			case 'low':
-				return 1;
-			default:
-				return 0;
-		}
-	}
-
-	function formatDate(dateStr: string | null): string {
-		if (!dateStr) return 'N/A';
-		const date = new Date(dateStr);
-		if (isNaN(date.getTime())) return dateStr;
-		const locale = $currentLanguage === 'en' ? 'en-US' : 'fr-FR';
-		return date.toLocaleDateString(locale, {
-			day: 'numeric',
-			month: 'short',
-			year: 'numeric'
-		});
-	}
-
 	function getVerdictLabel(verdict: 'model_a' | 'model_b' | 'both' | 'neither'): string {
 		switch (verdict) {
 			case 'model_a':
@@ -220,67 +171,6 @@
 		}
 	}
 
-	function getVerdictBadgeClass(verdict: string): string {
-		switch (verdict) {
-			case 'model_a':
-				return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-			case 'model_b':
-				return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
-			case 'both':
-				return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-			case 'neither':
-				return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
-			default:
-				return 'bg-gray-500/20 text-gray-400';
-		}
-	}
-
-	function getConfidenceBadgeClass(level: string): string {
-		switch (level) {
-			case 'high':
-				return 'bg-green-500/20 text-green-400 border-green-500/30';
-			case 'medium':
-				return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-			case 'low':
-				return 'bg-red-500/20 text-red-400 border-red-500/30';
-			default:
-				return 'bg-gray-500/20 text-gray-400';
-		}
-	}
-
-	function getConfidenceLabel(level: string): string {
-		switch (level) {
-			case 'high':
-				return $t.arbiter?.confidenceHigh || 'High';
-			case 'medium':
-				return $t.arbiter?.confidenceMedium || 'Medium';
-			case 'low':
-				return $t.arbiter?.confidenceLow || 'Low';
-			default:
-				return level;
-		}
-	}
-
-	// Pagination functions
-	function goToPage(page: number) {
-		if (page >= 1 && page <= totalPages) {
-			currentPage = page;
-		}
-	}
-
-	function previousPage() {
-		if (currentPage > 1) currentPage--;
-	}
-
-	function nextPage() {
-		if (currentPage < totalPages) currentPage++;
-	}
-
-	function changeItemsPerPage(newValue: number) {
-		itemsPerPage = newValue;
-		currentPage = 1;
-	}
-
 	function handleSort(column: typeof sortBy) {
 		if (sortBy === column) {
 			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
@@ -288,7 +178,7 @@
 			sortBy = column;
 			sortDirection = 'asc';
 		}
-		currentPage = 1;
+		pagination.currentPage = 1;
 	}
 
 	function handleRowClick(article: ArticleWithArbiter) {
@@ -327,9 +217,9 @@
 				<div class="flex items-center gap-4">
 					<div class="results-info">
 						{$t.table?.showingItems || 'Showing'}
-						<strong>{startIndex + 1}-{endIndex}</strong>
+						<strong>{pagination.startIndex + 1}-{pagination.endIndex}</strong>
 						{$t.common?.of || 'of'}
-						<strong>{totalItems}</strong>
+						<strong>{sortedArticles.length}</strong>
 					</div>
 					<div class="flex items-center gap-2">
 						<label for="arbiter-items-per-page" class="items-per-page-label"
@@ -337,11 +227,12 @@
 						>
 						<select
 							id="arbiter-items-per-page"
-							bind:value={itemsPerPage}
-							onchange={(e) => changeItemsPerPage(Number((e.target as HTMLSelectElement)?.value))}
+							value={pagination.itemsPerPage}
+							onchange={(e) =>
+								pagination.changeItemsPerPage(Number((e.target as HTMLSelectElement)?.value))}
 							class="items-per-page-select"
 						>
-							{#each itemsPerPageOptions as option (option)}
+							{#each pagination.itemsPerPageOptions as option (option)}
 								<option value={option}>{option}</option>
 							{/each}
 						</select>
@@ -350,28 +241,9 @@
 			</div>
 
 			<!-- Pagination controls -->
-			{#if totalPages > 1}
-				<div class="flex justify-center">
-					<div class="pagination-controls flex items-center gap-2">
-						<button class="pagination-btn" onclick={previousPage} disabled={currentPage === 1}>
-							← {isMobile ? '' : $t.common?.previous || 'Previous'}
-						</button>
-
-						{#each visiblePages as page (page)}
-							<button
-								class="pagination-btn page-number {page === currentPage
-									? 'pagination-btn-active'
-									: ''}"
-								onclick={() => goToPage(page)}
-							>
-								{page}
-							</button>
-						{/each}
-
-						<button class="pagination-btn" onclick={nextPage} disabled={currentPage === totalPages}>
-							{isMobile ? '' : $t.common?.next || 'Next'} →
-						</button>
-					</div>
+			{#if pagination.totalPages > 1}
+				<div class="arbiter-pagination">
+					<PaginationControls {pagination} showLabels={!isMobile} />
 				</div>
 			{/if}
 		</div>
@@ -446,7 +318,7 @@
 											article.arbiter.confidence_level
 										)}"
 									>
-										{getConfidenceLabel(article.arbiter.confidence_level)}
+										{getConfidenceLabel(article.arbiter.confidence_level, $t)}
 									</span>
 								</td>
 							</tr>
@@ -494,7 +366,7 @@
 							<span
 								class="badge badge-sm {getConfidenceBadgeClass(article.arbiter.confidence_level)}"
 							>
-								{getConfidenceLabel(article.arbiter.confidence_level)}
+								{getConfidenceLabel(article.arbiter.confidence_level, $t)}
 							</span>
 						</div>
 					</div>
@@ -686,69 +558,12 @@
 		color: var(--text-primary);
 	}
 
-	/* Pagination controls */
-	.pagination-controls {
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: var(--space-2);
-	}
-
-	.pagination-btn {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		min-width: var(--size-control-lg);
-		height: var(--size-control-lg);
-		padding: var(--space-2) var(--space-3);
-		font-size: var(--font-size-base);
-		font-weight: var(--font-weight-medium);
-		color: var(--text-secondary);
-		background: var(--surface-hover);
-		border: 1px solid var(--border-hover);
-		border-radius: var(--radius-md);
-		cursor: pointer;
-		transition: all var(--timing-fast) var(--easing-default);
-	}
-
-	.pagination-btn:hover:not(:disabled) {
-		color: var(--text-primary);
-		background: var(--surface-active);
-		border-color: var(--border-active);
-	}
-
-	.pagination-btn:disabled {
-		opacity: 0.4;
-		cursor: not-allowed;
-	}
-
-	.pagination-btn.page-number {
-		min-width: var(--size-control-lg);
-		padding: var(--space-2);
-	}
-
-	.pagination-btn-active {
-		color: var(--text-on-light);
-		background: var(--sentiment-arbiter);
-		border-color: var(--sentiment-arbiter);
-	}
-
-	.pagination-btn-active:hover:not(:disabled) {
-		background: var(--sentiment-arbiter-light);
-		border-color: var(--sentiment-arbiter-light);
-	}
-
-	.pagination-controls button {
-		min-width: var(--size-control-lg);
-		height: var(--size-control-lg);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-	}
-
-	.pagination-controls button:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
+	/* Pagination — shared PaginationControls bar with the arbiter accent for
+	   the active page (defaults in app.css use the app accent). */
+	.arbiter-pagination {
+		--pagination-active-bg: var(--sentiment-arbiter);
+		--pagination-active-border: var(--sentiment-arbiter);
+		--pagination-active-text: var(--text-on-light);
 	}
 
 	.badge {
@@ -772,12 +587,6 @@
 		line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
-	}
-
-	.select-sm {
-		padding: var(--space-1) var(--space-2);
-		font-size: var(--font-size-base);
-		border-radius: var(--radius-sm);
 	}
 
 	.view-controls button {
@@ -821,17 +630,6 @@
 
 		.controls-section {
 			padding: var(--space-3);
-		}
-
-		.pagination-controls {
-			gap: var(--space-1);
-		}
-
-		.pagination-controls button {
-			min-width: var(--size-control-sm);
-			height: var(--size-control-sm);
-			font-size: var(--font-size-xs);
-			padding: var(--space-1);
 		}
 	}
 

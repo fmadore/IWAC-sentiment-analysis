@@ -12,7 +12,7 @@
 		filterState
 	} from '$lib/stores';
 	import { t, currentLanguage } from '$lib/i18n';
-	import type { Article } from '$lib';
+	import type { Article } from '$lib/types/data';
 	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
 
 	// Layout
@@ -117,27 +117,24 @@
 		}
 	});
 
-	// React to dataset changes to load new dataset and update URL
+	// Drain any pending article selection (from a shared URL) as soon as its
+	// dataset is available. handlePendingArticleSelection reads both the pending
+	// state and articleState.datasets, so this effect re-runs exactly when
+	// either changes — no setTimeout guessing about when a load has "settled".
+	$effect(() => {
+		if (!browser) return;
+		handlePendingArticleSelection();
+	});
+
+	// React to dataset changes: load the dataset if needed (loadCurrentDataset
+	// is idempotent and dedups in-flight fetches) and reflect it in the URL.
 	$effect(() => {
 		if (!browser || !isInitialized) return;
 
-		const datasets = articleState.datasets;
-		if (!datasets[currentDatasetId] || datasets[currentDatasetId].length === 0) {
-			uiState.isLoadingDataset = true;
-			loadCurrentDataset(fetch)
-				.then(() => {
-					setTimeout(() => handlePendingArticleSelection(), 100);
-				})
-				.catch((error) => {
-					console.error('Failed to load dataset:', error);
-				})
-				.finally(() => {
-					uiState.isLoadingDataset = false;
-				});
-		} else {
-			articleState.current = datasets[currentDatasetId];
-			setTimeout(() => handlePendingArticleSelection(), 100);
-		}
+		void currentDatasetId;
+		loadCurrentDataset(fetch).catch((error) => {
+			console.error('Failed to load dataset:', error);
+		});
 
 		updateURL(currentView);
 	});
@@ -182,18 +179,17 @@
 			uiState.activeView = urlView;
 		}
 
-		// Load only the current dataset at startup (lazy loading)
+		// Load only the current dataset at startup (lazy loading). Pending
+		// article selection is drained reactively by the effect above once the
+		// dataset lands in the store.
 		const loadData = async () => {
-			uiState.isLoadingDataset = true;
 			clearSelectedArticleOnly();
 
 			try {
 				await loadCurrentDataset(fetch);
-				setTimeout(() => handlePendingArticleSelection(), 100);
 			} catch (error) {
 				console.error('Failed to load dataset:', error);
 			} finally {
-				uiState.isLoadingDataset = false;
 				isInitialized = true;
 			}
 		};

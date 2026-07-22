@@ -2,6 +2,7 @@
  * Utility functions for extreme analysis data management
  */
 
+import type { DatasetId } from '$lib/types/data';
 import { base } from '$app/paths';
 import type {
 	ExtremeAnalysisData,
@@ -13,10 +14,41 @@ import type {
 } from '$lib/types/extremeAnalysis';
 
 /**
+ * On-disk shape of the extreme-analysis files: article payloads are stored
+ * once in `articles_index` and categories reference them by id, because an
+ * article can appear in several categories (the denormalized form duplicated
+ * ~7MB per file). The app-facing `ExtremeAnalysisData` shape (with embedded
+ * `articles` arrays) is reconstructed at load time so nothing downstream
+ * changes.
+ */
+interface RawExtremeCategoryAnalysis extends Omit<ExtremeCategoryAnalysis, 'articles'> {
+	article_ids: string[];
+}
+
+interface RawExtremeAnalysisData extends Omit<ExtremeAnalysisData, 'analysis'> {
+	articles_index: Record<string, ExtremeArticle>;
+	analysis: Record<ExtremeCategory, RawExtremeCategoryAnalysis>;
+}
+
+/** Rebuild the in-memory shape from the normalized on-disk file (exported for tests). */
+export function denormalizeExtremeAnalysis(raw: RawExtremeAnalysisData): ExtremeAnalysisData {
+	const index = raw.articles_index ?? {};
+	const analysis = {} as ExtremeAnalysisData['analysis'];
+	for (const key of Object.keys(raw.analysis) as ExtremeCategory[]) {
+		const { article_ids, ...rest } = raw.analysis[key];
+		analysis[key] = {
+			...rest,
+			articles: (article_ids ?? []).map((id) => index[id]).filter(Boolean)
+		};
+	}
+	return { model: raw.model, analysis, statistics: raw.statistics, facets: raw.facets };
+}
+
+/**
  * Load extreme analysis data for a specific model
  */
 export async function loadExtremeAnalysisData(
-	model: 'chatgpt' | 'gemini' | 'mistral',
+	model: DatasetId,
 	fetchFunction: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
 ): Promise<ExtremeAnalysisData> {
 	const filePath = `/data/iwac_extreme_analysis_${model}.json`;
@@ -25,7 +57,7 @@ export async function loadExtremeAnalysisData(
 	if (!response.ok) {
 		throw new Error(`Failed to load extreme analysis data for ${model}: ${response.statusText}`);
 	}
-	return response.json();
+	return denormalizeExtremeAnalysis(await response.json());
 }
 
 /**

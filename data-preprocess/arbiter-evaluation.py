@@ -1,12 +1,12 @@
 """
 Arbiter Evaluation Script - Gemini 3 Pro as the Judge
 
-This script uses Gemini 3 Pro with high reasoning level (thinking_level="high") 
-as an arbiter to evaluate articles where two AI models have significant 
-disagreements (≥3 points difference).
+This script uses Gemini 3 Pro with high reasoning level (thinking_level="high")
+as an arbiter to evaluate articles where two AI models have significant
+disagreements (>= 3 points difference).
 
 Supports comparing any pair of models:
-- chatgpt-gemini (default)
+- chatgpt-gemini
 - chatgpt-mistral
 - gemini-mistral
 
@@ -21,11 +21,12 @@ Features:
 - System instructions for consistent evaluation context
 - Pydantic structured outputs for reliable JSON parsing
 - Configurable model pair via --pair argument
+- Non-interactive mode via --yes for CI
 
 Usage:
-  python arbiter-evaluation.py                    # Default: ChatGPT vs Gemini
+  python arbiter-evaluation.py                        # Process all pairs
   python arbiter-evaluation.py --pair chatgpt-mistral
-  python arbiter-evaluation.py --pair gemini-mistral
+  python arbiter-evaluation.py --pair gemini-mistral --yes
 
 Output: JSON file with arbiter evaluations to be consumed by the visualization app
 """
@@ -45,32 +46,49 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from shared import (
-    safe_int_convert, load_iwac_dataset, calculate_discrepancies,
-    get_webapp_data_dir, save_json, MODEL_NAMES, extract_model_analysis
+    MODEL_NAMES,
+    MODEL_PAIRS,
+    calculate_discrepancies,
+    extract_model_analysis,
+    get_article_text,
+    get_logger,
+    get_models_from_pair,
+    get_webapp_data_dir,
+    load_iwac_dataset,
+    safe_save_json,
+    validate_columns,
 )
 
-# Model pair configuration
-VALID_PAIRS = ['chatgpt-gemini', 'chatgpt-mistral', 'gemini-mistral']
+logger = get_logger(__name__)
 
-def get_models_from_pair(pair: str) -> tuple[str, str]:
-    """Get the two model IDs from a pair string"""
-    parts = pair.split('-')
-    return parts[0], parts[1]
+# ============================================================================
+# Arbiter configuration constants
+# ============================================================================
+
+ARBITER_MODEL = "gemini-3-pro-preview"
+ARBITER_MAX_INPUT_CHARS = 15000   # article text is truncated to this length
+ARBITER_TEMPERATURE = 0.2
+ARBITER_MAX_OUTPUT_TOKENS = 8192
+SAVE_INTERVAL = 10                # save progress every N successful evaluations
+RATE_LIMIT_INTERVAL = 10          # pause for a second after every N API calls
+
+# Dataset columns every pair evaluation depends on.
+REQUIRED_BASE_COLUMNS = ['o:id', 'title', 'OCR', 'newspaper', 'country', 'pub_date']
 
 # Load environment variables from .env file
 env_path = Path(__file__).parent.parent / '.env'
 if env_path.exists():
     load_dotenv(env_path)
-    print(f"✓ Loaded environment variables from {env_path}")
+    logger.info("Loaded environment variables from %s", env_path)
 else:
-    print(f"⚠️ No .env file found at {env_path}")
+    logger.warning("No .env file found at %s", env_path)
 
 # Google GenAI SDK (new unified SDK)
 try:
     from google import genai
     from google.genai import types
 except ImportError:
-    print("Please install google-genai: pip install google-genai")
+    logger.error("Please install google-genai: pip install google-genai")
     exit(1)
 
 
@@ -126,7 +144,7 @@ class ArbiterAnalysis:
     overall_explanation: str  # Detailed explanation of the verdict
     confidence_level: str  # "high", "medium", "low"
     timestamp: str
-    # Note: model_a_is_chatgpt is stored once globally in metadata, not per article
+    # Note: the blind assignment is stored once globally in metadata, not per article
 
 
 # ============================================================================
@@ -175,23 +193,22 @@ Votre rôle est de :
 - Pour overall_explanation, fournissez une explication détaillée en français du verdict global"""
 
 
-
-def create_arbiter_prompt(article_text: str, title: str, 
+def create_arbiter_prompt(article_text: str, title: str,
                           model_a_analysis: dict, model_b_analysis: dict) -> str:
     """Create the user prompt for the arbiter model.
-    
+
     Note: The system instruction already contains the evaluation scales and guidelines.
     This prompt provides only the specific article and model analyses to evaluate.
     Model assignment is randomized for blind evaluation.
     """
-    
+
     prompt = f"""Évaluez l'article suivant et les deux analyses de modèles.
 
 ## Informations sur l'article
 **Titre :** {title}
 
 **Texte intégral :**
-{article_text[:15000]}
+{article_text[:ARBITER_MAX_INPUT_CHARS]}
 
 ---
 
@@ -247,124 +264,127 @@ def convert_pydantic_to_dataclass(response: ArbiterResponse, article_id: str) ->
     )
 
 
-def evaluate_with_arbiter(client: genai.Client, article: dict, chatgpt_analysis: dict, 
-                          gemini_analysis: dict, model_a_is_chatgpt: bool, 
+def evaluate_with_arbiter(client: genai.Client, article: dict, first_analysis: dict,
+                          second_analysis: dict, model_a_is_first: bool,
                           max_retries: int = 3) -> Optional[ArbiterAnalysis]:
-    """Send an article to the arbiter for evaluation using Gemini 3 Pro with structured outputs.
-    
+    """Send an article to the arbiter for evaluation using structured outputs.
+
     Uses:
     - System instruction for consistent evaluation context
     - thinking_level="high" for maximum reasoning capability
     - Pydantic structured outputs for reliable JSON parsing
     - Blind model assignment (Model A/B) - same for all articles
-    
+
     Args:
-        model_a_is_chatgpt: Global assignment - True if Model A = ChatGPT for ALL articles
+        client: GenAI client.
+        article: Article row (must carry the ``OCR`` text column).
+        first_analysis: Analysis of the first model in the pair.
+        second_analysis: Analysis of the second model in the pair.
+        model_a_is_first: Global blind assignment - True if the pair's first
+            model is presented as "Model A" for ALL articles.
+        max_retries: Number of attempts before giving up on an article.
     """
-    
+
     article_id = str(article.get('o:id', article.get('id', 'unknown')))
     title = article.get('o:title', article.get('title', 'Unknown Title'))
-    # Use OCR field for full text from HuggingFace dataset (uppercase field name)
-    text = article.get('OCR', article.get('ocr', article.get('full_text', article.get('text', ''))))
-    
+    text = get_article_text(article)
+
     if not text:
-        print(f"  ⚠️ No text available for article {article_id}")
+        logger.warning("No text available for article %s", article_id)
         return None
-    
+
     # Apply the GLOBAL model assignment (same for all articles)
-    if model_a_is_chatgpt:
-        model_a_analysis = chatgpt_analysis
-        model_b_analysis = gemini_analysis
+    if model_a_is_first:
+        model_a_analysis = first_analysis
+        model_b_analysis = second_analysis
     else:
-        model_a_analysis = gemini_analysis
-        model_b_analysis = chatgpt_analysis
-    
+        model_a_analysis = second_analysis
+        model_b_analysis = first_analysis
+
     prompt = create_arbiter_prompt(text, title, model_a_analysis, model_b_analysis)
-    
+
     for attempt in range(max_retries):
         try:
             response = client.models.generate_content(
-                model="gemini-3-pro-preview",
+                model=ARBITER_MODEL,
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     system_instruction=SYSTEM_INSTRUCTION,
                     thinking_config=types.ThinkingConfig(thinking_level="high"),
                     response_mime_type="application/json",
                     response_schema=ArbiterResponse,
-                    temperature=0.2,
-                    max_output_tokens=8192,
+                    temperature=ARBITER_TEMPERATURE,
+                    max_output_tokens=ARBITER_MAX_OUTPUT_TOKENS,
                 )
             )
-            
+
             if response.text:
                 # Parse JSON response and convert to Pydantic model
                 data = json.loads(response.text)
                 arbiter_response = ArbiterResponse.model_validate(data)
-                result = convert_pydantic_to_dataclass(arbiter_response, article_id)
-                return result
-            
-            print(f"  ⚠️ Empty response for article {article_id}, attempt {attempt + 1}")
-            
+                return convert_pydantic_to_dataclass(arbiter_response, article_id)
+
+            logger.warning("Empty response for article %s, attempt %d", article_id, attempt + 1)
+
         except json.JSONDecodeError as e:
-            print(f"  ⚠️ JSON parse error for article {article_id}, attempt {attempt + 1}: {e}")
+            logger.warning("JSON parse error for article %s, attempt %d: %s", article_id, attempt + 1, e)
             if attempt < max_retries - 1:
                 time.sleep(2 ** attempt)
         except Exception as e:
-            print(f"  ⚠️ Error for article {article_id}, attempt {attempt + 1}: {e}")
+            logger.warning("Error for article %s, attempt %d: %s", article_id, attempt + 1, e)
             if attempt < max_retries - 1:
                 time.sleep(2 ** attempt)  # Exponential backoff
-    
+
     return None
 
 
 def load_dataset_with_text_info() -> pd.DataFrame:
-    """Load the IWAC dataset and print text field availability info."""
+    """Load the IWAC dataset, validate required columns, and log text-field info."""
     df = load_iwac_dataset()
-    print(f"Available columns: {', '.join(df.columns.tolist())}")
+    logger.info("Available columns: %s", ', '.join(df.columns.tolist()))
+    validate_columns(df, REQUIRED_BASE_COLUMNS)
 
-    # Check for OCR/text field
+    # Check for OCR/text field coverage
     ocr_fields = [col for col in df.columns if 'ocr' in col.lower() or 'text' in col.lower() or 'content' in col.lower()]
     if ocr_fields:
-        print(f"Found text fields: {', '.join(ocr_fields)}")
+        logger.info("Found text fields: %s", ', '.join(ocr_fields))
         for field in ocr_fields:
             non_empty = df[field].notna().sum()
-            print(f"  {field}: {non_empty}/{len(df)} non-empty ({100*non_empty/len(df):.1f}%)")
+            logger.info("  %s: %d/%d non-empty (%.1f%%)", field, non_empty, len(df), 100 * non_empty / len(df))
     else:
-        print("WARNING: No OCR/text field found in dataset!")
+        logger.warning("No OCR/text field found in dataset!")
 
     return df
 
 
-def find_significant_differences(df: pd.DataFrame, model_a: str = 'chatgpt', model_b: str = 'gemini') -> list:
-    """Find articles with significant differences between the specified models
-    
+def find_significant_differences(records: list[dict], model_a: str, model_b: str) -> list[dict]:
+    """Find articles with significant differences between the specified models.
+
     Args:
-        df: DataFrame with article data
-        model_a: First model ID (e.g., 'chatgpt', 'gemini', 'mistral')
-        model_b: Second model ID (e.g., 'chatgpt', 'gemini', 'mistral')
+        records: Article rows as plain dicts.
+        model_a: First model ID (e.g., 'chatgpt', 'gemini', 'mistral').
+        model_b: Second model ID (e.g., 'chatgpt', 'gemini', 'mistral').
     """
     significant_articles = []
-    
+
     model_a_name = MODEL_NAMES.get(model_a, model_a)
     model_b_name = MODEL_NAMES.get(model_b, model_b)
-    
-    print(f"Processing {len(df)} articles to find significant differences between {model_a_name} and {model_b_name}...")
-    
-    for _, row in tqdm(df.iterrows(), total=len(df), desc="Finding conflicts"):
-        item = row.to_dict()
-        
+
+    logger.info("Processing %d articles to find significant differences between %s and %s...",
+                len(records), model_a_name, model_b_name)
+
+    for item in tqdm(records, total=len(records), desc="Finding conflicts"):
         # Dynamically build column names based on model prefixes
         model_a_analysis = extract_model_analysis(item, model_a)
         model_b_analysis = extract_model_analysis(item, model_b)
-        
+
         discrepancies = calculate_discrepancies(model_a_analysis, model_b_analysis)
-        
+
         if discrepancies and discrepancies["has_significant_conflict"]:
-            # Include the OCR field for full text (field name is uppercase)
-            article_data = {
+            significant_articles.append({
                 'o:id': item.get('o:id'),
                 'o:title': item.get('title'),
-                'OCR': item.get('OCR'),  # Include OCR field - uppercase in dataset
+                'OCR': get_article_text(item),  # Full text - uppercase column in dataset
                 'newspaper': item.get('newspaper'),
                 'country': item.get('country'),
                 'pub_date': item.get('pub_date'),
@@ -373,89 +393,90 @@ def find_significant_differences(df: pd.DataFrame, model_a: str = 'chatgpt', mod
                 'model_a_id': model_a,
                 'model_b_id': model_b,
                 'discrepancies': discrepancies
-            }
-            significant_articles.append(article_data)
-    
+            })
+
     return significant_articles
 
 
+def load_cached_evaluations(webapp_file: str) -> tuple[list, set, Optional[bool]]:
+    """Load previously saved evaluations from a webapp output file (the cache).
 
-def process_pair(client, df: pd.DataFrame, pair: str, webapp_data_dir: str) -> dict:
-    """Process a single model pair and return statistics
-    
+    Returns:
+        Tuple of (evaluations list, set of evaluated article ids as strings,
+        stored blind assignment or None). Returns empty values if the file is
+        missing or unreadable.
+    """
+    if not os.path.exists(webapp_file):
+        return [], set(), None
+
+    try:
+        with open(webapp_file, 'r', encoding='utf-8') as f:
+            existing_data = json.load(f)
+        arbiter_results = existing_data.get('evaluations', [])
+        evaluated_ids = {str(r['article_id']) for r in arbiter_results}
+        # Preserve the blind assignment from previous runs
+        model_a_is_first = existing_data.get('metadata', {}).get('model_a_is_first')
+        return arbiter_results, evaluated_ids, model_a_is_first
+    except (OSError, json.JSONDecodeError) as e:
+        logger.warning("Failed to load existing data from %s: %s", webapp_file, e)
+        return [], set(), None
+
+
+def process_pair(client, significant_articles: list[dict], pair: str, webapp_data_dir: str) -> dict:
+    """Process a single model pair and return statistics.
+
     Uses the webapp output file as cache for incremental processing.
     If new articles are added to the dataset, only the new ones will be processed.
-    
+
     Args:
         client: GenAI client
-        df: DataFrame with article data
+        significant_articles: Precomputed conflict articles for this pair
+            (from :func:`find_significant_differences`).
         pair: Model pair string (e.g., 'chatgpt-gemini')
         webapp_data_dir: Directory for webapp data files (used as cache)
-        
+
     Returns:
         dict with processing statistics
     """
     model_a, model_b = get_models_from_pair(pair)
     model_a_name = MODEL_NAMES.get(model_a, model_a)
     model_b_name = MODEL_NAMES.get(model_b, model_b)
-    
-    print(f"\n{'='*60}")
-    print(f"Processing: {model_a_name} vs {model_b_name}")
-    print(f"{'='*60}")
-    
-    # Find articles with significant differences for this pair
-    significant_articles = find_significant_differences(df, model_a, model_b)
-    
+
+    logger.info("Processing: %s vs %s", model_a_name, model_b_name)
+
     if not significant_articles:
-        print(f"❌ No articles with significant differences found!")
+        logger.warning("No articles with significant differences found!")
         return {'pair': pair, 'total': 0, 'new': 0, 'cached': 0, 'failed': 0}
-    
-    print(f"📊 Found {len(significant_articles)} articles with significant differences")
-    
+
+    logger.info("Found %d articles with significant differences", len(significant_articles))
+
     # Use webapp output file as primary cache (for incremental processing)
     webapp_file = os.path.join(webapp_data_dir, f"iwac_arbiter_evaluations_{pair}.json")
-    
-    # Load existing evaluations from output file (acts as cache)
-    arbiter_results = []
-    evaluated_ids = set()
-    model_a_is_first = None  # Whether model_a is assigned as "Model A" in blind eval
-    
-    if os.path.exists(webapp_file):
-        print(f"📦 Found existing data file: {os.path.basename(webapp_file)}")
-        try:
-            with open(webapp_file, 'r', encoding='utf-8') as f:
-                existing_data = json.load(f)
-                arbiter_results = existing_data.get('evaluations', [])
-                evaluated_ids = {str(r['article_id']) for r in arbiter_results}
-                # Preserve the blind assignment from previous runs
-                model_a_is_first = existing_data.get('metadata', {}).get('model_a_is_first')
-                print(f"   ✓ Loaded {len(arbiter_results)} cached evaluations")
-        except Exception as e:
-            print(f"   ⚠️ Failed to load existing data: {e}")
-            arbiter_results = []
-            evaluated_ids = set()
-    
+    arbiter_results, evaluated_ids, model_a_is_first = load_cached_evaluations(webapp_file)
+    if arbiter_results:
+        logger.info("Loaded %d cached evaluations from %s", len(arbiter_results), os.path.basename(webapp_file))
+
     # Filter out already-evaluated articles
     remaining_articles = [a for a in significant_articles if str(a.get('o:id')) not in evaluated_ids]
     cached_count = len(evaluated_ids)
-    
+
     if not remaining_articles:
-        print(f"✓ All {len(significant_articles)} articles already evaluated!")
+        logger.info("All %d articles already evaluated!", len(significant_articles))
         return {'pair': pair, 'total': len(significant_articles), 'new': 0, 'cached': cached_count, 'failed': 0}
-    
-    print(f"📝 {len(remaining_articles)} new articles to evaluate ({cached_count} cached)")
-    
+
+    logger.info("%d new articles to evaluate (%d cached)", len(remaining_articles), cached_count)
+
     # BLIND EVALUATION: Use existing assignment or create new one
     if model_a_is_first is None:
         model_a_is_first = random.choice([True, False])
-        print(f"🎲 New blind assignment: Model A = {model_a_name if model_a_is_first else model_b_name}")
+        logger.info("New blind assignment: Model A = %s", model_a_name if model_a_is_first else model_b_name)
     else:
-        print(f"📋 Using existing blind assignment: Model A = {model_a_name if model_a_is_first else model_b_name}")
-    
+        logger.info("Using existing blind assignment: Model A = %s", model_a_name if model_a_is_first else model_b_name)
+
     # Process new articles with arbiter
     successful = 0
     failed = 0
-    
+
     for i, item in enumerate(tqdm(remaining_articles, desc=f"Arbiter eval ({pair})")):
         result = evaluate_with_arbiter(
             client,
@@ -464,7 +485,7 @@ def process_pair(client, df: pd.DataFrame, pair: str, webapp_data_dir: str) -> d
             item['model_b_analysis'],
             model_a_is_first
         )
-        
+
         if result:
             arbiter_results.append({
                 'article_id': result.article_id,
@@ -472,27 +493,27 @@ def process_pair(client, df: pd.DataFrame, pair: str, webapp_data_dir: str) -> d
                 'discrepancies': item['discrepancies']
             })
             successful += 1
-            
-            # Save progress every 10 successful evaluations
-            if successful % 10 == 0:
-                save_results(webapp_file, arbiter_results, pair, model_a_is_first, 
-                            model_a_name, model_b_name, len(significant_articles), 
+
+            # Save progress periodically
+            if successful % SAVE_INTERVAL == 0:
+                save_results(webapp_file, arbiter_results, pair, model_a_is_first,
+                            model_a_name, model_b_name, len(significant_articles),
                             len(arbiter_results), failed)
-                print(f"  💾 Saved {len(arbiter_results)} results")
+                logger.info("Saved %d results", len(arbiter_results))
         else:
             failed += 1
-        
+
         # Rate limiting
-        if (i + 1) % 10 == 0:
+        if (i + 1) % RATE_LIMIT_INTERVAL == 0:
             time.sleep(1)
-    
+
     # Save final results
     save_results(webapp_file, arbiter_results, pair, model_a_is_first,
                 model_a_name, model_b_name, len(significant_articles),
                 len(arbiter_results), failed)
-    
-    print(f"✓ Completed: {successful} new, {cached_count} cached, {failed} failed")
-    
+
+    logger.info("Completed: %d new, %d cached, %d failed", successful, cached_count, failed)
+
     return {
         'pair': pair,
         'total': len(significant_articles),
@@ -505,7 +526,7 @@ def process_pair(client, df: pd.DataFrame, pair: str, webapp_data_dir: str) -> d
 def save_results(filepath: str, results: list, pair: str, model_a_is_first: bool,
                  first_model_name: str, second_model_name: str, total: int, successful: int, failed: int):
     """Save arbiter results to JSON file
-    
+
     Args:
         model_a_is_first: Whether the first model in the pair was presented as "Model A" to the arbiter
         first_model_name: Name of the first model in the pair (e.g., ChatGPT for chatgpt-gemini)
@@ -515,11 +536,11 @@ def save_results(filepath: str, results: list, pair: str, model_a_is_first: bool
     # This makes the JSON self-documenting and avoids confusion
     arbiter_model_a = first_model_name if model_a_is_first else second_model_name
     arbiter_model_b = second_model_name if model_a_is_first else first_model_name
-    
-    save_json({
+
+    safe_save_json({
         'metadata': {
             'generated': datetime.now().isoformat(),
-            'arbiter_model': 'gemini-3-pro-preview',
+            'arbiter_model': ARBITER_MODEL,
             'thinking_level': 'high',
             'blind_evaluation': True,
             'arbiter_model_a': arbiter_model_a,
@@ -536,86 +557,91 @@ def save_results(filepath: str, results: list, pair: str, model_a_is_first: bool
     }, filepath)
 
 
-def main(pairs: list[str] | None = None):
+def confirm_api_calls(total_new: int, assume_yes: bool) -> bool:
+    """Ask the user to confirm the paid API calls (skipped with --yes).
+
+    Returns False (abort) when the user declines or when stdin is unavailable
+    (e.g. non-interactive CI without --yes).
+    """
+    if assume_yes:
+        logger.info("--yes given: proceeding with ~%d API calls without prompting", total_new)
+        return True
+
+    print(f"\nWARNING: this will make approximately {total_new} API calls to {ARBITER_MODEL}")
+    try:
+        response = input("Do you want to proceed? (yes/no): ").strip().lower()
+    except EOFError:
+        logger.error("No input available (non-interactive run?). Use --yes to skip the prompt.")
+        return False
+    return response in ['yes', 'y']
+
+
+def main(pairs: list[str] | None = None, assume_yes: bool = False):
     """Main function - processes all specified pairs
-    
+
     Args:
         pairs: List of model pairs to evaluate. If None, processes all pairs.
+        assume_yes: Skip the interactive confirmation prompt (for CI).
     """
     if pairs is None:
-        pairs = VALID_PAIRS
-    
-    print(f"\n{'='*60}")
-    print(f"IWAC Arbiter Evaluation - Gemini 3 Pro (High Reasoning)")
-    print(f"Processing {len(pairs)} model pair(s): {', '.join(pairs)}")
-    print(f"{'='*60}")
-    
+        pairs = MODEL_PAIRS
+
+    logger.info("IWAC Arbiter Evaluation - %s (thinking_level=high)", ARBITER_MODEL)
+    logger.info("Processing %d model pair(s): %s", len(pairs), ', '.join(pairs))
+
     # Check for API key
     api_key = os.environ.get('GOOGLE_API_KEY') or os.environ.get('GEMINI_API_KEY')
     if not api_key:
-        print("\n❌ Error: No API key found!")
-        print("Please set GOOGLE_API_KEY or GEMINI_API_KEY environment variable")
+        logger.error("No API key found! Please set GOOGLE_API_KEY or GEMINI_API_KEY environment variable")
         return
-    
+
     # Create GenAI client
     client = genai.Client(api_key=api_key)
-    print(f"✓ Configured Gemini 3 Pro as arbiter (thinking_level=high)")
-    
+    logger.info("Configured %s as arbiter (thinking_level=high)", ARBITER_MODEL)
+
     # Load dataset
     try:
         df = load_dataset_with_text_info()
     except Exception as e:
-        print(f"Failed to load dataset: {e}")
+        logger.error("Failed to load dataset: %s", e)
         return
-    
+    records = df.to_dict('records')
+
     # Setup webapp data directory
     webapp_data_dir = get_webapp_data_dir()
-    
-    # Count total new articles to process across all pairs
+
+    # Find the conflict articles ONCE per pair (reused below by process_pair)
+    significant_by_pair: dict[str, list[dict]] = {}
     total_new = 0
     for pair in pairs:
         model_a, model_b = get_models_from_pair(pair)
-        articles = find_significant_differences(df, model_a, model_b)
+        articles = find_significant_differences(records, model_a, model_b)
+        significant_by_pair[pair] = articles
+
         webapp_file = os.path.join(webapp_data_dir, f"iwac_arbiter_evaluations_{pair}.json")
-        
-        evaluated_ids = set()
-        if os.path.exists(webapp_file):
-            try:
-                with open(webapp_file, 'r', encoding='utf-8') as f:
-                    evaluated_ids = {str(r['article_id']) for r in json.load(f).get('evaluations', [])}
-            except:
-                pass
-        
-        new_count = len([a for a in articles if str(a.get('o:id')) not in evaluated_ids])
-        total_new += new_count
-    
+        _, evaluated_ids, _ = load_cached_evaluations(webapp_file)
+        total_new += len([a for a in articles if str(a.get('o:id')) not in evaluated_ids])
+
     if total_new == 0:
-        print(f"\n✓ All articles across all pairs are already evaluated!")
-        print("No API calls needed.")
-    else:
-        print(f"\n⚠️  This will make approximately {total_new} API calls to Gemini 3 Pro")
-        response = input("Do you want to proceed? (yes/no): ").strip().lower()
-        if response not in ['yes', 'y']:
-            print("Aborted.")
-            return
-    
+        logger.info("All articles across all pairs are already evaluated! No API calls needed.")
+    elif not confirm_api_calls(total_new, assume_yes):
+        logger.info("Aborted.")
+        return
+
     # Process each pair
     all_stats = []
     for pair in pairs:
-        stats = process_pair(client, df, pair, webapp_data_dir)
+        stats = process_pair(client, significant_by_pair[pair], pair, webapp_data_dir)
         all_stats.append(stats)
-    
+
     # Print summary
-    print(f"\n{'='*60}")
-    print(f"ARBITER EVALUATION COMPLETE")
-    print(f"{'='*60}")
-    
+    logger.info("ARBITER EVALUATION COMPLETE")
     for stats in all_stats:
-        print(f"\n{stats['pair']}:")
-        print(f"  Total articles: {stats['total']}")
-        print(f"  Newly evaluated: {stats['new']}")
-        print(f"  From cache: {stats['cached']}")
-        print(f"  Failed: {stats['failed']}")
+        logger.info("%s:", stats['pair'])
+        logger.info("  Total articles: %d", stats['total'])
+        logger.info("  Newly evaluated: %d", stats['new'])
+        logger.info("  From cache: %d", stats['cached'])
+        logger.info("  Failed: %d", stats['failed'])
 
 
 if __name__ == "__main__":
@@ -628,23 +654,28 @@ Examples:
   python arbiter-evaluation.py                      # Process all pairs (default)
   python arbiter-evaluation.py --pair chatgpt-gemini  # Process single pair
   python arbiter-evaluation.py --pair chatgpt-mistral --pair gemini-mistral
+  python arbiter-evaluation.py --yes                # Skip the confirmation prompt (CI)
 """
     )
     parser.add_argument(
         '--pair', '-p',
         type=str,
-        choices=VALID_PAIRS,
+        choices=MODEL_PAIRS,
         action='append',
         dest='pairs',
-        help=f'Model pair(s) to evaluate. Can be specified multiple times. Default: all pairs'
+        help='Model pair(s) to evaluate. Can be specified multiple times. Default: all pairs'
     )
-    
+    parser.add_argument(
+        '--yes', '-y',
+        action='store_true',
+        help='Skip the interactive confirmation prompt (for non-interactive runs)'
+    )
+
     args = parser.parse_args()
-    
+
     # If no pairs specified, process all pairs
     pairs_to_process = args.pairs if args.pairs else None
-    
+
     # Set random seed - no fixed seed for true randomization of blind assignment
     random.seed()
-    main(pairs=pairs_to_process)
-
+    main(pairs=pairs_to_process, assume_yes=args.yes)

@@ -42,14 +42,19 @@ npm run build       # vite build (+ prepack until Batch E removes it)
 | A | Fix latent bugs | ✅ landed (`e9214ec`) |
 | B | Remove dead code | ✅ landed (`5b19090`) |
 | C1+C2 | `getPairModelNames` + delete `urlState` shim | ✅ landed (`38d7bf7`) |
-| C3 | `ArbiterArticleTable` → shared `createPagination` | ⏳ pending |
-| C4 | Tighten store union types (`ValidDataset` / `ValidView`) | ⏳ pending |
-| D | Python preprocessing refactor | ⏳ pending |
-| E | Build config + i18n type derivation | ⏳ pending |
-| F | Viz modularity (BaseChart, twin-chart unification) | ⏳ pending |
-| G | Component modularity (Pagination, Spinner, scales) | ⏳ pending |
-| H | Design-system token consistency sweep | ⏳ pending |
-| I | Docs & memory refresh | ⏳ pending |
+| C3 | `ArbiterArticleTable` → shared `createPagination` | ✅ landed (July 2026 pass) |
+| C4 | Tighten store union types (`ValidDataset` / `ValidView`) | ✅ landed (July 2026 pass) |
+| D | Python preprocessing refactor | ✅ landed (July 2026 pass) |
+| E | Build config + i18n type derivation | ✅ landed (July 2026 pass) |
+| F | Viz modularity (twin-chart unification, aggregators, theme cleanup) | ✅ landed (July 2026 pass) |
+| G | Component modularity (Pagination, Spinner, scales) | 🔶 mostly landed (July 2026 pass) — StatCard for ComparisonStats/ArbiterStatsCards still open |
+| H | Design-system token consistency sweep | 🔶 partially landed (dead-CSS purge, layout tokens; per-folder sweep still open) |
+| I | Docs & memory refresh | ✅ landed (July 2026 pass) |
+
+See [CODE-AUDIT-2026-07.md](CODE-AUDIT-2026-07.md) for the July 2026 audit that
+re-verified these batches, the additional findings it surfaced (data-loading
+races, dead app.css, SEOHead i18n bypass, payload normalization), and their
+implementation status.
 
 ---
 

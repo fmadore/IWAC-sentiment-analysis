@@ -241,6 +241,44 @@
 	--sentiment-arbiter-bg: color-mix(in oklab, var(--sentiment-arbiter) 14%, transparent);
 	--sentiment-arbiter-border: color-mix(in oklab, var(--sentiment-arbiter) 30%, transparent);
 
+	/* --- Arbiter verdict & confidence badge hues ---
+	   Provenance: these preserve the Tailwind palette classes they replaced
+	   (text = *-400, bg = *-500 at 20%, border = *-500 at 30%):
+	   win = emerald, loss = purple, both = blue, neither = gray;
+	   confidence high/medium/low = green/yellow/red. Values are Tailwind v4's
+	   own oklch definitions (node_modules/tailwindcss/theme.css), kept verbatim
+	   so the rendered colors are unchanged. Skeleton's --color-success/warning
+	   ramps were considered but do NOT visually match (Cerberus success is
+	   teal oklch(0.85 0.13 175), warning is amber oklch(0.85 0.12 78)). --- */
+	--verdict-win: oklch(76.5% 0.177 163.223); /* tailwind emerald-400 */
+	--verdict-win-strong: oklch(69.6% 0.17 162.48); /* tailwind emerald-500 */
+	--verdict-win-bg: color-mix(in oklab, var(--verdict-win-strong) 20%, transparent);
+	--verdict-win-border: color-mix(in oklab, var(--verdict-win-strong) 30%, transparent);
+	--verdict-loss: oklch(71.4% 0.203 305.504); /* tailwind purple-400 */
+	--verdict-loss-strong: oklch(62.7% 0.265 303.9); /* tailwind purple-500 */
+	--verdict-loss-bg: color-mix(in oklab, var(--verdict-loss-strong) 20%, transparent);
+	--verdict-loss-border: color-mix(in oklab, var(--verdict-loss-strong) 30%, transparent);
+	--verdict-both: oklch(70.7% 0.165 254.624); /* tailwind blue-400 */
+	--verdict-both-strong: oklch(62.3% 0.214 259.815); /* tailwind blue-500 */
+	--verdict-both-bg: color-mix(in oklab, var(--verdict-both-strong) 20%, transparent);
+	--verdict-both-border: color-mix(in oklab, var(--verdict-both-strong) 30%, transparent);
+	--verdict-neither: oklch(70.7% 0.022 261.325); /* tailwind gray-400 */
+	--verdict-neither-strong: oklch(55.1% 0.027 264.364); /* tailwind gray-500 */
+	--verdict-neither-bg: color-mix(in oklab, var(--verdict-neither-strong) 20%, transparent);
+	--verdict-neither-border: color-mix(in oklab, var(--verdict-neither-strong) 30%, transparent);
+	--confidence-high: oklch(79.2% 0.209 151.711); /* tailwind green-400 */
+	--confidence-high-strong: oklch(72.3% 0.219 149.579); /* tailwind green-500 */
+	--confidence-high-bg: color-mix(in oklab, var(--confidence-high-strong) 20%, transparent);
+	--confidence-high-border: color-mix(in oklab, var(--confidence-high-strong) 30%, transparent);
+	--confidence-medium: oklch(85.2% 0.199 91.936); /* tailwind yellow-400 */
+	--confidence-medium-strong: oklch(79.5% 0.184 86.047); /* tailwind yellow-500 */
+	--confidence-medium-bg: color-mix(in oklab, var(--confidence-medium-strong) 20%, transparent);
+	--confidence-medium-border: color-mix(in oklab, var(--confidence-medium-strong) 30%, transparent);
+	--confidence-low: oklch(70.4% 0.191 22.216); /* tailwind red-400 */
+	--confidence-low-strong: oklch(63.7% 0.237 25.331); /* tailwind red-500 */
+	--confidence-low-bg: color-mix(in oklab, var(--confidence-low-strong) 20%, transparent);
+	--confidence-low-border: color-mix(in oklab, var(--confidence-low-strong) 30%, transparent);
+
 	/* --- Comparison: muted steel-blue, pairs the two-model comparison views --- */
 	--sentiment-comparison: oklch(0.7 0.08 240);
 	--sentiment-comparison-light: oklch(0.78 0.06 240);
@@ -334,21 +372,13 @@
 
 	/* ==========================================================================
 	   BACK-COMPAT SHIMS
-	   Components still reference the pre-refactor tokens (per-view gradients,
-	   glass-blur sizes, glow shadows, color-tertiary, view icon-bg gradients).
-	   These shims map them all to the editorial vocabulary so the old code
-	   keeps working without an exhaustive sweep. Migrate callers opportunistically
-	   when you next touch the file. Do NOT introduce new references to these
-	   tokens — use the canonical ones instead.
+	   A few components still reference pre-refactor tokens (view icon-bg
+	   gradients, color-tertiary). These shims map them to the editorial
+	   vocabulary. Migrate callers opportunistically when you next touch the
+	   file. Do NOT introduce new references to these tokens — use the
+	   canonical ones instead. (The zero-caller glass-blur/gradient/glow shims
+	   were removed once their last consumers migrated.)
 	   ========================================================================== */
-
-	/* glass-blur-* → 0 (we are flat now). Components that wrap their use in
-	   `backdrop-filter: blur(var(--glass-blur-md))` will resolve to blur(0)
-	   which is a no-op visually but valid CSS (no warnings). */
-	--glass-blur-sm: 0px;
-	--glass-blur-md: 0px;
-	--glass-blur-lg: 0px;
-	--glass-blur-xl: 0px;
 
 	/* Per-view "icon-bg" gradients → solid tinted surfaces. The decorative
 	   icon-tile pattern was retired in Phase 1 but a few callers still use
@@ -357,25 +387,26 @@
 	--sentiment-comparison-icon-bg: var(--sentiment-comparison-bg);
 	--sentiment-extreme-icon-bg: var(--sentiment-extreme-bg);
 
-	/* Multi-stop gradient tokens → solid editorial accents. Anything that was
-	   painted with these now reads as a solid colour. */
-	--gradient-primary: var(--accent);
-	--gradient-header: var(--accent);
-	--gradient-comparison: var(--sentiment-comparison);
-	--gradient-extreme: var(--sentiment-extreme);
-
-	/* Glow shadows → none. The "card with primary-coloured glow" effect was
-	   the most-flagged AI tell; resolve to no shadow. */
-	--shadow-glow-sm: none;
-	--shadow-glow-md: none;
-	--shadow-glow-lg: none;
-
 	/* Skeleton Cerberus exposes a tertiary palette we don't use. Map it to
 	   the secondary so existing references blend in rather than stand out. */
 	--color-tertiary-300: var(--color-secondary-300);
 	--color-tertiary-400: var(--color-secondary-400);
 	--color-tertiary-500: var(--color-secondary-500);
 	--color-tertiary-600: var(--color-secondary-600);
+
+	/* --- Layout constants --- */
+	/* Sidebar rail widths — consumed by SidebarNav (the rail itself) AND
+	   +layout.svelte (the content margin that clears it). Keep in sync via
+	   these tokens only. */
+	--sidebar-width-collapsed: 4.5rem;
+	--sidebar-width-expanded: 14rem;
+	--sidebar-width-mobile-drawer: 16rem;
+	/* Sticky filter-rail clearance below the AppHeader (~96px rendered header
+	   height + breathing room). If the header grows, adjust here once. */
+	--rail-top: 6.5rem;
+	/* NOTE on breakpoints: media queries cannot read custom properties, so the
+	   1024px desktop threshold is a repeated literal (SidebarNav, FiltersPanel,
+	   AppHeader, +layout, +page). Change them together. */
 
 	/* --- Spacing Scale (4px base) --- */
 	--space-0: 0;
@@ -555,184 +586,6 @@ h3 {
 }
 
 /* -----------------------------------------------------------------------------
-   Typography Presets — editorial pairing
-   ----------------------------------------------------------------------------- */
-
-/* Display headings — Source Serif 4 at heavy display weight. Optical sizing
-   makes the largest cuts more characterful; the variable opsz axis matters. */
-.preset-typo-display-1 {
-	font-family: var(--font-display);
-	font-size: clamp(2.5rem, 5vw, 3.75rem);
-	font-weight: 700;
-	line-height: var(--line-height-tight);
-	letter-spacing: var(--tracking-tight);
-	color: var(--text-primary);
-	font-variation-settings: 'opsz' 60;
-}
-
-.preset-typo-display-2 {
-	font-family: var(--font-display);
-	font-size: clamp(2rem, 3.8vw, 2.875rem);
-	font-weight: 700;
-	line-height: var(--line-height-tight);
-	letter-spacing: var(--tracking-tight);
-	color: var(--text-primary);
-	font-variation-settings: 'opsz' 48;
-}
-
-/* Section titles — still serif, slightly more sober */
-.preset-typo-heading-1 {
-	font-family: var(--font-display);
-	font-size: var(--font-size-3xl);
-	font-weight: 700;
-	line-height: var(--line-height-tight);
-	letter-spacing: var(--tracking-tight);
-	color: var(--text-primary);
-}
-
-.preset-typo-heading-2 {
-	font-family: var(--font-display);
-	font-size: var(--font-size-2xl);
-	font-weight: 600;
-	line-height: var(--line-height-snug);
-	letter-spacing: var(--tracking-tight);
-	color: var(--text-primary);
-}
-
-.preset-typo-heading-3 {
-	font-family: var(--font-display);
-	font-size: var(--font-size-xl);
-	font-weight: 600;
-	line-height: var(--line-height-snug);
-	letter-spacing: var(--tracking-snug);
-	color: var(--text-primary);
-}
-
-/* Heading-4 reads as a label rather than a true heading — keep it sans */
-.preset-typo-heading-4 {
-	font-family: var(--font-sans);
-	font-size: var(--font-size-base);
-	font-weight: 600;
-	line-height: var(--line-height-snug);
-	letter-spacing: var(--tracking-normal);
-	color: var(--text-primary);
-}
-
-/* Body text — Public Sans, body width capped via prose-width on parent */
-.preset-typo-body-lg {
-	font-family: var(--font-sans);
-	font-size: var(--font-size-lg);
-	line-height: var(--line-height-relaxed);
-	color: var(--text-secondary);
-}
-
-.preset-typo-body {
-	font-family: var(--font-sans);
-	font-size: var(--font-size-base);
-	line-height: var(--line-height-normal);
-	color: var(--text-secondary);
-}
-
-.preset-typo-body-sm {
-	font-family: var(--font-sans);
-	font-size: var(--font-size-sm);
-	line-height: var(--line-height-normal);
-	color: var(--text-secondary);
-}
-
-/* Caption / label / eyebrow — JetBrains Mono. Eyebrows + small uppercase
-   are where the wire-service voice lives; the mono distinguishes them
-   from the serif headings and the sans body. */
-.preset-typo-caption {
-	font-family: var(--font-mono);
-	font-size: var(--font-size-xs);
-	line-height: var(--line-height-snug);
-	color: var(--text-muted);
-}
-
-.preset-typo-label {
-	font-family: var(--font-mono);
-	font-size: var(--font-size-xs);
-	font-weight: 500;
-	text-transform: uppercase;
-	letter-spacing: var(--tracking-wider);
-	color: var(--text-muted);
-}
-
-.preset-typo-eyebrow {
-	font-family: var(--font-mono);
-	font-size: var(--font-size-xs);
-	font-weight: 500;
-	text-transform: uppercase;
-	letter-spacing: var(--tracking-wider);
-	color: var(--text-muted);
-}
-
-/* Menu and button text */
-.preset-typo-menu {
-	font-family: var(--font-sans);
-	font-size: var(--font-size-base);
-	font-weight: 500;
-	color: var(--text-secondary);
-}
-
-.preset-typo-button {
-	font-family: var(--font-sans);
-	font-size: var(--font-size-base);
-	font-weight: 600;
-	letter-spacing: var(--tracking-normal);
-}
-
-/* Tabular numerals utility — body already enables them globally, but this
-   class is kept for explicit emphasis on numeric columns in tables. */
-.preset-typo-number {
-	font-variant-numeric: tabular-nums;
-	font-feature-settings: 'tnum' 1;
-}
-
-/* Prose width helper for paragraph blocks */
-.prose-bound {
-	max-width: var(--prose-width);
-}
-
-/* -----------------------------------------------------------------------------
-   Anchor Styling (Skeleton Pattern)
-   Consistent link styling with hover and focus states
-   ----------------------------------------------------------------------------- */
-.anchor {
-	color: var(--color-primary-400);
-	text-decoration: none;
-	transition: color var(--timing-fast) var(--easing-default);
-	font-weight: inherit;
-}
-
-.anchor:hover {
-	color: var(--color-primary-300);
-	text-decoration: underline;
-	text-underline-offset: 2px;
-}
-
-.anchor:focus-visible {
-	outline: 2px solid var(--color-primary-500);
-	outline-offset: 2px;
-	border-radius: 2px;
-}
-
-/* Anchor with subtle underline */
-.anchor-underline {
-	color: var(--color-primary-400);
-	text-decoration: underline;
-	text-decoration-color: color-mix(in oklab, var(--color-primary-400) 40%, transparent);
-	text-underline-offset: 3px;
-	transition: all var(--timing-fast) var(--easing-default);
-}
-
-.anchor-underline:hover {
-	color: var(--color-primary-300);
-	text-decoration-color: var(--color-primary-300);
-}
-
-/* -----------------------------------------------------------------------------
    Surface Presets
    Canonical card/panel backgrounds — use these instead of redefining in components.
    ----------------------------------------------------------------------------- */
@@ -741,44 +594,11 @@ h3 {
    so any component still using them gets the new look automatically. */
 .preset-surface-card,
 .preset-glass,
-.variant-glass,
-.glass-medium {
+.variant-glass {
 	background: var(--surface-card);
 	border: 1px solid var(--border-subtle);
 	border-radius: var(--radius-2xl);
 	box-shadow: var(--elevation-card);
-}
-
-.preset-surface-card-sm,
-.preset-glass-sm,
-.glass-light {
-	background: var(--surface-card);
-	border: 1px solid var(--border-subtle);
-	border-radius: var(--radius-xl);
-}
-
-.preset-surface-nested,
-.glass-dark {
-	background: var(--surface-nested);
-	border: 1px solid var(--border-subtle);
-	border-radius: var(--radius-xl);
-}
-
-.preset-glass-lg,
-.glass-heavy {
-	background: var(--surface-card-elevated);
-	border: 1px solid var(--border-default);
-	box-shadow: var(--elevation-card-hover);
-}
-
-.preset-glass-primary {
-	background: color-mix(in oklab, var(--accent) 10%, var(--surface-card));
-	border: 1px solid var(--accent-border);
-}
-
-.preset-glass-secondary {
-	background: color-mix(in oklab, var(--color-secondary-500) 10%, var(--surface-card));
-	border: 1px solid color-mix(in oklab, var(--color-secondary-500) 22%, transparent);
 }
 
 /* -----------------------------------------------------------------------------
@@ -793,34 +613,6 @@ h3 {
 	border: 1px solid var(--border-subtle);
 }
 
-.card-hover {
-	transition:
-		border-color var(--timing-fast) var(--easing-default),
-		box-shadow var(--timing-normal) var(--easing-default),
-		transform var(--timing-normal) var(--easing-default);
-}
-
-.card-hover:hover {
-	border-color: var(--border-hover);
-}
-
-/* Interactive cards - respond to focus within for accessibility */
-.card-interactive {
-	transition:
-		border-color var(--timing-fast) var(--easing-default),
-		box-shadow var(--timing-normal) var(--easing-default);
-}
-
-.card-interactive:hover,
-.card-interactive:focus-within {
-	border-color: var(--border-hover);
-	box-shadow: var(--elevation-card-hover);
-}
-
-.card-interactive:focus-within {
-	box-shadow: var(--elevation-card-hover), var(--ring-focus);
-}
-
 /* -----------------------------------------------------------------------------
    Button Enhancements
    ----------------------------------------------------------------------------- */
@@ -831,106 +623,6 @@ h3 {
 		border-color var(--timing-fast) var(--easing-default),
 		box-shadow var(--timing-fast) var(--easing-default),
 		transform var(--timing-fast) var(--easing-default);
-}
-
-/* Buttons are not floating UI; hover should feel grounded, not lifted.
-   Color shift only — no transform. */
-.btn-gradient {
-	background: var(--accent-strong);
-	color: var(--text-on-light);
-	border: none;
-	font-weight: var(--font-weight-semibold);
-}
-
-.btn-gradient:hover:not(:disabled) {
-	background: var(--accent);
-}
-
-.btn-icon {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	border-radius: var(--radius-md);
-	padding: var(--space-2);
-	transition:
-		background-color var(--timing-fast) var(--easing-default),
-		border-color var(--timing-fast) var(--easing-default);
-	background: var(--surface-subtle);
-	border: 1px solid var(--border-default);
-	color: var(--text-secondary);
-}
-
-.btn-icon:hover {
-	background: var(--surface-hover);
-	border-color: var(--border-hover);
-	color: var(--text-primary);
-}
-
-/* -----------------------------------------------------------------------------
-   Navigation Tab System
-   ----------------------------------------------------------------------------- */
-.nav-tabs {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--space-2);
-	padding: var(--space-1);
-	background: var(--surface-card);
-	border-radius: var(--radius-xl);
-	border: 1px solid var(--border-subtle);
-}
-
-.nav-tab {
-	display: flex;
-	align-items: center;
-	gap: var(--space-2);
-	padding: var(--space-2) var(--space-4);
-	border-radius: var(--radius-md);
-	font-weight: var(--font-weight-medium);
-	font-size: var(--font-size-base);
-	transition:
-		background-color var(--timing-fast) var(--easing-default),
-		color var(--timing-fast) var(--easing-default);
-	color: var(--text-muted);
-	background: transparent;
-	border: 1px solid transparent;
-}
-
-.nav-tab:hover:not([data-state='active']) {
-	background: var(--surface-hover);
-	color: var(--text-primary);
-}
-
-.nav-tab[data-state='active'] {
-	background: var(--surface-active);
-	color: var(--text-primary);
-	border-color: var(--border-default);
-}
-
-/* Mobile nav tabs */
-.nav-tab-mobile {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: var(--space-1);
-	padding: var(--space-2) var(--space-3);
-	border-radius: var(--radius-md);
-	font-size: var(--font-size-xs);
-	font-weight: var(--font-weight-medium);
-	transition:
-		background-color var(--timing-fast) var(--easing-default),
-		color var(--timing-fast) var(--easing-default);
-	color: var(--text-muted);
-	min-width: 4.5rem;
-}
-
-.nav-tab-mobile:hover:not([data-state='active']) {
-	background: var(--surface-hover);
-	color: var(--text-primary);
-}
-
-.nav-tab-mobile[data-state='active'] {
-	background: var(--accent-soft);
-	color: var(--accent);
 }
 
 /* -----------------------------------------------------------------------------
@@ -945,9 +637,7 @@ h3 {
 /* -----------------------------------------------------------------------------
    Form Elements
    ----------------------------------------------------------------------------- */
-.input,
-.select,
-.textarea {
+.select {
 	border-radius: var(--radius-md);
 	padding: var(--space-2) var(--space-3);
 	font-size: var(--font-size-base);
@@ -960,24 +650,15 @@ h3 {
 	color: var(--text-primary);
 }
 
-.input:hover,
-.select:hover,
-.textarea:hover {
+.select:hover {
 	border-color: var(--border-hover);
 	background: var(--surface-subtle);
 }
 
-.input:focus,
-.select:focus,
-.textarea:focus {
+.select:focus {
 	outline: none;
 	border-color: var(--color-primary-500);
 	box-shadow: var(--ring-focus);
-}
-
-.input::placeholder,
-.textarea::placeholder {
-	color: var(--text-subtle);
 }
 
 /* -----------------------------------------------------------------------------
@@ -994,28 +675,10 @@ h3 {
 	line-height: var(--line-height-normal);
 }
 
-.alert-warning {
-	background: color-mix(in oklab, var(--color-warning-500) 12%, transparent);
-	border: 1px solid color-mix(in oklab, var(--color-warning-500) 28%, transparent);
-	color: var(--color-warning-200);
-}
-
 .alert-error {
 	background: color-mix(in oklab, var(--color-error-500) 12%, transparent);
 	border: 1px solid color-mix(in oklab, var(--color-error-500) 28%, transparent);
 	color: var(--color-error-200);
-}
-
-.alert-success {
-	background: color-mix(in oklab, var(--color-success-500) 12%, transparent);
-	border: 1px solid color-mix(in oklab, var(--color-success-500) 28%, transparent);
-	color: var(--color-success-200);
-}
-
-.alert-info {
-	background: var(--accent-soft);
-	border: 1px solid var(--accent-border);
-	color: var(--text-primary);
 }
 
 /* -----------------------------------------------------------------------------
@@ -1087,105 +750,6 @@ h3 {
 }
 
 /* -----------------------------------------------------------------------------
-   Modal/Dialog System
-   ----------------------------------------------------------------------------- */
-.modal-backdrop {
-	position: fixed;
-	inset: 0;
-	z-index: var(--z-overlay);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: var(--space-4);
-	background: color-mix(in oklab, black 70%, transparent);
-	animation: fadeIn var(--timing-normal) var(--easing-default);
-}
-
-.modal-content {
-	width: 100%;
-	max-width: 48rem;
-	max-height: 90vh;
-	border-radius: var(--radius-md);
-	overflow: hidden;
-	display: flex;
-	flex-direction: column;
-	background: var(--surface-card-elevated);
-	border: 1px solid var(--border-default);
-	box-shadow: var(--elevation-modal);
-	animation: slideUp var(--timing-normal) var(--easing-default);
-}
-
-/* -----------------------------------------------------------------------------
-   Native Dialog Animations (Modern CSS - Skeleton Pattern)
-   Uses @starting-style for smooth entry/exit animations
-   ----------------------------------------------------------------------------- */
-dialog,
-dialog::backdrop {
-	--dialog-anim-duration: var(--timing-normal);
-	transition:
-		display var(--dialog-anim-duration) allow-discrete,
-		overlay var(--dialog-anim-duration) allow-discrete,
-		opacity var(--dialog-anim-duration);
-	opacity: 0;
-}
-
-/* Animate In */
-dialog[open],
-dialog[open]::backdrop {
-	opacity: 1;
-}
-
-/* Animate Out - requires @starting-style for smooth close */
-@starting-style {
-	dialog[open],
-	dialog[open]::backdrop {
-		opacity: 0;
-	}
-}
-
-/* Styled native dialog */
-dialog.dialog-styled {
-	border: 1px solid var(--border-default);
-	border-radius: var(--radius-md);
-	background: var(--surface-card-elevated);
-	color: inherit;
-	max-width: min(90vw, 640px);
-	padding: 0;
-	box-shadow: var(--elevation-modal);
-}
-
-dialog.dialog-styled::backdrop {
-	background: color-mix(in oklab, black 70%, transparent);
-}
-
-.modal-header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: var(--space-4);
-	background: var(--surface-muted);
-	border-bottom: 1px solid var(--border-subtle);
-}
-
-@media (min-width: 768px) {
-	.modal-header {
-		padding: var(--space-6);
-	}
-}
-
-.modal-body {
-	flex: 1;
-	overflow-y: auto;
-	padding: var(--space-4);
-}
-
-@media (min-width: 768px) {
-	.modal-body {
-		padding: var(--space-6);
-	}
-}
-
-/* -----------------------------------------------------------------------------
    Chart Card styles are defined in ChartCard.svelte.
    The base class name is kept only as a semantic marker here.
    ----------------------------------------------------------------------------- */
@@ -1220,11 +784,6 @@ dialog.dialog-styled::backdrop {
 	border-bottom: 1px solid var(--border-subtle);
 }
 
-.accordion-content {
-	padding: var(--space-4);
-	background: var(--surface-nested);
-}
-
 /* -----------------------------------------------------------------------------
    Badge/Status Indicators
    ----------------------------------------------------------------------------- */
@@ -1235,46 +794,6 @@ dialog.dialog-styled::backdrop {
 	border-radius: var(--radius-sm);
 	font-size: var(--font-size-xs);
 	font-weight: var(--font-weight-medium);
-}
-
-.badge-primary {
-	background: color-mix(in oklab, var(--color-primary-500) 20%, transparent);
-	color: var(--color-primary-300);
-}
-
-.badge-secondary {
-	background: color-mix(in oklab, var(--color-secondary-500) 20%, transparent);
-	color: var(--color-secondary-300);
-}
-
-.badge-success {
-	background: color-mix(in oklab, var(--color-success-500) 20%, transparent);
-	color: var(--color-success-300);
-}
-
-.badge-warning {
-	background: color-mix(in oklab, var(--color-warning-500) 20%, transparent);
-	color: var(--color-warning-300);
-}
-
-.badge-error {
-	background: color-mix(in oklab, var(--color-error-500) 20%, transparent);
-	color: var(--color-error-300);
-}
-
-/* Badge with count */
-.badge-count {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	min-width: 1.25rem;
-	height: 1.25rem;
-	padding: 0 0.375rem;
-	border-radius: 9999px;
-	font-size: 0.75rem;
-	font-weight: 700;
-	background: var(--color-primary-500);
-	color: white;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1381,6 +900,52 @@ dialog.dialog-styled::backdrop {
 	color: var(--sentiment-centrality-not-addressed);
 }
 
+/* --- Arbiter Verdict & Confidence Badges ---
+   Semantic classes for the arbiter's preferred-model verdict and confidence
+   level, used by ArbiterSection and ArbiterArticleTable (via utils/arbiter.ts).
+   Backed by the --verdict-*/
+--confidence-* tokens above. */ .badge-verdict-win {
+	background: var(--verdict-win-bg);
+	border: 1px solid var(--verdict-win-border);
+	color: var(--verdict-win);
+}
+
+.badge-verdict-loss {
+	background: var(--verdict-loss-bg);
+	border: 1px solid var(--verdict-loss-border);
+	color: var(--verdict-loss);
+}
+
+.badge-verdict-both {
+	background: var(--verdict-both-bg);
+	border: 1px solid var(--verdict-both-border);
+	color: var(--verdict-both);
+}
+
+.badge-verdict-neither {
+	background: var(--verdict-neither-bg);
+	border: 1px solid var(--verdict-neither-border);
+	color: var(--verdict-neither);
+}
+
+.badge-confidence-high {
+	background: var(--confidence-high-bg);
+	border: 1px solid var(--confidence-high-border);
+	color: var(--confidence-high);
+}
+
+.badge-confidence-medium {
+	background: var(--confidence-medium-bg);
+	border: 1px solid var(--confidence-medium-border);
+	color: var(--confidence-medium);
+}
+
+.badge-confidence-low {
+	background: var(--confidence-low-bg);
+	border: 1px solid var(--confidence-low-border);
+	color: var(--confidence-low);
+}
+
 /* Selected filter-chip sentiment variants live in FilterChip.svelte (scoped).
    They were duplicated here and had drifted (this copy set border-color to the
    full sentiment color; the component uses the dedicated `-border` token), so
@@ -1389,13 +954,6 @@ dialog.dialog-styled::backdrop {
 /* -----------------------------------------------------------------------------
    Pagination
    ----------------------------------------------------------------------------- */
-.pagination {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: var(--space-1);
-}
-
 .pagination-btn {
 	display: flex;
 	align-items: center;
@@ -1435,27 +993,6 @@ dialog.dialog-styled::backdrop {
 /* -----------------------------------------------------------------------------
    Loading States
    ----------------------------------------------------------------------------- */
-.skeleton {
-	border-radius: var(--radius-md);
-	background: linear-gradient(
-		90deg,
-		var(--surface-subtle) 25%,
-		var(--surface-hover) 50%,
-		var(--surface-subtle) 75%
-	);
-	background-size: 200% 100%;
-	animation: skeleton-loading 1.5s infinite;
-}
-
-@keyframes skeleton-loading {
-	0% {
-		background-position: 200% 0;
-	}
-	100% {
-		background-position: -200% 0;
-	}
-}
-
 .loading-spinner {
 	width: var(--size-icon-xl);
 	height: var(--size-icon-xl);
@@ -1469,18 +1006,6 @@ dialog.dialog-styled::backdrop {
 	to {
 		transform: rotate(360deg);
 	}
-}
-
-/* -----------------------------------------------------------------------------
-   Text Utilities
-   ----------------------------------------------------------------------------- */
-/* Muted text with proper contrast */
-.text-muted {
-	color: var(--text-muted);
-}
-
-.text-subtle {
-	color: var(--text-subtle);
 }
 
 /* -----------------------------------------------------------------------------
@@ -1512,90 +1037,12 @@ dialog.dialog-styled::backdrop {
 	background-clip: padding-box;
 }
 
-/* Hide scrollbar but keep functionality */
-.scrollbar-hide {
-	-ms-overflow-style: none;
-	scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-	display: none;
-}
-
-/* -----------------------------------------------------------------------------
-   Animations
-   ----------------------------------------------------------------------------- */
-@keyframes fadeIn {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 1;
-	}
-}
-
-@keyframes slideUp {
-	from {
-		opacity: 0;
-		transform: translateY(16px);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
-}
-
-@keyframes slideDown {
-	from {
-		opacity: 0;
-		transform: translateY(-16px);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
-}
-
-@keyframes scaleIn {
-	from {
-		opacity: 0;
-		transform: scale(0.95);
-	}
-	to {
-		opacity: 1;
-		transform: scale(1);
-	}
-}
-
-.animate-fade-in {
-	animation: fadeIn var(--timing-normal) var(--easing-default);
-}
-
-.animate-slide-up {
-	animation: slideUp var(--timing-normal) var(--easing-default);
-}
-
-.animate-slide-down {
-	animation: slideDown var(--timing-normal) var(--easing-default);
-}
-
-.animate-scale-in {
-	animation: scaleIn var(--timing-normal) var(--easing-default);
-}
-
 /* -----------------------------------------------------------------------------
    Utility Classes
    ----------------------------------------------------------------------------- */
 /* Hover-lift / hover-glow utilities removed — investigative dashboards
    don't float UI under the cursor. Replace callers with a border-color shift
    if a hover affordance is needed. */
-
-/* Divider */
-.divider {
-	height: 1px;
-	width: 100%;
-	background: linear-gradient(90deg, transparent, var(--border-default), transparent);
-}
 
 /* Section heading with eyebrow + title */
 .section-title {
@@ -1605,29 +1052,6 @@ dialog.dialog-styled::backdrop {
 	letter-spacing: var(--tracking-snug);
 	line-height: var(--line-height-snug);
 	margin: 0;
-}
-
-/* -----------------------------------------------------------------------------
-   Responsive Utilities
-   ----------------------------------------------------------------------------- */
-@media (max-width: 640px) {
-	.mobile-stack {
-		flex-direction: column;
-	}
-
-	.mobile-full {
-		width: 100%;
-	}
-
-	.mobile-hidden {
-		display: none;
-	}
-}
-
-@media (min-width: 641px) and (max-width: 1024px) {
-	.tablet-hidden {
-		display: none;
-	}
 }
 
 /* -----------------------------------------------------------------------------
@@ -1644,9 +1068,7 @@ dialog.dialog-styled::backdrop {
 
 	.card,
 	.preset-glass,
-	.preset-glass-lg,
-	.preset-surface-card,
-	.preset-surface-card-sm {
+	.preset-surface-card {
 		background: white;
 		border: 1px solid #ccc;
 		box-shadow: none;

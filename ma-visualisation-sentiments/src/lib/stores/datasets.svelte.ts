@@ -5,7 +5,7 @@
  * Provides both modern $state-based API and legacy store compatibility.
  */
 
-import type { DatasetOption, ModelPair } from '$lib/types/data';
+import type { DatasetId, DatasetOption, ModelPair } from '$lib/types/data';
 
 // ============================================
 // Dataset Configuration (Static)
@@ -15,21 +15,21 @@ const DATASETS: DatasetOption[] = [
 	{
 		id: 'chatgpt',
 		name: 'ChatGPT',
-		file: '/data/iwac_articles_chatgpt.json',
+		file: '/data/iwac_sentiment_chatgpt.json',
 		logo: '/logo/ChatGPT_logo.svg',
 		color: '#10a37f'
 	},
 	{
 		id: 'gemini',
 		name: 'Gemini',
-		file: '/data/iwac_articles_gemini.json',
+		file: '/data/iwac_sentiment_gemini.json',
 		logo: '/logo/Gemini_logo.svg',
 		color: '#8e75b2'
 	},
 	{
 		id: 'mistral',
 		name: 'Mistral',
-		file: '/data/iwac_articles_mistral.json',
+		file: '/data/iwac_sentiment_mistral.json',
 		logo: '/logo/Mistral_AI_logo.svg',
 		color: '#F54E42'
 	}
@@ -39,7 +39,7 @@ const DATASETS: DatasetOption[] = [
 // Svelte 5 Runes State
 // ============================================
 
-let _selectedDataset = $state<string>('chatgpt');
+let _selectedDataset = $state<DatasetId>('chatgpt');
 let _comparisonMode = $state<boolean>(false);
 let _comparisonPair = $state<ModelPair>('chatgpt-gemini');
 
@@ -67,12 +67,14 @@ export const datasetState = {
 		return DATASETS;
 	},
 
-	// Selected dataset
-	get selected() {
+	// Selected dataset. The getter is narrowed to the DatasetId union; the
+	// setter stays permissive (string) so component call sites that hold a
+	// plain string keep compiling — the cast happens once, here.
+	get selected(): DatasetId {
 		return _selectedDataset;
 	},
 	set selected(value: string) {
-		_selectedDataset = value;
+		_selectedDataset = value as DatasetId;
 	},
 
 	// Comparison mode

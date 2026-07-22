@@ -1,31 +1,33 @@
 """
-Script d'analyse des extrêmes lexicaux pour le corpus IWAC
+Extreme lexical analysis for the IWAC corpus.
 
-Ce script analyse les mots-clés (subject et spatial) associés aux extrêmes 
-de sentiment dans le corpus IWAC. Il génère des analyses détaillées pour 
-chaque modèle (ChatGPT, Gemini, et Mistral) en identifiant :
+Analyses the subject and spatial keywords associated with sentiment extremes
+in the IWAC corpus. For each model (ChatGPT, Gemini, and Mistral) it produces:
 
-1. Les mots-clés les plus fréquents pour chaque extrême
-2. La répartition par pays et journaux 
-3. Les mots-clés spécifiques par facette (pays/journal)
-4. La liste complète des articles pour chaque catégorie
+1. The most frequent keywords for each extreme category
+2. The distribution by country and newspaper
+3. The top keywords per facet (country/newspaper)
+4. The complete article list for each category
 
-Auteur: Assistant IA
-Date: 2024
+The set of extreme categories is driven by the ``CATEGORIES`` config below;
+adding a seventh category is a one-line change.
 """
 
+from __future__ import annotations
+
 import os
-import json
-import pandas as pd
 from collections import Counter, defaultdict
+from typing import Any, Callable, NamedTuple, Optional
+
+import pandas as pd
 from tqdm import tqdm
-import re
 
 from shared import (
-    safe_int_convert,
-    load_iwac_dataset,
+    get_logger,
     get_webapp_data_dir,
-    save_json,
+    load_iwac_records,
+    safe_int_convert,
+    safe_save_json,
     EXTREME_SUBJECTIVITY_HIGH,
     EXTREME_SUBJECTIVITY_LOW,
     EXTREME_POLARITY_VERY_NEGATIVE,
@@ -34,580 +36,288 @@ from shared import (
     EXTREME_CENTRALITY_MARGINAL,
 )
 
-def clean_and_split_keywords(text):
+logger = get_logger(__name__)
+
+# Number of top keywords kept in the global per-category analysis.
+TOP_KEYWORDS = 50
+# Number of top keywords kept per facet (country/newspaper).
+FACET_TOP_KEYWORDS = 20
+# Keywords shorter than this many characters are discarded as noise.
+MIN_KEYWORD_LENGTH = 3
+
+
+class ExtremeCategory(NamedTuple):
+    """One extreme-sentiment category.
+
+    Attributes:
+        key: Key used in the output JSON under ``analysis`` (do not rename —
+            the webapp depends on these names).
+        stat_key: Prefix of the category's counter in ``statistics``
+            (``"<stat_key>_count"``).
+        matches: Predicate over ``(subjectivity_score, polarity, centrality)``
+            deciding whether an article belongs to the category.
     """
-    Nettoie et divise les mots-clés séparés par le caractère |
-    
+
+    key: str
+    stat_key: str
+    matches: Callable[[Optional[int], Any, Any], bool]
+
+
+# The 6 extreme categories. Order matters: it is preserved in the output JSON
+# ``analysis`` and ``statistics`` blocks.
+CATEGORIES: list[ExtremeCategory] = [
+    ExtremeCategory(
+        'subjectivity_extreme_high', 'subjectivity_high',
+        lambda subj, pol, cen: bool(subj) and subj >= EXTREME_SUBJECTIVITY_HIGH,
+    ),
+    ExtremeCategory(
+        'subjectivity_extreme_low', 'subjectivity_low',
+        lambda subj, pol, cen: bool(subj) and subj <= EXTREME_SUBJECTIVITY_LOW,
+    ),
+    ExtremeCategory(
+        'polarity_very_negative', 'polarity_very_negative',
+        lambda subj, pol, cen: pol == EXTREME_POLARITY_VERY_NEGATIVE,
+    ),
+    ExtremeCategory(
+        'polarity_very_positive', 'polarity_very_positive',
+        lambda subj, pol, cen: pol == EXTREME_POLARITY_VERY_POSITIVE,
+    ),
+    ExtremeCategory(
+        'centrality_very_central', 'centrality_very_central',
+        lambda subj, pol, cen: cen == EXTREME_CENTRALITY_VERY_CENTRAL,
+    ),
+    ExtremeCategory(
+        'centrality_not_central', 'centrality_not_central',
+        lambda subj, pol, cen: cen == EXTREME_CENTRALITY_MARGINAL,
+    ),
+]
+
+
+def clean_and_split_keywords(text: Any) -> list[str]:
+    """Clean and split ``|``-separated keywords.
+
     Args:
-        text (str): Texte contenant des mots-clés séparés par |
-        
+        text: Raw keyword string (``subject`` or ``spatial`` column value).
+
     Returns:
-        list: Liste des mots-clés nettoyés
-        
+        List of cleaned keywords, dropping empties and keywords shorter than
+        ``MIN_KEYWORD_LENGTH`` characters.
+
     Example:
         >>> clean_and_split_keywords("islam|musulman|religion")
         ['islam', 'musulman', 'religion']
     """
     if not text or pd.isna(text):
         return []
-    
-    # Diviser par | et nettoyer les espaces
+
     keywords = [kw.strip() for kw in str(text).split('|') if kw.strip()]
-    # Filtrer les mots-clés vides ou trop courts (moins de 3 caractères)
-    keywords = [kw for kw in keywords if len(kw) > 2]
-    return keywords
+    return [kw for kw in keywords if len(kw) >= MIN_KEYWORD_LENGTH]
 
-def convert_keywords_by_facet(keywords_dict, top_n=20):
-    """
-    Convertit les structures defaultdict en dictionnaires normaux avec les top mots-clés
-    
+
+def convert_keywords_by_facet(keywords_dict: dict, top_n: int = FACET_TOP_KEYWORDS) -> dict:
+    """Convert per-facet keyword Counters into plain dicts of top keywords.
+
     Args:
-        keywords_dict: Dictionnaire avec structure defaultdict
-        top_n (int): Nombre de mots-clés les plus fréquents à conserver
-        
+        keywords_dict: Mapping of facet name to ``{"subject": Counter,
+            "spatial": Counter}``.
+        top_n: Number of most frequent keywords to keep per facet.
+
     Returns:
-        dict: Structure convertie avec les top mots-clés par facette
+        Mapping of facet name to ``{"subject": {kw: count}, "spatial": {...}}``.
     """
-    result = {}
-    for facet_name, counters in keywords_dict.items():
-        result[facet_name] = {
+    return {
+        facet_name: {
             "subject": dict(counters["subject"].most_common(top_n)),
-            "spatial": dict(counters["spatial"].most_common(top_n))
+            "spatial": dict(counters["spatial"].most_common(top_n)),
         }
-    return result
+        for facet_name, counters in keywords_dict.items()
+    }
 
-def analyze_extreme_keywords(dataset, model_prefix, top_n=50):
-    """
-    Analyse les mots-clés associés aux extrêmes de sentiment pour un modèle donné
-    
-    Cette fonction identifie les articles avec des scores extrêmes (subjectivité, 
-    polarité, centralité) et analyse les mots-clés associés. Elle génère des 
-    statistiques globales et par facette (pays, journal).
-    
+
+def _new_category_accumulator() -> dict:
+    """Create the empty per-category accumulator used during the article scan."""
+    return {
+        "subject": Counter(),
+        "spatial": Counter(),
+        "by_country": Counter(),
+        "by_newspaper": Counter(),
+        "keywords_by_country": defaultdict(lambda: {"subject": Counter(), "spatial": Counter()}),
+        "keywords_by_newspaper": defaultdict(lambda: {"subject": Counter(), "spatial": Counter()}),
+        "article_ids": [],
+    }
+
+
+def analyze_extreme_keywords(records: list[dict], model_prefix: str, top_n: int = TOP_KEYWORDS) -> dict:
+    """Analyse keywords associated with sentiment extremes for one model.
+
+    Identifies articles with extreme scores (subjectivity, polarity,
+    centrality) per the ``CATEGORIES`` config and aggregates the associated
+    keywords globally and per facet (country, newspaper).
+
     Args:
-        dataset: Dataset Hugging Face contenant les articles IWAC
-        model_prefix (str): Préfixe du modèle ('chatgpt' ou 'gemini')
-        top_n (int): Nombre de mots-clés les plus fréquents à retourner
-        
+        records: IWAC article rows as plain dicts.
+        model_prefix: Dataset column prefix of the model
+            ('chatgpt', 'gemini', or 'mistral').
+        top_n: Number of most frequent keywords to keep globally per category.
+
     Returns:
-        dict: Structure complète avec analyses, statistiques et facettes
-        
-    Structure de retour:
-        {
-            "model": "chatgpt/gemini",
-            "analysis": {
-                "subjectivity_extreme_high": {
-                    "subject": {mot: fréquence},
-                    "spatial": {mot: fréquence},
-                    "by_country": {pays: nb_articles},
-                    "by_newspaper": {journal: nb_articles},
-                    "keywords_by_country": {pays: {subject: {}, spatial: {}}},
-                    "keywords_by_newspaper": {journal: {subject: {}, spatial: {}}},
-                    "articles": [liste_articles]
+        dict with the exact structure consumed by the webapp::
+
+            {
+                "model": "<model_prefix>",
+                "analysis": {
+                    "<category>": {
+                        "subject": {keyword: count},
+                        "spatial": {keyword: count},
+                        "by_country": {country: article_count},
+                        "by_newspaper": {newspaper: article_count},
+                        "keywords_by_country": {country: {"subject": {}, "spatial": {}}},
+                        "keywords_by_newspaper": {newspaper: {"subject": {}, "spatial": {}}},
+                        "article_ids": ["<id>", ...]
+                    },
+                    ...
                 },
-                ...
-            },
-            "statistics": {...},
-            "facets": {...}
-        }
-    """
-    results = {
-        "model": model_prefix,
-        "analysis": {
-            "subjectivity_extreme_high": {
-                "subject": {}, 
-                "spatial": {},
-                "by_country": {},
-                "by_newspaper": {},
-                "keywords_by_country": {},
-                "keywords_by_newspaper": {},
-                "articles": []
-            },
-            "subjectivity_extreme_low": {
-                "subject": {}, 
-                "spatial": {},
-                "by_country": {},
-                "by_newspaper": {},
-                "keywords_by_country": {},
-                "keywords_by_newspaper": {},
-                "articles": []
-            },
-            "polarity_very_negative": {
-                "subject": {}, 
-                "spatial": {},
-                "by_country": {},
-                "by_newspaper": {},
-                "keywords_by_country": {},
-                "keywords_by_newspaper": {},
-                "articles": []
-            },
-            "polarity_very_positive": {
-                "subject": {}, 
-                "spatial": {},
-                "by_country": {},
-                "by_newspaper": {},
-                "keywords_by_country": {},
-                "keywords_by_newspaper": {},
-                "articles": []
-            },
-            "centrality_very_central": {
-                "subject": {}, 
-                "spatial": {},
-                "by_country": {},
-                "by_newspaper": {},
-                "keywords_by_country": {},
-                "keywords_by_newspaper": {},
-                "articles": []
-            },
-            "centrality_not_central": {
-                "subject": {}, 
-                "spatial": {},
-                "by_country": {},
-                "by_newspaper": {},
-                "keywords_by_country": {},
-                "keywords_by_newspaper": {},
-                "articles": []
+                "articles_index": {"<id>": article_info, ...},
+                "statistics": {...},
+                "facets": {"countries": {...}, "newspapers": {...}}
             }
-        },
-        "statistics": {},
-        "facets": {
-            "countries": {},
-            "newspapers": {}
-        }
-    }
-    
-    # Compteurs pour chaque catégorie
-    counters = {
-        "subjectivity_high_subject": Counter(),
-        "subjectivity_high_spatial": Counter(),
-        "subjectivity_low_subject": Counter(),
-        "subjectivity_low_spatial": Counter(),
-        "polarity_very_negative_subject": Counter(),
-        "polarity_very_negative_spatial": Counter(),
-        "polarity_very_positive_subject": Counter(),
-        "polarity_very_positive_spatial": Counter(),
-        "centrality_very_central_subject": Counter(),
-        "centrality_very_central_spatial": Counter(),
-        "centrality_not_central_subject": Counter(),
-        "centrality_not_central_spatial": Counter()
-    }
-    
-    # Compteurs par facettes
-    facet_counters = {
-        "subjectivity_high_country": Counter(),
-        "subjectivity_high_newspaper": Counter(),
-        "subjectivity_low_country": Counter(),
-        "subjectivity_low_newspaper": Counter(),
-        "polarity_very_negative_country": Counter(),
-        "polarity_very_negative_newspaper": Counter(),
-        "polarity_very_positive_country": Counter(),
-        "polarity_very_positive_newspaper": Counter(),
-        "centrality_very_central_country": Counter(),
-        "centrality_very_central_newspaper": Counter(),
-        "centrality_not_central_country": Counter(),
-        "centrality_not_central_newspaper": Counter()
-    }
-    
-    # Listes d'articles pour chaque catégorie
-    article_lists = {
-        "subjectivity_high": [],
-        "subjectivity_low": [],
-        "polarity_very_negative": [],
-        "polarity_very_positive": [],
-        "centrality_very_central": [],
-        "centrality_not_central": []
-    }
-    
-    # Compteurs globaux pour les facettes
-    all_countries = Counter()
-    all_newspapers = Counter()
-    
-    # Structures pour collecter les mots-clés par facette
-    # Format: keywords_by_facet[category][facet_type][facet_name] = {subject: Counter(), spatial: Counter()}
-    keywords_by_country = {
-        "subjectivity_high": defaultdict(lambda: {"subject": Counter(), "spatial": Counter()}),
-        "subjectivity_low": defaultdict(lambda: {"subject": Counter(), "spatial": Counter()}),
-        "polarity_very_negative": defaultdict(lambda: {"subject": Counter(), "spatial": Counter()}),
-        "polarity_very_positive": defaultdict(lambda: {"subject": Counter(), "spatial": Counter()}),
-        "centrality_very_central": defaultdict(lambda: {"subject": Counter(), "spatial": Counter()}),
-        "centrality_not_central": defaultdict(lambda: {"subject": Counter(), "spatial": Counter()})
-    }
-    
-    keywords_by_newspaper = {
-        "subjectivity_high": defaultdict(lambda: {"subject": Counter(), "spatial": Counter()}),
-        "subjectivity_low": defaultdict(lambda: {"subject": Counter(), "spatial": Counter()}),
-        "polarity_very_negative": defaultdict(lambda: {"subject": Counter(), "spatial": Counter()}),
-        "polarity_very_positive": defaultdict(lambda: {"subject": Counter(), "spatial": Counter()}),
-        "centrality_very_central": defaultdict(lambda: {"subject": Counter(), "spatial": Counter()}),
-        "centrality_not_central": defaultdict(lambda: {"subject": Counter(), "spatial": Counter()})
-    }
-    
-    # Statistiques
-    stats = {
-        "total_articles": 0,
-        "subjectivity_high_count": 0,
-        "subjectivity_low_count": 0,
-        "polarity_very_negative_count": 0,
-        "polarity_very_positive_count": 0,
-        "centrality_very_central_count": 0,
-        "centrality_not_central_count": 0
-    }
-    
-    print(f"\nAnalyzing extreme keywords for {model_prefix}...")
-    print(f"Processing {len(dataset['train'])} articles...")
-    
-    # Boucle principale : traitement de chaque article du dataset
-    for item in tqdm(dataset['train'], desc=f"Processing {model_prefix} data"):
+
+    Article payloads are stored once in ``articles_index`` and referenced by
+    id from each category — an article can belong to several categories, and
+    embedding it per category duplicated ~7MB per output file. The webapp
+    denormalizes at load time (utils/extremeAnalysis.ts).
+    """
+    accumulators = {category.key: _new_category_accumulator() for category in CATEGORIES}
+
+    stats: dict[str, int] = {"total_articles": 0}
+    for category in CATEGORIES:
+        stats[f"{category.stat_key}_count"] = 0
+
+    all_countries: Counter = Counter()
+    all_newspapers: Counter = Counter()
+    articles_index: dict[str, dict] = {}
+
+    logger.info("Analyzing extreme keywords for %s (%d articles)...", model_prefix, len(records))
+
+    for item in tqdm(records, desc=f"Processing {model_prefix} data"):
         stats["total_articles"] += 1
-        
-        # Récupérer les données du modèle
-        subjectivity = item.get(f"{model_prefix}_subjectivite_score")
+
+        # Model scores for this article
+        subj_score = safe_int_convert(item.get(f"{model_prefix}_subjectivite_score"))
         polarity = item.get(f"{model_prefix}_polarite")
         centrality = item.get(f"{model_prefix}_centralite_islam_musulmans")
-        
-        # Récupérer les métadonnées
+
+        # Metadata + facets
         country = item.get("country")
         newspaper = item.get("newspaper")
-        title = item.get("title")
-        pub_date = item.get("pub_date")
-        article_id = item.get("o:id")
-        
-        # Compter toutes les facettes
         if country:
             all_countries[country] += 1
         if newspaper:
             all_newspapers[newspaper] += 1
-        
-        # Récupérer les mots-clés
+
         subject_keywords = clean_and_split_keywords(item.get("subject"))
         spatial_keywords = clean_and_split_keywords(item.get("spatial"))
-        
-        # Article de base pour les listes
+
+        article_id = str(item.get("o:id"))
         article_info = {
-            "id": article_id,
-            "title": title,
+            "id": item.get("o:id"),
+            "title": item.get("title"),
             "country": country,
             "newspaper": newspaper,
-            "pub_date": pub_date,
+            "pub_date": item.get("pub_date"),
             "subject_keywords": subject_keywords,
-            "spatial_keywords": spatial_keywords
+            "spatial_keywords": spatial_keywords,
         }
-        
-        # Analyser la subjectivité extrême haute (4-5)
-        # Articles très subjectifs : opinions marquées, émotions fortes
-        subj_score = safe_int_convert(subjectivity)
-        if subj_score and subj_score >= EXTREME_SUBJECTIVITY_HIGH:
-            stats["subjectivity_high_count"] += 1
-            # Comptage global des mots-clés
-            counters["subjectivity_high_subject"].update(subject_keywords)
-            counters["subjectivity_high_spatial"].update(spatial_keywords)
-            # Comptage par facettes
-            if country:
-                facet_counters["subjectivity_high_country"][country] += 1
-                keywords_by_country["subjectivity_high"][country]["subject"].update(subject_keywords)
-                keywords_by_country["subjectivity_high"][country]["spatial"].update(spatial_keywords)
-            if newspaper:
-                facet_counters["subjectivity_high_newspaper"][newspaper] += 1
-                keywords_by_newspaper["subjectivity_high"][newspaper]["subject"].update(subject_keywords)
-                keywords_by_newspaper["subjectivity_high"][newspaper]["spatial"].update(spatial_keywords)
-            article_lists["subjectivity_high"].append(article_info)
-        
-        # Analyser la subjectivité extrême basse (1-2)
-        # Articles très objectifs : faits, informations neutres
-        if subj_score and subj_score <= EXTREME_SUBJECTIVITY_LOW:
-            stats["subjectivity_low_count"] += 1
-            # Comptage global des mots-clés
-            counters["subjectivity_low_subject"].update(subject_keywords)
-            counters["subjectivity_low_spatial"].update(spatial_keywords)
-            # Comptage par facettes
-            if country:
-                facet_counters["subjectivity_low_country"][country] += 1
-                keywords_by_country["subjectivity_low"][country]["subject"].update(subject_keywords)
-                keywords_by_country["subjectivity_low"][country]["spatial"].update(spatial_keywords)
-            if newspaper:
-                facet_counters["subjectivity_low_newspaper"][newspaper] += 1
-                keywords_by_newspaper["subjectivity_low"][newspaper]["subject"].update(subject_keywords)
-                keywords_by_newspaper["subjectivity_low"][newspaper]["spatial"].update(spatial_keywords)
-            article_lists["subjectivity_low"].append(article_info)
-        
-        # Analyser la polarité très négative
-        # Articles avec sentiment très négatif : critique, condamnation, stigmatisation
-        if polarity == EXTREME_POLARITY_VERY_NEGATIVE:
-            stats["polarity_very_negative_count"] += 1
-            # Comptage global des mots-clés
-            counters["polarity_very_negative_subject"].update(subject_keywords)
-            counters["polarity_very_negative_spatial"].update(spatial_keywords)
-            # Comptage par facettes
-            if country:
-                facet_counters["polarity_very_negative_country"][country] += 1
-                keywords_by_country["polarity_very_negative"][country]["subject"].update(subject_keywords)
-                keywords_by_country["polarity_very_negative"][country]["spatial"].update(spatial_keywords)
-            if newspaper:
-                facet_counters["polarity_very_negative_newspaper"][newspaper] += 1
-                keywords_by_newspaper["polarity_very_negative"][newspaper]["subject"].update(subject_keywords)
-                keywords_by_newspaper["polarity_very_negative"][newspaper]["spatial"].update(spatial_keywords)
-            article_lists["polarity_very_negative"].append(article_info)
-        
-        # Analyser la polarité très positive
-        # Articles avec sentiment très positif : éloge, valorisation, promotion
-        if polarity == EXTREME_POLARITY_VERY_POSITIVE:
-            stats["polarity_very_positive_count"] += 1
-            # Comptage global des mots-clés
-            counters["polarity_very_positive_subject"].update(subject_keywords)
-            counters["polarity_very_positive_spatial"].update(spatial_keywords)
-            # Comptage par facettes
-            if country:
-                facet_counters["polarity_very_positive_country"][country] += 1
-                keywords_by_country["polarity_very_positive"][country]["subject"].update(subject_keywords)
-                keywords_by_country["polarity_very_positive"][country]["spatial"].update(spatial_keywords)
-            if newspaper:
-                facet_counters["polarity_very_positive_newspaper"][newspaper] += 1
-                keywords_by_newspaper["polarity_very_positive"][newspaper]["subject"].update(subject_keywords)
-                keywords_by_newspaper["polarity_very_positive"][newspaper]["spatial"].update(spatial_keywords)
-            article_lists["polarity_very_positive"].append(article_info)
-        
-        # Analyser la centralité très élevée
-        # Articles où l'islam/musulmans sont au cœur du sujet principal
-        if centrality == EXTREME_CENTRALITY_VERY_CENTRAL:
-            stats["centrality_very_central_count"] += 1
-            # Comptage global des mots-clés
-            counters["centrality_very_central_subject"].update(subject_keywords)
-            counters["centrality_very_central_spatial"].update(spatial_keywords)
-            # Comptage par facettes
-            if country:
-                facet_counters["centrality_very_central_country"][country] += 1
-                keywords_by_country["centrality_very_central"][country]["subject"].update(subject_keywords)
-                keywords_by_country["centrality_very_central"][country]["spatial"].update(spatial_keywords)
-            if newspaper:
-                facet_counters["centrality_very_central_newspaper"][newspaper] += 1
-                keywords_by_newspaper["centrality_very_central"][newspaper]["subject"].update(subject_keywords)
-                keywords_by_newspaper["centrality_very_central"][newspaper]["spatial"].update(spatial_keywords)
-            article_lists["centrality_very_central"].append(article_info)
-        
-        # Analyser la centralité très faible
-        # Articles où l'islam/musulmans sont mentionnés de manière périphérique
-        if centrality == EXTREME_CENTRALITY_MARGINAL:
-            stats["centrality_not_central_count"] += 1
-            # Comptage global des mots-clés
-            counters["centrality_not_central_subject"].update(subject_keywords)
-            counters["centrality_not_central_spatial"].update(spatial_keywords)
-            # Comptage par facettes
-            if country:
-                facet_counters["centrality_not_central_country"][country] += 1
-                keywords_by_country["centrality_not_central"][country]["subject"].update(subject_keywords)
-                keywords_by_country["centrality_not_central"][country]["spatial"].update(spatial_keywords)
-            if newspaper:
-                facet_counters["centrality_not_central_newspaper"][newspaper] += 1
-                keywords_by_newspaper["centrality_not_central"][newspaper]["subject"].update(subject_keywords)
-                keywords_by_newspaper["centrality_not_central"][newspaper]["spatial"].update(spatial_keywords)
-            article_lists["centrality_not_central"].append(article_info)
-    
-    # Compiler les résultats
-    print("Compiling results and generating keyword analysis by facets...")
-    
-    # Subjectivité haute
-    results["analysis"]["subjectivity_extreme_high"]["subject"] = dict(counters["subjectivity_high_subject"].most_common(top_n))
-    results["analysis"]["subjectivity_extreme_high"]["spatial"] = dict(counters["subjectivity_high_spatial"].most_common(top_n))
-    results["analysis"]["subjectivity_extreme_high"]["by_country"] = dict(facet_counters["subjectivity_high_country"].most_common())
-    results["analysis"]["subjectivity_extreme_high"]["by_newspaper"] = dict(facet_counters["subjectivity_high_newspaper"].most_common())
-    results["analysis"]["subjectivity_extreme_high"]["keywords_by_country"] = convert_keywords_by_facet(keywords_by_country["subjectivity_high"])
-    results["analysis"]["subjectivity_extreme_high"]["keywords_by_newspaper"] = convert_keywords_by_facet(keywords_by_newspaper["subjectivity_high"])
-    results["analysis"]["subjectivity_extreme_high"]["articles"] = article_lists["subjectivity_high"]
-    
-    # Subjectivité basse
-    results["analysis"]["subjectivity_extreme_low"]["subject"] = dict(counters["subjectivity_low_subject"].most_common(top_n))
-    results["analysis"]["subjectivity_extreme_low"]["spatial"] = dict(counters["subjectivity_low_spatial"].most_common(top_n))
-    results["analysis"]["subjectivity_extreme_low"]["by_country"] = dict(facet_counters["subjectivity_low_country"].most_common())
-    results["analysis"]["subjectivity_extreme_low"]["by_newspaper"] = dict(facet_counters["subjectivity_low_newspaper"].most_common())
-    results["analysis"]["subjectivity_extreme_low"]["keywords_by_country"] = convert_keywords_by_facet(keywords_by_country["subjectivity_low"])
-    results["analysis"]["subjectivity_extreme_low"]["keywords_by_newspaper"] = convert_keywords_by_facet(keywords_by_newspaper["subjectivity_low"])
-    results["analysis"]["subjectivity_extreme_low"]["articles"] = article_lists["subjectivity_low"]
-    
-    # Polarité très négative
-    results["analysis"]["polarity_very_negative"]["subject"] = dict(counters["polarity_very_negative_subject"].most_common(top_n))
-    results["analysis"]["polarity_very_negative"]["spatial"] = dict(counters["polarity_very_negative_spatial"].most_common(top_n))
-    results["analysis"]["polarity_very_negative"]["by_country"] = dict(facet_counters["polarity_very_negative_country"].most_common())
-    results["analysis"]["polarity_very_negative"]["by_newspaper"] = dict(facet_counters["polarity_very_negative_newspaper"].most_common())
-    results["analysis"]["polarity_very_negative"]["keywords_by_country"] = convert_keywords_by_facet(keywords_by_country["polarity_very_negative"])
-    results["analysis"]["polarity_very_negative"]["keywords_by_newspaper"] = convert_keywords_by_facet(keywords_by_newspaper["polarity_very_negative"])
-    results["analysis"]["polarity_very_negative"]["articles"] = article_lists["polarity_very_negative"]
-    
-    # Polarité très positive
-    results["analysis"]["polarity_very_positive"]["subject"] = dict(counters["polarity_very_positive_subject"].most_common(top_n))
-    results["analysis"]["polarity_very_positive"]["spatial"] = dict(counters["polarity_very_positive_spatial"].most_common(top_n))
-    results["analysis"]["polarity_very_positive"]["by_country"] = dict(facet_counters["polarity_very_positive_country"].most_common())
-    results["analysis"]["polarity_very_positive"]["by_newspaper"] = dict(facet_counters["polarity_very_positive_newspaper"].most_common())
-    results["analysis"]["polarity_very_positive"]["keywords_by_country"] = convert_keywords_by_facet(keywords_by_country["polarity_very_positive"])
-    results["analysis"]["polarity_very_positive"]["keywords_by_newspaper"] = convert_keywords_by_facet(keywords_by_newspaper["polarity_very_positive"])
-    results["analysis"]["polarity_very_positive"]["articles"] = article_lists["polarity_very_positive"]
-    
-    # Centralité très élevée
-    results["analysis"]["centrality_very_central"]["subject"] = dict(counters["centrality_very_central_subject"].most_common(top_n))
-    results["analysis"]["centrality_very_central"]["spatial"] = dict(counters["centrality_very_central_spatial"].most_common(top_n))
-    results["analysis"]["centrality_very_central"]["by_country"] = dict(facet_counters["centrality_very_central_country"].most_common())
-    results["analysis"]["centrality_very_central"]["by_newspaper"] = dict(facet_counters["centrality_very_central_newspaper"].most_common())
-    results["analysis"]["centrality_very_central"]["keywords_by_country"] = convert_keywords_by_facet(keywords_by_country["centrality_very_central"])
-    results["analysis"]["centrality_very_central"]["keywords_by_newspaper"] = convert_keywords_by_facet(keywords_by_newspaper["centrality_very_central"])
-    results["analysis"]["centrality_very_central"]["articles"] = article_lists["centrality_very_central"]
-    
-    # Centralité très faible
-    results["analysis"]["centrality_not_central"]["subject"] = dict(counters["centrality_not_central_subject"].most_common(top_n))
-    results["analysis"]["centrality_not_central"]["spatial"] = dict(counters["centrality_not_central_spatial"].most_common(top_n))
-    results["analysis"]["centrality_not_central"]["by_country"] = dict(facet_counters["centrality_not_central_country"].most_common())
-    results["analysis"]["centrality_not_central"]["by_newspaper"] = dict(facet_counters["centrality_not_central_newspaper"].most_common())
-    results["analysis"]["centrality_not_central"]["keywords_by_country"] = convert_keywords_by_facet(keywords_by_country["centrality_not_central"])
-    results["analysis"]["centrality_not_central"]["keywords_by_newspaper"] = convert_keywords_by_facet(keywords_by_newspaper["centrality_not_central"])
-    results["analysis"]["centrality_not_central"]["articles"] = article_lists["centrality_not_central"]
-    
-    # Statistiques et facettes globales
-    results["statistics"] = stats
-    results["facets"]["countries"] = dict(all_countries.most_common())
-    results["facets"]["newspapers"] = dict(all_newspapers.most_common())
-    
-    return results
 
-def main():
+        for category in CATEGORIES:
+            if not category.matches(subj_score, polarity, centrality):
+                continue
+
+            bucket = accumulators[category.key]
+            stats[f"{category.stat_key}_count"] += 1
+            bucket["subject"].update(subject_keywords)
+            bucket["spatial"].update(spatial_keywords)
+            if country:
+                bucket["by_country"][country] += 1
+                bucket["keywords_by_country"][country]["subject"].update(subject_keywords)
+                bucket["keywords_by_country"][country]["spatial"].update(spatial_keywords)
+            if newspaper:
+                bucket["by_newspaper"][newspaper] += 1
+                bucket["keywords_by_newspaper"][newspaper]["subject"].update(subject_keywords)
+                bucket["keywords_by_newspaper"][newspaper]["spatial"].update(spatial_keywords)
+            articles_index[article_id] = article_info
+            bucket["article_ids"].append(article_id)
+
+    logger.info("Compiling results and generating keyword analysis by facets...")
+
+    analysis = {}
+    for category in CATEGORIES:
+        bucket = accumulators[category.key]
+        analysis[category.key] = {
+            "subject": dict(bucket["subject"].most_common(top_n)),
+            "spatial": dict(bucket["spatial"].most_common(top_n)),
+            "by_country": dict(bucket["by_country"].most_common()),
+            "by_newspaper": dict(bucket["by_newspaper"].most_common()),
+            "keywords_by_country": convert_keywords_by_facet(bucket["keywords_by_country"]),
+            "keywords_by_newspaper": convert_keywords_by_facet(bucket["keywords_by_newspaper"]),
+            "article_ids": bucket["article_ids"],
+        }
+
+    return {
+        "model": model_prefix,
+        "articles_index": articles_index,
+        "analysis": analysis,
+        "statistics": stats,
+        "facets": {
+            "countries": dict(all_countries.most_common()),
+            "newspapers": dict(all_newspapers.most_common()),
+        },
+    }
+
+
+def main() -> None:
+    """Run the extreme lexical analysis for every model and save the results.
+
+    Loads the IWAC dataset from Hugging Face, analyses the extremes for
+    ChatGPT, Gemini, and Mistral, writes one JSON file per model into the
+    webapp's static/data directory, and logs summary statistics.
     """
-    Fonction principale qui orchestre l'analyse complète des extrêmes lexicaux
-    
-    Cette fonction :
-    1. Charge le dataset IWAC depuis Hugging Face
-    2. Analyse les extrêmes pour ChatGPT et Gemini
-    3. Sauvegarde les résultats en JSON
-    4. Affiche des statistiques et exemples
-    """
-    print(f"\n{'='*60}")
-    print(f"IWAC Extreme Lexical Analysis")
-    print(f"{'='*60}")
-    
-    # Charger le dataset depuis Hugging Face
-    df = load_iwac_dataset()
-    dataset = {"train": df.to_dict('records')}
-    
-    print(f"Dataset loaded: {len(dataset['train'])} articles")
-    print("This dataset contains articles with sentiment analysis from ChatGPT, Gemini, and Mistral")
-    
-    # Analyser pour ChatGPT
-    print(f"\n{'='*40}")
-    print(f"ANALYZING CHATGPT RESULTS")
-    print(f"{'='*40}")
-    chatgpt_results = analyze_extreme_keywords(dataset, "chatgpt", top_n=50)
-    
-    # Analyser pour Gemini
-    print(f"\n{'='*40}")
-    print(f"ANALYZING GEMINI RESULTS")
-    print(f"{'='*40}")
-    gemini_results = analyze_extreme_keywords(dataset, "gemini", top_n=50)
-    
-    # Analyser pour Mistral
-    print(f"\n{'='*40}")
-    print(f"ANALYZING MISTRAL RESULTS")
-    print(f"{'='*40}")
-    mistral_results = analyze_extreme_keywords(dataset, "mistral", top_n=50)
-    
-    # Créer le répertoire de sortie et sauvegarder les résultats
+    logger.info("IWAC Extreme Lexical Analysis")
+
+    records = load_iwac_records()
+    logger.info("Dataset loaded: %d articles", len(records))
+
+    all_results = {}
+    for model_prefix in ("chatgpt", "gemini", "mistral"):
+        logger.info("Analyzing %s results...", model_prefix.upper())
+        all_results[model_prefix] = analyze_extreme_keywords(records, model_prefix, top_n=TOP_KEYWORDS)
+
     output_dir = get_webapp_data_dir()
+    for model_prefix, results in all_results.items():
+        path = os.path.join(output_dir, f"iwac_extreme_analysis_{model_prefix}.json")
+        logger.info("Saving %s extreme analysis to: %s", model_prefix, path)
+        safe_save_json(results, path)
 
-    for model_name, results_data in [("chatgpt", chatgpt_results), ("gemini", gemini_results), ("mistral", mistral_results)]:
-        path = os.path.join(output_dir, f"iwac_extreme_analysis_{model_name}.json")
-        print(f"\nSaving {model_name} extreme analysis to: {path}")
-        save_json(results_data, path)
-    
-    # Afficher les statistiques
-    print(f"\n{'='*60}")
-    print(f"ANALYSIS SUMMARY")
-    print(f"{'='*60}")
-    
-    for model, results in [("ChatGPT", chatgpt_results), ("Gemini", gemini_results), ("Mistral", mistral_results)]:
+    logger.info("ANALYSIS SUMMARY")
+    for model_prefix, results in all_results.items():
         stats = results["statistics"]
-        print(f"\n{model} Statistics:")
-        print(f"  Total articles: {stats['total_articles']}")
-        print(f"  High subjectivity (4-5): {stats['subjectivity_high_count']} ({stats['subjectivity_high_count']/stats['total_articles']*100:.1f}%)")
-        print(f"  Low subjectivity (1-2): {stats['subjectivity_low_count']} ({stats['subjectivity_low_count']/stats['total_articles']*100:.1f}%)")
-        print(f"  Very negative polarity: {stats['polarity_very_negative_count']} ({stats['polarity_very_negative_count']/stats['total_articles']*100:.1f}%)")
-        print(f"  Very positive polarity: {stats['polarity_very_positive_count']} ({stats['polarity_very_positive_count']/stats['total_articles']*100:.1f}%)")
-        print(f"  Very central: {stats['centrality_very_central_count']} ({stats['centrality_very_central_count']/stats['total_articles']*100:.1f}%)")
-        print(f"  Not central: {stats['centrality_not_central_count']} ({stats['centrality_not_central_count']/stats['total_articles']*100:.1f}%)")
-    
-    print(f"\n{'='*60}")
-    print(f"Files created in: {output_dir}")
-    print(f"{'='*60}")
-    
-    # Afficher quelques exemples de mots-clés les plus fréquents
-    print(f"\nTop 10 subject keywords for high subjectivity (ChatGPT):")
-    for keyword, count in list(chatgpt_results["analysis"]["subjectivity_extreme_high"]["subject"].items())[:10]:
-        print(f"  {keyword}: {count}")
-    
-    print(f"\nTop 10 spatial keywords for very negative polarity (ChatGPT):")
-    for keyword, count in list(chatgpt_results["analysis"]["polarity_very_negative"]["spatial"].items())[:10]:
-        print(f"  {keyword}: {count}")
-    
-    print(f"\nCountries with most high subjectivity articles (ChatGPT):")
-    for country, count in list(chatgpt_results["analysis"]["subjectivity_extreme_high"]["by_country"].items())[:5]:
-        print(f"  {country}: {count}")
-    
-    print(f"\nNewspapers with most very negative polarity articles (ChatGPT):")
-    for newspaper, count in list(chatgpt_results["analysis"]["polarity_very_negative"]["by_newspaper"].items())[:5]:
-        print(f"  {newspaper}: {count}")
-    
-    print(f"\nTotal countries in dataset: {len(chatgpt_results['facets']['countries'])}")
-    print(f"Total newspapers in dataset: {len(chatgpt_results['facets']['newspapers'])}")
-    
-    # Exemples d'analyse par facette
-    print(f"\n{'='*60}")
-    print(f"EXAMPLES OF KEYWORD ANALYSIS BY FACETS")
-    print(f"{'='*60}")
-    
-    # Exemple : mots-clés spatiaux très négatifs par pays
-    negative_by_country = chatgpt_results["analysis"]["polarity_very_negative"]["keywords_by_country"]
-    if negative_by_country:
-        first_country = list(negative_by_country.keys())[0]
-        spatial_keywords = negative_by_country[first_country]["spatial"]
-        if spatial_keywords:
-            print(f"\nTop spatial keywords for very negative articles in {first_country} (ChatGPT):")
-            for keyword, count in list(spatial_keywords.items())[:5]:
-                print(f"  {keyword}: {count}")
-    
-    # Exemple : mots-clés sujets haute subjectivité par journal
-    subjective_by_newspaper = chatgpt_results["analysis"]["subjectivity_extreme_high"]["keywords_by_newspaper"]
-    if subjective_by_newspaper:
-        first_newspaper = list(subjective_by_newspaper.keys())[0]
-        subject_keywords = subjective_by_newspaper[first_newspaper]["subject"]
-        if subject_keywords:
-            print(f"\nTop subject keywords for high subjectivity articles in '{first_newspaper}' (ChatGPT):")
-            for keyword, count in list(subject_keywords.items())[:5]:
-                print(f"  {keyword}: {count}")
-    
-    print(f"\n{'='*60}")
-    print(f"DATA STRUCTURE EXPLANATION")
-    print(f"{'='*60}")
-    print(f"""
-The generated JSON files contain:
+        total = stats["total_articles"]
+        logger.info("%s statistics:", model_prefix)
+        logger.info("  Total articles: %d", total)
+        for category in CATEGORIES:
+            count = stats[f"{category.stat_key}_count"]
+            logger.info("  %s: %d (%.1f%%)", category.key, count, count / total * 100 if total else 0.0)
 
- 1. GLOBAL ANALYSIS:
-    - 'subject': Top 50 subject keywords across all articles
-    - 'spatial': Top 50 spatial keywords across all articles
-   
-2. FACET DISTRIBUTION:
-   - 'by_country': Number of articles per country
-   - 'by_newspaper': Number of articles per newspaper
-   
-3. KEYWORD ANALYSIS BY FACET:
-   - 'keywords_by_country': Top 20 keywords per country
-   - 'keywords_by_newspaper': Top 20 keywords per newspaper
-   
-4. ARTICLE LISTS:
-   - 'articles': Complete list of articles with metadata
-   
-5. GLOBAL FACETS:
-   - 'facets.countries': All countries with article counts
-   - 'facets.newspapers': All newspapers with article counts
+    logger.info(
+        "Total countries in dataset: %d",
+        len(all_results["chatgpt"]["facets"]["countries"]),
+    )
+    logger.info(
+        "Total newspapers in dataset: %d",
+        len(all_results["chatgpt"]["facets"]["newspapers"]),
+    )
+    logger.info("Files created in: %s", output_dir)
 
-This allows for filtering and exploration by:
-- Country-specific keyword patterns
-- Newspaper-specific editorial tendencies
-- Cross-referencing with the main app's facets
-    """)
 
 if __name__ == "__main__":
     main()

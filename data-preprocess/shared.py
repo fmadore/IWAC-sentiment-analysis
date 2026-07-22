@@ -6,7 +6,9 @@ significant-differences-export, and arbiter-evaluation scripts.
 """
 
 import json
+import logging
 import os
+import sys
 import time
 from typing import Any, Optional
 
@@ -15,11 +17,36 @@ from huggingface_hub import hf_hub_download
 
 
 # ============================================================================
+# Logging
+# ============================================================================
+
+def get_logger(name: str) -> logging.Logger:
+    """Return a logger writing INFO-level messages to stdout with a simple format.
+
+    Idempotent: calling twice with the same name will not duplicate handlers.
+    """
+    logger = logging.getLogger(name)
+    if not logger.handlers:
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
+        logger.addHandler(handler)
+        logger.setLevel(logging.INFO)
+        logger.propagate = False
+    return logger
+
+
+_logger = get_logger(__name__)
+
+
+# ============================================================================
 # Constants
 # ============================================================================
 
 HF_REPO_ID = "fmadore/islam-west-africa-collection"
 HF_PARQUET_FILENAME = "articles/train-00000-of-00001.parquet"
+
+# Base URL for IWAC items on the Omeka S instance.
+IWAC_ITEM_URL_BASE = "https://islam.zmo.de/s/afrique_ouest/item/"
 
 POLARITY_SCORES = {
     'Très positif': 5, 'Positif': 4, 'Neutre': 3,
@@ -36,6 +63,13 @@ MODEL_NAMES = {
     'gemini': 'Gemini',
     'mistral': 'Mistral'
 }
+
+# Every model-pair comparison supported by the pipeline.
+MODEL_PAIRS = ['chatgpt-gemini', 'chatgpt-mistral', 'gemini-mistral']
+
+# A per-dimension score gap of at least this many points counts as a
+# significant conflict between two model analyses.
+SIGNIFICANT_CONFLICT_THRESHOLD = 3
 
 # Sentiment-analysis field suffixes shared by every model (column prefix is
 # the model id, e.g. ``chatgpt_polarite``). Order matters: it is preserved in
@@ -107,24 +141,77 @@ def load_iwac_dataset() -> pd.DataFrame:
         pd.DataFrame with all article rows.
     """
     try:
-        print("Downloading dataset from Hugging Face...")
+        _logger.info("Downloading dataset from Hugging Face...")
         parquet_path = hf_hub_download(
             repo_id=HF_REPO_ID,
             filename=HF_PARQUET_FILENAME,
             repo_type="dataset"
         )
         df = pd.read_parquet(parquet_path)
-        print(f"Successfully loaded {len(df)} rows with {len(df.columns)} columns")
+        _logger.info("Successfully loaded %d rows with %d columns", len(df), len(df.columns))
         return df
 
     except Exception as e:
-        print(f"Direct download failed: {e}")
-        print("Trying datasets library fallback...")
+        _logger.warning("Direct download failed: %s", e)
+        _logger.info("Trying datasets library fallback...")
         from datasets import load_dataset
         dataset = load_dataset(HF_REPO_ID, "articles", verification_mode="no_checks")
         df = pd.DataFrame(dataset['train'])
-        print(f"Loaded {len(df)} rows via datasets library")
+        _logger.info("Loaded %d rows via datasets library", len(df))
         return df
+
+
+def load_iwac_records() -> list[dict]:
+    """Load the IWAC articles dataset as a list of plain dicts.
+
+    Preferred over iterating a DataFrame with ``df.iterrows()`` (its slowest
+    access pattern) when row-wise dict access is all a consumer needs.
+    """
+    return load_iwac_dataset().to_dict('records')
+
+
+def validate_columns(df: pd.DataFrame, required: list[str]) -> None:
+    """Fail loudly if any required column is missing from the dataset.
+
+    Raises:
+        ValueError: naming the missing columns and listing what is available.
+    """
+    missing = [col for col in required if col not in df.columns]
+    if missing:
+        raise ValueError(
+            f"Dataset is missing required column(s): {', '.join(missing)}. "
+            f"Available columns: {', '.join(df.columns)}"
+        )
+
+
+# ============================================================================
+# Row/item accessors
+# ============================================================================
+
+def get_article_text(item: dict) -> Optional[str]:
+    """Return an article's full OCR text.
+
+    The dataset column is uppercase ``OCR`` (confirmed against the HuggingFace
+    dataset); centralising the lookup prevents lowercase-``ocr`` regressions.
+    """
+    return item.get('OCR')
+
+
+def get_item_url(o_id: Any) -> Optional[str]:
+    """Return the public IWAC item URL for an ``o:id``, or None if missing."""
+    if not o_id:
+        return None
+    return f"{IWAC_ITEM_URL_BASE}{o_id}"
+
+
+# ============================================================================
+# Model pairs
+# ============================================================================
+
+def get_models_from_pair(pair: str) -> tuple[str, str]:
+    """Split a pair string like ``chatgpt-gemini`` into its two model IDs."""
+    model_a, model_b = pair.split('-', 1)
+    return model_a, model_b
 
 
 # ============================================================================
@@ -151,16 +238,24 @@ def calculate_discrepancies(analysis_a: dict, analysis_b: dict) -> Optional[dict
         POLARITY_SCORES.get(analysis_b.get('polarite', 'Non applicable'), 0)
     )
 
-    subj_a = safe_int_convert(analysis_a.get('subjectivite_score', 0)) or 0
-    subj_b = safe_int_convert(analysis_b.get('subjectivite_score', 0)) or 0
-    subjectivity_diff = abs(subj_a - subj_b)
+    # Skip the subjectivity dimension when either score is missing — coercing a
+    # missing score to 0 would manufacture a spurious 4-5 point gap against a
+    # present score, inflating the "significant conflict" set sent to the paid
+    # arbiter (mirrors the 'Non applicable' handling on the other axes).
+    subj_a = safe_int_convert(analysis_a.get('subjectivite_score'))
+    subj_b = safe_int_convert(analysis_b.get('subjectivite_score'))
+    subjectivity_diff = abs(subj_a - subj_b) if subj_a is not None and subj_b is not None else 0
 
     centrality_diff = abs(
         CENTRALITY_SCORES.get(analysis_a.get('centralite_islam_musulmans', 'Non applicable'), 0) -
         CENTRALITY_SCORES.get(analysis_b.get('centralite_islam_musulmans', 'Non applicable'), 0)
     )
 
-    has_significant_conflict = (polarity_diff >= 3 or subjectivity_diff >= 3 or centrality_diff >= 3)
+    has_significant_conflict = (
+        polarity_diff >= SIGNIFICANT_CONFLICT_THRESHOLD or
+        subjectivity_diff >= SIGNIFICANT_CONFLICT_THRESHOLD or
+        centrality_diff >= SIGNIFICANT_CONFLICT_THRESHOLD
+    )
 
     return {
         "polarity_diff": polarity_diff,
@@ -234,8 +329,8 @@ def safe_save_json(data: Any, filepath: str, max_retries: int = 3) -> None:
             return
         except OSError as exc:
             if attempt == max_retries:
-                print(f"Failed to write {filepath} after {max_retries} attempts: {exc}")
+                _logger.error("Failed to write %s after %d attempts: %s", filepath, max_retries, exc)
                 raise
             wait = 2 ** attempt
-            print(f"Write to {filepath} failed ({exc}); retrying in {wait}s...")
+            _logger.warning("Write to %s failed (%s); retrying in %ds...", filepath, exc, wait)
             time.sleep(wait)

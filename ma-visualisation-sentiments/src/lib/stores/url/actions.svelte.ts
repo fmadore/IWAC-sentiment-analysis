@@ -154,12 +154,12 @@ export function applyURLState(state: URLState): string | undefined {
 /**
  * Update URL with current application state
  */
-export function updateURL(currentView?: string, replaceState = false): void {
+export function updateURL(currentView?: ValidView, replaceState = false): void {
 	if (!browser) return;
 
 	const currentState = getCurrentState();
 	if (currentView) {
-		currentState.view = currentView as ValidView;
+		currentState.view = currentView;
 	}
 
 	const params = buildURLSearchParams(currentState);

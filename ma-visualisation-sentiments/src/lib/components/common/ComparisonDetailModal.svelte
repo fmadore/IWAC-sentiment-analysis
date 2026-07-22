@@ -21,7 +21,7 @@
 	import { t } from '$lib/i18n';
 	import { ComparisonDetail } from '$lib/components/data-display';
 	import FullScreenModal from './FullScreenModal.svelte';
-	import { getJournalName } from '$lib/utils';
+	import { getJournalName } from '$lib/utils/format';
 	import GitCompareArrowsIcon from '@lucide/svelte/icons/git-compare-arrows';
 
 	interface ComparisonDetailModalProps {

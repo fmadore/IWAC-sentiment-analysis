@@ -1,15 +1,14 @@
 <script lang="ts">
-	import { t, currentLanguage } from '$lib/i18n';
+	import { t, currentLanguage, type Language } from '$lib/i18n';
 	import { datasetState, articleState } from '$lib/stores';
 	import { AccordionItem, PromptModal } from '$lib/components/common';
-	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
+	import CollapsibleMethodologyCard from '$lib/components/common/CollapsibleMethodologyCard.svelte';
+	import SentimentScaleList from '$lib/components/common/SentimentScaleList.svelte';
+	import { SENTIMENT_ANALYSIS_PROMPT } from '$lib/data/prompts';
 	import { base } from '$app/paths';
 	import { createAccordion } from '$lib/utils/accordion.svelte';
 
 	const accordion = createAccordion();
-
-	// State for the main methodology panel
-	let isMethodologyOpen = $state(false);
 
 	// State for the prompt modal
 	let showPromptModal = $state(false);
@@ -20,418 +19,407 @@
 		const firstDataset = Object.values(datasets)[0];
 		return firstDataset?.length ?? 0;
 	});
+
+	type LocalizedText = Record<Language, string>;
+
+	interface ModelInfo {
+		id: 'chatgpt' | 'gemini' | 'mistral';
+		logo: string;
+		logoAlt: string;
+		/** Name shown on the comparison-grid card */
+		cardName: string;
+		/** Name shown in the single-model badge link */
+		badgeName: string;
+		docsUrl: string;
+		/** First card paragraph (comparison grid) */
+		cardDescription: LocalizedText;
+		/** Second card paragraph (grid) / detail line (single-model view) */
+		detail: LocalizedText;
+		/** Sentence following the badge link in the single-model view */
+		inlineDescription: LocalizedText;
+	}
+
+	const MODELS: ModelInfo[] = [
+		{
+			id: 'chatgpt',
+			logo: '/logo/ChatGPT_logo.svg',
+			logoAlt: 'ChatGPT logo',
+			cardName: 'ChatGPT (GPT-5 mini)',
+			badgeName: 'GPT-5 mini',
+			docsUrl: 'https://platform.openai.com/docs/models/gpt-5-mini',
+			cardDescription: {
+				en: "OpenAI's efficient model with a 400,000-token context window, released August 2025. Enhanced reasoning and cost-effectiveness.",
+				fr: "Modèle efficace d'OpenAI avec une fenêtre de contexte de 400 000 tokens, publié en août 2025. Raisonnement amélioré et coût optimisé."
+			},
+			detail: {
+				en: "GPT-5 mini is a faster, more cost-efficient version of GPT-5. It's great for well-defined tasks and precise prompts.",
+				fr: 'GPT-5 mini est une version plus rapide et économique de GPT-5. Idéal pour des tâches bien définies et des invites précises.'
+			},
+			inlineDescription: {
+				en: ", OpenAI's efficient model with a 400,000-token context window and enhanced reasoning capabilities, released in August 2025.",
+				fr: ", le modèle efficace d'OpenAI avec une fenêtre de contexte de 400 000 tokens et des capacités de raisonnement améliorées, publié en août 2025."
+			}
+		},
+		{
+			id: 'gemini',
+			logo: '/logo/Gemini_logo.svg',
+			logoAlt: 'Gemini logo',
+			cardName: 'Gemini 3 Flash',
+			badgeName: 'Gemini 3 Flash',
+			docsUrl: 'https://ai.google.dev/gemini-api/docs/models#gemini-3-flash',
+			cardDescription: {
+				en: "Google's latest Flash model with advanced reasoning capabilities and a 1 million token context window, released December 2025.",
+				fr: 'Le dernier modèle Flash de Google avec des capacités de raisonnement avancées et une fenêtre de contexte de 1 million de tokens, publié en décembre 2025.'
+			},
+			detail: {
+				en: 'Gemini 3 Flash is optimized for speed and efficiency while maintaining high-quality outputs for text analysis tasks.',
+				fr: "Gemini 3 Flash est optimisé pour la rapidité et l'efficacité tout en maintenant des sorties de haute qualité pour les tâches d'analyse textuelle."
+			},
+			inlineDescription: {
+				en: ", Google's latest Flash model with advanced reasoning capabilities and a 1 million token context window, released December 2025.",
+				fr: ', le dernier modèle Flash de Google avec des capacités de raisonnement avancées et une fenêtre de contexte de 1 million de tokens, publié en décembre 2025.'
+			}
+		},
+		{
+			id: 'mistral',
+			logo: '/logo/Mistral_AI_logo.svg',
+			logoAlt: 'Mistral logo',
+			cardName: 'Ministral 3 14B',
+			badgeName: 'Ministral 3 14B',
+			docsUrl: 'https://docs.mistral.ai/models/ministral-3-14b-25-12',
+			cardDescription: {
+				en: "Mistral's largest model in the Ministral 3 family, offering state-of-the-art capabilities comparable to Mistral Small 3.2 24B, released December 2025.",
+				fr: 'Le plus grand modèle de Mistral dans la famille Ministral 3, offrant des capacités de pointe comparables à Mistral Small 3.2 24B, publié en décembre 2025.'
+			},
+			detail: {
+				en: 'Ministral 3 14B delivers high performance across diverse hardware and is optimized for efficient local deployment.',
+				fr: 'Ministral 3 14B offre des performances élevées sur divers matériels et est optimisé pour un déploiement local efficace.'
+			},
+			inlineDescription: {
+				en: ", Mistral's largest model in the Ministral 3 family, offering state-of-the-art capabilities comparable to Mistral Small 3.2 24B, released December 2025.",
+				fr: ', le plus grand modèle de Mistral dans la famille Ministral 3, offrant des capacités de pointe comparables à Mistral Small 3.2 24B, publié en décembre 2025.'
+			}
+		}
+	];
+
+	const selectedModel = $derived(MODELS.find((m) => m.id === datasetState.selected));
+
+	// Evaluation-scale items (badge class + label + description)
+	const polarityItems = $derived([
+		{
+			badgeClass: 'sentiment-very-positive',
+			badge: $t.sentiment.veryPositive,
+			description: $t.analysis.veryPositiveDesc
+		},
+		{
+			badgeClass: 'sentiment-positive',
+			badge: $t.sentiment.positive,
+			description: $t.analysis.positiveDesc
+		},
+		{
+			badgeClass: 'sentiment-neutral',
+			badge: $t.sentiment.neutral,
+			description: $t.analysis.neutralDesc
+		},
+		{
+			badgeClass: 'sentiment-negative',
+			badge: $t.sentiment.negative,
+			description: $t.analysis.negativeDesc
+		},
+		{
+			badgeClass: 'sentiment-very-negative',
+			badge: $t.sentiment.veryNegative,
+			description: $t.analysis.veryNegativeDesc
+		},
+		{
+			badgeClass: 'sentiment-na',
+			badge: $t.sentiment.notApplicable,
+			description: $t.analysis.notApplicableNote
+		}
+	]);
+
+	const subjectivityItems = $derived([
+		{
+			badgeClass: 'subjectivity-1',
+			badge: '1',
+			label: $t.subjectivity.factual,
+			description: $t.analysis.factualDesc
+		},
+		{
+			badgeClass: 'subjectivity-2',
+			badge: '2',
+			label: $t.subjectivity.ratherFactual,
+			description: $t.analysis.ratherFactualDesc
+		},
+		{
+			badgeClass: 'subjectivity-3',
+			badge: '3',
+			label: $t.subjectivity.mixed,
+			description: $t.analysis.mixedDesc
+		},
+		{
+			badgeClass: 'subjectivity-4',
+			badge: '4',
+			label: $t.subjectivity.ratherSubjective,
+			description: $t.analysis.ratherSubjectiveDesc
+		},
+		{
+			badgeClass: 'subjectivity-5',
+			badge: '5',
+			label: $t.subjectivity.subjective,
+			description: $t.analysis.subjectiveDesc
+		}
+	]);
+
+	const centralityItems = $derived([
+		{
+			badgeClass: 'centrality-very-central',
+			badge: $t.centrality.veryCentral,
+			description: $t.analysis.veryCentralDesc
+		},
+		{
+			badgeClass: 'centrality-central',
+			badge: $t.centrality.central,
+			description: $t.analysis.centralDesc
+		},
+		{
+			badgeClass: 'centrality-secondary',
+			badge: $t.centrality.secondary,
+			description: $t.analysis.secondaryDesc
+		},
+		{
+			badgeClass: 'centrality-marginal',
+			badge: $t.centrality.marginal,
+			description: $t.analysis.marginalDesc
+		},
+		{
+			badgeClass: 'centrality-not-addressed',
+			badge: $t.centrality.notAddressed,
+			description: $t.analysis.notAddressedDesc
+		}
+	]);
 </script>
 
-<div class="info-card">
-	<!-- Collapsible Header -->
-	<button
-		class="info-header-btn"
-		onclick={() => (isMethodologyOpen = !isMethodologyOpen)}
-		aria-expanded={isMethodologyOpen}
-	>
-		<h2 class="info-title">{$t.analysis.title}</h2>
-		<span class="header-icon" data-state={isMethodologyOpen ? 'open' : 'closed'}>
-			<ChevronDownIcon size={20} />
-		</span>
-	</button>
+<CollapsibleMethodologyCard title={$t.analysis.title}>
+	<p class="info-description">
+		{$t.analysis.methodologyIntro}
+	</p>
 
-	{#if isMethodologyOpen}
-		<div class="info-content" data-state="open">
-			<p class="info-description">
-				{$t.analysis.methodologyIntro}
-			</p>
+	<p class="info-description">
+		{$t.analysis.methodologyCorpus}
+		<strong class="article-count">{totalArticleCount.toLocaleString()}</strong>
+		{$t.analysis.methodologyCorpusArticles}
+		<a
+			href="https://islam.zmo.de/s/westafrica/"
+			target="_blank"
+			rel="noopener noreferrer"
+			class="info-link"
+		>
+			{#if $currentLanguage === 'en'}
+				<em>Islam West Africa Collection</em> (IWAC)
+			{:else}
+				<em>Collection Islam Afrique de l'Ouest</em> (CIAO)
+			{/if}
+		</a>{$t.analysis.methodologyCorpusDeveloper}
+		<a
+			href="https://www.frederickmadore.com/"
+			target="_blank"
+			rel="noopener noreferrer"
+			class="info-link">Frédérick Madore</a
+		>{$t.analysis.methodologyCorpusEnd}
+	</p>
 
-			<p class="info-description">
-				{$t.analysis.methodologyCorpus}
-				<strong class="article-count">{totalArticleCount.toLocaleString()}</strong>
-				{$t.analysis.methodologyCorpusArticles}
-				<a
-					href="https://islam.zmo.de/s/westafrica/"
-					target="_blank"
-					rel="noopener noreferrer"
-					class="info-link"
-				>
-					{#if $currentLanguage === 'en'}
-						<em>Islam West Africa Collection</em> (IWAC)
-					{:else}
-						<em>Collection Islam Afrique de l'Ouest</em> (CIAO)
-					{/if}
-				</a>{$t.analysis.methodologyCorpusDeveloper}
-				<a
-					href="https://www.frederickmadore.com/"
-					target="_blank"
-					rel="noopener noreferrer"
-					class="info-link">Frédérick Madore</a
-				>{$t.analysis.methodologyCorpusEnd}
-			</p>
+	<div class="accordion-container">
+		<!-- Polarity Section -->
+		<AccordionItem
+			title={$t.analysis.polaritySection}
+			open={accordion.isOpen('polarite')}
+			onToggle={() => accordion.toggle('polarite')}
+		>
+			<p class="panel-description">{$t.analysis.polarityDescription}</p>
+			<SentimentScaleList items={polarityItems} />
+		</AccordionItem>
 
-			<div class="accordion-container">
-				<!-- Polarity Section -->
-				<AccordionItem
-					title={$t.analysis.polaritySection}
-					open={accordion.isOpen('polarite')}
-					onToggle={() => accordion.toggle('polarite')}
-				>
-					<p class="panel-description">{$t.analysis.polarityDescription}</p>
-					<ul class="sentiment-list">
-						<li>
-							<span class="badge sentiment-very-positive">{$t.sentiment.veryPositive}</span>
-							<span class="sentiment-desc">— {$t.analysis.veryPositiveDesc}</span>
-						</li>
-						<li>
-							<span class="badge sentiment-positive">{$t.sentiment.positive}</span>
-							<span class="sentiment-desc">— {$t.analysis.positiveDesc}</span>
-						</li>
-						<li>
-							<span class="badge sentiment-neutral">{$t.sentiment.neutral}</span>
-							<span class="sentiment-desc">— {$t.analysis.neutralDesc}</span>
-						</li>
-						<li>
-							<span class="badge sentiment-negative">{$t.sentiment.negative}</span>
-							<span class="sentiment-desc">— {$t.analysis.negativeDesc}</span>
-						</li>
-						<li>
-							<span class="badge sentiment-very-negative">{$t.sentiment.veryNegative}</span>
-							<span class="sentiment-desc">— {$t.analysis.veryNegativeDesc}</span>
-						</li>
-						<li>
-							<span class="badge sentiment-na">{$t.sentiment.notApplicable}</span>
-							<span class="sentiment-desc">— {$t.analysis.notApplicableNote}</span>
-						</li>
-					</ul>
-				</AccordionItem>
+		<!-- Subjectivity Section -->
+		<AccordionItem
+			title={$t.analysis.subjectivitySection}
+			open={accordion.isOpen('subjectivite')}
+			onToggle={() => accordion.toggle('subjectivite')}
+		>
+			<p class="panel-description">{$t.analysis.subjectivityDescription}</p>
+			<SentimentScaleList items={subjectivityItems} />
+		</AccordionItem>
 
-				<!-- Subjectivity Section -->
-				<AccordionItem
-					title={$t.analysis.subjectivitySection}
-					open={accordion.isOpen('subjectivite')}
-					onToggle={() => accordion.toggle('subjectivite')}
-				>
-					<p class="panel-description">{$t.analysis.subjectivityDescription}</p>
-					<ul class="sentiment-list">
-						<li>
-							<span class="badge subjectivity-1">1</span>
-							<strong class="subjectivity-label">{$t.subjectivity.factual}</strong>
-							<span class="sentiment-desc">— {$t.analysis.factualDesc}</span>
-						</li>
-						<li>
-							<span class="badge subjectivity-2">2</span>
-							<strong class="subjectivity-label">{$t.subjectivity.ratherFactual}</strong>
-							<span class="sentiment-desc">— {$t.analysis.ratherFactualDesc}</span>
-						</li>
-						<li>
-							<span class="badge subjectivity-3">3</span>
-							<strong class="subjectivity-label">{$t.subjectivity.mixed}</strong>
-							<span class="sentiment-desc">— {$t.analysis.mixedDesc}</span>
-						</li>
-						<li>
-							<span class="badge subjectivity-4">4</span>
-							<strong class="subjectivity-label">{$t.subjectivity.ratherSubjective}</strong>
-							<span class="sentiment-desc">— {$t.analysis.ratherSubjectiveDesc}</span>
-						</li>
-						<li>
-							<span class="badge subjectivity-5">5</span>
-							<strong class="subjectivity-label">{$t.subjectivity.subjective}</strong>
-							<span class="sentiment-desc">— {$t.analysis.subjectiveDesc}</span>
-						</li>
-					</ul>
-				</AccordionItem>
+		<!-- Centrality Section -->
+		<AccordionItem
+			title={$t.analysis.centralitySection}
+			open={accordion.isOpen('centralite')}
+			onToggle={() => accordion.toggle('centralite')}
+		>
+			<p class="panel-description">{$t.analysis.centralityDescription}</p>
+			<SentimentScaleList items={centralityItems} />
+		</AccordionItem>
 
-				<!-- Centrality Section -->
-				<AccordionItem
-					title={$t.analysis.centralitySection}
-					open={accordion.isOpen('centralite')}
-					onToggle={() => accordion.toggle('centralite')}
-				>
-					<p class="panel-description">{$t.analysis.centralityDescription}</p>
-					<ul class="sentiment-list">
-						<li>
-							<span class="badge centrality-very-central">{$t.centrality.veryCentral}</span>
-							<span class="sentiment-desc">— {$t.analysis.veryCentralDesc}</span>
-						</li>
-						<li>
-							<span class="badge centrality-central">{$t.centrality.central}</span>
-							<span class="sentiment-desc">— {$t.analysis.centralDesc}</span>
-						</li>
-						<li>
-							<span class="badge centrality-secondary">{$t.centrality.secondary}</span>
-							<span class="sentiment-desc">— {$t.analysis.secondaryDesc}</span>
-						</li>
-						<li>
-							<span class="badge centrality-marginal">{$t.centrality.marginal}</span>
-							<span class="sentiment-desc">— {$t.analysis.marginalDesc}</span>
-						</li>
-						<li>
-							<span class="badge centrality-not-addressed">{$t.centrality.notAddressed}</span>
-							<span class="sentiment-desc">— {$t.analysis.notAddressedDesc}</span>
-						</li>
-					</ul>
-				</AccordionItem>
-
-				<!-- Methodology Section -->
-				<AccordionItem
-					title={$t.analysis.methodologyAiModel}
-					open={accordion.isOpen('methodologie')}
-					onToggle={() => accordion.toggle('methodologie')}
-				>
-					<div class="methodology-content">
-						<div class="methodology-section">
-							<h4 class="section-title">{$t.analysis.modelUsed}</h4>
-							{#if datasetState.isComparisonMode}
-								<p class="section-text">
-									{$currentLanguage === 'en'
-										? 'The analysis uses three large language models (LLMs) to provide comparative insights:'
-										: "L'analyse utilise trois grands modèles de langage (LLM) pour fournir des insights comparatifs :"}
-								</p>
-								<div class="model-grid">
-									<div class="model-card">
-										<div class="model-header">
-											<img
-												src="{base}/logo/ChatGPT_logo.svg"
-												alt="ChatGPT logo"
-												class="model-logo"
-											/>
-											<span class="model-name">ChatGPT (GPT-5 mini)</span>
-										</div>
-										<p class="model-description">
-											{$currentLanguage === 'en'
-												? "OpenAI's efficient model with a 400,000-token context window, released August 2025. Enhanced reasoning and cost-effectiveness."
-												: "Modèle efficace d'OpenAI avec une fenêtre de contexte de 400 000 tokens, publié en août 2025. Raisonnement amélioré et coût optimisé."}
-										</p>
-										<p class="model-description">
-											{$currentLanguage === 'en'
-												? "GPT-5 mini is a faster, more cost-efficient version of GPT-5. It's great for well-defined tasks and precise prompts."
-												: 'GPT-5 mini est une version plus rapide et économique de GPT-5. Idéal pour des tâches bien définies et des invites précises.'}
-										</p>
-										<a
-											class="model-link"
-											href="https://platform.openai.com/docs/models/gpt-5-mini"
-											target="_blank"
-											rel="noopener noreferrer">Docs →</a
-										>
-									</div>
-									<div class="model-card">
-										<div class="model-header">
-											<img src="{base}/logo/Gemini_logo.svg" alt="Gemini logo" class="model-logo" />
-											<span class="model-name">Gemini 3 Flash</span>
-										</div>
-										<p class="model-description">
-											{$currentLanguage === 'en'
-												? "Google's latest Flash model with advanced reasoning capabilities and a 1 million token context window, released December 2025."
-												: 'Le dernier modèle Flash de Google avec des capacités de raisonnement avancées et une fenêtre de contexte de 1 million de tokens, publié en décembre 2025.'}
-										</p>
-										<p class="model-description">
-											{$currentLanguage === 'en'
-												? 'Gemini 3 Flash is optimized for speed and efficiency while maintaining high-quality outputs for text analysis tasks.'
-												: "Gemini 3 Flash est optimisé pour la rapidité et l'efficacité tout en maintenant des sorties de haute qualité pour les tâches d'analyse textuelle."}
-										</p>
-										<a
-											class="model-link"
-											href="https://ai.google.dev/gemini-api/docs/models#gemini-3-flash"
-											target="_blank"
-											rel="noopener noreferrer">Docs →</a
-										>
-									</div>
-									<div class="model-card">
-										<div class="model-header">
-											<img
-												src="{base}/logo/Mistral_AI_logo.svg"
-												alt="Mistral logo"
-												class="model-logo"
-											/>
-											<span class="model-name">Ministral 3 14B</span>
-										</div>
-										<p class="model-description">
-											{$currentLanguage === 'en'
-												? "Mistral's largest model in the Ministral 3 family, offering state-of-the-art capabilities comparable to Mistral Small 3.2 24B, released December 2025."
-												: 'Le plus grand modèle de Mistral dans la famille Ministral 3, offrant des capacités de pointe comparables à Mistral Small 3.2 24B, publié en décembre 2025.'}
-										</p>
-										<p class="model-description">
-											{$currentLanguage === 'en'
-												? 'Ministral 3 14B delivers high performance across diverse hardware and is optimized for efficient local deployment.'
-												: 'Ministral 3 14B offre des performances élevées sur divers matériels et est optimisé pour un déploiement local efficace.'}
-										</p>
-										<a
-											class="model-link"
-											href="https://docs.mistral.ai/models/ministral-3-14b-25-12"
-											target="_blank"
-											rel="noopener noreferrer">Docs →</a
-										>
-									</div>
-								</div>
-								<p class="section-note">
-									{$currentLanguage === 'en'
-										? 'Use the dataset picker in the header to switch between models or enable comparison mode to analyze differences in their outputs.'
-										: "Utilisez le sélecteur de jeu de données dans l'en-tête pour basculer entre les modèles ou activer le mode comparaison pour analyser les différences dans leurs sorties."}
-								</p>
-							{:else}
-								<p class="section-text">
-									{datasetState.selected === 'chatgpt'
-										? $currentLanguage === 'en'
-											? 'The analysis was performed using '
-											: "L'analyse a été réalisée avec "
-										: $currentLanguage === 'en'
-											? 'The analysis was performed using '
-											: "L'analyse a été réalisée avec "}
-
-									{#if datasetState.selected === 'chatgpt'}
-										<a
-											href="https://platform.openai.com/docs/models/gpt-5-mini"
-											target="_blank"
-											rel="noopener noreferrer"
-											class="model-badge chatgpt"
-										>
-											GPT-5 mini
-										</a>
-										{$currentLanguage === 'en'
-											? ", OpenAI's efficient model with a 400,000-token context window and enhanced reasoning capabilities, released in August 2025."
-											: ", le modèle efficace d'OpenAI avec une fenêtre de contexte de 400 000 tokens et des capacités de raisonnement améliorées, publié en août 2025."}
-										<span class="model-detail"
-											>{$currentLanguage === 'en'
-												? "GPT-5 mini is a faster, more cost-efficient version of GPT-5. It's great for well-defined tasks and precise prompts."
-												: 'GPT-5 mini est une version plus rapide et économique de GPT-5. Idéal pour des tâches bien définies et des invites précises.'}</span
-										>
-									{:else if datasetState.selected === 'gemini'}
-										<a
-											href="https://ai.google.dev/gemini-api/docs/models#gemini-3-flash"
-											target="_blank"
-											rel="noopener noreferrer"
-											class="model-badge gemini"
-										>
-											Gemini 3 Flash
-										</a>
-										{$currentLanguage === 'en'
-											? ", Google's latest Flash model with advanced reasoning capabilities and a 1 million token context window, released December 2025."
-											: ', le dernier modèle Flash de Google avec des capacités de raisonnement avancées et une fenêtre de contexte de 1 million de tokens, publié en décembre 2025.'}
-										<span class="model-detail"
-											>{$currentLanguage === 'en'
-												? 'Gemini 3 Flash is optimized for speed and efficiency while maintaining high-quality outputs for text analysis tasks.'
-												: "Gemini 3 Flash est optimisé pour la rapidité et l'efficacité tout en maintenant des sorties de haute qualité pour les tâches d'analyse textuelle."}</span
-										>
-									{:else if datasetState.selected === 'mistral'}
-										<a
-											href="https://docs.mistral.ai/models/ministral-3-14b-25-12"
-											target="_blank"
-											rel="noopener noreferrer"
-											class="model-badge mistral"
-										>
-											Ministral 3 14B
-										</a>
-										{$currentLanguage === 'en'
-											? ", Mistral's largest model in the Ministral 3 family, offering state-of-the-art capabilities comparable to Mistral Small 3.2 24B, released December 2025."
-											: ', le plus grand modèle de Mistral dans la famille Ministral 3, offrant des capacités de pointe comparables à Mistral Small 3.2 24B, publié en décembre 2025.'}
-										<span class="model-detail"
-											>{$currentLanguage === 'en'
-												? 'Ministral 3 14B delivers high performance across diverse hardware and is optimized for efficient local deployment.'
-												: 'Ministral 3 14B offre des performances élevées sur divers matériels et est optimisé pour un déploiement local efficace.'}</span
-										>
-									{/if}
-								</p>
-							{/if}
-						</div>
-
-						<div class="methodology-section">
-							<h4 class="section-title">{$t.analysis.technicalConfiguration}</h4>
-							<ul class="config-list">
-								{#if datasetState.isComparisonMode}
-									<li>
-										{$currentLanguage === 'en' ? 'Gemini: ' : 'Gemini : '}{$t.analysis
-											.temperatureConfig}
-									</li>
-								{:else if datasetState.selected === 'gemini'}
-									<li>{$t.analysis.temperatureConfig}</li>
-								{/if}
-								<li>{$t.analysis.outputFormat}</li>
-								<li>{$t.analysis.cacheSystem}</li>
-								<li>{$t.analysis.errorHandling}</li>
-								{#if datasetState.isComparisonMode}
-									<li>
-										{$currentLanguage === 'en'
-											? 'Parallel processing: Both models analyze the same articles independently'
-											: 'Traitement parallèle : Les deux modèles analysent les mêmes articles de manière indépendante'}
-									</li>
-									<li>
-										{$currentLanguage === 'en'
-											? 'Discrepancy detection: Automatic identification of differences in sentiment analysis'
-											: "Détection des divergences : Identification automatique des différences dans l'analyse de sentiment"}
-									</li>
-								{/if}
-								<li>
-									{$currentLanguage === 'en'
-										? 'API parameters: temperature=0.2, thinking_level="low" (Gemini 3)'
-										: 'Paramètres API : temperature=0.2, thinking_level="low" (Gemini 3)'}
-								</li>
-							</ul>
-						</div>
-
-						<div class="methodology-section">
-							<h4 class="section-title">{$t.analysis.analysisPrompt}</h4>
-							<p class="section-text">
-								{datasetState.isComparisonMode
-									? $currentLanguage === 'en'
-										? 'Both models use the same standardized prompt to ensure consistent analysis criteria across different AI systems:'
-										: "Les deux modèles utilisent le même prompt standardisé pour assurer des critères d'analyse cohérents entre les différents systèmes d'IA :"
-									: $t.analysis.promptDescription}
-							</p>
-							<ul class="config-list">
-								<li>{$t.analysis.promptFeature1}</li>
-								<li>{$t.analysis.promptFeature2}</li>
-								<li>{$t.analysis.promptFeature3}</li>
-								<li>{$t.analysis.promptFeature4}</li>
-								<li>{$t.analysis.promptFeature5}</li>
-								{#if datasetState.isComparisonMode}
-									<li>
-										{$currentLanguage === 'en'
-											? 'Identical prompt ensures fair comparison between models'
-											: 'Le prompt identique assure une comparaison équitable entre les modèles'}
-									</li>
-								{/if}
-							</ul>
-							<button class="prompt-btn" onclick={() => (showPromptModal = true)}>
-								{$t.analysis.viewFullPrompt}
-							</button>
-						</div>
-					</div>
-				</AccordionItem>
-
-				<!-- Limitations Section -->
-				<AccordionItem
-					title={$t.analysis.limitationsTitle}
-					open={accordion.isOpen('limites')}
-					onToggle={() => accordion.toggle('limites')}
-				>
-					<p class="panel-description">{$t.analysis.limitationsDescription}</p>
+		<!-- Methodology Section -->
+		<AccordionItem
+			title={$t.analysis.methodologyAiModel}
+			open={accordion.isOpen('methodologie')}
+			onToggle={() => accordion.toggle('methodologie')}
+		>
+			<div class="methodology-content">
+				<div class="methodology-section">
+					<h4 class="section-title">{$t.analysis.modelUsed}</h4>
 					{#if datasetState.isComparisonMode}
-						<div class="comparison-notice">
-							<h4 class="section-title">
-								{$currentLanguage === 'en'
-									? 'Comparison Mode Considerations'
-									: 'Considérations du mode comparaison'}
-							</h4>
-							<ul class="config-list">
-								<li>
-									{$currentLanguage === 'en'
-										? 'Model differences may reflect varying training data, architectures, and optimization objectives rather than inherent accuracy'
-										: "Les différences entre modèles peuvent refléter des données d'entraînement, des architectures et des objectifs d'optimisation variables plutôt qu'une précision inhérente"}
-								</li>
-								<li>
-									{$currentLanguage === 'en'
-										? 'Neither model should be considered a ground truth; discrepancies highlight areas requiring human expert review'
-										: "Aucun modèle ne doit être considéré comme une vérité absolue ; les divergences soulignent les domaines nécessitant un examen d'expert humain"}
-								</li>
-								<li>
-									{$currentLanguage === 'en'
-										? 'Comparison results are most valuable when used to identify patterns and trends rather than definitive judgments'
-										: 'Les résultats de comparaison sont plus utiles pour identifier des motifs et tendances que pour des jugements définitifs'}
-								</li>
-							</ul>
+						<p class="section-text">
+							{$currentLanguage === 'en'
+								? 'The analysis uses three large language models (LLMs) to provide comparative insights:'
+								: "L'analyse utilise trois grands modèles de langage (LLM) pour fournir des insights comparatifs :"}
+						</p>
+						<div class="model-grid">
+							{#each MODELS as model (model.id)}
+								<div class="model-card">
+									<div class="model-header">
+										<img src="{base}{model.logo}" alt={model.logoAlt} class="model-logo" />
+										<span class="model-name">{model.cardName}</span>
+									</div>
+									<p class="model-description">{model.cardDescription[$currentLanguage]}</p>
+									<p class="model-description">{model.detail[$currentLanguage]}</p>
+									<a
+										class="model-link"
+										href={model.docsUrl}
+										target="_blank"
+										rel="noopener noreferrer">Docs →</a
+									>
+								</div>
+							{/each}
 						</div>
+						<p class="section-note">
+							{$currentLanguage === 'en'
+								? 'Use the dataset picker in the header to switch between models or enable comparison mode to analyze differences in their outputs.'
+								: "Utilisez le sélecteur de jeu de données dans l'en-tête pour basculer entre les modèles ou activer le mode comparaison pour analyser les différences dans leurs sorties."}
+						</p>
+					{:else}
+						<p class="section-text">
+							{$currentLanguage === 'en'
+								? 'The analysis was performed using '
+								: "L'analyse a été réalisée avec "}
+
+							{#if selectedModel}
+								<a
+									href={selectedModel.docsUrl}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="model-badge {selectedModel.id}"
+								>
+									{selectedModel.badgeName}
+								</a>
+								{selectedModel.inlineDescription[$currentLanguage]}
+								<span class="model-detail">{selectedModel.detail[$currentLanguage]}</span>
+							{/if}
+						</p>
 					{/if}
-				</AccordionItem>
+				</div>
+
+				<div class="methodology-section">
+					<h4 class="section-title">{$t.analysis.technicalConfiguration}</h4>
+					<ul class="config-list">
+						{#if datasetState.isComparisonMode}
+							<li>
+								{$currentLanguage === 'en' ? 'Gemini: ' : 'Gemini : '}{$t.analysis
+									.temperatureConfig}
+							</li>
+						{:else if datasetState.selected === 'gemini'}
+							<li>{$t.analysis.temperatureConfig}</li>
+						{/if}
+						<li>{$t.analysis.outputFormat}</li>
+						<li>{$t.analysis.cacheSystem}</li>
+						<li>{$t.analysis.errorHandling}</li>
+						{#if datasetState.isComparisonMode}
+							<li>
+								{$currentLanguage === 'en'
+									? 'Parallel processing: Both models analyze the same articles independently'
+									: 'Traitement parallèle : Les deux modèles analysent les mêmes articles de manière indépendante'}
+							</li>
+							<li>
+								{$currentLanguage === 'en'
+									? 'Discrepancy detection: Automatic identification of differences in sentiment analysis'
+									: "Détection des divergences : Identification automatique des différences dans l'analyse de sentiment"}
+							</li>
+						{/if}
+						<li>
+							{$currentLanguage === 'en'
+								? 'API parameters: temperature=0.2, thinking_level="low" (Gemini 3)'
+								: 'Paramètres API : temperature=0.2, thinking_level="low" (Gemini 3)'}
+						</li>
+					</ul>
+				</div>
+
+				<div class="methodology-section">
+					<h4 class="section-title">{$t.analysis.analysisPrompt}</h4>
+					<p class="section-text">
+						{datasetState.isComparisonMode
+							? $currentLanguage === 'en'
+								? 'Both models use the same standardized prompt to ensure consistent analysis criteria across different AI systems:'
+								: "Les deux modèles utilisent le même prompt standardisé pour assurer des critères d'analyse cohérents entre les différents systèmes d'IA :"
+							: $t.analysis.promptDescription}
+					</p>
+					<ul class="config-list">
+						<li>{$t.analysis.promptFeature1}</li>
+						<li>{$t.analysis.promptFeature2}</li>
+						<li>{$t.analysis.promptFeature3}</li>
+						<li>{$t.analysis.promptFeature4}</li>
+						<li>{$t.analysis.promptFeature5}</li>
+						{#if datasetState.isComparisonMode}
+							<li>
+								{$currentLanguage === 'en'
+									? 'Identical prompt ensures fair comparison between models'
+									: 'Le prompt identique assure une comparaison équitable entre les modèles'}
+							</li>
+						{/if}
+					</ul>
+					<button class="prompt-btn" onclick={() => (showPromptModal = true)}>
+						{$t.analysis.viewFullPrompt}
+					</button>
+				</div>
 			</div>
-		</div>
-	{/if}
-</div>
+		</AccordionItem>
+
+		<!-- Limitations Section -->
+		<AccordionItem
+			title={$t.analysis.limitationsTitle}
+			open={accordion.isOpen('limites')}
+			onToggle={() => accordion.toggle('limites')}
+		>
+			<p class="panel-description">{$t.analysis.limitationsDescription}</p>
+			{#if datasetState.isComparisonMode}
+				<div class="comparison-notice">
+					<h4 class="section-title">
+						{$currentLanguage === 'en'
+							? 'Comparison Mode Considerations'
+							: 'Considérations du mode comparaison'}
+					</h4>
+					<ul class="config-list">
+						<li>
+							{$currentLanguage === 'en'
+								? 'Model differences may reflect varying training data, architectures, and optimization objectives rather than inherent accuracy'
+								: "Les différences entre modèles peuvent refléter des données d'entraînement, des architectures et des objectifs d'optimisation variables plutôt qu'une précision inhérente"}
+						</li>
+						<li>
+							{$currentLanguage === 'en'
+								? 'Neither model should be considered a ground truth; discrepancies highlight areas requiring human expert review'
+								: "Aucun modèle ne doit être considéré comme une vérité absolue ; les divergences soulignent les domaines nécessitant un examen d'expert humain"}
+						</li>
+						<li>
+							{$currentLanguage === 'en'
+								? 'Comparison results are most valuable when used to identify patterns and trends rather than definitive judgments'
+								: 'Les résultats de comparaison sont plus utiles pour identifier des motifs et tendances que pour des jugements définitifs'}
+						</li>
+					</ul>
+				</div>
+			{/if}
+		</AccordionItem>
+	</div>
+</CollapsibleMethodologyCard>
 
 <!-- Prompt Modal -->
 <PromptModal open={showPromptModal} onClose={() => (showPromptModal = false)}>
@@ -449,167 +437,14 @@
 	{/if}
 
 	<div class="prompt-code-container">
-		<pre class="prompt-code">{$currentLanguage === 'en'
-				? `# Sentiment Analysis: Representation of Islam and Muslims in Francophone West African Media
-
-You are an expert analyst of representations of Islam and Muslims in the media, with a particular focus on Francophone West Africa. Analyze the provided text by evaluating the centrality, subjectivity, and polarity concerning the treatment of Islam and/or Muslims.
-
-Start by generating a concise checklist (3 to 7 points) listing the conceptual steps needed to complete the evaluation.
-
-## Instructions
-- All justifications must be in French.
-- Do not complete or invent information if the text is insufficient; be cautious and respond "Not applicable" or "Not addressed" if necessary.
-
-After generation, internally verify the consistency of the assigned values (e.g., if centrality = "Not addressed", then subjectivite_score = null and justifications indicate this, etc.). Correct any detected inconsistency before finalizing.
-
-## Evaluation Scale with Examples
-### Centrality
-Evaluates the importance given to themes related to Islam and Muslims in the article.
-- Very central: Islam/Muslims constitute the main subject of the article.
-- Central: Important theme but shared with other subjects.
-- Secondary: Mentioned significantly but secondary.
-- Marginal: Mentioned briefly or anecdotally.
-- Not addressed: No mention of Islam or Muslims.
-
-### Subjectivity
-Assign a subjectivity score based on the tone and presence of opinions or facts concerning Islam/Muslims in the article.
-1: Very objective – Reports verifiable facts about Islam/Muslims without expressing personal opinions or feelings about them, purely informative style on this theme.
-2: Rather objective – Mainly factual concerning Islam/Muslims, but may contain subtle traces of opinions or word choices suggesting a limited perspective on this theme.
-3: Mixed – Contains a balanced mix of facts and personal opinions/feelings concerning Islam/Muslims, or presents multiple viewpoints on this theme.
-4: Rather subjective – Clearly expresses opinions, feelings, or judgments about Islam/Muslims, even if based on some facts to support them.
-5: Very subjective – Heavily biased in its representation of Islam/Muslims, expresses intense opinions and emotions about them, with little or no objective presentation of facts, editorial or opinion piece style on this theme.
-
-### Polarity
-Evaluates the general sentiment expressed in the article towards Islam and/or Muslims, or concerning their representation.
-- Very positive: The portrayal of Islam/Muslims is extremely favorable, enthusiastic, laudatory.
-- Positive: The portrayal of Islam/Muslims is favorable, optimistic.
-- Neutral: No clear sentiment towards Islam/Muslims or balance between positive and negative aspects in their representation; factual tone without marked emotional charge towards them.
-- Negative: The portrayal of Islam/Muslims is unfavorable, critical, pessimistic.
-- Very negative: The portrayal of Islam/Muslims is extremely unfavorable, alarmist, very critical.
-- Not applicable: The article does not deal with Islam or Muslims.
-
-- If centrality = "Not addressed", then:
-    - subjectivite_score = null
-    - subjectivite_justification = "Not applicable as the subject is not addressed."
-    - polarite = "Not applicable"
-    - polarite_justification = "Not applicable as the subject is not addressed."`
-				: `# Analyse de Sentiment : représentation de l'islam et des musulmans dans les médias d'Afrique de l'Ouest francophone
-
-Vous êtes un analyste expert des représentations de l'islam et des musulmans dans les médias, avec un focus particulier sur l'Afrique de l'Ouest francophone. Analysez le texte fourni en évaluant la centralité, la subjectivité et la polarité concernant le traitement de l'islam et/ou des musulmans.
-
-Commencez par générer une checklist concise (3 à 7 points) listant les étapes conceptuelles nécessaires pour réaliser l'évaluation.
-
-## Instructions
-- Toutes les justifications doivent être en français.
-- Ne complétez pas ou n'inventez pas d'informations si le texte est insuffisant ; soyez précautionneux et répondez « Non applicable » ou « Non abordé » si nécessaire.
-
-Après génération, vérifiez en interne la cohérence des valeurs attribuées (ex : si centralité = « Non abordé », alors subjectivite_score = null et les justifications l'indiquent, etc.). Corrigez toute incohérence détectée avant de finaliser.
-
-## Barème d'évaluation avec exemples
-### Centralité
-Évalue l'importance accordée aux thèmes liés à l'islam et aux musulmans dans l'article.
-- Très central : L'islam/musulmans constituent le sujet principal de l'article.
-- Central : Thème important mais partagé avec d'autres sujets.
-- Secondaire : Mentionné de manière significative mais secondaire.
-- Marginal : Évoqué brièvement ou de manière anecdotique.
-- Non abordé : Aucune mention de l'islam ou des musulmans.
-
-### Subjectivité
-Attribuez une note de subjectivité en vous appuyant sur le ton et la présence d'opinions ou de faits concernant l'islam/les musulmans dans l'article.
-1 : Très objectif – Rapporte des faits vérifiables sur l'islam/les musulmans sans exprimer d'opinions ou de sentiments personnels à leur sujet, style purement informatif sur ce thème.
-2 : Plutôt objectif – Principalement factuel concernant l'islam/les musulmans, mais peut contenir des traces subtiles d'opinions ou des choix de mots suggérant une perspective limitée sur ce thème.
-3 : Mixte – Contient un mélange équilibré de faits et d'opinions/sentiments personnels concernant l'islam/les musulmans, ou présente plusieurs points de vue sur ce thème.
-4 : Plutôt subjectif – Exprime clairement des opinions, des sentiments ou des jugements sur l'islam/les musulmans, même s'il s'appuie sur certains faits pour les étayer.
-5 : Très subjectif – Fortement biaisé dans sa représentation de l'islam/des musulmans, exprime des opinions et des émotions intenses à leur sujet, avec peu ou pas de présentation objective des faits, style éditorial ou billet d'humeur sur ce thème.
-
-### Polarité
-Évalue le sentiment général exprimé dans l'article envers l'islam et/ou les musulmans, ou concernant leur représentation.
-- Très positif : Le portrait de l'islam/des musulmans est extrêmement favorable, enthousiaste, élogieux.
-- Positif : Le portrait de l'islam/des musulmans est favorable, optimiste.
-- Neutre : Pas de sentiment clair envers l'islam/des musulmans ou équilibre entre aspects positifs et négatifs dans leur représentation ; ton factuel sans charge émotionnelle marquée à leur égard.
-- Négatif : Le portrait de l'islam/des musulmans est défavorable, critique, pessimiste.
-- Très négatif : Le portrait de l'islam/des musulmans est extrêmement défavorable, alarmiste, très critique.
-- Non applicable : L'article ne traite pas de l'islam ou des musulmans.
-
-- Si centralité = « Non abordé », alors :
-    - subjectivite_score = null
-    - subjectivite_justification = "Non applicable car le sujet n'est pas abordé."
-    - polarite = "Non applicable"
-    - polarite_justification = "Non applicable car le sujet n'est pas abordé."`}</pre>
+		<pre class="prompt-code">{SENTIMENT_ANALYSIS_PROMPT[$currentLanguage]}</pre>
 	</div>
 </PromptModal>
 
 <style>
 	/* ==========================================================================
-     INFO CARD - Main Container
+     CARD BODY CONTENT
      ========================================================================== */
-	.info-card {
-		background: var(--surface-card);
-		border: 1px solid var(--border-subtle);
-		padding: var(--space-5);
-		margin-bottom: var(--space-6);
-	}
-
-	/* ==========================================================================
-     COLLAPSIBLE HEADER BUTTON
-     ========================================================================== */
-	.info-header-btn {
-		width: 100%;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 0;
-		background: none;
-		border: none;
-		cursor: pointer;
-		text-align: left;
-		transition: color var(--timing-fast) var(--easing-default);
-	}
-
-	.info-header-btn:hover .header-icon {
-		background: var(--surface-hover);
-		color: var(--text-primary);
-	}
-
-	.header-icon {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: var(--size-control-sm);
-		height: var(--size-control-sm);
-		border-radius: var(--radius-md);
-		background: var(--surface-subtle);
-		color: var(--text-muted);
-		transition:
-			background-color var(--timing-fast) var(--easing-default),
-			color var(--timing-fast) var(--easing-default),
-			transform var(--timing-normal) var(--easing-default);
-		flex-shrink: 0;
-	}
-
-	.header-icon[data-state='open'] {
-		transform: rotate(180deg);
-		color: var(--color-primary-300);
-	}
-
-	.info-content {
-		margin-top: var(--space-4);
-		animation: slideDown var(--timing-normal) var(--easing-default);
-	}
-
-	.info-content[data-state='open'] {
-		display: block;
-	}
-
-	.info-title {
-		font-size: var(--font-size-xl);
-		font-weight: var(--font-weight-semibold);
-		color: var(--text-primary);
-		letter-spacing: var(--tracking-snug);
-		line-height: var(--line-height-tight);
-		margin: 0;
-	}
-
 	.article-count {
 		color: var(--color-primary-300);
 		font-weight: var(--font-weight-semibold);
@@ -657,32 +492,6 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
 		line-height: var(--line-height-relaxed);
 		margin-bottom: var(--space-4);
 		max-width: var(--prose-width);
-	}
-
-	.sentiment-list {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-2-5);
-	}
-
-	.sentiment-list li {
-		display: flex;
-		align-items: flex-start;
-		gap: var(--space-2-5);
-		font-size: var(--font-size-base);
-		line-height: var(--line-height-normal);
-	}
-
-	.sentiment-desc {
-		color: var(--text-muted);
-	}
-
-	.subjectivity-label {
-		color: var(--text-primary);
-		font-weight: var(--font-weight-medium);
 	}
 
 	/* ==========================================================================
@@ -961,22 +770,8 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
      RESPONSIVE
      ========================================================================== */
 	@media (max-width: 640px) {
-		.info-card {
-			padding: var(--space-4);
-			border-radius: var(--radius-xl);
-		}
-
-		.info-title {
-			font-size: var(--font-size-lg);
-		}
-
 		.info-description {
 			font-size: var(--font-size-base);
-		}
-
-		.header-icon {
-			width: 1.75rem;
-			height: 1.75rem;
 		}
 	}
 
@@ -985,10 +780,7 @@ Attribuez une note de subjectivité en vous appuyant sur le ton et la présence 
      ========================================================================== */
 	@media (prefers-reduced-motion: reduce) {
 		.model-card,
-		.prompt-btn,
-		.info-content,
-		.header-icon,
-		.info-header-btn {
+		.prompt-btn {
 			transition: none;
 			animation: none;
 		}

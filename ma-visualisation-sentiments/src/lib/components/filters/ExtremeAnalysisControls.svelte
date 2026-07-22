@@ -1,6 +1,14 @@
+<!--
+  ExtremeAnalysisControls Component
+
+  Controls for the extreme-analysis view: category select, keyword-type
+  toggle, and keyword count. Built on the shared FilterCard design-system
+  component with an extreme-accent top border.
+-->
 <script lang="ts">
 	import { t } from '$lib/i18n';
 	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
+	import { FilterCard } from '$lib/components/common';
 	import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
 
 	// Props
@@ -40,108 +48,111 @@
 	}
 </script>
 
-<div class="extreme-controls">
-	<div class="flex items-center gap-3 mb-4">
-		<div class="extreme-controls-icon">
+<FilterCard title={$t.extremeAnalysis.analysisControls} class="extreme-controls-card">
+	{#snippet header()}
+		<span class="extreme-controls-icon">
 			<SlidersHorizontalIcon size={18} class="text-orange-400" />
-		</div>
-		<h3 class="h5 text-white responsive-title">{$t.extremeAnalysis.analysisControls}</h3>
-	</div>
+		</span>
+	{/snippet}
 
-	<div class="controls-grid">
-		<!-- Category Select -->
-		<div class="control-group">
-			<label for="category-select" class="control-label">
-				{$t.extremeAnalysis.selectCategory}
-			</label>
-			<select
-				id="category-select"
-				bind:value={selectedCategory}
-				onchange={handleCategoryChange}
-				class="select-input"
-			>
-				<option value="subjectivity_extreme_high">
-					{$t.extremeAnalysis.categories.subjectivityHigh}
-				</option>
-				<option value="subjectivity_extreme_low">
-					{$t.extremeAnalysis.categories.subjectivityLow}
-				</option>
-				<option value="polarity_very_negative">
-					{$t.extremeAnalysis.categories.polarityNegative}
-				</option>
-				<option value="polarity_very_positive">
-					{$t.extremeAnalysis.categories.polarityPositive}
-				</option>
-				<option value="centrality_very_central">
-					{$t.extremeAnalysis.categories.centralityHigh}
-				</option>
-				<option value="centrality_not_central">
-					{$t.extremeAnalysis.categories.centralityLow}
-				</option>
-			</select>
-		</div>
+	{#snippet chips()}
+		<div class="controls-grid">
+			<!-- Category Select -->
+			<div class="control-group">
+				<label for="category-select" class="control-label">
+					{$t.extremeAnalysis.selectCategory}
+				</label>
+				<select
+					id="category-select"
+					bind:value={selectedCategory}
+					onchange={handleCategoryChange}
+					class="select-input"
+				>
+					<option value="subjectivity_extreme_high">
+						{$t.extremeAnalysis.categories.subjectivityHigh}
+					</option>
+					<option value="subjectivity_extreme_low">
+						{$t.extremeAnalysis.categories.subjectivityLow}
+					</option>
+					<option value="polarity_very_negative">
+						{$t.extremeAnalysis.categories.polarityNegative}
+					</option>
+					<option value="polarity_very_positive">
+						{$t.extremeAnalysis.categories.polarityPositive}
+					</option>
+					<option value="centrality_very_central">
+						{$t.extremeAnalysis.categories.centralityHigh}
+					</option>
+					<option value="centrality_not_central">
+						{$t.extremeAnalysis.categories.centralityLow}
+					</option>
+				</select>
+			</div>
 
-		<!-- Keyword Type Toggle -->
-		<div class="control-group">
-			<span class="control-label" id="keyword-type-label">
-				{$t.extremeAnalysis.selectKeywordType}
-			</span>
-			<div class="btn-group-toggle">
-				<button
-					class="btn-toggle {selectedKeywordType === 'subject' ? 'active' : ''}"
-					onclick={() => handleKeywordTypeChange('subject')}
-					aria-pressed={selectedKeywordType === 'subject'}
-				>
-					{$t.extremeAnalysis.subjectKeywords}
-				</button>
-				<button
-					class="btn-toggle {selectedKeywordType === 'spatial' ? 'active' : ''}"
-					onclick={() => handleKeywordTypeChange('spatial')}
-					aria-pressed={selectedKeywordType === 'spatial'}
-				>
-					{$t.extremeAnalysis.spatialKeywords}
-				</button>
+			<!-- Keyword Type Toggle -->
+			<div class="control-group">
+				<span class="control-label" id="keyword-type-label">
+					{$t.extremeAnalysis.selectKeywordType}
+				</span>
+				<div class="btn-group-toggle">
+					<button
+						class="btn-toggle {selectedKeywordType === 'subject' ? 'active' : ''}"
+						onclick={() => handleKeywordTypeChange('subject')}
+						aria-pressed={selectedKeywordType === 'subject'}
+					>
+						{$t.extremeAnalysis.subjectKeywords}
+					</button>
+					<button
+						class="btn-toggle {selectedKeywordType === 'spatial' ? 'active' : ''}"
+						onclick={() => handleKeywordTypeChange('spatial')}
+						aria-pressed={selectedKeywordType === 'spatial'}
+					>
+						{$t.extremeAnalysis.spatialKeywords}
+					</button>
+				</div>
+			</div>
+
+			<!-- Keywords Count -->
+			<div class="control-group">
+				<label for="keywords-count" class="control-label">
+					{$t.extremeAnalysis.numberOfKeywords || 'Number of Keywords'}
+				</label>
+				<input
+					id="keywords-count"
+					type="number"
+					min="5"
+					max="25"
+					bind:value={showTopN}
+					onchange={handleTopNChange}
+					class="number-input"
+				/>
 			</div>
 		</div>
-
-		<!-- Keywords Count -->
-		<div class="control-group">
-			<label for="keywords-count" class="control-label">
-				{$t.extremeAnalysis.numberOfKeywords || 'Number of Keywords'}
-			</label>
-			<input
-				id="keywords-count"
-				type="number"
-				min="5"
-				max="25"
-				bind:value={showTopN}
-				onchange={handleTopNChange}
-				class="number-input"
-			/>
-		</div>
-	</div>
-</div>
+	{/snippet}
+</FilterCard>
 
 <style>
-	.extreme-controls {
-		background: var(--surface-card);
-		border: 1px solid var(--border-subtle);
+	/* Extreme accent on the shared card (matches the previous hand-rolled
+	   chrome). Scoped via the unique class passed to FilterCard. */
+	:global(.filter-card.extreme-controls-card) {
 		border-top: 2px solid var(--sentiment-extreme);
-		padding: var(--space-3);
 	}
 
 	.extreme-controls-icon {
+		/* Render the icon before the title inside FilterCard's flex header */
+		order: -1;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		width: var(--size-control-md);
 		height: var(--size-control-md);
-		background: var(--sentiment-extreme-icon-bg);
+		background: var(--sentiment-extreme-bg);
 		border: 1px solid var(--sentiment-extreme-border);
 	}
 
 	/* Controls Grid */
 	.controls-grid {
+		width: 100%;
 		display: grid;
 		grid-template-columns: 2fr 2fr 1fr;
 		gap: var(--space-4);
@@ -243,7 +254,7 @@
 	.btn-toggle.active {
 		background: var(--sentiment-extreme-bg);
 		color: var(--sentiment-extreme-accent);
-		font-weight: 600;
+		font-weight: var(--font-weight-semibold);
 	}
 
 	/* Number Input */
@@ -285,19 +296,6 @@
 	.number-input[type='number'] {
 		-moz-appearance: textfield;
 		appearance: textfield;
-	}
-
-	/* Responsive title adjustments */
-	.responsive-title {
-		@media (max-width: 768px) {
-			font-size: var(--font-size-lg) !important;
-			margin-bottom: var(--space-3) !important;
-		}
-
-		@media (max-width: 480px) {
-			font-size: var(--font-size-md) !important;
-			margin-bottom: var(--space-2) !important;
-		}
 	}
 
 	/* Mobile Responsiveness */
@@ -373,7 +371,6 @@
 	@media (prefers-reduced-motion: reduce) {
 		.select-input,
 		.btn-toggle,
-		.btn-toggle::before,
 		.number-input {
 			transition: none;
 		}

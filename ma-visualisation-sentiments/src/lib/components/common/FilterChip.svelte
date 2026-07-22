@@ -33,6 +33,9 @@
 		| 'centrality-secondary'
 		| 'centrality-marginal'
 		| 'centrality-not-addressed'
+		// Comparison / discrepancy variants
+		| 'comparison'
+		| 'warning'
 		// Default
 		| 'default';
 
@@ -220,6 +223,22 @@
 		background: var(--sentiment-centrality-not-addressed-bg);
 		border-color: var(--sentiment-centrality-not-addressed-border);
 		color: var(--sentiment-centrality-not-addressed);
+	}
+
+	/* ============================================
+     COMPARISON / DISCREPANCY VARIANTS
+     ============================================ */
+
+	.filter-chip.comparison[data-selected='true'] {
+		background: var(--sentiment-comparison-bg);
+		border-color: var(--sentiment-comparison-border);
+		color: var(--sentiment-comparison-light);
+	}
+
+	.filter-chip.warning[data-selected='true'] {
+		background: color-mix(in oklab, var(--color-warning-500) 18%, transparent);
+		border-color: color-mix(in oklab, var(--color-warning-500) 45%, transparent);
+		color: var(--color-warning-300);
 	}
 
 	/* Responsive */

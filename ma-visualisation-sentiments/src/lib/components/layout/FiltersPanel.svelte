@@ -209,7 +209,6 @@
 	@media (min-width: 1024px) {
 		.filters-rail {
 			/* Clears the sticky AppHeader (~96px tall at >=1024px) plus a small gap. */
-			--rail-top: 6.5rem;
 			position: sticky;
 			top: var(--rail-top);
 			left: auto;

@@ -17,7 +17,7 @@ Comparative analysis of results across three AI models (ChatGPT, Gemini, Mistral
 - Automatic discrepancy calculation between models
 - Advanced filters by disagreement level
 - Detailed convergence and conflict statistics
-- **Arbiter evaluations**: Gemini 2.5 Pro as third-party evaluator to determine which model is most relevant
+- **Arbiter evaluations**: Gemini 3 Pro as third-party evaluator to determine which model is most relevant
 - CSV export including compared model data
 
 ### Multilingual Interface
@@ -51,17 +51,16 @@ https://fmadore.github.io/IWAC-sentiment-analysis/?view=comparison&compare=true&
 
 ## Performance Optimizations
 
-The application has been optimized for high performance despite large data volumes (22MB of JSON):
+The application has been optimized for high performance despite large data volumes (a shared 2.4MB article-metadata file, per-model sentiment files of 8–14MB, plus extreme-analysis and arbiter data):
 
 ### Lazy Loading
-- **50% reduction in initial transfer**: Only the selected dataset loads at startup (11MB instead of 22MB)
-- **On-demand loading**: The second dataset loads only when comparison mode is activated
+- **Reduced initial transfer**: Only the selected model's dataset loads at startup
+- **On-demand loading**: The other models' datasets load only when comparison mode is activated; arbiter and extreme-analysis data load with their views
 - **Smart caching**: Datasets remain in memory after loading for instant switching
 
 ### Data Compression
-- **Brotli compression**: 91% file size reduction (22MB -> 1.9MB)
-- **Gzip compression**: Alternative with 85% reduction (22MB -> 3.3MB)
-- **Automatic configuration**: Precompression enabled in SvelteKit with `vite-plugin-compression`
+- **Brotli/Gzip precompression**: Build assets are precompressed with `vite-plugin-compression` (~90% reduction for JSON)
+- **Automatic configuration**: Precompression enabled in the Vite build
 
 ### CLS Optimization (Cumulative Layout Shift)
 - Optimized font loading with preconnect and preload for Google Fonts
@@ -95,7 +94,7 @@ The project is structured as a modern SvelteKit application with Svelte 5 runes:
 -   `src/`
     -   `lib/`: Main application logic.
         -   `components/`: Reusable Svelte components organized by category.
-            -   `common/`: Base reusable components (AccordionItem, ArbiterSection, FilterCard, FilterChip, GlassCard, SentimentBadge, modals, etc.).
+            -   `common/`: Base reusable components (AccordionItem, ArbiterSection, FilterCard, FilterChip, SentimentBadge, modals, etc.).
             -   `layout/`: Page structure (AppHeader, FiltersPanel, SidebarNav, ViewContent).
             -   `data-display/`: Data display components (AnalysisInfo, ArticleDetail, ArticleTable, ComparisonDetail, ComparisonStats, ComparisonTable, ComparisonView).
             -   `filters/`: Filter components (CentralityFilter, CountryFilter, DiscrepancyFilter, JournalFilter, PolarityFilter, SubjectivityFilter, etc.).
@@ -104,7 +103,7 @@ The project is structured as a modern SvelteKit application with Svelte 5 runes:
             -   `SEOHead.svelte`: Dynamic SEO metadata with multilingual support.
             -   `PWAManager.svelte`: PWA installation and update management.
         -   `stores/`: State management modules with Svelte 5 runes.
-            -   `arbiter.svelte.ts`: Gemini 2.5 Pro arbiter evaluation state.
+            -   `arbiter.svelte.ts`: Gemini 3 Pro arbiter evaluation state.
             -   `articles.svelte.ts`: Corpus article state.
             -   `comparison.svelte.ts`: Model comparison mode state.
             -   `datasets.svelte.ts`: Dataset and model selection state.
@@ -117,17 +116,12 @@ The project is structured as a modern SvelteKit application with Svelte 5 runes:
         -   `types/`: TypeScript definitions.
             -   `data.ts`: Data structures (Article, SentimentAnalysis, etc.) with named types (`PolarityValue`, `SubjectivityScore`, `CentralityValue`).
             -   `extremeAnalysis.ts`: Extreme analysis types.
-            -   `pwa.ts`: PWA types.
         -   `utils/`: Shared utility functions.
             -   `format.ts`: Shared formatting (`formatDate`, `getArticleUrl`, `getModelDisplayName`).
             -   `csv.ts`: CSV export (`escapeCSVField`, `formatDateForCSV`, `downloadCSVFile`).
             -   `discrepancy.ts`: Discrepancy display styling (`getDiffClass`, `getDiffBadgeClass`).
             -   `chartTheme.ts`: ECharts theme configuration.
             -   `extremeAnalysis.ts`: Extreme analysis utilities.
-            -   `pwa.ts`: PWA utilities.
-        -   `urlState.ts`: Legacy URL state management (for compatibility).
-        -   `utils.ts`: General utility functions.
-        -   `index.ts`: Central entry point for exports.
     -   `routes/`: Application pages.
         -   `+page.svelte`: Main visualization page component.
         -   `+layout.svelte`: Common layout for all pages.
@@ -137,9 +131,10 @@ The project is structured as a modern SvelteKit application with Svelte 5 runes:
     -   `app.css`: Global CSS styles with CSS variables and theme.
 -   `static/`: Static files.
     -   `data/`: **IWAC corpus JSON data files.**
-        -   `iwac_articles_chatgpt.json`: Articles analyzed by ChatGPT.
-        -   `iwac_articles_gemini.json`: Articles analyzed by Gemini.
-        -   `iwac_articles_mistral.json`: Articles analyzed by Mistral.
+        -   `iwac_articles_base.json`: Shared article metadata (titles, newspapers, countries, dates).
+        -   `iwac_sentiment_chatgpt.json`: ChatGPT sentiment analyses, keyed by article id.
+        -   `iwac_sentiment_gemini.json`: Gemini sentiment analyses, keyed by article id.
+        -   `iwac_sentiment_mistral.json`: Mistral sentiment analyses, keyed by article id.
         -   `iwac_arbiter_evaluations_*.json`: Arbiter evaluations for each model pair.
         -   `iwac_extreme_analysis_*.json`: Lexical extreme analyses per model.
 -   `data-preprocess/`: Data preparation scripts.
@@ -158,9 +153,12 @@ The project is structured as a modern SvelteKit application with Svelte 5 runes:
 ### Data Format
 
 The application automatically loads the IWAC corpus from JSON files in `static/data/`:
-- `iwac_articles_chatgpt.json`: Articles analyzed by ChatGPT
-- `iwac_articles_gemini.json`: Articles analyzed by Gemini
-- `iwac_articles_mistral.json`: Articles analyzed by Mistral
+- `iwac_articles_base.json`: Shared article metadata, stored once for all models
+- `iwac_sentiment_chatgpt.json`: ChatGPT sentiment analyses, keyed by article id
+- `iwac_sentiment_gemini.json`: Gemini sentiment analyses, keyed by article id
+- `iwac_sentiment_mistral.json`: Mistral sentiment analyses, keyed by article id
+
+The frontend joins the base metadata with the selected model's sentiment file at load time, so switching models only downloads the sentiment payload.
 
 Each file contains a list of `Article` objects, where each article includes metadata (title, newspaper, country, date) and a `sentiment_analysis` object with analysis results (polarity, subjectivity, centrality, etc.).
 
@@ -168,7 +166,7 @@ Comparison mode uses two datasets simultaneously (selected from the three possib
 
 ### Arbiter Data
 
-For each model pair, arbiter evaluations by Gemini 2.5 Pro are available:
+For each model pair, arbiter evaluations by Gemini 3 Pro are available:
 - `iwac_arbiter_evaluations_chatgpt-gemini.json`
 - `iwac_arbiter_evaluations_chatgpt-mistral.json`
 - `iwac_arbiter_evaluations_gemini-mistral.json`
@@ -280,7 +278,7 @@ The application uses state management modules based on **Svelte 5 runes** for op
 - `comparisonStatistics`: Comparison statistics and metrics
 
 ### `arbiter.svelte.ts`
-- `arbiterEvaluations`: Arbiter evaluations by Gemini 2.5 Pro
+- `arbiterEvaluations`: Arbiter evaluations by Gemini 3 Pro
 - `currentArbiterPair`: Model pair for which evaluations are loaded
 - `arbiterStatistics`: Arbiter verdict statistics
 - `getArbiterForArticle()`: Retrieves arbiter evaluation for an article
@@ -309,7 +307,7 @@ Comparison mode is an advanced feature that analyzes differences between sentime
 - **Potential biases**: Detecting systematic disagreement patterns
 - **Analysis reliability**: Evaluating result robustness
 - **Complex cases**: Spotting articles requiring human expertise
-- **Objective arbitration**: Gemini 2.5 Pro verdicts to adjudicate between models
+- **Objective arbitration**: Gemini 3 Pro verdicts to adjudicate between models
 
 ### How to Activate Comparison Mode
 
@@ -403,7 +401,7 @@ To update the IWAC corpus data:
     ```bash
     python data-preprocess/data-fetch.py
     ```
-    This script automatically fetches data from the Hugging Face dataset and generates `iwac_articles_chatgpt.json`, `iwac_articles_gemini.json`, and `iwac_articles_mistral.json`.
+    This script automatically fetches data from the Hugging Face dataset and generates `iwac_articles_base.json` plus `iwac_sentiment_chatgpt.json`, `iwac_sentiment_gemini.json`, and `iwac_sentiment_mistral.json`.
 
 3.  **Generate arbiter evaluations (Admin only):**
     ```bash

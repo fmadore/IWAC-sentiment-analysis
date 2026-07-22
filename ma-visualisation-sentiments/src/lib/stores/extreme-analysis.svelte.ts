@@ -5,6 +5,7 @@
  * Provides both modern $state-based API and legacy store compatibility.
  */
 
+import { SvelteMap } from 'svelte/reactivity';
 import type { ExtremeAnalysisData } from '$lib/types/extremeAnalysis';
 import { loadExtremeAnalysisData, filterExtremeAnalysisData } from '$lib/utils/extremeAnalysis';
 import { datasetState } from './datasets.svelte';
@@ -37,32 +38,38 @@ const _filteredExtremeAnalysisRune = $derived.by(() =>
 // Data Loading
 // ============================================
 
+/** In-flight dedup: two effects can request the same dataset in one tick. */
+const extremeInFlight = new SvelteMap<string, Promise<void>>();
+
 /** Load extreme analysis data for the current dataset */
 export const loadCurrentExtremeAnalysis = async (fetchFunction: typeof fetch): Promise<void> => {
 	const currentDatasetId = datasetState.selected;
 
 	if (_extremeAnalysisData[currentDatasetId]) {
-		console.log(`Extreme analysis for ${currentDatasetId} already loaded`);
 		return;
 	}
 
-	console.log(`Loading extreme analysis data for ${currentDatasetId}...`);
-
-	uiState.isLoadingExtremeAnalysis = true;
-
-	try {
-		const data = await loadExtremeAnalysisData(
-			currentDatasetId as 'chatgpt' | 'gemini' | 'mistral',
-			fetchFunction
-		);
-		extremeState.updateData(currentDatasetId, data);
-		console.log(`Successfully loaded extreme analysis data for ${currentDatasetId}`);
-	} catch (error) {
-		console.error(`Failed to load extreme analysis data for ${currentDatasetId}:`, error);
-		extremeState.updateData(currentDatasetId, null);
-	} finally {
-		uiState.isLoadingExtremeAnalysis = false;
+	const inFlight = extremeInFlight.get(currentDatasetId);
+	if (inFlight) {
+		return inFlight;
 	}
+
+	const load = (async () => {
+		uiState.isLoadingExtremeAnalysis = true;
+		try {
+			const data = await loadExtremeAnalysisData(currentDatasetId, fetchFunction);
+			extremeState.updateData(currentDatasetId, data);
+		} catch (error) {
+			console.error(`Failed to load extreme analysis data for ${currentDatasetId}:`, error);
+			extremeState.updateData(currentDatasetId, null);
+		} finally {
+			uiState.isLoadingExtremeAnalysis = false;
+		}
+	})().finally(() => {
+		extremeInFlight.delete(currentDatasetId);
+	});
+	extremeInFlight.set(currentDatasetId, load);
+	return load;
 };
 
 // ============================================

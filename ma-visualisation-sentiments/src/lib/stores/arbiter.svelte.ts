@@ -5,10 +5,14 @@
  * Uses Svelte 5 runes for reactivity.
  */
 
+import { SvelteMap } from 'svelte/reactivity';
 import type { ArbiterEvaluationData, ArbiterAnalysis, ModelPair } from '$lib/types/data';
 import { getPairModelNames } from '$lib/types/data';
 import { base } from '$app/paths';
-import { datasetState, uiState } from './index';
+// Import the leaf stores directly — importing from './index' would create a
+// cycle (the barrel re-exports this module). Same convention as url/*.
+import { datasetState } from './datasets.svelte';
+import { uiState } from './ui.svelte';
 
 // ============================================
 // Arbiter State (Svelte 5 Runes)
@@ -105,15 +109,17 @@ export interface ArbiterStatistics {
 	hasData: boolean;
 }
 
-/** Compute arbiter statistics */
-function computeArbiterStatistics(): ArbiterStatistics {
-	const { modelAName, modelBName } = getPairModelNames(datasetState.pair, datasetState.available);
-
-	if (
-		!_arbiterEvaluations ||
-		!_arbiterEvaluations.evaluations ||
-		_arbiterEvaluations.evaluations.length === 0
-	) {
+/**
+ * Compute arbiter statistics from evaluation data. Pure — exported so tests
+ * exercise the exact function the store ships instead of re-implementing the
+ * blind-evaluation verdict mapping.
+ */
+export function computeArbiterStatistics(
+	evaluationData: ArbiterEvaluationData | null,
+	modelAName: string,
+	modelBName: string
+): ArbiterStatistics {
+	if (!evaluationData || !evaluationData.evaluations || evaluationData.evaluations.length === 0) {
 		return {
 			totalEvaluated: 0,
 			modelAPreferred: 0,
@@ -148,16 +154,13 @@ function computeArbiterStatistics(): ArbiterStatistics {
 		tie: 0
 	};
 
-	for (const evaluation of _arbiterEvaluations.evaluations) {
+	for (const evaluation of evaluationData.evaluations) {
 		const arbiter = evaluation.arbiter;
 
 		// Count dimension-level preferences
 		for (const dimension of ['polarity', 'subjectivity', 'centrality'] as const) {
 			const preferredModel = arbiter[dimension]?.preferred_model as
-				| 'model_a'
-				| 'model_b'
-				| 'both'
-				| 'neither';
+				'model_a' | 'model_b' | 'both' | 'neither';
 			if (preferredModel in counts) {
 				counts[preferredModel]++;
 			}
@@ -183,7 +186,7 @@ function computeArbiterStatistics(): ArbiterStatistics {
 	// - Verdicts' "model_a"/"model_b" directly refer to these model names
 	//
 	// We want modelAPreferred to always mean "first model in pair" for consistent UI display
-	const meta = _arbiterEvaluations?.metadata;
+	const meta = evaluationData.metadata;
 	const modelAIsFirst = meta?.arbiter_model_a === meta?.pair_first_model;
 
 	// Map arbiter verdicts to pair order (first/second model in pair name)
@@ -195,7 +198,7 @@ function computeArbiterStatistics(): ArbiterStatistics {
 	const overallSecondWins = modelAIsFirst ? overallCounts.model_b : overallCounts.model_a;
 
 	return {
-		totalEvaluated: _arbiterEvaluations.evaluations.length,
+		totalEvaluated: evaluationData.evaluations.length,
 		modelAPreferred: firstModelPreferred,
 		modelBPreferred: secondModelPreferred,
 		bothEqual: counts.both,
@@ -216,7 +219,8 @@ function computeArbiterStatistics(): ArbiterStatistics {
 /** Arbiter statistics - exported as getter for reactivity */
 export const arbiterStatistics = {
 	get current(): ArbiterStatistics {
-		return computeArbiterStatistics();
+		const { modelAName, modelBName } = getPairModelNames(datasetState.pair, datasetState.available);
+		return computeArbiterStatistics(_arbiterEvaluations, modelAName, modelBName);
 	}
 };
 
@@ -251,14 +255,45 @@ export function getActualModelName(
 // Data Loading
 // ============================================
 
+/**
+ * Per-pair result cache (null = attempted, file not available) and in-flight
+ * dedup. Two effects in +page.svelte can both request arbiter data in the
+ * same tick (comparison-mode effect + activeView effect); without this the
+ * file was fetched twice on every entry into comparison/arbiter views.
+ */
+const arbiterCache = new SvelteMap<ModelPair, ArbiterEvaluationData | null>();
+const arbiterInFlight = new SvelteMap<ModelPair, Promise<void>>();
+
 /** Load arbiter evaluations for a specific model pair */
 export const loadArbiterEvaluations = async (
 	fetchFunction: typeof fetch,
 	pair?: ModelPair
 ): Promise<void> => {
-	uiState.isLoadingArbiter = true;
-
 	const targetPair: ModelPair = pair || datasetState.pair;
+
+	if (arbiterCache.has(targetPair)) {
+		_arbiterEvaluations = arbiterCache.get(targetPair) ?? null;
+		_currentArbiterPair = targetPair;
+		return;
+	}
+
+	const inFlight = arbiterInFlight.get(targetPair);
+	if (inFlight) {
+		return inFlight;
+	}
+
+	const load = fetchArbiterEvaluations(fetchFunction, targetPair).finally(() => {
+		arbiterInFlight.delete(targetPair);
+	});
+	arbiterInFlight.set(targetPair, load);
+	return load;
+};
+
+const fetchArbiterEvaluations = async (
+	fetchFunction: typeof fetch,
+	targetPair: ModelPair
+): Promise<void> => {
+	uiState.isLoadingArbiter = true;
 
 	try {
 		const pairSpecificPath = `${base}/data/iwac_arbiter_evaluations_${targetPair}.json`;
@@ -266,16 +301,19 @@ export const loadArbiterEvaluations = async (
 
 		if (!response.ok) {
 			console.log(`[Arbiter] Evaluations not found for pair ${targetPair} (this is optional data)`);
+			arbiterCache.set(targetPair, null);
 			_arbiterEvaluations = null;
 			_currentArbiterPair = targetPair;
 			return;
 		}
 
 		const data = (await response.json()) as ArbiterEvaluationData;
+		arbiterCache.set(targetPair, data);
 		_arbiterEvaluations = data;
 		_currentArbiterPair = targetPair;
 		console.log(`[Arbiter] Loaded ${data.evaluations?.length || 0} evaluations for ${targetPair}`);
 	} catch (error) {
+		// Transient (network) failure: don't cache, so a later call can retry.
 		console.log('[Arbiter] Evaluations not available:', error);
 		_arbiterEvaluations = null;
 		_currentArbiterPair = targetPair;

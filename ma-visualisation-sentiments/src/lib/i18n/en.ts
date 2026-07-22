@@ -1,6 +1,10 @@
-import type { Translations } from './types.js';
-
-export const en: Translations = {
+/**
+ * English catalog — the source of truth for the `Translations` type
+ * (types.ts derives it via `typeof en`). Do not annotate this object with
+ * `Translations`; that would be circular. fr.ts is annotated instead, which
+ * is what enforces EN/FR key parity at compile time.
+ */
+export const en = {
 	// App header and branding
 	appTitle: 'IWAC Sentiment Analysis',
 	appSubtitle: 'Islam West Africa Collection – Data visualization and exploration',
@@ -362,6 +366,8 @@ export const en: Translations = {
 		confidenceHigh: 'High',
 		confidenceMedium: 'Medium',
 		confidenceLow: 'Low',
+		evaluationsNoun: 'evaluations',
+		verdictsNoun: 'verdicts',
 		preferredModel: 'Preferred Model',
 		prefers: 'Prefers',
 		prefersChatGPT: 'ChatGPT is more accurate',
@@ -512,6 +518,72 @@ export const en: Translations = {
 			polarityPositive: 'Articles with very positive sentiment',
 			centralityHigh: 'Islam/Muslims at the heart of the subject',
 			centralityLow: 'Peripheral mention of Islam/Muslims'
+		}
+	},
+
+	// SEO metadata (SEOHead.svelte) — per-view titles/descriptions/keywords
+	meta: {
+		siteTitle: 'IWAC Sentiment Analysis',
+		comparisonTitle: 'AI Model Comparison',
+		comparisonDescription:
+			'Compare sentiment analysis results between the ChatGPT, Gemini, and Mistral models on the Islam West Africa Collection. Analyze differences in AI interpretation of media coverage.',
+		comparisonKeywords:
+			'AI comparison, ChatGPT vs Gemini vs Mistral, model comparison, sentiment analysis, IWAC, AI evaluation',
+		viewDescriptionPrefix: 'Explore ',
+		viewDescriptionSuffix:
+			' from sentiment analysis of the Islam West Africa Collection. Interactive visualization of media coverage analysis using advanced AI models.',
+		baseKeywords: 'sentiment analysis, IWAC, Islam West Africa, data visualization',
+		views: {
+			charts: {
+				title: 'Charts & Distributions',
+				description: 'sentiment distribution charts and polarity analysis',
+				keywords: 'charts, polarity, sentiment distribution, bar charts, pie charts'
+			},
+			trends: {
+				title: 'Temporal Trends',
+				description: 'temporal evolution of sentiment trends over time',
+				keywords: 'trends, temporal analysis, time series, evolution'
+			},
+			correlation: {
+				title: 'Sentiment Distribution',
+				description: 'cross-dimensional sentiment distribution analysis',
+				keywords: 'correlation, cross-analysis, distribution, relationships'
+			},
+			volume: {
+				title: 'Article Volume Analysis',
+				description: 'article publication volume and geographic distribution',
+				keywords: 'volume, geographic distribution, publication trends'
+			},
+			heatmap: {
+				title: 'Centrality Heatmap',
+				description: 'Islam centrality heatmap by country and year',
+				keywords: 'heatmap, centrality, geographic analysis, visualization'
+			},
+			table: {
+				title: 'Article Explorer',
+				description: 'detailed article exploration with filtering capabilities',
+				keywords: 'table, article explorer, filtering, search'
+			},
+			comparison: {
+				title: 'Model Comparison',
+				description: 'AI model comparison and discrepancy analysis',
+				keywords: 'comparison, AI models, discrepancy, evaluation'
+			},
+			extremes: {
+				title: 'Extreme Sentiment Analysis',
+				description: 'the most extreme sentiment categories and their recurring keywords',
+				keywords: 'extremes, keywords, outliers, sentiment categories'
+			},
+			arbiter: {
+				title: 'Arbiter Evaluation',
+				description: 'blind third-model arbitration of AI sentiment disagreements',
+				keywords: 'arbiter, blind evaluation, model disagreement, verdicts'
+			},
+			default: {
+				title: 'Data Visualization',
+				description: 'interactive data visualization',
+				keywords: 'visualization, analysis, research'
+			}
 		}
 	}
 };

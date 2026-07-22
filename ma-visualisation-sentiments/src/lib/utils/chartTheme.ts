@@ -142,12 +142,16 @@ export const chartColors = {
 	background: {
 		// Opaque editorial tooltip — high contrast, hairline border.
 		tooltip: '#13161C', // oklch(0.20 0.012 260)
-		dark: '#13161C'
+		dark: '#13161C',
+		/** Faint alternating band (heatmap splitArea stripes). */
+		stripe: 'rgba(255, 255, 255, 0.02)'
 	},
 	border: {
 		subtle: 'rgba(243, 245, 249, 0.08)',
 		light: 'rgba(243, 245, 249, 0.14)',
-		medium: 'rgba(243, 245, 249, 0.22)'
+		medium: 'rgba(243, 245, 249, 0.22)',
+		/** High-visibility outline for emphasized marks (heatmap cell hover). */
+		strong: 'rgba(255, 255, 255, 0.5)'
 	},
 	shadow: {
 		default: 'rgba(0, 0, 0, 0.35)',
@@ -157,6 +161,8 @@ export const chartColors = {
 	axis: {
 		/** Soft blue band drawn behind the hovered category (axisPointer). */
 		pointerShadow: 'rgba(59, 130, 246, 0.08)',
+		/** Hue-free axisPointer band used behind the amber keyword bars. */
+		pointerShadowNeutral: 'rgba(255, 255, 255, 0.05)',
 		/** Hairline tick color on the category axis. */
 		tickLine: 'rgba(255, 255, 255, 0.2)'
 	},
@@ -315,6 +321,24 @@ export function getSplitLineStyle() {
 }
 
 /**
+ * Integer count value-axis. The standard y-axis for "number of articles"
+ * charts: whole-number ticks only, themed axis/split lines, floored labels.
+ * Previously duplicated verbatim across the bar/line chart components.
+ */
+export function getCountYAxis(isMobile: boolean) {
+	return {
+		type: 'value' as const,
+		minInterval: 1,
+		axisLine: getAxisLineStyle(),
+		splitLine: getSplitLineStyle(),
+		axisLabel: {
+			...getAxisLabelStyle(isMobile),
+			formatter: (value: number) => Math.floor(value).toString()
+		}
+	};
+}
+
+/**
  * Common grid configuration
  */
 export function getGridConfig(
@@ -442,20 +466,6 @@ export function getLineSeriesStyle(isMobile: boolean, color: string) {
 }
 
 /**
- * Bar series — FLAT fill, no gradient, no rounded corners. FT/Reuters/
- * Bellingcat all use flat square-cornered bars. A gradient implies a change;
- * the bars here are constants, so the gradient is decoration.
- */
-export function getBarSeriesStyle(color: string, _horizontal: boolean = false) {
-	return {
-		itemStyle: {
-			color,
-			borderRadius: 0
-		}
-	};
-}
-
-/**
  * Pie / donut series — flat fills, no shadow on emphasis. Hover signal is
  * a 2px white border on the active slice. Donut radius slightly leaner than
  * the previous 42/72 to leave room for centre labels.
@@ -492,7 +502,8 @@ export function getPieSeriesStyle(isMobile: boolean) {
 }
 
 /**
- * VisualMap configuration for heatmaps
+ * VisualMap configuration for heatmaps. Callers can spread extras on top
+ * (e.g. `text`, `pieces`) for discretized legends.
  */
 export function getVisualMapConfig(isMobile: boolean, min: number, max: number, colors: string[]) {
 	return {
@@ -503,27 +514,15 @@ export function getVisualMapConfig(isMobile: boolean, min: number, max: number, 
 		left: 'center',
 		bottom: '5%',
 		textStyle: {
-			color: 'rgba(255, 255, 255, 0.85)',
-			fontSize: getFontSize(isMobile, 'label')
+			color: chartColors.text.secondary,
+			fontSize: getFontSize(isMobile, 'legend'),
+			fontFamily: '"Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
 		},
 		inRange: {
 			color: colors
 		},
 		itemWidth: isMobile ? 15 : 20,
 		itemHeight: isMobile ? 100 : 140
-	};
-}
-
-/**
- * Animation configuration
- */
-export function getAnimationConfig() {
-	return {
-		animation: true,
-		animationDuration: 800,
-		animationEasing: 'cubicOut' as const,
-		animationDurationUpdate: 300,
-		animationEasingUpdate: 'cubicInOut' as const
 	};
 }
 
@@ -550,37 +549,5 @@ export function getUniversalTransitionConfig() {
 			enabled: true,
 			divideShape: 'clone' as const
 		}
-	};
-}
-
-// =============================================================================
-// COMPLETE CHART OPTIONS BUILDER
-// =============================================================================
-
-export interface ChartOptionsBase {
-	isMobile: boolean;
-	title: string;
-	hasLegend?: boolean;
-	hasDataZoom?: boolean;
-	legendPosition?: 'top' | 'bottom';
-}
-
-/**
- * Create base chart options with common configurations
- */
-export function createBaseChartOptions(config: ChartOptionsBase) {
-	const { isMobile, title, hasLegend = true, hasDataZoom = false, legendPosition = 'top' } = config;
-
-	return {
-		backgroundColor: 'transparent',
-		title: {
-			text: title,
-			left: 'center',
-			top: '2%',
-			textStyle: getTitleStyle(isMobile)
-		},
-		tooltip: getTooltipConfig(isMobile),
-		grid: getGridConfig(isMobile, { hasLegendTop: hasLegend, hasDataZoom, legendPosition }),
-		...getAnimationConfig()
 	};
 }
