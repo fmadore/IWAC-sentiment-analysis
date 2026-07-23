@@ -414,8 +414,15 @@ def load_cached_evaluations(webapp_file: str) -> tuple[list, set, Optional[bool]
             existing_data = json.load(f)
         arbiter_results = existing_data.get('evaluations', [])
         evaluated_ids = {str(r['article_id']) for r in arbiter_results}
-        # Preserve the blind assignment from previous runs
-        model_a_is_first = existing_data.get('metadata', {}).get('model_a_is_first')
+        # Preserve the blind assignment from previous runs. Files written
+        # before the key was persisted derive it from arbiter_model_a ==
+        # pair_first_model - re-randomizing on an incremental run would
+        # silently flip the model_a/model_b mapping for new rows relative
+        # to the cached ones.
+        metadata = existing_data.get('metadata', {})
+        model_a_is_first = metadata.get('model_a_is_first')
+        if model_a_is_first is None and metadata.get('arbiter_model_a'):
+            model_a_is_first = metadata['arbiter_model_a'] == metadata.get('pair_first_model')
         return arbiter_results, evaluated_ids, model_a_is_first
     except (OSError, json.JSONDecodeError) as e:
         logger.warning("Failed to load existing data from %s: %s", webapp_file, e)
@@ -545,6 +552,8 @@ def save_results(filepath: str, results: list, pair: str, model_a_is_first: bool
             'blind_evaluation': True,
             'arbiter_model_a': arbiter_model_a,
             'arbiter_model_b': arbiter_model_b,
+            # Persisted so incremental runs keep the same blind assignment
+            'model_a_is_first': model_a_is_first,
             'pair': pair,
             'pair_first_model': first_model_name,
             'pair_second_model': second_model_name,
