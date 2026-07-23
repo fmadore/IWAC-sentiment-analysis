@@ -150,13 +150,15 @@
 		border: 1px solid var(--sentiment-extreme-border);
 	}
 
-	/* Controls Grid */
+	/* Controls stack vertically: this component only renders inside the
+	   narrow FiltersPanel rail (320px) / mobile drawer, where the old
+	   three-across grid clipped the third control on desktop. Media
+	   queries can't help — they track the viewport, not the rail. */
 	.controls-grid {
 		width: 100%;
 		display: grid;
-		grid-template-columns: 2fr 2fr 1fr;
+		grid-template-columns: 1fr;
 		gap: var(--space-4);
-		align-items: flex-end;
 	}
 
 	.control-group {
@@ -298,29 +300,7 @@
 		appearance: textfield;
 	}
 
-	/* Mobile Responsiveness */
-	@media (max-width: 1024px) {
-		.controls-grid {
-			grid-template-columns: 1fr 1fr;
-			gap: var(--space-4);
-		}
-
-		.control-group:last-child {
-			grid-column: 1 / -1;
-			justify-self: start;
-		}
-
-		.number-input {
-			max-width: 120px;
-		}
-	}
-
 	@media (max-width: 768px) {
-		.controls-grid {
-			grid-template-columns: 1fr;
-			gap: var(--space-4);
-		}
-
 		.control-group {
 			width: 100%;
 		}
@@ -357,13 +337,6 @@
 			font-size: var(--font-size-xs);
 			padding: var(--space-1-5) var(--space-2-5);
 			min-height: 34px;
-		}
-	}
-
-	/* Large Screens */
-	@media (min-width: 1200px) {
-		.controls-grid {
-			gap: var(--space-8);
 		}
 	}
 
