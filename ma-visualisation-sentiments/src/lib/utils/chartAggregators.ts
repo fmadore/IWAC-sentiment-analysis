@@ -111,6 +111,44 @@ export function aggregateByYearAndDimension(
 	};
 }
 
+/** One share-mode datum: percentage of the year's total, plus the raw count. */
+export interface SharePoint {
+	/** 0-100 percentage of the bucket's total */
+	value: number;
+	/** Underlying article count, carried through for tooltips */
+	rawCount: number;
+}
+
+/**
+ * Convert per-year dimension counts into per-year percentage shares.
+ *
+ * Denominators use only the labels the caller plots, so the resulting bands sum
+ * to exactly 100% rather than to some fraction of a wider total that includes
+ * buckets the chart doesn't draw. A year with no articles in any plotted label
+ * yields 0% across the board instead of NaN.
+ */
+export function computeDimensionShares(
+	yearlyCounts: Record<string, Record<string, number>>,
+	years: string[],
+	frenchLabels: string[]
+): Record<string, Record<string, SharePoint>> {
+	const shares: Record<string, Record<string, SharePoint>> = {};
+
+	years.forEach((year) => {
+		const counts = yearlyCounts[year] ?? {};
+		const total = frenchLabels.reduce((sum, label) => sum + (counts[label] || 0), 0);
+
+		shares[year] = Object.fromEntries(
+			frenchLabels.map((label) => {
+				const rawCount = counts[label] || 0;
+				return [label, { value: total > 0 ? (rawCount / total) * 100 : 0, rawCount }];
+			})
+		);
+	});
+
+	return shares;
+}
+
 export interface CountryYearAggregation {
 	/** country -> { year -> count } */
 	countryYearCounts: Record<string, Record<string, number>>;

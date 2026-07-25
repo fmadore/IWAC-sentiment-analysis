@@ -16,8 +16,11 @@
 	import { t, currentLanguage } from '$lib/i18n';
 	import { formatNumber } from '$lib/i18n/utils';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
+	import ChartTypeToggle from './ChartTypeToggle.svelte';
 	import { createTrendTooltipFormatter } from '$lib/utils/chartFormatters';
-	import { aggregateByYearAndDimension } from '$lib/utils/chartAggregators';
+	import { aggregateByYearAndDimension, computeDimensionShares } from '$lib/utils/chartAggregators';
+	import HashIcon from '@lucide/svelte/icons/hash';
+	import PercentIcon from '@lucide/svelte/icons/percent';
 
 	// Import centralized chart theme
 	import {
@@ -29,6 +32,7 @@
 		getAxisLabelStyle,
 		getGridConfig,
 		getCountYAxis,
+		getShareYAxis,
 		getDataZoomConfig,
 		getLineSeriesStyle,
 		getEmphasisConfig
@@ -64,6 +68,21 @@
 	// Reactive window width for responsive behavior
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
 
+	/**
+	 * Count vs share. Corpus volume runs from ~20 articles a year in the 1960s to
+	 * several hundred in the 2010s, so in count mode every series traces the
+	 * publication-volume curve and composition changes are invisible. Share mode
+	 * renders each year as a 100% stacked band, which is what actually answers
+	 * "did coverage get more negative over time?".
+	 */
+	let displayMode = $state<'count' | 'share'>('count');
+	let isShare = $derived(displayMode === 'share');
+
+	let displayModeOptions = $derived([
+		{ value: 'count', label: $t.charts.countMode, icon: HashIcon },
+		{ value: 'share', label: $t.charts.shareMode, icon: PercentIcon }
+	]);
+
 	// Use $derived for proper reactivity in Svelte 5
 	let options = $derived.by(() => {
 		const articles = articleState.filtered; // Direct reactive dependency
@@ -76,6 +95,10 @@
 			getKey
 		);
 
+		// Percentage shares are only needed in share mode; each datum carries its
+		// raw count so the tooltip can read "34.2% (58)".
+		const shares = isShare ? computeDimensionShares(yearlyCounts, years, frenchLabels) : null;
+
 		const series = frenchLabels.map((frenchLabel, index) => {
 			const color = getColor(frenchLabel, index);
 			const lineStyle = getLineSeriesStyle(isMobile, color);
@@ -83,10 +106,24 @@
 				name: seriesLabels[index],
 				type: 'line' as const,
 				emphasis: getEmphasisConfig(),
-				data: years.map((year) => yearlyCounts[year][frenchLabel] || 0),
+				data: years.map((year) =>
+					shares ? shares[year][frenchLabel] : yearlyCounts[year][frenchLabel] || 0
+				),
 				color,
 				...lineStyle,
-				smooth: true
+				smooth: true,
+				// Share mode stacks into contiguous bands; count mode stays as
+				// independent lines so series can cross and be compared directly.
+				...(isShare
+					? {
+							stack: 'share',
+							areaStyle: { color, opacity: 0.75 },
+							// Flat bands read better than wobbling splines when the eye is
+							// tracking band thickness rather than a single line's path.
+							smooth: false,
+							symbol: 'none' as const
+						}
+					: {})
 			};
 		});
 
@@ -105,7 +142,8 @@
 				trigger: 'axis',
 				axisPointer: getAxisPointerConfig(),
 				formatter: createTrendTooltipFormatter({
-					getTotalLabel: () => currentT.common.total
+					getTotalLabel: () => currentT.common.total,
+					share: () => isShare
 				})
 			},
 			legend: {
@@ -124,7 +162,7 @@
 					rotate: isMobile ? 45 : 0
 				}
 			},
-			yAxis: getCountYAxis(isMobile),
+			yAxis: isShare ? getShareYAxis(isMobile) : getCountYAxis(isMobile),
 			series: series,
 			dataZoom: getDataZoomConfig(isMobile)
 		} as EChartsOption;
@@ -132,18 +170,24 @@
 </script>
 
 {#if articleState.filtered.length > 0}
-	<div class="mb-4">
+	<div class="chart-toolbar mb-4">
 		<DatasetBadge size="sm" />
+		<ChartTypeToggle
+			options={displayModeOptions}
+			value={displayMode}
+			onChange={(value) => (displayMode = value as 'count' | 'share')}
+			{ariaLabel}
+		/>
 	</div>
 
 	<div
 		style="height: {isMobile ? '400px' : '500px'}; position: relative;"
 		class="chart-container p-2 sm:p-4"
 		role="img"
-		aria-label={ariaLabel}
+		aria-label={isShare ? `${ariaLabel} — ${$t.charts.shareMode}` : ariaLabel}
 	>
 		<Chart {init} {options} />
 	</div>
 {:else}
-	<p class="text-center py-8 text-white/80 text-sm sm:text-base">{$t.table.noFilteredArticles}</p>
+	<p class="chart-empty">{$t.table.noFilteredArticles}</p>
 {/if}

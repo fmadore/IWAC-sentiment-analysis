@@ -107,6 +107,8 @@ export const en = {
 		stackedAreas: 'Stacked areas',
 		lines: 'Lines',
 		bars: 'Bars',
+		countMode: 'Count',
+		shareMode: 'Share',
 		pie: 'Pie chart',
 		polaritySubjectivityDistribution: 'Polarity × Subjectivity Distribution',
 		subtitle: 'Visualize sentiment distribution across polarity and subjectivity dimensions.'

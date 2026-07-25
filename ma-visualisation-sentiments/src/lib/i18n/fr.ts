@@ -103,6 +103,8 @@ export const fr: Translations = {
 		stackedAreas: 'Aires empilées',
 		lines: 'Lignes',
 		bars: 'Barres',
+		countMode: 'Effectif',
+		shareMode: 'Part',
 		pie: 'Camembert',
 		polaritySubjectivityDistribution: 'Distribution Polarité × Subjectivité',
 		subtitle:

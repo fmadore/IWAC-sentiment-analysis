@@ -682,6 +682,47 @@ h3 {
 }
 
 /* -----------------------------------------------------------------------------
+   Chart Chrome
+   Single source for the shell every viz component wraps its canvas in. These
+   three rules were byte-identical copies inside VolumeChart,
+   DimensionDistributionChart and TrendsChart; the empty state was a fourth
+   variant hand-rolled with Tailwind utilities in the remaining charts.
+   ----------------------------------------------------------------------------- */
+.chart-toolbar {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-3);
+	margin-bottom: var(--space-4);
+}
+
+@media (min-width: 640px) {
+	.chart-toolbar {
+		flex-direction: row;
+	}
+}
+
+.chart-container {
+	background: transparent;
+	padding: var(--space-2);
+}
+
+@media (min-width: 640px) {
+	.chart-container {
+		padding: var(--space-4);
+	}
+}
+
+/* Shown in place of the canvas when filters exclude everything. */
+.chart-empty {
+	text-align: center;
+	padding: var(--space-8) 0;
+	color: var(--text-muted);
+	font-size: var(--font-size-sm);
+}
+
+/* -----------------------------------------------------------------------------
    Table Styling
    ----------------------------------------------------------------------------- */
 .table-container {

@@ -217,7 +217,7 @@
 		</div>
 	{/if}
 {:else}
-	<p class="text-center py-8 text-white/80 text-sm sm:text-base">{$t.messages.noData}</p>
+	<p class="chart-empty">{$t.messages.noData}</p>
 {/if}
 
 <style>

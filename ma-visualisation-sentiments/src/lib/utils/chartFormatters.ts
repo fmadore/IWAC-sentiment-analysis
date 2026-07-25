@@ -15,6 +15,17 @@ interface TooltipParam {
 	seriesName?: string;
 	axisValue?: string | number;
 	axisValueLabel?: string;
+	/** Raw datum when a series supplies objects rather than bare numbers. */
+	data?: { value: number; rawCount?: number } | number;
+}
+
+/** Pull the raw article count a share-mode series carries alongside its percentage. */
+function getRawCount(param: TooltipParam): number | null {
+	const datum = param.data;
+	if (datum && typeof datum === 'object' && typeof datum.rawCount === 'number') {
+		return datum.rawCount;
+	}
+	return null;
 }
 
 /**
@@ -99,6 +110,12 @@ export function createStackedBarTooltipFormatter(options: {
 export function createTrendTooltipFormatter(options: {
 	getTotalLabel: () => string;
 	sort?: boolean;
+	/**
+	 * Share mode: series values are percentages and each datum carries its
+	 * `rawCount`. The tooltip then reads "34.2% (58)" and the total row shows the
+	 * year's article count rather than a meaningless 100%.
+	 */
+	share?: () => boolean;
 }): (params: unknown) => string {
 	const sort = options.sort ?? false;
 
@@ -107,6 +124,7 @@ export function createTrendTooltipFormatter(options: {
 			return '';
 		}
 
+		const isShare = options.share?.() ?? false;
 		const typed = params as TooltipParam[];
 		const items = sort ? typed.slice().sort((a, b) => b.value - a.value) : typed;
 
@@ -114,14 +132,18 @@ export function createTrendTooltipFormatter(options: {
 		let total = 0;
 
 		items.forEach((param) => {
+			const rawCount = getRawCount(param);
 			if (param.value > 0) {
+				const display = isShare
+					? `${param.value.toFixed(1)}%${rawCount === null ? '' : ` <span style="opacity:0.65;font-weight:400;">(${rawCount})</span>`}`
+					: `${param.value}`;
 				listHtml += `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">
 					<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${param.color};"></span>
 					<span style="flex:1;">${param.seriesName}</span>
-					<strong>${param.value}</strong>
+					<strong>${display}</strong>
 				</div>`;
 			}
-			total += param.value;
+			total += isShare ? (rawCount ?? 0) : param.value;
 		});
 
 		return `<div style="min-width:160px;">

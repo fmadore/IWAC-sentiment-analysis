@@ -339,6 +339,25 @@ export function getCountYAxis(isMobile: boolean) {
 }
 
 /**
+ * Percentage y-axis for 100%-stacked ("share") chart modes. Pinned to 0-100 so
+ * the band boundaries stay comparable between years instead of rescaling to
+ * whatever the data happens to reach.
+ */
+export function getShareYAxis(isMobile: boolean) {
+	return {
+		type: 'value' as const,
+		min: 0,
+		max: 100,
+		axisLine: getAxisLineStyle(),
+		splitLine: getSplitLineStyle(),
+		axisLabel: {
+			...getAxisLabelStyle(isMobile),
+			formatter: (value: number) => `${value}%`
+		}
+	};
+}
+
+/**
  * Common grid configuration
  */
 export function getGridConfig(

@@ -4,6 +4,7 @@ import {
 	aggregateByJournalAndDimension,
 	aggregateByYearAndDimension,
 	aggregateByCountryAndYear,
+	computeDimensionShares,
 	extractYear,
 	getSubjectivityLabel
 } from './chartAggregators';
@@ -196,5 +197,66 @@ describe('getSubjectivityLabel', () => {
 		expect(getSubjectivityLabel(null)).toBe('Non applicable');
 		expect(getSubjectivityLabel(undefined)).toBe('Non applicable');
 		expect(getSubjectivityLabel(0)).toBe('Non applicable');
+	});
+});
+
+describe('computeDimensionShares', () => {
+	const labels = ['Positif', 'Neutre', 'Négatif'];
+
+	it('converts counts to percentages that sum to 100 per year', () => {
+		const shares = computeDimensionShares(
+			{ '2010': { Positif: 3, Neutre: 1, Négatif: 0 } },
+			['2010'],
+			labels
+		);
+
+		expect(shares['2010'].Positif.value).toBeCloseTo(75);
+		expect(shares['2010'].Neutre.value).toBeCloseTo(25);
+		expect(shares['2010'].Négatif.value).toBe(0);
+
+		const total = labels.reduce((sum, label) => sum + shares['2010'][label].value, 0);
+		expect(total).toBeCloseTo(100);
+	});
+
+	it('carries the raw count alongside each percentage', () => {
+		const shares = computeDimensionShares(
+			{ '2010': { Positif: 3, Neutre: 1, Négatif: 0 } },
+			['2010'],
+			labels
+		);
+
+		expect(shares['2010'].Positif.rawCount).toBe(3);
+		expect(shares['2010'].Négatif.rawCount).toBe(0);
+	});
+
+	it('normalizes against the plotted labels only, not other buckets present', () => {
+		// 'Non applicable' is excluded from `labels`, so it must not dilute the
+		// bands — otherwise they would visibly fail to reach 100%.
+		const shares = computeDimensionShares(
+			{ '2010': { Positif: 1, Neutre: 1, Négatif: 0, 'Non applicable': 98 } },
+			['2010'],
+			labels
+		);
+
+		expect(shares['2010'].Positif.value).toBeCloseTo(50);
+		expect(shares['2010'].Neutre.value).toBeCloseTo(50);
+	});
+
+	it('yields 0% rather than NaN for a year with no plotted articles', () => {
+		const shares = computeDimensionShares(
+			{ '2010': { Positif: 0, Neutre: 0, Négatif: 0 } },
+			['2010'],
+			labels
+		);
+
+		labels.forEach((label) => {
+			expect(shares['2010'][label].value).toBe(0);
+			expect(Number.isNaN(shares['2010'][label].value)).toBe(false);
+		});
+	});
+
+	it('tolerates a year missing from the counts map', () => {
+		const shares = computeDimensionShares({}, ['1999'], labels);
+		expect(shares['1999'].Positif).toEqual({ value: 0, rawCount: 0 });
 	});
 });
