@@ -240,7 +240,7 @@
 		width: var(--size-control-md);
 		height: var(--size-control-md);
 		border-radius: var(--radius-md);
-		background: var(--sentiment-arbiter-icon-bg);
+		background: var(--sentiment-arbiter-bg);
 		border: 1px solid var(--sentiment-arbiter-border);
 	}
 
@@ -281,7 +281,7 @@
 	}
 
 	.key-info-icon.arbiter {
-		background: var(--sentiment-arbiter-icon-bg);
+		background: var(--sentiment-arbiter-bg);
 		border: 1px solid var(--sentiment-arbiter-border);
 		color: var(--sentiment-arbiter);
 	}

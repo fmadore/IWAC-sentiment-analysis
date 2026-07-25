@@ -199,11 +199,13 @@ The application offers a comprehensive suite of interactive visualizations for e
 
 ### 2. Trends - Temporal Evolution
 - **Sentiment trends**: Polarity evolution over the years
+- **Count/share toggle**: 100% stacked bands separate composition from publication volume, which varies by two orders of magnitude across the corpus
 - **Interactive navigation**: Zoom and scroll to explore periods
 - **Smoothed lines**: Clear visualization of long-term trends
 
 ### 3. Distribution - Cross-Dimensional Relationships
 - **Grouped bar chart**: Cross-distribution between polarity and subjectivity
+- **Spearman's ρ**: Rank correlation with p-value and n, reported under the chart
 - **Polarity categories**: Very negative, Negative, Neutral, Positive, Very positive, Not applicable
 - **Subjectivity levels**: Very objective, Rather objective, Mixed, Rather subjective, Very subjective
 - **Informative tooltips**: Article count per category and totals
@@ -218,21 +220,42 @@ The application offers a comprehensive suite of interactive visualizations for e
 - **Color scale**: From blue (low centrality) to red (high centrality)
 - **Spatio-temporal patterns**: Identifying geographic and historical trends
 
-### 6. Table - Detailed Exploration
+### 6. Seasonality - Islamic Lunar Calendar
+- **Coverage by Hijri month**: Article volume and mean centrality across the twelve Hijri months
+- **Cycle and bar layouts**: Polar view for the calendar cycle, bar view for precise month-to-month comparison
+- **Coverage index**: 1.0 = a month's even share of the corpus, so months are comparable
+- **Why it exists**: the Hijri year drifts ~11 days against the Gregorian one, so lunar patterns are invisible in any year- or month-based view. Coverage nearly doubles during Ramadan and the hajj months
+- **Methodological note**: tabular (arithmetic) Islamic calendar, stated on the chart
+
+### 7. Newspapers - Ranked by Sentiment
+- **Ranked dot plot**: Newspapers ordered by mean polarity, subjectivity or centrality
+- **95% confidence intervals**: Whiskers keep small-sample titles honest
+- **Minimum-n threshold**: Titles under 30 rated articles are omitted, and the count omitted is stated
+- **Neutral reference line**: Marks the midpoint of each measure's own scale
+
+### 8. Agreement - How the Models Relate
+- **Confusion matrix**: Row-normalized cross-tabulation of two models' labels per dimension, diagonal outlined
+- **Cohen's κ and weighted κ**: Chance-corrected agreement, unweighted and quadratic-weighted; a large gap between them signals a systematic offset rather than genuine conflict
+- **Fleiss' κ**: Agreement across all three models at once, complete cases only
+- **Model calibration**: Each model's own label distribution on a shared axis
+- **Corpus-scope facets only**: Country and newspaper; sentiment filters are deliberately absent because selecting by the label under comparison would make the statistics circular
+
+### 9. Table - Detailed Exploration
 - **Interactive table**: Complete article list with sorting and pagination
 - **Responsive mobile view**: Cards for small screens
 - **Article details**: Modal with complete metadata and analysis justifications
 
-### 7. Comparison - Model Comparative Analysis
+### 10. Comparison - Model Comparative Analysis
 - **Comparison table**: Side-by-side visualization of model analyses
 - **Automatic discrepancy calculation**: Quantified differences per dimension
 - **Discrepancy filters**: Customizable thresholds for exploring conflicts
 - **Detailed statistics**: Metrics on convergences and divergences
+- **Disagreement breakdown**: Mean discrepancy by decade and by country, locating where the models diverge
 - **Color codes**: Quick visual identification of conflict levels
 - **Detailed view**: In-depth article-by-article analysis with justifications
 - **Specialized export**: CSV including both models' data and their differences
 
-### 8. Extremes - Lexical Extreme Analysis
+### 11. Extremes - Lexical Extreme Analysis
 - **Keyword analysis**: Identification of most frequent keywords in extreme cases
 - **Extreme categories**:
   - **Very high subjectivity** (4-5): Articles expressing strong opinions on Islam/Muslims

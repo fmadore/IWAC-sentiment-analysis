@@ -92,14 +92,14 @@
 	}
 
 	.comparison-mode {
-		--dataset-color: var(--color-tertiary-500);
-		background: color-mix(in oklab, var(--color-tertiary-500) 15%, transparent);
-		border-color: color-mix(in oklab, var(--color-tertiary-500) 30%, transparent);
+		--dataset-color: var(--color-secondary-500);
+		background: color-mix(in oklab, var(--color-secondary-500) 15%, transparent);
+		border-color: color-mix(in oklab, var(--color-secondary-500) 30%, transparent);
 	}
 
 	.comparison-mode:hover {
-		background: color-mix(in oklab, var(--color-tertiary-500) 20%, transparent);
-		border-color: color-mix(in oklab, var(--color-tertiary-500) 40%, transparent);
+		background: color-mix(in oklab, var(--color-secondary-500) 20%, transparent);
+		border-color: color-mix(in oklab, var(--color-secondary-500) 40%, transparent);
 	}
 
 	.dataset-icon {

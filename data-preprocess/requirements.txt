@@ -1,8 +1,23 @@
-datasets
-tqdm
-pandas
-huggingface_hub
-google-genai
-pydantic
-python-dotenv
-pyarrow
+# Pinned with compatible-release constraints so a re-run reproduces the
+# published figures. This matters more here than in a typical app: the
+# preprocessing output IS the dataset the dashboard cites, and google-genai in
+# particular determines how `gemini-3-pro-preview` resolves for the arbiter.
+#
+# Bump deliberately, then re-run the pipeline and check the corpus regression
+# test (ma-visualisation-sentiments/src/lib/utils/agreementCorpus.test.ts),
+# which pins the headline agreement figures against the shipped data and will
+# fail loudly if regenerating the corpus moves a published number.
+
+datasets~=5.0.0
+tqdm~=4.69.1
+pandas~=3.0.5
+huggingface_hub~=1.24.0
+google-genai~=2.14.0
+pydantic~=2.13.4
+python-dotenv~=1.2.2
+pyarrow~=25.0.0
+
+# Test-only. The preprocessing helpers are the source of the published
+# figures, so they carry tests (test_shared.py); pytest is not needed to run
+# the pipeline itself.
+pytest~=9.1.1

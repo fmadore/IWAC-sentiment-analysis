@@ -17,7 +17,7 @@ IWAC-sentiment-analysis/
 │   │   │   ├── stores/            # State management (Svelte 5 runes accessor objects)
 │   │   │   ├── i18n/              # Internationalization (en.ts, fr.ts, types.ts)
 │   │   │   ├── types/             # TypeScript type definitions
-│   │   │   └── utils/             # Utility functions (format, csv, discrepancy, chartTheme, chartAggregators, extremeAnalysis, pagination, accordion)
+│   │   │   └── utils/             # Utility functions (format, csv, discrepancy, chartTheme, chartAggregators, extremeAnalysis, pagination, accordion, agreement, agreementData, correlation, hijri, newspaperRanking)
 │   │   ├── routes/                # SvelteKit routes (single-page app)
 │   │   └── mocks/                 # Test mocks for $app/* modules
 │   ├── static/data/               # JSON data files served at runtime
@@ -192,10 +192,40 @@ import MenuIcon from '@lucide/svelte/icons/menu';
 - Datasets: `chatgpt`, `gemini`, `mistral`
 - Comparison pairs: `chatgpt-gemini`, `chatgpt-mistral`, `gemini-mistral`
 
+### Views
+
+`charts`, `trends`, `correlation`, `volume`, `seasonality`, `heatmap`,
+`ranking`, `table`, `comparison`, `agreement`, `extremes`, `arbiter`.
+
+`comparison`, `agreement` and `arbiter` are **self-contained**: they run
+full-width, own their internal filters, and get no shared filter rail (see
+`SELF_CONTAINED_VIEWS` in `+page.svelte`).
+
+### Statistics modules
+
+| Module | Purpose |
+|--------|---------|
+| `utils/agreement.ts` | Cohen's/Fleiss' kappa, confusion matrices. Knows nothing about `Article` |
+| `utils/agreementData.ts` | Shapes `Article[]` into label pairs / rater items / marginals |
+| `utils/correlation.ts` | Spearman's rho with tie-averaged ranks + t-approximation p-value |
+| `utils/newspaperRanking.ts` | Per-newspaper means with 95% confidence intervals |
+| `utils/hijri.ts` | Tabular Islamic calendar conversion (month-level aggregates only) |
+
+Ordinal scales put `Non applicable` / `Non abordé` at the **bottom**, matching
+`stores/derivations.ts`. Weighted kappa reads ordinal positions, so moving them
+changes published figures — `utils/agreementCorpus.test.ts` pins those figures
+against the shipped data and will fail if they drift.
+
 ## Testing
 
 - Test files live next to source: `arbiter.svelte.ts` -> `arbiter.test.ts`
 - Test pure functions extracted from stores (avoid testing Svelte runes directly)
+- Component tests work: `vitest.config.ts` sets `resolve.conditions: ['browser']`
+  (without it Svelte 5 resolves its server build and `render()` throws), and
+  `test-setup.ts` stubs `matchMedia`/`ResizeObserver`, which every chart needs
+  via `svelte/reactivity/window`. Stub `svelte-echarts` with
+  `src/mocks/echarts-chart-stub.svelte` — ECharts needs a canvas jsdom lacks
+- Python: `python -m pytest data-preprocess/test_shared.py` (runs in CI)
 - Mocks for SvelteKit modules: `src/mocks/app-paths.ts`, `app-environment.ts`, `app-navigation.ts`, `app-stores.ts`
 - CI runs `npm run test:run` before build in GitHub Actions
 
@@ -245,4 +275,5 @@ URL state is managed through `$lib/stores/url/` with parser, builder, actions, a
 5. Skeleton UI v4 uses compound components (`AppBar.Toolbar`, not props)
 6. Tailwind v4 has no `tailwind.config.js` -- configuration is in CSS
 7. Component-level `@keyframes` duplication is intentional -- Svelte CSS scoping hashes animation names, so they must be defined alongside the scoped selectors that use them
-8. Store accessors read as narrow unions (`DatasetId`, `ViewId` from `types/data.ts`) but their setters deliberately accept `string` with one internal cast — don't 'fix' the setter signatures; a prior attempt caused cascading svelte-check errors at component call sites
+8. ECharts `setOption` **merges** by default. A chart that switches coordinate systems (e.g. polar ↔ cartesian) must be wrapped in `{#key mode}` or the old one is left behind — see `HijriSeasonalityChart.svelte`
+9. Store accessors read as narrow unions (`DatasetId`, `ViewId` from `types/data.ts`) but their setters deliberately accept `string` with one internal cast — don't 'fix' the setter signatures; a prior attempt caused cascading svelte-check errors at component call sites
