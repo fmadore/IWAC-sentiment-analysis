@@ -23,7 +23,9 @@ import {
 	GridComponent,
 	LegendComponent,
 	DataZoomComponent,
-	VisualMapComponent
+	VisualMapComponent,
+	// Polar coordinates back the Hijri seasonality chart's cycle layout.
+	PolarComponent
 } from 'echarts/components';
 import { LabelLayout, UniversalTransition } from 'echarts/features';
 import { CanvasRenderer } from 'echarts/renderers';
@@ -44,6 +46,7 @@ function ensureRegistered(): void {
 		LegendComponent,
 		DataZoomComponent,
 		VisualMapComponent,
+		PolarComponent,
 		LabelLayout,
 		UniversalTransition,
 		CanvasRenderer

@@ -7,6 +7,7 @@
  */
 import type { Article } from '$lib/types/data';
 import { getJournalName } from '$lib/utils/format';
+import { publicationDateToHijri } from '$lib/utils/hijri';
 
 export interface JournalDimensionAggregation {
 	/** journal -> { frenchLabel -> count }, every label pre-seeded to 0 */
@@ -204,4 +205,80 @@ export function getSubjectivityLabel(score: number | null | undefined): string {
 		default:
 			return 'Non applicable';
 	}
+}
+
+export interface HijriMonthBucket {
+	/** 1-12, Muharram through Dhu al-Hijjah. */
+	month: number;
+	count: number;
+	/**
+	 * Coverage index: 1.0 means this month holds exactly its even share of the
+	 * corpus (1/12). Volume alone can't be read across months — the index is
+	 * what makes "Ramadan carries 1.7x its share" legible.
+	 */
+	index: number;
+	/** Mean centrality on the 1-5 scale, or null when nothing was analysed. */
+	meanCentrality: number | null;
+	/** Articles contributing to meanCentrality. */
+	analyzed: number;
+}
+
+export interface HijriSeasonality {
+	buckets: HijriMonthBucket[];
+	/** Articles with a full date that could be converted. */
+	total: number;
+	/** Articles skipped for want of a usable publication date. */
+	undated: number;
+}
+
+/**
+ * Bucket articles by Hijri month, with a coverage index and mean centrality.
+ *
+ * Mean centrality rides along because the interesting result is not just that
+ * more gets published in Ramadan — it is that what gets published is also more
+ * centrally about Islam. Two separate charts would make that correlation the
+ * reader's job to spot.
+ */
+export function aggregateByHijriMonth(
+	articles: Article[],
+	centralityScores: Record<string, number>
+): HijriSeasonality {
+	const counts = new Array<number>(12).fill(0);
+	const centralitySums = new Array<number>(12).fill(0);
+	const centralityCounts = new Array<number>(12).fill(0);
+	let total = 0;
+	let undated = 0;
+
+	for (const article of articles) {
+		const hijri = publicationDateToHijri(article.publication_date);
+		if (!hijri) {
+			undated++;
+			continue;
+		}
+
+		const i = hijri.month - 1;
+		counts[i]++;
+		total++;
+
+		const label = article.sentiment_analysis?.centralite_islam_musulmans;
+		const score = label ? centralityScores[label] : undefined;
+		if (score !== undefined) {
+			centralitySums[i] += score;
+			centralityCounts[i]++;
+		}
+	}
+
+	const evenShare = total / 12;
+
+	return {
+		buckets: counts.map((count, i) => ({
+			month: i + 1,
+			count,
+			index: evenShare > 0 ? count / evenShare : 0,
+			meanCentrality: centralityCounts[i] > 0 ? centralitySums[i] / centralityCounts[i] : null,
+			analyzed: centralityCounts[i]
+		})),
+		total,
+		undated
+	};
 }

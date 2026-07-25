@@ -32,7 +32,8 @@
 		CorrelationChart,
 		VolumeChart,
 		CentralityHeatmap,
-		KeywordFrequencyChart
+		KeywordFrequencyChart,
+		HijriSeasonalityChart
 	} from '$lib/components/viz';
 
 	// Data Display
@@ -106,6 +107,7 @@
 		| 'trends'
 		| 'correlation'
 		| 'volume'
+		| 'seasonality'
 		| 'heatmap'
 		| 'table'
 		| 'comparison'
@@ -142,6 +144,11 @@
 			eyebrow: $t.nav.volume,
 			title: $t.nav.volume,
 			lede: $t.volume?.subtitle || 'Analyze publication volume and temporal patterns in the corpus.'
+		},
+		seasonality: {
+			eyebrow: $t.nav.seasonality,
+			title: $t.seasonality.title,
+			lede: $t.seasonality.subtitle
 		},
 		heatmap: {
 			eyebrow: $t.nav.heatmap,
@@ -215,6 +222,11 @@
 	<div class="view mb-6">
 		{@render header('volume')}
 		<ChartCard variant="volume"><VolumeChart /></ChartCard>
+	</div>
+{:else if activeView === 'seasonality'}
+	<div class="view mb-6">
+		{@render header('seasonality')}
+		<ChartCard variant="volume"><HijriSeasonalityChart /></ChartCard>
 	</div>
 {:else if activeView === 'heatmap'}
 	<div class="view mb-6">

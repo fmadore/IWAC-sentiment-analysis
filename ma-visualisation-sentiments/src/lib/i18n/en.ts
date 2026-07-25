@@ -20,6 +20,7 @@ export const en = {
 		heatmap: 'Heatmap',
 		table: 'Table',
 		comparison: 'Comparison',
+		seasonality: 'Seasonality',
 		agreement: 'Agreement',
 		extremes: 'Extreme Analysis',
 		arbiter: 'Arbiter'
@@ -90,6 +91,34 @@ export const en = {
 		secondary: 'Secondary',
 		marginal: 'Marginal',
 		notAddressed: 'Not addressed'
+	},
+
+	// Hijri-calendar seasonality
+	seasonality: {
+		title: 'Seasonality',
+		subtitle:
+			'Coverage across the Islamic lunar calendar. Because the Hijri year drifts against the Gregorian one, this pattern is invisible in any year- or month-based view.',
+		chartTitle: 'Coverage by Hijri month',
+		chartSubtitle: 'Article volume and mean centrality across the lunar year',
+		cycleLayout: 'Cycle',
+		coverageIndex: 'Coverage index',
+		calendarNote:
+			'Dates converted with the tabular (arithmetic) Islamic calendar, civil epoch. This differs from locally announced observance dates by a day or two — fine for month-level aggregates, not for dating an individual observance.',
+		undatedNote: '{count} articles excluded: no full publication date.',
+		months: {
+			muharram: 'Muharram',
+			safar: 'Safar',
+			rabiI: 'Rabi I',
+			rabiII: 'Rabi II',
+			jumadaI: 'Jumada I',
+			jumadaII: 'Jumada II',
+			rajab: 'Rajab',
+			shaban: "Sha'ban",
+			ramadan: 'Ramadan',
+			shawwal: 'Shawwal',
+			dhuAlQadah: "Dhu al-Qa'dah",
+			dhuAlHijjah: 'Dhu al-Hijjah'
+		}
 	},
 
 	// Agreement / calibration

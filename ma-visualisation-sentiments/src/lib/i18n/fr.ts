@@ -16,6 +16,7 @@ export const fr: Translations = {
 		heatmap: 'Carte de chaleur',
 		table: 'Tableau',
 		comparison: 'Comparaison',
+		seasonality: 'Saisonnalité',
 		agreement: 'Accord',
 		extremes: 'Analyses extrêmes',
 		arbiter: 'Arbitre'
@@ -86,6 +87,34 @@ export const fr: Translations = {
 		secondary: 'Secondaire',
 		marginal: 'Marginal',
 		notAddressed: 'Non abordé'
+	},
+
+	// Saisonnalité du calendrier hégirien
+	seasonality: {
+		title: 'Saisonnalité',
+		subtitle:
+			'La couverture au fil du calendrier lunaire islamique. Comme l\u2019année hégirienne se décale par rapport au calendrier grégorien, ce motif reste invisible dans toute vue par année ou par mois.',
+		chartTitle: 'Couverture par mois hégirien',
+		chartSubtitle: 'Volume d\u2019articles et centralité moyenne au fil de l\u2019année lunaire',
+		cycleLayout: 'Cycle',
+		coverageIndex: 'Indice de couverture',
+		calendarNote:
+			'Dates converties selon le calendrier islamique tabulaire (arithmétique), époque civile. Il diffère d\u2019un ou deux jours des dates d\u2019observance annoncées localement : suffisant pour des agrégats mensuels, mais pas pour dater une observance précise.',
+		undatedNote: '{count} articles exclus : date de publication incomplète.',
+		months: {
+			muharram: 'Mouharram',
+			safar: 'Safar',
+			rabiI: 'Rabi I',
+			rabiII: 'Rabi II',
+			jumadaI: 'Joumada I',
+			jumadaII: 'Joumada II',
+			rajab: 'Rajab',
+			shaban: 'Chaabane',
+			ramadan: 'Ramadan',
+			shawwal: 'Chawwal',
+			dhuAlQadah: 'Dhou al-Qi\u2019da',
+			dhuAlHijjah: 'Dhou al-Hijja'
+		}
 	},
 
 	// Accord / calibration

@@ -13,6 +13,7 @@
 	import FlameIcon from '@lucide/svelte/icons/flame';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import ScaleIcon from '@lucide/svelte/icons/scale';
+	import MoonStarIcon from '@lucide/svelte/icons/moon-star';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 
@@ -40,6 +41,7 @@
 		{ id: 'trends', icon: TrendingUpIcon, labelKey: 'trends' as const },
 		{ id: 'correlation', icon: BarChart3Icon, labelKey: 'distribution' as const },
 		{ id: 'volume', icon: AreaChartIcon, labelKey: 'volume' as const },
+		{ id: 'seasonality', icon: MoonStarIcon, labelKey: 'seasonality' as const },
 		{ id: 'heatmap', icon: ActivityIcon, labelKey: 'heatmap' as const },
 		{ id: 'table', icon: TableIcon, labelKey: 'table' as const },
 		{ id: 'comparison', icon: GitCompareIcon, labelKey: 'comparison' as const },

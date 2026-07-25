@@ -12,6 +12,7 @@ export { default as SentimentTrendsChart } from './SentimentTrendsChart.svelte';
 export { default as SubjectivityChart } from './SubjectivityChart.svelte';
 export { default as SubjectivityTrendsChart } from './SubjectivityTrendsChart.svelte';
 export { default as VolumeChart } from './VolumeChart.svelte';
+export { default as HijriSeasonalityChart } from './HijriSeasonalityChart.svelte';
 
 // Agreement / calibration
 export { default as AgreementMatrix } from './AgreementMatrix.svelte';
