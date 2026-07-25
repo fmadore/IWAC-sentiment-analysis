@@ -182,7 +182,8 @@ import MenuIcon from '@lucide/svelte/icons/menu';
 ### Data files (static/data/)
 
 - `iwac_articles_base.json` — shared article metadata, stored once
-- `iwac_sentiment_{model}.json` — per-model sentiment analyses keyed by article id (joined with the base at load time in `articles.svelte.ts`)
+- `iwac_sentiment_{model}.json` — per-model sentiment **scores** keyed by article id (joined with the base at load time in `articles.svelte.ts`)
+- `iwac_justifications_{model}.json` — per-model justification **prose**, keyed by article id. ~90% of a model's bytes and read only by the detail views and CSV exports, so it is fetched lazily by `loadJustifications()` and merged into the existing `sentiment_analysis` objects
 - `iwac_extreme_analysis_{model}.json` — normalized: `articles_index` + per-category `article_ids` (denormalized at load in `utils/extremeAnalysis.ts`)
 - `iwac_arbiter_evaluations_{pair}.json` — arbiter verdicts per model pair
 

@@ -51,12 +51,13 @@ https://fmadore.github.io/IWAC-sentiment-analysis/?view=comparison&compare=true&
 
 ## Performance Optimizations
 
-The application has been optimized for high performance despite large data volumes (a shared 2.4MB article-metadata file, per-model sentiment files of 8–14MB, plus extreme-analysis and arbiter data):
+The application has been optimized for high performance despite large data volumes (a shared 2.4MB article-metadata file, per-model score and justification files, plus extreme-analysis and arbiter data):
 
 ### Lazy Loading
-- **Reduced initial transfer**: Only the selected model's dataset loads at startup
-- **On-demand loading**: The other models' datasets load only when comparison mode is activated; arbiter and extreme-analysis data load with their views
-- **Smart caching**: Datasets remain in memory after loading for instant switching
+- **Score/prose split**: Each model's data is stored as a small score file (~59KB gzipped) plus a large justification file (~1.4MB gzipped). Charts, trends, filters and aggregates need only the scores, so drawing a view never downloads the prose
+- **Reduced initial transfer**: Only the selected model's scores load at startup
+- **On-demand loading**: Justification prose loads when an article detail is opened or a CSV is exported; the other models' datasets load only when comparison mode is activated; arbiter and extreme-analysis data load with their views
+- **Smart caching**: Datasets remain in memory after loading for instant switching; the service worker keeps corpus files in a deploy-stable cache so a new release doesn't re-download them
 
 ### Data Compression
 - **Brotli/Gzip precompression**: Build assets are precompressed with `vite-plugin-compression` (~90% reduction for JSON)
@@ -154,11 +155,10 @@ The project is structured as a modern SvelteKit application with Svelte 5 runes:
 
 The application automatically loads the IWAC corpus from JSON files in `static/data/`:
 - `iwac_articles_base.json`: Shared article metadata, stored once for all models
-- `iwac_sentiment_chatgpt.json`: ChatGPT sentiment analyses, keyed by article id
-- `iwac_sentiment_gemini.json`: Gemini sentiment analyses, keyed by article id
-- `iwac_sentiment_mistral.json`: Mistral sentiment analyses, keyed by article id
+- `iwac_sentiment_{model}.json`: Per-model sentiment **scores** (polarity, subjectivity, centrality), keyed by article id
+- `iwac_justifications_{model}.json`: Per-model justification **prose**, keyed by article id
 
-The frontend joins the base metadata with the selected model's sentiment file at load time, so switching models only downloads the sentiment payload.
+The frontend joins the base metadata with the selected model's score file at load time, so switching models only downloads that model's scores (~59KB gzipped). The justification prose is roughly 90% of a model's data but is only shown in the article-detail views and included in CSV exports, so it is fetched on demand and merged into the loaded articles rather than blocking the first chart.
 
 Each file contains a list of `Article` objects, where each article includes metadata (title, newspaper, country, date) and a `sentiment_analysis` object with analysis results (polarity, subjectivity, centrality, etc.).
 

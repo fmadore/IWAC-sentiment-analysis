@@ -6,8 +6,19 @@
 	import { SentimentBadge } from '$lib/components/common';
 	import EmptyState from '$lib/components/common/EmptyState.svelte';
 	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
+	import { loadJustifications } from '$lib/stores';
 
 	let { article }: { article: Article | null } = $props();
+
+	// The model's justification prose is fetched on demand — the charts never
+	// need it, so it isn't part of the initial dataset payload. Merging it into
+	// the existing sentiment_analysis object makes the blockquotes below appear
+	// as soon as it lands, without re-rendering anything else.
+	$effect(() => {
+		if (article?.dataset_id) {
+			loadJustifications(article.dataset_id);
+		}
+	});
 </script>
 
 {#if article}

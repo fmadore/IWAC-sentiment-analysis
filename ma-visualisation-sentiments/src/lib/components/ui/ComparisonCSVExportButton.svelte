@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { comparisonState, datasetState } from '$lib/stores';
+	import { comparisonState, datasetState, loadJustifications } from '$lib/stores';
 	import { getJournalName } from '$lib/utils/format';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
-	import type { ComparisonData } from '$lib/types/data';
+	import { getModelsFromPair, type ComparisonData } from '$lib/types/data';
 	import { escapeCSVField, formatDateForCSV } from '$lib/utils/csv';
 	import { getModelDisplayName } from '$lib/utils/format';
 	import CsvDownloadButton from './CsvDownloadButton.svelte';
@@ -85,11 +85,18 @@
 	}
 
 	const comparisonCount = $derived(comparisonState.filtered.length);
+
+	/** Both sides' justification prose, fetched on demand for the export. */
+	async function loadPairJustifications(): Promise<void> {
+		const [modelAId, modelBId] = getModelsFromPair(datasetState.pair);
+		await Promise.all([loadJustifications(modelAId), loadJustifications(modelBId)]);
+	}
 </script>
 
 <CsvDownloadButton
 	count={comparisonCount}
 	filenamePrefix="iwac-comparison"
 	variant="comparison"
+	prepare={loadPairJustifications}
 	buildCsv={() => convertToCSV(comparisonState.filtered)}
 />

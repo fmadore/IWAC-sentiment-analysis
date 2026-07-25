@@ -5,8 +5,8 @@
  * Provides both modern $state-based API and legacy store compatibility.
  */
 
-import { SvelteMap } from 'svelte/reactivity';
-import type { Article } from '$lib/types/data';
+import { SvelteMap, SvelteSet } from 'svelte/reactivity';
+import type { Article, SentimentAnalysis } from '$lib/types/data';
 import { base } from '$app/paths';
 import { datasetState } from './datasets.svelte';
 import { filterState } from './filters.svelte';
@@ -105,12 +105,57 @@ export function mapArticleProperties(
  * per-model files carry only each model's sentiment analyses, keyed by
  * article id (the three old combined files repeated identical metadata).
  * The base file is fetched once and shared across all dataset loads.
+ *
+ * The per-model data is itself split in two. `iwac_sentiment_<model>.json`
+ * holds only the three SCORES every chart, filter and aggregate reads (~59KB
+ * gzipped); `iwac_justifications_<model>.json` holds the free-text prose that
+ * only the detail views and CSV exports show (~1.4MB gzipped, 86-92% of the
+ * old combined payload). Justifications load on demand — see
+ * loadJustifications below.
  */
 type BaseArticleRecord = Record<string, unknown> & Partial<Article>;
 
+/** The three score fields carried by iwac_sentiment_<model>.json. */
+type SentimentScores = Pick<
+	SentimentAnalysis,
+	'centralite_islam_musulmans' | 'subjectivite_score' | 'polarite'
+>;
+
+/** The three prose fields carried by iwac_justifications_<model>.json. */
+type SentimentJustifications = Pick<
+	SentimentAnalysis,
+	'centralite_justification' | 'subjectivite_justification' | 'polarite_justification'
+>;
+
 interface SentimentFile {
 	model: string;
-	sentiments: Record<string, Article['sentiment_analysis']>;
+	sentiments: Record<string, SentimentScores | null>;
+}
+
+interface JustificationFile {
+	model: string;
+	justifications: Record<string, SentimentJustifications | null>;
+}
+
+/**
+ * Expand a score-only record into a full SentimentAnalysis with the
+ * justification keys present but empty.
+ *
+ * Seeding the keys rather than leaving them absent keeps the shape stable for
+ * every consumer (`article.sentiment_analysis.polarite_justification` reads
+ * `null`, not `undefined`, before the prose arrives) and gives
+ * loadJustifications plain property writes to make afterwards.
+ */
+function expandScores(scores: SentimentScores | null | undefined): SentimentAnalysis | null {
+	if (!scores) return null;
+	return {
+		centralite_islam_musulmans: scores.centralite_islam_musulmans ?? null,
+		centralite_justification: null,
+		subjectivite_score: scores.subjectivite_score ?? null,
+		subjectivite_justification: null,
+		polarite: scores.polarite ?? null,
+		polarite_justification: null
+	};
 }
 
 let baseArticlesPromise: Promise<BaseArticleRecord[]> | null = null;
@@ -140,7 +185,7 @@ const loadArticleBase = (fetchFunction: typeof fetch): Promise<BaseArticleRecord
 	return baseArticlesPromise;
 };
 
-/** Join base metadata with a model's sentiment map (exported for tests) */
+/** Join base metadata with a model's score map (exported for tests) */
 export function joinArticles(
 	baseRecords: BaseArticleRecord[],
 	sentiments: SentimentFile['sentiments'],
@@ -148,10 +193,38 @@ export function joinArticles(
 ): Article[] {
 	return baseRecords.map((record) =>
 		mapArticleProperties(
-			{ ...record, sentiment_analysis: sentiments[String(record['o:id'])] ?? null },
+			{ ...record, sentiment_analysis: expandScores(sentiments[String(record['o:id'])]) },
 			datasetId
 		)
 	);
+}
+
+/**
+ * Merge a model's justification prose into articles already in the store
+ * (exported for tests).
+ *
+ * Writes the three prose fields onto the EXISTING `sentiment_analysis` objects
+ * rather than rebuilding the array. Two reasons: Svelte 5's deep `$state`
+ * proxies make these property writes wake exactly the components reading a
+ * justification and nothing else — no re-filter, no chart redraw — and any
+ * reference already captured elsewhere (the open detail modal, a selected
+ * comparison row) sees the prose appear rather than pointing at a stale copy.
+ */
+export function applyJustifications(
+	articles: Article[],
+	justifications: JustificationFile['justifications']
+): void {
+	for (const article of articles) {
+		const analysis = article.sentiment_analysis;
+		if (!analysis) continue;
+
+		const prose = justifications[String(article['o:id'])];
+		if (!prose) continue;
+
+		analysis.centralite_justification = prose.centralite_justification ?? null;
+		analysis.subjectivite_justification = prose.subjectivite_justification ?? null;
+		analysis.polarite_justification = prose.polarite_justification ?? null;
+	}
 }
 
 /** Load articles for a dataset: shared base metadata + per-model sentiments */
@@ -236,6 +309,63 @@ export const loadSpecificDataset = async (
 		}
 	}
 };
+
+// ============================================
+// Justifications (lazy)
+// ============================================
+
+/** Datasets whose prose has already been merged in. */
+const justificationsLoaded = new SvelteSet<string>();
+/** One promise per justification file currently being fetched. */
+const justificationLoads = new SvelteMap<string, Promise<void>>();
+
+/**
+ * Fetch and merge a model's justification prose.
+ *
+ * Idempotent and deduped: the detail modal, the comparison detail and the CSV
+ * export can all ask at once and only one request goes out. Ensures the
+ * dataset's articles are present first, since there is nothing to merge into
+ * otherwise. Failures are logged and not cached, so a later open retries — the
+ * app stays usable without prose (scores, charts and filters never need it).
+ */
+export const loadJustifications = async (
+	datasetId: string,
+	fetchFunction: typeof fetch = fetch
+): Promise<void> => {
+	if (justificationsLoaded.has(datasetId)) return;
+
+	const existing = justificationLoads.get(datasetId);
+	if (existing) return existing;
+
+	const load = (async () => {
+		await loadSpecificDataset(datasetId, fetchFunction, { showLoading: false });
+
+		const data = (await fetchJSON(
+			`/data/iwac_justifications_${datasetId}.json`,
+			fetchFunction
+		)) as JustificationFile;
+
+		if (!data || typeof data.justifications !== 'object') {
+			throw new Error(`Unrecognized justification data format for ${datasetId}`);
+		}
+
+		applyJustifications(_datasetArticles[datasetId] ?? [], data.justifications);
+		justificationsLoaded.add(datasetId);
+	})()
+		.catch((error) => {
+			console.error(`Error fetching justifications for ${datasetId}:`, error);
+		})
+		.finally(() => {
+			justificationLoads.delete(datasetId);
+		});
+
+	justificationLoads.set(datasetId, load);
+	return load;
+};
+
+/** True once a dataset's justification prose has been merged in. */
+export const hasJustifications = (datasetId: string): boolean =>
+	justificationsLoaded.has(datasetId);
 
 /** Load all available datasets */
 export const loadAllDatasets = async (fetchFunction: typeof fetch): Promise<void> => {

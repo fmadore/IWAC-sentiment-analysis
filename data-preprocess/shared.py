@@ -10,6 +10,7 @@ import logging
 import os
 import sys
 import time
+from collections.abc import Sequence
 from typing import Any, Optional
 
 import pandas as pd
@@ -74,6 +75,24 @@ SIGNIFICANT_CONFLICT_THRESHOLD = 3
 # Sentiment-analysis field suffixes shared by every model (column prefix is
 # the model id, e.g. ``chatgpt_polarite``). Order matters: it is preserved in
 # the JSON written by data-fetch.py.
+#
+# The split matters for payload size. The three SCORE fields are what every
+# chart, filter and aggregate reads; the three JUSTIFICATION fields are long
+# free-text prose that only the article-detail views and the CSV exports ever
+# show — and they are 86-92% of the bytes. data-fetch.py therefore writes them
+# to a separate file the webapp loads on demand.
+SENTIMENT_SCORE_SUFFIXES = (
+    'centralite_islam_musulmans',
+    'subjectivite_score',
+    'polarite',
+)
+
+SENTIMENT_JUSTIFICATION_SUFFIXES = (
+    'centralite_justification',
+    'subjectivite_justification',
+    'polarite_justification',
+)
+
 SENTIMENT_FIELD_SUFFIXES = (
     'centralite_islam_musulmans',
     'centralite_justification',
@@ -281,21 +300,36 @@ def extract_model_analysis(item: dict, model_prefix: str) -> dict:
     return {suffix: item.get(f'{model_prefix}_{suffix}') for suffix in SENTIMENT_FIELD_SUFFIXES}
 
 
-def build_model_sentiment(item: dict, model_prefix: str) -> dict:
-    """Build a model's ``sentiment_analysis`` block for the webapp JSON.
-
-    Applies the safe converters (string fields via :func:`safe_str`, the
-    subjectivity score via :func:`safe_int_convert`) and preserves the key
-    order expected by the webapp data files.
-    """
+def _build_model_fields(item: dict, model_prefix: str, suffixes: Sequence[str]) -> dict:
+    """Extract a model's fields for ``suffixes``, applying the safe converters."""
     return {
         suffix: (
             safe_int_convert(item.get(f'{model_prefix}_{suffix}'))
             if suffix == 'subjectivite_score'
             else safe_str(item.get(f'{model_prefix}_{suffix}'))
         )
-        for suffix in SENTIMENT_FIELD_SUFFIXES
+        for suffix in suffixes
     }
+
+
+def build_model_sentiment(item: dict, model_prefix: str) -> dict:
+    """Build a model's full ``sentiment_analysis`` block (scores + justifications).
+
+    Applies the safe converters (string fields via :func:`safe_str`, the
+    subjectivity score via :func:`safe_int_convert`) and preserves the key
+    order expected by the webapp data files.
+    """
+    return _build_model_fields(item, model_prefix, SENTIMENT_FIELD_SUFFIXES)
+
+
+def build_model_scores(item: dict, model_prefix: str) -> dict:
+    """Build the score-only block written to ``iwac_sentiment_<model>.json``."""
+    return _build_model_fields(item, model_prefix, SENTIMENT_SCORE_SUFFIXES)
+
+
+def build_model_justifications(item: dict, model_prefix: str) -> dict:
+    """Build the prose block written to ``iwac_justifications_<model>.json``."""
+    return _build_model_fields(item, model_prefix, SENTIMENT_JUSTIFICATION_SUFFIXES)
 
 
 # ============================================================================

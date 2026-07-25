@@ -46,6 +46,7 @@ const STATIC_FILES = [
 const DATA_FILE_PREFIXES = [
 	'iwac_articles_base',
 	'iwac_sentiment_',
+	'iwac_justifications_',
 	'iwac_arbiter_evaluations_',
 	'iwac_extreme_analysis_'
 ];

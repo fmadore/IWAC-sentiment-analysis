@@ -53,7 +53,9 @@ export {
 	loadDatasetArticles,
 	loadSpecificDataset,
 	loadAllDatasets,
-	loadCurrentDataset
+	loadCurrentDataset,
+	loadJustifications,
+	hasJustifications
 } from './articles.svelte';
 
 export { loadComparisonDatasets } from './comparison.svelte';
