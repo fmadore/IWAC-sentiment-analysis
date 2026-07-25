@@ -184,6 +184,26 @@ export const en = {
 		}
 	},
 
+	// Per-chart data disclosure
+	chartData: {
+		showData: 'Data',
+		month: 'Month',
+		articles: 'Articles',
+		coverageIndex: 'Coverage index',
+		meanCentrality: 'Mean centrality',
+		newspaper: 'Newspaper',
+		mean: 'Mean',
+		ciLow: 'CI low',
+		ciHigh: 'CI high',
+		modelALabel: 'Model A',
+		modelBLabel: 'Model B',
+		count: 'Count',
+		rowPercent: '% of row',
+		seasonalityCaption: 'Article volume and mean centrality by Hijri month',
+		rankingCaption: 'Newspapers ranked by mean, with confidence intervals',
+		matrixCaption: 'Cross-tabulation of the two models\u2019 labels'
+	},
+
 	// Chart titles and labels
 	charts: {
 		polarityDistribution: 'Polarity distribution',
@@ -466,6 +486,11 @@ export const en = {
 
 	// Arbiter
 	arbiter: {
+		samplingFrame: 'Sampling frame',
+		coverageEvaluated: 'evaluated',
+		coverageCorpus: 'in corpus',
+		samplingFrameNote:
+			'The arbiter did not review the whole corpus. It reviewed articles selected because the two models disagreed most sharply about them, so every percentage below is conditional on a disagreement already existing — not a measure of which model is better across the corpus.',
 		title: 'Arbiter Verdict',
 		subtitle: 'Blind evaluation by a third AI model (model identities hidden)',
 		modelName: 'Gemini 3 Pro',

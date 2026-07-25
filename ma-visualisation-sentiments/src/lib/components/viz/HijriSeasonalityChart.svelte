@@ -26,6 +26,7 @@
 	import { HIJRI_MONTH_KEYS } from '$lib/utils/hijri';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
 	import ChartTypeToggle from './ChartTypeToggle.svelte';
+	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import {
 		centralityColors,
 		seriesColorPalette,
@@ -266,6 +267,23 @@
 			<Chart {init} {options} />
 		{/key}
 	</div>
+
+	<ChartDataTable
+		columns={[
+			$t.chartData.month,
+			$t.chartData.articles,
+			$t.chartData.coverageIndex,
+			$t.chartData.meanCentrality
+		]}
+		rows={seasonality.buckets.map((bucket, i) => [
+			monthNames[i],
+			bucket.count.toLocaleString(),
+			bucket.index.toFixed(2),
+			bucket.meanCentrality === null ? '—' : bucket.meanCentrality.toFixed(2)
+		])}
+		filenamePrefix="iwac-hijri-seasonality"
+		caption={$t.chartData.seasonalityCaption}
+	/>
 
 	<p class="calendar-note">{$t.seasonality.calendarNote}</p>
 

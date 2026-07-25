@@ -29,6 +29,7 @@
 	} from '$lib/utils/newspaperRanking';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
 	import ChartTypeToggle from './ChartTypeToggle.svelte';
+	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import {
 		polarityColors,
 		subjectivityColors,
@@ -274,6 +275,27 @@
 	>
 		<Chart {init} {options} />
 	</div>
+
+	<ChartDataTable
+		columns={[
+			$t.chartData.newspaper,
+			$t.chartData.mean,
+			$t.chartData.ciLow,
+			$t.chartData.ciHigh,
+			$t.chartData.articles
+		]}
+		rows={[...ranks]
+			.reverse()
+			.map((rank) => [
+				rank.newspaper,
+				rank.mean.toFixed(3),
+				(rank.mean - rank.confidence).toFixed(3),
+				(rank.mean + rank.confidence).toFixed(3),
+				rank.n.toLocaleString()
+			])}
+		filenamePrefix="iwac-newspaper-ranking"
+		caption={$t.chartData.rankingCaption}
+	/>
 
 	{#if excluded > 0}
 		<p class="threshold-note">

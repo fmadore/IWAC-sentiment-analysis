@@ -25,6 +25,7 @@ export { default as SentimentBadge } from './SentimentBadge.svelte';
 export { default as ComparisonPanel } from './ComparisonPanel.svelte';
 export { default as ArbiterSection } from './ArbiterSection.svelte';
 export { default as StatCard } from './StatCard.svelte';
+export { default as ChartDataTable } from './ChartDataTable.svelte';
 
 // States
 export { default as LoadingState } from './LoadingState.svelte';

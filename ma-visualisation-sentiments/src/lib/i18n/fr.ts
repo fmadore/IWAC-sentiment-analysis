@@ -181,6 +181,26 @@ export const fr: Translations = {
 		}
 	},
 
+	// Données sous-jacentes des graphiques
+	chartData: {
+		showData: 'Données',
+		month: 'Mois',
+		articles: 'Articles',
+		coverageIndex: 'Indice de couverture',
+		meanCentrality: 'Centralité moyenne',
+		newspaper: 'Journal',
+		mean: 'Moyenne',
+		ciLow: 'IC bas',
+		ciHigh: 'IC haut',
+		modelALabel: 'Modèle A',
+		modelBLabel: 'Modèle B',
+		count: 'Effectif',
+		rowPercent: '% de la ligne',
+		seasonalityCaption: 'Volume d\u2019articles et centralité moyenne par mois hégirien',
+		rankingCaption: 'Journaux classés par moyenne, avec intervalles de confiance',
+		matrixCaption: 'Tableau croisé des étiquettes des deux modèles'
+	},
+
 	// Chart titles and labels
 	charts: {
 		polarityDistribution: 'Distribution de la polarité',
@@ -473,6 +493,11 @@ export const fr: Translations = {
 
 	// Arbiter
 	arbiter: {
+		samplingFrame: 'Base de sondage',
+		coverageEvaluated: 'évalués',
+		coverageCorpus: 'dans le corpus',
+		samplingFrameNote:
+			'L\u2019arbitre n\u2019a pas examiné l\u2019ensemble du corpus, mais des articles retenus parce que les deux modèles y divergeaient le plus fortement. Tous les pourcentages ci-dessous sont donc conditionnels à l\u2019existence d\u2019un désaccord : ils ne mesurent pas quel modèle est meilleur sur l\u2019ensemble du corpus.',
 		title: "Verdict de l'arbitre",
 		subtitle: "Évaluation aveugle par un troisième modèle d'IA (identités des modèles masquées)",
 		modelName: 'Gemini 3 Pro',

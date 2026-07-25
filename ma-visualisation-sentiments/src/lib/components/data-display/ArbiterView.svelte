@@ -20,13 +20,15 @@
 		loadArbiterEvaluations,
 		setupArbiterPairReactivity,
 		uiState,
-		datasetState
+		datasetState,
+		articleState
 	} from '$lib/stores';
-	import { getPairModelNames } from '$lib/types/data';
+	import { getPairModelNames, getModelsFromPair } from '$lib/types/data';
 	import { t } from '$lib/i18n';
 	import { ChartCard } from '$lib/components/ui';
 	import ModelPairPicker from '$lib/components/ui/ModelPairPicker.svelte';
 	import ArbiterStatsCards from './ArbiterStatsCards.svelte';
+	import ArbiterCoverage from './ArbiterCoverage.svelte';
 	import ArbiterArticleTable from './ArbiterArticleTable.svelte';
 	import {
 		ArbiterVerdictChart,
@@ -73,6 +75,19 @@
 	);
 
 	const stats = $derived(arbiterStatistics.current);
+
+	/**
+	 * Coverage numbers for the sampling-frame disclosure. `total_articles` in
+	 * the arbiter metadata counts what the arbiter was given, so the corpus
+	 * denominator comes from the loaded datasets instead.
+	 */
+	const evaluatedCount = $derived(arbiterEvaluations.current?.evaluations?.length ?? 0);
+	const corpusTotal = $derived.by(() => {
+		const [modelAId, modelBId] = getModelsFromPair(datasetState.pair);
+		const a = articleState.datasets[modelAId]?.length ?? 0;
+		const b = articleState.datasets[modelBId]?.length ?? 0;
+		return Math.min(a, b) || Math.max(a, b);
+	});
 
 	// Setup reactivity on mount
 	onMount(() => {
@@ -134,6 +149,13 @@
 			</ChartCard>
 		</div>
 	{:else if hasData}
+		<!-- Sampling frame FIRST. The verdict percentages below are conditional
+		     on the models having disagreed; the denominator has to be read
+		     before them, not discovered after. -->
+		<div class="coverage-section mb-6">
+			<ArbiterCoverage evaluated={evaluatedCount} {corpusTotal} />
+		</div>
+
 		<!-- Stats Cards -->
 		<div class="stats-section mb-6">
 			<ArbiterStatsCards

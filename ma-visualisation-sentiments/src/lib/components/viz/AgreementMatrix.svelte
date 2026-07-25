@@ -19,6 +19,7 @@
 	import { translateSentimentValue } from '$lib/i18n/utils';
 	import type { ConfusionMatrix } from '$lib/utils/agreement';
 	import type { AgreementDimension } from '$lib/stores/agreement.svelte';
+	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import {
 		centralityColors,
 		getTitleStyle,
@@ -250,6 +251,25 @@
 	>
 		<Chart {init} {options} />
 	</div>
+
+	<ChartDataTable
+		columns={[
+			`${modelAName} (${$t.chartData.modelALabel})`,
+			`${modelBName} (${$t.chartData.modelBLabel})`,
+			$t.chartData.count,
+			$t.chartData.rowPercent
+		]}
+		rows={matrix.cells
+			.filter((cell) => cell.count > 0)
+			.map((cell) => [
+				axisLabels[cell.rowIndex],
+				axisLabels[cell.columnIndex],
+				cell.count.toLocaleString(),
+				`${cell.rowPercent.toFixed(1)}%`
+			])}
+		filenamePrefix="iwac-agreement-matrix"
+		caption={$t.chartData.matrixCaption}
+	/>
 {:else}
 	<p class="chart-empty">{$t.table.noFilteredArticles}</p>
 {/if}
