@@ -22,6 +22,45 @@ shipped in `static/data/`.
 
 ---
 
+> ## Implementation status — everything below has shipped
+>
+> Landed on `claude/repo-review-improvements-6xdel1` in eight commits. Final
+> state: `check` 0 errors / 0 warnings across 598 files, `lint` clean,
+> 262 frontend tests + 20 Python tests passing, production build green, and a
+> browser sweep of all 12 views.
+>
+> | § | Item | Where it landed |
+> |---|------|-----------------|
+> | 1.1, 1.2 | Confusion matrix + Cohen's/Fleiss' κ | new **Agreement** view |
+> | 1.3 | Cross-model calibration | `ModelCalibrationChart`, in Agreement |
+> | 1.4 | Hijri seasonality | new **Seasonality** view |
+> | 1.5 | Newspaper ranking with CIs | new **Newspapers** view |
+> | 1.6 | Share-vs-count toggle | `TrendsChart` |
+> | 1.7 | Spearman's ρ | reported under the Distribution chart |
+> | 1.8 | Disagreement by decade/country | `DisagreementBreakdownChart`, in Comparison |
+> | 1.9 | Arbiter sampling frame | `ArbiterCoverage`, above the verdicts |
+> | 1.10 | Per-chart data disclosure | `ChartDataTable` |
+> | 2.1–2.4 | Service worker, theme colours, `CITATION.cff` | — |
+> | 3 | Score/justification payload split | 1.46 MB → 59 KB gzipped per model |
+> | 4.1–4.5 | `StatCard`, shim removal, tests, pinned deps, arbiter index | — |
+>
+> **One correction to the figures below.** The weighted-κ values in §1.2 were
+> computed with `Non applicable` at the *top* of the polarity scale. The
+> shipped app puts it at the *bottom*, matching the score maps already in
+> `stores/derivations.ts` — weighted κ reads ordinal positions, so polarity
+> weighted κ is **0.701** in the app, not the 0.594 tabulated below. Centrality
+> is unaffected (0.919 / 0.732 / 0.701) because its ordering already matched.
+> `utils/agreementCorpus.test.ts` pins the shipped values against the real
+> corpus.
+>
+> Three bugs surfaced while building, beyond those the review identified:
+> ECharts `setOption` merges, so the seasonality chart's polar↔bar toggle left
+> a pinwheel behind; `text-transform: uppercase` renders ρ as a Latin-looking
+> Ρ; and component tests were impossible at all until `vitest.config.ts` got
+> `resolve.conditions: ['browser']` and jsdom got a `matchMedia` stub.
+
+---
+
 ## Part 1 — Visualizations the dashboard should have
 
 The nine existing views cover *distributions* well. What they don't cover is
