@@ -276,29 +276,29 @@ async function networkFirstStrategy(request, cacheName, fallbackUrl = null) {
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
               text-align: center;
               padding: 2rem;
-              background: #0f172a;
-              color: #e2e8f0;
+              background: #0a0d12;
+              color: #e8eaed;
             }
             .container {
               max-width: 400px;
               margin: 2rem auto;
               padding: 2rem;
-              background: #1e293b;
+              background: #10141a;
               border-radius: 8px;
             }
             .icon { font-size: 3rem; margin-bottom: 1rem; }
             h1 { margin-bottom: 1rem; }
             p { margin-bottom: 1.5rem; line-height: 1.5; }
             button {
-              background: #3b82f6;
-              color: white;
+              background: #e49900;
+              color: #0a0d12;
               border: none;
               padding: 0.75rem 1.5rem;
               border-radius: 6px;
               cursor: pointer;
               font-size: 1rem;
             }
-            button:hover { background: #2563eb; }
+            button:hover { background: #f3b94c; }
           </style>
         </head>
         <body>

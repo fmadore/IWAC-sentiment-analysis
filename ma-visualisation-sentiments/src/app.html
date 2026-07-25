@@ -42,8 +42,6 @@
 
 		<!-- Canonical URL is handled dynamically by SEOHead.svelte -->
 
-		<!-- Additional SEO optimizations -->
-		<meta name="msapplication-TileColor" content="#1e293b" />
 		<!-- PWA Configuration -->
 		<link rel="manifest" href="%sveltekit.assets%/manifest.json" />
 		<meta name="application-name" content="IWAC Sentiment Analysis" />
@@ -51,8 +49,11 @@
 		<meta name="mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-		<meta name="theme-color" content="#1e293b" />
-		<meta name="msapplication-TileColor" content="#1e293b" />
+		<!-- Browser chrome matches --app-bg-elevated (the header surface); the
+		     splash/tile use --app-bg. Both are the sRGB renderings of the OKLCH
+		     tokens in app.css — keep them in step with `scripts/oklch-to-hex.py`. -->
+		<meta name="theme-color" content="#10141a" />
+		<meta name="msapplication-TileColor" content="#0a0d12" />
 		<meta name="msapplication-config" content="%sveltekit.assets%/browserconfig.xml" />
 
 		<!-- Structured Data for better search results -->
