@@ -21,6 +21,7 @@ export const en = {
 		table: 'Table',
 		comparison: 'Comparison',
 		seasonality: 'Seasonality',
+		ranking: 'Newspapers',
 		agreement: 'Agreement',
 		extremes: 'Extreme Analysis',
 		arbiter: 'Arbiter'
@@ -91,6 +92,24 @@ export const en = {
 		secondary: 'Secondary',
 		marginal: 'Marginal',
 		notAddressed: 'Not addressed'
+	},
+
+	// Newspaper ranking
+	ranking: {
+		title: 'Newspapers',
+		subtitle:
+			'Newspapers ranked by mean sentiment, with 95% confidence intervals. Titles with fewer rated articles carry wider intervals — a high mean from a small sample is not a strong finding.',
+		chartTitle: 'Newspapers ranked',
+		chartSubtitle: 'Mean with 95% CI · titles with at least {min} rated articles',
+		netPolarity: 'Net polarity',
+		meanSubjectivity: 'Mean subjectivity',
+		meanCentrality: 'Mean centrality',
+		confidenceInterval: '95% CI',
+		neutralLine: 'neutral',
+		minArticles: 'Min. articles',
+		excludedNote:
+			'{count} newspapers omitted: fewer than {min} rated articles. Their means would be too uncertain to rank.',
+		noneAboveThreshold: 'No newspaper has at least {min} rated articles under the current filters.'
 	},
 
 	// Hijri-calendar seasonality

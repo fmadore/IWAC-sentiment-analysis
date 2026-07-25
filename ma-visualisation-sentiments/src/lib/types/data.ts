@@ -65,6 +65,7 @@ export const VIEW_IDS = [
 	'volume',
 	'seasonality',
 	'heatmap',
+	'ranking',
 	'table',
 	'comparison',
 	'agreement',

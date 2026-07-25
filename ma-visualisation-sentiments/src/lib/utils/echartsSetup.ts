@@ -16,7 +16,15 @@
  *   import { init } from '$lib/utils/echartsSetup';
  */
 import { init as coreInit, use } from 'echarts/core';
-import { BarChart, PieChart, LineChart, HeatmapChart } from 'echarts/charts';
+import {
+	BarChart,
+	PieChart,
+	LineChart,
+	HeatmapChart,
+	ScatterChart,
+	// Backs the confidence-interval whiskers on the newspaper ranking chart.
+	CustomChart
+} from 'echarts/charts';
 import {
 	TitleComponent,
 	TooltipComponent,
@@ -25,7 +33,9 @@ import {
 	DataZoomComponent,
 	VisualMapComponent,
 	// Polar coordinates back the Hijri seasonality chart's cycle layout.
-	PolarComponent
+	PolarComponent,
+	// Reference lines (the neutral marker on the newspaper ranking chart).
+	MarkLineComponent
 } from 'echarts/components';
 import { LabelLayout, UniversalTransition } from 'echarts/features';
 import { CanvasRenderer } from 'echarts/renderers';
@@ -40,6 +50,8 @@ function ensureRegistered(): void {
 		PieChart,
 		LineChart,
 		HeatmapChart,
+		ScatterChart,
+		CustomChart,
 		TitleComponent,
 		TooltipComponent,
 		GridComponent,
@@ -47,6 +59,7 @@ function ensureRegistered(): void {
 		DataZoomComponent,
 		VisualMapComponent,
 		PolarComponent,
+		MarkLineComponent,
 		LabelLayout,
 		UniversalTransition,
 		CanvasRenderer

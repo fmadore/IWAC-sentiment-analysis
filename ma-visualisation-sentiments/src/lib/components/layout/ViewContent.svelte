@@ -33,7 +33,8 @@
 		VolumeChart,
 		CentralityHeatmap,
 		KeywordFrequencyChart,
-		HijriSeasonalityChart
+		HijriSeasonalityChart,
+		NewspaperRankingChart
 	} from '$lib/components/viz';
 
 	// Data Display
@@ -109,6 +110,7 @@
 		| 'volume'
 		| 'seasonality'
 		| 'heatmap'
+		| 'ranking'
 		| 'table'
 		| 'comparison'
 		| 'agreement'
@@ -156,6 +158,11 @@
 			lede:
 				$t.heatmap?.subtitle ||
 				'Explore centrality patterns across countries and themes with interactive visualization.'
+		},
+		ranking: {
+			eyebrow: $t.nav.ranking,
+			title: $t.ranking.title,
+			lede: $t.ranking.subtitle
 		},
 		table: {
 			eyebrow: $t.table.title,
@@ -232,6 +239,11 @@
 	<div class="view mb-6">
 		{@render header('heatmap')}
 		<ChartCard variant="heatmap"><CentralityHeatmap /></ChartCard>
+	</div>
+{:else if activeView === 'ranking'}
+	<div class="view mb-6">
+		{@render header('ranking')}
+		<ChartCard variant="charts"><NewspaperRankingChart /></ChartCard>
 	</div>
 {:else if activeView === 'table'}
 	<div class="view mb-6">

@@ -17,6 +17,7 @@ export const fr: Translations = {
 		table: 'Tableau',
 		comparison: 'Comparaison',
 		seasonality: 'Saisonnalité',
+		ranking: 'Journaux',
 		agreement: 'Accord',
 		extremes: 'Analyses extrêmes',
 		arbiter: 'Arbitre'
@@ -87,6 +88,25 @@ export const fr: Translations = {
 		secondary: 'Secondaire',
 		marginal: 'Marginal',
 		notAddressed: 'Non abordé'
+	},
+
+	// Classement des journaux
+	ranking: {
+		title: 'Journaux',
+		subtitle:
+			'Les journaux classés par sentiment moyen, avec intervalles de confiance à 95 %. Les titres comptant moins d\u2019articles évalués présentent des intervalles plus larges : une moyenne élevée sur un petit échantillon n\u2019est pas un résultat solide.',
+		chartTitle: 'Classement des journaux',
+		chartSubtitle: 'Moyenne et IC à 95 % · titres comptant au moins {min} articles évalués',
+		netPolarity: 'Polarité nette',
+		meanSubjectivity: 'Subjectivité moyenne',
+		meanCentrality: 'Centralité moyenne',
+		confidenceInterval: 'IC à 95 %',
+		neutralLine: 'neutre',
+		minArticles: 'Articles min.',
+		excludedNote:
+			'{count} journaux écartés : moins de {min} articles évalués. Leurs moyennes seraient trop incertaines pour être classées.',
+		noneAboveThreshold:
+			'Aucun journal ne compte au moins {min} articles évalués avec les filtres actuels.'
 	},
 
 	// Saisonnalité du calendrier hégirien
