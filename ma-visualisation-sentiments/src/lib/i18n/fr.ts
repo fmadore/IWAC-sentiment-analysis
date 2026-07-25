@@ -223,7 +223,17 @@ export const fr: Translations = {
 
 	// Correlation/Distribution view
 	correlation: {
-		subtitle: 'Analysez la relation entre les dimensions de polarité et de subjectivité.'
+		subtitle: 'Analysez la relation entre les dimensions de polarité et de subjectivité.',
+		spearman: 'ρ de Spearman',
+		strengthLabel: 'Force',
+		rhoNote:
+			'Corrélation de rang entre polarité et subjectivité. Les deux échelles étant ordinales, on utilise les rangs plutôt que les valeurs codées. Les articles marqués « Non applicable » sont exclus.',
+		strength: {
+			negligible: 'Négligeable',
+			weak: 'Faible',
+			moderate: 'Modérée',
+			strong: 'Forte'
+		}
 	},
 
 	// Table
@@ -405,6 +415,10 @@ export const fr: Translations = {
 
 	// Comparison
 	comparison: {
+		byDecade: 'Décennie',
+		disagreementBreakdown: 'Où les modèles divergent',
+		disagreementBreakdownNote:
+			'Écart moyen par article, réparti par décennie ou par pays. Les groupes comptant moins de 20 articles comparés sont omis : leurs moyennes varieraient au gré de quelques cas.',
 		subtitle:
 			"Comparez les analyses de sentiment entre différents modèles d'IA et identifiez les divergences significatives.",
 		filterByDiscrepancy: 'Filtrer par divergence',

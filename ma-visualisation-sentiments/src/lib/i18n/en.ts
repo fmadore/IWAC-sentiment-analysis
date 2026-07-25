@@ -225,7 +225,17 @@ export const en = {
 
 	// Correlation/Distribution view
 	correlation: {
-		subtitle: 'Analyze the relationship between polarity and subjectivity dimensions.'
+		subtitle: 'Analyze the relationship between polarity and subjectivity dimensions.',
+		spearman: "Spearman's ρ",
+		strengthLabel: 'Strength',
+		rhoNote:
+			'Rank correlation between polarity and subjectivity. Both scales are ordinal, so ranks are used rather than the coded values. Articles the model marked Not applicable are excluded.',
+		strength: {
+			negligible: 'Negligible',
+			weak: 'Weak',
+			moderate: 'Moderate',
+			strong: 'Strong'
+		}
 	},
 
 	// Table
@@ -400,6 +410,10 @@ export const en = {
 
 	// Comparison
 	comparison: {
+		byDecade: 'Decade',
+		disagreementBreakdown: 'Where the models disagree',
+		disagreementBreakdownNote:
+			'Mean discrepancy per article, bucketed by decade or country. Buckets with fewer than 20 compared articles are omitted — their means would swing on a handful of cases.',
 		subtitle:
 			'Compare sentiment analyses between different AI models and identify significant discrepancies.',
 		filterByDiscrepancy: 'Filter by Discrepancy',

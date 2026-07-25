@@ -282,3 +282,67 @@ export function aggregateByHijriMonth(
 		undated
 	};
 }
+
+export interface DisagreementBucket {
+	/** Decade label ('1990s') or country name. */
+	key: string;
+	/** Mean total discrepancy per compared article. */
+	meanTotal: number;
+	/** Percentage of the bucket flagged as a significant conflict. */
+	conflictRate: number;
+	n: number;
+}
+
+/** Minimal shape the disagreement aggregation needs from a comparison row. */
+export interface DisagreementInput {
+	key: string | null;
+	totalDiff: number;
+	hasConflict: boolean;
+}
+
+/**
+ * Mean discrepancy per bucket, dropping buckets too small to mean anything.
+ *
+ * The comparison view reports one corpus-wide mean, which cannot distinguish
+ * "these models differ" from "these models differ about the 1970s". Bucketing
+ * locates it. The minimum guards against a five-article bucket producing an
+ * extreme mean that reads as a finding; what it dropped is surfaced in the UI
+ * rather than silently truncated.
+ */
+export function aggregateDisagreement(
+	rows: DisagreementInput[],
+	minPerBucket = 20
+): DisagreementBucket[] {
+	const groups = new Map<string, { total: number; conflicts: number; n: number }>();
+
+	for (const row of rows) {
+		if (row.key === null) continue;
+
+		const entry = groups.get(row.key) ?? { total: 0, conflicts: 0, n: 0 };
+		entry.total += row.totalDiff;
+		entry.conflicts += row.hasConflict ? 1 : 0;
+		entry.n++;
+		groups.set(row.key, entry);
+	}
+
+	const buckets: DisagreementBucket[] = [];
+	for (const [key, entry] of groups) {
+		if (entry.n < minPerBucket) continue;
+		buckets.push({
+			key,
+			meanTotal: entry.total / entry.n,
+			conflictRate: (entry.conflicts / entry.n) * 100,
+			n: entry.n
+		});
+	}
+
+	return buckets;
+}
+
+/** Decade label ('1990s') for a publication date, or null when undatable. */
+export function bucketDecade(publicationDate: string | undefined): string | null {
+	if (!publicationDate || publicationDate.length < 4) return null;
+	const year = Number(publicationDate.slice(0, 4));
+	if (!Number.isInteger(year)) return null;
+	return `${Math.floor(year / 10) * 10}s`;
+}
