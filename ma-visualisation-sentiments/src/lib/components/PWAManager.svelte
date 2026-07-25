@@ -4,18 +4,16 @@
 	import { browser } from '$app/environment';
 	import { base } from '$app/paths';
 	import { DEV } from 'esm-env';
+	import { createControllerChangeTracker } from '$lib/utils/swUpdate';
 	interface ExtendedServiceWorkerRegistration extends ServiceWorkerRegistration {
 		sync?: { register(tag: string): Promise<void> };
 		periodicSync?: { register(tag: string, options: { minInterval: number }): Promise<void> };
 	}
 
 	let registration = $state<ExtendedServiceWorkerRegistration | null>(null);
-	// Guards against a reload loop when the new worker takes control.
-	let refreshing = false;
 
 	onMount(async () => {
 		if (!browser || !('serviceWorker' in navigator)) {
-			console.log('Service Worker not supported');
 			return;
 		}
 
@@ -43,8 +41,6 @@
 				updateViaCache: 'none'
 			})) as ExtendedServiceWorkerRegistration;
 
-			console.log('Service Worker registered successfully:', registration);
-
 			// When a new worker finishes installing, apply it right away. The active
 			// view/dataset/filters live in the URL, so the reload below restores state.
 			registration.addEventListener('updatefound', () => {
@@ -58,11 +54,14 @@
 				}
 			});
 
-			// A new worker took control → reload once to run the latest assets.
+			// A new worker took control. Whether that warrants a reload depends on
+			// which of the two very different `controllerchange` cases this is —
+			// see createControllerChangeTracker, where the decision is unit-tested.
+			const tracker = createControllerChangeTracker(!!navigator.serviceWorker.controller);
 			navigator.serviceWorker.addEventListener('controllerchange', () => {
-				if (refreshing) return;
-				refreshing = true;
-				window.location.reload();
+				if (tracker.onControllerChange()) {
+					window.location.reload();
+				}
 			});
 
 			// A worker updated on a previous visit may already be waiting — apply it.

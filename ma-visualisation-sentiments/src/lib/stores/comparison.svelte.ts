@@ -72,10 +72,6 @@ export const loadComparisonDatasets = async (fetchFunction: typeof fetch): Promi
 	}
 
 	if (datasetsToLoad.length > 0) {
-		console.log(
-			`Loading missing comparison datasets for ${currentPair}: ${datasetsToLoad.join(', ')}`
-		);
-
 		uiState.isLoadingComparison = true;
 
 		try {
@@ -85,12 +81,9 @@ export const loadComparisonDatasets = async (fetchFunction: typeof fetch): Promi
 					loadSpecificDataset(datasetId, fetchFunction, { showLoading: false })
 				)
 			);
-			console.log('Comparison datasets loaded successfully');
 		} finally {
 			uiState.isLoadingComparison = false;
 		}
-	} else {
-		console.log('All comparison datasets already loaded (likely from background prefetching)');
 	}
 };
 

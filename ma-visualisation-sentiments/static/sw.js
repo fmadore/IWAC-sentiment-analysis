@@ -199,7 +199,7 @@ self.addEventListener('fetch', (event) => {
 	//    match what the server actually serves. Falls back to the cached shell
 	//    when offline.
 	if (request.mode === 'navigate') {
-		event.respondWith(networkFirstStrategy(request, CACHE_NAME, APP_SHELL));
+		event.respondWith(networkFirstStrategy(request, CACHE_NAME, APP_SHELL, event));
 		return;
 	}
 
@@ -207,7 +207,7 @@ self.addEventListener('fetch', (event) => {
 	//    offline), stored in the deploy-stable DATA_CACHE_NAME so a new release
 	//    doesn't force a re-download of the whole corpus.
 	if (isDataFilePath(url.pathname)) {
-		event.respondWith(networkFirstStrategy(request, DATA_CACHE_NAME));
+		event.respondWith(networkFirstStrategy(request, DATA_CACHE_NAME, null, event));
 		return;
 	}
 
@@ -219,16 +219,42 @@ self.addEventListener('fetch', (event) => {
 		(file) => file !== APP_SHELL && (url.pathname === file || url.pathname.endsWith(file))
 	);
 	if (isImmutableAsset || isStaticAsset) {
-		event.respondWith(cacheFirstStrategy(request, STATIC_CACHE_NAME));
+		event.respondWith(cacheFirstStrategy(request, STATIC_CACHE_NAME, event));
 		return;
 	}
 
 	// 4) Everything else → network-first, cache fallback.
-	event.respondWith(networkFirstStrategy(request, CACHE_NAME));
+	event.respondWith(networkFirstStrategy(request, CACHE_NAME, null, event));
 });
 
+/**
+ * Write a response clone to the cache without racing the worker's lifetime.
+ *
+ * `response.clone()` tees one stream into two readers. If the cache write is
+ * still draining its branch when respondWith() settles, the browser is free to
+ * consider the fetch event finished and idle the worker out — which kills the
+ * tee and surfaces on the page as `TypeError: Failed to fetch`
+ * (net::ERR_ABORTED). Small assets finish before that ever happens; the 5MB
+ * extreme-analysis payloads did not, and aborted on roughly every first visit
+ * to that view.
+ *
+ * Passing the FetchEvent through so the put can be handed to waitUntil() is
+ * what actually keeps the worker alive for the write.
+ */
+function cacheResponse(event, cacheName, request, response) {
+	const write = caches
+		.open(cacheName)
+		.then((cache) => cache.put(request, response))
+		.catch((error) => console.log('[SW] Cache write failed:', request.url, error.message));
+
+	if (event && typeof event.waitUntil === 'function') {
+		event.waitUntil(write);
+	}
+	return write;
+}
+
 // Network-first strategy: try network, fallback to cache
-async function networkFirstStrategy(request, cacheName, fallbackUrl = null) {
+async function networkFirstStrategy(request, cacheName, fallbackUrl = null, event = null) {
 	const requestUrl = new URL(request.url);
 	const canCache = requestUrl.protocol.startsWith('http');
 
@@ -238,8 +264,7 @@ async function networkFirstStrategy(request, cacheName, fallbackUrl = null) {
 
 		// If successful, update cache and return response
 		if (networkResponse.ok && canCache) {
-			const cache = await caches.open(cacheName);
-			cache.put(request, networkResponse.clone());
+			cacheResponse(event, cacheName, request, networkResponse.clone());
 		}
 		if (networkResponse.ok) {
 			return networkResponse;
@@ -323,7 +348,7 @@ async function networkFirstStrategy(request, cacheName, fallbackUrl = null) {
 }
 
 // Cache-first strategy: check cache first, fallback to network
-async function cacheFirstStrategy(request, cacheName) {
+async function cacheFirstStrategy(request, cacheName, event = null) {
 	const requestUrl = new URL(request.url);
 	const canCache = requestUrl.protocol.startsWith('http');
 
@@ -337,8 +362,8 @@ async function cacheFirstStrategy(request, cacheName) {
 	try {
 		const networkResponse = await fetch(request);
 		if (networkResponse.ok && canCache) {
-			const cache = await caches.open(cacheName);
-			cache.put(request, networkResponse.clone());
+			// Same lifetime hazard as networkFirstStrategy — see cacheResponse.
+			cacheResponse(event, cacheName, request, networkResponse.clone());
 		}
 		if (networkResponse.ok) {
 			return networkResponse;
