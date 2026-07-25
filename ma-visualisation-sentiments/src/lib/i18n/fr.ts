@@ -16,6 +16,7 @@ export const fr: Translations = {
 		heatmap: 'Carte de chaleur',
 		table: 'Tableau',
 		comparison: 'Comparaison',
+		agreement: 'Accord',
 		extremes: 'Analyses extrêmes',
 		arbiter: 'Arbitre'
 	},
@@ -85,6 +86,50 @@ export const fr: Translations = {
 		secondary: 'Secondaire',
 		marginal: 'Marginal',
 		notAddressed: 'Non abordé'
+	},
+
+	// Accord / calibration
+	agreement: {
+		title: 'Accord',
+		subtitle:
+			'Comment les modèles se rapportent les uns aux autres : où ils convergent, où ils divergent, et si un désaccord relève d\u2019un décalage systématique ou d\u2019un conflit réel.',
+		dimensionSelector: 'Dimension d\u2019analyse',
+		exactAgreement: 'Accord exact',
+		exactAgreementHelp:
+			'Proportion d\u2019articles pour lesquels les deux modèles ont choisi la même catégorie. Non corrigée de l\u2019accord attendu par hasard.',
+		adjacentAgreement: 'À un cran près',
+		adjacentDetail: 'Identique ou à une catégorie d\u2019écart',
+		adjacentAgreementHelp:
+			'Proportion d\u2019articles dont les deux étiquettes sont identiques ou séparées d\u2019exactement une position sur l\u2019échelle ordinale.',
+		articlesCompared: 'articles comparés',
+		kappa: 'κ de Cohen',
+		kappaHelp:
+			'Accord corrigé du hasard. 0 signifie pas mieux que le hasard ; 1 signifie parfait. Tous les désaccords comptent également, si bien qu\u2019une échelle ordinale décalée d\u2019une catégorie obtient un score faible.',
+		weightedKappa: 'κ pondéré',
+		weightedKappaHelp:
+			'Kappa à pondération quadratique. Se tromper d\u2019une catégorie coûte bien moins que de s\u2019en écarter de quatre, ce qui convient aux échelles ordinales. Un score pondéré nettement supérieur au score non pondéré indique que les modèles classent de façon semblable mais se calibrent différemment.',
+		fleissKappa: 'κ de Fleiss',
+		fleissHelp:
+			'Kappa de Fleiss sur les trois modèles simultanément, pour les articles analysés par tous.',
+		threeWayTitle: 'Les trois modèles',
+		threeWayLede:
+			'Accord entre ChatGPT, Gemini et Mistral simultanément, par dimension. Seuls les articles analysés par les trois sont comptabilisés.',
+		matrixTitle: 'Matrice d\u2019accord',
+		rowsAre: 'Lignes :',
+		columnsAre: 'Colonnes :',
+		ofRow: 'De cette ligne',
+		calibrationTitle: 'Calibration des modèles',
+		calibrationSubtitle: 'La distribution propre à chaque modèle sur l\u2019échelle',
+		systematicOffsetNote:
+			'L\u2019accord pondéré est ici nettement supérieur à l\u2019accord non pondéré. C\u2019est la signature d\u2019un décalage systématique plutôt que d\u2019un conflit réel : {modelA} et {modelB} classent les articles de manière semblable mais placent les frontières entre catégories à des endroits différents, de sorte que l\u2019essentiel de leur désaccord tient à un seul cran d\u2019écart.',
+		strength: {
+			poor: 'Nul',
+			slight: 'Faible',
+			fair: 'Passable',
+			moderate: 'Modéré',
+			substantial: 'Important',
+			almostPerfect: 'Presque parfait'
+		}
 	},
 
 	// Chart titles and labels

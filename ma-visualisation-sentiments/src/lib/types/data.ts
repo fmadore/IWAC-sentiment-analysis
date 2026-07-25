@@ -66,6 +66,7 @@ export const VIEW_IDS = [
 	'heatmap',
 	'table',
 	'comparison',
+	'agreement',
 	'extremes',
 	'arbiter'
 ] as const;

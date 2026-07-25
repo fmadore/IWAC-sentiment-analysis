@@ -20,6 +20,7 @@ export const en = {
 		heatmap: 'Heatmap',
 		table: 'Table',
 		comparison: 'Comparison',
+		agreement: 'Agreement',
 		extremes: 'Extreme Analysis',
 		arbiter: 'Arbiter'
 	},
@@ -89,6 +90,50 @@ export const en = {
 		secondary: 'Secondary',
 		marginal: 'Marginal',
 		notAddressed: 'Not addressed'
+	},
+
+	// Agreement / calibration
+	agreement: {
+		title: 'Agreement',
+		subtitle:
+			'How the models relate to one another: where they converge, where they diverge, and whether a disagreement is a systematic offset or genuine conflict.',
+		dimensionSelector: 'Analysis dimension',
+		exactAgreement: 'Exact agreement',
+		exactAgreementHelp:
+			'Share of articles where both models chose the identical category. Uncorrected for the agreement expected by chance alone.',
+		adjacentAgreement: 'Within one step',
+		adjacentDetail: 'Identical or one category apart',
+		adjacentAgreementHelp:
+			'Share of articles where the two labels are identical or exactly one position apart on the ordinal scale.',
+		articlesCompared: 'articles compared',
+		kappa: "Cohen's κ",
+		kappaHelp:
+			'Agreement corrected for chance. 0 means no better than chance; 1 means perfect. Treats every disagreement as equally severe, so an ordinal scale shifted by one category scores poorly.',
+		weightedKappa: 'Weighted κ',
+		weightedKappaHelp:
+			'Quadratic-weighted kappa. Being one category off costs far less than being four off, which suits ordinal scales. A weighted score much higher than the unweighted one means the models mostly rank alike but calibrate differently.',
+		fleissKappa: "Fleiss' κ",
+		fleissHelp:
+			"Fleiss' kappa across all three models at once, over articles every model analysed.",
+		threeWayTitle: 'All three models',
+		threeWayLede:
+			'Agreement across ChatGPT, Gemini and Mistral simultaneously, per dimension. Only articles all three analysed are counted.',
+		matrixTitle: 'Agreement matrix',
+		rowsAre: 'Rows:',
+		columnsAre: 'Columns:',
+		ofRow: 'Of this row',
+		calibrationTitle: 'Model calibration',
+		calibrationSubtitle: 'Each model\u2019s own distribution across the scale',
+		systematicOffsetNote:
+			'Weighted agreement is far higher than unweighted agreement here. That is the signature of a systematic offset rather than genuine conflict: {modelA} and {modelB} rank articles similarly but place the boundaries between categories in different places, so most of their disagreement is a single step on the scale.',
+		strength: {
+			poor: 'Poor',
+			slight: 'Slight',
+			fair: 'Fair',
+			moderate: 'Moderate',
+			substantial: 'Substantial',
+			almostPerfect: 'Almost perfect'
+		}
 	},
 
 	// Chart titles and labels

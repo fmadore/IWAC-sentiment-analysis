@@ -36,7 +36,12 @@
 	} from '$lib/components/viz';
 
 	// Data Display
-	import { ArticleTable, ComparisonView, ArbiterView } from '$lib/components/data-display';
+	import {
+		ArticleTable,
+		ComparisonView,
+		ArbiterView,
+		AgreementView
+	} from '$lib/components/data-display';
 
 	// UI
 	import { CSVExportButton, ChartCard } from '$lib/components/ui';
@@ -79,9 +84,10 @@
 	}
 
 	let methodologyLine = $derived.by(() => {
-		if (comparisonMode) {
-			// Comparison mode pairs two models; the ComparisonView handles its own
-			// methodology surface. Suppress here.
+		if (comparisonMode || activeView === 'agreement') {
+			// Pair views (comparison, agreement) report their own sample sizes and
+			// name both models; a single-model "Model · X" line would misdescribe
+			// what is on screen. Suppress here.
 			return null;
 		}
 		if (totalCount === 0) return null;
@@ -103,6 +109,7 @@
 		| 'heatmap'
 		| 'table'
 		| 'comparison'
+		| 'agreement'
 		| 'extremes';
 
 	type ViewMeta = {
@@ -147,6 +154,11 @@
 			eyebrow: $t.table.title,
 			title: $t.table.title,
 			lede: $t.table?.subtitle || 'Browse and search all articles with detailed sentiment data.'
+		},
+		agreement: {
+			eyebrow: $t.nav.agreement,
+			title: $t.agreement.title,
+			lede: $t.agreement.subtitle
 		},
 		comparison: {
 			eyebrow: $t.nav.comparison,
@@ -221,6 +233,11 @@
 	<div class="view comparison-view mb-6">
 		{@render header('comparison')}
 		<ComparisonView />
+	</div>
+{:else if activeView === 'agreement'}
+	<div class="view agreement-view mb-6">
+		{@render header('agreement')}
+		<AgreementView />
 	</div>
 {:else if activeView === 'extremes'}
 	<div class="view extreme-view mb-6">
@@ -305,6 +322,7 @@
 	}
 
 	.comparison-view,
+	.agreement-view,
 	.extreme-view {
 		/* 200px ≈ header + view heading chrome above the chart area */
 		min-height: calc(100dvh - 200px);

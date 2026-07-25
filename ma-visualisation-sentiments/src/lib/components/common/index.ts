@@ -24,6 +24,7 @@ export { default as SearchInput } from './SearchInput.svelte';
 export { default as SentimentBadge } from './SentimentBadge.svelte';
 export { default as ComparisonPanel } from './ComparisonPanel.svelte';
 export { default as ArbiterSection } from './ArbiterSection.svelte';
+export { default as StatCard } from './StatCard.svelte';
 
 // States
 export { default as LoadingState } from './LoadingState.svelte';
