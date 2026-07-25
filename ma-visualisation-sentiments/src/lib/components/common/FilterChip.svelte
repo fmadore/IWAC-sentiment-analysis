@@ -1,11 +1,13 @@
 <!--
   FilterChip Component
-  
+
   A reusable toggle chip button for filter selections.
-  Supports semantic color variants for sentiment values.
-  
+  Sentiment variants take their colours from the shared palette resolver in
+  app.css (see utils/sentimentTokens.ts); the chip only decides *when* to wear
+  them, which is when it is selected.
+
   Usage:
-  <FilterChip 
+  <FilterChip
     label="Positif"
     selected={isSelected}
     onclick={() => toggle()}
@@ -13,31 +15,16 @@
   />
 -->
 <script lang="ts">
-	type SemanticVariant =
-		// Polarity variants
-		| 'polarity-very-positive'
-		| 'polarity-positive'
-		| 'polarity-neutral'
-		| 'polarity-negative'
-		| 'polarity-very-negative'
-		| 'polarity-na'
-		// Subjectivity variants
-		| 'subjectivity-1'
-		| 'subjectivity-2'
-		| 'subjectivity-3'
-		| 'subjectivity-4'
-		| 'subjectivity-5'
-		// Centrality variants
-		| 'centrality-very-central'
-		| 'centrality-central'
-		| 'centrality-secondary'
-		| 'centrality-marginal'
-		| 'centrality-not-addressed'
-		// Comparison / discrepancy variants
-		| 'comparison'
-		| 'warning'
-		// Default
-		| 'default';
+	import {
+		isSentimentVariant,
+		variantAttributes,
+		type SentimentVariant
+	} from '$lib/utils/sentimentTokens';
+
+	/** Non-sentiment variants; they set the same three palette variables locally. */
+	type UtilityVariant = 'comparison' | 'warning' | 'default';
+
+	type ChipVariant = SentimentVariant | UtilityVariant;
 
 	interface FilterChipProps {
 		/** Text displayed on the chip */
@@ -45,7 +32,7 @@
 		/** Whether the chip is selected */
 		selected?: boolean;
 		/** Semantic color variant */
-		variant?: SemanticVariant;
+		variant?: ChipVariant;
 		/** Click handler */
 		onclick?: () => void;
 		/** Whether the chip is disabled */
@@ -62,11 +49,18 @@
 		disabled = false,
 		class: className = ''
 	}: FilterChipProps = $props();
+
+	// Sentiment variants defer to the shared palette; the utility ones are
+	// styled here, so they travel as data-variant instead.
+	let paletteAttributes = $derived(
+		isSentimentVariant(variant) ? variantAttributes(variant) : { 'data-variant': variant }
+	);
 </script>
 
 <button
-	class="filter-chip {variant} {className}"
+	class="filter-chip {className}"
 	data-selected={selected}
+	{...paletteAttributes}
 	{onclick}
 	{disabled}
 	type="button"
@@ -98,7 +92,11 @@
 		color: var(--text-secondary);
 	}
 
-	.filter-chip:hover:not(:disabled) {
+	/* Hover feedback is for chips you could still turn on. A selected chip keeps
+	   its variant colour under the cursor — excluded explicitly because the
+	   selected rule below is one component less specific than this one and
+	   would otherwise lose to it. */
+	.filter-chip:hover:not(:disabled, [data-selected='true']) {
 		background: var(--surface-hover);
 		border-color: var(--border-hover);
 		color: var(--text-primary);
@@ -109,136 +107,38 @@
 		cursor: not-allowed;
 	}
 
-	/* Default selected state */
-	.filter-chip.default[data-selected='true'] {
-		background: color-mix(in oklab, var(--color-primary-500) 16%, transparent);
-		border-color: color-mix(in oklab, var(--color-primary-500) 42%, transparent);
-		color: var(--color-primary-300);
+	/* The entire selected colour system, in one rule. app.css resolves the
+	   three variables from the data-polarity / data-subjectivity /
+	   data-centrality attribute; the utility variants below set them inline. */
+	.filter-chip[data-selected='true'] {
+		background: var(--sentiment-bg);
+		border-color: var(--sentiment-border);
+		color: var(--sentiment-fg);
 	}
 
 	/* ============================================
-     POLARITY VARIANTS
-     Using CSS variables from app.postcss
-     ============================================ */
+	   UTILITY VARIANTS
+	   Not sentiment values, so their palettes live here rather than in the
+	   shared resolver — but they feed the same three variables, which keeps
+	   the rule above the only place a chip decides how to paint itself.
+	   ============================================ */
 
-	.filter-chip.polarity-very-positive[data-selected='true'] {
-		background: var(--sentiment-polarity-very-positive-bg);
-		border-color: var(--sentiment-polarity-very-positive-border);
-		color: var(--sentiment-polarity-very-positive);
+	.filter-chip[data-variant='default'] {
+		--sentiment-fg: var(--color-primary-300);
+		--sentiment-bg: color-mix(in oklab, var(--color-primary-500) 16%, transparent);
+		--sentiment-border: color-mix(in oklab, var(--color-primary-500) 42%, transparent);
 	}
 
-	.filter-chip.polarity-positive[data-selected='true'] {
-		background: var(--sentiment-polarity-positive-bg);
-		border-color: var(--sentiment-polarity-positive-border);
-		color: var(--sentiment-polarity-positive);
+	.filter-chip[data-variant='comparison'] {
+		--sentiment-fg: var(--sentiment-comparison-light);
+		--sentiment-bg: var(--sentiment-comparison-bg);
+		--sentiment-border: var(--sentiment-comparison-border);
 	}
 
-	.filter-chip.polarity-neutral[data-selected='true'] {
-		background: var(--sentiment-polarity-neutral-bg);
-		border-color: var(--sentiment-polarity-neutral-border);
-		color: var(--sentiment-polarity-neutral);
-	}
-
-	.filter-chip.polarity-negative[data-selected='true'] {
-		background: var(--sentiment-polarity-negative-bg);
-		border-color: var(--sentiment-polarity-negative-border);
-		color: var(--sentiment-polarity-negative);
-	}
-
-	.filter-chip.polarity-very-negative[data-selected='true'] {
-		background: var(--sentiment-polarity-very-negative-bg);
-		border-color: var(--sentiment-polarity-very-negative-border);
-		color: var(--sentiment-polarity-very-negative);
-	}
-
-	.filter-chip.polarity-na[data-selected='true'] {
-		background: var(--sentiment-polarity-na-bg);
-		border-color: var(--sentiment-polarity-na-border);
-		color: var(--sentiment-polarity-na);
-	}
-
-	/* ============================================
-     SUBJECTIVITY VARIANTS
-     ============================================ */
-
-	.filter-chip.subjectivity-1[data-selected='true'] {
-		background: var(--sentiment-subjectivity-1-bg);
-		border-color: var(--sentiment-subjectivity-1-border);
-		color: var(--sentiment-subjectivity-1);
-	}
-
-	.filter-chip.subjectivity-2[data-selected='true'] {
-		background: var(--sentiment-subjectivity-2-bg);
-		border-color: var(--sentiment-subjectivity-2-border);
-		color: var(--sentiment-subjectivity-2);
-	}
-
-	.filter-chip.subjectivity-3[data-selected='true'] {
-		background: var(--sentiment-subjectivity-3-bg);
-		border-color: var(--sentiment-subjectivity-3-border);
-		color: var(--sentiment-subjectivity-3);
-	}
-
-	.filter-chip.subjectivity-4[data-selected='true'] {
-		background: var(--sentiment-subjectivity-4-bg);
-		border-color: var(--sentiment-subjectivity-4-border);
-		color: var(--sentiment-subjectivity-4);
-	}
-
-	.filter-chip.subjectivity-5[data-selected='true'] {
-		background: var(--sentiment-subjectivity-5-bg);
-		border-color: var(--sentiment-subjectivity-5-border);
-		color: var(--sentiment-subjectivity-5);
-	}
-
-	/* ============================================
-     CENTRALITY VARIANTS
-     ============================================ */
-
-	.filter-chip.centrality-very-central[data-selected='true'] {
-		background: var(--sentiment-centrality-very-central-bg);
-		border-color: var(--sentiment-centrality-very-central-border);
-		color: var(--sentiment-centrality-very-central);
-	}
-
-	.filter-chip.centrality-central[data-selected='true'] {
-		background: var(--sentiment-centrality-central-bg);
-		border-color: var(--sentiment-centrality-central-border);
-		color: var(--sentiment-centrality-central);
-	}
-
-	.filter-chip.centrality-secondary[data-selected='true'] {
-		background: var(--sentiment-centrality-secondary-bg);
-		border-color: var(--sentiment-centrality-secondary-border);
-		color: var(--sentiment-centrality-secondary);
-	}
-
-	.filter-chip.centrality-marginal[data-selected='true'] {
-		background: var(--sentiment-centrality-marginal-bg);
-		border-color: var(--sentiment-centrality-marginal-border);
-		color: var(--sentiment-centrality-marginal);
-	}
-
-	.filter-chip.centrality-not-addressed[data-selected='true'] {
-		background: var(--sentiment-centrality-not-addressed-bg);
-		border-color: var(--sentiment-centrality-not-addressed-border);
-		color: var(--sentiment-centrality-not-addressed);
-	}
-
-	/* ============================================
-     COMPARISON / DISCREPANCY VARIANTS
-     ============================================ */
-
-	.filter-chip.comparison[data-selected='true'] {
-		background: var(--sentiment-comparison-bg);
-		border-color: var(--sentiment-comparison-border);
-		color: var(--sentiment-comparison-light);
-	}
-
-	.filter-chip.warning[data-selected='true'] {
-		background: color-mix(in oklab, var(--color-warning-500) 18%, transparent);
-		border-color: color-mix(in oklab, var(--color-warning-500) 45%, transparent);
-		color: var(--color-warning-300);
+	.filter-chip[data-variant='warning'] {
+		--sentiment-fg: var(--color-warning-300);
+		--sentiment-bg: color-mix(in oklab, var(--color-warning-500) 18%, transparent);
+		--sentiment-border: color-mix(in oklab, var(--color-warning-500) 45%, transparent);
 	}
 
 	/* Responsive */

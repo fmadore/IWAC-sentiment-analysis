@@ -1,22 +1,38 @@
-name: Deploy to GitHub Pages
+name: CI / Deploy to GitHub Pages
 
+# One workflow, two roles. The verification steps (types, lint, tests, build)
+# run for every pull request as well as for pushes to main, so a PR is gated by
+# exactly the same checks that gate a deploy — no second, drifting copy of the
+# pipeline. Only the Pages-specific steps and the deploy job are restricted to
+# pushes/manual runs.
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
+# Least privilege at the top; the two jobs that talk to Pages opt into more.
+# This also matters for pull_request runs, where requesting write scopes the
+# run doesn't need would simply fail on forks.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  # Deploys serialize under a single `pages` group and are never cancelled —
+  # interrupting one can leave the live site half-published. PR runs get a
+  # per-branch group instead, so a follow-up push supersedes the run it made
+  # obsolete rather than queueing behind it.
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.ref) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     defaults:
       run:
         working-directory: ./ma-visualisation-sentiments
@@ -41,7 +57,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-sveltekit-
 
+      # Only needed to publish. The build itself doesn't depend on it: the base
+      # path comes from svelte.config.js, not from configure-pages' outputs.
       - name: Setup Pages
+        if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v6
 
       - name: Install dependencies
@@ -70,17 +89,27 @@ jobs:
           pip install pandas huggingface_hub pytest
           python -m pytest data-preprocess/test_shared.py -q
 
+      # Runs on pull requests too: a build failure is a real failure, and
+      # NODE_ENV=production here means PRs also exercise the base-path branch
+      # that only production takes.
       - name: Build
         run: npm run build
 
       - name: Upload artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v5
         with:
           path: ./ma-visualisation-sentiments/build
 
   deploy:
+    # Verification-only on pull requests — publishing from a PR would push
+    # unreviewed code to the live site.
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

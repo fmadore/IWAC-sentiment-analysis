@@ -3,7 +3,9 @@
 	import { datasetState, articleState } from '$lib/stores';
 	import { AccordionItem, PromptModal } from '$lib/components/common';
 	import CollapsibleMethodologyCard from '$lib/components/common/CollapsibleMethodologyCard.svelte';
-	import SentimentScaleList from '$lib/components/common/SentimentScaleList.svelte';
+	import SentimentScaleList, {
+		type ScaleItem
+	} from '$lib/components/common/SentimentScaleList.svelte';
 	import { SENTIMENT_ANALYSIS_PROMPT } from '$lib/data/prompts';
 	import { base } from '$app/paths';
 	import { createAccordion } from '$lib/utils/accordion.svelte';
@@ -105,95 +107,95 @@
 	const selectedModel = $derived(MODELS.find((m) => m.id === datasetState.selected));
 
 	// Evaluation-scale items (badge class + label + description)
-	const polarityItems = $derived([
+	const polarityItems: ScaleItem[] = $derived([
 		{
-			badgeClass: 'sentiment-very-positive',
+			variant: 'polarity-very-positive',
 			badge: $t.sentiment.veryPositive,
 			description: $t.analysis.veryPositiveDesc
 		},
 		{
-			badgeClass: 'sentiment-positive',
+			variant: 'polarity-positive',
 			badge: $t.sentiment.positive,
 			description: $t.analysis.positiveDesc
 		},
 		{
-			badgeClass: 'sentiment-neutral',
+			variant: 'polarity-neutral',
 			badge: $t.sentiment.neutral,
 			description: $t.analysis.neutralDesc
 		},
 		{
-			badgeClass: 'sentiment-negative',
+			variant: 'polarity-negative',
 			badge: $t.sentiment.negative,
 			description: $t.analysis.negativeDesc
 		},
 		{
-			badgeClass: 'sentiment-very-negative',
+			variant: 'polarity-very-negative',
 			badge: $t.sentiment.veryNegative,
 			description: $t.analysis.veryNegativeDesc
 		},
 		{
-			badgeClass: 'sentiment-na',
+			variant: 'polarity-na',
 			badge: $t.sentiment.notApplicable,
 			description: $t.analysis.notApplicableNote
 		}
 	]);
 
-	const subjectivityItems = $derived([
+	const subjectivityItems: ScaleItem[] = $derived([
 		{
-			badgeClass: 'subjectivity-1',
+			variant: 'subjectivity-1',
 			badge: '1',
 			label: $t.subjectivity.factual,
 			description: $t.analysis.factualDesc
 		},
 		{
-			badgeClass: 'subjectivity-2',
+			variant: 'subjectivity-2',
 			badge: '2',
 			label: $t.subjectivity.ratherFactual,
 			description: $t.analysis.ratherFactualDesc
 		},
 		{
-			badgeClass: 'subjectivity-3',
+			variant: 'subjectivity-3',
 			badge: '3',
 			label: $t.subjectivity.mixed,
 			description: $t.analysis.mixedDesc
 		},
 		{
-			badgeClass: 'subjectivity-4',
+			variant: 'subjectivity-4',
 			badge: '4',
 			label: $t.subjectivity.ratherSubjective,
 			description: $t.analysis.ratherSubjectiveDesc
 		},
 		{
-			badgeClass: 'subjectivity-5',
+			variant: 'subjectivity-5',
 			badge: '5',
 			label: $t.subjectivity.subjective,
 			description: $t.analysis.subjectiveDesc
 		}
 	]);
 
-	const centralityItems = $derived([
+	const centralityItems: ScaleItem[] = $derived([
 		{
-			badgeClass: 'centrality-very-central',
+			variant: 'centrality-very-central',
 			badge: $t.centrality.veryCentral,
 			description: $t.analysis.veryCentralDesc
 		},
 		{
-			badgeClass: 'centrality-central',
+			variant: 'centrality-central',
 			badge: $t.centrality.central,
 			description: $t.analysis.centralDesc
 		},
 		{
-			badgeClass: 'centrality-secondary',
+			variant: 'centrality-secondary',
 			badge: $t.centrality.secondary,
 			description: $t.analysis.secondaryDesc
 		},
 		{
-			badgeClass: 'centrality-marginal',
+			variant: 'centrality-marginal',
 			badge: $t.centrality.marginal,
 			description: $t.analysis.marginalDesc
 		},
 		{
-			badgeClass: 'centrality-not-addressed',
+			variant: 'centrality-not-addressed',
 			badge: $t.centrality.notAddressed,
 			description: $t.analysis.notAddressedDesc
 		}

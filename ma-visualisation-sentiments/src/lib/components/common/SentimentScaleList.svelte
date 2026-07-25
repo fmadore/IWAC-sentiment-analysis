@@ -5,19 +5,23 @@
   badge/label + description pairs.
 
   Variants:
-  - "badge" (AnalysisInfo): global `.badge` classes from app.css
-    (.sentiment-*, .subjectivity-*, .centrality-*) with an em-dash before
-    each description and an optional bold label.
+  - "badge" (AnalysisInfo): a filled pill with an em-dash before each
+    description and an optional bold label.
   - "chip" (ArbiterMethodology): compact colored chips; `chipKind` selects
     the chip shape (pill for sentiment/centrality, circle for subjectivity).
 
+  Both take their colours from the shared palette resolver in app.css, keyed
+  on each item's sentiment variant — see utils/sentimentTokens.ts.
+
   Usage:
-  <SentimentScaleList items={[{ badgeClass: 'sentiment-positive', badge: 'Positif', description: '…' }]} />
+  <SentimentScaleList items={[{ variant: 'polarity-positive', badge: 'Positif', description: '…' }]} />
 -->
 <script lang="ts" module>
+	import type { SentimentVariant } from '$lib/utils/sentimentTokens';
+
 	export interface ScaleItem {
-		/** Sentiment class: global badge class ("badge" variant) or chip color modifier ("chip" variant) */
-		badgeClass: string;
+		/** Which scale value this row describes; selects its colours */
+		variant: SentimentVariant;
 		/** Text rendered inside the badge/chip */
 		badge: string;
 		/** Optional bold label rendered between badge and description ("badge" variant) */
@@ -28,10 +32,12 @@
 </script>
 
 <script lang="ts">
+	import { variantAttributes } from '$lib/utils/sentimentTokens';
+
 	interface SentimentScaleListProps {
 		items: ScaleItem[];
 		variant?: 'badge' | 'chip';
-		/** Chip shape/coloring for the "chip" variant */
+		/** Chip shape for the "chip" variant */
 		chipKind?: 'sentiment' | 'subjectivity' | 'centrality';
 	}
 
@@ -42,11 +48,13 @@
 	{#each items as item (item.badge)}
 		<li>
 			{#if variant === 'badge'}
-				<span class="badge {item.badgeClass}">{item.badge}</span>
+				<span class="badge scale-badge" {...variantAttributes(item.variant)}>{item.badge}</span>
 				{#if item.label}<strong class="item-label">{item.label}</strong>{/if}
 				<span class="sentiment-desc">— {item.description}</span>
 			{:else}
-				<span class="scale-chip {item.badgeClass}" data-kind={chipKind}>{item.badge}</span>
+				<span class="scale-chip" data-kind={chipKind} {...variantAttributes(item.variant)}
+					>{item.badge}</span
+				>
 				<span class="sentiment-desc">{item.description}</span>
 			{/if}
 		</li>
@@ -72,6 +80,13 @@
 		gap: var(--space-2-5);
 		font-size: var(--font-size-base);
 		line-height: var(--line-height-normal);
+	}
+
+	/* Colours resolved by app.css from the item's data-* attribute. */
+	.scale-badge {
+		background: var(--sentiment-bg);
+		border: 1px solid var(--sentiment-border);
+		color: var(--sentiment-fg);
 	}
 
 	.sentiment-desc {
@@ -102,6 +117,13 @@
 		opacity: 0.7;
 	}
 
+	/* Same palette as the badge variant; only the shape differs. */
+	.scale-chip {
+		background: var(--sentiment-bg);
+		border: 1px solid var(--sentiment-border);
+		color: var(--sentiment-fg);
+	}
+
 	.scale-chip[data-kind='sentiment'],
 	.scale-chip[data-kind='centrality'] {
 		display: inline-block;
@@ -122,63 +144,6 @@
 		font-size: var(--font-size-xs);
 		font-weight: var(--font-weight-bold);
 		border-radius: var(--radius-full);
-		background: var(--sentiment-subjectivity-3-bg);
-		color: var(--sentiment-subjectivity-3);
-		border: 1px solid var(--sentiment-subjectivity-3-border);
 	}
 	/* 28px kept — not a standard control size token */
-
-	/* --- Chip colors: polarity --- */
-	.scale-chip.very-positive {
-		background: var(--sentiment-polarity-very-positive-bg);
-		color: var(--sentiment-polarity-very-positive);
-		border: 1px solid var(--sentiment-polarity-very-positive-border);
-	}
-	.scale-chip.positive {
-		background: var(--sentiment-polarity-positive-bg);
-		color: var(--sentiment-polarity-positive);
-		border: 1px solid var(--sentiment-polarity-positive-border);
-	}
-	.scale-chip.neutral {
-		background: var(--sentiment-polarity-neutral-bg);
-		color: var(--sentiment-polarity-neutral);
-		border: 1px solid var(--sentiment-polarity-neutral-border);
-	}
-	.scale-chip.negative {
-		background: var(--sentiment-polarity-negative-bg);
-		color: var(--sentiment-polarity-negative);
-		border: 1px solid var(--sentiment-polarity-negative-border);
-	}
-	.scale-chip.very-negative {
-		background: var(--sentiment-polarity-very-negative-bg);
-		color: var(--sentiment-polarity-very-negative);
-		border: 1px solid var(--sentiment-polarity-very-negative-border);
-	}
-
-	/* --- Chip colors: centrality --- */
-	.scale-chip.very-central {
-		background: var(--sentiment-centrality-very-central-bg);
-		color: var(--sentiment-centrality-very-central);
-		border: 1px solid var(--sentiment-centrality-very-central-border);
-	}
-	.scale-chip.central {
-		background: var(--sentiment-centrality-central-bg);
-		color: var(--sentiment-centrality-central);
-		border: 1px solid var(--sentiment-centrality-central-border);
-	}
-	.scale-chip.secondary {
-		background: var(--sentiment-centrality-secondary-bg);
-		color: var(--sentiment-centrality-secondary);
-		border: 1px solid var(--sentiment-centrality-secondary-border);
-	}
-	.scale-chip.marginal {
-		background: var(--sentiment-centrality-marginal-bg);
-		color: var(--sentiment-centrality-marginal);
-		border: 1px solid var(--sentiment-centrality-marginal-border);
-	}
-	.scale-chip.not-addressed {
-		background: var(--sentiment-centrality-not-addressed-bg);
-		color: var(--sentiment-centrality-not-addressed);
-		border: 1px solid var(--sentiment-centrality-not-addressed-border);
-	}
 </style>
