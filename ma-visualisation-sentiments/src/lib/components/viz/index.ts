@@ -12,6 +12,13 @@ export { default as SentimentTrendsChart } from './SentimentTrendsChart.svelte';
 export { default as SubjectivityChart } from './SubjectivityChart.svelte';
 export { default as SubjectivityTrendsChart } from './SubjectivityTrendsChart.svelte';
 export { default as VolumeChart } from './VolumeChart.svelte';
+export { default as HijriSeasonalityChart } from './HijriSeasonalityChart.svelte';
+export { default as NewspaperRankingChart } from './NewspaperRankingChart.svelte';
+export { default as DisagreementBreakdownChart } from './DisagreementBreakdownChart.svelte';
+
+// Agreement / calibration
+export { default as AgreementMatrix } from './AgreementMatrix.svelte';
+export { default as ModelCalibrationChart } from './ModelCalibrationChart.svelte';
 
 // Arbiter Charts
 export { default as ArbiterVerdictChart } from './ArbiterVerdictChart.svelte';

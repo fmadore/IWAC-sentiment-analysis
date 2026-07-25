@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { articleState } from '$lib/stores';
+	import { articleState, datasetState, loadJustifications } from '$lib/stores';
 	import { getJournalName } from '$lib/utils/format';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
@@ -66,5 +66,6 @@
 	count={articleCount}
 	filenamePrefix="iwac-articles"
 	variant="articles"
+	prepare={() => loadJustifications(datasetState.selected)}
 	buildCsv={() => convertToCSV(articleState.filtered)}
 />

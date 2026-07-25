@@ -137,40 +137,8 @@
 		<Chart {init} {options} />
 	</div>
 {:else}
-	<p class="empty-state">{$t.table.noFilteredArticles}</p>
+	<p class="chart-empty">{$t.table.noFilteredArticles}</p>
 {/if}
 
 <style>
-	.chart-toolbar {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: space-between;
-		gap: var(--space-3);
-		margin-bottom: var(--space-4);
-	}
-
-	@media (min-width: 640px) {
-		.chart-toolbar {
-			flex-direction: row;
-		}
-	}
-
-	.chart-container {
-		background: transparent;
-		padding: var(--space-2);
-	}
-
-	@media (min-width: 640px) {
-		.chart-container {
-			padding: var(--space-4);
-		}
-	}
-
-	.empty-state {
-		text-align: center;
-		padding: var(--space-8) 0;
-		color: var(--text-muted);
-		font-size: var(--font-size-sm);
-	}
 </style>

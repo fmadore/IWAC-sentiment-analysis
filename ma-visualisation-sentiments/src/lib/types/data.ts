@@ -63,9 +63,12 @@ export const VIEW_IDS = [
 	'trends',
 	'correlation',
 	'volume',
+	'seasonality',
 	'heatmap',
+	'ranking',
 	'table',
 	'comparison',
+	'agreement',
 	'extremes',
 	'arbiter'
 ] as const;

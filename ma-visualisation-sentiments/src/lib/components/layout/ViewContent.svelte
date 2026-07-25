@@ -32,11 +32,18 @@
 		CorrelationChart,
 		VolumeChart,
 		CentralityHeatmap,
-		KeywordFrequencyChart
+		KeywordFrequencyChart,
+		HijriSeasonalityChart,
+		NewspaperRankingChart
 	} from '$lib/components/viz';
 
 	// Data Display
-	import { ArticleTable, ComparisonView, ArbiterView } from '$lib/components/data-display';
+	import {
+		ArticleTable,
+		ComparisonView,
+		ArbiterView,
+		AgreementView
+	} from '$lib/components/data-display';
 
 	// UI
 	import { CSVExportButton, ChartCard } from '$lib/components/ui';
@@ -79,9 +86,10 @@
 	}
 
 	let methodologyLine = $derived.by(() => {
-		if (comparisonMode) {
-			// Comparison mode pairs two models; the ComparisonView handles its own
-			// methodology surface. Suppress here.
+		if (comparisonMode || activeView === 'agreement') {
+			// Pair views (comparison, agreement) report their own sample sizes and
+			// name both models; a single-model "Model · X" line would misdescribe
+			// what is on screen. Suppress here.
 			return null;
 		}
 		if (totalCount === 0) return null;
@@ -100,9 +108,12 @@
 		| 'trends'
 		| 'correlation'
 		| 'volume'
+		| 'seasonality'
 		| 'heatmap'
+		| 'ranking'
 		| 'table'
 		| 'comparison'
+		| 'agreement'
 		| 'extremes';
 
 	type ViewMeta = {
@@ -136,6 +147,11 @@
 			title: $t.nav.volume,
 			lede: $t.volume?.subtitle || 'Analyze publication volume and temporal patterns in the corpus.'
 		},
+		seasonality: {
+			eyebrow: $t.nav.seasonality,
+			title: $t.seasonality.title,
+			lede: $t.seasonality.subtitle
+		},
 		heatmap: {
 			eyebrow: $t.nav.heatmap,
 			title: $t.nav.heatmap,
@@ -143,10 +159,20 @@
 				$t.heatmap?.subtitle ||
 				'Explore centrality patterns across countries and themes with interactive visualization.'
 		},
+		ranking: {
+			eyebrow: $t.nav.ranking,
+			title: $t.ranking.title,
+			lede: $t.ranking.subtitle
+		},
 		table: {
 			eyebrow: $t.table.title,
 			title: $t.table.title,
 			lede: $t.table?.subtitle || 'Browse and search all articles with detailed sentiment data.'
+		},
+		agreement: {
+			eyebrow: $t.nav.agreement,
+			title: $t.agreement.title,
+			lede: $t.agreement.subtitle
 		},
 		comparison: {
 			eyebrow: $t.nav.comparison,
@@ -204,10 +230,20 @@
 		{@render header('volume')}
 		<ChartCard variant="volume"><VolumeChart /></ChartCard>
 	</div>
+{:else if activeView === 'seasonality'}
+	<div class="view mb-6">
+		{@render header('seasonality')}
+		<ChartCard variant="volume"><HijriSeasonalityChart /></ChartCard>
+	</div>
 {:else if activeView === 'heatmap'}
 	<div class="view mb-6">
 		{@render header('heatmap')}
 		<ChartCard variant="heatmap"><CentralityHeatmap /></ChartCard>
+	</div>
+{:else if activeView === 'ranking'}
+	<div class="view mb-6">
+		{@render header('ranking')}
+		<ChartCard variant="charts"><NewspaperRankingChart /></ChartCard>
 	</div>
 {:else if activeView === 'table'}
 	<div class="view mb-6">
@@ -221,6 +257,11 @@
 	<div class="view comparison-view mb-6">
 		{@render header('comparison')}
 		<ComparisonView />
+	</div>
+{:else if activeView === 'agreement'}
+	<div class="view agreement-view mb-6">
+		{@render header('agreement')}
+		<AgreementView />
 	</div>
 {:else if activeView === 'extremes'}
 	<div class="view extreme-view mb-6">
@@ -305,6 +346,7 @@
 	}
 
 	.comparison-view,
+	.agreement-view,
 	.extreme-view {
 		/* 200px ≈ header + view heading chrome above the chart area */
 		min-height: calc(100dvh - 200px);

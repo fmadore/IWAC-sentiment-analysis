@@ -252,5 +252,5 @@
 		<Chart {init} {options} />
 	</div>
 {:else}
-	<p class="text-center py-8 text-white/80 text-sm sm:text-base">{$t.table.noFilteredArticles}</p>
+	<p class="chart-empty">{$t.table.noFilteredArticles}</p>
 {/if}

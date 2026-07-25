@@ -20,6 +20,9 @@ export const en = {
 		heatmap: 'Heatmap',
 		table: 'Table',
 		comparison: 'Comparison',
+		seasonality: 'Seasonality',
+		ranking: 'Newspapers',
+		agreement: 'Agreement',
 		extremes: 'Extreme Analysis',
 		arbiter: 'Arbiter'
 	},
@@ -91,6 +94,116 @@ export const en = {
 		notAddressed: 'Not addressed'
 	},
 
+	// Newspaper ranking
+	ranking: {
+		title: 'Newspapers',
+		subtitle:
+			'Newspapers ranked by mean sentiment, with 95% confidence intervals. Titles with fewer rated articles carry wider intervals — a high mean from a small sample is not a strong finding.',
+		chartTitle: 'Newspapers ranked',
+		chartSubtitle: 'Mean with 95% CI · titles with at least {min} rated articles',
+		netPolarity: 'Net polarity',
+		meanSubjectivity: 'Mean subjectivity',
+		meanCentrality: 'Mean centrality',
+		confidenceInterval: '95% CI',
+		neutralLine: 'neutral',
+		minArticles: 'Min. articles',
+		excludedNote:
+			'{count} newspapers omitted: fewer than {min} rated articles. Their means would be too uncertain to rank.',
+		noneAboveThreshold: 'No newspaper has at least {min} rated articles under the current filters.'
+	},
+
+	// Hijri-calendar seasonality
+	seasonality: {
+		title: 'Seasonality',
+		subtitle:
+			'Coverage across the Islamic lunar calendar. Because the Hijri year drifts against the Gregorian one, this pattern is invisible in any year- or month-based view.',
+		chartTitle: 'Coverage by Hijri month',
+		chartSubtitle: 'Article volume and mean centrality across the lunar year',
+		cycleLayout: 'Cycle',
+		coverageIndex: 'Coverage index',
+		calendarNote:
+			'Dates converted with the tabular (arithmetic) Islamic calendar, civil epoch. This differs from locally announced observance dates by a day or two — fine for month-level aggregates, not for dating an individual observance.',
+		undatedNote: '{count} articles excluded: no full publication date.',
+		months: {
+			muharram: 'Muharram',
+			safar: 'Safar',
+			rabiI: 'Rabi I',
+			rabiII: 'Rabi II',
+			jumadaI: 'Jumada I',
+			jumadaII: 'Jumada II',
+			rajab: 'Rajab',
+			shaban: "Sha'ban",
+			ramadan: 'Ramadan',
+			shawwal: 'Shawwal',
+			dhuAlQadah: "Dhu al-Qa'dah",
+			dhuAlHijjah: 'Dhu al-Hijjah'
+		}
+	},
+
+	// Agreement / calibration
+	agreement: {
+		title: 'Agreement',
+		subtitle:
+			'How the models relate to one another: where they converge, where they diverge, and whether a disagreement is a systematic offset or genuine conflict.',
+		dimensionSelector: 'Analysis dimension',
+		exactAgreement: 'Exact agreement',
+		exactAgreementHelp:
+			'Share of articles where both models chose the identical category. Uncorrected for the agreement expected by chance alone.',
+		adjacentAgreement: 'Within one step',
+		adjacentDetail: 'Identical or one category apart',
+		adjacentAgreementHelp:
+			'Share of articles where the two labels are identical or exactly one position apart on the ordinal scale.',
+		articlesCompared: 'articles compared',
+		kappa: "Cohen's κ",
+		kappaHelp:
+			'Agreement corrected for chance. 0 means no better than chance; 1 means perfect. Treats every disagreement as equally severe, so an ordinal scale shifted by one category scores poorly.',
+		weightedKappa: 'Weighted κ',
+		weightedKappaHelp:
+			'Quadratic-weighted kappa. Being one category off costs far less than being four off, which suits ordinal scales. A weighted score much higher than the unweighted one means the models mostly rank alike but calibrate differently.',
+		fleissKappa: "Fleiss' κ",
+		fleissHelp:
+			"Fleiss' kappa across all three models at once, over articles every model analysed.",
+		threeWayTitle: 'All three models',
+		threeWayLede:
+			'Agreement across ChatGPT, Gemini and Mistral simultaneously, per dimension. Only articles all three analysed are counted.',
+		matrixTitle: 'Agreement matrix',
+		rowsAre: 'Rows:',
+		columnsAre: 'Columns:',
+		ofRow: 'Of this row',
+		calibrationTitle: 'Model calibration',
+		calibrationSubtitle: 'Each model\u2019s own distribution across the scale',
+		systematicOffsetNote:
+			'Weighted agreement is far higher than unweighted agreement here. That is the signature of a systematic offset rather than genuine conflict: {modelA} and {modelB} rank articles similarly but place the boundaries between categories in different places, so most of their disagreement is a single step on the scale.',
+		strength: {
+			poor: 'Poor',
+			slight: 'Slight',
+			fair: 'Fair',
+			moderate: 'Moderate',
+			substantial: 'Substantial',
+			almostPerfect: 'Almost perfect'
+		}
+	},
+
+	// Per-chart data disclosure
+	chartData: {
+		showData: 'Data',
+		month: 'Month',
+		articles: 'Articles',
+		coverageIndex: 'Coverage index',
+		meanCentrality: 'Mean centrality',
+		newspaper: 'Newspaper',
+		mean: 'Mean',
+		ciLow: 'CI low',
+		ciHigh: 'CI high',
+		modelALabel: 'Model A',
+		modelBLabel: 'Model B',
+		count: 'Count',
+		rowPercent: '% of row',
+		seasonalityCaption: 'Article volume and mean centrality by Hijri month',
+		rankingCaption: 'Newspapers ranked by mean, with confidence intervals',
+		matrixCaption: 'Cross-tabulation of the two models\u2019 labels'
+	},
+
 	// Chart titles and labels
 	charts: {
 		polarityDistribution: 'Polarity distribution',
@@ -107,6 +220,8 @@ export const en = {
 		stackedAreas: 'Stacked areas',
 		lines: 'Lines',
 		bars: 'Bars',
+		countMode: 'Count',
+		shareMode: 'Share',
 		pie: 'Pie chart',
 		polaritySubjectivityDistribution: 'Polarity × Subjectivity Distribution',
 		subtitle: 'Visualize sentiment distribution across polarity and subjectivity dimensions.'
@@ -130,7 +245,17 @@ export const en = {
 
 	// Correlation/Distribution view
 	correlation: {
-		subtitle: 'Analyze the relationship between polarity and subjectivity dimensions.'
+		subtitle: 'Analyze the relationship between polarity and subjectivity dimensions.',
+		spearman: "Spearman's ρ",
+		strengthLabel: 'Strength',
+		rhoNote:
+			'Rank correlation between polarity and subjectivity. Both scales are ordinal, so ranks are used rather than the coded values. Articles the model marked Not applicable are excluded.',
+		strength: {
+			negligible: 'Negligible',
+			weak: 'Weak',
+			moderate: 'Moderate',
+			strong: 'Strong'
+		}
 	},
 
 	// Table
@@ -305,6 +430,10 @@ export const en = {
 
 	// Comparison
 	comparison: {
+		byDecade: 'Decade',
+		disagreementBreakdown: 'Where the models disagree',
+		disagreementBreakdownNote:
+			'Mean discrepancy per article, bucketed by decade or country. Buckets with fewer than 20 compared articles are omitted — their means would swing on a handful of cases.',
 		subtitle:
 			'Compare sentiment analyses between different AI models and identify significant discrepancies.',
 		filterByDiscrepancy: 'Filter by Discrepancy',
@@ -357,6 +486,11 @@ export const en = {
 
 	// Arbiter
 	arbiter: {
+		samplingFrame: 'Sampling frame',
+		coverageEvaluated: 'evaluated',
+		coverageCorpus: 'in corpus',
+		samplingFrameNote:
+			'The arbiter did not review the whole corpus. It reviewed articles selected because the two models disagreed most sharply about them, so every percentage below is conditional on a disagreement already existing — not a measure of which model is better across the corpus.',
 		title: 'Arbiter Verdict',
 		subtitle: 'Blind evaluation by a third AI model (model identities hidden)',
 		modelName: 'Gemini 3 Pro',

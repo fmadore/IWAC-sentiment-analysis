@@ -17,6 +17,16 @@ export { articleState } from './articles.svelte';
 export { comparisonState } from './comparison.svelte';
 export { type ArbiterStatistics } from './arbiter.svelte';
 export { extremeState } from './extreme-analysis.svelte';
+export {
+	pairAgreement,
+	threeWayAgreement,
+	modelMarginals,
+	AGREEMENT_DIMENSIONS,
+	DIMENSION_CATEGORIES,
+	type AgreementDimension,
+	type DimensionAgreement,
+	type ModelMarginals
+} from './agreement.svelte';
 
 // URL State (New modular implementation)
 export {
@@ -53,7 +63,9 @@ export {
 	loadDatasetArticles,
 	loadSpecificDataset,
 	loadAllDatasets,
-	loadCurrentDataset
+	loadCurrentDataset,
+	loadJustifications,
+	hasJustifications
 } from './articles.svelte';
 
 export { loadComparisonDatasets } from './comparison.svelte';

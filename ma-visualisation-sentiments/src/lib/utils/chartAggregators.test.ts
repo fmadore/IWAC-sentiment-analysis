@@ -4,6 +4,10 @@ import {
 	aggregateByJournalAndDimension,
 	aggregateByYearAndDimension,
 	aggregateByCountryAndYear,
+	computeDimensionShares,
+	aggregateDisagreement,
+	bucketDecade,
+	aggregateByHijriMonth,
 	extractYear,
 	getSubjectivityLabel
 } from './chartAggregators';
@@ -196,5 +200,203 @@ describe('getSubjectivityLabel', () => {
 		expect(getSubjectivityLabel(null)).toBe('Non applicable');
 		expect(getSubjectivityLabel(undefined)).toBe('Non applicable');
 		expect(getSubjectivityLabel(0)).toBe('Non applicable');
+	});
+});
+
+describe('computeDimensionShares', () => {
+	const labels = ['Positif', 'Neutre', 'Négatif'];
+
+	it('converts counts to percentages that sum to 100 per year', () => {
+		const shares = computeDimensionShares(
+			{ '2010': { Positif: 3, Neutre: 1, Négatif: 0 } },
+			['2010'],
+			labels
+		);
+
+		expect(shares['2010'].Positif.value).toBeCloseTo(75);
+		expect(shares['2010'].Neutre.value).toBeCloseTo(25);
+		expect(shares['2010'].Négatif.value).toBe(0);
+
+		const total = labels.reduce((sum, label) => sum + shares['2010'][label].value, 0);
+		expect(total).toBeCloseTo(100);
+	});
+
+	it('carries the raw count alongside each percentage', () => {
+		const shares = computeDimensionShares(
+			{ '2010': { Positif: 3, Neutre: 1, Négatif: 0 } },
+			['2010'],
+			labels
+		);
+
+		expect(shares['2010'].Positif.rawCount).toBe(3);
+		expect(shares['2010'].Négatif.rawCount).toBe(0);
+	});
+
+	it('normalizes against the plotted labels only, not other buckets present', () => {
+		// 'Non applicable' is excluded from `labels`, so it must not dilute the
+		// bands — otherwise they would visibly fail to reach 100%.
+		const shares = computeDimensionShares(
+			{ '2010': { Positif: 1, Neutre: 1, Négatif: 0, 'Non applicable': 98 } },
+			['2010'],
+			labels
+		);
+
+		expect(shares['2010'].Positif.value).toBeCloseTo(50);
+		expect(shares['2010'].Neutre.value).toBeCloseTo(50);
+	});
+
+	it('yields 0% rather than NaN for a year with no plotted articles', () => {
+		const shares = computeDimensionShares(
+			{ '2010': { Positif: 0, Neutre: 0, Négatif: 0 } },
+			['2010'],
+			labels
+		);
+
+		labels.forEach((label) => {
+			expect(shares['2010'][label].value).toBe(0);
+			expect(Number.isNaN(shares['2010'][label].value)).toBe(false);
+		});
+	});
+
+	it('tolerates a year missing from the counts map', () => {
+		const shares = computeDimensionShares({}, ['1999'], labels);
+		expect(shares['1999'].Positif).toEqual({ value: 0, rawCount: 0 });
+	});
+});
+
+describe('bucketDecade', () => {
+	it('floors a year to its decade', () => {
+		expect(bucketDecade('1994-06-01')).toBe('1990s');
+		expect(bucketDecade('2000-01-01')).toBe('2000s');
+		expect(bucketDecade('2019-12-31')).toBe('2010s');
+	});
+
+	it('returns null for the partial dates the corpus contains', () => {
+		expect(bucketDecade(undefined)).toBeNull();
+		expect(bucketDecade('N/A')).toBeNull();
+		expect(bucketDecade('')).toBeNull();
+	});
+});
+
+describe('aggregateDisagreement', () => {
+	const row = (key: string | null, totalDiff: number, hasConflict = false) => ({
+		key,
+		totalDiff,
+		hasConflict
+	});
+
+	it('averages the discrepancy per bucket', () => {
+		const rows = [
+			...Array.from({ length: 10 }, () => row('1990s', 2)),
+			...Array.from({ length: 10 }, () => row('1990s', 4))
+		];
+		const [bucket] = aggregateDisagreement(rows);
+
+		expect(bucket.key).toBe('1990s');
+		expect(bucket.meanTotal).toBeCloseTo(3);
+		expect(bucket.n).toBe(20);
+	});
+
+	it('reports the conflict rate as a percentage', () => {
+		const rows = [
+			...Array.from({ length: 5 }, () => row('A', 4, true)),
+			...Array.from({ length: 15 }, () => row('A', 1, false))
+		];
+		expect(aggregateDisagreement(rows)[0].conflictRate).toBeCloseTo(25);
+	});
+
+	it('drops buckets below the minimum so a handful of cases cannot read as a finding', () => {
+		const rows = [
+			...Array.from({ length: 25 }, () => row('Big', 1)),
+			...Array.from({ length: 3 }, () => row('Tiny', 9))
+		];
+		expect(aggregateDisagreement(rows).map((b) => b.key)).toEqual(['Big']);
+	});
+
+	it('honours a custom minimum', () => {
+		const rows = Array.from({ length: 5 }, () => row('A', 1));
+		expect(aggregateDisagreement(rows, 5)).toHaveLength(1);
+		expect(aggregateDisagreement(rows, 6)).toHaveLength(0);
+	});
+
+	it('skips rows with no bucket key', () => {
+		const rows = [
+			...Array.from({ length: 20 }, () => row('A', 2)),
+			...Array.from({ length: 20 }, () => row(null, 99))
+		];
+		const buckets = aggregateDisagreement(rows);
+		expect(buckets).toHaveLength(1);
+		expect(buckets[0].meanTotal).toBeCloseTo(2);
+	});
+});
+
+describe('aggregateByHijriMonth', () => {
+	const CENTRALITY = { Marginal: 2, Central: 4 };
+
+	function dated(date: string, centrality?: string): Article {
+		return {
+			'o:id': Math.random(),
+			journal_source: 'J',
+			Newspaper: 'J',
+			publication_date: date,
+			dataset_id: 'chatgpt',
+			sentiment_analysis: centrality
+				? {
+						centralite_islam_musulmans: centrality,
+						centralite_justification: null,
+						subjectivite_score: null,
+						subjectivite_justification: null,
+						polarite: null,
+						polarite_justification: null
+					}
+				: null
+		} as Article;
+	}
+
+	it('returns twelve buckets in calendar order', () => {
+		const result = aggregateByHijriMonth([dated('2024-03-10')], CENTRALITY);
+		expect(result.buckets).toHaveLength(12);
+		expect(result.buckets.map((b) => b.month)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+	});
+
+	it('places a date in its Hijri month', () => {
+		// 10 March 2024 = 1 Ramadan 1445 (month 9).
+		const result = aggregateByHijriMonth([dated('2024-03-10')], CENTRALITY);
+		expect(result.buckets[8].count).toBe(1);
+		expect(result.total).toBe(1);
+	});
+
+	it('computes the coverage index against an even twelfth', () => {
+		// 12 articles all in one month: index 12 there, 0 elsewhere.
+		const articles = Array.from({ length: 12 }, () => dated('2024-03-10'));
+		const result = aggregateByHijriMonth(articles, CENTRALITY);
+
+		expect(result.buckets[8].index).toBeCloseTo(12);
+		expect(result.buckets[0].index).toBe(0);
+	});
+
+	it('averages centrality only over analysed articles', () => {
+		const result = aggregateByHijriMonth(
+			[dated('2024-03-10', 'Central'), dated('2024-03-11', 'Marginal'), dated('2024-03-12')],
+			CENTRALITY
+		);
+
+		expect(result.buckets[8].count).toBe(3);
+		expect(result.buckets[8].analyzed).toBe(2);
+		expect(result.buckets[8].meanCentrality).toBeCloseTo(3);
+	});
+
+	it('reports null centrality rather than 0 for a month with nothing analysed', () => {
+		const result = aggregateByHijriMonth([dated('2024-03-10')], CENTRALITY);
+		expect(result.buckets[8].meanCentrality).toBeNull();
+	});
+
+	it('counts undated articles separately instead of bucketing them', () => {
+		const result = aggregateByHijriMonth(
+			[dated('2024-03-10'), dated('N/A'), dated('2024')],
+			CENTRALITY
+		);
+		expect(result.total).toBe(1);
+		expect(result.undated).toBe(2);
 	});
 });

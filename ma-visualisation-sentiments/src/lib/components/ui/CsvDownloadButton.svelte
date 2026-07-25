@@ -19,10 +19,17 @@
 		filenamePrefix: string;
 		/** Builds the CSV text for the current data. */
 		buildCsv: () => string;
+		/**
+		 * Optional async step run before `buildCsv`, for data the app loads
+		 * lazily. Exports include the models' justification prose, which is not
+		 * part of the initial payload — this is where it gets fetched. The button
+		 * already shows an in-progress state, so the wait is visible.
+		 */
+		prepare?: () => Promise<void>;
 		variant: 'articles' | 'comparison' | 'arbiter';
 	}
 
-	let { count, filenamePrefix, buildCsv, variant }: Props = $props();
+	let { count, filenamePrefix, buildCsv, prepare, variant }: Props = $props();
 
 	let isExporting = $state(false);
 
@@ -42,6 +49,8 @@
 				alert($t.export.noDataToExport);
 				return;
 			}
+
+			await prepare?.();
 
 			const csvContent = buildCsv();
 			downloadCSVFile(csvContent, generateFilename());

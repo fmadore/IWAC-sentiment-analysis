@@ -16,6 +16,9 @@ export const fr: Translations = {
 		heatmap: 'Carte de chaleur',
 		table: 'Tableau',
 		comparison: 'Comparaison',
+		seasonality: 'Saisonnalité',
+		ranking: 'Journaux',
+		agreement: 'Accord',
 		extremes: 'Analyses extrêmes',
 		arbiter: 'Arbitre'
 	},
@@ -87,6 +90,117 @@ export const fr: Translations = {
 		notAddressed: 'Non abordé'
 	},
 
+	// Classement des journaux
+	ranking: {
+		title: 'Journaux',
+		subtitle:
+			'Les journaux classés par sentiment moyen, avec intervalles de confiance à 95 %. Les titres comptant moins d\u2019articles évalués présentent des intervalles plus larges : une moyenne élevée sur un petit échantillon n\u2019est pas un résultat solide.',
+		chartTitle: 'Classement des journaux',
+		chartSubtitle: 'Moyenne et IC à 95 % · titres comptant au moins {min} articles évalués',
+		netPolarity: 'Polarité nette',
+		meanSubjectivity: 'Subjectivité moyenne',
+		meanCentrality: 'Centralité moyenne',
+		confidenceInterval: 'IC à 95 %',
+		neutralLine: 'neutre',
+		minArticles: 'Articles min.',
+		excludedNote:
+			'{count} journaux écartés : moins de {min} articles évalués. Leurs moyennes seraient trop incertaines pour être classées.',
+		noneAboveThreshold:
+			'Aucun journal ne compte au moins {min} articles évalués avec les filtres actuels.'
+	},
+
+	// Saisonnalité du calendrier hégirien
+	seasonality: {
+		title: 'Saisonnalité',
+		subtitle:
+			'La couverture au fil du calendrier lunaire islamique. Comme l\u2019année hégirienne se décale par rapport au calendrier grégorien, ce motif reste invisible dans toute vue par année ou par mois.',
+		chartTitle: 'Couverture par mois hégirien',
+		chartSubtitle: 'Volume d\u2019articles et centralité moyenne au fil de l\u2019année lunaire',
+		cycleLayout: 'Cycle',
+		coverageIndex: 'Indice de couverture',
+		calendarNote:
+			'Dates converties selon le calendrier islamique tabulaire (arithmétique), époque civile. Il diffère d\u2019un ou deux jours des dates d\u2019observance annoncées localement : suffisant pour des agrégats mensuels, mais pas pour dater une observance précise.',
+		undatedNote: '{count} articles exclus : date de publication incomplète.',
+		months: {
+			muharram: 'Mouharram',
+			safar: 'Safar',
+			rabiI: 'Rabi I',
+			rabiII: 'Rabi II',
+			jumadaI: 'Joumada I',
+			jumadaII: 'Joumada II',
+			rajab: 'Rajab',
+			shaban: 'Chaabane',
+			ramadan: 'Ramadan',
+			shawwal: 'Chawwal',
+			dhuAlQadah: 'Dhou al-Qi\u2019da',
+			dhuAlHijjah: 'Dhou al-Hijja'
+		}
+	},
+
+	// Accord / calibration
+	agreement: {
+		title: 'Accord',
+		subtitle:
+			'Comment les modèles se rapportent les uns aux autres : où ils convergent, où ils divergent, et si un désaccord relève d\u2019un décalage systématique ou d\u2019un conflit réel.',
+		dimensionSelector: 'Dimension d\u2019analyse',
+		exactAgreement: 'Accord exact',
+		exactAgreementHelp:
+			'Proportion d\u2019articles pour lesquels les deux modèles ont choisi la même catégorie. Non corrigée de l\u2019accord attendu par hasard.',
+		adjacentAgreement: 'À un cran près',
+		adjacentDetail: 'Identique ou à une catégorie d\u2019écart',
+		adjacentAgreementHelp:
+			'Proportion d\u2019articles dont les deux étiquettes sont identiques ou séparées d\u2019exactement une position sur l\u2019échelle ordinale.',
+		articlesCompared: 'articles comparés',
+		kappa: 'κ de Cohen',
+		kappaHelp:
+			'Accord corrigé du hasard. 0 signifie pas mieux que le hasard ; 1 signifie parfait. Tous les désaccords comptent également, si bien qu\u2019une échelle ordinale décalée d\u2019une catégorie obtient un score faible.',
+		weightedKappa: 'κ pondéré',
+		weightedKappaHelp:
+			'Kappa à pondération quadratique. Se tromper d\u2019une catégorie coûte bien moins que de s\u2019en écarter de quatre, ce qui convient aux échelles ordinales. Un score pondéré nettement supérieur au score non pondéré indique que les modèles classent de façon semblable mais se calibrent différemment.',
+		fleissKappa: 'κ de Fleiss',
+		fleissHelp:
+			'Kappa de Fleiss sur les trois modèles simultanément, pour les articles analysés par tous.',
+		threeWayTitle: 'Les trois modèles',
+		threeWayLede:
+			'Accord entre ChatGPT, Gemini et Mistral simultanément, par dimension. Seuls les articles analysés par les trois sont comptabilisés.',
+		matrixTitle: 'Matrice d\u2019accord',
+		rowsAre: 'Lignes :',
+		columnsAre: 'Colonnes :',
+		ofRow: 'De cette ligne',
+		calibrationTitle: 'Calibration des modèles',
+		calibrationSubtitle: 'La distribution propre à chaque modèle sur l\u2019échelle',
+		systematicOffsetNote:
+			'L\u2019accord pondéré est ici nettement supérieur à l\u2019accord non pondéré. C\u2019est la signature d\u2019un décalage systématique plutôt que d\u2019un conflit réel : {modelA} et {modelB} classent les articles de manière semblable mais placent les frontières entre catégories à des endroits différents, de sorte que l\u2019essentiel de leur désaccord tient à un seul cran d\u2019écart.',
+		strength: {
+			poor: 'Nul',
+			slight: 'Faible',
+			fair: 'Passable',
+			moderate: 'Modéré',
+			substantial: 'Important',
+			almostPerfect: 'Presque parfait'
+		}
+	},
+
+	// Données sous-jacentes des graphiques
+	chartData: {
+		showData: 'Données',
+		month: 'Mois',
+		articles: 'Articles',
+		coverageIndex: 'Indice de couverture',
+		meanCentrality: 'Centralité moyenne',
+		newspaper: 'Journal',
+		mean: 'Moyenne',
+		ciLow: 'IC bas',
+		ciHigh: 'IC haut',
+		modelALabel: 'Modèle A',
+		modelBLabel: 'Modèle B',
+		count: 'Effectif',
+		rowPercent: '% de la ligne',
+		seasonalityCaption: 'Volume d\u2019articles et centralité moyenne par mois hégirien',
+		rankingCaption: 'Journaux classés par moyenne, avec intervalles de confiance',
+		matrixCaption: 'Tableau croisé des étiquettes des deux modèles'
+	},
+
 	// Chart titles and labels
 	charts: {
 		polarityDistribution: 'Distribution de la polarité',
@@ -103,6 +217,8 @@ export const fr: Translations = {
 		stackedAreas: 'Aires empilées',
 		lines: 'Lignes',
 		bars: 'Barres',
+		countMode: 'Effectif',
+		shareMode: 'Part',
 		pie: 'Camembert',
 		polaritySubjectivityDistribution: 'Distribution Polarité × Subjectivité',
 		subtitle:
@@ -127,7 +243,17 @@ export const fr: Translations = {
 
 	// Correlation/Distribution view
 	correlation: {
-		subtitle: 'Analysez la relation entre les dimensions de polarité et de subjectivité.'
+		subtitle: 'Analysez la relation entre les dimensions de polarité et de subjectivité.',
+		spearman: 'ρ de Spearman',
+		strengthLabel: 'Force',
+		rhoNote:
+			'Corrélation de rang entre polarité et subjectivité. Les deux échelles étant ordinales, on utilise les rangs plutôt que les valeurs codées. Les articles marqués « Non applicable » sont exclus.',
+		strength: {
+			negligible: 'Négligeable',
+			weak: 'Faible',
+			moderate: 'Modérée',
+			strong: 'Forte'
+		}
 	},
 
 	// Table
@@ -309,6 +435,10 @@ export const fr: Translations = {
 
 	// Comparison
 	comparison: {
+		byDecade: 'Décennie',
+		disagreementBreakdown: 'Où les modèles divergent',
+		disagreementBreakdownNote:
+			'Écart moyen par article, réparti par décennie ou par pays. Les groupes comptant moins de 20 articles comparés sont omis : leurs moyennes varieraient au gré de quelques cas.',
 		subtitle:
 			"Comparez les analyses de sentiment entre différents modèles d'IA et identifiez les divergences significatives.",
 		filterByDiscrepancy: 'Filtrer par divergence',
@@ -363,6 +493,11 @@ export const fr: Translations = {
 
 	// Arbiter
 	arbiter: {
+		samplingFrame: 'Base de sondage',
+		coverageEvaluated: 'évalués',
+		coverageCorpus: 'dans le corpus',
+		samplingFrameNote:
+			'L\u2019arbitre n\u2019a pas examiné l\u2019ensemble du corpus, mais des articles retenus parce que les deux modèles y divergeaient le plus fortement. Tous les pourcentages ci-dessous sont donc conditionnels à l\u2019existence d\u2019un désaccord : ils ne mesurent pas quel modèle est meilleur sur l\u2019ensemble du corpus.',
 		title: "Verdict de l'arbitre",
 		subtitle: "Évaluation aveugle par un troisième modèle d'IA (identités des modèles masquées)",
 		modelName: 'Gemini 3 Pro',

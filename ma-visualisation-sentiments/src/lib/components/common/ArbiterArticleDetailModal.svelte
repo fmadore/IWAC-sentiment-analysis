@@ -8,7 +8,7 @@
 -->
 <script lang="ts">
 	import type { ArbiterAnalysis } from '$lib/types/data';
-	import { comparisonState, datasetState } from '$lib/stores';
+	import { comparisonState, datasetState, loadJustifications } from '$lib/stores';
 	import { getPairModelNames } from '$lib/types/data';
 	import { t } from '$lib/i18n';
 	import { getJournalName } from '$lib/utils/format';
@@ -38,6 +38,14 @@
 
 	// Get model names
 	const modelNames = $derived(getPairModelNames(datasetState.pair, datasetState.available));
+
+	// Both models' justification prose loads on demand (see articles.svelte.ts).
+	$effect(() => {
+		if (comparison) {
+			loadJustifications(comparison.modelAId);
+			loadJustifications(comparison.modelBId);
+		}
+	});
 
 	const modalTitle = $derived(
 		comparison?.article['o:title'] ||

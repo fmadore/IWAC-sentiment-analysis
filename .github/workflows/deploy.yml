@@ -56,6 +56,20 @@ jobs:
       - name: Run tests
         run: npm run test:run
 
+      # The preprocessing helpers produce the dataset the dashboard cites, so
+      # their tests gate the deploy alongside the frontend's. Only the pure
+      # helpers are exercised — no network, no API keys.
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Run preprocessing tests
+        working-directory: .
+        run: |
+          pip install pandas huggingface_hub pytest
+          python -m pytest data-preprocess/test_shared.py -q
+
       - name: Build
         run: npm run build
 

@@ -3,6 +3,7 @@
 	import { browser } from '$app/environment';
 	import {
 		loadCurrentDataset,
+		loadAllDatasets,
 		loadComparisonDatasets,
 		loadCurrentExtremeAnalysis,
 		loadArbiterEvaluations,
@@ -33,6 +34,12 @@
 		clearSelectedArticleOnly,
 		handlePendingArticleSelection
 	} from '$lib/stores/url';
+
+	/**
+	 * Views that own their internal filters and run full-width, so the page
+	 * renders no shared filter rail for them.
+	 */
+	const SELF_CONTAINED_VIEWS = new Set(['arbiter', 'comparison', 'agreement']);
 
 	// Application state
 	let detailedArticle: Article | null = $state(null);
@@ -155,6 +162,12 @@
 			loadCurrentExtremeAnalysis(fetch).catch((error) => {
 				console.error('Failed to load extreme analysis data:', error);
 			});
+		} else if (currentView === 'agreement') {
+			// Agreement compares every model against every other, so it needs all
+			// three datasets rather than just the selected one. Idempotent.
+			loadAllDatasets(fetch).catch((error) => {
+				console.error('Failed to load datasets for agreement view:', error);
+			});
 		} else if (currentView === 'arbiter') {
 			// Arbiter view needs comparison mode for model pair selection
 			if (!isComparisonMode) {
@@ -238,7 +251,7 @@
 
 	{#if isLoading}
 		<LoadingState />
-	{:else if currentView === 'arbiter' || currentView === 'comparison'}
+	{:else if SELF_CONTAINED_VIEWS.has(currentView)}
 		<!-- Self-contained views: each owns its internal filters, so no standard
 		     FiltersPanel and no filter rail. Arbiter has its own controls;
 		     ComparisonView carries Country/Journal/Discrepancy filters itself. -->

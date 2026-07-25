@@ -1,10 +1,18 @@
 """
 Fetch the IWAC articles dataset from Hugging Face and write the webapp's
-article data: one shared base-metadata file (iwac_articles_base.json) plus
-one sentiment-only file per model (iwac_sentiment_<model>.json, analyses
-keyed by article id). The base metadata is identical across models, so
-storing it once instead of in three combined files saves ~2x the metadata
-volume; the frontend joins the two at load time (articles.svelte.ts).
+article data as three kinds of file:
+
+  * ``iwac_articles_base.json``      — shared metadata, stored once
+  * ``iwac_sentiment_<model>.json``  — per-model SCORES, keyed by article id
+  * ``iwac_justifications_<model>.json`` — per-model PROSE, keyed by article id
+
+The base metadata is identical across models, so storing it once instead of in
+three combined files saves ~2x the metadata volume. The score/justification
+split matters far more: the justification prose is 86-92% of a model's bytes
+but is only ever read by the article-detail views and the CSV exports, so the
+webapp loads it on demand instead of paying for it before drawing a chart.
+The frontend joins base + scores at load time (articles.svelte.ts) and merges
+the justifications in lazily.
 """
 
 import os
@@ -13,7 +21,8 @@ from tqdm import tqdm
 
 from shared import (
     MODEL_NAMES,
-    build_model_sentiment,
+    build_model_justifications,
+    build_model_scores,
     get_logger,
     get_webapp_data_dir,
     load_iwac_records,
@@ -33,7 +42,8 @@ def main() -> None:
     logger.info("Dataset loaded successfully! Number of articles: %d", len(records))
 
     base_items: list[dict] = []
-    sentiments: dict[str, dict[str, dict | None]] = {model_id: {} for model_id in MODEL_NAMES}
+    scores: dict[str, dict[str, dict | None]] = {model_id: {} for model_id in MODEL_NAMES}
+    justifications: dict[str, dict[str, dict | None]] = {model_id: {} for model_id in MODEL_NAMES}
 
     logger.info("Processing %d records...", len(records))
     for item in tqdm(records, desc="Processing articles"):
@@ -49,7 +59,8 @@ def main() -> None:
         })
 
         for model_id in MODEL_NAMES:
-            sentiments[model_id][str(article_id)] = build_model_sentiment(item, model_id)
+            scores[model_id][str(article_id)] = build_model_scores(item, model_id)
+            justifications[model_id][str(article_id)] = build_model_justifications(item, model_id)
 
     output_dir = get_webapp_data_dir()
 
@@ -58,11 +69,19 @@ def main() -> None:
     safe_save_json(base_items, base_path)
     logger.info("Base metadata saved (%d records)", len(base_items))
 
-    for model_id, sentiment_map in sentiments.items():
-        json_path = os.path.join(output_dir, f"iwac_sentiment_{model_id}.json")
-        logger.info("Saving %s sentiment dataset to: %s", model_id, json_path)
-        safe_save_json({"model": model_id, "sentiments": sentiment_map}, json_path)
-        logger.info("%s JSON file saved successfully! (%d records)", model_id, len(sentiment_map))
+    for model_id in MODEL_NAMES:
+        score_path = os.path.join(output_dir, f"iwac_sentiment_{model_id}.json")
+        logger.info("Saving %s sentiment scores to: %s", model_id, score_path)
+        safe_save_json({"model": model_id, "sentiments": scores[model_id]}, score_path)
+
+        justification_path = os.path.join(output_dir, f"iwac_justifications_{model_id}.json")
+        logger.info("Saving %s justifications to: %s", model_id, justification_path)
+        safe_save_json(
+            {"model": model_id, "justifications": justifications[model_id]},
+            justification_path,
+        )
+
+        logger.info("%s JSON files saved successfully! (%d records)", model_id, len(scores[model_id]))
 
 
 if __name__ == "__main__":

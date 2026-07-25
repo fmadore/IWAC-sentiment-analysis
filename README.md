@@ -51,12 +51,13 @@ https://fmadore.github.io/IWAC-sentiment-analysis/?view=comparison&compare=true&
 
 ## Performance Optimizations
 
-The application has been optimized for high performance despite large data volumes (a shared 2.4MB article-metadata file, per-model sentiment files of 8–14MB, plus extreme-analysis and arbiter data):
+The application has been optimized for high performance despite large data volumes (a shared 2.4MB article-metadata file, per-model score and justification files, plus extreme-analysis and arbiter data):
 
 ### Lazy Loading
-- **Reduced initial transfer**: Only the selected model's dataset loads at startup
-- **On-demand loading**: The other models' datasets load only when comparison mode is activated; arbiter and extreme-analysis data load with their views
-- **Smart caching**: Datasets remain in memory after loading for instant switching
+- **Score/prose split**: Each model's data is stored as a small score file (~59KB gzipped) plus a large justification file (~1.4MB gzipped). Charts, trends, filters and aggregates need only the scores, so drawing a view never downloads the prose
+- **Reduced initial transfer**: Only the selected model's scores load at startup
+- **On-demand loading**: Justification prose loads when an article detail is opened or a CSV is exported; the other models' datasets load only when comparison mode is activated; arbiter and extreme-analysis data load with their views
+- **Smart caching**: Datasets remain in memory after loading for instant switching; the service worker keeps corpus files in a deploy-stable cache so a new release doesn't re-download them
 
 ### Data Compression
 - **Brotli/Gzip precompression**: Build assets are precompressed with `vite-plugin-compression` (~90% reduction for JSON)
@@ -154,11 +155,10 @@ The project is structured as a modern SvelteKit application with Svelte 5 runes:
 
 The application automatically loads the IWAC corpus from JSON files in `static/data/`:
 - `iwac_articles_base.json`: Shared article metadata, stored once for all models
-- `iwac_sentiment_chatgpt.json`: ChatGPT sentiment analyses, keyed by article id
-- `iwac_sentiment_gemini.json`: Gemini sentiment analyses, keyed by article id
-- `iwac_sentiment_mistral.json`: Mistral sentiment analyses, keyed by article id
+- `iwac_sentiment_{model}.json`: Per-model sentiment **scores** (polarity, subjectivity, centrality), keyed by article id
+- `iwac_justifications_{model}.json`: Per-model justification **prose**, keyed by article id
 
-The frontend joins the base metadata with the selected model's sentiment file at load time, so switching models only downloads the sentiment payload.
+The frontend joins the base metadata with the selected model's score file at load time, so switching models only downloads that model's scores (~59KB gzipped). The justification prose is roughly 90% of a model's data but is only shown in the article-detail views and included in CSV exports, so it is fetched on demand and merged into the loaded articles rather than blocking the first chart.
 
 Each file contains a list of `Article` objects, where each article includes metadata (title, newspaper, country, date) and a `sentiment_analysis` object with analysis results (polarity, subjectivity, centrality, etc.).
 
@@ -199,11 +199,13 @@ The application offers a comprehensive suite of interactive visualizations for e
 
 ### 2. Trends - Temporal Evolution
 - **Sentiment trends**: Polarity evolution over the years
+- **Count/share toggle**: 100% stacked bands separate composition from publication volume, which varies by two orders of magnitude across the corpus
 - **Interactive navigation**: Zoom and scroll to explore periods
 - **Smoothed lines**: Clear visualization of long-term trends
 
 ### 3. Distribution - Cross-Dimensional Relationships
 - **Grouped bar chart**: Cross-distribution between polarity and subjectivity
+- **Spearman's ρ**: Rank correlation with p-value and n, reported under the chart
 - **Polarity categories**: Very negative, Negative, Neutral, Positive, Very positive, Not applicable
 - **Subjectivity levels**: Very objective, Rather objective, Mixed, Rather subjective, Very subjective
 - **Informative tooltips**: Article count per category and totals
@@ -218,21 +220,42 @@ The application offers a comprehensive suite of interactive visualizations for e
 - **Color scale**: From blue (low centrality) to red (high centrality)
 - **Spatio-temporal patterns**: Identifying geographic and historical trends
 
-### 6. Table - Detailed Exploration
+### 6. Seasonality - Islamic Lunar Calendar
+- **Coverage by Hijri month**: Article volume and mean centrality across the twelve Hijri months
+- **Cycle and bar layouts**: Polar view for the calendar cycle, bar view for precise month-to-month comparison
+- **Coverage index**: 1.0 = a month's even share of the corpus, so months are comparable
+- **Why it exists**: the Hijri year drifts ~11 days against the Gregorian one, so lunar patterns are invisible in any year- or month-based view. Coverage nearly doubles during Ramadan and the hajj months
+- **Methodological note**: tabular (arithmetic) Islamic calendar, stated on the chart
+
+### 7. Newspapers - Ranked by Sentiment
+- **Ranked dot plot**: Newspapers ordered by mean polarity, subjectivity or centrality
+- **95% confidence intervals**: Whiskers keep small-sample titles honest
+- **Minimum-n threshold**: Titles under 30 rated articles are omitted, and the count omitted is stated
+- **Neutral reference line**: Marks the midpoint of each measure's own scale
+
+### 8. Agreement - How the Models Relate
+- **Confusion matrix**: Row-normalized cross-tabulation of two models' labels per dimension, diagonal outlined
+- **Cohen's κ and weighted κ**: Chance-corrected agreement, unweighted and quadratic-weighted; a large gap between them signals a systematic offset rather than genuine conflict
+- **Fleiss' κ**: Agreement across all three models at once, complete cases only
+- **Model calibration**: Each model's own label distribution on a shared axis
+- **Corpus-scope facets only**: Country and newspaper; sentiment filters are deliberately absent because selecting by the label under comparison would make the statistics circular
+
+### 9. Table - Detailed Exploration
 - **Interactive table**: Complete article list with sorting and pagination
 - **Responsive mobile view**: Cards for small screens
 - **Article details**: Modal with complete metadata and analysis justifications
 
-### 7. Comparison - Model Comparative Analysis
+### 10. Comparison - Model Comparative Analysis
 - **Comparison table**: Side-by-side visualization of model analyses
 - **Automatic discrepancy calculation**: Quantified differences per dimension
 - **Discrepancy filters**: Customizable thresholds for exploring conflicts
 - **Detailed statistics**: Metrics on convergences and divergences
+- **Disagreement breakdown**: Mean discrepancy by decade and by country, locating where the models diverge
 - **Color codes**: Quick visual identification of conflict levels
 - **Detailed view**: In-depth article-by-article analysis with justifications
 - **Specialized export**: CSV including both models' data and their differences
 
-### 8. Extremes - Lexical Extreme Analysis
+### 11. Extremes - Lexical Extreme Analysis
 - **Keyword analysis**: Identification of most frequent keywords in extreme cases
 - **Extreme categories**:
   - **Very high subjectivity** (4-5): Articles expressing strong opinions on Islam/Muslims

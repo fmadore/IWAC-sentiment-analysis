@@ -11,6 +11,7 @@
 	import ComparisonStats from './ComparisonStats.svelte';
 	import { ComparisonDetailModal } from '$lib/components/common';
 	import ModelPairPicker from '$lib/components/ui/ModelPairPicker.svelte';
+	import { DisagreementBreakdownChart } from '$lib/components/viz';
 	import { t } from '$lib/i18n';
 	import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
 	import {
@@ -127,6 +128,13 @@
 
 		<!-- Results -->
 		{#if hasData}
+			<!-- Where the disagreement sits. The stats above give a corpus-wide
+			     mean; this locates it in time and space, which is what separates
+			     "these models differ" from "these models differ about X". -->
+			<div class="breakdown-section mb-6">
+				<DisagreementBreakdownChart />
+			</div>
+
 			<div class="comparison-content">
 				<ComparisonTable />
 			</div>
@@ -146,6 +154,13 @@
 </div>
 
 <style>
+	/* Hosts the disagreement breakdown between the stat cards and the table. */
+	.breakdown-section {
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
+		padding: var(--space-4);
+	}
+
 	.comparison-view {
 		display: flex;
 		flex-direction: column;

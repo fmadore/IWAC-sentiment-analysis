@@ -279,7 +279,7 @@
 	}
 
 	.comparison-icon {
-		background: var(--sentiment-comparison-icon-bg);
+		background: var(--sentiment-comparison-bg);
 		border-color: var(--sentiment-comparison-border);
 	}
 

@@ -73,17 +73,31 @@ export const arbiterModelAIsFirst = {
 	}
 };
 
+/**
+ * Article id -> arbiter analysis, built once per loaded evaluation set.
+ *
+ * The lookup used to linear-scan the evaluations array. Harmless at today's
+ * 61-176 evaluations, but ArbiterArticleTable calls it once per rendered row,
+ * so it is quadratic in the size of the arbiter sample — and that sample is
+ * expected to grow. The index rebuilds only when the underlying object
+ * changes identity, which happens once per pair load.
+ */
+let _arbiterIndexSource: ArbiterEvaluationData | null = null;
+let _arbiterIndex = new Map<string, ArbiterAnalysis>();
+
+function getArbiterIndex(): Map<string, ArbiterAnalysis> {
+	if (_arbiterIndexSource !== _arbiterEvaluations) {
+		_arbiterIndexSource = _arbiterEvaluations;
+		_arbiterIndex = new Map(
+			(_arbiterEvaluations?.evaluations ?? []).map((e) => [String(e.article_id), e.arbiter])
+		);
+	}
+	return _arbiterIndex;
+}
+
 /** Get arbiter analysis for a specific article */
 export function getArbiterForArticle(articleId: string | number): ArbiterAnalysis | null {
-	if (!_arbiterEvaluations || !_arbiterEvaluations.evaluations) {
-		return null;
-	}
-
-	const evaluation = _arbiterEvaluations.evaluations.find(
-		(e) => String(e.article_id) === String(articleId)
-	);
-
-	return evaluation ? evaluation.arbiter : null;
+	return getArbiterIndex().get(String(articleId)) ?? null;
 }
 
 // ============================================

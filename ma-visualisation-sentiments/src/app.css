@@ -370,29 +370,11 @@
 	/* --- Prose width — caps body paragraphs at a comfortable read --- */
 	--prose-width: 65ch;
 
-	/* ==========================================================================
-	   BACK-COMPAT SHIMS
-	   A few components still reference pre-refactor tokens (view icon-bg
-	   gradients, color-tertiary). These shims map them to the editorial
-	   vocabulary. Migrate callers opportunistically when you next touch the
-	   file. Do NOT introduce new references to these tokens — use the
-	   canonical ones instead. (The zero-caller glass-blur/gradient/glow shims
-	   were removed once their last consumers migrated.)
-	   ========================================================================== */
-
-	/* Per-view "icon-bg" gradients → solid tinted surfaces. The decorative
-	   icon-tile pattern was retired in Phase 1 but a few callers still use
-	   these for chip/badge backgrounds. */
-	--sentiment-arbiter-icon-bg: var(--sentiment-arbiter-bg);
-	--sentiment-comparison-icon-bg: var(--sentiment-comparison-bg);
-	--sentiment-extreme-icon-bg: var(--sentiment-extreme-bg);
-
-	/* Skeleton Cerberus exposes a tertiary palette we don't use. Map it to
-	   the secondary so existing references blend in rather than stand out. */
-	--color-tertiary-300: var(--color-secondary-300);
-	--color-tertiary-400: var(--color-secondary-400);
-	--color-tertiary-500: var(--color-secondary-500);
-	--color-tertiary-600: var(--color-secondary-600);
+	/* The BACK-COMPAT SHIMS block that used to sit here is gone: its last
+	   callers (--sentiment-{arbiter,comparison}-icon-bg in ArbiterMethodology
+	   and ComparisonStats, --color-tertiary-500 in DatasetBadge) now use the
+	   canonical tokens directly. Don't reintroduce pre-refactor token names —
+	   migrate the caller instead. */
 
 	/* --- Layout constants --- */
 	/* Sidebar rail widths — consumed by SidebarNav (the rail itself) AND
@@ -679,6 +661,47 @@ h3 {
 	background: color-mix(in oklab, var(--color-error-500) 12%, transparent);
 	border: 1px solid color-mix(in oklab, var(--color-error-500) 28%, transparent);
 	color: var(--color-error-200);
+}
+
+/* -----------------------------------------------------------------------------
+   Chart Chrome
+   Single source for the shell every viz component wraps its canvas in. These
+   three rules were byte-identical copies inside VolumeChart,
+   DimensionDistributionChart and TrendsChart; the empty state was a fourth
+   variant hand-rolled with Tailwind utilities in the remaining charts.
+   ----------------------------------------------------------------------------- */
+.chart-toolbar {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-3);
+	margin-bottom: var(--space-4);
+}
+
+@media (min-width: 640px) {
+	.chart-toolbar {
+		flex-direction: row;
+	}
+}
+
+.chart-container {
+	background: transparent;
+	padding: var(--space-2);
+}
+
+@media (min-width: 640px) {
+	.chart-container {
+		padding: var(--space-4);
+	}
+}
+
+/* Shown in place of the canvas when filters exclude everything. */
+.chart-empty {
+	text-align: center;
+	padding: var(--space-8) 0;
+	color: var(--text-muted);
+	font-size: var(--font-size-sm);
 }
 
 /* -----------------------------------------------------------------------------

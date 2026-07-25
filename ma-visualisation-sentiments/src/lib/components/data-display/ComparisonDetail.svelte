@@ -23,10 +23,19 @@
 	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
 	import { getDiffClass, getDiffBadgeClass } from '$lib/utils/discrepancy';
 	import { t } from '$lib/i18n';
-	import { datasetState, getArbiterForArticle } from '$lib/stores';
+	import { datasetState, getArbiterForArticle, loadJustifications } from '$lib/stores';
 
 	// Props: Accept comparison data as a prop
 	let { comparison }: { comparison: ComparisonData | null } = $props();
+
+	// Both models' justification prose loads on demand (see articles.svelte.ts);
+	// a comparison detail needs each side's reasoning, not just the scores.
+	$effect(() => {
+		if (comparison) {
+			loadJustifications(comparison.modelAId);
+			loadJustifications(comparison.modelBId);
+		}
+	});
 
 	// Check if arbiter data exists for this article
 	const hasArbiterData = $derived(
