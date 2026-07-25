@@ -51,15 +51,15 @@
 	{#snippet footer()}
 		<div class="legend">
 			<div class="legend-item">
-				<span class="legend-badge subjectivity-1">1-2</span>
+				<span class="legend-badge" data-subjectivity="1">1-2</span>
 				<span class="legend-text">{$t.filters.ratherObjective}</span>
 			</div>
 			<div class="legend-item">
-				<span class="legend-badge subjectivity-3">3</span>
+				<span class="legend-badge" data-subjectivity="3">3</span>
 				<span class="legend-text">{$t.filters.mixedSubjectivity}</span>
 			</div>
 			<div class="legend-item">
-				<span class="legend-badge subjectivity-5">4-5</span>
+				<span class="legend-badge" data-subjectivity="5">4-5</span>
 				<span class="legend-text">{$t.filters.ratherVerySubjective}</span>
 			</div>
 		</div>
@@ -84,24 +84,11 @@
 		font-size: var(--font-size-2xs);
 		font-weight: var(--font-weight-medium);
 		border-radius: var(--radius-sm);
-	}
 
-	.legend-badge.subjectivity-1 {
-		background: var(--sentiment-subjectivity-1-bg);
-		border: 1px solid var(--sentiment-subjectivity-1-border);
-		color: var(--sentiment-subjectivity-1);
-	}
-
-	.legend-badge.subjectivity-3 {
-		background: var(--sentiment-subjectivity-3-bg);
-		border: 1px solid var(--sentiment-subjectivity-3-border);
-		color: var(--sentiment-subjectivity-3);
-	}
-
-	.legend-badge.subjectivity-5 {
-		background: var(--sentiment-subjectivity-5-bg);
-		border: 1px solid var(--sentiment-subjectivity-5-border);
-		color: var(--sentiment-subjectivity-5);
+		/* Colours resolved by app.css from each badge's data-subjectivity. */
+		background: var(--sentiment-bg);
+		border: 1px solid var(--sentiment-border);
+		color: var(--sentiment-fg);
 	}
 
 	.legend-text {

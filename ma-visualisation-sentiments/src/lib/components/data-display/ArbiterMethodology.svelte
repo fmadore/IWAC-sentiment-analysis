@@ -17,7 +17,9 @@
 	import { t } from '$lib/i18n';
 	import { AccordionItem, PromptModal } from '$lib/components/common';
 	import CollapsibleMethodologyCard from '$lib/components/common/CollapsibleMethodologyCard.svelte';
-	import SentimentScaleList from '$lib/components/common/SentimentScaleList.svelte';
+	import SentimentScaleList, {
+		type ScaleItem
+	} from '$lib/components/common/SentimentScaleList.svelte';
 	import { ARBITER_SYSTEM_INSTRUCTION, ARBITER_USER_PROMPT_TEMPLATE } from '$lib/data/prompts';
 	import { createAccordion } from '$lib/utils/accordion.svelte';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
@@ -33,41 +35,49 @@
 	let showPromptModal = $state(false);
 
 	// Evaluation-scale items (chip class + label + description)
-	const polarityItems = $derived([
+	const polarityItems: ScaleItem[] = $derived([
 		{
-			badgeClass: 'very-positive',
+			variant: 'polarity-very-positive',
 			badge: 'Très positif',
 			description: $t.arbiter.polarityVeryPositive
 		},
-		{ badgeClass: 'positive', badge: 'Positif', description: $t.arbiter.polarityPositive },
-		{ badgeClass: 'neutral', badge: 'Neutre', description: $t.arbiter.polarityNeutral },
-		{ badgeClass: 'negative', badge: 'Négatif', description: $t.arbiter.polarityNegative },
+		{ variant: 'polarity-positive', badge: 'Positif', description: $t.arbiter.polarityPositive },
+		{ variant: 'polarity-neutral', badge: 'Neutre', description: $t.arbiter.polarityNeutral },
+		{ variant: 'polarity-negative', badge: 'Négatif', description: $t.arbiter.polarityNegative },
 		{
-			badgeClass: 'very-negative',
+			variant: 'polarity-very-negative',
 			badge: 'Très négatif',
 			description: $t.arbiter.polarityVeryNegative
 		}
 	]);
 
-	const subjectivityItems = $derived([
-		{ badgeClass: '', badge: '1', description: $t.arbiter.subjectivity1 },
-		{ badgeClass: '', badge: '2', description: $t.arbiter.subjectivity2 },
-		{ badgeClass: '', badge: '3', description: $t.arbiter.subjectivity3 },
-		{ badgeClass: '', badge: '4', description: $t.arbiter.subjectivity4 },
-		{ badgeClass: '', badge: '5', description: $t.arbiter.subjectivity5 }
+	const subjectivityItems: ScaleItem[] = $derived([
+		{ variant: 'subjectivity-1', badge: '1', description: $t.arbiter.subjectivity1 },
+		{ variant: 'subjectivity-2', badge: '2', description: $t.arbiter.subjectivity2 },
+		{ variant: 'subjectivity-3', badge: '3', description: $t.arbiter.subjectivity3 },
+		{ variant: 'subjectivity-4', badge: '4', description: $t.arbiter.subjectivity4 },
+		{ variant: 'subjectivity-5', badge: '5', description: $t.arbiter.subjectivity5 }
 	]);
 
-	const centralityItems = $derived([
+	const centralityItems: ScaleItem[] = $derived([
 		{
-			badgeClass: 'very-central',
+			variant: 'centrality-very-central',
 			badge: 'Très central',
 			description: $t.arbiter.centralityVeryCentral
 		},
-		{ badgeClass: 'central', badge: 'Central', description: $t.arbiter.centralityCentral },
-		{ badgeClass: 'secondary', badge: 'Secondaire', description: $t.arbiter.centralitySecondary },
-		{ badgeClass: 'marginal', badge: 'Marginal', description: $t.arbiter.centralityMarginal },
+		{ variant: 'centrality-central', badge: 'Central', description: $t.arbiter.centralityCentral },
 		{
-			badgeClass: 'not-addressed',
+			variant: 'centrality-secondary',
+			badge: 'Secondaire',
+			description: $t.arbiter.centralitySecondary
+		},
+		{
+			variant: 'centrality-marginal',
+			badge: 'Marginal',
+			description: $t.arbiter.centralityMarginal
+		},
+		{
+			variant: 'centrality-not-addressed',
 			badge: 'Non abordé',
 			description: $t.arbiter.centralityNotAddressed
 		}

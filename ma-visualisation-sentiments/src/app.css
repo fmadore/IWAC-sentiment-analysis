@@ -820,114 +820,130 @@ h3 {
 }
 
 /* -----------------------------------------------------------------------------
-   Sentiment Badge System - Polarity, Subjectivity, Centrality
-   These classes provide consistent styling for sentiment values across the app
+   Sentiment Palette Resolver - Polarity, Subjectivity, Centrality
+
+   The one place that maps a sentiment value to its colour tokens. These rules
+   deliberately set NOTHING but custom properties: they answer "what colour is
+   `Très positif`?", not "what does a badge look like?". Each component that
+   displays a sentiment value then needs a single rule reading the three
+   variables below, and stays free to apply them on its own terms — a badge
+   fills always, a filter chip only once selected, a scale chip is a circle.
+
+   Elements opt in via the data attributes emitted by
+   `utils/sentimentTokens.ts` (`variantAttributes`), never by class name, so
+   the value stays legible in the DOM and there is no 16-way class list to keep
+   in sync across components.
    ----------------------------------------------------------------------------- */
 
-/* --- Polarity Badges --- */
-.sentiment-very-positive {
-	background: var(--sentiment-polarity-very-positive-bg);
-	border: 1px solid var(--sentiment-polarity-very-positive-border);
-	color: var(--sentiment-polarity-very-positive);
+/* --- Polarity --- */
+[data-polarity='very-positive'] {
+	--sentiment-fg: var(--sentiment-polarity-very-positive);
+	--sentiment-bg: var(--sentiment-polarity-very-positive-bg);
+	--sentiment-border: var(--sentiment-polarity-very-positive-border);
 }
 
-.sentiment-positive {
-	background: var(--sentiment-polarity-positive-bg);
-	border: 1px solid var(--sentiment-polarity-positive-border);
-	color: var(--sentiment-polarity-positive);
+[data-polarity='positive'] {
+	--sentiment-fg: var(--sentiment-polarity-positive);
+	--sentiment-bg: var(--sentiment-polarity-positive-bg);
+	--sentiment-border: var(--sentiment-polarity-positive-border);
 }
 
-.sentiment-neutral {
-	background: var(--sentiment-polarity-neutral-bg);
-	border: 1px solid var(--sentiment-polarity-neutral-border);
-	color: var(--sentiment-polarity-neutral);
+[data-polarity='neutral'] {
+	--sentiment-fg: var(--sentiment-polarity-neutral);
+	--sentiment-bg: var(--sentiment-polarity-neutral-bg);
+	--sentiment-border: var(--sentiment-polarity-neutral-border);
 }
 
-.sentiment-negative {
-	background: var(--sentiment-polarity-negative-bg);
-	border: 1px solid var(--sentiment-polarity-negative-border);
-	color: var(--sentiment-polarity-negative);
+[data-polarity='negative'] {
+	--sentiment-fg: var(--sentiment-polarity-negative);
+	--sentiment-bg: var(--sentiment-polarity-negative-bg);
+	--sentiment-border: var(--sentiment-polarity-negative-border);
 }
 
-.sentiment-very-negative {
-	background: var(--sentiment-polarity-very-negative-bg);
-	border: 1px solid var(--sentiment-polarity-very-negative-border);
-	color: var(--sentiment-polarity-very-negative);
+[data-polarity='very-negative'] {
+	--sentiment-fg: var(--sentiment-polarity-very-negative);
+	--sentiment-bg: var(--sentiment-polarity-very-negative-bg);
+	--sentiment-border: var(--sentiment-polarity-very-negative-border);
 }
 
-.sentiment-na {
-	background: var(--sentiment-polarity-na-bg);
-	border: 1px solid var(--sentiment-polarity-na-border);
-	color: var(--sentiment-polarity-na);
+[data-polarity='na'] {
+	--sentiment-fg: var(--sentiment-polarity-na);
+	--sentiment-bg: var(--sentiment-polarity-na-bg);
+	--sentiment-border: var(--sentiment-polarity-na-border);
 }
 
-/* --- Subjectivity Badges (Score 1-5) --- */
-.subjectivity-1 {
-	background: var(--sentiment-subjectivity-1-bg);
-	border: 1px solid var(--sentiment-subjectivity-1-border);
-	color: var(--sentiment-subjectivity-1);
+/* --- Subjectivity (score 1-5) --- */
+[data-subjectivity='1'] {
+	--sentiment-fg: var(--sentiment-subjectivity-1);
+	--sentiment-bg: var(--sentiment-subjectivity-1-bg);
+	--sentiment-border: var(--sentiment-subjectivity-1-border);
 }
 
-.subjectivity-2 {
-	background: var(--sentiment-subjectivity-2-bg);
-	border: 1px solid var(--sentiment-subjectivity-2-border);
-	color: var(--sentiment-subjectivity-2);
+[data-subjectivity='2'] {
+	--sentiment-fg: var(--sentiment-subjectivity-2);
+	--sentiment-bg: var(--sentiment-subjectivity-2-bg);
+	--sentiment-border: var(--sentiment-subjectivity-2-border);
 }
 
-.subjectivity-3 {
-	background: var(--sentiment-subjectivity-3-bg);
-	border: 1px solid var(--sentiment-subjectivity-3-border);
-	color: var(--sentiment-subjectivity-3);
+[data-subjectivity='3'] {
+	--sentiment-fg: var(--sentiment-subjectivity-3);
+	--sentiment-bg: var(--sentiment-subjectivity-3-bg);
+	--sentiment-border: var(--sentiment-subjectivity-3-border);
 }
 
-.subjectivity-4 {
-	background: var(--sentiment-subjectivity-4-bg);
-	border: 1px solid var(--sentiment-subjectivity-4-border);
-	color: var(--sentiment-subjectivity-4);
+[data-subjectivity='4'] {
+	--sentiment-fg: var(--sentiment-subjectivity-4);
+	--sentiment-bg: var(--sentiment-subjectivity-4-bg);
+	--sentiment-border: var(--sentiment-subjectivity-4-border);
 }
 
-.subjectivity-5 {
-	background: var(--sentiment-subjectivity-5-bg);
-	border: 1px solid var(--sentiment-subjectivity-5-border);
-	color: var(--sentiment-subjectivity-5);
+[data-subjectivity='5'] {
+	--sentiment-fg: var(--sentiment-subjectivity-5);
+	--sentiment-bg: var(--sentiment-subjectivity-5-bg);
+	--sentiment-border: var(--sentiment-subjectivity-5-border);
 }
 
-/* --- Centrality Badges --- */
-.centrality-very-central {
-	background: var(--sentiment-centrality-very-central-bg);
-	border: 1px solid var(--sentiment-centrality-very-central-border);
-	color: var(--sentiment-centrality-very-central);
+/* --- Centrality --- */
+[data-centrality='very-central'] {
+	--sentiment-fg: var(--sentiment-centrality-very-central);
+	--sentiment-bg: var(--sentiment-centrality-very-central-bg);
+	--sentiment-border: var(--sentiment-centrality-very-central-border);
 }
 
-.centrality-central {
-	background: var(--sentiment-centrality-central-bg);
-	border: 1px solid var(--sentiment-centrality-central-border);
-	color: var(--sentiment-centrality-central);
+[data-centrality='central'] {
+	--sentiment-fg: var(--sentiment-centrality-central);
+	--sentiment-bg: var(--sentiment-centrality-central-bg);
+	--sentiment-border: var(--sentiment-centrality-central-border);
 }
 
-.centrality-secondary {
-	background: var(--sentiment-centrality-secondary-bg);
-	border: 1px solid var(--sentiment-centrality-secondary-border);
-	color: var(--sentiment-centrality-secondary);
+[data-centrality='secondary'] {
+	--sentiment-fg: var(--sentiment-centrality-secondary);
+	--sentiment-bg: var(--sentiment-centrality-secondary-bg);
+	--sentiment-border: var(--sentiment-centrality-secondary-border);
 }
 
-.centrality-marginal {
-	background: var(--sentiment-centrality-marginal-bg);
-	border: 1px solid var(--sentiment-centrality-marginal-border);
-	color: var(--sentiment-centrality-marginal);
+[data-centrality='marginal'] {
+	--sentiment-fg: var(--sentiment-centrality-marginal);
+	--sentiment-bg: var(--sentiment-centrality-marginal-bg);
+	--sentiment-border: var(--sentiment-centrality-marginal-border);
 }
 
-.centrality-not-addressed {
-	background: var(--sentiment-centrality-not-addressed-bg);
-	border: 1px solid var(--sentiment-centrality-not-addressed-border);
-	color: var(--sentiment-centrality-not-addressed);
+[data-centrality='not-addressed'] {
+	--sentiment-fg: var(--sentiment-centrality-not-addressed);
+	--sentiment-bg: var(--sentiment-centrality-not-addressed-bg);
+	--sentiment-border: var(--sentiment-centrality-not-addressed-border);
 }
 
 /* --- Arbiter Verdict & Confidence Badges ---
    Semantic classes for the arbiter's preferred-model verdict and confidence
    level, used by ArbiterSection and ArbiterArticleTable (via utils/arbiter.ts).
-   Backed by the --verdict-*/
---confidence-* tokens above. */ .badge-verdict-win {
+   Backed by the --verdict- and --confidence- tokens above.
+
+   Note the spelled-out prefixes. Writing them as wildcards put a star
+   immediately before a slash, which closed this comment early and swept the
+   trailing prose into the next selector — leaving `.badge-verdict-win`
+   unmatchable, and so unstyled, in every browser. */
+.badge-verdict-win {
 	background: var(--verdict-win-bg);
 	border: 1px solid var(--verdict-win-border);
 	color: var(--verdict-win);

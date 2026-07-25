@@ -105,7 +105,7 @@ Always use Svelte 5 syntax. Never use Svelte 4 patterns.
 - Use CSS custom properties from `app.css` -- never hardcode colors or timing
 - Use `color-mix(in oklab, ...)` for transparency -- never `rgba()`
 - Use `data-*` attributes for state instead of conditional class concatenation
-- Sentiment colors: `--sentiment-polarity-{value}`, `--sentiment-subjectivity-{n}`, `--sentiment-centrality-{value}`
+- Sentiment colors: never map a value to a token in a component. Emit the data attribute from `utils/sentimentTokens.ts` and read `--sentiment-fg` / `--sentiment-bg` / `--sentiment-border`, which `app.css` resolves from `[data-polarity]` / `[data-subjectivity]` / `[data-centrality]`. The underlying tokens (`--sentiment-polarity-{value}`, `--sentiment-subjectivity-{n}`, `--sentiment-centrality-{value}`) belong to that one resolver block
 - Timing: `--timing-fast` (150ms), `--timing-normal` (250ms), `--timing-slow` (350ms)
 - Glass blur: `--glass-blur-sm/md/lg/xl`
 
@@ -253,6 +253,7 @@ URL state is managed through `$lib/stores/url/` with parser, builder, actions, a
 | `discrepancy.ts` | `getDiffClass`, `getDiffBadgeClass` | Discrepancy display styling |
 | `chartTheme.ts` | Chart theme configuration | ECharts theme with sentiment colors |
 | `extremeAnalysis.ts` | Extreme category configs and filtering | Extreme analysis data management |
+| `sentimentTokens.ts` | `sentimentVariant`, `variantAttributes`, `sentimentAttributes` | Sentiment value → `data-polarity`/`-subjectivity`/`-centrality`; app.css resolves the colours |
 
 ### Python (`data-preprocess/shared.py`)
 

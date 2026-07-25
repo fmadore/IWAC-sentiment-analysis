@@ -4,7 +4,7 @@
 
 **Operating principle.** Each phase lands as one or more atomic commits that pass `npm run lint && npm run check && npm run build`. No phase breaks the live dashboard.
 
-**Status: Phases 0, 1, 2, all of Phase 3, and Phase 4 except 4.8 landed. Only 4.8 (badge-class consolidation) and the back-compat shim migration remain — see "Deferred work" at the bottom.** Latest pass (3.3–3.5 filter rail + 4.6/4.7 polish): `lint` ✓, `check` 0 errors / 0 warnings, `test:run` 126/126, `build` ✓, and live `localhost:5173` confirmed the sticky 320px filter rail (charts/trends/correlation/volume/heatmap/table/extremes), the off-canvas mobile filter drawer (opened from the AppHeader, overlay + close working), comparison/arbiter staying full-width with their own internal filters, monospace eyebrow table headers, and deduped filter-chip CSS.
+**Status: every phase landed — 0, 1, 2, 3 and 4, including 4.8 (badge-class consolidation). No deferred items remain.** Final pass (4.8 badge consolidation): `lint` ✓, `check` 0 errors / 0 warnings, `test:run` 305/305, `build` ✓, and a Playwright sweep of the built site confirmed every sentiment element resolves a palette — 150 `SentimentBadge`s across all three families in the table and comparison views, all 16 methodology scale badges and 15 arbiter scale chips distinctly coloured, the subjectivity legend, and filter chips correct when unselected, selected, and selected-while-hovered.
 
 ---
 
@@ -73,7 +73,7 @@ The lowest-level changes. All later phases depend on these tokens being correct.
 | 3.4 | Drop CSS-columns masonry filter layout in favor of stacked rail | `FiltersPanel.svelte` | ✅ |
 | 3.5 | Drop the `max-w-6xl mx-auto` container; use a 2-column grid (rail / content) | `+page.svelte` | ✅ — rail views run wide (105rem); full-width views (arbiter/comparison) keep the prior 1152px cap via `data-layout` so text doesn't stretch |
 
-## Phase 4 — Polish & consolidation ✅ LANDED (4.8 deferred)
+## Phase 4 — Polish & consolidation ✅ LANDED
 
 | # | Change | Files | Status |
 |---|---|---|---|
@@ -84,27 +84,41 @@ The lowest-level changes. All later phases depend on these tokens being correct.
 | 4.5 | Audit and add **back-compat shims** for the still-referenced legacy tokens (`--gradient-*`, `--shadow-glow-*`, `--glass-blur-*`, `--sentiment-{view}-icon-bg`, `--color-tertiary-*`). Resolves to the editorial vocabulary — no exhaustive sweep required. | `app.css` | ✅ |
 | 4.6 | Remove the duplicated global `.filter-chip` base + 16 sentiment variants from `app.css`; the component-scoped copies (`FilterChip.svelte`, `DiscrepancyFilter.svelte`) are the single source | `app.css` | ✅ — the old global copy had already drifted (full color vs `-border` token) |
 | 4.7 | Data-table column headers get the monospace eyebrow: added `font-mono` to the global `.table th` (single source for all three tables) and removed the per-component duplicates that caused an unstable specificity tie; added a subordinate `.col-subhead` for ComparisonTable's model-name sub-row | `app.css`, `ArticleTable.svelte`, `ComparisonTable.svelte` | ✅ |
-| 4.8 _(was: badge consolidation)_ | Consolidate sentiment badge classes via `[data-polarity]` attribute selectors | — | ⏸ — would require touching every caller; deferred until next refactor of `SentimentBadge.svelte` |
+| 4.8 | Consolidate sentiment badge classes via `[data-polarity]` / `[data-subjectivity]` / `[data-centrality]` attribute selectors | `app.css`, `utils/sentimentTokens.ts`, `SentimentBadge.svelte`, `FilterChip.svelte`, `SentimentScaleList.svelte`, `SubjectivityFilter.svelte`, `AnalysisInfo.svelte`, `ArbiterMethodology.svelte` | ✅ |
 
-## Deferred work
+## Landed since: 4.8 — sentiment badge class consolidation
 
-### 4.8 — Sentiment badge class consolidation
+The 16 value→token mappings used to be copied into five places: the standalone
+globals in `app.css`, plus `SentimentBadge.svelte`, `FilterChip.svelte`,
+`SentimentScaleList.svelte` and `SubjectivityFilter.svelte`. Retuning one
+colour meant editing all five in lockstep, and they had already drifted.
 
-The last remaining roadmap item. Consolidate `.sentiment-{value}` / `.subjectivity-{n}` / `.centrality-{value}` classes (currently 16 individual classes × 3 places: `SentimentBadge.svelte`, `FilterChip.svelte`, and the standalone globals in `app.css`) into a single `.sentiment-badge` with `[data-polarity]` / `[data-subjectivity]` / `[data-centrality]` attribute selectors. Requires touching every caller, so deferred until the next refactor of `SentimentBadge.svelte`.
+They are now one layer. [`app.css`](ma-visualisation-sentiments/src/app.css)
+maps `[data-polarity]` / `[data-subjectivity]` / `[data-centrality]` onto three
+custom properties (`--sentiment-fg` / `-bg` / `-border`) and sets *nothing*
+else, so it answers "what colour is `Très positif`?" without assuming what the
+element is. Each component emits the attribute via
+[`utils/sentimentTokens.ts`](ma-visualisation-sentiments/src/lib/utils/sentimentTokens.ts)
+and carries a single rule reading those three variables — which keeps their
+differing semantics intact: a badge is always filled, a filter chip only once
+selected, a scale chip is a circle.
 
-> **3.3–3.5 (filter rail) and 4.6/4.7 (polish) have landed** — see the phase tables above.
+`sentimentTokens.test.ts` also asserts the cross-file join, since a variant
+with no matching rule in `app.css` would fail silently as
+transparent-on-transparent rather than erroring.
 
-### Back-compat shims to migrate off
+Two fixes fell out of the sweep:
 
-[app.css](ma-visualisation-sentiments/src/app.css) has a "BACK-COMPAT SHIMS" block that maps the legacy tokens (`--gradient-*`, `--shadow-glow-*`, `--glass-blur-*`, `--sentiment-{view}-icon-bg`, `--color-tertiary-*`) to the editorial vocabulary. Roughly 20 components still reference them. Migrate opportunistically when next touching each file:
+- `.badge-verdict-win` was **dead in every browser**. A `*/` inside the comment
+  above it (`--verdict-*/`) closed that comment early, so the trailing prose was
+  parsed as part of the selector.
+- The arbiter methodology's subjectivity chips were all painted score-3 green;
+  they now carry the same 1→5 cool→warm ramp as everywhere else.
 
-- Replace `backdrop-filter: blur(var(--glass-blur-md))` → delete the line
-- Replace `background: var(--gradient-primary)` → `background: var(--accent)`
-- Replace `box-shadow: var(--shadow-glow-md)` → delete the line, or use `var(--elevation-card)`
-- Replace `var(--sentiment-{view}-icon-bg)` → `var(--sentiment-{view}-bg)` or just delete the icon tile entirely (Phase 1 pattern)
-- Replace `var(--color-tertiary-500)` → `var(--color-secondary-500)` (or, better, drop the whole tertiary highlight)
+### Back-compat shims
 
-The shims are safe to keep indefinitely, but ideally the block is empty in 6 months.
+Removed. The "BACK-COMPAT SHIMS" block in `app.css` and its last callers went
+in the July 2026 review pass — see `REPO-REVIEW-2026-07.md`.
 
 ## Out of scope (this refactor)
 
