@@ -5,7 +5,6 @@
  * Provides both modern $state-based API and legacy store compatibility.
  */
 
-import { SvelteMap } from 'svelte/reactivity';
 import type { ExtremeAnalysisData } from '$lib/types/extremeAnalysis';
 import { loadExtremeAnalysisData, filterExtremeAnalysisData } from '$lib/utils/extremeAnalysis';
 import { datasetState } from './datasets.svelte';
@@ -38,8 +37,19 @@ const _filteredExtremeAnalysisRune = $derived.by(() =>
 // Data Loading
 // ============================================
 
-/** In-flight dedup: two effects can request the same dataset in one tick. */
-const extremeInFlight = new SvelteMap<string, Promise<void>>();
+/**
+ * In-flight dedup: two effects can request the same dataset in one tick.
+ *
+ * Deliberately a plain Map, not a SvelteMap. This is internal plumbing that is
+ * never rendered, and it is READ from inside `$effect`s — Svelte tracks reads
+ * transitively through synchronous calls, so a reactive map would make every
+ * caller depend on it. Each `set()` and `delete()` would then invalidate the
+ * very effects that triggered them, and the effect would call again. Measured
+ * on the extremes view: 14 loader entries per page load with SvelteMap, 6 with
+ * a plain Map.
+ */
+// eslint-disable-next-line svelte/prefer-svelte-reactivity -- see above: reactivity here causes an effect loop
+const extremeInFlight = new Map<string, Promise<void>>();
 
 /** Load extreme analysis data for the current dataset */
 export const loadCurrentExtremeAnalysis = async (fetchFunction: typeof fetch): Promise<void> => {

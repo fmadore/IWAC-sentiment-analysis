@@ -5,7 +5,6 @@
  * Uses Svelte 5 runes for reactivity.
  */
 
-import { SvelteMap } from 'svelte/reactivity';
 import type { ArbiterEvaluationData, ArbiterAnalysis, ModelPair } from '$lib/types/data';
 import { getPairModelNames } from '$lib/types/data';
 import { base } from '$app/paths';
@@ -275,8 +274,13 @@ export function getActualModelName(
  * same tick (comparison-mode effect + activeView effect); without this the
  * file was fetched twice on every entry into comparison/arbiter views.
  */
-const arbiterCache = new SvelteMap<ModelPair, ArbiterEvaluationData | null>();
-const arbiterInFlight = new SvelteMap<ModelPair, Promise<void>>();
+// Plain Maps, not SvelteMaps: internal plumbing, never rendered, and read
+// from inside `$effect`s — a reactive map would make each caller depend on it,
+// so every set()/delete() would re-invalidate the effect that caused it.
+/* eslint-disable svelte/prefer-svelte-reactivity -- reactivity here causes an effect loop */
+const arbiterCache = new Map<ModelPair, ArbiterEvaluationData | null>();
+const arbiterInFlight = new Map<ModelPair, Promise<void>>();
+/* eslint-enable svelte/prefer-svelte-reactivity */
 
 /** Load arbiter evaluations for a specific model pair */
 export const loadArbiterEvaluations = async (
@@ -325,7 +329,6 @@ const fetchArbiterEvaluations = async (
 		arbiterCache.set(targetPair, data);
 		_arbiterEvaluations = data;
 		_currentArbiterPair = targetPair;
-		console.log(`[Arbiter] Loaded ${data.evaluations?.length || 0} evaluations for ${targetPair}`);
 	} catch (error) {
 		// Transient (network) failure: don't cache, so a later call can retry.
 		console.log('[Arbiter] Evaluations not available:', error);
@@ -339,12 +342,10 @@ const fetchArbiterEvaluations = async (
 /** Setup reactive arbiter data reloading when comparison pair changes */
 export const setupArbiterPairReactivity = (fetchFunction: typeof fetch): (() => void) => {
 	if (arbiterReactivitySetUp) {
-		console.log('[Arbiter] Reactivity already set up, skipping');
 		return () => {};
 	}
 
 	arbiterReactivitySetUp = true;
-	console.log('[Arbiter] Setting up pair change reactivity');
 
 	// Use $effect.root to create an effect that can be manually cleaned up
 	const cleanup = $effect.root(() => {
@@ -355,7 +356,6 @@ export const setupArbiterPairReactivity = (fetchFunction: typeof fetch): (() => 
 			const isInComparisonMode = datasetState.isComparisonMode;
 
 			if (isInComparisonMode && previousPair !== null && previousPair !== newPair) {
-				console.log(`[Arbiter] Pair changed from ${previousPair} to ${newPair}, reloading data...`);
 				loadArbiterEvaluations(fetchFunction, newPair);
 			}
 			previousPair = newPair;

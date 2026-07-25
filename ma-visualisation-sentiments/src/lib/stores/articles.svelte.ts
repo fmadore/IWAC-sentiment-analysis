@@ -5,7 +5,7 @@
  * Provides both modern $state-based API and legacy store compatibility.
  */
 
-import { SvelteMap, SvelteSet } from 'svelte/reactivity';
+import { SvelteSet } from 'svelte/reactivity';
 import type { Article, SentimentAnalysis } from '$lib/types/data';
 import { base } from '$app/paths';
 import { datasetState } from './datasets.svelte';
@@ -60,8 +60,16 @@ const _availableJournalsRune = $derived.by(() => {
  * comparison/prefetch anyway, so a load started for a dataset the user
  * switched away from is still useful — completion only touches
  * `articleState.current` when that dataset is still the selected one.
+ *
+ * Plain Map, not SvelteMap: this is internal plumbing that is never rendered
+ * and is read from inside `$effect`s. Svelte tracks reads transitively through
+ * synchronous calls, so a reactive map would make every caller depend on it —
+ * each set()/delete() would invalidate the effect that triggered it and the
+ * effect would immediately call again. See extreme-analysis.svelte.ts, where
+ * that loop was measured at 14 loader entries per page load.
  */
-const inFlightLoads = new SvelteMap<string, Promise<Article[]>>();
+// eslint-disable-next-line svelte/prefer-svelte-reactivity -- reactivity here causes an effect loop
+const inFlightLoads = new Map<string, Promise<Article[]>>();
 
 interface PrefetchTask {
 	id: string;
@@ -317,7 +325,8 @@ export const loadSpecificDataset = async (
 /** Datasets whose prose has already been merged in. */
 const justificationsLoaded = new SvelteSet<string>();
 /** One promise per justification file currently being fetched. */
-const justificationLoads = new SvelteMap<string, Promise<void>>();
+// eslint-disable-next-line svelte/prefer-svelte-reactivity -- internal plumbing read inside effects
+const justificationLoads = new Map<string, Promise<void>>();
 
 /**
  * Fetch and merge a model's justification prose.
@@ -403,7 +412,7 @@ const scheduleSmartPrefetch = (queue: PrefetchTask[]): void => {
 				connection.effectiveType === '2g' ||
 				connection.saveData
 			) {
-				console.log(`[Prefetch] Skipping ${task.id} - slow network or data saver enabled`);
+				// Respect the user's data-saver / slow-connection signal.
 				if (queue.length > 0) {
 					scheduleSmartPrefetch(queue);
 				}
@@ -412,17 +421,13 @@ const scheduleSmartPrefetch = (queue: PrefetchTask[]): void => {
 		}
 
 		try {
-			console.log(`[Prefetch] Loading: ${task.id}`);
 			await task.loader();
-			console.log(`[Prefetch] Completed: ${task.id}`);
 		} catch (error) {
 			console.warn(`[Prefetch] Failed: ${task.id}`, error);
 		}
 
 		if (queue.length > 0) {
 			setTimeout(() => scheduleSmartPrefetch(queue), 150);
-		} else {
-			console.log('[Prefetch] All prefetching completed');
 		}
 	};
 
@@ -458,7 +463,6 @@ const prefetchOtherDatasets = async (
 		});
 
 	if (prefetchQueue.length === 0) {
-		console.log('[Prefetch] All data already loaded');
 		return;
 	}
 

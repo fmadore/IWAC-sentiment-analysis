@@ -66,27 +66,28 @@
 		uiState.filtersDrawerOpen = false;
 	});
 
-	// Load extreme analysis when view is 'extremes' and dataset changes
+	// Load extreme analysis when view is 'extremes' and dataset changes.
+	// This is the ONLY place that requests it — the activeView effect below
+	// used to request it as well, which doubled every load attempt.
 	$effect(() => {
 		if (currentView === 'extremes' && currentDatasetId && browser && isInitialized) {
-			console.log('Loading extreme analysis for dataset:', currentDatasetId);
-			loadCurrentExtremeAnalysis(fetch)
-				.then(() => console.log('Extreme analysis loaded successfully for:', currentDatasetId))
-				.catch((error) => console.error('Failed to load extreme analysis data:', error));
+			loadCurrentExtremeAnalysis(fetch).catch((error) =>
+				console.error('Failed to load extreme analysis data:', error)
+			);
 		}
 	});
 
-	// Load comparison data when comparison mode is enabled
+	// Load comparison data when comparison mode is enabled. Likewise the only
+	// request site for these two.
 	$effect(() => {
 		if (isComparisonMode && browser && isInitialized) {
-			console.log('Comparison mode enabled, loading comparison datasets...');
-			loadComparisonDatasets(fetch)
-				.then(() => console.log('Comparison datasets loaded successfully'))
-				.catch((error) => console.error('Failed to load comparison datasets:', error));
+			loadComparisonDatasets(fetch).catch((error) =>
+				console.error('Failed to load comparison datasets:', error)
+			);
 
-			loadArbiterEvaluations(fetch)
-				.then(() => console.log('Arbiter evaluations loaded (if available)'))
-				.catch((error) => console.log('Arbiter evaluations not available:', error));
+			loadArbiterEvaluations(fetch).catch((error) =>
+				console.error('Failed to load arbiter evaluations:', error)
+			);
 		}
 	});
 
@@ -118,9 +119,6 @@
 		if (currentSelectedArticle && !detailedArticle) {
 			detailedArticle = currentSelectedArticle;
 			showDetailsSidebar = true;
-			console.log(
-				`[Article Details] Showing details for article from URL: ${currentSelectedArticle['o:title']}`
-			);
 		}
 	});
 
@@ -146,42 +144,35 @@
 		updateURL(currentView);
 	});
 
-	// React to activeView changes for side effects (loading data, toggling comparison mode)
+	/**
+	 * React to activeView changes: toggle comparison mode, and load the data
+	 * only this effect is responsible for.
+	 *
+	 * Deliberately does NOT re-request comparison / arbiter / extreme data —
+	 * the dedicated effects above already own those, keyed on the state that
+	 * actually determines whether they're needed. Requesting from both places
+	 * doubled every attempt: because Svelte tracks reads transitively through
+	 * synchronous calls, each loader's internal state reads became dependencies
+	 * of *both* effects, so a single view change produced a cascade rather than
+	 * one request.
+	 */
 	$effect(() => {
 		if (!browser || !isInitialized) return;
 
-		if (currentView === 'comparison') {
+		if (currentView === 'comparison' || currentView === 'arbiter') {
+			// Both views work in terms of a model pair.
 			if (!isComparisonMode) {
 				datasetState.isComparisonMode = true;
 			}
-
-			loadComparisonDatasets(fetch).catch((error) => {
-				console.error('Failed to load comparison datasets:', error);
-			});
-		} else if (currentView === 'extremes') {
-			loadCurrentExtremeAnalysis(fetch).catch((error) => {
-				console.error('Failed to load extreme analysis data:', error);
-			});
 		} else if (currentView === 'agreement') {
 			// Agreement compares every model against every other, so it needs all
-			// three datasets rather than just the selected one. Idempotent.
+			// three datasets rather than just the selected one. Idempotent, and
+			// no other effect requests this.
 			loadAllDatasets(fetch).catch((error) => {
 				console.error('Failed to load datasets for agreement view:', error);
 			});
-		} else if (currentView === 'arbiter') {
-			// Arbiter view needs comparison mode for model pair selection
-			if (!isComparisonMode) {
-				datasetState.isComparisonMode = true;
-			}
-
-			// Load arbiter data (handled by ArbiterView component but also preload here)
-			loadArbiterEvaluations(fetch).catch((error) => {
-				console.log('Arbiter evaluations not available:', error);
-			});
-		} else {
-			if (isComparisonMode) {
-				datasetState.isComparisonMode = false;
-			}
+		} else if (isComparisonMode) {
+			datasetState.isComparisonMode = false;
 		}
 	});
 
