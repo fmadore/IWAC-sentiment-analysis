@@ -39,25 +39,36 @@ const STATIC_FILES = [
 	`${BASE_PATH}/icons/icon-512x512.png`
 ];
 
-// Data files that should be cached - ordered by priority
-// Smaller files first for faster initial cache population
-const DATA_FILES_PRIORITY = [
-	// Priority 1: Arbiter evaluations (smallest, needed for comparison view)
-	`${BASE_PATH}/data/iwac_arbiter_evaluations_chatgpt-gemini.json`,
-	`${BASE_PATH}/data/iwac_arbiter_evaluations_chatgpt-mistral.json`,
-	`${BASE_PATH}/data/iwac_arbiter_evaluations_gemini-mistral.json`,
-	// Priority 2: Main article datasets
-	`${BASE_PATH}/data/iwac_articles_chatgpt.json`,
-	`${BASE_PATH}/data/iwac_articles_gemini.json`,
-	`${BASE_PATH}/data/iwac_articles_mistral.json`,
-	// Priority 3: Extreme analysis data (larger files, used less frequently)
-	`${BASE_PATH}/data/iwac_extreme_analysis_chatgpt.json`,
-	`${BASE_PATH}/data/iwac_extreme_analysis_gemini.json`,
-	`${BASE_PATH}/data/iwac_extreme_analysis_mistral.json`
+// Every corpus filename prefix under /data/. SINGLE SOURCE OF TRUTH: both the
+// install-time precache list and the runtime fetch rule derive from this, so a
+// new data file can never be routed to the wrong (per-build, purged-on-deploy)
+// cache the way `iwac_sentiment_*` silently was.
+const DATA_FILE_PREFIXES = [
+	'iwac_articles_base',
+	'iwac_sentiment_',
+	'iwac_arbiter_evaluations_',
+	'iwac_extreme_analysis_'
 ];
 
-// Legacy alias kept for the background-sync helper below.
-const DATA_FILES = DATA_FILES_PRIORITY;
+/** True when a pathname points at one of the corpus JSON payloads. */
+function isDataFilePath(pathname) {
+	return (
+		pathname.includes('/data/') && DATA_FILE_PREFIXES.some((prefix) => pathname.includes(prefix))
+	);
+}
+
+// Precached at install: only the small files every session needs regardless of
+// which view the user opens. The per-model sentiment payloads and the
+// extreme-analysis files are deliberately NOT here — they are large, view- and
+// model-specific, and the runtime rule below caches them into the same stable
+// DATA_CACHE_NAME the moment they're actually requested. Precaching them cost a
+// first-time visitor tens of MB before they had opened anything.
+const DATA_FILES_PRIORITY = [
+	`${BASE_PATH}/data/iwac_articles_base.json`,
+	`${BASE_PATH}/data/iwac_arbiter_evaluations_chatgpt-gemini.json`,
+	`${BASE_PATH}/data/iwac_arbiter_evaluations_chatgpt-mistral.json`,
+	`${BASE_PATH}/data/iwac_arbiter_evaluations_gemini-mistral.json`
+];
 
 // Install event - cache static files (tolerantly), then data files progressively.
 self.addEventListener('install', (event) => {
@@ -122,6 +133,24 @@ self.addEventListener('activate', (event) => {
 					return undefined;
 				})
 			);
+
+			// The data cache is deliberately NOT versioned (re-downloading the
+			// corpus on every deploy would be brutal), so stale entries have to be
+			// evicted by name instead. Anything in there that no longer looks like a
+			// current data file is a leftover from a previous data layout — e.g. the
+			// pre-normalization `iwac_articles_{model}.json` payloads, tens of MB of
+			// dead weight in the caches of anyone who visited before that refactor.
+			const dataCache = await caches.open(DATA_CACHE_NAME);
+			const staleDataEntries = (await dataCache.keys()).filter(
+				(request) => !isDataFilePath(new URL(request.url).pathname)
+			);
+			await Promise.all(
+				staleDataEntries.map((request) => {
+					console.log('[SW] Evicting stale data entry:', request.url);
+					return dataCache.delete(request);
+				})
+			);
+
 			console.log('[SW] Activation complete');
 			// Take control of all open pages immediately.
 			return self.clients.claim();
@@ -173,13 +202,10 @@ self.addEventListener('fetch', (event) => {
 		return;
 	}
 
-	// 2) Data files → network-first (fresh data when online, cached fallback offline)
-	const isDataFile =
-		url.pathname.includes('/data/') &&
-		(url.pathname.includes('iwac_articles_') ||
-			url.pathname.includes('iwac_arbiter_evaluations_') ||
-			url.pathname.includes('iwac_extreme_analysis_'));
-	if (isDataFile) {
+	// 2) Data files → network-first (fresh data when online, cached fallback
+	//    offline), stored in the deploy-stable DATA_CACHE_NAME so a new release
+	//    doesn't force a re-download of the whole corpus.
+	if (isDataFilePath(url.pathname)) {
 		event.respondWith(networkFirstStrategy(request, DATA_CACHE_NAME));
 		return;
 	}
@@ -332,19 +358,25 @@ if ('sync' in self.registration) {
 	});
 }
 
-// Update data cache in background
+// Update data cache in background.
+//
+// Refreshes whatever this client has ALREADY cached rather than a hardcoded
+// file list: the entries present are exactly the datasets this user has opened,
+// so we never re-download a 14MB model payload for someone who only ever looks
+// at one model — and the list can't drift out of sync with static/data/ again.
 async function updateDataCache() {
 	const cache = await caches.open(DATA_CACHE_NAME);
+	const cachedRequests = await cache.keys();
 
-	const updatePromises = DATA_FILES.map(async (file) => {
+	const updatePromises = cachedRequests.map(async (request) => {
 		try {
-			const response = await fetch(file);
+			const response = await fetch(request);
 			if (response.ok) {
-				await cache.put(file, response);
-				console.log('[SW] Updated cache for:', file);
+				await cache.put(request, response);
+				console.log('[SW] Updated cache for:', request.url);
 			}
 		} catch (_error) {
-			console.log('[SW] Failed to update cache for:', file);
+			console.log('[SW] Failed to update cache for:', request.url);
 		}
 	});
 
