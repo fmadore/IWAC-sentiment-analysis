@@ -10,6 +10,14 @@
   and the Maghreb. That pilgrimage-and-diaspora axis is arguably the most
   interesting thing here, and a regional viewport would silently drop it.
 
+  PINNED TO MAPLIBRE GL JS v5. v6 stopped bundling its own web worker and
+  requires `setWorkerUrl()` to be called before any map is constructed (the
+  `svelte-maplibre-gl/vite` side-effect import exists for exactly this). Miss it
+  and the failure is silent in the worst way: the map constructs, registers its
+  sources and layers, raises no error — and paints nothing, because no GeoJSON
+  source ever finishes parsing. v5 needs no such wiring, so it stays until
+  there is a reason to move.
+
   NO TILE SERVER. MapLibre is pointed at a bundled Natural Earth GeoJSON rather
   than a hosted basemap: the app is a static PWA with no third-party runtime
   dependency, and country outlines are all 539 points need to be readable.
