@@ -370,9 +370,11 @@
 		position: sticky;
 		top: 0;
 		z-index: 1;
-		background-color: var(--color-surface-800);
 		box-shadow: 0 1px 0 var(--border-default);
-		/* Header typography (mono eyebrow) is owned by the global `.table th` rule. */
+		/* Header typography AND the opaque background are owned by the global
+		   `.table th` rule — that shorthand ties on specificity with this scoped
+		   rule and wins on source order, so setting a background here silently
+		   does nothing. */
 	}
 
 	.sortable-header {
@@ -382,7 +384,13 @@
 	}
 
 	.sortable-header:hover {
-		background-color: color-mix(in oklab, var(--color-primary-500) 15%, transparent);
+		/* Mixed into the opaque header colour: the header is sticky, so any
+		   translucent fill lets the scrolling rows read through it. */
+		background-color: color-mix(
+			in oklab,
+			var(--color-primary-500) 15%,
+			var(--surface-card-elevated)
+		);
 	}
 
 	/* ==============================================

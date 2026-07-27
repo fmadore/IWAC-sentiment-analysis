@@ -736,7 +736,13 @@ h3 {
 	font-weight: var(--font-weight-semibold);
 	text-transform: uppercase;
 	letter-spacing: var(--tracking-wider);
-	background: var(--surface-muted);
+	/* MUST stay opaque. Every `.table` header is `position: sticky`, so rows
+	   scroll underneath it — a translucent fill (this was `--surface-muted`,
+	   i.e. 4% white over `transparent`) lets the body text read straight through
+	   the header. This shorthand also ties on specificity with the components'
+	   scoped `th` rules and wins on source order, so it is the only place the
+	   header background can be set. */
+	background: var(--surface-card-elevated);
 	color: var(--text-muted);
 	border-bottom: 1px solid var(--border-subtle);
 }
@@ -750,7 +756,8 @@ h3 {
 }
 
 .table th.sortable:hover {
-	background: var(--surface-hover);
+	/* Mixed INTO the opaque header colour, not over `transparent` — see above. */
+	background: color-mix(in oklab, var(--color-surface-50) 10%, var(--surface-card-elevated));
 	color: var(--text-primary);
 }
 

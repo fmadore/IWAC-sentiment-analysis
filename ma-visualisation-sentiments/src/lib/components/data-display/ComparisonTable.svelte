@@ -148,7 +148,9 @@
 		<div class="table-container comparison-table-wrapper">
 			<table class="table">
 				<thead>
-					<tr class="bg-surface-800">
+					<!-- Row backgrounds live on the cells, not the rows: a `tr` fill sits
+					     behind the sticky cells and scrolls away from under them. -->
+					<tr>
 						<th
 							class="sortable-header"
 							onclick={() => {
@@ -177,7 +179,7 @@
 							{/if}
 						</th>
 					</tr>
-					<tr class="bg-surface-700/50 text-xs">
+					<tr class="text-xs">
 						<th></th>
 						<th class="col-subhead text-center"
 							>{paginatedComparisons[0]
@@ -435,15 +437,31 @@
 	}
 
 	.sortable-header:hover {
-		background-color: var(--surface-hover);
+		/* Mixed into the opaque header colour: the header is sticky, so any
+		   translucent fill lets the scrolling rows read through it. */
+		background-color: color-mix(
+			in oklab,
+			var(--color-surface-50) 10%,
+			var(--surface-card-elevated)
+		);
 	}
 
-	/* Sticky table headers — typography (mono eyebrow) owned by the global `.table th` rule. */
-	th {
+	/*
+		Sticky header — typography and the opaque background are owned by the
+		global `.table th` rule.
+
+		This header is TWO rows (dimension labels, then model names), so the whole
+		`thead` sticks as one block. Sticking each `th` individually — what every
+		other table here does — pins both rows to `top: 0`, and the model-name row
+		lands on top of the dimension labels.
+	*/
+	thead {
 		position: sticky;
 		top: 0;
 		z-index: 1;
-		background-color: var(--color-surface-800);
+	}
+
+	thead tr:last-child th {
 		box-shadow: 0 1px 0 var(--border-hover);
 	}
 

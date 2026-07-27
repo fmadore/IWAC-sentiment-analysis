@@ -403,15 +403,21 @@
 	}
 
 	.sortable-header:hover {
-		background-color: color-mix(in oklab, var(--sentiment-arbiter) 15%, transparent);
+		/* Mixed into the opaque header colour: the header is sticky, so any
+		   translucent fill lets the scrolling rows read through it. */
+		background-color: color-mix(
+			in oklab,
+			var(--sentiment-arbiter) 15%,
+			var(--surface-card-elevated)
+		);
 	}
 
 	th {
 		position: sticky;
 		top: 0;
 		z-index: 1;
-		background-color: var(--color-surface-800);
 		box-shadow: 0 1px 0 color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+		/* Background owned by the global `.table th` rule — see ArticleTable. */
 	}
 
 	.article-row {
