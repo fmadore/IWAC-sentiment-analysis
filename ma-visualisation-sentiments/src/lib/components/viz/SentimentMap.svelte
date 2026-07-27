@@ -34,14 +34,19 @@
 		Popup
 	} from 'svelte-maplibre-gl';
 	import 'maplibre-gl/dist/maplibre-gl.css';
-	import type { ExpressionSpecification, LngLatLike, MapLayerMouseEvent } from 'maplibre-gl';
+	import type { LngLatLike, MapLayerMouseEvent } from 'maplibre-gl';
 	import type { FeatureCollection } from 'geojson';
 	import { placeState, loadPlaces } from '$lib/stores/places.svelte';
 	import type { PlaceAggregate } from '$lib/utils/placeAggregation';
-	import { polarityColors } from '$lib/utils/chartTheme';
+	import {
+		circleColorExpression,
+		circleRadiusExpression,
+		UNSCORED_MEAN
+	} from '$lib/utils/mapScales';
 	import { t } from '$lib/i18n';
 	import LoadingState from '$lib/components/common/LoadingState.svelte';
 	import EmptyState from '$lib/components/common/EmptyState.svelte';
+	import MapLegend from './MapLegend.svelte';
 
 	const PLACE_SOURCE = 'iwac-places';
 	const WORLD_SOURCE = 'iwac-world';
@@ -79,49 +84,16 @@
 				title: place.title,
 				count: place.count,
 				// MapLibre expressions cannot branch on null, so unscored places get
-				// a sentinel the `case` below tests for explicitly.
-				meanPolarity: place.meanPolarity ?? -1
+				// a sentinel `circleColorExpression` tests for explicitly.
+				meanPolarity: place.meanPolarity ?? UNSCORED_MEAN
 			}
 		}))
 	});
 
-	/**
-	 * Area-proportional radius: perceived size should track article count, and
-	 * area goes as r². `sqrt` keeps a place with 100x the coverage from becoming
-	 * a 100x-wide blob that swallows the map.
-	 */
-	const radiusExpression = $derived([
-		'interpolate',
-		['linear'],
-		['sqrt', ['get', 'count']],
-		0,
-		3,
-		Math.sqrt(Math.max(maxCount, 1)),
-		34
-	] as ExpressionSpecification);
-
-	/**
-	 * Mean polarity → the diverging ramp, cut at the midpoints between the
-	 * ordinal levels (POLARITY_ORDER: Très négatif 1 … Très positif 5).
-	 */
-	const colorExpression = [
-		'case',
-		['<', ['get', 'meanPolarity'], 0],
-		polarityColors['Non applicable'],
-		[
-			'step',
-			['get', 'meanPolarity'],
-			polarityColors['Très négatif'],
-			1.5,
-			polarityColors['Négatif'],
-			2.5,
-			polarityColors['Neutre'],
-			3.5,
-			polarityColors['Positif'],
-			4.5,
-			polarityColors['Très positif']
-		]
-	] as ExpressionSpecification;
+	// Both scales come from `utils/mapScales.ts`, which also feeds MapLegend —
+	// see that module for why they are not written inline here.
+	const radiusExpression = $derived(circleRadiusExpression(maxCount));
+	const colorExpression = circleColorExpression();
 
 	function onPlaceClick(event: MapLayerMouseEvent) {
 		const feature = event.features?.[0];
@@ -200,6 +172,8 @@
 				</Popup>
 			{/if}
 		</MapLibre>
+
+		<MapLegend {maxCount} />
 
 		<p class="map-caveat">{$t.map.caveat}</p>
 	</div>

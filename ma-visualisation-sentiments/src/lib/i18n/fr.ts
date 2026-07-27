@@ -118,6 +118,9 @@ export const fr: Translations = {
 		articlesMentioning: 'articles mentionnant ce lieu',
 		meanPolarity: 'Polarité moyenne',
 		scoredArticles: 'Articles notés',
+		legendSizeTitle: 'Articles mentionnant',
+		legendColorTitle: 'Polarité moyenne',
+		legendNoStance: 'Sans position',
 		caveat:
 			'Une bulle compte les articles qui MENTIONNENT un lieu, et non les articles qui portent sur lui. Chaque article indexe environ quatre lieux, si bien que les totaux dépassent le nombre d’articles. La polarité moyenne est le sentiment au niveau de l’article sur une échelle de 1 à 5, moyennée sur les articles notés ; « Non applicable » est exclu de la moyenne mais reste comptabilisé. Les lieux sans coordonnées dans le fichier d’autorité IWAC sont absents.',
 		noPlacesTitle: 'Aucun lieu cartographié',
