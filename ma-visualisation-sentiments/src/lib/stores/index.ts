@@ -17,6 +17,7 @@ export { articleState } from './articles.svelte';
 export { comparisonState } from './comparison.svelte';
 export { type ArbiterStatistics } from './arbiter.svelte';
 export { extremeState } from './extreme-analysis.svelte';
+export { placeState, type PlaceAggregate } from './places.svelte';
 export {
 	pairAgreement,
 	threeWayAgreement,
@@ -71,6 +72,8 @@ export {
 export { loadComparisonDatasets } from './comparison.svelte';
 
 export { loadCurrentExtremeAnalysis } from './extreme-analysis.svelte';
+
+export { loadPlaces } from './places.svelte';
 
 // ============================================
 // Arbiter Accessors (already runes-based)

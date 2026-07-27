@@ -66,6 +66,7 @@ export const VIEW_IDS = [
 	'seasonality',
 	'heatmap',
 	'ranking',
+	'map',
 	'table',
 	'comparison',
 	'agreement',
@@ -73,6 +74,32 @@ export const VIEW_IDS = [
 	'arbiter'
 ] as const;
 export type ViewId = (typeof VIEW_IDS)[number];
+
+/**
+ * A geocoded place from the IWAC authority file (`index` rows of type `Lieux`).
+ * Only records that carry usable coordinates AND are cited by at least one
+ * article are shipped — see `data-preprocess/places-export.py`.
+ */
+export interface Place {
+	/** Omeka `o:id` of the authority record. */
+	id: number;
+	title: string;
+	lat: number;
+	lng: number;
+}
+
+/**
+ * The map payload: a place registry plus the article→places edge list.
+ *
+ * Edges rather than pre-computed averages, because the map answers to the same
+ * country/newspaper/date filters as every other view and any aggregate baked
+ * at build time would freeze one filter state.
+ */
+export interface PlacesPayload {
+	places: Place[];
+	/** Article `o:id` (as string) → ids of the places it tags. */
+	articles: Record<string, number[]>;
+}
 
 // New types for multi-dataset support
 export interface DatasetOption {

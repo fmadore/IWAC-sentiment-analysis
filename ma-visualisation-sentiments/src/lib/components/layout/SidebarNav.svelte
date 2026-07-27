@@ -15,6 +15,7 @@
 	import ScaleIcon from '@lucide/svelte/icons/scale';
 	import MoonStarIcon from '@lucide/svelte/icons/moon-star';
 	import NewspaperIcon from '@lucide/svelte/icons/newspaper';
+	import MapIcon from '@lucide/svelte/icons/map';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 
@@ -45,6 +46,7 @@
 		{ id: 'seasonality', icon: MoonStarIcon, labelKey: 'seasonality' as const },
 		{ id: 'heatmap', icon: ActivityIcon, labelKey: 'heatmap' as const },
 		{ id: 'ranking', icon: NewspaperIcon, labelKey: 'ranking' as const },
+		{ id: 'map', icon: MapIcon, labelKey: 'map' as const },
 		{ id: 'table', icon: TableIcon, labelKey: 'table' as const },
 		{ id: 'comparison', icon: GitCompareIcon, labelKey: 'comparison' as const },
 		{ id: 'agreement', icon: ScaleIcon, labelKey: 'agreement' as const },

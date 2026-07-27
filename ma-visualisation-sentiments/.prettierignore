@@ -10,5 +10,8 @@ build
 .svelte-kit
 dist
 
-# Large generated data files (pre-formatted by upstream pipeline)
+# Large generated data files (pre-formatted by upstream pipeline).
+# The basemap is written minified on purpose — pretty-printing 177 country
+# polygons costs ~700 kB of pure whitespace (see data-preprocess/basemap-export.py).
 static/data/*.json
+static/data/*.geojson

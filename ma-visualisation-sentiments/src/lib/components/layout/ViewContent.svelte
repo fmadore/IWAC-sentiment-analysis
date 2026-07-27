@@ -47,6 +47,22 @@
 
 	// UI
 	import { CSVExportButton, ChartCard } from '$lib/components/ui';
+	import LoadingState from '$lib/components/common/LoadingState.svelte';
+
+	/**
+	 * The map is the one view with a heavyweight dependency: MapLibre GL is
+	 * ~250 kB gzipped, more than the entire rest of the vendor bundle put
+	 * together. Importing it statically would make all twelve other views pay
+	 * for it, so it is pulled in on first visit to `?view=map` and the promise
+	 * memoized so switching away and back doesn't re-suspend.
+	 */
+	let mapModulePromise: Promise<typeof import('$lib/components/viz/SentimentMap.svelte')> | null =
+		null;
+
+	function loadMapModule() {
+		mapModulePromise ??= import('$lib/components/viz/SentimentMap.svelte');
+		return mapModulePromise;
+	}
 
 	interface ViewContentProps {
 		/** Currently active view */
@@ -111,6 +127,7 @@
 		| 'seasonality'
 		| 'heatmap'
 		| 'ranking'
+		| 'map'
 		| 'table'
 		| 'comparison'
 		| 'agreement'
@@ -163,6 +180,11 @@
 			eyebrow: $t.nav.ranking,
 			title: $t.ranking.title,
 			lede: $t.ranking.subtitle
+		},
+		map: {
+			eyebrow: $t.nav.map,
+			title: $t.map.title,
+			lede: $t.map.subtitle
 		},
 		table: {
 			eyebrow: $t.table.title,
@@ -244,6 +266,16 @@
 	<div class="view mb-6">
 		{@render header('ranking')}
 		<ChartCard variant="charts"><NewspaperRankingChart /></ChartCard>
+	</div>
+{:else if activeView === 'map'}
+	<div class="view mb-6">
+		{@render header('map')}
+		{#await loadMapModule()}
+			<LoadingState />
+		{:then module}
+			{@const SentimentMap = module.default}
+			<SentimentMap />
+		{/await}
 	</div>
 {:else if activeView === 'table'}
 	<div class="view mb-6">

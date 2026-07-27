@@ -8,6 +8,7 @@ significant-differences-export, and arbiter-evaluation scripts.
 import json
 import logging
 import os
+import re
 import sys
 import time
 from collections.abc import Sequence
@@ -45,6 +46,18 @@ _logger = get_logger(__name__)
 
 HF_REPO_ID = "fmadore/islam-west-africa-collection"
 HF_PARQUET_FILENAME = "articles/train-00000-of-00001.parquet"
+
+# The `index` subset is IWAC's authority file (persons, places, organisations,
+# subjects, events). Only the ``Lieux`` rows matter here: they carry the
+# ``Coordonnées`` that turn an article's ``spatial`` tags into map points.
+HF_INDEX_PARQUET_FILENAME = "index/train-00000-of-00001.parquet"
+
+# ``index.Type`` value identifying a place authority record.
+INDEX_TYPE_PLACE = "Lieux"
+
+# ``Coordonnées`` is free text; in practice always "lat, lng" but with drifting
+# separators.
+_COORD_RE = re.compile(r"\s*(-?\d+(?:\.\d+)?)[,;\s]+(-?\d+(?:\.\d+)?)\s*$")
 
 # Base URL for IWAC items on the Omeka S instance.
 IWAC_ITEM_URL_BASE = "https://islam.zmo.de/s/afrique_ouest/item/"
@@ -178,6 +191,70 @@ def load_iwac_dataset() -> pd.DataFrame:
         df = pd.DataFrame(dataset['train'])
         _logger.info("Loaded %d rows via datasets library", len(df))
         return df
+
+
+def load_iwac_index() -> pd.DataFrame:
+    """Load the IWAC ``index`` (authority-file) subset from Hugging Face.
+
+    Same two-step strategy as :func:`load_iwac_dataset` — direct parquet
+    download, falling back to the ``datasets`` library.
+
+    Returns:
+        pd.DataFrame with all authority rows (persons, places, organisations,
+        subjects, events). Filter on ``Type`` for one kind.
+    """
+    try:
+        _logger.info("Downloading index subset from Hugging Face...")
+        parquet_path = hf_hub_download(
+            repo_id=HF_REPO_ID,
+            filename=HF_INDEX_PARQUET_FILENAME,
+            repo_type="dataset"
+        )
+        df = pd.read_parquet(parquet_path)
+        _logger.info("Loaded %d index rows with %d columns", len(df), len(df.columns))
+        return df
+
+    except Exception as e:
+        _logger.warning("Direct index download failed: %s", e)
+        _logger.info("Trying datasets library fallback...")
+        from datasets import load_dataset
+        dataset = load_dataset(HF_REPO_ID, "index", verification_mode="no_checks")
+        df = pd.DataFrame(dataset['train'])
+        _logger.info("Loaded %d index rows via datasets library", len(df))
+        return df
+
+
+def split_pipe_field(value: Any) -> list[str]:
+    """Split a pipe-joined multi-value field into stripped, non-empty parts.
+
+    IWAC joins every repeatable field (``spatial``, ``subject``, ``author``…)
+    with ``|``. Substring-matching such a field is a bug; always split first.
+    """
+    text = safe_str(value)
+    if not text:
+        return []
+    return [part.strip() for part in text.split('|') if part.strip()]
+
+
+def parse_coordinates(value: Any) -> Optional[tuple[float, float]]:
+    """Parse an index ``Coordonnées`` string into ``(lat, lng)``.
+
+    The field is free text of the form ``"12.3657, -1.5339"``. Returns None
+    when absent or unparseable — roughly 19% of place records have no usable
+    coordinates and are simply not mappable.
+    """
+    text = safe_str(value)
+    if not text:
+        return None
+    match = _COORD_RE.match(text)
+    if not match:
+        return None
+    lat, lng = float(match.group(1)), float(match.group(2))
+    # Guard against transposed or garbage values rather than silently plotting
+    # a point in the wrong hemisphere.
+    if not (-90.0 <= lat <= 90.0 and -180.0 <= lng <= 180.0):
+        return None
+    return lat, lng
 
 
 def load_iwac_records() -> list[dict]:
@@ -345,13 +422,21 @@ def get_webapp_data_dir() -> str:
     return output_dir
 
 
-def save_json(data: Any, filepath: str) -> None:
-    """Save data as JSON with UTF-8 encoding and 2-space indent."""
+def save_json(data: Any, filepath: str, indent: Optional[int] = 2) -> None:
+    """Save data as JSON with UTF-8 encoding.
+
+    Args:
+        indent: 2 (the default) keeps the record-shaped payloads diffable.
+            Pass None for coordinate-heavy files — pretty-printing the basemap
+            geometry costs ~700 kB of pure whitespace.
+    """
+    separators = (',', ':') if indent is None else None
     with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        json.dump(data, f, ensure_ascii=False, indent=indent, separators=separators)
 
 
-def safe_save_json(data: Any, filepath: str, max_retries: int = 3) -> None:
+def safe_save_json(data: Any, filepath: str, max_retries: int = 3,
+                   indent: Optional[int] = 2) -> None:
     """Save JSON, retrying transient I/O errors with exponential backoff.
 
     Raises the last error if every attempt fails, so callers still fail
@@ -359,7 +444,7 @@ def safe_save_json(data: Any, filepath: str, max_retries: int = 3) -> None:
     """
     for attempt in range(1, max_retries + 1):
         try:
-            save_json(data, filepath)
+            save_json(data, filepath, indent=indent)
             return
         except OSError as exc:
             if attempt == max_retries:

@@ -48,7 +48,12 @@ const DATA_FILE_PREFIXES = [
 	'iwac_sentiment_',
 	'iwac_justifications_',
 	'iwac_arbiter_evaluations_',
-	'iwac_extreme_analysis_'
+	'iwac_extreme_analysis_',
+	'iwac_places',
+	// The map's Natural Earth basemap. Not an `iwac_` payload, but it belongs in
+	// the same deploy-stable cache: it is 170 kB that changes only when Natural
+	// Earth itself does, so re-fetching it on every release would be pure waste.
+	'world-110m'
 ];
 
 /** True when a pathname points at one of the corpus JSON payloads. */

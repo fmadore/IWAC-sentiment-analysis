@@ -18,6 +18,7 @@ export const fr: Translations = {
 		comparison: 'Comparaison',
 		seasonality: 'Saisonnalité',
 		ranking: 'Journaux',
+		map: 'Carte',
 		agreement: 'Accord',
 		extremes: 'Analyses extrêmes',
 		arbiter: 'Arbitre'
@@ -107,6 +108,22 @@ export const fr: Translations = {
 			'{count} journaux écartés : moins de {min} articles évalués. Leurs moyennes seraient trop incertaines pour être classées.',
 		noneAboveThreshold:
 			'Aucun journal ne compte au moins {min} articles évalués avec les filtres actuels.'
+	},
+
+	// Carte des lieux
+	map: {
+		title: 'Carte',
+		subtitle:
+			'Où le corpus porte son regard. Une bulle par lieu indexé dans les articles, dimensionnée selon le nombre d’articles qui le mentionnent et colorée par leur polarité moyenne.',
+		articlesMentioning: 'articles mentionnant ce lieu',
+		meanPolarity: 'Polarité moyenne',
+		scoredArticles: 'Articles notés',
+		caveat:
+			'Une bulle compte les articles qui MENTIONNENT un lieu, et non les articles qui portent sur lui. Chaque article indexe environ quatre lieux, si bien que les totaux dépassent le nombre d’articles. La polarité moyenne est le sentiment au niveau de l’article sur une échelle de 1 à 5, moyennée sur les articles notés ; « Non applicable » est exclu de la moyenne mais reste comptabilisé. Les lieux sans coordonnées dans le fichier d’autorité IWAC sont absents.',
+		noPlacesTitle: 'Aucun lieu cartographié',
+		noPlacesLede:
+			'Aucun article de la sélection actuelle n’indexe un lieu dont les coordonnées sont connues.',
+		loadErrorTitle: 'Données cartographiques indisponibles'
 	},
 
 	// Saisonnalité du calendrier hégirien

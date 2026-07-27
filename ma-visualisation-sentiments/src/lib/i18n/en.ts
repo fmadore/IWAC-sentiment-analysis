@@ -22,6 +22,7 @@ export const en = {
 		comparison: 'Comparison',
 		seasonality: 'Seasonality',
 		ranking: 'Newspapers',
+		map: 'Map',
 		agreement: 'Agreement',
 		extremes: 'Extreme Analysis',
 		arbiter: 'Arbiter'
@@ -110,6 +111,21 @@ export const en = {
 		excludedNote:
 			'{count} newspapers omitted: fewer than {min} rated articles. Their means would be too uncertain to rank.',
 		noneAboveThreshold: 'No newspaper has at least {min} rated articles under the current filters.'
+	},
+
+	// Place map
+	map: {
+		title: 'Map',
+		subtitle:
+			'Where the corpus looks. One bubble per place the articles tag, sized by how many mention it and coloured by their mean polarity.',
+		articlesMentioning: 'articles mentioning this place',
+		meanPolarity: 'Mean polarity',
+		scoredArticles: 'Scored articles',
+		caveat:
+			'A bubble counts articles that MENTION a place, not articles about it. Articles tag about four places each, so the totals here exceed the number of articles. Mean polarity is the article-level sentiment on a 1–5 scale, averaged over articles with a rating; "Not applicable" is excluded from the mean but still counted. Places with no coordinates in the IWAC authority file are absent.',
+		noPlacesTitle: 'No mapped places',
+		noPlacesLede: 'No article in the current selection tags a place with known coordinates.',
+		loadErrorTitle: 'Map data unavailable'
 	},
 
 	// Hijri-calendar seasonality
