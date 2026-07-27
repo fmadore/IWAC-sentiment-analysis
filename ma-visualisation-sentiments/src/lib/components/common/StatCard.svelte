@@ -44,7 +44,46 @@
 		layout = 'stacked',
 		icon
 	}: StatCardProps = $props();
+
+	const uid = $props.id();
+	const tooltipId = `${uid}-tip`;
+
+	/**
+	 * Escape closes the panel while the trigger keeps focus (WCAG 1.4.13). Reset
+	 * on the next hover/focus so the affordance isn't dead for the rest of the
+	 * session.
+	 */
+	let dismissed = $state(false);
+
+	function onTriggerKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape') {
+			dismissed = true;
+		}
+	}
 </script>
+
+{#snippet infoAffordance(text: string)}
+	<!--
+		A real hover/focus panel rather than the native `title` attribute. `title`
+		renders as OS chrome: ~1s delay on a 14px target, truncated, unreachable by
+		keyboard, and absent entirely on touch — so these explanations read as
+		simply missing.
+	-->
+	<span class="stat-info" data-dismissed={dismissed}>
+		<button
+			type="button"
+			class="stat-info-trigger"
+			aria-label={label}
+			aria-describedby={tooltipId}
+			onkeydown={onTriggerKeydown}
+			onpointerenter={() => (dismissed = false)}
+			onfocus={() => (dismissed = false)}
+		>
+			<InfoIcon size={14} />
+		</button>
+		<span class="stat-tooltip" id={tooltipId} role="tooltip">{text}</span>
+	</span>
+{/snippet}
 
 <div class="stat-card" data-layout={layout} data-accent={accent}>
 	{#if layout === 'stacked'}
@@ -53,12 +92,7 @@
 				<div class="stat-icon">{@render icon()}</div>
 			{/if}
 			<span class="stat-label">{label}</span>
-			{#if tooltip}
-				<span class="stat-info" title={tooltip}>
-					<InfoIcon size={14} />
-					<span class="sr-only">{tooltip}</span>
-				</span>
-			{/if}
+			{#if tooltip}{@render infoAffordance(tooltip)}{/if}
 		</div>
 		<div class="stat-value">{value}</div>
 		{#if detail}
@@ -75,12 +109,7 @@
 				<div class="stat-detail">{detail}</div>
 			{/if}
 		</div>
-		{#if tooltip}
-			<span class="stat-info" title={tooltip}>
-				<InfoIcon size={14} />
-				<span class="sr-only">{tooltip}</span>
-			</span>
-		{/if}
+		{#if tooltip}{@render infoAffordance(tooltip)}{/if}
 	{/if}
 </div>
 
@@ -94,6 +123,16 @@
 
 	.stat-card:hover {
 		border-color: var(--border-hover);
+	}
+
+	/*
+		Cards sit in a grid and are all `position: relative`, so a tooltip escaping
+		card N would paint under card N+1. Raise whichever card is being interacted
+		with. `:focus-within` covers the keyboard path, where there is no hover.
+	*/
+	.stat-card:hover,
+	.stat-card:focus-within {
+		z-index: 2;
 	}
 
 	.stat-card[data-layout='stacked'] {
@@ -166,15 +205,92 @@
 	}
 
 	.stat-info {
+		position: relative;
 		display: flex;
 		align-items: center;
 		margin-left: auto;
-		color: var(--text-muted);
-		cursor: help;
 	}
 
-	.stat-info:hover {
+	.stat-info-trigger {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		/* The glyph is 14px; pad the hit area out to the 24px pointer target
+		   minimum so the tooltip isn't a pixel hunt. */
+		padding: var(--space-1);
+		margin: calc(var(--space-1) * -1);
+		background: none;
+		border: none;
+		color: var(--text-muted);
+		cursor: help;
+		transition: color var(--timing-fast) var(--easing-default);
+	}
+
+	.stat-info-trigger:hover {
 		color: var(--text-secondary);
+	}
+
+	.stat-info-trigger:focus-visible {
+		outline: none;
+		box-shadow: var(--ring-focus);
+	}
+
+	.stat-tooltip {
+		position: absolute;
+		/* Anchored below-right: these cards are the top row of a view, so opening
+		   upwards would clip against the viewport. */
+		top: calc(100% + var(--space-2));
+		right: 0;
+		z-index: var(--z-modal);
+		width: max-content;
+		max-width: min(300px, 72vw);
+		padding: var(--space-3);
+		background: var(--surface-card-elevated);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-sm);
+		box-shadow: var(--shadow-xl);
+		font-family: var(--font-sans);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-normal);
+		line-height: var(--line-height-relaxed);
+		letter-spacing: normal;
+		text-transform: none;
+		color: var(--text-secondary);
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(calc(var(--space-1) * -1));
+		transition:
+			opacity var(--timing-fast) var(--easing-default),
+			visibility var(--timing-fast) var(--easing-default),
+			transform var(--timing-fast) var(--easing-default);
+	}
+
+	/* Transparent bridge across the gap, so travelling from the trigger into the
+	   panel doesn't dismiss it mid-move (WCAG 1.4.13 "hoverable"). */
+	.stat-tooltip::before {
+		content: '';
+		position: absolute;
+		inset: calc(var(--space-2) * -1) 0 100% 0;
+	}
+
+	.stat-info:hover .stat-tooltip,
+	.stat-info-trigger:focus-visible + .stat-tooltip {
+		opacity: 1;
+		visibility: visible;
+		transform: translateY(0);
+	}
+
+	/* Escape wins over both. */
+	.stat-info[data-dismissed='true'] .stat-tooltip {
+		opacity: 0;
+		visibility: hidden;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.stat-info-trigger,
+		.stat-tooltip {
+			transition: none;
+		}
 	}
 
 	/* --- Accents: tint the icon tile and the value together ---------------- */
@@ -233,17 +349,5 @@
 		background: var(--sentiment-polarity-neutral-bg);
 		border-color: var(--sentiment-polarity-neutral-border);
 		color: var(--sentiment-polarity-neutral);
-	}
-
-	.sr-only {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		padding: 0;
-		margin: -1px;
-		overflow: hidden;
-		clip-path: inset(50%);
-		white-space: nowrap;
-		border: 0;
 	}
 </style>

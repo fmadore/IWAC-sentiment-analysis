@@ -87,24 +87,22 @@
 			- Source Serif 4: display headings, brand title, view titles
 			- Public Sans:    body, UI, labels (wire-service neutral)
 			- JetBrains Mono: eyebrows, tabular numbers, methodology metadata
-			Pre-connect + preload + onload-swap to avoid render-blocking.
+
+			Loaded as a plain stylesheet on a pre-connected origin. The previous
+			`rel=preload as=style` + onload-swap dance was the classic non-blocking
+			recipe, but Firefox does not credit the swapped-in stylesheet against the
+			preload and logs "preloaded with link preload was not used within a few
+			seconds" on every page load. The CSS itself is ~2 kB from an origin the
+			preconnect has already warmed, and `display=swap` means text paints in the
+			fallback face regardless — so the blocking cost is negligible and the
+			inline onload handler (also a CSP liability) buys nothing.
 		-->
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
-			rel="preload"
+			rel="stylesheet"
 			href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400..800;1,400..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..800;1,8..60,400..800&family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&display=swap"
-			as="style"
-			onload="
-				this.onload = null;
-				this.rel = 'stylesheet';
-			"
 		/>
-		<noscript
-			><link
-				rel="stylesheet"
-				href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400..800;1,400..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..800;1,8..60,400..800&family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&display=swap"
-		/></noscript>
 
 		<!-- Font display fallbacks to prevent invisible text -->
 		<style>
