@@ -79,7 +79,7 @@ jobs:
       # their tests gate the deploy alongside the frontend's. Only the pure
       # helpers are exercised — no network, no API keys.
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
 
