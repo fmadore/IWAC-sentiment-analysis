@@ -5,41 +5,122 @@
  * Knows nothing about Svelte or the map library, so the arithmetic that decides
  * what every bubble says is testable on its own — same split as
  * `agreementData.ts` feeding `agreement.ts`.
+ *
+ * All three dimensions are computed in the same pass. The map colours by only
+ * one at a time, but re-walking 40k edges every time the reader flips the
+ * dimension picker would be pure waste — the second and third means are nearly
+ * free once an article's places have been looked up.
  */
 
-import type { Article, Place, PlacesPayload, PolarityValue } from '$lib/types/data';
-import { POLARITY_ORDER } from '$lib/types/data';
+import type {
+	Article,
+	CentralityValue,
+	Place,
+	PlacesPayload,
+	PolarityValue
+} from '$lib/types/data';
+import { CENTRALITY_ORDER, POLARITY_ORDER } from '$lib/types/data';
+import type { AgreementDimension } from './agreementData';
+import { AGREEMENT_DIMENSIONS } from './agreementData';
 
 /**
- * `Non applicable` sorts to 0 in POLARITY_ORDER because it belongs at the
- * bottom of the ordinal scale, but it means "no stance expressed", not
- * "maximally negative". Averaging it in would drag any place with a lot of
- * incidental coverage toward the negative pole — La Mecque, tagged by hundreds
- * of routine pilgrimage-logistics pieces, would read as hostile. It still
- * counts toward `count` and appears in the bucket breakdown.
+ * The dimensions a bubble can be coloured by — the app's three, unchanged.
+ *
+ * All three are reported on the same 1–5 ordinal scale, which is what lets one
+ * legend layout and one set of `step` thresholds in mapScales serve all of them.
  */
-const UNSCORED_POLARITY = 'Non applicable';
+export type MapDimension = AgreementDimension;
+export const MAP_DIMENSIONS = AGREEMENT_DIMENSIONS;
+
+/** Mean of one dimension over the articles that carry a usable value for it. */
+export interface DimensionStat {
+	/** Mean on the 1–5 scale, or null when nothing was scorable. */
+	mean: number | null;
+	/** How many articles contributed to `mean`. */
+	scored: number;
+	/** Per-label counts, including labels excluded from the mean. */
+	buckets: Record<string, number>;
+}
 
 /** A place plus the sentiment of the articles that mention it. */
 export interface PlaceAggregate extends Place {
 	/** Articles in the supplied selection that tag this place. */
 	count: number;
-	/**
-	 * Mean polarity on the 1–5 `POLARITY_ORDER` scale over articles carrying a
-	 * usable rating, or `null` when none do.
-	 */
-	meanPolarity: number | null;
-	/** How many articles contributed to `meanPolarity`. */
-	scored: number;
-	/** Per-polarity-bucket counts, for the popup breakdown. */
-	buckets: Record<string, number>;
+	/** One stat block per dimension; the map shows whichever is selected. */
+	stats: Record<MapDimension, DimensionStat>;
+}
+
+/**
+ * Score an article on one dimension.
+ *
+ * Returns null when the article carries no usable value — which is NOT the same
+ * as a low score, and is why the caller counts `scored` separately from `count`.
+ *
+ * POLARITY: `Non applicable` sorts to 0 in POLARITY_ORDER because it belongs at
+ * the bottom of the ordinal scale, but it means "no stance expressed", not
+ * "maximally negative". Averaging it in would drag any place with a lot of
+ * incidental coverage toward the negative pole — La Mecque, tagged by hundreds
+ * of routine pilgrimage-logistics pieces, would read as hostile. Excluded from
+ * the mean, still counted in `count` and in `buckets`.
+ *
+ * CENTRALITY: `Non abordé` is deliberately NOT excluded. It scores 1 in
+ * CENTRALITY_ORDER and genuinely is the bottom of that scale — an article that
+ * does not address Islam at all is maximally non-central, which is a real
+ * reading, not a missing value.
+ */
+function scoreArticle(article: Article, dimension: MapDimension): number | null {
+	const analysis = article.sentiment_analysis;
+	if (!analysis) return null;
+
+	switch (dimension) {
+		case 'polarity': {
+			const label = analysis.polarite;
+			if (!label || label === 'Non applicable') return null;
+			return POLARITY_ORDER[label as PolarityValue] ?? null;
+		}
+		case 'centrality': {
+			const label = analysis.centralite_islam_musulmans;
+			if (!label) return null;
+			return CENTRALITY_ORDER[label as CentralityValue] ?? null;
+		}
+		case 'subjectivity': {
+			const score = analysis.subjectivite_score;
+			if (score == null) return null;
+			const numeric = Number(score);
+			return Number.isFinite(numeric) ? numeric : null;
+		}
+	}
+}
+
+/** The label an article carries for a dimension, for the bucket breakdown. */
+function bucketLabel(article: Article, dimension: MapDimension): string | null {
+	const analysis = article.sentiment_analysis;
+	if (!analysis) return null;
+
+	switch (dimension) {
+		case 'polarity':
+			return analysis.polarite ?? null;
+		case 'centrality':
+			return analysis.centralite_islam_musulmans ?? null;
+		case 'subjectivity':
+			return analysis.subjectivite_score == null ? null : String(analysis.subjectivite_score);
+	}
 }
 
 interface Accumulator {
 	count: number;
-	sum: number;
-	scored: number;
-	buckets: Record<string, number>;
+	sums: Record<MapDimension, number>;
+	scored: Record<MapDimension, number>;
+	buckets: Record<MapDimension, Record<string, number>>;
+}
+
+function emptyAccumulator(): Accumulator {
+	return {
+		count: 0,
+		sums: { polarity: 0, subjectivity: 0, centrality: 0 },
+		scored: { polarity: 0, subjectivity: 0, centrality: 0 },
+		buckets: { polarity: {}, subjectivity: {}, centrality: {} }
+	};
 }
 
 /**
@@ -58,9 +139,13 @@ export function aggregatePlaces(articles: Article[], payload: PlacesPayload): Pl
 		const placeIds = payload.articles[String(article['o:id'])];
 		if (!placeIds) continue;
 
-		const polarity = article.sentiment_analysis?.polarite ?? null;
-		const score = polarity ? POLARITY_ORDER[polarity as PolarityValue] : undefined;
-		const scorable = score !== undefined && polarity !== UNSCORED_POLARITY;
+		// Score once per article, not once per (article, place) pair.
+		const scores = {} as Record<MapDimension, number | null>;
+		const labels = {} as Record<MapDimension, string | null>;
+		for (const dimension of MAP_DIMENSIONS) {
+			scores[dimension] = scoreArticle(article, dimension);
+			labels[dimension] = bucketLabel(article, dimension);
+		}
 
 		// An article can tag both a place's canonical title and one of its
 		// aliases; the export already dedupes, but a malformed payload must not
@@ -73,30 +158,38 @@ export function aggregatePlaces(articles: Article[], payload: PlacesPayload): Pl
 
 			let entry = totals.get(placeId);
 			if (!entry) {
-				entry = { count: 0, sum: 0, scored: 0, buckets: {} };
+				entry = emptyAccumulator();
 				totals.set(placeId, entry);
 			}
 
 			entry.count += 1;
-			if (polarity) {
-				entry.buckets[polarity] = (entry.buckets[polarity] ?? 0) + 1;
-			}
-			if (scorable) {
-				entry.sum += score;
-				entry.scored += 1;
+			for (const dimension of MAP_DIMENSIONS) {
+				const label = labels[dimension];
+				if (label !== null) {
+					entry.buckets[dimension][label] = (entry.buckets[dimension][label] ?? 0) + 1;
+				}
+				const score = scores[dimension];
+				if (score !== null) {
+					entry.sums[dimension] += score;
+					entry.scored[dimension] += 1;
+				}
 			}
 		}
 	}
 
 	const result: PlaceAggregate[] = [];
 	for (const [placeId, entry] of totals) {
-		result.push({
-			...byId.get(placeId)!,
-			count: entry.count,
-			scored: entry.scored,
-			meanPolarity: entry.scored > 0 ? entry.sum / entry.scored : null,
-			buckets: entry.buckets
-		});
+		const stats = {} as Record<MapDimension, DimensionStat>;
+		for (const dimension of MAP_DIMENSIONS) {
+			const scored = entry.scored[dimension];
+			stats[dimension] = {
+				mean: scored > 0 ? entry.sums[dimension] / scored : null,
+				scored,
+				buckets: entry.buckets[dimension]
+			};
+		}
+
+		result.push({ ...byId.get(placeId)!, count: entry.count, stats });
 	}
 
 	return result.sort((a, b) => b.count - a.count);

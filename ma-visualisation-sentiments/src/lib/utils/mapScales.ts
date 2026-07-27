@@ -1,5 +1,5 @@
 /**
- * The map's two visual scales, in one place.
+ * The map's visual scales, in one place.
  *
  * A legend that disagrees with the map is worse than no legend, and these
  * scales are consumed twice in incompatible forms: MapLibre wants declarative
@@ -12,7 +12,8 @@
  */
 
 import type { ExpressionSpecification } from 'maplibre-gl';
-import { polarityColors } from './chartTheme';
+import { centralityColors, polarityColors, subjectivityColors } from './chartTheme';
+import type { MapDimension } from './placeAggregation';
 
 /** Radius in px for a place with no articles, and for the busiest place. */
 export const MIN_RADIUS = 3;
@@ -43,30 +44,92 @@ export function circleRadiusExpression(maxCount: number): ExpressionSpecificatio
 }
 
 /**
- * Places whose articles all declined to take a stance carry this sentinel in
- * place of a mean, because MapLibre expressions cannot branch on null.
+ * Places whose articles all declined to take a stance (or were never analysed)
+ * carry this sentinel in place of a mean, because MapLibre expressions cannot
+ * branch on null.
  */
 export const UNSCORED_MEAN = -1;
 
-/**
- * The diverging ramp, low to high, cut at the midpoints between the ordinal
- * levels of `POLARITY_ORDER` (Très négatif 1 … Très positif 5). Each entry is
- * one legend swatch and one `step` stop.
- */
-export const POLARITY_RAMP = [
-	{ threshold: 0, color: polarityColors['Très négatif'], labelKey: 'veryNegative' },
-	{ threshold: 1.5, color: polarityColors['Négatif'], labelKey: 'negative' },
-	{ threshold: 2.5, color: polarityColors['Neutre'], labelKey: 'neutral' },
-	{ threshold: 3.5, color: polarityColors['Positif'], labelKey: 'positive' },
-	{ threshold: 4.5, color: polarityColors['Très positif'], labelKey: 'veryPositive' }
-] as const;
-
-/** Fill for places where no article expressed a stance. */
+/** Fill for places with no scorable article on the active dimension. */
 export const UNSCORED_COLOR = polarityColors['Non applicable'];
 
-/** Mean polarity → ramp colour, with the unscored sentinel handled first. */
-export function circleColorExpression(): ExpressionSpecification {
-	const steps = POLARITY_RAMP.flatMap((stop, index) =>
+/** One legend swatch and one `step` stop. */
+export interface RampStop {
+	/** Lower bound of the bucket on the 1–5 mean scale. */
+	threshold: number;
+	color: string;
+	/** Key into the dimension's i18n label group (see LABEL_GROUP below). */
+	labelKey: string;
+}
+
+/**
+ * Thresholds sit at the midpoints between the ordinal levels. Every dimension
+ * is reported on the same 1–5 scale (see placeAggregation), so all three ramps
+ * share these cut points and differ only in palette and labels.
+ */
+const THRESHOLDS = [1, 1.5, 2.5, 3.5, 4.5];
+
+function ramp(colors: readonly string[], labelKeys: readonly string[]): RampStop[] {
+	return colors.map((color, index) => ({
+		threshold: THRESHOLDS[index],
+		color,
+		labelKey: labelKeys[index]
+	}));
+}
+
+/**
+ * Low-to-high ramps per dimension.
+ *
+ * polarity     — diverging red↔green; 'Non applicable' is NOT a stop here, it
+ *                is excluded from the mean and rendered with UNSCORED_COLOR.
+ * subjectivity — sequential cool→warm, scores 1–5.
+ * centrality   — sequential amber; 'Non abordé' IS a stop, because it is a
+ *                genuine bottom of the scale rather than a missing value.
+ */
+export const DIMENSION_RAMPS: Record<MapDimension, RampStop[]> = {
+	polarity: ramp(
+		[
+			polarityColors['Très négatif'],
+			polarityColors['Négatif'],
+			polarityColors['Neutre'],
+			polarityColors['Positif'],
+			polarityColors['Très positif']
+		],
+		['veryNegative', 'negative', 'neutral', 'positive', 'veryPositive']
+	),
+	subjectivity: ramp(
+		[
+			subjectivityColors[1],
+			subjectivityColors[2],
+			subjectivityColors[3],
+			subjectivityColors[4],
+			subjectivityColors[5]
+		],
+		['factual', 'ratherFactual', 'mixed', 'ratherSubjective', 'subjective']
+	),
+	centrality: ramp(
+		[
+			centralityColors['Non abordé'],
+			centralityColors['Marginal'],
+			centralityColors['Secondaire'],
+			centralityColors['Central'],
+			centralityColors['Très central']
+		],
+		['notAddressed', 'marginal', 'secondary', 'central', 'veryCentral']
+	)
+};
+
+/** Which i18n group holds each dimension's swatch labels. */
+export const LABEL_GROUP: Record<MapDimension, 'sentiment' | 'subjectivity' | 'centrality'> = {
+	polarity: 'sentiment',
+	subjectivity: 'subjectivity',
+	centrality: 'centrality'
+};
+
+/** Mean → ramp colour for one dimension, unscored sentinel handled first. */
+export function circleColorExpression(dimension: MapDimension): ExpressionSpecification {
+	const stops = DIMENSION_RAMPS[dimension];
+	const steps = stops.flatMap((stop, index) =>
 		index === 0 ? [stop.color] : [stop.threshold, stop.color]
 	);
 	// Double cast: the spread widens the tuple to a union array, which TS cannot
@@ -74,9 +137,9 @@ export function circleColorExpression(): ExpressionSpecification {
 	// shape is pinned by mapScales.test.ts instead.
 	return [
 		'case',
-		['<', ['get', 'meanPolarity'], 0],
+		['<', ['get', 'mean'], 0],
 		UNSCORED_COLOR,
-		['step', ['get', 'meanPolarity'], ...steps]
+		['step', ['get', 'mean'], ...steps]
 	] as unknown as ExpressionSpecification;
 }
 

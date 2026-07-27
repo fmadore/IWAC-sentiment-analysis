@@ -14,8 +14,10 @@
 -->
 <script lang="ts">
 	import { t } from '$lib/i18n';
+	import type { MapDimension } from '$lib/utils/placeAggregation';
 	import {
-		POLARITY_RAMP,
+		DIMENSION_RAMPS,
+		LABEL_GROUP,
 		UNSCORED_COLOR,
 		circleRadius,
 		legendCountStops,
@@ -25,9 +27,24 @@
 	interface MapLegendProps {
 		/** Article count of the busiest place in the current selection. */
 		maxCount: number;
+		/** Which dimension the bubble fill encodes. */
+		dimension: MapDimension;
+		/** Translated name of that dimension, used as the colour block's title. */
+		label: string;
 	}
 
-	let { maxCount }: MapLegendProps = $props();
+	let { maxCount, dimension, label }: MapLegendProps = $props();
+
+	const ramp = $derived(DIMENSION_RAMPS[dimension]);
+
+	/**
+	 * Swatch labels live in whichever i18n group owns the dimension's scale
+	 * (`sentiment` / `subjectivity` / `centrality`), so the legend reuses the
+	 * same wording as the filter rail instead of inventing its own.
+	 */
+	const rampLabels = $derived(
+		$t[LABEL_GROUP[dimension]] as unknown as Record<string, string | undefined>
+	);
 
 	const sizeStops = $derived(
 		legendCountStops(maxCount).map((count) => ({ count, radius: circleRadius(count, maxCount) }))
@@ -59,17 +76,17 @@
 	</div>
 
 	<div class="legend-block">
-		<span class="legend-title">{$t.map.legendColorTitle}</span>
+		<span class="legend-title">{$t.map.legendColorTitle.replace('{dimension}', label)}</span>
 		<ul class="ramp">
-			{#each POLARITY_RAMP as stop (stop.labelKey)}
+			{#each ramp as stop (stop.labelKey)}
 				<li class="ramp-item">
 					<span class="ramp-swatch" style:background-color={stop.color}></span>
-					<span class="ramp-label">{$t.sentiment[stop.labelKey]}</span>
+					<span class="ramp-label">{rampLabels[stop.labelKey] ?? stop.labelKey}</span>
 				</li>
 			{/each}
 			<li class="ramp-item ramp-item-unscored">
 				<span class="ramp-swatch" style:background-color={UNSCORED_COLOR}></span>
-				<span class="ramp-label">{$t.map.legendNoStance}</span>
+				<span class="ramp-label">{$t.map.legendUnscored}</span>
 			</li>
 		</ul>
 	</div>

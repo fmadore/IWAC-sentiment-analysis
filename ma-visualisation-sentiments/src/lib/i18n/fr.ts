@@ -114,15 +114,15 @@ export const fr: Translations = {
 	map: {
 		title: 'Carte',
 		subtitle:
-			'Où le corpus porte son regard. Une bulle par lieu indexé dans les articles, dimensionnée selon le nombre d’articles qui le mentionnent et colorée par leur polarité moyenne.',
+			'Où le corpus porte son regard. Une bulle par lieu indexé dans les articles, dimensionnée selon le nombre d’articles qui le mentionnent et colorée selon la dimension choisie.',
 		articlesMentioning: 'articles mentionnant ce lieu',
-		meanPolarity: 'Polarité moyenne',
+		meanOf: '{dimension} moyenne',
 		scoredArticles: 'Articles notés',
 		legendSizeTitle: 'Articles mentionnant',
-		legendColorTitle: 'Polarité moyenne',
-		legendNoStance: 'Sans position',
+		legendColorTitle: '{dimension} moyenne',
+		legendUnscored: 'Non noté',
 		caveat:
-			'Une bulle compte les articles qui MENTIONNENT un lieu, et non les articles qui portent sur lui. Chaque article indexe environ quatre lieux, si bien que les totaux dépassent le nombre d’articles. La polarité moyenne est le sentiment au niveau de l’article sur une échelle de 1 à 5, moyennée sur les articles notés ; « Non applicable » est exclu de la moyenne mais reste comptabilisé. Les lieux sans coordonnées dans le fichier d’autorité IWAC sont absents.',
+			'Une bulle compte les articles qui MENTIONNENT un lieu, et non les articles qui portent sur lui. Chaque article indexe environ quatre lieux, si bien que les totaux dépassent le nombre d’articles. La couleur correspond à la note attribuée à l’article sur une échelle de 1 à 5, moyennée sur les articles que le modèle a effectivement notés pour cette dimension. Pour la polarité, « Non applicable » signifie qu’aucune position n’est exprimée : la valeur est exclue de la moyenne mais reste comptabilisée dans la bulle ; pour la centralité, « Non abordé » constitue un véritable bas d’échelle et est donc inclus. Les lieux sans coordonnées dans le fichier d’autorité IWAC sont absents.',
 		noPlacesTitle: 'Aucun lieu cartographié',
 		noPlacesLede:
 			'Aucun article de la sélection actuelle n’indexe un lieu dont les coordonnées sont connues.',

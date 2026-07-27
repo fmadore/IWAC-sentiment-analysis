@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
+	DIMENSION_RAMPS,
+	LABEL_GROUP,
 	MAX_RADIUS,
 	MIN_RADIUS,
-	POLARITY_RAMP,
 	UNSCORED_COLOR,
 	UNSCORED_MEAN,
 	circleColorExpression,
@@ -10,6 +11,7 @@ import {
 	circleRadiusExpression,
 	legendCountStops
 } from './mapScales';
+import { MAP_DIMENSIONS, type MapDimension } from './placeAggregation';
 
 /**
  * Mirror of MapLibre's `["interpolate", ["linear"], input, ...stops]` for the
@@ -83,36 +85,63 @@ describe('circleRadiusExpression', () => {
 });
 
 describe('circleColorExpression', () => {
-	const expression = circleColorExpression();
-
-	it('routes the unscored sentinel to the grey before touching the ramp', () => {
+	it.each(MAP_DIMENSIONS)('routes the unscored sentinel to grey first (%s)', (dimension) => {
+		const expression = circleColorExpression(dimension);
 		expect(expression[0]).toBe('case');
-		expect(expression[1]).toEqual(['<', ['get', 'meanPolarity'], 0]);
+		expect(expression[1]).toEqual(['<', ['get', 'mean'], 0]);
 		expect(expression[2]).toBe(UNSCORED_COLOR);
 		expect(UNSCORED_MEAN).toBeLessThan(0);
 	});
 
-	it('steps through every ramp colour in order', () => {
+	it.each(MAP_DIMENSIONS)('steps through every ramp colour in order (%s)', (dimension) => {
+		const expression = circleColorExpression(dimension);
+		const ramp = DIMENSION_RAMPS[dimension];
 		const step = expression[3] as unknown[];
+
 		expect(step[0]).toBe('step');
-		expect(step[1]).toEqual(['get', 'meanPolarity']);
+		expect(step[1]).toEqual(['get', 'mean']);
 
 		// step: [op, input, default, t1, c1, t2, c2, ...] — so after slice(3) the
 		// thresholds sit at even relative indices and the colours at odd ones.
 		const tail = step.slice(3);
 		const colors = [step[2], ...tail.filter((_, i) => i % 2 === 1)];
-		expect(colors).toEqual(POLARITY_RAMP.map((stop) => stop.color));
+		expect(colors).toEqual(ramp.map((stop) => stop.color));
 
 		const thresholds = tail.filter((_, i) => i % 2 === 0);
-		expect(thresholds).toEqual(POLARITY_RAMP.slice(1).map((stop) => stop.threshold));
+		expect(thresholds).toEqual(ramp.slice(1).map((stop) => stop.threshold));
+	});
+});
+
+describe('DIMENSION_RAMPS', () => {
+	it('covers every dimension the map can show', () => {
+		expect(Object.keys(DIMENSION_RAMPS).sort()).toEqual([...MAP_DIMENSIONS].sort());
 	});
 
-	it('keeps the ramp thresholds at the midpoints of the ordinal scale', () => {
-		expect(POLARITY_RAMP.map((s) => s.threshold)).toEqual([0, 1.5, 2.5, 3.5, 4.5]);
+	it.each(MAP_DIMENSIONS)('cuts %s at the midpoints of the 1-5 scale', (dimension) => {
+		// Every dimension is reported on the same 1-5 scale, which is what lets
+		// one set of thresholds and one legend layout serve all three.
+		expect(DIMENSION_RAMPS[dimension].map((s) => s.threshold)).toEqual([1, 1.5, 2.5, 3.5, 4.5]);
 	});
 
-	it('does not reuse the unscored grey inside the ramp', () => {
-		expect(POLARITY_RAMP.map((s) => s.color)).not.toContain(UNSCORED_COLOR);
+	it.each(MAP_DIMENSIONS)('gives %s five distinct colours', (dimension) => {
+		const colors = DIMENSION_RAMPS[dimension].map((s) => s.color);
+		expect(colors).toHaveLength(5);
+		expect(new Set(colors).size).toBe(5);
+	});
+
+	it.each(MAP_DIMENSIONS)('never reuses the unscored grey inside the %s ramp', (dimension) => {
+		expect(DIMENSION_RAMPS[dimension].map((s) => s.color)).not.toContain(UNSCORED_COLOR);
+	});
+
+	it('gives each dimension its own palette', () => {
+		const [a, b, c] = MAP_DIMENSIONS.map((d) => DIMENSION_RAMPS[d].map((s) => s.color).join());
+		expect(new Set([a, b, c]).size).toBe(3);
+	});
+
+	it('points every dimension at an i18n group', () => {
+		for (const dimension of MAP_DIMENSIONS) {
+			expect(LABEL_GROUP[dimension as MapDimension]).toBeTruthy();
+		}
 	});
 });
 

@@ -44,8 +44,10 @@
 	import 'maplibre-gl/dist/maplibre-gl.css';
 	import type { LngLatLike, MapLayerMouseEvent } from 'maplibre-gl';
 	import type { FeatureCollection } from 'geojson';
+	import { articleState, datasetState } from '$lib/stores';
 	import { placeState, loadPlaces } from '$lib/stores/places.svelte';
-	import type { PlaceAggregate } from '$lib/utils/placeAggregation';
+	import type { MapDimension, PlaceAggregate } from '$lib/utils/placeAggregation';
+	import { MAP_DIMENSIONS } from '$lib/utils/placeAggregation';
 	import {
 		circleColorExpression,
 		circleRadiusExpression,
@@ -68,6 +70,15 @@
 	let world = $state<FeatureCollection | null>(null);
 	let selected = $state<PlaceAggregate | null>(null);
 
+	/** Which dimension the bubble fill encodes. Size always means article count. */
+	let dimension = $state<MapDimension>('polarity');
+
+	const dimensionLabels = $derived<Record<MapDimension, string>>({
+		polarity: $t.filters.polarity,
+		subjectivity: $t.filters.subjectivity,
+		centrality: $t.filters.centrality
+	});
+
 	onMount(() => {
 		loadPlaces();
 		fetch(`${base}/data/world-110m.geojson`)
@@ -75,6 +86,14 @@
 			.then((data) => (world = data))
 			.catch(() => (world = null));
 	});
+
+	/**
+	 * Switching model loads that model's payload if it isn't cached yet. Until
+	 * it lands `articleState.filtered` is empty, which is indistinguishable from
+	 * "no place matches your filters" — so gate on the dataset actually being
+	 * present and show the spinner instead of flashing a wrong empty state.
+	 */
+	const modelReady = $derived((articleState.datasets[datasetState.selected]?.length ?? 0) > 0);
 
 	const aggregates = $derived(placeState.aggregates);
 
@@ -91,9 +110,12 @@
 				id: place.id,
 				title: place.title,
 				count: place.count,
-				// MapLibre expressions cannot branch on null, so unscored places get
-				// a sentinel `circleColorExpression` tests for explicitly.
-				meanPolarity: place.meanPolarity ?? UNSCORED_MEAN
+				// Only the ACTIVE dimension's mean is published, under a fixed
+				// property name, so the paint expression never has to branch on
+				// which dimension is showing. MapLibre expressions cannot branch on
+				// null, so unscored places get the sentinel `circleColorExpression`
+				// tests for explicitly.
+				mean: place.stats[dimension].mean ?? UNSCORED_MEAN
 			}
 		}))
 	});
@@ -101,7 +123,7 @@
 	// Both scales come from `utils/mapScales.ts`, which also feeds MapLegend —
 	// see that module for why they are not written inline here.
 	const radiusExpression = $derived(circleRadiusExpression(maxCount));
-	const colorExpression = circleColorExpression();
+	const colorExpression = $derived(circleColorExpression(dimension));
 
 	function onPlaceClick(event: MapLayerMouseEvent) {
 		const feature = event.features?.[0];
@@ -114,19 +136,41 @@
 		selected ? [selected.lng, selected.lat] : undefined
 	);
 
-	function formatMean(place: PlaceAggregate): string {
-		return place.meanPolarity === null ? '—' : place.meanPolarity.toFixed(2);
+	/** Stats for the active dimension of the place in the popup. */
+	const selectedStat = $derived(selected ? selected.stats[dimension] : null);
+
+	function formatMean(mean: number | null): string {
+		return mean === null ? '—' : mean.toFixed(2);
 	}
 </script>
 
-{#if placeState.error}
-	<EmptyState title={$t.map.loadErrorTitle} lede={placeState.error} />
-{:else if !placeState.loaded || !world}
-	<LoadingState />
-{:else if aggregates.length === 0}
-	<EmptyState title={$t.map.noPlacesTitle} lede={$t.map.noPlacesLede} />
-{:else}
-	<div class="map-shell">
+<!--
+	The dimension picker sits OUTSIDE the state branches on purpose. A filter
+	that empties the map on one dimension can have results on another, so the
+	control that recovers from an empty map must not be hidden by it.
+-->
+<div class="map-shell">
+	<div class="dimension-tabs" role="tablist" aria-label={$t.agreement.dimensionSelector}>
+		{#each MAP_DIMENSIONS as option (option)}
+			<button
+				role="tab"
+				class="dimension-tab"
+				data-active={dimension === option}
+				aria-selected={dimension === option}
+				onclick={() => (dimension = option)}
+			>
+				{dimensionLabels[option]}
+			</button>
+		{/each}
+	</div>
+
+	{#if placeState.error}
+		<EmptyState title={$t.map.loadErrorTitle} lede={placeState.error} />
+	{:else if !placeState.loaded || !world || !modelReady}
+		<LoadingState />
+	{:else if aggregates.length === 0}
+		<EmptyState title={$t.map.noPlacesTitle} lede={$t.map.noPlacesLede} />
+	{:else}
 		<MapLibre
 			class="map-canvas"
 			autoloadGlobalCss={false}
@@ -171,27 +215,70 @@
 							{$t.map.articlesMentioning}
 						</p>
 						<dl class="popup-stats">
-							<dt>{$t.map.meanPolarity}</dt>
-							<dd>{formatMean(selected)}</dd>
+							<dt>{$t.map.meanOf.replace('{dimension}', dimensionLabels[dimension])}</dt>
+							<dd>{formatMean(selectedStat?.mean ?? null)}</dd>
 							<dt>{$t.map.scoredArticles}</dt>
-							<dd>{selected.scored.toLocaleString()}</dd>
+							<dd>{(selectedStat?.scored ?? 0).toLocaleString()}</dd>
 						</dl>
 					</div>
 				</Popup>
 			{/if}
 		</MapLibre>
 
-		<MapLegend {maxCount} />
+		<MapLegend {maxCount} {dimension} label={dimensionLabels[dimension]} />
 
 		<p class="map-caveat">{$t.map.caveat}</p>
-	</div>
-{/if}
+	{/if}
+</div>
 
 <style>
 	.map-shell {
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-3);
+	}
+
+	/* Same idiom as the agreement view's dimension tabs — same control, same look. */
+	.dimension-tabs {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-2);
+		padding-bottom: var(--space-3);
+		border-bottom: 1px solid var(--border-subtle);
+	}
+
+	.dimension-tab {
+		font-family: var(--font-mono);
+		font-size: var(--font-size-xs);
+		font-weight: 500;
+		letter-spacing: var(--tracking-wide);
+		text-transform: uppercase;
+		padding: var(--space-2) var(--space-4);
+		color: var(--text-muted);
+		background: transparent;
+		border: 1px solid var(--border-subtle);
+		cursor: pointer;
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
+	}
+
+	.dimension-tab:hover:not([data-active='true']) {
+		color: var(--text-primary);
+		background: var(--surface-hover);
+	}
+
+	.dimension-tab[data-active='true'] {
+		color: var(--accent);
+		background: var(--accent-soft);
+		border-color: color-mix(in oklab, var(--accent) 40%, transparent);
+	}
+
+	.dimension-tab:focus-visible {
+		outline: none;
+		box-shadow: var(--ring-focus);
 	}
 
 	.map-shell :global(.map-canvas) {

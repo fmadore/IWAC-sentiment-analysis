@@ -117,15 +117,15 @@ export const en = {
 	map: {
 		title: 'Map',
 		subtitle:
-			'Where the corpus looks. One bubble per place the articles tag, sized by how many mention it and coloured by their mean polarity.',
+			'Where the corpus looks. One bubble per place the articles tag, sized by how many mention it and coloured by the dimension you pick.',
 		articlesMentioning: 'articles mentioning this place',
-		meanPolarity: 'Mean polarity',
+		meanOf: 'Mean {dimension}',
 		scoredArticles: 'Scored articles',
 		legendSizeTitle: 'Articles mentioning',
-		legendColorTitle: 'Mean polarity',
-		legendNoStance: 'No stance',
+		legendColorTitle: 'Mean {dimension}',
+		legendUnscored: 'Not scored',
 		caveat:
-			'A bubble counts articles that MENTION a place, not articles about it. Articles tag about four places each, so the totals here exceed the number of articles. Mean polarity is the article-level sentiment on a 1–5 scale, averaged over articles with a rating; "Not applicable" is excluded from the mean but still counted. Places with no coordinates in the IWAC authority file are absent.',
+			'A bubble counts articles that MENTION a place, not articles about it. Articles tag about four places each, so the totals here exceed the number of articles. Colour is the article-level rating on a 1–5 scale, averaged over articles the model actually scored on that dimension. For polarity, "Not applicable" means no stance was expressed and is excluded from the mean while still counting toward the bubble; for centrality, "Not addressed" is a genuine bottom of the scale and is included. Places with no coordinates in the IWAC authority file are absent.',
 		noPlacesTitle: 'No mapped places',
 		noPlacesLede: 'No article in the current selection tags a place with known coordinates.',
 		loadErrorTitle: 'Map data unavailable'
