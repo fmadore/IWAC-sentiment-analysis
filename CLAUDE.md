@@ -1,332 +1,162 @@
-# IWAC Sentiment Analysis - Claude Code Instructions
+# IWAC Sentiment Analysis
 
-## Project Overview
+SvelteKit dashboard visualising sentiment analysis of the Islam West Africa
+Collection corpus, comparing three models (ChatGPT, Gemini, Mistral) with an
+arbiter evaluation layer. The app is `ma-visualisation-sentiments/`; the Python
+that builds its JSON payloads is `data-preprocess/`.
 
-Interactive SvelteKit application for visualizing sentiment analysis results on the Islam West Africa Collection (IWAC) corpus. Features comparative analysis between AI models (ChatGPT, Gemini, Mistral), multilingual support (French/English), comprehensive filtering, export capabilities, and an arbiter evaluation system.
+**Live:** https://iwac.frederickmadore.com/sentiment-analysis/
 
-**Live site:** https://iwac.frederickmadore.com/sentiment-analysis/
+Before committing anything that ships through CI, run the checks in
+[.claude/skills/verify/SKILL.md](.claude/skills/verify/SKILL.md) — the ordering
+and the pass criteria are not guessable.
 
-## Repository Structure
+The rest of this file is gotchas. Structure, scripts and dependencies are
+discoverable from the repo; what follows is not.
 
-```
-IWAC-sentiment-analysis/
-├── ma-visualisation-sentiments/   # SvelteKit frontend app (main codebase)
-│   ├── src/
-│   │   ├── lib/
-│   │   │   ├── components/        # Svelte components (common/, layout/, ui/, viz/, filters/, data-display/)
-│   │   │   ├── stores/            # State management (Svelte 5 runes accessor objects)
-│   │   │   ├── i18n/              # Internationalization (en.ts, fr.ts, types.ts)
-│   │   │   ├── types/             # TypeScript type definitions
-│   │   │   └── utils/             # Utility functions (format, csv, discrepancy, chartTheme, chartAggregators, extremeAnalysis, pagination, accordion, agreement, agreementData, correlation, hijri, newspaperRanking, placeAggregation)
-│   │   ├── routes/                # SvelteKit routes (single-page app)
-│   │   └── mocks/                 # Test mocks for $app/* modules
-│   ├── static/data/               # JSON data files served at runtime
-│   └── build/                     # Production build output (gitignored)
-├── data-preprocess/               # Python scripts for data preprocessing
-│   ├── shared.py                  # Shared utilities (safe_int_convert, dataset loading, score mappings, output helpers)
-│   ├── data-fetch.py              # Fetches articles from HuggingFace dataset
-│   ├── extreme-analysis.py        # Computes extreme sentiment analysis
-│   ├── significant-differences-export.py  # Exports model comparison discrepancies
-│   ├── arbiter-evaluation.py      # Runs arbiter evaluations via Gemini API
-│   ├── places-export.py           # Joins articles to geocoded places (map payload)
-│   └── basemap-export.py          # Builds the Natural Earth world basemap
-└── exports/                       # Exported evaluation data (gitignored)
-```
+## Deployment and the base path
 
-## Tech Stack
+Served from a **custom subdomain at a sub-path**, which is why the build output
+is nested. `ma-visualisation-sentiments/deploy.config.js` is the single source of
+truth (`DEPLOY_PATH`, `CUSTOM_DOMAIN`) and its header comment explains the whole
+mechanism — read it before touching anything path-related.
 
-- **Framework:** SvelteKit 2 with `adapter-static` for GitHub Pages
-- **Language:** TypeScript (strict mode)
-- **UI:** Skeleton UI v4 (compound components) + Tailwind CSS v4
-- **State:** Svelte 5 Runes (`$state`, `$derived`, `$effect`, `$props`)
-- **Charts:** ECharts via svelte-echarts
-- **Icons:** Lucide Svelte (`@lucide/svelte`)
-- **Build:** Vite 8 (Rolldown) with gzip + brotli compression
-- **Testing:** Vitest + @testing-library/svelte + jsdom
-- **Python:** pandas, huggingface_hub, google-genai (for preprocessing)
+The trap in one line: a GitHub *project page* supplies the `/repo-name/` prefix,
+a *custom domain* does not — Pages serves the artifact at the subdomain root, so
+`paths.base` alone would ship a site where every base-prefixed URL 404s. Hence
+the adapter writes into `build/sentiment-analysis/` and `scripts/nest-build.mjs`
+populates the build root with the three files Pages only reads from there
+(`CNAME`, hoisted `404.html`, redirect `index.html`).
 
-## Common Commands
+- `static/404.html` carries a `__DEPLOY_PATH__` placeholder stamped at build time;
+  `static/sw.js` derives `BASE_PATH` from `self.location`. Neither hardcodes the path
+- Anything generated before the postbuild stamp — the `.gz`/`.br` variants from
+  `vite-plugin-compression` — captures placeholders verbatim. `stamp-sw.mjs`
+  re-compresses the worker; `nest-build.mjs` drops the 404 variants instead
+- Changing the served path means editing `deploy.config.js` and nothing else.
+  `DEPLOY_PATH = ''` serves at the subdomain root and skips the nesting
+- DNS: `frederickmadore.com` is registered at Porkbun but its DNS is managed at
+  **Cloudflare**. Records added at Porkbun are inert. The `iwac` CNAME must stay
+  **DNS-only (grey cloud)** or GitHub cannot complete the Let's Encrypt challenge
+- Pages binds **one repo per hostname** — a sibling tool cannot be served from
+  `iwac.frederickmadore.com/<other>/` out of a different repo
 
-All frontend commands run from `ma-visualisation-sentiments/`:
+## Svelte, CSS and UI
 
-```bash
-cd ma-visualisation-sentiments
+- **Svelte 5 runes only.** `$state`/`$derived`/`$effect`/`$props`, and `onclick`
+  never `on:click`. Training data is full of Svelte 4; the compiler is in
+  `runes: true`, which also forces runes mode on `node_modules` — a Dependabot
+  bump shipping a legacy `export let` component breaks the build and the Pages
+  deploy dies quietly
+- **Skeleton UI v5** uses compound components (`AppBar.Toolbar`, not props)
+- **Tailwind v4 has no `tailwind.config.js`** — configuration lives in CSS
+- **Unlayered CSS beats Tailwind utilities.** Tailwind v4 utilities sit in a
+  layer, so plain `app.css` rules win ties
+- Never hardcode colours or timings — use the custom properties in `app.css`, and
+  `color-mix(in oklab, ...)` rather than `rgba()`. Prefer `data-*` attributes for
+  state over conditional class concatenation
+- **Sentiment colours have exactly one resolver.** Never map a value to a token in
+  a component: emit the data attribute from `utils/sentimentTokens.ts` and read
+  `--sentiment-fg`/`-bg`/`-border`. `app.css` resolves those from
+  `[data-polarity]`/`[data-subjectivity]`/`[data-centrality]`, and the underlying
+  `--sentiment-*` tokens belong to that one block
+- **Component-level `@keyframes` duplication is intentional** — Svelte hashes
+  animation names with the same scope hash as the selectors referencing them, so
+  a shared global keyframe silently fails. Share spinners via a component instead
+- `--z-overlay` (500) outranks `--z-sidebar` (400), so a drawer needs
+  `z-index: calc(var(--z-overlay) + 1)` or its own scrim covers it
+- **Components inside the 320px filter rail must not branch layout on viewport
+  media queries** — they see the viewport, not the rail. Stack unconditionally or
+  use container queries. This bug shipped twice before it was caught
+- Import icons from their specific paths (`@lucide/svelte/icons/menu`) so they
+  tree-shake
 
-# Development
-npm run dev              # Start dev server
-npm run build            # Production build (vite build + service-worker stamp)
-npm run preview          # Preview production build
+## Charts
 
-# Quality
-npm run check            # TypeScript + Svelte type checking
-npm run lint             # Prettier + ESLint check
-npm run format           # Auto-format with Prettier
+- **ECharts (zrender) cannot parse `oklch()`, `color-mix()` or CSS variables.**
+  Chart-facing colours stay hex/rgba — this is why `chartTheme.ts` duplicates
+  values that look like they should come from tokens
+- `chartTheme.ts` keys its lookups on the **French** sentiment strings
+- **`setOption` merges by default.** A chart switching coordinate systems (polar ↔
+  cartesian) must be wrapped in `{#key mode}` or the old one is left behind — see
+  `HijriSeasonalityChart.svelte`
+- **MapLibre GL is pinned to v5 deliberately.** v6 dropped its bundled web worker
+  and needs `setWorkerUrl()` before any map is constructed; miss it and the map
+  builds, registers every source and layer, throws nothing, and paints a blank
+  canvas
+- `map` is the only view with a heavyweight dependency (MapLibre, ~243 kB gzipped
+  — more than the rest of the vendor bundle combined), so it sits behind a
+  memoized dynamic `import()` in `ViewContent.svelte`. Keep it that way, and check
+  the built entry's modulepreload list if you touch the import
+- `comparison`, `agreement` and `arbiter` are **self-contained**: full-width, own
+  internal filters, no shared filter rail (`SELF_CONTAINED_VIEWS` in `+page.svelte`)
 
-# Testing
-npm run test             # Vitest in watch mode
-npm run test:run         # Single run (used in CI)
+## State
 
-# Deployment
-npm run deploy           # Build + deploy to GitHub Pages via gh-pages
-```
+- Stores are runes accessor objects only — no legacy writable layer (the sole
+  `writable` is the i18n `currentLanguage`)
+- **Modules inside `stores/` must import individual store files, never the
+  `./index` barrel** — the barrel re-exports everything, so that is an instant
+  cycle. `scripts/check-store-cycles.mjs` fails `npm run lint` if one reappears
+- Leaf stores (filters/datasets/ui) import from no other store; data stores
+  (articles/comparison/extreme/arbiter) import leaf stores directly
+- **Store accessors read as narrow unions** (`DatasetId`, `ViewId`) but their
+  setters deliberately accept `string` with one internal cast. Don't "fix" the
+  setter signatures — a prior attempt cascaded svelte-check errors across every
+  call site
+- Data loading is idempotent with in-flight dedup (see `articles.svelte.ts`)
 
-Python preprocessing (from repo root):
+## Data model
 
-```bash
-cd data-preprocess
-python data-fetch.py                  # Fetch and process articles
-python extreme-analysis.py            # Run extreme analysis
-python significant-differences-export.py  # Export comparison data
-python arbiter-evaluation.py          # Run arbiter evaluations (needs GOOGLE_API_KEY)
-python places-export.py               # Join articles to geocoded places (map payload)
-python basemap-export.py              # Rebuild the Natural Earth basemap (rarely needed)
-python -m py_compile <file>.py        # Syntax check a script
-```
+Sentiment values are stored as **French strings and used as lookup keys**:
 
-## Core Conventions
-
-### Svelte 5 Runes (MANDATORY)
-
-Always use Svelte 5 syntax. Never use Svelte 4 patterns.
-
-```svelte
-<script lang="ts">
-  // Props: use $props() with typed interface
-  interface MyComponentProps { title: string; onClose?: () => void; children?: Snippet; }
-  let { title, onClose, children }: MyComponentProps = $props();
-
-  // State: use $state, $derived, $effect
-  let count = $state(0);
-  let doubled = $derived(count * 2);
-  $effect(() => { console.log(count); });
-</script>
-
-<!-- Events: use onclick, NOT on:click -->
-<button onclick={() => count++}>Click</button>
-```
-
-### CSS Patterns
-
-- Use CSS custom properties from `app.css` -- never hardcode colors or timing
-- Use `color-mix(in oklab, ...)` for transparency -- never `rgba()`
-- Use `data-*` attributes for state instead of conditional class concatenation
-- Sentiment colors: never map a value to a token in a component. Emit the data attribute from `utils/sentimentTokens.ts` and read `--sentiment-fg` / `--sentiment-bg` / `--sentiment-border`, which `app.css` resolves from `[data-polarity]` / `[data-subjectivity]` / `[data-centrality]`. The underlying tokens (`--sentiment-polarity-{value}`, `--sentiment-subjectivity-{n}`, `--sentiment-centrality-{value}`) belong to that one resolver block
-- Timing: `--timing-fast` (150ms), `--timing-normal` (250ms), `--timing-slow` (350ms)
-- Glass blur: `--glass-blur-sm/md/lg/xl`
-
-### Component Structure
-
-```svelte
-<!-- Brief component description -->
-<script lang="ts">
-  import type { Snippet } from 'svelte';
-
-  interface ComponentNameProps {
-    propName: string;
-    children?: Snippet;
-  }
-
-  let { propName, children }: ComponentNameProps = $props();
-</script>
-
-<div class="component-root" data-state={...}>
-  {#if children}{@render children()}{/if}
-</div>
-
-<style>
-  .component-root { transition: all var(--timing-normal) var(--easing-default); }
-</style>
-```
-
-### Import Patterns
-
-```typescript
-// Components: prefer barrel exports
-import { FilterCard, SentimentBadge } from "$lib/components/common";
-import { SentimentChart } from "$lib/components/viz";
-
-// Stores: import from barrel
-import { filterState, datasetState, uiState } from "$lib/stores";
-
-// Shared utilities: import from specific util modules
-import {
-  formatDate,
-  getArticleUrl,
-  getModelDisplayName,
-} from "$lib/utils/format";
-import {
-  escapeCSVField,
-  formatDateForCSV,
-  downloadCSVFile,
-} from "$lib/utils/csv";
-import { getDiffClass, getDiffBadgeClass } from "$lib/utils/discrepancy";
-
-// Icons: import from specific paths for tree-shaking
-import MenuIcon from "@lucide/svelte/icons/menu";
-```
-
-### Component Organization
-
-| Folder          | Purpose                   | Examples                                            |
-| --------------- | ------------------------- | --------------------------------------------------- |
-| `common/`       | Base reusable components  | FilterCard, FilterChip, GlassCard, SentimentBadge   |
-| `layout/`       | Page structure            | AppHeader, FiltersPanel, SidebarNav, ViewContent    |
-| `ui/`           | Controls and pickers      | DatasetPicker, CSVExportButton, LanguageSwitcher    |
-| `viz/`          | Charts and visualizations | SentimentChart, CentralityHeatmap, CorrelationChart |
-| `filters/`      | Filter components         | CountryFilter, PolarityFilter, SubjectivityFilter   |
-| `data-display/` | Data views and tables     | ArticleTable, ArticleDetail, ComparisonView         |
-
-### Naming Conventions
-
-- **Components:** PascalCase (`ArticleTable.svelte`)
-- **Utility files:** kebab-case (`extreme-analysis.svelte.ts`)
-- **CSS classes:** kebab-case (`glass-card`, `nav-tab-mobile`)
-- **Props/events:** camelCase with `on` prefix for callbacks (`onChange`, `onClose`)
-- **Store state objects:** `{domain}State` pattern (`filterState`, `uiState`, `datasetState`)
-
-## Data Model
-
-### Sentiment Values (French, stored in data)
-
-- **Polarity (`PolarityValue`):** Tres positif, Positif, Neutre, Negatif, Tres negatif, Non applicable
-- **Subjectivity (`SubjectivityScore`):** 1 (Very Objective) to 5 (Very Subjective)
-- **Centrality (`CentralityValue`):** Tres central, Central, Secondaire, Marginal, Non aborde
-
-### Data files (static/data/)
-
-- `iwac_articles_base.json` — shared article metadata, stored once
-- `iwac_sentiment_{model}.json` — per-model sentiment **scores** keyed by article id (joined with the base at load time in `articles.svelte.ts`)
-- `iwac_justifications_{model}.json` — per-model justification **prose**, keyed by article id. ~90% of a model's bytes and read only by the detail views and CSV exports, so it is fetched lazily by `loadJustifications()` and merged into the existing `sentiment_analysis` objects
-- `iwac_extreme_analysis_{model}.json` — normalized: `articles_index` + per-category `article_ids` (denormalized at load in `utils/extremeAnalysis.ts`)
-- `iwac_arbiter_evaluations_{pair}.json` — arbiter verdicts per model pair
-- `iwac_places.json` — the map's geography: a `places` registry (geocoded IWAC `Lieux` authority records) plus an `articles` edge list of article id → place ids. Edges, not pre-computed averages, so the map answers to the shared filter rail; aggregated client-side by `utils/placeAggregation.ts`. Fetched lazily by `loadPlaces()`
-- `world-110m.geojson` — Natural Earth 1:110m country outlines (public domain), the map's basemap. **Written minified on purpose** and excluded in `.prettierignore`; pretty-printing it costs ~700 kB of whitespace
-
-Both map files are listed in `sw.js`'s `DATA_FILE_PREFIXES` so they land in the deploy-stable data cache rather than the per-build one.
-
-### Datasets and Comparisons
-
-- Datasets: `chatgpt`, `gemini`, `mistral`
-- Comparison pairs: `chatgpt-gemini`, `chatgpt-mistral`, `gemini-mistral`
-
-### Views
-
-`charts`, `trends`, `correlation`, `volume`, `seasonality`, `heatmap`,
-`ranking`, `map`, `table`, `comparison`, `agreement`, `extremes`, `arbiter`.
-
-`comparison`, `agreement` and `arbiter` are **self-contained**: they run
-full-width, own their internal filters, and get no shared filter rail (see
-`SELF_CONTAINED_VIEWS` in `+page.svelte`).
-
-`map` is the only view with a heavyweight dependency (MapLibre GL, ~243 kB
-gzipped — more than everything else in the vendor bundle combined). It is
-behind a memoized dynamic `import()` in `ViewContent.svelte` so the other
-views don't pay for it; keep it that way, and check the built entry's
-modulepreload list if you touch the import.
-
-### Statistics modules
-
-| Module                      | Purpose                                                                          |
-| --------------------------- | -------------------------------------------------------------------------------- |
-| `utils/agreement.ts`        | Cohen's/Fleiss' kappa, confusion matrices. Knows nothing about `Article`         |
-| `utils/agreementData.ts`    | Shapes `Article[]` into label pairs / rater items / marginals                    |
-| `utils/correlation.ts`      | Spearman's rho with tie-averaged ranks + t-approximation p-value                 |
-| `utils/newspaperRanking.ts` | Per-newspaper means with 95% confidence intervals                                |
-| `utils/hijri.ts`            | Tabular Islamic calendar conversion (month-level aggregates only)                |
-| `utils/placeAggregation.ts` | Shapes `Article[]` + the place edge list into per-place counts and mean polarity |
-
-`placeAggregation` excludes `Non applicable` from its mean while still counting
-the article: it sorts to 0 in `POLARITY_ORDER` but means "no stance expressed",
-so averaging it in drags every heavily-covered place toward the negative pole.
-A map bubble counts articles that **mention** a place (`dcterms:spatial` is
-item-level tagging, ~3.8 places per article), never articles _about_ it.
+- Polarity: `Tres positif`, `Positif`, `Neutre`, `Negatif`, `Tres negatif`, `Non applicable`
+- Subjectivity: `1` (very objective) to `5` (very subjective)
+- Centrality: `Tres central`, `Central`, `Secondaire`, `Marginal`, `Non aborde`
 
 Ordinal scales put `Non applicable` / `Non abordé` at the **bottom**, matching
 `stores/derivations.ts`. Weighted kappa reads ordinal positions, so moving them
 changes published figures — `utils/agreementCorpus.test.ts` pins those figures
 against the shipped data and will fail if they drift.
 
+`static/data/` is split for load-time reasons, not tidiness:
+
+- `iwac_articles_base.json` holds shared article metadata once;
+  `iwac_sentiment_{model}.json` holds per-model scores keyed by article id, joined
+  at load time in `articles.svelte.ts`
+- `iwac_justifications_{model}.json` is ~90% of a model's bytes and is read only
+  by detail views and CSV exports, so `loadJustifications()` fetches it lazily and
+  merges into the existing `sentiment_analysis` objects
+- `iwac_extreme_analysis_{model}.json` is normalized (`articles_index` +
+  per-category `article_ids`), denormalized at load in `utils/extremeAnalysis.ts`
+- `iwac_places.json` is an **edge list** (article id → place ids) plus a place
+  registry, not pre-computed averages, so the map answers to the shared filter
+  rail. Aggregated client-side by `utils/placeAggregation.ts`, fetched lazily
+- `world-110m.geojson` is **written minified on purpose** and excluded in
+  `.prettierignore` — pretty-printing it costs ~700 kB of whitespace
+
+Both map files are listed in `sw.js`'s `DATA_FILE_PREFIXES` so they land in the
+deploy-stable data cache rather than the per-build one.
+
+`placeAggregation` excludes `Non applicable` from its mean while still counting
+the article: it sorts to 0 in `POLARITY_ORDER` but means "no stance expressed",
+so averaging it in drags every heavily-covered place toward the negative pole. A
+map bubble counts articles that **mention** a place (`dcterms:spatial` is
+item-level tagging, ~3.8 places per article), never articles _about_ it.
+
 ## Testing
 
-- Test files live next to source: `arbiter.svelte.ts` -> `arbiter.test.ts`
-- Test pure functions extracted from stores (avoid testing Svelte runes directly)
-- Component tests work: `vitest.config.ts` sets `resolve.conditions: ['browser']`
-  (without it Svelte 5 resolves its server build and `render()` throws), and
-  `test-setup.ts` stubs `matchMedia`/`ResizeObserver`, which every chart needs
-  via `svelte/reactivity/window`. Stub `svelte-echarts` with
-  `src/mocks/echarts-chart-stub.svelte` — ECharts needs a canvas jsdom lacks
-- Python: `python -m pytest data-preprocess/test_shared.py` (runs in CI)
-- Mocks for SvelteKit modules: `src/mocks/app-paths.ts`, `app-environment.ts`, `app-navigation.ts`, `app-stores.ts`
-- CI runs `npm run test:run` before build in GitHub Actions
+- **`vitest.config.ts` sets `resolve.conditions: ['browser']`** — without it
+  Svelte 5 resolves its server build and `render()` throws
+- `test-setup.ts` stubs `matchMedia`/`ResizeObserver`, which every chart needs via
+  `svelte/reactivity/window`
+- **Stub `svelte-echarts` with `src/mocks/echarts-chart-stub.svelte`** — ECharts
+  needs a canvas jsdom lacks
+- Test pure functions extracted from stores rather than runes directly
+- **Automated browsers never composite**, so canvas/WebGL looks broken in a
+  headless pane no matter what. Console and network output are still reliable;
+  judge "does it render" in a real browser
 
-## Deployment
+## Other
 
-- Static site deployed to GitHub Pages via the official `actions/upload-pages-artifact` + `actions/deploy-pages`
-- CI pipeline: checkout -> install -> test -> build -> deploy
-- Triggered on push to `main`
-- Served from the custom subdomain `iwac.frederickmadore.com` at the sub-path
-  `/sentiment-analysis/`. `frederickmadore.com` is registered at Porkbun but its
-  DNS is managed at **Cloudflare** — the `iwac` CNAME lives there, DNS-only (grey
-  cloud) so GitHub can provision the Let's Encrypt cert
-
-### The deploy path is nested, and that is deliberate
-
-`deploy.config.js` is the single source of truth (`DEPLOY_PATH`, `CUSTOM_DOMAIN`).
-
-A GitHub *project page* supplies the `/repo-name/` prefix itself, so `paths.base`
-alone was enough. A *custom domain* does not: Pages serves the artifact at the
-subdomain **root**, so a `/sentiment-analysis/` segment only exists if the build
-output physically contains it. Hence:
-
-- the adapter writes the app into `build/sentiment-analysis/` (`pages`/`assets`)
-- `scripts/nest-build.mjs` (npm `postbuild`, before `stamp-sw.mjs`) populates the
-  build **root** with the three files Pages only reads from there: `CNAME`,
-  `404.html` (hoisted and stamped), and a redirect `index.html`
-- `static/404.html` carries a `__DEPLOY_PATH__` placeholder, stamped at build time
-- `static/sw.js` derives `BASE_PATH` from `self.location` — no literal at all
-
-Changing the served path means editing `deploy.config.js` and nothing else.
-Setting `DEPLOY_PATH = ''` serves at the subdomain root and skips the nesting.
-
-## State Management Architecture
-
-State is exposed exclusively through runes-based accessor objects (e.g. `filterState`, `datasetState`, `uiState`) — there is no legacy writable-store layer (the only `writable` in the app is the i18n `currentLanguage` store). Store layering is enforced: leaf stores (filters/datasets/ui) import nothing from other stores, data stores (articles/comparison/extreme/arbiter) import leaf stores directly (never the `./index` barrel — that's a cycle), and `scripts/check-store-cycles.mjs` fails `npm run lint` if a cycle reappears. Data loading is idempotent with in-flight dedup (see articles.svelte.ts).
-
-URL state is managed through `$lib/stores/url/` with parser, builder, actions, and state modules.
-
-## Shared Utilities
-
-### Frontend (`src/lib/utils/`)
-
-| Module               | Functions                                                      | Purpose                                                                                       |
-| -------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `format.ts`          | `formatDate`, `getArticleUrl`, `getModelDisplayName`           | Common formatting across components                                                           |
-| `csv.ts`             | `escapeCSVField`, `formatDateForCSV`, `downloadCSVFile`        | CSV export helpers                                                                            |
-| `discrepancy.ts`     | `getDiffClass`, `getDiffBadgeClass`                            | Discrepancy display styling                                                                   |
-| `chartTheme.ts`      | Chart theme configuration                                      | ECharts theme with sentiment colors                                                           |
-| `extremeAnalysis.ts` | Extreme category configs and filtering                         | Extreme analysis data management                                                              |
-| `sentimentTokens.ts` | `sentimentVariant`, `variantAttributes`, `sentimentAttributes` | Sentiment value → `data-polarity`/`-subjectivity`/`-centrality`; app.css resolves the colours |
-
-### Python (`data-preprocess/shared.py`)
-
-| Function/Constant                      | Purpose                                                |
-| -------------------------------------- | ------------------------------------------------------ |
-| `safe_int_convert()`                   | NaN-safe integer conversion                            |
-| `load_iwac_dataset()`                  | Load articles from HuggingFace (parquet with fallback) |
-| `calculate_discrepancies()`            | Compare two model analyses for significant differences |
-| `get_webapp_data_dir()`                | Get/create the webapp's `static/data/` directory       |
-| `save_json()`                          | Write JSON with UTF-8 encoding                         |
-| `POLARITY_SCORES`, `CENTRALITY_SCORES` | Score string-to-number mappings                        |
-| `MODEL_NAMES`                          | Model ID-to-display-name mapping                       |
-
-## Key Gotchas
-
-1. The base path differs between dev (`''`) and production (`'/sentiment-analysis'`, from `deploy.config.js`). Production also nests the build output — see Deployment
-2. Chart colors in `chartTheme.ts` use French strings as lookup keys
-3. The `AnalysisInfo.svelte` component is 1200+ lines -- be careful with edits
-4. Modules inside `stores/` must import individual store files, never the `./index` barrel (instant cycle — the barrel re-exports everything). `scripts/check-store-cycles.mjs` enforces this via `npm run lint`
-5. Skeleton UI v4 uses compound components (`AppBar.Toolbar`, not props)
-6. Tailwind v4 has no `tailwind.config.js` -- configuration is in CSS
-7. Component-level `@keyframes` duplication is intentional -- Svelte CSS scoping hashes animation names, so they must be defined alongside the scoped selectors that use them
-8. ECharts `setOption` **merges** by default. A chart that switches coordinate systems (e.g. polar ↔ cartesian) must be wrapped in `{#key mode}` or the old one is left behind — see `HijriSeasonalityChart.svelte`
-9. Store accessors read as narrow unions (`DatasetId`, `ViewId` from `types/data.ts`) but their setters deliberately accept `string` with one internal cast — don't 'fix' the setter signatures; a prior attempt caused cascading svelte-check errors at component call sites
+- `AnalysisInfo.svelte` is 1200+ lines — be careful with edits
