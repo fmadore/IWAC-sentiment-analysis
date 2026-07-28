@@ -296,6 +296,111 @@
 		max-width: var(--prose-width);
 	}
 
+	/* --------------------------------------------------------------------------
+	   MAPLIBRE CHROME. maplibre-gl.css ships a light-theme popup — `#fff`
+	   content and a `#fff` tip — and the app's text tokens are near-white, so
+	   the default popup renders pale text on white and is effectively
+	   unreadable. The same goes for the zoom control: white group, `#333`
+	   icons. Both live in MapLibre's own DOM, outside Svelte's scoping, so the
+	   overrides go through `:global()` anchored on `.map-shell` (MapLibre
+	   appends popups and controls inside the map container, which is a
+	   descendant). Tokens match InfoTooltip so a map popup reads like every
+	   other floating panel in the app.
+	   -------------------------------------------------------------------------- */
+	.map-shell {
+		/* Aliased because the tip repeats it across six anchor rules. */
+		--map-popup-bg: var(--surface-card-elevated);
+	}
+
+	.map-shell :global(.maplibregl-popup) {
+		/* Overrides the 12px/20px Helvetica stack .maplibregl-map cascades in. */
+		font-family: var(--font-sans);
+		line-height: var(--line-height-normal);
+	}
+
+	.map-shell :global(.maplibregl-popup-content) {
+		padding: var(--space-3) var(--space-4);
+		color: var(--text-primary);
+		background: var(--map-popup-bg);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-sm);
+		box-shadow: var(--shadow-xl);
+	}
+
+	/* The tip is a CSS border triangle, so each anchor colours a different edge.
+	   Repaint all six or the popup keeps a white spike on some placements. */
+	.map-shell :global(.maplibregl-popup-anchor-top .maplibregl-popup-tip),
+	.map-shell :global(.maplibregl-popup-anchor-top-left .maplibregl-popup-tip),
+	.map-shell :global(.maplibregl-popup-anchor-top-right .maplibregl-popup-tip) {
+		border-bottom-color: var(--map-popup-bg);
+	}
+
+	.map-shell :global(.maplibregl-popup-anchor-bottom .maplibregl-popup-tip),
+	.map-shell :global(.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip),
+	.map-shell :global(.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip) {
+		border-top-color: var(--map-popup-bg);
+	}
+
+	.map-shell :global(.maplibregl-popup-anchor-left .maplibregl-popup-tip) {
+		border-right-color: var(--map-popup-bg);
+	}
+
+	.map-shell :global(.maplibregl-popup-anchor-right .maplibregl-popup-tip) {
+		border-left-color: var(--map-popup-bg);
+	}
+
+	.map-shell :global(.maplibregl-popup-close-button) {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: var(--size-icon-lg);
+		height: var(--size-icon-lg);
+		font-size: var(--font-size-base);
+		line-height: 1;
+		color: var(--text-muted);
+		border-radius: var(--radius-sm);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
+	}
+
+	.map-shell :global(.maplibregl-popup-close-button:hover) {
+		color: var(--text-primary);
+		background-color: var(--surface-hover);
+	}
+
+	.map-shell :global(.maplibregl-ctrl-group) {
+		background: var(--surface-card-elevated);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-sm);
+		box-shadow: var(--shadow-md);
+	}
+
+	.map-shell :global(.maplibregl-ctrl-group button) {
+		transition: background-color var(--timing-fast) var(--easing-default);
+	}
+
+	.map-shell :global(.maplibregl-ctrl-group button + button) {
+		border-top-color: var(--border-default);
+	}
+
+	.map-shell :global(.maplibregl-ctrl-group button:hover) {
+		background-color: var(--surface-hover);
+	}
+
+	/* The +/- glyphs are `#333` inside a background-image data URI, so there is
+	   no fill to restyle — inverting is the only way to lift them off a dark
+	   button. */
+	.map-shell :global(.maplibregl-ctrl-group button .maplibregl-ctrl-icon) {
+		filter: invert(1);
+		opacity: 0.75;
+		transition: opacity var(--timing-fast) var(--easing-default);
+	}
+
+	.map-shell :global(.maplibregl-ctrl-group button:hover .maplibregl-ctrl-icon) {
+		opacity: 1;
+	}
+
 	.place-popup {
 		font-family: var(--font-sans);
 		min-width: 180px;
@@ -304,14 +409,19 @@
 	.popup-title {
 		font-family: var(--font-display);
 		font-size: var(--font-size-base);
-		font-weight: 600;
+		font-weight: var(--font-weight-semibold);
+		line-height: var(--line-height-snug);
+		/* Clears the absolutely-positioned close button. */
+		padding-right: var(--space-5);
 		margin-bottom: var(--space-1);
 	}
 
 	.popup-count {
 		font-size: var(--font-size-xs);
 		color: var(--text-secondary);
+		padding-bottom: var(--space-2);
 		margin-bottom: var(--space-2);
+		border-bottom: 1px solid var(--border-subtle);
 	}
 
 	.popup-stats {
@@ -327,6 +437,16 @@
 
 	.popup-stats dd {
 		font-variant-numeric: tabular-nums;
+		font-weight: var(--font-weight-medium);
 		text-align: right;
+		color: var(--text-primary);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.map-shell :global(.maplibregl-popup-close-button),
+		.map-shell :global(.maplibregl-ctrl-group button),
+		.map-shell :global(.maplibregl-ctrl-group button .maplibregl-ctrl-icon) {
+			transition: none;
+		}
 	}
 </style>
