@@ -15,7 +15,7 @@
 		name: 'Frédérick Madore',
 		url: 'https://www.frederickmadore.com/'
 	};
-	const baseUrl = 'https://fmadore.github.io/IWAC-sentiment-analysis/';
+	const baseUrl = 'https://iwac.frederickmadore.com/sentiment-analysis/';
 	const ogImage = `${baseUrl}icons/icon-512x512.png`;
 
 	type ViewMeta = { title: string; description: string; keywords: string };

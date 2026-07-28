@@ -21,10 +21,12 @@ const STATIC_CACHE_NAME = `iwac-static-${SW_VERSION}`;
 const CACHE_NAME = `iwac-runtime-${SW_VERSION}`;
 const DATA_CACHE_NAME = 'iwac-data-v4';
 
-// Get base path for GitHub Pages deployment
-const BASE_PATH = self.location.pathname.includes('/IWAC-sentiment-analysis')
-	? '/IWAC-sentiment-analysis'
-	: '';
+// Base path, derived from the worker's own URL rather than a hardcoded literal.
+// PWAManager registers this file at `${base}/sw.js` with scope `${base}/`, so the
+// directory holding it IS the base: `/sentiment-analysis/sw.js` → `/sentiment-analysis`,
+// and `/sw.js` in dev → ``. Deriving it means a change to DEPLOY_PATH (see
+// deploy.config.js) can't leave the worker caching a stale prefix.
+const BASE_PATH = self.location.pathname.replace(/\/sw\.js$/, '');
 
 // App-shell URL, served network-first and kept as the offline navigation fallback.
 const APP_SHELL = `${BASE_PATH}/`;

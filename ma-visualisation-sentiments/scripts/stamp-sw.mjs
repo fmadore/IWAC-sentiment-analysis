@@ -21,10 +21,14 @@
 
 import { readFile, writeFile, access, unlink } from 'node:fs/promises';
 import { gzipSync, brotliCompressSync, constants } from 'node:zlib';
+import { DEPLOY_PATH } from '../deploy.config.js';
 
-const SW_PATH = new URL('../build/sw.js', import.meta.url);
-const SW_GZ_PATH = new URL('../build/sw.js.gz', import.meta.url);
-const SW_BR_PATH = new URL('../build/sw.js.br', import.meta.url);
+// The adapter nests the app under the deploy path (see deploy.config.js), so the
+// worker lives at build/<DEPLOY_PATH>/sw.js — not at the build root.
+const OUT_DIR = new URL(`../build${DEPLOY_PATH}/`, import.meta.url);
+const SW_PATH = new URL('sw.js', OUT_DIR);
+const SW_GZ_PATH = new URL('sw.js.gz', OUT_DIR);
+const SW_BR_PATH = new URL('sw.js.br', OUT_DIR);
 const PLACEHOLDER = '__BUILD_VERSION__';
 
 const version =
@@ -34,14 +38,14 @@ try {
 	await access(SW_PATH);
 } catch {
 	// No build output — nothing to stamp.
-	console.warn('[stamp-sw] build/sw.js not found — skipping.');
+	console.warn(`[stamp-sw] build${DEPLOY_PATH}/sw.js not found — skipping.`);
 	process.exit(0);
 }
 
 const source = await readFile(SW_PATH, 'utf8');
 
 if (!source.includes(PLACEHOLDER)) {
-	console.warn(`[stamp-sw] no ${PLACEHOLDER} placeholder in build/sw.js — already stamped?`);
+	console.warn(`[stamp-sw] no ${PLACEHOLDER} placeholder in the built sw.js — already stamped?`);
 	process.exit(0);
 }
 
@@ -85,4 +89,4 @@ for (const [path, compress, label] of [
 	}
 }
 
-console.log(`[stamp-sw] Stamped build/sw.js → ${version}`);
+console.log(`[stamp-sw] Stamped build${DEPLOY_PATH}/sw.js → ${version}`);

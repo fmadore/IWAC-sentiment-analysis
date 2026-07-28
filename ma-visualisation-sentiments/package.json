@@ -10,7 +10,7 @@
 		"type": "git",
 		"url": "git+https://github.com/fmadore/IWAC-sentiment-analysis.git"
 	},
-	"homepage": "https://fmadore.github.io/IWAC-sentiment-analysis/",
+	"homepage": "https://iwac.frederickmadore.com/sentiment-analysis/",
 	"engines": {
 		"node": ">=24"
 	},
@@ -20,7 +20,7 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
-		"postbuild": "node scripts/stamp-sw.mjs",
+		"postbuild": "node scripts/nest-build.mjs && node scripts/stamp-sw.mjs",
 		"preview": "vite preview",
 		"deploy": "npm run build && npx gh-pages -d build -t",
 		"prepare": "svelte-kit sync || echo ''",

@@ -2,7 +2,7 @@
 
 This SvelteKit application visualizes sentiment analysis results performed on press article corpora. It loads and explores the [*Islam West Africa Collection* (IWAC)](https://islam.zmo.de/s/afrique_ouest/page/accueil), filtering articles by various criteria (country, newspaper, polarity, subjectivity score, centrality) and displaying sentiment distributions as interactive charts.
 
-**Live site:** [https://fmadore.github.io/IWAC-sentiment-analysis/](https://fmadore.github.io/IWAC-sentiment-analysis/)
+**Live site:** [https://iwac.frederickmadore.com/sentiment-analysis/](https://iwac.frederickmadore.com/sentiment-analysis/)
 
 ## Purpose
 
@@ -31,22 +31,22 @@ French and English support with automatic sentiment value translation and URL sy
 ### Example URLs
 ```
 # Charts view with country filter
-https://fmadore.github.io/IWAC-sentiment-analysis/?view=charts&countries=Togo
+https://iwac.frederickmadore.com/sentiment-analysis/?view=charts&countries=Togo
 
 # Trends view in English with positive polarity
-https://fmadore.github.io/IWAC-sentiment-analysis/?view=trends&lang=en&polarities=Positif
+https://iwac.frederickmadore.com/sentiment-analysis/?view=trends&lang=en&polarities=Positif
 
 # Comparison mode with discrepancy filters
-https://fmadore.github.io/IWAC-sentiment-analysis/?view=comparison&compare=true&diffMin=2&diffMax=5
+https://iwac.frederickmadore.com/sentiment-analysis/?view=comparison&compare=true&diffMin=2&diffMax=5
 
 # Heatmap with specific centrality
-https://fmadore.github.io/IWAC-sentiment-analysis/?view=heatmap&centralities=Central,Très%20central
+https://iwac.frederickmadore.com/sentiment-analysis/?view=heatmap&centralities=Central,Très%20central
 
 # Table with multiple filters
-https://fmadore.github.io/IWAC-sentiment-analysis/?view=table&countries=Mali&subjectivities=1,2
+https://iwac.frederickmadore.com/sentiment-analysis/?view=table&countries=Mali&subjectivities=1,2
 
 # Model comparison
-https://fmadore.github.io/IWAC-sentiment-analysis/?view=comparison&compare=true&dataset=chatgpt
+https://iwac.frederickmadore.com/sentiment-analysis/?view=comparison&compare=true&dataset=chatgpt
 ```
 
 ## Performance Optimizations
@@ -498,7 +498,7 @@ To update the IWAC corpus data:
 
 The application is automatically deployed to GitHub Pages on every push to the `main` branch.
 
-Access the live version here: [https://fmadore.github.io/IWAC-sentiment-analysis/](https://fmadore.github.io/IWAC-sentiment-analysis/)
+Access the live version here: [https://iwac.frederickmadore.com/sentiment-analysis/](https://iwac.frederickmadore.com/sentiment-analysis/)
 
 Deployment is managed by a GitHub Actions workflow defined in `.github/workflows/deploy.yml`.
 

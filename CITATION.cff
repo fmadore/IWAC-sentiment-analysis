@@ -11,7 +11,7 @@ version: 4.0.0
 date-released: 2026-07-25
 url: "https://github.com/fmadore/IWAC-sentiment-analysis"
 repository-code: "https://github.com/fmadore/IWAC-sentiment-analysis"
-repository-artifact: "https://fmadore.github.io/IWAC-sentiment-analysis/"
+repository-artifact: "https://iwac.frederickmadore.com/sentiment-analysis/"
 license: MIT
 keywords:
   - sentiment-analysis

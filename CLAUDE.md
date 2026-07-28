@@ -4,7 +4,7 @@
 
 Interactive SvelteKit application for visualizing sentiment analysis results on the Islam West Africa Collection (IWAC) corpus. Features comparative analysis between AI models (ChatGPT, Gemini, Mistral), multilingual support (French/English), comprehensive filtering, export capabilities, and an arbiter evaluation system.
 
-**Live site:** https://fmadore.github.io/IWAC-sentiment-analysis/
+**Live site:** https://iwac.frederickmadore.com/sentiment-analysis/
 
 ## Repository Structure
 
@@ -263,8 +263,30 @@ against the shipped data and will fail if they drift.
 
 - Static site deployed to GitHub Pages via the official `actions/upload-pages-artifact` + `actions/deploy-pages`
 - CI pipeline: checkout -> install -> test -> build -> deploy
-- Base path in production: `/IWAC-sentiment-analysis`
 - Triggered on push to `main`
+- Served from the custom subdomain `iwac.frederickmadore.com` at the sub-path
+  `/sentiment-analysis/`. `frederickmadore.com` is registered at Porkbun but its
+  DNS is managed at **Cloudflare** — the `iwac` CNAME lives there, DNS-only (grey
+  cloud) so GitHub can provision the Let's Encrypt cert
+
+### The deploy path is nested, and that is deliberate
+
+`deploy.config.js` is the single source of truth (`DEPLOY_PATH`, `CUSTOM_DOMAIN`).
+
+A GitHub *project page* supplies the `/repo-name/` prefix itself, so `paths.base`
+alone was enough. A *custom domain* does not: Pages serves the artifact at the
+subdomain **root**, so a `/sentiment-analysis/` segment only exists if the build
+output physically contains it. Hence:
+
+- the adapter writes the app into `build/sentiment-analysis/` (`pages`/`assets`)
+- `scripts/nest-build.mjs` (npm `postbuild`, before `stamp-sw.mjs`) populates the
+  build **root** with the three files Pages only reads from there: `CNAME`,
+  `404.html` (hoisted and stamped), and a redirect `index.html`
+- `static/404.html` carries a `__DEPLOY_PATH__` placeholder, stamped at build time
+- `static/sw.js` derives `BASE_PATH` from `self.location` — no literal at all
+
+Changing the served path means editing `deploy.config.js` and nothing else.
+Setting `DEPLOY_PATH = ''` serves at the subdomain root and skips the nesting.
 
 ## State Management Architecture
 
@@ -299,7 +321,7 @@ URL state is managed through `$lib/stores/url/` with parser, builder, actions, a
 
 ## Key Gotchas
 
-1. The base path differs between dev (`''`) and production (`'/IWAC-sentiment-analysis'`)
+1. The base path differs between dev (`''`) and production (`'/sentiment-analysis'`, from `deploy.config.js`). Production also nests the build output — see Deployment
 2. Chart colors in `chartTheme.ts` use French strings as lookup keys
 3. The `AnalysisInfo.svelte` component is 1200+ lines -- be careful with edits
 4. Modules inside `stores/` must import individual store files, never the `./index` barrel (instant cycle — the barrel re-exports everything). `scripts/check-store-cycles.mjs` enforces this via `npm run lint`
