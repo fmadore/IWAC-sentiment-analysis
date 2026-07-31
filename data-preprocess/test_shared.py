@@ -21,7 +21,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from shared import (  # noqa: E402
     CENTRALITY_SCORES,
+    HF_COLUMN_PREFIXES,
+    MODEL_NAMES,
     POLARITY_SCORES,
+    SENTIMENT_COLUMNS,
     SENTIMENT_FIELD_SUFFIXES,
     SENTIMENT_JUSTIFICATION_SUFFIXES,
     SENTIMENT_SCORE_SUFFIXES,
@@ -32,6 +35,7 @@ from shared import (  # noqa: E402
     calculate_discrepancies,
     safe_int_convert,
     safe_str,
+    sentiment_column,
 )
 
 
@@ -75,17 +79,45 @@ class TestFieldSuffixes:
         assert len(SENTIMENT_JUSTIFICATION_SUFFIXES) == 3
 
 
+class TestSentimentColumn:
+    """The model id -> column prefix indirection.
+
+    The column names below are written out in full on purpose: they are the
+    contract with the Hugging Face dataset, and deriving them from
+    HF_COLUMN_PREFIXES here would make this suite agree with itself no matter
+    what the mapping said.
+    """
+
+    def test_maps_each_model_id_to_its_annotating_model(self):
+        assert sentiment_column("chatgpt", "polarite") == "gpt_5_mini_polarite"
+        assert sentiment_column("gemini", "polarite") == "gemini_3_flash_preview_polarite"
+        assert sentiment_column("mistral", "polarite") == "ministral_14b_2512_polarite"
+
+    def test_every_model_id_has_a_prefix(self):
+        assert set(HF_COLUMN_PREFIXES) == set(MODEL_NAMES)
+
+    def test_rejects_an_unknown_model_id(self):
+        # Silently building "claude_polarite" would read None for every field
+        # and produce empty charts rather than an error.
+        with pytest.raises(KeyError):
+            sentiment_column("claude", "polarite")
+
+    def test_sentiment_columns_covers_every_model_and_field(self):
+        assert len(SENTIMENT_COLUMNS) == len(MODEL_NAMES) * len(SENTIMENT_FIELD_SUFFIXES)
+        assert len(set(SENTIMENT_COLUMNS)) == len(SENTIMENT_COLUMNS)
+
+
 class TestBuildModelBlocks:
     @pytest.fixture
     def item(self):
         return {
-            "chatgpt_polarite": "Positif",
-            "chatgpt_polarite_justification": "because",
-            "chatgpt_subjectivite_score": 2,
-            "chatgpt_subjectivite_justification": "factual",
-            "chatgpt_centralite_islam_musulmans": "Central",
-            "chatgpt_centralite_justification": "central",
-            "gemini_polarite": "Neutre",
+            "gpt_5_mini_polarite": "Positif",
+            "gpt_5_mini_polarite_justification": "because",
+            "gpt_5_mini_subjectivite_score": 2,
+            "gpt_5_mini_subjectivite_justification": "factual",
+            "gpt_5_mini_centralite_islam_musulmans": "Central",
+            "gpt_5_mini_centralite_justification": "central",
+            "gemini_3_flash_preview_polarite": "Neutre",
         }
 
     def test_scores_carry_only_the_score_fields(self, item):

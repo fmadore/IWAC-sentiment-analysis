@@ -23,11 +23,13 @@ import pandas as pd
 from tqdm import tqdm
 
 from shared import (
+    MODEL_NAMES,
     get_logger,
     get_webapp_data_dir,
     load_iwac_records,
     safe_int_convert,
     safe_save_json,
+    sentiment_column,
     EXTREME_SUBJECTIVITY_HIGH,
     EXTREME_SUBJECTIVITY_LOW,
     EXTREME_POLARITY_VERY_NEGATIVE,
@@ -147,7 +149,7 @@ def _new_category_accumulator() -> dict:
     }
 
 
-def analyze_extreme_keywords(records: list[dict], model_prefix: str, top_n: int = TOP_KEYWORDS) -> dict:
+def analyze_extreme_keywords(records: list[dict], model_id: str, top_n: int = TOP_KEYWORDS) -> dict:
     """Analyse keywords associated with sentiment extremes for one model.
 
     Identifies articles with extreme scores (subjectivity, polarity,
@@ -156,15 +158,16 @@ def analyze_extreme_keywords(records: list[dict], model_prefix: str, top_n: int 
 
     Args:
         records: IWAC article rows as plain dicts.
-        model_prefix: Dataset column prefix of the model
-            ('chatgpt', 'gemini', or 'mistral').
+        model_id: Which model's scores to read ('chatgpt', 'gemini' or
+            'mistral'). Not the dataset column prefix — see
+            ``shared.HF_COLUMN_PREFIXES``.
         top_n: Number of most frequent keywords to keep globally per category.
 
     Returns:
         dict with the exact structure consumed by the webapp::
 
             {
-                "model": "<model_prefix>",
+                "model": "<model_id>",
                 "analysis": {
                     "<category>": {
                         "subject": {keyword: count},
@@ -197,15 +200,15 @@ def analyze_extreme_keywords(records: list[dict], model_prefix: str, top_n: int 
     all_newspapers: Counter = Counter()
     articles_index: dict[str, dict] = {}
 
-    logger.info("Analyzing extreme keywords for %s (%d articles)...", model_prefix, len(records))
+    logger.info("Analyzing extreme keywords for %s (%d articles)...", model_id, len(records))
 
-    for item in tqdm(records, desc=f"Processing {model_prefix} data"):
+    for item in tqdm(records, desc=f"Processing {model_id} data"):
         stats["total_articles"] += 1
 
         # Model scores for this article
-        subj_score = safe_int_convert(item.get(f"{model_prefix}_subjectivite_score"))
-        polarity = item.get(f"{model_prefix}_polarite")
-        centrality = item.get(f"{model_prefix}_centralite_islam_musulmans")
+        subj_score = safe_int_convert(item.get(sentiment_column(model_id, "subjectivite_score")))
+        polarity = item.get(sentiment_column(model_id, "polarite"))
+        centrality = item.get(sentiment_column(model_id, "centralite_islam_musulmans"))
 
         # Metadata + facets
         country = item.get("country")
@@ -264,7 +267,7 @@ def analyze_extreme_keywords(records: list[dict], model_prefix: str, top_n: int 
         }
 
     return {
-        "model": model_prefix,
+        "model": model_id,
         "articles_index": articles_index,
         "analysis": analysis,
         "statistics": stats,
@@ -288,21 +291,21 @@ def main() -> None:
     logger.info("Dataset loaded: %d articles", len(records))
 
     all_results = {}
-    for model_prefix in ("chatgpt", "gemini", "mistral"):
-        logger.info("Analyzing %s results...", model_prefix.upper())
-        all_results[model_prefix] = analyze_extreme_keywords(records, model_prefix, top_n=TOP_KEYWORDS)
+    for model_id in MODEL_NAMES:
+        logger.info("Analyzing %s results...", model_id.upper())
+        all_results[model_id] = analyze_extreme_keywords(records, model_id, top_n=TOP_KEYWORDS)
 
     output_dir = get_webapp_data_dir()
-    for model_prefix, results in all_results.items():
-        path = os.path.join(output_dir, f"iwac_extreme_analysis_{model_prefix}.json")
-        logger.info("Saving %s extreme analysis to: %s", model_prefix, path)
+    for model_id, results in all_results.items():
+        path = os.path.join(output_dir, f"iwac_extreme_analysis_{model_id}.json")
+        logger.info("Saving %s extreme analysis to: %s", model_id, path)
         safe_save_json(results, path)
 
     logger.info("ANALYSIS SUMMARY")
-    for model_prefix, results in all_results.items():
+    for model_id, results in all_results.items():
         stats = results["statistics"]
         total = stats["total_articles"]
-        logger.info("%s statistics:", model_prefix)
+        logger.info("%s statistics:", model_id)
         logger.info("  Total articles: %d", total)
         for category in CATEGORIES:
             count = stats[f"{category.stat_key}_count"]

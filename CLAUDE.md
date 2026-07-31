@@ -119,6 +119,20 @@ Ordinal scales put `Non applicable` / `Non abordé` at the **bottom**, matching
 changes published figures — `utils/agreementCorpus.test.ts` pins those figures
 against the shipped data and will fail if they drift.
 
+**`chatgpt`/`gemini`/`mistral` are this repo's ids, not the dataset's column
+prefixes.** They were the same word until the Hugging Face dataset renamed its
+sentiment columns on 2026-07-31 from a vendor slot to the model that actually
+produced each annotation (`gpt_5_mini_`, `gemini_3_flash_preview_`,
+`ministral_14b_2512_`). Only the read side moved: the ids remain the `dataset`
+and `pair` URL parameters, the `static/data/iwac_*_{model}.json` filenames and
+the `model` key inside them, and the UI already names the precise models on its
+cards. `shared.HF_COLUMN_PREFIXES` holds the mapping and `sentiment_column()`
+is the only place a column name is assembled — never interpolate
+`f"{model_id}_{suffix}"` again. The failure mode is silent, which is why
+`load_iwac_dataset()` now validates all 18 columns up front: every `.get()`
+misses, every score becomes `None`, and the pipeline writes a complete set of
+well-formed JSON files full of nulls without erroring anywhere.
+
 `static/data/` is split for load-time reasons, not tidiness:
 
 - `iwac_articles_base.json` holds shared article metadata once;

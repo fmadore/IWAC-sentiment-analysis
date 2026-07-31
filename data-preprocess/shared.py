@@ -78,6 +78,26 @@ MODEL_NAMES = {
     'mistral': 'Mistral'
 }
 
+# Model id -> Hugging Face sentiment column prefix.
+#
+# These were the same word until 2026-07-31, which is why every script used to
+# build its columns as f"{model_id}_{suffix}". On that date the dataset renamed
+# its sentiment columns from a *vendor slot* (``chatgpt_``/``gemini_``/
+# ``mistral_``) to the exact model that produced each annotation — nothing in
+# the record had ever said which one ran.
+#
+# Only the READ side moved. The keys stay the pipeline's and the webapp's
+# vocabulary: they are the ``dataset``/``pair`` URL parameters, the
+# ``iwac_*_<model>.json`` filenames and the ``model`` key inside them. Renaming
+# them would break every shared link and every path under static/data to say
+# something the UI already says — AnalysisInfo.svelte names the precise models
+# (GPT-5 mini, Gemini 3 Flash, Ministral 3 14B) on its cards and badges.
+HF_COLUMN_PREFIXES = {
+    'chatgpt': 'gpt_5_mini',
+    'gemini': 'gemini_3_flash_preview',
+    'mistral': 'ministral_14b_2512',
+}
+
 # Every model-pair comparison supported by the pipeline.
 MODEL_PAIRS = ['chatgpt-gemini', 'chatgpt-mistral', 'gemini-mistral']
 
@@ -85,9 +105,9 @@ MODEL_PAIRS = ['chatgpt-gemini', 'chatgpt-mistral', 'gemini-mistral']
 # significant conflict between two model analyses.
 SIGNIFICANT_CONFLICT_THRESHOLD = 3
 
-# Sentiment-analysis field suffixes shared by every model (column prefix is
-# the model id, e.g. ``chatgpt_polarite``). Order matters: it is preserved in
-# the JSON written by data-fetch.py.
+# Sentiment-analysis field suffixes shared by every model; :func:`sentiment_column`
+# pairs one with a prefix to name a dataset column. Order matters: it is
+# preserved in the JSON written by data-fetch.py.
 #
 # The split matters for payload size. The three SCORE fields are what every
 # chart, filter and aggregate reads; the three JUSTIFICATION fields are long
@@ -167,11 +187,25 @@ def safe_str(value: Any) -> Optional[str]:
 def load_iwac_dataset() -> pd.DataFrame:
     """Load the IWAC articles dataset from Hugging Face as a DataFrame.
 
-    Tries direct parquet download first, falls back to datasets library.
+    Every sentiment column is verified present before the frame is returned.
+    Without that check an upstream rename (as happened on 2026-07-31) sails
+    straight through: each ``item.get()`` misses, each score becomes None, and
+    the pipeline writes a full set of well-formed JSON files in which every
+    value is null — a dashboard of empty charts, no error anywhere.
 
     Returns:
         pd.DataFrame with all article rows.
+
+    Raises:
+        ValueError: if any sentiment column is missing.
     """
+    df = _download_iwac_articles()
+    validate_columns(df, SENTIMENT_COLUMNS)
+    return df
+
+
+def _download_iwac_articles() -> pd.DataFrame:
+    """Fetch the articles subset: direct parquet download, then datasets lib."""
     try:
         _logger.info("Downloading dataset from Hugging Face...")
         parquet_path = hf_hub_download(
@@ -366,47 +400,82 @@ def calculate_discrepancies(analysis_a: dict, analysis_b: dict) -> Optional[dict
 # Model field extraction
 # ============================================================================
 
-def extract_model_analysis(item: dict, model_prefix: str) -> dict:
+def sentiment_column(model_id: str, suffix: str) -> str:
+    """Return the dataset column holding ``suffix`` for model ``model_id``.
+
+    The only place a sentiment column name is assembled. ``model_id`` is the
+    pipeline's own id (``chatgpt``/``gemini``/``mistral``); the dataset names
+    its columns after the model that produced them, so the two differ — see
+    :data:`HF_COLUMN_PREFIXES`.
+
+    Raises:
+        KeyError: on an unknown model id. Falling back to ``model_id`` as the
+            prefix would name a column that does not exist, and every lookup
+            against it returns None — a dashboard of empty charts with no
+            error anywhere, which is exactly the failure this indirection
+            exists to prevent.
+    """
+    try:
+        prefix = HF_COLUMN_PREFIXES[model_id]
+    except KeyError:
+        raise KeyError(
+            f"Unknown model id {model_id!r}; expected one of "
+            f"{', '.join(sorted(HF_COLUMN_PREFIXES))}"
+        ) from None
+    return f'{prefix}_{suffix}'
+
+
+# Every sentiment column the pipeline reads, checked at load time so an
+# upstream rename fails loudly instead of silently nulling every score.
+SENTIMENT_COLUMNS = [
+    sentiment_column(model_id, suffix)
+    for model_id in HF_COLUMN_PREFIXES
+    for suffix in SENTIMENT_FIELD_SUFFIXES
+]
+
+
+def extract_model_analysis(item: dict, model_id: str) -> dict:
     """Build a model's sentiment-analysis dict from a raw dataset row.
 
-    ``model_prefix`` is the dataset column prefix (a model id such as
-    ``chatgpt``/``gemini``/``mistral``). Values are returned as-is, matching
-    the behaviour previously duplicated in significant-differences-export.py
-    and arbiter-evaluation.py.
+    Values are returned as-is, matching the behaviour previously duplicated in
+    significant-differences-export.py and arbiter-evaluation.py.
     """
-    return {suffix: item.get(f'{model_prefix}_{suffix}') for suffix in SENTIMENT_FIELD_SUFFIXES}
+    return {
+        suffix: item.get(sentiment_column(model_id, suffix))
+        for suffix in SENTIMENT_FIELD_SUFFIXES
+    }
 
 
-def _build_model_fields(item: dict, model_prefix: str, suffixes: Sequence[str]) -> dict:
+def _build_model_fields(item: dict, model_id: str, suffixes: Sequence[str]) -> dict:
     """Extract a model's fields for ``suffixes``, applying the safe converters."""
     return {
         suffix: (
-            safe_int_convert(item.get(f'{model_prefix}_{suffix}'))
+            safe_int_convert(item.get(sentiment_column(model_id, suffix)))
             if suffix == 'subjectivite_score'
-            else safe_str(item.get(f'{model_prefix}_{suffix}'))
+            else safe_str(item.get(sentiment_column(model_id, suffix)))
         )
         for suffix in suffixes
     }
 
 
-def build_model_sentiment(item: dict, model_prefix: str) -> dict:
+def build_model_sentiment(item: dict, model_id: str) -> dict:
     """Build a model's full ``sentiment_analysis`` block (scores + justifications).
 
     Applies the safe converters (string fields via :func:`safe_str`, the
     subjectivity score via :func:`safe_int_convert`) and preserves the key
     order expected by the webapp data files.
     """
-    return _build_model_fields(item, model_prefix, SENTIMENT_FIELD_SUFFIXES)
+    return _build_model_fields(item, model_id, SENTIMENT_FIELD_SUFFIXES)
 
 
-def build_model_scores(item: dict, model_prefix: str) -> dict:
+def build_model_scores(item: dict, model_id: str) -> dict:
     """Build the score-only block written to ``iwac_sentiment_<model>.json``."""
-    return _build_model_fields(item, model_prefix, SENTIMENT_SCORE_SUFFIXES)
+    return _build_model_fields(item, model_id, SENTIMENT_SCORE_SUFFIXES)
 
 
-def build_model_justifications(item: dict, model_prefix: str) -> dict:
+def build_model_justifications(item: dict, model_id: str) -> dict:
     """Build the prose block written to ``iwac_justifications_<model>.json``."""
-    return _build_model_fields(item, model_prefix, SENTIMENT_JUSTIFICATION_SUFFIXES)
+    return _build_model_fields(item, model_id, SENTIMENT_JUSTIFICATION_SUFFIXES)
 
 
 # ============================================================================
