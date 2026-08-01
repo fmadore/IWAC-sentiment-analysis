@@ -9,7 +9,7 @@
 # fail loudly if regenerating the corpus moves a published number.
 
 datasets~=5.0.0
-tqdm~=4.69.1
+tqdm~=4.70.0
 pandas~=3.0.5
 huggingface_hub~=1.24.0
 google-genai~=2.14.0
