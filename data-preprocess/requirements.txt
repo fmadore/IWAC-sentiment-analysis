@@ -11,7 +11,7 @@
 datasets~=5.0.0
 tqdm~=4.69.1
 pandas~=3.0.5
-huggingface_hub~=1.24.0
+huggingface_hub~=1.25.1
 google-genai~=2.14.0
 pydantic~=2.13.4
 python-dotenv~=1.2.2
