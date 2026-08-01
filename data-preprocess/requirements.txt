@@ -8,7 +8,7 @@
 # which pins the headline agreement figures against the shipped data and will
 # fail loudly if regenerating the corpus moves a published number.
 
-datasets~=5.0.0
+datasets~=5.0.1
 tqdm~=4.70.0
 pandas~=3.0.5
 huggingface_hub~=1.25.1
