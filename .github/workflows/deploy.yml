@@ -78,15 +78,29 @@ jobs:
       # The preprocessing helpers produce the dataset the dashboard cites, so
       # their tests gate the deploy alongside the frontend's. Only the pure
       # helpers are exercised — no network, no API keys.
+      #
+      # Install from requirements.txt rather than naming packages inline. The
+      # pins are what reproduce the published figures, so a Dependabot bump has
+      # to be exercised against the constraint it actually changes; an ad-hoc
+      # `pip install pandas huggingface_hub pytest` resolves to whatever is
+      # current that day and reports green without testing the bump at all.
+      # That gap is invisible — the check name and colour are identical either
+      # way. Installing the pinned set also proves the constraints still
+      # co-resolve, which naming three packages never did.
       - name: Setup Python
         uses: actions/setup-python@v7
         with:
           python-version: '3.12'
+          # The pinned set is heavier than the three packages this replaced
+          # (datasets and pyarrow dominate), so cache the wheels against the
+          # file whose changes are the only reason to re-resolve.
+          cache: pip
+          cache-dependency-path: data-preprocess/requirements.txt
 
       - name: Run preprocessing tests
         working-directory: .
         run: |
-          pip install pandas huggingface_hub pytest
+          pip install -r data-preprocess/requirements.txt
           python -m pytest data-preprocess/test_shared.py -q
 
       # Runs on pull requests too: a build failure is a real failure, and
