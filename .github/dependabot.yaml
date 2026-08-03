@@ -5,8 +5,7 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
     labels:
       - dependencies
       - github-actions
@@ -21,8 +20,7 @@ updates:
   - package-ecosystem: npm
     directory: /ma-visualisation-sentiments
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
     labels:
       - dependencies
       - javascript
@@ -95,6 +93,14 @@ updates:
       - dependency-name: "@sveltejs/*"
         update-types: ["version-update:semver-major"]
       - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
+      # maplibre-gl is pinned to v5 deliberately: v6 dropped its bundled web
+      # worker and needs setWorkerUrl() before any map is constructed. Without
+      # that the build passes, CI goes green, and the map paints a blank canvas
+      # with no error. See CLAUDE.md > Charts.
+      - dependency-name: "maplibre-gl"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "svelte-maplibre-gl"
         update-types: ["version-update:semver-major"]
 
   # Python dependencies (data preprocessing)
