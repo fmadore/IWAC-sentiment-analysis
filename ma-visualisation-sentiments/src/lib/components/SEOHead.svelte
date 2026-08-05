@@ -65,35 +65,71 @@
 	$effect(() => {
 		document.documentElement.lang = $currentLanguage;
 	});
+
+	/**
+	 * Marks every tag this component owns, so the sweep below can find them
+	 * without a hand-maintained selector list that would silently fall out of
+	 * date the first time a tag is added.
+	 */
+	const SEO_TAG = { 'data-seo-head': '' };
+
+	// Hydration does not claim the prerendered <meta>/<link> elements: it appends
+	// a fresh, live set and leaves the server-rendered one orphaned, so every tag
+	// here ends up in the document twice. `<title>` is special-cased by Svelte and
+	// is the one exception. Scrapers only ever read the served HTML, which holds a
+	// single correct set, but a JS-executing crawler sees both — and two canonical
+	// URLs that disagree once the visitor's language differs from the prerendered
+	// default is the part that actually costs something.
+	//
+	// So drop the stale copies, keeping the LAST of each tag: Svelte appends the
+	// live set after the server-rendered one. That ordering is the load-bearing
+	// assumption. Identity also assumes each tag appears once — a second
+	// og:locale:alternate, were a third language ever added, would need a key
+	// that folds in the content.
+	$effect(() => {
+		// Touch the metadata so a tag that starts duplicating later is caught too.
+		void metaContent;
+
+		const owned = [...document.head.querySelectorAll('[data-seo-head]')];
+		// The tag name is part of the identity: <meta name="author"> and
+		// <link rel="author"> would otherwise collide and eat each other.
+		const identify = (el: Element) =>
+			`${el.tagName}:${el.getAttribute('name') ?? el.getAttribute('property') ?? el.getAttribute('rel')}`;
+
+		for (const [i, el] of owned.entries()) {
+			const key = identify(el);
+			if (owned.slice(i + 1).some((later) => identify(later) === key)) el.remove();
+		}
+	});
 </script>
 
 <svelte:head>
 	<title>{metaContent.title}</title>
-	<meta name="description" content={metaContent.description} />
-	<meta name="keywords" content={metaContent.keywords} />
-	<meta name="author" content={author.name} />
-	<meta name="robots" content="index, follow" />
+	<meta {...SEO_TAG} name="description" content={metaContent.description} />
+	<meta {...SEO_TAG} name="keywords" content={metaContent.keywords} />
+	<meta {...SEO_TAG} name="author" content={author.name} />
+	<meta {...SEO_TAG} name="robots" content="index, follow" />
 
 	<!-- Open Graph -->
-	<meta property="og:type" content="website" />
-	<meta property="og:site_name" content="IWAC Sentiment Analysis" />
-	<meta property="og:title" content={metaContent.title} />
-	<meta property="og:description" content={metaContent.description} />
-	<meta property="og:url" content={metaContent.url} />
-	<meta property="og:image" content={ogImage} />
-	<meta property="og:image:width" content="1280" />
-	<meta property="og:image:height" content="640" />
-	<meta property="og:image:alt" content={$t.meta.ogImageAlt} />
-	<meta property="og:locale" content={metaContent.locale} />
-	<meta property="og:locale:alternate" content={metaContent.localeAlternate} />
+	<meta {...SEO_TAG} property="og:type" content="website" />
+	<meta {...SEO_TAG} property="og:site_name" content="IWAC Sentiment Analysis" />
+	<meta {...SEO_TAG} property="og:title" content={metaContent.title} />
+	<meta {...SEO_TAG} property="og:description" content={metaContent.description} />
+	<meta {...SEO_TAG} property="og:url" content={metaContent.url} />
+	<meta {...SEO_TAG} property="og:image" content={ogImage} />
+	<meta {...SEO_TAG} property="og:image:width" content="1280" />
+	<meta {...SEO_TAG} property="og:image:height" content="640" />
+	<meta {...SEO_TAG} property="og:image:alt" content={$t.meta.ogImageAlt} />
+	<meta {...SEO_TAG} property="og:locale" content={metaContent.locale} />
+	<meta {...SEO_TAG} property="og:locale:alternate" content={metaContent.localeAlternate} />
 
 	<!-- Twitter Card -->
-	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content={metaContent.title} />
-	<meta name="twitter:description" content={metaContent.description} />
-	<meta name="twitter:image" content={ogImage} />
+	<meta {...SEO_TAG} name="twitter:card" content="summary_large_image" />
+	<meta {...SEO_TAG} name="twitter:title" content={metaContent.title} />
+	<meta {...SEO_TAG} name="twitter:description" content={metaContent.description} />
+	<meta {...SEO_TAG} name="twitter:image" content={ogImage} />
 
 	<!-- Canonical URL -->
-	<link rel="canonical" href={metaContent.url} />
-	<link rel="author" href={author.url} />
+	<link {...SEO_TAG} rel="canonical" href={metaContent.url} />
+	<link {...SEO_TAG} rel="author" href={author.url} />
 </svelte:head>
