@@ -80,14 +80,29 @@ populates the build root with the three files Pages only reads from there
 - **`setOption` merges by default.** A chart switching coordinate systems (polar ↔
   cartesian) must be wrapped in `{#key mode}` or the old one is left behind — see
   `HijriSeasonalityChart.svelte`
-- **MapLibre GL is pinned to v5 deliberately.** v6 dropped its bundled web worker
-  and needs `setWorkerUrl()` before any map is constructed; miss it and the map
-  builds, registers every source and layer, throws nothing, and paints a blank
-  canvas
-- `map` is the only view with a heavyweight dependency (MapLibre, ~243 kB gzipped
-  — more than the rest of the vendor bundle combined), so it sits behind a
-  memoized dynamic `import()` in `ViewContent.svelte`. Keep it that way, and check
-  the built entry's modulepreload list if you touch the import
+- **MapLibre GL v6 is ESM-only and does not bundle its worker.** It resolves one
+  from `import.meta.url`, which no bundler's module graph can answer, so
+  `setWorkerUrl()` must run before any map is constructed. The
+  `import 'svelte-maplibre-gl/vite'` side effect at the top of
+  `SentimentMap.svelte` is what does it — delete it and the map builds, registers
+  every source and layer, throws nothing, and paints a blank canvas, because no
+  GeoJSON source ever finishes parsing. It lives in that component rather than the
+  root layout so the worker stays inside the map's lazy chunk
+- That side-effect module resolves the worker with `?worker&url`, **not** `?url`.
+  The dist worker imports a sibling `maplibre-gl-shared.mjs`; `?url` would emit it
+  verbatim without the sibling, so it would die on its first import — in
+  production only, since dev serves the sibling. The emitted chunk is referenced
+  as `new URL('../workers/…', import.meta.url)`, relative to the importing chunk,
+  so the deploy sub-path resolves on its own and `DEPLOY_PATH` needs no wiring
+- `map` is the only view with a heavyweight dependency, and v6 made it heavier:
+  **368 kB gzipped** (242 kB chunk + a separate 126 kB worker) against v5's single
+  271 kB, because `maplibre-gl-shared` is now inlined into both. That is more than
+  the rest of the vendor bundle combined, so it sits behind a memoized dynamic
+  `import()` in `ViewContent.svelte`. Keep it that way, and check the built entry's
+  modulepreload list if you touch the import
+- The worker chunk lands under `_app/immutable/workers/`, so `sw.js` already
+  treats it as an immutable cache-first asset via its `/_app/` rule — no change
+  needed there, but don't narrow that rule
 - `comparison`, `agreement` and `arbiter` are **self-contained**: full-width, own
   internal filters, no shared filter rail (`SELF_CONTAINED_VIEWS` in `+page.svelte`)
 

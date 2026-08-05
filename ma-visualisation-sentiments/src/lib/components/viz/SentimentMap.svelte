@@ -10,13 +10,21 @@
   and the Maghreb. That pilgrimage-and-diaspora axis is arguably the most
   interesting thing here, and a regional viewport would silently drop it.
 
-  PINNED TO MAPLIBRE GL JS v5. v6 stopped bundling its own web worker and
-  requires `setWorkerUrl()` to be called before any map is constructed (the
-  `svelte-maplibre-gl/vite` side-effect import exists for exactly this). Miss it
-  and the failure is silent in the worst way: the map constructs, registers its
-  sources and layers, raises no error — and paints nothing, because no GeoJSON
-  source ever finishes parsing. v5 needs no such wiring, so it stays until
-  there is a reason to move.
+  THE `svelte-maplibre-gl/vite` IMPORT IS LOAD-BEARING. MapLibre GL JS v6 is
+  ESM-only and no longer bundles its own worker: it resolves one from
+  `import.meta.url`, which no bundler's module graph can answer, so
+  `setWorkerUrl()` must run before any map is constructed. That side-effect
+  module is the Vite answer — it hands MapLibre the URL of a worker chunk built
+  through Vite's own worker pipeline (`?worker&url`, NOT `?url`: the dist worker
+  imports a sibling `maplibre-gl-shared.mjs`, and `?url` would emit it verbatim
+  without that sibling, so it dies on its first import in production only).
+  Drop the import and the failure is silent in the worst way: the map
+  constructs, registers its sources and layers, raises no error — and paints
+  nothing, because no GeoJSON source ever finishes parsing.
+
+  It lives HERE, not in the root layout, because this component is itself the
+  lazy chunk (see `ViewContent.svelte`) — registering the worker at app entry
+  would drag the map's dependency into every other view's critical path.
 
   NO TILE SERVER. MapLibre is pointed at a bundled Natural Earth GeoJSON rather
   than a hosted basemap: the app is a static PWA with no third-party runtime
@@ -31,6 +39,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
+	// Side effect only, and first on purpose: calls `setWorkerUrl()` with a
+	// Vite-built worker chunk. See the header comment — without it v6 renders a
+	// blank canvas and reports nothing.
+	import 'svelte-maplibre-gl/vite';
 	import {
 		MapLibre,
 		GeoJSONSource,
