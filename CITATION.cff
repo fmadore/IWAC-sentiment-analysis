@@ -22,6 +22,13 @@ authors:
     website: "https://www.frederickmadore.com/"
 version: 4.1.0
 date-released: "2026-08-05"
+doi: "10.5281/zenodo.21806224"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.21806223"
+    description: >-
+      Concept DOI: always resolves to the most recent release. Cite this one
+      unless you need to pin a specific version.
 url: "https://iwac.frederickmadore.com/sentiment-analysis/"
 repository-code: "https://github.com/fmadore/IWAC-sentiment-analysis"
 repository-artifact: "https://iwac.frederickmadore.com/sentiment-analysis/"

@@ -1,6 +1,7 @@
 # Sentiment Analysis Visualization
 
 [![Deploy](https://github.com/fmadore/IWAC-sentiment-analysis/actions/workflows/deploy.yml/badge.svg)](https://github.com/fmadore/IWAC-sentiment-analysis/actions/workflows/deploy.yml)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21806223.svg)](https://doi.org/10.5281/zenodo.21806223)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![ORCID](https://img.shields.io/badge/ORCID-0000--0003--0959--2092-A6CE39?logo=orcid&logoColor=white)](https://orcid.org/0000-0003-0959-2092)
 [![Dataset](https://img.shields.io/badge/dataset-Hugging%20Face-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/datasets/fmadore/islam-west-africa-collection)
@@ -499,18 +500,22 @@ The site is served from a custom subdomain at a sub-path, so the build output is
 
 ## Citation
 
-Machine-readable metadata lives in [`CITATION.cff`](CITATION.cff); GitHub's *Cite this repository* button renders APA and BibTeX from it. To cite the software:
+Each release is archived on Zenodo. Machine-readable metadata lives in [`CITATION.cff`](CITATION.cff); GitHub's *Cite this repository* button renders APA and BibTeX from it.
 
-> Madore, F. (2026). *IWAC Sentiment Analysis Visualization* (Version 4.1.0) [Computer software]. University of Bayreuth. https://github.com/fmadore/IWAC-sentiment-analysis
+Cite the concept DOI — `10.5281/zenodo.21806223` — unless you need to pin a specific version; it always resolves to the most recent release.
+
+> Madore, F. (2026). *IWAC Sentiment Analysis Visualization* (Version 4.1.0) [Computer software]. University of Bayreuth. https://doi.org/10.5281/zenodo.21806223
 
 ```bibtex
 @software{madore_iwac_sentiment_analysis,
-  author  = {Madore, Frédérick},
-  title   = {IWAC Sentiment Analysis Visualization},
-  version = {4.1.0},
-  year    = {2026},
-  url     = {https://github.com/fmadore/IWAC-sentiment-analysis},
-  license = {MIT}
+  author    = {Madore, Frédérick},
+  title     = {IWAC Sentiment Analysis Visualization},
+  version   = {4.1.0},
+  year      = {2026},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.21806223},
+  url       = {https://github.com/fmadore/IWAC-sentiment-analysis},
+  license   = {MIT}
 }
 ```
 
