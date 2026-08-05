@@ -2,8 +2,13 @@
   SEOHead Component
 
   Emits per-view <head> metadata (title, description, keywords, Open Graph,
-  Twitter card, canonical URL). All copy comes from the i18n catalog's
-  `meta` namespace — no parallel hand-rolled translations here.
+  Twitter card, canonical URL) plus the document's `lang`. All copy comes from
+  the i18n catalog's `meta` namespace — no parallel hand-rolled translations
+  here.
+
+  `app.html` deliberately declares none of this: its markup lands before
+  %sveltekit.head%, and a crawler takes the first title or og property it
+  meets, so a static copy there would outrank everything below.
 -->
 <script lang="ts">
 	import { t, currentLanguage } from '$lib/i18n';
@@ -50,6 +55,15 @@
 			locale,
 			localeAlternate
 		};
+	});
+
+	// The prerendered shell ships `lang="fr"` from app.html, which is only right
+	// until someone picks English — a screen reader would then read English copy
+	// with French pronunciation. `<svelte:html>` would express this declaratively
+	// but is not a valid tag in this Svelte version, so set it on hydration and
+	// on every switch. Effects are client-only, so the prerendered default holds.
+	$effect(() => {
+		document.documentElement.lang = $currentLanguage;
 	});
 </script>
 
