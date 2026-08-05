@@ -5,42 +5,18 @@
 		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
 		<link rel="apple-touch-icon" href="%sveltekit.assets%/icons/icon-192x192.png" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<title>Sentiment Analysis - IWAC</title>
 
-		<!-- SEO Meta Tags -->
-		<meta
-			name="description"
-			content="Interactive visualization of sentiment analysis results from the Islam West Africa Collection (IWAC). Explore media coverage of Islam and Muslims in Francophone West Africa through advanced AI analysis by ChatGPT and Gemini models."
-		/>
-		<meta
-			name="keywords"
-			content="sentiment analysis, IWAC, Islam West Africa, media analysis, AI analysis, ChatGPT, Gemini, data visualization, research tool"
-		/>
-		<meta name="author" content="Frédérick Madore" />
-		<meta name="robots" content="index, follow" />
-		<meta name="language" content="French" />
+		<!--
+			The document title, description, keywords, author, robots, canonical
+			and the whole Open Graph / Twitter block are emitted by
+			`SEOHead.svelte`, which knows the active view and the active language.
+			They are deliberately absent here: this template's markup lands *before*
+			`%sveltekit.head%`, and a crawler reading a duplicated title or og
+			property takes the first one it meets — so a static copy here would
+			silently outrank every per-view, localised tag SEOHead produces.
 
-		<!-- Open Graph Meta Tags -->
-		<meta property="og:title" content="Sentiment Analysis - Islam West Africa Collection (IWAC)" />
-		<meta
-			property="og:description"
-			content="Interactive visualization of sentiment analysis results from the Islam West Africa Collection. Explore media coverage of Islam and Muslims in Francophone West Africa through advanced AI analysis."
-		/>
-		<meta property="og:type" content="website" />
-		<meta property="og:url" content="https://iwac.frederickmadore.com/sentiment-analysis/" />
-		<meta property="og:site_name" content="IWAC Sentiment Analysis" />
-		<meta property="og:locale" content="fr_FR" />
-		<meta property="og:locale:alternate" content="en_US" />
-
-		<!-- Twitter Card Meta Tags -->
-		<meta name="twitter:card" content="summary_large_image" />
-		<meta name="twitter:title" content="Sentiment Analysis - Islam West Africa Collection (IWAC)" />
-		<meta
-			name="twitter:description"
-			content="Interactive visualization of sentiment analysis results from the Islam West Africa Collection. Explore media coverage of Islam and Muslims in Francophone West Africa."
-		/>
-
-		<!-- Canonical URL is handled dynamically by SEOHead.svelte -->
+			Only tags SEOHead does not own belong below.
+		-->
 
 		<!-- PWA Configuration -->
 		<link rel="manifest" href="%sveltekit.assets%/manifest.json" />
@@ -69,8 +45,21 @@
 				"author": {
 					"@type": "Person",
 					"name": "Frédérick Madore",
-					"url": "https://www.frederickmadore.com/"
+					"url": "https://www.frederickmadore.com/",
+					"sameAs": "https://orcid.org/0000-0003-0959-2092",
+					"affiliation": {
+						"@type": "Organization",
+						"name": "University of Bayreuth"
+					}
 				},
+				"license": "https://opensource.org/licenses/MIT",
+				"isBasedOn": {
+					"@type": "Dataset",
+					"name": "Islam West Africa Collection",
+					"url": "https://islam.zmo.de/s/afrique_ouest/",
+					"identifier": "https://doi.org/10.57967/hf/9857"
+				},
+				"codeRepository": "https://github.com/fmadore/IWAC-sentiment-analysis",
 				"inLanguage": ["fr", "en"],
 				"keywords": [
 					"sentiment analysis",

@@ -1,5 +1,12 @@
 # Sentiment Analysis Visualization
 
+[![Deploy](https://github.com/fmadore/IWAC-sentiment-analysis/actions/workflows/deploy.yml/badge.svg)](https://github.com/fmadore/IWAC-sentiment-analysis/actions/workflows/deploy.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![ORCID](https://img.shields.io/badge/ORCID-0000--0003--0959--2092-A6CE39?logo=orcid&logoColor=white)](https://orcid.org/0000-0003-0959-2092)
+[![Dataset](https://img.shields.io/badge/dataset-Hugging%20Face-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/datasets/fmadore/islam-west-africa-collection)
+
+![IWAC Sentiment Analysis: polarity distributions from GPT-5 mini, Gemini 3 Flash and Ministral 3 14B across 12,287 francophone West African press articles](ma-visualisation-sentiments/static/social-preview.png)
+
 This SvelteKit application visualizes sentiment analysis results performed on press article corpora. It loads and explores the [*Islam West Africa Collection* (IWAC)](https://islam.zmo.de/s/afrique_ouest/page/accueil), filtering articles by various criteria (country, newspaper, polarity, subjectivity score, centrality) and displaying sentiment distributions as interactive charts.
 
 **Live site:** [https://iwac.frederickmadore.com/sentiment-analysis/](https://iwac.frederickmadore.com/sentiment-analysis/)
@@ -385,6 +392,11 @@ Prerequisites: Node.js and npm installed.
 -   `npm run test:run`: Run unit tests once (used in CI).
 -   `npm run deploy`: Build and publish to GitHub Pages manually (CI normally does this).
 
+Repository-level helpers live in `scripts/` and run against the root `.venv`:
+
+-   `python scripts/social-preview.py`: Regenerate `static/social-preview.png` — the Open Graph card and GitHub social preview — from the shipped data. Re-run after a data refresh, since the counts and polarity stacks on the card are read from `static/data/`.
+-   `python scripts/oklch-to-hex.py`: Print the sRGB renderings of the OKLCH design tokens, for the chart palette and the `theme-color` meta tags.
+
 ## Data Preparation
 
 To update the IWAC corpus data:
@@ -484,6 +496,29 @@ Access the live version here: [https://iwac.frederickmadore.com/sentiment-analys
 The site is served from a custom subdomain at a sub-path, so the build output is **nested**: the adapter writes the app into `build/sentiment-analysis/`, and `scripts/nest-build.mjs` populates the build root with the three files GitHub Pages only reads from there (`CNAME`, `404.html`, and a redirect `index.html`). This is necessary because a GitHub *project page* supplies the `/repo-name/` path prefix itself, whereas a *custom domain* serves the artifact at the subdomain root.
 
 `ma-visualisation-sentiments/deploy.config.js` is the single source of truth for the path and the domain — changing where the dashboard is served means editing that file and nothing else. Setting `DEPLOY_PATH = ''` serves it at the subdomain root instead.
+
+## Citation
+
+Machine-readable metadata lives in [`CITATION.cff`](CITATION.cff); GitHub's *Cite this repository* button renders APA and BibTeX from it. To cite the software:
+
+> Madore, F. (2026). *IWAC Sentiment Analysis Visualization* (Version 4.0.0) [Computer software]. University of Bayreuth. https://github.com/fmadore/IWAC-sentiment-analysis
+
+```bibtex
+@software{madore_iwac_sentiment_analysis,
+  author  = {Madore, Frédérick},
+  title   = {IWAC Sentiment Analysis Visualization},
+  version = {4.0.0},
+  year    = {2026},
+  url     = {https://github.com/fmadore/IWAC-sentiment-analysis},
+  license = {MIT}
+}
+```
+
+The underlying corpus should be cited separately — see the *Islam West Africa Collection* ([islam.zmo.de](https://islam.zmo.de/s/afrique_ouest/)) and its machine-readable export ([doi:10.57967/hf/9857](https://doi.org/10.57967/hf/9857)).
+
+## License
+
+The application code is released under the [MIT License](LICENSE). The IWAC corpus it visualizes is distributed under CC BY-NC-SA 4.0 and is **not** covered by that licence — reuse of the data follows the collection's own terms.
 
 ---
 

@@ -695,6 +695,8 @@ export const fr: Translations = {
 		viewDescriptionSuffix:
 			" de l'analyse de sentiments de la Collection Islam Afrique de l'Ouest. Visualisation interactive de l'analyse de couverture médiatique utilisant des modèles IA avancés.",
 		baseKeywords: "analyse de sentiments, IWAC, Islam Afrique de l'Ouest, visualisation de données",
+		ogImageAlt:
+			'Analyse de sentiments IWAC — distributions de polarité de GPT-5 mini, Gemini 3 Flash et Ministral 3 14B sur 12 287 articles de presse ouest-africaine francophone',
 		views: {
 			charts: {
 				title: 'Graphiques et distributions',

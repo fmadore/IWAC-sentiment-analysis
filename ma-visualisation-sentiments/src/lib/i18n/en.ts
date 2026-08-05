@@ -686,6 +686,8 @@ export const en = {
 		viewDescriptionSuffix:
 			' from sentiment analysis of the Islam West Africa Collection. Interactive visualization of media coverage analysis using advanced AI models.',
 		baseKeywords: 'sentiment analysis, IWAC, Islam West Africa, data visualization',
+		ogImageAlt:
+			'IWAC Sentiment Analysis — polarity distributions from GPT-5 mini, Gemini 3 Flash and Ministral 3 14B across 12,287 francophone West African press articles',
 		views: {
 			charts: {
 				title: 'Charts & Distributions',
