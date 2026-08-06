@@ -1,7 +1,7 @@
 # Sentiment Analysis Visualization
 
 [![Deploy](https://github.com/fmadore/IWAC-sentiment-analysis/actions/workflows/deploy.yml/badge.svg)](https://github.com/fmadore/IWAC-sentiment-analysis/actions/workflows/deploy.yml)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21806223.svg)](https://doi.org/10.5281/zenodo.21806223)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21806223-1682D4?logo=doi&logoColor=white)](https://doi.org/10.5281/zenodo.21806223)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![ORCID](https://img.shields.io/badge/ORCID-0000--0003--0959--2092-A6CE39?logo=orcid&logoColor=white)](https://orcid.org/0000-0003-0959-2092)
 [![Dataset](https://img.shields.io/badge/dataset-Hugging%20Face-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/datasets/fmadore/islam-west-africa-collection)
