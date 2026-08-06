@@ -177,7 +177,7 @@
 					<option value="subjectivite">{$t.table.subjectivity}</option>
 				</select>
 				<button
-					class="btn btn-sm sort-direction-btn"
+					class="sort-direction-btn"
 					onclick={() => {
 						sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
 						pagination.currentPage = 1;
@@ -417,15 +417,16 @@
 		border: 1px solid color-mix(in oklab, var(--color-primary-500) 10%, transparent);
 	}
 
-	.select-sm {
-		padding: var(--space-1) var(--space-2);
-		font-size: var(--font-size-base);
-		border-radius: var(--radius-panel);
-	}
-
 	/* Select elements */
 	select {
 		cursor: pointer;
+	}
+
+	/* The sort row is a pair, so it gets one control height. This row exists
+	   only below 768px — the width where a 29px compact select is hardest to
+	   hit, and the last place to be shrinking targets. */
+	.mobile-sort-controls select {
+		min-height: var(--size-control-lg);
 	}
 
 	/* Labels for form elements */
@@ -534,7 +535,20 @@
 
 	/* Was a Skeleton v2 variant class no stylesheet here defines any more, so
 	   the sort-direction button rendered with no surface at all. */
+	/* Square, and the same height as the select it sits beside. It used to lean
+	   on `btn btn-sm` for its box; those are Skeleton class names and Skeleton
+	   is gone, so it had been rendering as a bare arrow glyph with a border
+	   drawn tight around it. */
 	.sort-direction-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		width: var(--size-control-lg);
+		height: var(--size-control-lg);
+		border-radius: var(--radius-panel);
+		font-size: var(--font-size-base);
+		font-weight: var(--font-weight-medium);
 		background: var(--surface-subtle);
 		border: 1px solid var(--border-default);
 		color: var(--text-secondary);

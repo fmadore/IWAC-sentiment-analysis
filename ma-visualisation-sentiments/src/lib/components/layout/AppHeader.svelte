@@ -5,7 +5,9 @@
 
   >= 1024px — the full editorial masthead: brand, centred DatasetPicker,
   LanguageSwitcher and (where the browser supports it) a fullscreen toggle.
-  Unchanged by the mobile rework.
+  Notably *not* the two drawer triggers: above 1024px the sidebar is a
+  permanent rail and the filter rail is a column in the page grid, so both
+  buttons would toggle state nothing reads.
 
   < 1024px — "slim header, loaded drawer". The bar carries identity plus one
   action and nothing else. It used to carry six controls at three different
@@ -105,7 +107,7 @@
 	<div class="header-toolbar">
 		<div class="header-lead">
 			<button
-				class="icon-button"
+				class="icon-button nav-toggle"
 				onclick={() => (uiState.mobileMenuOpen = !uiState.mobileMenuOpen)}
 				aria-label={uiState.mobileMenuOpen ? 'Close navigation' : 'Open navigation'}
 				aria-expanded={uiState.mobileMenuOpen}
@@ -352,6 +354,19 @@
 
 	/* ---- 1024px: the full desktop masthead ---------------------------------- */
 	@media (min-width: 1024px) {
+		/* Both drawer triggers stop existing here. Above 1024px SidebarNav is a
+		   permanent rail and FiltersPanel is a column in the page grid — each
+		   passes `enabled={false}` to Drawer — so these buttons would flip a
+		   flag no one reads. Hidden in CSS rather than behind `{#if
+		   !desktop.current}` so they are absent from the first paint on a
+		   desktop rather than blinking out at hydration; `display: none` also
+		   takes them out of the tab order and the accessibility tree, which is
+		   the whole point. */
+		.nav-toggle,
+		.filters-trigger {
+			display: none;
+		}
+
 		.header-toolbar {
 			/* The sticky filter rail clears the header by reading this same token
 			   (--rail-top). Declaring it here rather than measuring it is what

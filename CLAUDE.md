@@ -79,8 +79,22 @@ follows is only the non-obvious mechanics.
   marking each ancestor's *other* children: SvelteKit renders the whole app
   inside one wrapper div, so inerting `document.body.children` would neutralise
   the drawer along with the page
+- A drawer enters from the edge its trigger sits on — `side="right"` for the
+  filter rail, the default left for nav. Only the *closed* offset moves
+  (`--drawer-offscreen`); the open state is one `translateX(0)` for both. The
+  shadow has to mirror too, hence `--elevation-drawer-mirrored`: a right-hand
+  panel sharing the left one's shadow throws it off the side of the screen
+- Both drawers become a static rail at 1024px (`enabled={false}`), and their two
+  header triggers are `display: none` there — above that width they would toggle
+  a flag nothing reads. Drawer closes itself if it is disabled while open, so
+  resizing across the threshold cannot strand an open panel
 - `--z-overlay` (500) outranks `--z-sidebar` (400), which is why a drawer sits at
   `calc(var(--z-overlay) + 1)`. Drawer handles this; don't re-derive it
+- **There is no global `.btn`.** Every control declares its own box. Skeleton used
+  to supply it, and `class="btn btn-sm …"` outlived it in three files, leaving
+  buttons at `display: inline` with the icon stacked on the label — valid markup,
+  valid strings, silent everywhere except on screen. `check-design-tokens.mjs`
+  fails on a watched class name that neither `app.css` nor the component defines
 - Import icons from their specific paths (`@lucide/svelte/icons/menu`) so they
   tree-shake. A `class` passed to a Lucide component is a *prop*, not a scoped
   class — wrap the icon in a real element and let `currentColor` cascade

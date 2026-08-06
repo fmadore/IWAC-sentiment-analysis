@@ -90,7 +90,7 @@
 			<!-- View Mode Toggle -->
 			<div class="view-controls flex gap-2">
 				<button
-					class="btn btn-sm view-toggle"
+					class="view-toggle"
 					data-state={viewMode === 'table' ? 'active' : 'inactive'}
 					onclick={() => (viewMode = 'table')}
 					disabled={isMobile}
@@ -99,7 +99,7 @@
 					<span>{$t.common?.tableView || 'Table'}</span>
 				</button>
 				<button
-					class="btn btn-sm view-toggle"
+					class="view-toggle"
 					data-state={viewMode === 'cards' ? 'active' : 'inactive'}
 					onclick={() => (viewMode = 'cards')}
 				>
@@ -601,12 +601,6 @@
 		border: 1px solid var(--border-subtle);
 	}
 
-	.select-sm {
-		padding: var(--space-1) var(--space-2);
-		font-size: var(--font-size-base);
-		border-radius: var(--radius-hairline);
-	}
-
 	/* View controls and other buttons */
 	.view-controls button {
 		cursor: pointer;
@@ -693,10 +687,33 @@
 		color: var(--text-muted);
 	}
 
-	/* data-state rather than conditional class concatenation, and rendered from
-	   tokens rather than the Skeleton v2 `variant-*` names that used to sit
-	   here — those classes no longer exist in any stylesheet, so the active
-	   view-mode button had not been visibly active for some time. */
+	/* Self-sufficient base. These buttons used to be `class="btn btn-sm
+	   view-toggle"` and inherited their box from Skeleton; with Skeleton gone,
+	   `.btn-sm` matched nothing and `.btn` was a two-declaration vestige, so a
+	   <button> with two children fell back to `display: inline` — no padding, no
+	   gap, and the icon sitting on top of its own label. Nothing can catch that:
+	   the class names are valid strings and the markup is valid HTML. Every
+	   control in this project now carries its own layout and borrows none.
+	   State stays on data-state rather than concatenated class names. */
+	.view-toggle {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: var(--space-2) var(--space-3);
+		border-radius: var(--radius-panel);
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-medium);
+		white-space: nowrap;
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default),
+			color var(--timing-fast) var(--easing-default);
+	}
+
+	.view-toggle:disabled {
+		opacity: 0.4;
+	}
+
 	.view-toggle[data-state='inactive'] {
 		background: var(--surface-subtle);
 		border: 1px solid var(--border-default);

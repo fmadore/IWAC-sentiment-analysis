@@ -662,14 +662,23 @@
 	--elevation-modal:
 		0 8px 16px color-mix(in oklab, black 36%, transparent),
 		0 32px 64px color-mix(in oklab, black 44%, transparent);
-	/* Off-canvas drawers (nav + filters). Both drawers read this one token so
-	   they cannot drift apart: the hairline is the panel edge, the wide blur is
-	   the lift off the scrim. Never inline a var() fallback for it — a fallback
+	/* Off-canvas drawers (nav + filters). Both drawers read these, so they
+	   cannot drift apart: the hairline is the panel edge, the wide blur is the
+	   lift off the scrim. Never inline a var() fallback for either — a fallback
 	   turns a missing token into silence, which is exactly how the filters
-	   drawer shipped with no elevation at all while its sibling had one. */
+	   drawer shipped with no elevation at all while its sibling had one.
+
+	   The two are mirror images and nothing but the sign of the x-offset
+	   differs. A shadow has to fall onto the page the panel covers, so a drawer
+	   entering from the right casts left; sharing one token would aim both at
+	   the same edge and the right-hand drawer would throw its shadow off the
+	   side of the screen. Edit them together. */
 	--elevation-drawer:
 		1px 0 0 color-mix(in oklab, black 30%, transparent),
 		8px 0 32px color-mix(in oklab, black 30%, transparent);
+	--elevation-drawer-mirrored:
+		-1px 0 0 color-mix(in oklab, black 30%, transparent),
+		-8px 0 32px color-mix(in oklab, black 30%, transparent);
 
 	/* Focus ring — uses the editorial accent (warm amber) */
 	--ring-focus: 0 0 0 3px color-mix(in oklab, var(--accent) 38%, transparent);
@@ -757,16 +766,16 @@ h3 {
 }
 
 /* -----------------------------------------------------------------------------
-   Button Enhancements
+   Buttons
+   There is no global `.btn`. The one that used to live here set a font-weight
+   and four transitions and nothing else — the box (inline-flex, padding, gap,
+   radius) came from Skeleton, and when that went the three markup sites still
+   saying `class="btn btn-sm …"` were left asking for a rule that no longer
+   exists. A <button> with an icon and a label then falls back to `display:
+   inline` and stacks them. Every control in this project carries its own
+   layout; `scripts/check-design-tokens.mjs` fails the build if a retired
+   vendor class name reappears in markup.
    ----------------------------------------------------------------------------- */
-.btn {
-	font-weight: var(--font-weight-medium);
-	transition:
-		background-color var(--timing-fast) var(--easing-default),
-		border-color var(--timing-fast) var(--easing-default),
-		box-shadow var(--timing-fast) var(--easing-default),
-		transform var(--timing-fast) var(--easing-default);
-}
 
 /* -----------------------------------------------------------------------------
    Filter Chip System
@@ -802,6 +811,16 @@ h3 {
 	outline: none;
 	border-color: var(--color-primary-500);
 	box-shadow: var(--ring-focus);
+}
+
+/* The compact select, for toolbars. Global because three components ask for it
+   and two of them used to answer for themselves: the local copies had drifted
+   to different corner radii, and PaginationControls — which defined neither —
+   rendered a full-size control between two compact ones. */
+.select-sm {
+	padding: var(--space-1) var(--space-2);
+	font-size: var(--font-size-base);
+	border-radius: var(--radius-panel);
 }
 
 /* -----------------------------------------------------------------------------

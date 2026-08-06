@@ -1,10 +1,10 @@
 # Design rules
 
-Five rules. They are the ones that actually constrain someone writing a Svelte
+Six rules. They are the ones that actually constrain someone writing a Svelte
 component, which is why they are here rather than in a comment at the top of a
 1200-line stylesheet that a component author never opens.
 
-`npm run lint` enforces rules 1, 2 and 3 mechanically
+`npm run lint` enforces rules 1, 2, 3 and 6 mechanically
 ([`scripts/check-design-tokens.mjs`](ma-visualisation-sentiments/scripts/check-design-tokens.mjs)).
 A rule nobody can violate does not need to be remembered.
 
@@ -92,6 +92,25 @@ component. Emit the data attribute from `utils/sentimentTokens.ts` and read
 `--sentiment-fg` / `-bg` / `-border`; `app.css` resolves them. The same shape
 applies to discrepancy severity (`utils/discrepancy.ts` → `--discrepancy-*`).
 This is the strongest rule in the codebase and the model for the rest.
+
+## 6. Every control carries its own layout.
+
+There is no global `.btn`. A component that needs a button declares its own
+`display`, padding, gap and radius in its `<style>` block, the way
+`.control-btn`, `.csv-export-btn` and `.view-toggle` already do.
+
+The failure this closes is quiet in a way the others are not. `class="btn btn-sm
+view-toggle"` survived Skeleton's removal in three places, and those buttons lost
+their entire box: a `<button>` with an icon and a label falls back to `display:
+inline` and stacks one on top of the other. The class names are valid strings,
+the markup is valid HTML, and the compiler, `svelte-check`, `eslint` and the
+tests all pass. Only a person looking at the screen can see it — which is why
+`check-design-tokens.mjs` now fails on a watched class name that neither
+`app.css` nor the component itself defines.
+
+Shared component classes are legitimate, but they live in `app.css` and are
+defined once: `.select-sm` had been copied into two components with two different
+corner radii, and a third component used it without defining it at all.
 
 ---
 

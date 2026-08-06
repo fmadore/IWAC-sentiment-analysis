@@ -84,7 +84,7 @@
 	.csv-export-btn {
 		font-family: var(--font-mono);
 		font-size: var(--font-size-xs);
-		font-weight: 600;
+		font-weight: var(--font-weight-semibold);
 		letter-spacing: var(--tracking-wider);
 		text-transform: uppercase;
 		padding: var(--space-2-5) var(--space-4);
@@ -145,13 +145,20 @@
 		color: var(--text-primary);
 	}
 
-	/* Articles collapses to a square icon button on very small screens. */
-	/* Icon-only by default; the label appears once there is room for it. */
-	.csv-export-btn[data-variant='articles'] .button-text {
+	/* Icon-only below 640px, and the same square as every other icon control in
+	   the app. All three variants, one rule.
+
+	   Two of them used to hide the label without also collapsing the box, so
+	   they kept a labelled button's padding and `width: auto` with nothing left
+	   inside to give them a width — and as a stretched item in a column flex
+	   parent (the comparison view's header stacks below 640px) that produced a
+	   full-bleed bar with a lone download glyph adrift at its left edge. The
+	   `title` carries the accessible name while the text is hidden. */
+	.csv-export-btn .button-text {
 		display: none;
 	}
 
-	.csv-export-btn[data-variant='articles'] {
+	.csv-export-btn {
 		padding: var(--space-2-5);
 		width: var(--size-control-lg);
 		height: var(--size-control-lg);
@@ -159,26 +166,14 @@
 	}
 
 	@media (min-width: 640px) {
-		.csv-export-btn[data-variant='articles'] .button-text {
+		.csv-export-btn .button-text {
 			display: inline;
 		}
 
-		.csv-export-btn[data-variant='articles'] {
+		.csv-export-btn {
 			padding: var(--space-2) var(--space-3);
 			width: auto;
 			height: auto;
-		}
-	}
-
-	.csv-export-btn[data-variant='comparison'] .button-text,
-	.csv-export-btn[data-variant='arbiter'] .button-text {
-		display: none;
-	}
-
-	@media (min-width: 640px) {
-		.csv-export-btn[data-variant='comparison'] .button-text,
-		.csv-export-btn[data-variant='arbiter'] .button-text {
-			display: inline;
 		}
 	}
 

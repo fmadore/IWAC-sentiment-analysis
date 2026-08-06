@@ -57,6 +57,15 @@
 		 * generic complementary region would be a real regression.
 		 */
 		element?: 'aside' | 'nav' | 'div';
+		/**
+		 * Which edge the panel slides in from. Defaults to `left`.
+		 *
+		 * This is not decoration: a drawer should arrive from the side its
+		 * trigger is on, so the panel appears to come out of the button that was
+		 * just pressed. The nav trigger sits at the far left of the header and
+		 * the filters trigger at the far right, so they take opposite edges.
+		 */
+		side?: 'left' | 'right';
 		/** Panel width. Any CSS length. */
 		width?: string;
 		/**
@@ -83,6 +92,7 @@
 		width = 'min(88vw, 22rem)',
 		enabled = true,
 		element = 'aside',
+		side = 'left',
 		class: className = '',
 		children,
 		...rest
@@ -164,6 +174,19 @@
 		return out;
 	}
 
+	/**
+	 * A drawer that is no longer a drawer cannot be left open.
+	 *
+	 * Both callers disable the chrome at >= 1024px, where the same markup
+	 * becomes a permanent rail. Crossing that threshold with the panel open used
+	 * to leave the flag set: the rail looked right, so nothing seemed wrong, but
+	 * dragging the window back down re-opened a drawer the user never asked for
+	 * — and the trigger that would have closed it is hidden on desktop.
+	 */
+	$effect(() => {
+		if (!enabled && open) onClose();
+	});
+
 	/** Take focus on open, hand it back on close, and lock the page behind. */
 	$effect(() => {
 		if (!browser || !enabled || !open || !panel) return;
@@ -212,6 +235,7 @@
 	class="drawer-panel {className}"
 	data-enabled={enabled}
 	data-open={open}
+	data-side={side}
 	style:--drawer-width={width}
 	aria-label={label}
 	aria-hidden={enabled && !open ? 'true' : undefined}
@@ -240,6 +264,13 @@
 	   `.drawer-panel` is this component's own class name, so scoping it by hand
 	   is safe. */
 	:global(.drawer-panel[data-enabled='true']) {
+		/* Where the panel parks when shut. Declared on the root selector rather
+		   than reached for with an inline fallback, which this project bans: a
+		   fallback turns a missing token into silence. `side` overrides it
+		   below, and the open state is then the same `translateX(0)` for both
+		   edges — one rule, not two that could drift. */
+		--drawer-offscreen: -100%;
+
 		display: flex;
 		flex-direction: column;
 		position: fixed;
@@ -254,12 +285,26 @@
 		background: var(--app-bg-elevated);
 		border-right: 1px solid var(--border-subtle);
 		box-shadow: var(--elevation-drawer);
-		transform: translateX(-100%);
+		transform: translateX(var(--drawer-offscreen));
 		transition: transform var(--timing-normal) var(--easing-default);
 		overflow-y: auto;
 		overscroll-behavior: contain;
 	}
 
+	/* The right-hand variant. The border moves with the panel: an edge drawn on
+	   the side facing the viewport edge is invisible and the one facing the page
+	   is the one doing the work. */
+	:global(.drawer-panel[data-enabled='true'][data-side='right']) {
+		--drawer-offscreen: 100%;
+
+		left: auto;
+		right: 0;
+		border-right: none;
+		border-left: 1px solid var(--border-subtle);
+		box-shadow: var(--elevation-drawer-mirrored);
+	}
+
+	/* One open state for both edges — the side rule only moved where "shut" is. */
 	:global(.drawer-panel[data-enabled='true'][data-open='true']) {
 		transform: translateX(0);
 	}

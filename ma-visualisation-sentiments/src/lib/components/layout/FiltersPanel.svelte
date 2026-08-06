@@ -51,6 +51,7 @@
 	onClose={closeDrawer}
 	enabled={!desktop.current}
 	label={$t.filters.title}
+	side="right"
 	class="filters-rail"
 >
 	<div class="rail-header">
@@ -94,10 +95,14 @@
 	   FILTER RAIL
 
 	   Two presentations from one component:
-	   • < 1024px — an off-canvas drawer. All of that chrome (fixed panel, scrim,
-	     z-index above the scrim, slide transform, focus trap, Escape, scroll
-	     lock) now belongs to common/Drawer.svelte, which SidebarNav uses too.
-	     This file no longer owns any of it.
+	   • < 1024px — an off-canvas drawer, entering from the RIGHT. Its trigger is
+	     the Filters button at the right end of the header, and a panel that
+	     arrives from the opposite edge to the control that summoned it reads as
+	     a different, unrelated surface. The nav drawer keeps the left, where its
+	     own trigger and the desktop rail both live. All of that chrome (fixed
+	     panel, scrim, z-index above the scrim, slide transform, focus trap,
+	     Escape, scroll lock) belongs to common/Drawer.svelte, which SidebarNav
+	     uses too. This file no longer owns any of it.
 	   • >= 1024px — a static, sticky column in the page grid's first track. That
 	     is what the rules below describe, via :global because the element they
 	     target is rendered by Drawer rather than by this template.
@@ -193,12 +198,14 @@
 			position: sticky;
 			top: var(--rail-top);
 			left: auto;
+			right: auto;
 			z-index: auto;
 			width: 100%;
 			height: auto;
 			max-height: calc(100dvh - var(--rail-top) - var(--space-4));
 			background: transparent;
 			border-right: none;
+			border-left: none;
 			box-shadow: none;
 			transform: none;
 			align-self: start;

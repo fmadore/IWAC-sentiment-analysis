@@ -6,7 +6,7 @@
 // which won, so components drifted — worst in the newest views. A rule nobody
 // can violate does not need to be remembered, which is what this file is for.
 //
-// Four checks, each closing a failure that actually shipped:
+// Five checks, each closing a failure that actually shipped:
 //
 //   1. undefined-token   — a var(--x) nobody defines. `--elevation-overlay` and
 //                          `--text-faint` both shipped this way. CSS treats the
@@ -24,6 +24,14 @@
 //                          read as being only about hex, so `text-white/60` and
 //                          `text-amber-400` walked straight past it. Tailwind
 //                          may set layout and nothing else.
+//   5. retired-class     — a component class name from the Skeleton era that no
+//                          stylesheet defines any more. `class="btn btn-sm …"`
+//                          survived Skeleton's removal in three places and the
+//                          buttons lost their entire box: a <button> with an
+//                          icon and a label falls back to `display: inline` and
+//                          stacks them. Nothing else can see this — the class
+//                          names are valid strings and the markup is valid HTML,
+//                          so the compiler, svelte-check and the tests all pass.
 //
 // Deliberately a plain node script rather than stylelint: it matches the
 // existing check-store-cycles.mjs idiom, needs no new dependency, and this
@@ -68,6 +76,31 @@ const TAILWIND_COLOR = new RegExp(
 	'g'
 );
 
+/**
+ * Component class names that came from Skeleton, plus the ones app.css took
+ * over from it. Each is checked against what is actually defined — in app.css,
+ * or in the using component's own <style> — so this list is a watchlist, not a
+ * blocklist. `variant-glass` is on it and passes, because app.css defines it;
+ * the day someone deletes that rule, its four call sites fail instead of
+ * silently rendering as nothing.
+ */
+const WATCHED_CLASSES = [
+	/^btn(-.+)?$/,
+	/^chip$/,
+	/^variant-.+$/,
+	/^card$/,
+	/^badge$/,
+	/^alert$/,
+	/^select(-.+)?$/,
+	/^table(-hover|-comfortable|-compact)?$/
+];
+const isWatched = (name) => WATCHED_CLASSES.some((pattern) => pattern.test(name));
+
+/** Class names in a `class="…"` / `class={…}` attribute, expressions dropped. */
+const CLASS_ATTRIBUTE = /class=(?:"([^"]*)"|'([^']*)'|\{([^}]*)\})/g;
+/** Class selectors in a stylesheet. */
+const CLASS_SELECTOR = /\.(-?[A-Za-z_][\w-]*)/g;
+
 const RAW_COLOR = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/g;
 const VAR_REFERENCE = /var\(\s*(--[\w-]+)\s*(,)?/g;
 // A token counts as defined by a CSS declaration (`--x: …`) or by Svelte's
@@ -94,13 +127,49 @@ const problems = [];
 const report = (file, line, rule, detail) =>
 	problems.push({ file: relative(srcDir, file).replace(/\\/g, '/'), line, rule, detail });
 
+/**
+ * Erase what a match covers while keeping the file's line count, so reported
+ * line numbers stay true.
+ */
+const blank = (source, pattern) => source.replace(pattern, (match) => match.replace(/[^\n]/g, ''));
+
+const CSS_COMMENT = /\/\*[\s\S]*?\*\//g;
+const MARKUP_COMMENT = /<!--[\s\S]*?-->/g;
+
+/**
+ * A component's markup and its <style> block, separated, with comments erased
+ * from both. Prose is not code: app.css's own header explains why there is no
+ * global `.btn` and quotes `class="btn btn-sm"` while doing it. Read literally,
+ * that is both a definition and a use — the check would cancel itself out on
+ * the very rule it exists to enforce.
+ */
+function splitSvelte(source) {
+	const styles = [];
+	const markup = source.replace(/<style[^>]*>([\s\S]*?)<\/style>/g, (match, css) => {
+		styles.push(blank(css, CSS_COMMENT));
+		return match.replace(/[^\n]/g, '');
+	});
+	return { markup: blank(markup, MARKUP_COMMENT), styles: styles.join('\n') };
+}
+
 // ---------------------------------------------------------------------------
-// Pass 1 — every token this project defines anywhere.
+// Pass 1 — every token this project defines anywhere, and every class name the
+// global stylesheets define. Tokens are global by nature; class names are not,
+// so a component's own <style> block is read separately, at its use site.
 // ---------------------------------------------------------------------------
 const defined = new Set();
+const globalClasses = new Set();
 for (const file of files) {
-	for (const match of readFileSync(file, 'utf8').matchAll(TOKEN_DEFINITION)) {
+	const source = readFileSync(file, 'utf8');
+
+	for (const match of source.matchAll(TOKEN_DEFINITION)) {
 		defined.add(match[1]);
+	}
+
+	if (file.endsWith('.css')) {
+		for (const match of blank(source, CSS_COMMENT).matchAll(CLASS_SELECTOR)) {
+			globalClasses.add(match[1]);
+		}
 	}
 }
 
@@ -115,55 +184,78 @@ const VENDOR_PREFIXES = ['--tw-', '--spacing'];
 const isVendor = (token) => VENDOR_PREFIXES.some((prefix) => token.startsWith(prefix));
 
 // ---------------------------------------------------------------------------
-// Pass 2 — the four checks.
+// Pass 2 — the checks.
 // ---------------------------------------------------------------------------
 for (const file of files) {
 	const relativePath = relative(srcDir, file).replace(/\\/g, '/');
 	const isTest = /\.(test|spec)\.ts$/.test(relativePath);
 	const exemptReason = RAW_COLOR_EXEMPT.get(relativePath);
+	const source = readFileSync(file, 'utf8');
 
-	readFileSync(file, 'utf8')
-		.split('\n')
-		.forEach((text, index) => {
-			const line = index + 1;
+	// Check 5 only asks about components, and only about their markup — a class
+	// name is defined by app.css or by this file's own <style>, and by nothing
+	// else. Scoping it per-file is the point: a `.select-sm` in some other
+	// component is not a definition here.
+	if (file.endsWith('.svelte')) {
+		const { markup, styles } = splitSvelte(source);
+		const localClasses = new Set([...styles.matchAll(CLASS_SELECTOR)].map((match) => match[1]));
 
-			for (const match of text.matchAll(VAR_REFERENCE)) {
-				const [, token, hasFallback] = match;
-				if (!defined.has(token) && !isVendor(token)) {
-					report(file, line, 'undefined-token', `var(${token}) is never defined`);
-				}
-				if (hasFallback) {
+		markup.split('\n').forEach((text, index) => {
+			for (const match of text.matchAll(CLASS_ATTRIBUTE)) {
+				const names = (match[1] ?? match[2] ?? match[3] ?? '').split(/[\s'"`]+/);
+				for (const name of names) {
+					if (!isWatched(name) || globalClasses.has(name) || localClasses.has(name)) continue;
 					report(
 						file,
-						line,
-						'var-fallback',
-						`var(${token}, …) — a fallback turns a missing token into silence`
+						index + 1,
+						'retired-class',
+						`.${name} is defined neither in app.css nor in this component — it renders as nothing`
 					);
 				}
 			}
+		});
+	}
 
-			// A colour literal is legitimate in exactly one place: the right-hand
-			// side of a token definition. That IS the token layer — the rule is
-			// "literals live here and nowhere else", not "no literals anywhere".
-			const definesToken = /^\s*--[\w-]+\s*:/.test(text);
+	source.split('\n').forEach((text, index) => {
+		const line = index + 1;
 
-			if (!exemptReason && !isTest && !definesToken) {
-				for (const match of text.matchAll(RAW_COLOR)) {
-					// `#` inside a URL fragment or an id selector is not a colour.
-					if (match[0].startsWith('#') && !/^#[0-9a-fA-F]{3,8}$/.test(match[0])) continue;
-					report(file, line, 'raw-color', `${match[0]} — use a token from app.css`);
-				}
+		for (const match of text.matchAll(VAR_REFERENCE)) {
+			const [, token, hasFallback] = match;
+			if (!defined.has(token) && !isVendor(token)) {
+				report(file, line, 'undefined-token', `var(${token}) is never defined`);
 			}
-
-			for (const match of text.matchAll(TAILWIND_COLOR)) {
+			if (hasFallback) {
 				report(
 					file,
 					line,
-					'tailwind-color',
-					`${match[0]} — Tailwind may set layout only; colour goes through a token`
+					'var-fallback',
+					`var(${token}, …) — a fallback turns a missing token into silence`
 				);
 			}
-		});
+		}
+
+		// A colour literal is legitimate in exactly one place: the right-hand
+		// side of a token definition. That IS the token layer — the rule is
+		// "literals live here and nowhere else", not "no literals anywhere".
+		const definesToken = /^\s*--[\w-]+\s*:/.test(text);
+
+		if (!exemptReason && !isTest && !definesToken) {
+			for (const match of text.matchAll(RAW_COLOR)) {
+				// `#` inside a URL fragment or an id selector is not a colour.
+				if (match[0].startsWith('#') && !/^#[0-9a-fA-F]{3,8}$/.test(match[0])) continue;
+				report(file, line, 'raw-color', `${match[0]} — use a token from app.css`);
+			}
+		}
+
+		for (const match of text.matchAll(TAILWIND_COLOR)) {
+			report(
+				file,
+				line,
+				'tailwind-color',
+				`${match[0]} — Tailwind may set layout only; colour goes through a token`
+			);
+		}
+	});
 }
 
 if (problems.length > 0) {
