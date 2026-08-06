@@ -11,9 +11,18 @@
 			and the whole Open Graph / Twitter block are emitted by
 			`SEOHead.svelte`, which knows the active view and the active language.
 			They are deliberately absent here: this template's markup lands *before*
-			`%sveltekit.head%`, and a crawler reading a duplicated title or og
-			property takes the first one it meets — so a static copy here would
-			silently outrank every per-view, localised tag SEOHead produces.
+			the head placeholder at the foot of this file, and a crawler reading a
+			duplicated title or og property takes the first one it meets — so a
+			static copy here would silently outrank every per-view, localised tag
+			SEOHead produces.
+
+			Never write that placeholder's literal token in prose, here or in any
+			other comment in this file. SvelteKit splits the template on the
+			placeholder tokens as plain text, so the first occurrence wins even
+			inside a comment, and the head it injects there carries Svelte's
+			hydration marker comments: their terminator closes this comment early,
+			the remaining prose becomes character data in `head`, and the parser
+			ends `head` and paints the rest of this file at the top of the page.
 
 			Only tags SEOHead does not own belong below.
 		-->
