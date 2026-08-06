@@ -312,7 +312,7 @@
 	/* Says out loud what the threshold hid, rather than silently truncating. */
 	.threshold-note {
 		font-family: var(--font-mono);
-		font-size: var(--font-size-2xs);
+		font-size: var(--font-size-eyebrow);
 		line-height: var(--line-height-relaxed);
 		color: var(--text-muted);
 		max-width: var(--prose-width);

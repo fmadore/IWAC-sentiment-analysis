@@ -99,12 +99,12 @@
 	.prompt-modal {
 		width: 100%;
 		max-width: 850px;
-		max-height: 90vh;
+		max-height: 95vh;
 		display: flex;
 		flex-direction: column;
 		background: var(--surface-card-elevated);
 		border: 1px solid var(--border-default);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		box-shadow: var(--shadow-xl);
 		animation: scaleIn var(--timing-normal) var(--easing-default);
 		overflow: hidden;
@@ -135,7 +135,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: var(--space-5) var(--space-6);
+		padding: var(--space-4);
 		border-bottom: 1px solid var(--border-subtle);
 		background: var(--surface-subtle);
 	}
@@ -158,7 +158,7 @@
 		height: var(--size-control-sm);
 		background: var(--surface-subtle);
 		border: 1px solid var(--border-default);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		color: var(--text-secondary);
 		font-size: var(--font-size-lg);
 		cursor: pointer;
@@ -178,7 +178,7 @@
 	.prompt-modal-body {
 		flex: 1;
 		overflow-y: auto;
-		padding: var(--space-6);
+		padding: var(--space-4);
 	}
 
 	.prompt-modal-footer {
@@ -192,9 +192,9 @@
 	.close-btn {
 		padding: var(--space-2) var(--space-4);
 		font-family: var(--font-mono);
-		font-size: 0.75rem;
+		font-size: var(--font-size-xs);
 		font-weight: 600;
-		letter-spacing: 0.06em;
+		letter-spacing: var(--tracking-wider);
 		text-transform: uppercase;
 		background: var(--accent);
 		border: 1px solid var(--accent);
@@ -210,18 +210,18 @@
 		border-color: var(--text-primary);
 	}
 
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.prompt-modal {
-			max-height: 95vh;
-			border-radius: var(--radius-xl);
+			max-height: 90vh;
+			border-radius: var(--radius-panel);
 		}
 
 		.prompt-modal-header {
-			padding: var(--space-4);
+			padding: var(--space-5) var(--space-6);
 		}
 
 		.prompt-modal-body {
-			padding: var(--space-4);
+			padding: var(--space-6);
 		}
 	}
 

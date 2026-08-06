@@ -70,7 +70,7 @@
 		position: relative;
 		background: var(--surface-card);
 		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-panel);
 		box-shadow: var(--elevation-card);
 		overflow: hidden;
 		transition: border-color var(--timing-fast) var(--easing-default);
@@ -86,7 +86,7 @@
 		align-items: center;
 		justify-content: space-between;
 		gap: var(--space-4);
-		padding: var(--space-4) var(--space-5);
+		padding: var(--space-3) var(--space-4);
 		border-bottom: 1px solid var(--border-subtle);
 	}
 
@@ -99,7 +99,7 @@
 
 	.chart-title {
 		font-family: var(--font-display);
-		font-size: var(--font-size-xl);
+		font-size: var(--font-size-lg);
 		font-weight: 600;
 		color: var(--text-primary);
 		line-height: var(--line-height-tight);
@@ -116,7 +116,7 @@
 	}
 
 	.chart-card-body {
-		padding: var(--space-5);
+		padding: var(--space-3);
 	}
 
 	/* Size variants — only kept where they meaningfully change layout */
@@ -134,16 +134,16 @@
 	}
 
 	.chart-card[data-variant='extreme'] {
-		min-height: var(--height-chart-lg);
+		min-height: var(--height-chart-sm);
 	}
 	.chart-card[data-variant='extreme'] .chart-card-header {
-		padding: var(--space-5) var(--space-6);
+		padding: var(--space-4) var(--space-5);
 	}
 	.chart-card[data-variant='extreme'] .chart-card-body {
-		padding: var(--space-6);
+		padding: var(--space-4);
 	}
 	.chart-card[data-variant='extreme'] .chart-title {
-		font-size: var(--font-size-2xl);
+		font-size: var(--font-size-xl);
 		font-weight: 700;
 	}
 	.chart-card[data-variant='extreme'] .chart-subtitle {
@@ -166,27 +166,33 @@
 	}
 
 	/* Responsive */
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.chart-card-header {
-			padding: var(--space-3) var(--space-4);
-		}
-		.chart-title {
-			font-size: var(--font-size-lg);
-		}
-		.chart-card-body {
-			padding: var(--space-3);
-		}
-		.chart-card[data-variant='extreme'] {
-			min-height: var(--height-chart-sm);
-		}
-		.chart-card[data-variant='extreme'] .chart-card-header {
 			padding: var(--space-4) var(--space-5);
 		}
-		.chart-card[data-variant='extreme'] .chart-title {
+
+		.chart-title {
 			font-size: var(--font-size-xl);
 		}
+
+		.chart-card-body {
+			padding: var(--space-5);
+		}
+
+		.chart-card[data-variant='extreme'] {
+			min-height: var(--height-chart-lg);
+		}
+
+		.chart-card[data-variant='extreme'] .chart-card-header {
+			padding: var(--space-5) var(--space-6);
+		}
+
+		.chart-card[data-variant='extreme'] .chart-title {
+			font-size: var(--font-size-2xl);
+		}
+
 		.chart-card[data-variant='extreme'] .chart-card-body {
-			padding: var(--space-4);
+			padding: var(--space-6);
 		}
 	}
 

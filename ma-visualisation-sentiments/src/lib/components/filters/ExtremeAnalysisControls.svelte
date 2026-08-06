@@ -51,7 +51,7 @@
 <FilterCard title={$t.extremeAnalysis.analysisControls} class="extreme-controls-card">
 	{#snippet header()}
 		<span class="extreme-controls-icon">
-			<SlidersHorizontalIcon size={18} class="text-orange-400" />
+			<SlidersHorizontalIcon size={18} />
 		</span>
 	{/snippet}
 
@@ -148,6 +148,8 @@
 		height: var(--size-control-md);
 		background: var(--sentiment-extreme-bg);
 		border: 1px solid var(--sentiment-extreme-border);
+		/* Lucide strokes with currentColor, so the wrapper tints the glyph. */
+		color: var(--sentiment-extreme-accent);
 	}
 
 	/* Controls stack vertically: this component only renders inside the
@@ -179,7 +181,7 @@
 		border: 1px solid var(--border-hover);
 		color: var(--text-primary);
 		padding: var(--space-2) var(--space-3);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		transition:
 			background-color var(--timing-fast) var(--easing-default),
 			border-color var(--timing-fast) var(--easing-default),
@@ -222,7 +224,7 @@
 	.btn-group-toggle {
 		display: flex;
 		gap: 0;
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		overflow: hidden;
 		background: var(--surface-subtle);
 		border: 1px solid var(--border-hover);
@@ -265,7 +267,7 @@
 		border: 1px solid var(--border-hover);
 		color: var(--text-primary);
 		padding: var(--space-2) var(--space-3);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		transition:
 			background-color var(--timing-fast) var(--easing-default),
 			border-color var(--timing-fast) var(--easing-default),
@@ -300,29 +302,10 @@
 		appearance: textfield;
 	}
 
-	@media (max-width: 768px) {
-		.control-group {
-			width: 100%;
-		}
-
-		.control-label {
-			font-size: var(--font-size-sm);
-		}
-
-		.select-input,
-		.btn-toggle,
-		.number-input {
-			font-size: var(--font-size-sm);
-			padding: var(--space-2) var(--space-3);
-			min-height: 38px;
-		}
-
-		.number-input {
-			max-width: 100px;
-		}
-	}
-
-	@media (max-width: 480px) {
+	/* One container tier replaces two viewport tiers. These controls always sit
+	   in the rail, so the 768px and 480px viewport queries were both describing
+	   the same ~320px column — they just disagreed about how narrow it was. */
+	@container filter-rail (max-width: 300px) {
 		.controls-grid {
 			gap: var(--space-3);
 		}
@@ -337,6 +320,10 @@
 			font-size: var(--font-size-xs);
 			padding: var(--space-1-5) var(--space-2-5);
 			min-height: 34px;
+		}
+
+		.number-input {
+			max-width: 100px;
 		}
 	}
 

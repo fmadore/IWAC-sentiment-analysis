@@ -74,7 +74,7 @@
 	.comparison-panel {
 		background: var(--surface-subtle);
 		border: 1px solid var(--border-subtle);
-		padding: var(--space-5);
+		padding: var(--space-4);
 	}
 
 	.comparison-panel-grid[data-compact='true'] {
@@ -96,9 +96,9 @@
 
 	.model-label {
 		font-family: var(--font-mono);
-		font-size: 0.6875rem;
+		font-size: var(--font-size-eyebrow);
 		font-weight: 600;
-		letter-spacing: 0.14em;
+		letter-spacing: var(--tracking-widest);
 		text-transform: uppercase;
 		color: var(--text-secondary);
 	}
@@ -106,7 +106,7 @@
 	.justification {
 		position: relative;
 		font-family: var(--font-display);
-		font-size: 0.9375rem;
+		font-size: var(--font-size-base);
 		font-style: italic;
 		line-height: 1.65;
 		color: var(--text-secondary);
@@ -120,7 +120,7 @@
 		top: -0.5rem;
 		left: 0;
 		font-family: var(--font-display);
-		font-size: 2.25rem;
+		font-size: var(--size-quote-glyph);
 		font-style: normal;
 		line-height: 1;
 		color: var(--sentiment-comparison-light);
@@ -134,9 +134,9 @@
 		margin: 0;
 	}
 
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.comparison-panel {
-			padding: var(--space-4);
+			padding: var(--space-5);
 		}
 
 		.justification {

@@ -102,6 +102,23 @@ export const filterState = {
 		_centralityFilters = [];
 	},
 
+	/**
+	 * How many filter values are selected across every dimension.
+	 *
+	 * Read by the header's Filters trigger below 1024px, where the rail is an
+	 * off-canvas drawer: without it the only way to know whether anything is
+	 * filtered is to open the drawer and look.
+	 */
+	get activeCount() {
+		return (
+			_countryFilters.length +
+			_journalFilters.length +
+			_polarityFilters.length +
+			_subjectivityFilters.length +
+			_centralityFilters.length
+		);
+	},
+
 	// Utility: Check if any filters are active
 	get hasActiveFilters() {
 		return (

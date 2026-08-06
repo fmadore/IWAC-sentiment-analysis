@@ -89,12 +89,12 @@
 <style>
 	.chart-container {
 		width: 100%;
-		height: 350px;
+		height: 300px;
 	}
 
-	@media (max-width: 768px) {
+	@media (min-width: 640px) {
 		.chart-container {
-			height: 300px;
+			height: 350px;
 		}
 	}
 </style>

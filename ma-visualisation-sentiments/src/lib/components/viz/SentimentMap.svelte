@@ -335,7 +335,7 @@
 		color: var(--text-primary);
 		background: var(--map-popup-bg);
 		border: 1px solid var(--border-strong);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 		box-shadow: var(--shadow-xl);
 	}
 
@@ -370,7 +370,7 @@
 		font-size: var(--font-size-base);
 		line-height: 1;
 		color: var(--text-muted);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 		transition:
 			background-color var(--timing-fast) var(--easing-default),
 			color var(--timing-fast) var(--easing-default);
@@ -384,7 +384,7 @@
 	.map-shell :global(.maplibregl-ctrl-group) {
 		background: var(--surface-card-elevated);
 		border: 1px solid var(--border-strong);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 		box-shadow: var(--shadow-md);
 	}
 

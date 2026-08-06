@@ -71,7 +71,7 @@
 		justify-content: center;
 		font-weight: var(--font-weight-medium);
 		line-height: var(--line-height-snug);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 		white-space: nowrap;
 		transition:
 			background-color var(--timing-fast) var(--easing-default),
@@ -88,7 +88,7 @@
 	/* Size variants */
 	.sentiment-badge[data-size='sm'] {
 		padding: var(--space-0-5) var(--space-2);
-		font-size: var(--font-size-2xs);
+		font-size: var(--font-size-eyebrow);
 	}
 
 	.sentiment-badge[data-size='md'] {

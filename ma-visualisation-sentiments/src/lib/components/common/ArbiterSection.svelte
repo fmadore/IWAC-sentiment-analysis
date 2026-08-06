@@ -137,16 +137,16 @@
 	>
 		<div class="flex items-center gap-3">
 			<div class="arbiter-icon">
-				<GavelIcon size={24} class="text-amber-400" />
+				<GavelIcon size={24} />
 			</div>
 			<div class="text-left">
-				<h4 class="h4 text-white flex items-center gap-2">
+				<h4 class="section-title flex items-center gap-2">
 					{$t.arbiter.title}
-					<span class="badge badge-sm bg-amber-500/20 text-amber-300 border-amber-500/30">
+					<span class="badge badge-sm badge-model">
 						{$t.arbiter.modelName}
 					</span>
 				</h4>
-				<p class="text-xs text-white/60">{$t.arbiter.subtitle}</p>
+				<p class="section-subtitle">{$t.arbiter.subtitle}</p>
 			</div>
 		</div>
 		<div class="flex items-center gap-2">
@@ -156,9 +156,9 @@
 				</span>
 			{/if}
 			{#if showArbiter}
-				<ChevronUpIcon size={20} class="text-white/60" />
+				<span class="toggle-chevron"><ChevronUpIcon size={20} /></span>
 			{:else}
-				<ChevronDownIcon size={20} class="text-white/60" />
+				<span class="toggle-chevron"><ChevronDownIcon size={20} /></span>
 			{/if}
 		</div>
 	</button>
@@ -171,21 +171,21 @@
 					--spinner-track="var(--border-subtle)"
 					--spinner-accent="var(--sentiment-arbiter)"
 				/>
-				<span class="ml-3 text-white/60">{$t.arbiter.loadingArbiter}</span>
+				<span class="ml-3 loading-label">{$t.arbiter.loadingArbiter}</span>
 			</div>
 		{:else if arbiterData}
 			<!-- Overall Verdict -->
 			<div class="overall-verdict-panel">
 				<div class="flex items-start gap-3">
-					<SparklesIcon size={20} class="text-amber-400 mt-1 flex-shrink-0" />
+					<span class="verdict-icon mt-1 flex-shrink-0"><SparklesIcon size={20} /></span>
 					<div>
-						<h5 class="font-semibold text-white mb-2">{$t.arbiter.overallVerdict}</h5>
-						<p class="text-white/70 text-sm mb-2">
-							<strong class="text-amber-400"
+						<h5 class="verdict-heading mb-2">{$t.arbiter.overallVerdict}</h5>
+						<p class="verdict-preferred mb-2">
+							<strong class="verdict-model"
 								>{getPreferredModelLabel(arbiterData.overall_winner)}</strong
 							>
 						</p>
-						<p class="text-white/90 leading-relaxed">
+						<p class="verdict-body leading-relaxed">
 							{decodeVerdictText(arbiterData.overall_explanation)}
 						</p>
 					</div>
@@ -197,7 +197,7 @@
 				<!-- Polarity Verdict -->
 				<div class="arbiter-verdict-panel">
 					<div class="flex items-center justify-between mb-3">
-						<h5 class="font-semibold text-white">{$t.arbiter.polarityVerdict}</h5>
+						<h5 class="verdict-heading">{$t.arbiter.polarityVerdict}</h5>
 						<div class="flex items-center gap-2">
 							<SentimentBadge type="polarity" value={arbiterData.polarity.score} size="sm" />
 							<span
@@ -216,18 +216,14 @@
 					</div>
 					<div class="space-y-2">
 						<div>
-							<span class="text-xs uppercase font-bold text-white/50"
-								>{$t.arbiter.arbiterJustification}</span
-							>
-							<p class="text-white/80 text-sm mt-1">
+							<span class="field-label">{$t.arbiter.arbiterJustification}</span>
+							<p class="field-text mt-1">
 								{decodeVerdictText(arbiterData.polarity.justification)}
 							</p>
 						</div>
 						<div>
-							<span class="text-xs uppercase font-bold text-white/50"
-								>{$t.arbiter.verdictExplanation}</span
-							>
-							<p class="text-white/80 text-sm mt-1">
+							<span class="field-label">{$t.arbiter.verdictExplanation}</span>
+							<p class="field-text mt-1">
 								{decodeVerdictText(arbiterData.polarity.verdict_explanation)}
 							</p>
 						</div>
@@ -237,7 +233,7 @@
 				<!-- Subjectivity Verdict -->
 				<div class="arbiter-verdict-panel">
 					<div class="flex items-center justify-between mb-3">
-						<h5 class="font-semibold text-white">{$t.arbiter.subjectivityVerdict}</h5>
+						<h5 class="verdict-heading">{$t.arbiter.subjectivityVerdict}</h5>
 						<div class="flex items-center gap-2">
 							<SentimentBadge
 								type="subjectivity"
@@ -262,18 +258,14 @@
 					</div>
 					<div class="space-y-2">
 						<div>
-							<span class="text-xs uppercase font-bold text-white/50"
-								>{$t.arbiter.arbiterJustification}</span
-							>
-							<p class="text-white/80 text-sm mt-1">
+							<span class="field-label">{$t.arbiter.arbiterJustification}</span>
+							<p class="field-text mt-1">
 								{decodeVerdictText(arbiterData.subjectivity.justification)}
 							</p>
 						</div>
 						<div>
-							<span class="text-xs uppercase font-bold text-white/50"
-								>{$t.arbiter.verdictExplanation}</span
-							>
-							<p class="text-white/80 text-sm mt-1">
+							<span class="field-label">{$t.arbiter.verdictExplanation}</span>
+							<p class="field-text mt-1">
 								{decodeVerdictText(arbiterData.subjectivity.verdict_explanation)}
 							</p>
 						</div>
@@ -283,7 +275,7 @@
 				<!-- Centrality Verdict -->
 				<div class="arbiter-verdict-panel">
 					<div class="flex items-center justify-between mb-3">
-						<h5 class="font-semibold text-white">{$t.arbiter.centralityVerdict}</h5>
+						<h5 class="verdict-heading">{$t.arbiter.centralityVerdict}</h5>
 						<div class="flex items-center gap-2">
 							<SentimentBadge type="centrality" value={arbiterData.centrality.score} size="sm" />
 							<span
@@ -304,18 +296,14 @@
 					</div>
 					<div class="space-y-2">
 						<div>
-							<span class="text-xs uppercase font-bold text-white/50"
-								>{$t.arbiter.arbiterJustification}</span
-							>
-							<p class="text-white/80 text-sm mt-1">
+							<span class="field-label">{$t.arbiter.arbiterJustification}</span>
+							<p class="field-text mt-1">
 								{decodeVerdictText(arbiterData.centrality.justification)}
 							</p>
 						</div>
 						<div>
-							<span class="text-xs uppercase font-bold text-white/50"
-								>{$t.arbiter.verdictExplanation}</span
-							>
-							<p class="text-white/80 text-sm mt-1">
+							<span class="field-label">{$t.arbiter.verdictExplanation}</span>
+							<p class="field-text mt-1">
 								{decodeVerdictText(arbiterData.centrality.verdict_explanation)}
 							</p>
 						</div>
@@ -325,10 +313,10 @@
 		{:else}
 			<!-- No arbiter data available -->
 			<div class="flex flex-col items-center justify-center p-8 text-center">
-				<GavelIcon size={48} class="text-white/30 mb-4" />
-				<h5 class="font-semibold text-white/80 mb-2">{$t.arbiter.noArbiterData}</h5>
-				<p class="text-white/60 text-sm max-w-md">{$t.arbiter.noArbiterDataDescription}</p>
-				<p class="text-white/40 text-xs mt-2">{$t.arbiter.runArbiterScript}</p>
+				<span class="empty-icon mb-4"><GavelIcon size={48} /></span>
+				<h5 class="empty-title mb-2">{$t.arbiter.noArbiterData}</h5>
+				<p class="empty-body">{$t.arbiter.noArbiterDataDescription}</p>
+				<p class="empty-hint mt-2">{$t.arbiter.runArbiterScript}</p>
 			</div>
 		{/if}
 	{/if}
@@ -361,6 +349,101 @@
 		height: var(--size-control-md);
 		border: 1px solid var(--sentiment-arbiter-border);
 		background: var(--sentiment-arbiter-bg);
+		/* Lucide icons stroke with currentColor, so the wrapper tints them. */
+		color: var(--sentiment-arbiter);
+	}
+
+	/* ---- Text roles.
+	   These replace a layer of Tailwind colour utilities that set
+	   design-meaningful properties outside the token system. Tailwind still does
+	   the layout here; colour and type go through tokens in this block. ---- */
+	.section-title {
+		font-size: var(--font-size-xl);
+		color: var(--text-primary);
+	}
+
+	.section-subtitle {
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
+	}
+
+	.loading-label {
+		color: var(--text-muted);
+	}
+
+	.toggle-chevron,
+	.verdict-icon,
+	.empty-icon {
+		display: inline-flex;
+		align-items: center;
+	}
+
+	.toggle-chevron {
+		color: var(--text-muted);
+	}
+
+	.verdict-icon {
+		color: var(--sentiment-arbiter);
+	}
+
+	.verdict-heading {
+		font-weight: var(--font-weight-semibold);
+		color: var(--text-primary);
+	}
+
+	.verdict-preferred {
+		font-size: var(--font-size-sm);
+		color: var(--text-muted);
+	}
+
+	.verdict-model {
+		color: var(--sentiment-arbiter);
+	}
+
+	.verdict-body {
+		color: var(--text-primary);
+	}
+
+	/* Uppercase mono eyebrow over each justification field. --text-muted, not
+	   --text-subtle: subtle sits near 3:1 and this is a label, not a rule. */
+	.field-label {
+		font-family: var(--font-mono);
+		font-size: var(--font-size-eyebrow);
+		font-weight: var(--font-weight-semibold);
+		text-transform: uppercase;
+		letter-spacing: var(--tracking-wider);
+		color: var(--text-muted);
+	}
+
+	.field-text {
+		font-size: var(--font-size-sm);
+		color: var(--text-secondary);
+	}
+
+	.empty-title {
+		font-weight: var(--font-weight-semibold);
+		color: var(--text-secondary);
+	}
+
+	.empty-body {
+		font-size: var(--font-size-sm);
+		max-width: 28rem;
+		color: var(--text-muted);
+	}
+
+	.empty-icon {
+		color: var(--text-subtle);
+	}
+
+	.empty-hint {
+		font-size: var(--font-size-xs);
+		color: var(--text-subtle);
+	}
+
+	.badge-model {
+		background: var(--sentiment-arbiter-bg);
+		border-color: var(--sentiment-arbiter-border);
+		color: var(--sentiment-arbiter-light);
 	}
 
 	.overall-verdict-panel {
@@ -385,9 +468,9 @@
 	.badge {
 		padding: var(--space-1) var(--space-2-5);
 		font-family: var(--font-mono);
-		font-size: 0.6875rem;
+		font-size: var(--font-size-eyebrow);
 		font-weight: 600;
-		letter-spacing: 0.06em;
+		letter-spacing: var(--tracking-wider);
 		border-radius: 0;
 		border: 1px solid var(--border-default);
 		cursor: default;
@@ -395,7 +478,7 @@
 
 	.badge-sm {
 		padding: var(--space-0-5) var(--space-2);
-		font-size: 0.625rem;
+		font-size: var(--font-size-eyebrow);
 	}
 
 	@media (prefers-reduced-motion: reduce) {

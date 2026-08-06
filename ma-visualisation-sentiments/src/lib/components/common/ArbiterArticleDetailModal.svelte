@@ -157,7 +157,7 @@
 			<!-- Article not found in comparison data -->
 			<div class="article-metadata mb-6">
 				<h3 class="article-title">Article {articleId}</h3>
-				<p class="text-white/60">{$t.messages?.noData || 'Article data not available'}</p>
+				<p class="metadata-fallback">{$t.messages?.noData || 'Article data not available'}</p>
 			</div>
 
 			<!-- Still show arbiter section -->
@@ -168,7 +168,7 @@
 
 <style>
 	.article-title {
-		font-size: var(--font-size-3xl);
+		font-size: var(--font-size-2xl);
 		font-weight: var(--font-weight-semibold);
 		color: var(--text-primary);
 		margin-bottom: var(--space-4);
@@ -207,9 +207,9 @@
 		gap: var(--space-2);
 		color: var(--sentiment-arbiter-light);
 		font-family: var(--font-mono);
-		font-size: 0.75rem;
+		font-size: var(--font-size-xs);
 		font-weight: 500;
-		letter-spacing: 0.06em;
+		letter-spacing: var(--tracking-wider);
 		text-transform: uppercase;
 		text-decoration: none;
 		border-bottom: 1px solid transparent;
@@ -225,12 +225,12 @@
 
 	.section-title {
 		font-family: var(--font-mono);
-		font-size: 0.75rem;
+		font-size: var(--font-size-xs);
 		font-weight: 600;
 		color: var(--text-muted);
 		margin-bottom: var(--space-4);
 		text-transform: uppercase;
-		letter-spacing: 0.14em;
+		letter-spacing: var(--tracking-widest);
 	}
 
 	.dimension-sections {
@@ -242,17 +242,17 @@
 	.dimension-eyebrow {
 		display: block;
 		font-family: var(--font-mono);
-		font-size: 0.6875rem;
+		font-size: var(--font-size-eyebrow);
 		font-weight: 600;
-		letter-spacing: 0.14em;
+		letter-spacing: var(--tracking-widest);
 		text-transform: uppercase;
 		color: var(--text-muted);
 		margin-bottom: var(--space-2);
 	}
 
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.article-title {
-			font-size: var(--font-size-2xl);
+			font-size: var(--font-size-3xl);
 		}
 	}
 
@@ -260,5 +260,9 @@
 		.article-link {
 			transition: none;
 		}
+	}
+
+	.metadata-fallback {
+		color: var(--text-muted);
 	}
 </style>

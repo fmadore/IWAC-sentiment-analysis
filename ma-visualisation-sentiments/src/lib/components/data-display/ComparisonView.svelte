@@ -10,6 +10,7 @@
 	import ComparisonTable from './ComparisonTable.svelte';
 	import ComparisonStats from './ComparisonStats.svelte';
 	import { ComparisonDetailModal } from '$lib/components/common';
+	import Spinner from '$lib/components/common/Spinner.svelte';
 	import ModelPairPicker from '$lib/components/ui/ModelPairPicker.svelte';
 	import { DisagreementBreakdownChart } from '$lib/components/viz';
 	import { t } from '$lib/i18n';
@@ -84,11 +85,11 @@
 	{#if !datasetState.isComparisonMode}
 		<!-- Not in comparison mode -->
 		<div class="empty-state comparison-empty-state p-8 text-center">
-			<AlertCircleIcon size={48} class="mx-auto mb-4 text-purple-400/60" />
-			<h3 class="h3 mb-2 text-white">
+			<span class="empty-icon mx-auto mb-4"><AlertCircleIcon size={48} /></span>
+			<h3 class="mb-2 empty-title">
 				{$t.comparison?.enableComparisonMode || 'Enable Comparison Mode'}
 			</h3>
-			<p class="text-white/60 max-w-md mx-auto">
+			<p class="empty-body mx-auto">
 				{$t.comparison?.enableComparisonDescription ||
 					'Click the comparison button in the dataset picker to compare ChatGPT and Gemini analyses.'}
 			</p>
@@ -97,15 +98,19 @@
 		<!-- Loading state for comparison data -->
 		<div class="loading-section mb-6">
 			<div class="comparison-loading-card p-8 text-center">
-				<div class="loading-spinner comparison-spinner mb-4"></div>
-				<p class="text-white/80">{$t.messages?.loading || 'Loading comparison data...'}</p>
+				<Spinner
+					size="2xl"
+					--spinner-track="var(--border-default)"
+					--spinner-accent="var(--sentiment-comparison)"
+				/>
+				<p class="loading-note">{$t.messages?.loading || 'Loading comparison data...'}</p>
 			</div>
 		</div>
 	{:else}
 		<!-- Model Pair Picker -->
 		<div class="pair-picker-section comparison-pair-picker mb-4">
 			<div class="flex items-center gap-3">
-				<span class="text-white/60 text-sm">{$t.comparison?.selectModelPair || 'Compare:'}</span>
+				<span class="control-label">{$t.comparison?.selectModelPair || 'Compare:'}</span>
 				<ModelPairPicker />
 			</div>
 		</div>
@@ -140,11 +145,11 @@
 			</div>
 		{:else}
 			<div class="empty-results comparison-empty-results p-8 text-center">
-				<AlertCircleIcon size={48} class="mx-auto mb-4 text-purple-400/60" />
-				<h3 class="h4 mb-2 text-white">
+				<span class="empty-icon mx-auto mb-4"><AlertCircleIcon size={48} /></span>
+				<h3 class="mb-2 empty-title">
 					{$t.comparison?.noDiscrepancies || 'No Discrepancies Found'}
 				</h3>
-				<p class="text-white/60 max-w-md mx-auto">
+				<p class="empty-body mx-auto">
 					{$t.comparison?.adjustFilters ||
 						'Try adjusting your filters to see articles with differences between models.'}
 				</p>
@@ -164,7 +169,7 @@
 	.comparison-view {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-6);
+		gap: var(--space-4);
 	}
 
 	/* Comparison's own filter section: Country/Journal facets above the
@@ -200,19 +205,6 @@
 	}
 
 	/* Loading spinner - using CSS custom properties */
-	.loading-spinner {
-		width: var(--size-control-xl);
-		height: var(--size-control-xl);
-		border: 3px solid var(--border-default);
-		border-top-color: var(--text-secondary);
-		border-radius: 50%;
-		animation: spin 1s linear infinite;
-		margin: 0 auto;
-	}
-
-	.comparison-spinner {
-		border-top-color: var(--sentiment-comparison);
-	}
 
 	/* Pair picker section — z-index ensures dropdown floats above stats cards */
 	.comparison-pair-picker {
@@ -230,16 +222,36 @@
 	}
 
 	/* Responsive adjustments */
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.comparison-view {
-			gap: var(--space-4);
+			gap: var(--space-6);
 		}
 	}
 
-	/* Reduced motion */
-	@media (prefers-reduced-motion: reduce) {
-		.loading-spinner {
-			animation: none;
-		}
+	/* ---- Text roles, replacing Tailwind colour utilities. ---- */
+	.empty-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: color-mix(in oklab, var(--sentiment-comparison-accent) 60%, transparent);
+	}
+
+	.empty-title {
+		font-size: var(--font-size-2xl);
+		color: var(--text-primary);
+	}
+
+	.empty-body {
+		max-width: 28rem;
+		color: var(--text-muted);
+	}
+
+	.loading-note {
+		color: var(--text-secondary);
+	}
+
+	.control-label {
+		font-size: var(--font-size-sm);
+		color: var(--text-muted);
 	}
 </style>

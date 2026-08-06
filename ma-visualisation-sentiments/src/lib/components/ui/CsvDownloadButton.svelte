@@ -83,9 +83,9 @@
 <style>
 	.csv-export-btn {
 		font-family: var(--font-mono);
-		font-size: 0.75rem;
+		font-size: var(--font-size-xs);
 		font-weight: 600;
-		letter-spacing: 0.06em;
+		letter-spacing: var(--tracking-wider);
 		text-transform: uppercase;
 		padding: var(--space-2-5) var(--space-4);
 		border-radius: 0;
@@ -146,22 +146,39 @@
 	}
 
 	/* Articles collapses to a square icon button on very small screens. */
-	@media (max-width: 480px) {
+	/* Icon-only by default; the label appears once there is room for it. */
+	.csv-export-btn[data-variant='articles'] .button-text {
+		display: none;
+	}
+
+	.csv-export-btn[data-variant='articles'] {
+		padding: var(--space-2-5);
+		width: var(--size-control-lg);
+		height: var(--size-control-lg);
+		justify-content: center;
+	}
+
+	@media (min-width: 640px) {
 		.csv-export-btn[data-variant='articles'] .button-text {
-			display: none;
+			display: inline;
 		}
+
 		.csv-export-btn[data-variant='articles'] {
-			padding: var(--space-2-5);
-			width: var(--size-control-lg);
-			height: var(--size-control-lg);
-			justify-content: center;
+			padding: var(--space-2) var(--space-3);
+			width: auto;
+			height: auto;
 		}
 	}
 
-	@media (max-width: 640px) {
+	.csv-export-btn[data-variant='comparison'] .button-text,
+	.csv-export-btn[data-variant='arbiter'] .button-text {
+		display: none;
+	}
+
+	@media (min-width: 640px) {
 		.csv-export-btn[data-variant='comparison'] .button-text,
 		.csv-export-btn[data-variant='arbiter'] .button-text {
-			display: none;
+			display: inline;
 		}
 	}
 

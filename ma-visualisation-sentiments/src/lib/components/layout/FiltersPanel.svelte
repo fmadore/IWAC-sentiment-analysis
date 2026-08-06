@@ -11,6 +11,8 @@
 	import { DatasetBadge } from '$lib/components/ui';
 	import { uiState } from '$lib/stores';
 	import { t } from '$lib/i18n';
+	import { MediaQuery } from 'svelte/reactivity';
+	import Drawer from '$lib/components/common/Drawer.svelte';
 	import XIcon from '@lucide/svelte/icons/x';
 	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
 
@@ -36,23 +38,20 @@
 		uiState.filtersDrawerOpen = false;
 	}
 
-	// On small screens the rail is an off-canvas drawer; Escape closes it.
-	function onKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape' && uiState.filtersDrawerOpen) closeDrawer();
-	}
+	/**
+	 * Below this the rail is an off-canvas drawer; at or above it, a static
+	 * sticky column in the page grid. Drawer chrome — scrim, focus trap, Escape,
+	 * body-scroll lock — is only enabled in the first case.
+	 */
+	const desktop = new MediaQuery('min-width: 1024px', false);
 </script>
 
-<svelte:window onkeydown={onKeydown} />
-
-<!-- Mobile-only scrim behind the drawer -->
-{#if uiState.filtersDrawerOpen}
-	<button class="filters-overlay" onclick={closeDrawer} aria-label={$t.common.close}></button>
-{/if}
-
-<aside
+<Drawer
+	open={uiState.filtersDrawerOpen}
+	onClose={closeDrawer}
+	enabled={!desktop.current}
+	label={$t.filters.title}
 	class="filters-rail"
-	class:drawer-open={uiState.filtersDrawerOpen}
-	aria-label={$t.filters.title}
 >
 	<div class="rail-header">
 		<h2 class="rail-title">{$t.filters.title}</h2>
@@ -88,54 +87,22 @@
 		{/if}
 		<div class="rail-clear"><ClearFiltersButton /></div>
 	</div>
-</aside>
+</Drawer>
 
 <style>
 	/* =========================================================================
 	   FILTER RAIL
+
 	   Two presentations from one component:
-	   • < 1024px — off-canvas drawer, slid in from the left over a scrim, opened
-	     from the AppHeader "Filters" button (uiState.filtersDrawerOpen).
-	   • >= 1024px — a static, sticky left rail that lives in the page grid's
-	     first column; the close button and scrim are hidden.
+	   • < 1024px — an off-canvas drawer. All of that chrome (fixed panel, scrim,
+	     z-index above the scrim, slide transform, focus trap, Escape, scroll
+	     lock) now belongs to common/Drawer.svelte, which SidebarNav uses too.
+	     This file no longer owns any of it.
+	   • >= 1024px — a static, sticky column in the page grid's first track. That
+	     is what the rules below describe, via :global because the element they
+	     target is rendered by Drawer rather than by this template.
 	   ========================================================================= */
 
-	.filters-rail {
-		display: flex;
-		flex-direction: column;
-
-		/* Drawer defaults (mobile). The drawer must sit ABOVE its own scrim, so it
-		   goes one step above --z-overlay (the scrim); otherwise the scrim dims it
-		   and swallows the clicks. */
-		position: fixed;
-		top: 0;
-		left: 0;
-		z-index: calc(var(--z-overlay) + 1);
-		width: min(88vw, 22rem);
-		height: 100dvh;
-		background: var(--app-bg-elevated);
-		border-right: 1px solid var(--border-subtle);
-		box-shadow: var(--elevation-overlay, 0 0 0 transparent);
-		transform: translateX(-100%);
-		transition: transform var(--timing-normal) var(--easing-default);
-		overflow-y: auto;
-		overscroll-behavior: contain;
-	}
-
-	.filters-rail.drawer-open {
-		transform: translateX(0);
-	}
-
-	.filters-overlay {
-		position: fixed;
-		inset: 0;
-		z-index: var(--z-overlay);
-		background: color-mix(in oklab, black 65%, transparent);
-		border: none;
-		cursor: pointer;
-	}
-
-	/* Rail header — section label + (mobile) close affordance */
 	.rail-header {
 		display: flex;
 		align-items: center;
@@ -162,9 +129,9 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: var(--size-control-sm);
-		height: var(--size-control-sm);
-		border-radius: var(--radius-md);
+		width: var(--size-control-lg);
+		height: var(--size-control-lg);
+		border-radius: var(--radius-panel);
 		background: var(--surface-subtle);
 		border: 1px solid var(--border-default);
 		color: var(--text-muted);
@@ -181,9 +148,22 @@
 	}
 
 	.rail-body {
+		/* THE containment context for everything in the rail.
+		   Rail children must never branch on viewport width: they see the
+		   viewport, not the 320px column they actually live in. That mistake
+		   shipped twice, and its visible symptom was that the same filter card
+		   got two different designs at the same physical width — the 320px
+		   sticky rail on desktop rendered full-size, while the ~330px drawer on
+		   a phone got the "480px" compact treatment with 13px titles.
+		   Measuring this element's content box makes the rule structural
+		   instead of remembered: a component that asks `@container filter-rail`
+		   is asking about the space it is actually in. Outside the rail the
+		   query simply never matches and the base styles stand. */
+		container: filter-rail / inline-size;
+
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-4);
+		gap: var(--gap-stack);
 		padding: 0 var(--space-4) var(--space-5);
 	}
 
@@ -194,7 +174,7 @@
 	.rail-stack {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-4);
+		gap: var(--gap-stack);
 	}
 
 	.filter-shell :global(.filter-card) {
@@ -205,10 +185,11 @@
 		margin-top: var(--space-1);
 	}
 
-	/* ---- Desktop: static sticky rail inside the page grid ------------------- */
+	/* ---- Desktop: static sticky rail inside the page grid ------------------ */
 	@media (min-width: 1024px) {
-		.filters-rail {
-			/* Clears the sticky AppHeader (~96px tall at >=1024px) plus a small gap. */
+		:global(.filters-rail) {
+			/* Clears the sticky AppHeader by reading the same --header-height it
+			   sets on itself. */
 			position: sticky;
 			top: var(--rail-top);
 			left: auto;
@@ -221,6 +202,7 @@
 			box-shadow: none;
 			transform: none;
 			align-self: start;
+			overflow-y: auto;
 		}
 
 		.rail-header {
@@ -233,19 +215,8 @@
 			display: none;
 		}
 
-		.filters-overlay {
-			display: none;
-		}
-
 		.rail-body {
 			padding: var(--space-4) 0 0;
-		}
-	}
-
-	/* Reduced motion */
-	@media (prefers-reduced-motion: reduce) {
-		.filters-rail {
-			transition: none;
 		}
 	}
 </style>

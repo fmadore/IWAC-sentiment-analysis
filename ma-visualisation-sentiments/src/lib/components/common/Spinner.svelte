@@ -12,8 +12,12 @@
 -->
 <script lang="ts">
 	interface SpinnerProps {
-		/** Diameter on the icon size scale: sm=16px, md=20px, lg=24px, xl=32px */
-		size?: 'sm' | 'md' | 'lg' | 'xl';
+		/**
+		 * Diameter: sm=16px, md=20px, lg=24px, xl=32px on the icon scale, plus
+		 * 2xl=44px for the full-panel loading states (a view waiting on its
+		 * dataset), which also thickens the ring so it reads at that size.
+		 */
+		size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 	}
 
 	let { size = 'md' }: SpinnerProps = $props();
@@ -23,9 +27,18 @@
 
 <style>
 	.spinner {
-		border-radius: var(--radius-full);
-		border: 2px solid var(--spinner-track, var(--surface-active));
-		border-top-color: var(--spinner-accent, var(--color-primary-500));
+		/* Component API — a parent may override either on any ancestor.
+		   Declared here with its default rather than repeated as a var()
+		   fallback at each use: a fallback is also how a genuinely missing
+		   token stays silent, so this codebase does not use them. */
+		--spinner-track: var(--surface-active);
+		--spinner-accent: var(--color-primary-500);
+
+		--spinner-ring-width: 2px;
+
+		border-radius: var(--radius-circle);
+		border: var(--spinner-ring-width) solid var(--spinner-track);
+		border-top-color: var(--spinner-accent);
 		/* ~0.9s rotation expressed on the motion scale (3 × --timing-slow = 960ms) */
 		animation: spin calc(var(--timing-slow) * 3) linear infinite;
 	}
@@ -48,6 +61,13 @@
 	.spinner[data-size='xl'] {
 		width: var(--size-icon-xl);
 		height: var(--size-icon-xl);
+	}
+
+	.spinner[data-size='2xl'] {
+		--spinner-ring-width: 3px;
+
+		width: var(--size-control-xl);
+		height: var(--size-control-xl);
 	}
 
 	/* Component-scoped keyframes are intentional — Svelte CSS scoping hashes

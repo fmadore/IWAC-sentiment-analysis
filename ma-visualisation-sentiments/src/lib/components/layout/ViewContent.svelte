@@ -316,9 +316,10 @@
 
 	.view-header {
 		display: flex;
+		flex-direction: column;
 		align-items: flex-start;
 		justify-content: space-between;
-		gap: var(--space-6);
+		gap: var(--space-3);
 		padding-bottom: var(--space-5);
 		margin-bottom: var(--space-6);
 		border-bottom: 1px solid var(--border-subtle);
@@ -341,7 +342,7 @@
 
 	.view-title {
 		font-family: var(--font-display);
-		font-size: var(--font-size-3xl);
+		font-size: var(--font-size-2xl);
 		font-weight: 700;
 		line-height: var(--line-height-tight);
 		letter-spacing: var(--tracking-tight);
@@ -351,7 +352,7 @@
 
 	.view-lede {
 		font-family: var(--font-sans);
-		font-size: var(--font-size-lg);
+		font-size: var(--font-size-base);
 		line-height: var(--line-height-relaxed);
 		color: var(--text-secondary);
 		max-width: var(--prose-width);
@@ -384,18 +385,18 @@
 		min-height: calc(100dvh - 200px);
 	}
 
-	@media (max-width: 768px) {
+	@media (min-width: 640px) {
 		.view-header {
-			flex-direction: column;
-			gap: var(--space-3);
+			flex-direction: row;
+			gap: var(--space-6);
 		}
 
 		.view-title {
-			font-size: var(--font-size-2xl);
+			font-size: var(--font-size-3xl);
 		}
 
 		.view-lede {
-			font-size: var(--font-size-base);
+			font-size: var(--font-size-lg);
 		}
 	}
 </style>

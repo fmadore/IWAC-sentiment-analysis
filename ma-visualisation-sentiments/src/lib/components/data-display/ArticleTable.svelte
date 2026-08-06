@@ -146,7 +146,7 @@
 	<div bind:this={tableContainerRef} class="pagination-info mb-4">
 		<PaginationControls {pagination} showLabels={false} showItemsPerPage selectId="items-per-page">
 			{#snippet resultsInfo()}
-				<span class="text-xs sm:text-sm text-white">
+				<span class="results-info">
 					{$t.table.showingItems}
 					{pagination.startIndex + 1} à {pagination.endIndex} sur {articles.length}
 					{$t.common.articles}
@@ -160,14 +160,14 @@
 		<!-- Mobile Sort Controls -->
 		<div class="mobile-sort-controls mb-4 p-3 card variant-glass">
 			<div class="flex items-center gap-2">
-				<label for="mobile-sort-select" class="text-xs text-white whitespace-nowrap"
+				<label for="mobile-sort-select" class="sort-label whitespace-nowrap"
 					>{$t.common.sortBy}:</label
 				>
 				<select
 					id="mobile-sort-select"
 					bind:value={sortColumn}
 					onchange={() => (pagination.currentPage = 1)}
-					class="select select-sm bg-surface-700 text-white border-surface-500 flex-1"
+					class="select select-sm flex-1"
 				>
 					<option value="titre">{$t.table.articleTitle}</option>
 					<option value="journal">{$t.filters.journal}</option>
@@ -177,7 +177,7 @@
 					<option value="subjectivite">{$t.table.subjectivity}</option>
 				</select>
 				<button
-					class="btn btn-sm variant-soft-surface"
+					class="btn btn-sm sort-direction-btn"
 					onclick={() => {
 						sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
 						pagination.currentPage = 1;
@@ -192,7 +192,7 @@
 		<div class="mobile-cards space-y-3">
 			{#each paginatedArticles as article (article['o:id'])}
 				<button
-					class="mobile-card card variant-glass p-4 cursor-pointer hover:bg-surface-800/50 transition-colors w-full text-left border-0"
+					class="mobile-card card variant-glass p-4 cursor-pointer w-full text-left border-0"
 					onclick={(event) => selectArticle(article, event)}
 					onkeydown={(e) => {
 						if (e.key === 'Enter' || e.key === ' ') {
@@ -208,10 +208,10 @@
 					aria-label="{$t.table.viewDetails}: {article['o:title']}"
 				>
 					<div class="mb-2">
-						<h3 class="text-sm font-semibold text-white line-clamp-2 mb-1">
+						<h3 class="card-title line-clamp-2 mb-1">
 							{article['o:title']}
 						</h3>
-						<div class="flex items-center gap-2 text-xs text-white/70">
+						<div class="card-meta flex items-center gap-2">
 							<span>{getJournalName(article)}</span>
 							<span>•</span>
 							<span>{formatDate(article.publication_date)}</span>
@@ -311,7 +311,7 @@
 		</PaginationControls>
 	</div>
 {:else}
-	<p class="text-center py-8 text-white">{$t.table.noFilteredArticles}</p>
+	<p class="empty-note text-center py-8">{$t.table.noFilteredArticles}</p>
 {/if}
 
 <style>
@@ -319,12 +319,12 @@
      Table Container - Glass morphism wrapper
      ============================================== */
 	.table-container {
-		max-height: var(--height-chart-lg);
+		max-height: var(--height-chart-md);
 		overflow-y: auto;
 		position: relative;
 		background: var(--surface-card);
 		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-panel);
 	}
 
 	table {
@@ -334,9 +334,16 @@
 
 	th,
 	td {
-		padding: var(--space-3) var(--space-4);
+		padding: var(--space-2);
 		text-align: left;
 		border-bottom: 1px solid var(--border-subtle);
+	}
+
+	@media (min-width: 640px) {
+		th,
+		td {
+			padding: var(--space-3) var(--space-4);
+		}
 	}
 
 	/* ==============================================
@@ -398,22 +405,22 @@
      ============================================== */
 	.pagination-info {
 		background: var(--surface-nested);
-		padding: var(--space-4);
-		border-radius: var(--radius-md);
+		padding: var(--space-3);
+		border-radius: var(--radius-panel);
 		border: 1px solid var(--border-subtle);
 	}
 
 	.pagination-bottom {
 		background: color-mix(in oklab, var(--color-primary-500) 3%, transparent);
 		padding: var(--space-3) var(--space-4);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-panel);
 		border: 1px solid color-mix(in oklab, var(--color-primary-500) 10%, transparent);
 	}
 
 	.select-sm {
 		padding: var(--space-1) var(--space-2);
 		font-size: var(--font-size-base);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 	}
 
 	/* Select elements */
@@ -467,30 +474,13 @@
 	/* ==============================================
      Responsive Design
      ============================================== */
-	@media (max-width: 768px) {
+	@media (min-width: 640px) {
 		.pagination-info {
-			padding: var(--space-3);
+			padding: var(--space-4);
 		}
 
 		.table-container {
-			max-height: var(--height-chart-md);
-		}
-
-		th,
-		td {
-			padding: var(--space-2);
-			font-size: var(--font-size-base);
-		}
-	}
-
-	/* Extra small screens */
-	@media (max-width: 480px) {
-		.mobile-card {
-			padding: var(--space-3) !important;
-		}
-
-		.mobile-card h3 {
-			font-size: var(--font-size-base);
+			max-height: var(--height-chart-lg);
 		}
 	}
 
@@ -508,5 +498,62 @@
 		.mobile-card:hover {
 			transform: none;
 		}
+	}
+
+	/* ---- Text roles, replacing Tailwind colour utilities. ---- */
+	.results-info {
+		font-size: var(--font-size-xs);
+		color: var(--text-primary);
+	}
+
+	@media (min-width: 640px) {
+		.results-info {
+			font-size: var(--font-size-sm);
+		}
+	}
+
+	.sort-label {
+		font-size: var(--font-size-xs);
+		color: var(--text-primary);
+	}
+
+	.card-title {
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-semibold);
+		color: var(--text-primary);
+	}
+
+	.card-meta {
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
+	}
+
+	.empty-note {
+		color: var(--text-primary);
+	}
+
+	/* Was a Skeleton v2 variant class no stylesheet here defines any more, so
+	   the sort-direction button rendered with no surface at all. */
+	.sort-direction-btn {
+		background: var(--surface-subtle);
+		border: 1px solid var(--border-default);
+		color: var(--text-secondary);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default);
+	}
+
+	.sort-direction-btn:hover {
+		background: var(--surface-hover);
+		border-color: var(--border-hover);
+		color: var(--text-primary);
+	}
+
+	.mobile-card {
+		transition: background-color var(--timing-fast) var(--easing-default);
+	}
+
+	.mobile-card:hover {
+		background: var(--surface-card-hover);
 	}
 </style>

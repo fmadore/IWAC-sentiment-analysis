@@ -301,7 +301,7 @@
 	   chart, not buried in a tooltip (see .impeccable.md principle 3). */
 	.calendar-note {
 		font-family: var(--font-mono);
-		font-size: var(--font-size-2xs);
+		font-size: var(--font-size-eyebrow);
 		line-height: var(--line-height-relaxed);
 		color: var(--text-muted);
 		max-width: var(--prose-width);

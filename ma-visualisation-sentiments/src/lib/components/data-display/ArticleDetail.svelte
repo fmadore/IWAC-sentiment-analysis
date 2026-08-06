@@ -132,7 +132,7 @@
 		font-weight: 600;
 		line-height: 1.15;
 		color: var(--text-primary);
-		letter-spacing: -0.005em;
+		letter-spacing: var(--tracking-snug);
 		margin: 0;
 		max-width: 60ch;
 	}
@@ -146,9 +146,9 @@
 	.meta-label {
 		display: block;
 		font-family: var(--font-mono);
-		font-size: 0.6875rem;
+		font-size: var(--font-size-eyebrow);
 		font-weight: 600;
-		letter-spacing: 0.14em;
+		letter-spacing: var(--tracking-widest);
 		text-transform: uppercase;
 		color: var(--text-muted);
 	}
@@ -164,9 +164,9 @@
 		display: inline-flex;
 		align-items: center;
 		font-family: var(--font-mono);
-		font-size: 0.75rem;
+		font-size: var(--font-size-xs);
 		font-weight: 500;
-		letter-spacing: 0.06em;
+		letter-spacing: var(--tracking-wider);
 		text-transform: uppercase;
 		color: var(--accent);
 		text-decoration: none;
@@ -216,9 +216,9 @@
 
 	.dimension-label {
 		font-family: var(--font-mono);
-		font-size: 0.75rem;
+		font-size: var(--font-size-xs);
 		font-weight: 600;
-		letter-spacing: 0.14em;
+		letter-spacing: var(--tracking-widest);
 		text-transform: uppercase;
 		color: var(--text-secondary);
 	}
@@ -231,9 +231,9 @@
 
 	.justification-label {
 		font-family: var(--font-mono);
-		font-size: 0.6875rem;
+		font-size: var(--font-size-eyebrow);
 		font-weight: 600;
-		letter-spacing: 0.14em;
+		letter-spacing: var(--tracking-widest);
 		text-transform: uppercase;
 		color: var(--text-muted);
 	}
@@ -241,7 +241,7 @@
 	.justification {
 		position: relative;
 		font-family: var(--font-display);
-		font-size: 1rem;
+		font-size: var(--font-size-base);
 		font-style: italic;
 		line-height: 1.65;
 		color: var(--text-secondary);
@@ -255,7 +255,7 @@
 		top: -0.5rem;
 		left: 0;
 		font-family: var(--font-display);
-		font-size: 2.5rem;
+		font-size: var(--size-quote-glyph);
 		font-style: normal;
 		line-height: 1;
 		color: var(--text-faint);
@@ -276,9 +276,9 @@
 		margin: 0 auto;
 	}
 
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.justification {
-			font-size: 0.9375rem;
+			font-size: var(--font-size-lg);
 		}
 	}
 

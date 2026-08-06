@@ -69,22 +69,22 @@
 
 <style>
 	.discrepancy-badge {
-		display: inline-flex;
+		display: none;
 		align-items: center;
 		gap: var(--space-1-5);
 		padding: var(--space-1-5) var(--space-3);
 		font-size: var(--font-size-xs);
 		font-weight: var(--font-weight-semibold);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 		background: var(--sentiment-discrepancy-bg);
 		border: 1px solid var(--sentiment-discrepancy-border);
 		color: var(--sentiment-discrepancy-light);
 		white-space: nowrap;
 	}
 
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.discrepancy-badge {
-			display: none;
+			display: inline-flex;
 		}
 	}
 </style>

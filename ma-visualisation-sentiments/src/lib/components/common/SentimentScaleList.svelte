@@ -130,7 +130,7 @@
 		padding: var(--space-1) var(--space-2);
 		font-size: var(--font-size-xs);
 		font-weight: var(--font-weight-semibold);
-		border-radius: var(--radius-xs);
+		border-radius: var(--radius-none);
 		min-width: 90px;
 		text-align: center;
 	}
@@ -143,7 +143,7 @@
 		height: 28px;
 		font-size: var(--font-size-xs);
 		font-weight: var(--font-weight-bold);
-		border-radius: var(--radius-full);
+		border-radius: var(--radius-circle);
 	}
 	/* 28px kept — not a standard control size token */
 </style>

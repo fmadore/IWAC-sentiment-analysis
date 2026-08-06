@@ -246,7 +246,15 @@
 	}
 
 	.pair-picker {
-		margin-left: auto;
+		margin-left: 0;
+		width: 100%;
+	}
+
+	@media (min-width: 640px) {
+		.pair-picker {
+			margin-left: auto;
+			width: auto;
+		}
 	}
 
 	.agreement-facets {
@@ -255,7 +263,7 @@
 		gap: var(--space-4);
 	}
 
-	@media (min-width: 768px) {
+	@media (min-width: 1024px) {
 		.agreement-facets {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
@@ -299,12 +307,5 @@
 		color: var(--text-secondary);
 		max-width: var(--prose-width);
 		margin: 0;
-	}
-
-	@media (max-width: 640px) {
-		.pair-picker {
-			margin-left: 0;
-			width: 100%;
-		}
 	}
 </style>

@@ -34,7 +34,7 @@
 	<div class="stat-card comparison-stat-card">
 		<div class="stat-header">
 			<div class="stat-icon-container comparison-icon">
-				<GitCompareArrowsIcon size={24} class="text-purple-400" />
+				<GitCompareArrowsIcon size={24} />
 			</div>
 			<span class="stat-label">{$t.comparison?.totalArticles || 'Total Articles'}</span>
 		</div>
@@ -45,11 +45,11 @@
 	<div class="stat-card comparison-stat-card">
 		<div class="stat-header">
 			<div class="stat-icon-container discrepancy-icon">
-				<AlertCircleIcon size={24} class="text-amber-400" />
+				<AlertCircleIcon size={24} />
 			</div>
 			<span class="stat-label">{$t.comparison?.totalDiscrepancies || 'Total Discrepancies'}</span>
 			<div class="info-tooltip" title={dynamicTooltips.totalDiscrepancies}>
-				<InfoIcon size={14} class="text-white/50 hover:text-white/80 cursor-help" />
+				<InfoIcon size={14} />
 			</div>
 		</div>
 		<div class="stat-value discrepancy-stat-value">{stats.totalDiscrepancies}</div>
@@ -61,7 +61,7 @@
 	<div class="stat-card comparison-stat-card">
 		<div class="stat-header">
 			<div class="stat-icon-container success-icon">
-				<TrendingUpIcon size={24} class="text-green-400" />
+				<TrendingUpIcon size={24} />
 			</div>
 			<span class="stat-label">{$t.comparison?.averageDiscrepancy || 'Average Discrepancy'}</span>
 			<div
@@ -69,7 +69,7 @@
 				title={$t.comparison?.averageDiscrepancyExplanation ||
 					'Average total difference points per article across all three dimensions (polarity + subjectivity + centrality)'}
 			>
-				<InfoIcon size={14} class="text-white/50 hover:text-white/80 cursor-help" />
+				<InfoIcon size={14} />
 			</div>
 		</div>
 		<div class="stat-value">{stats.averageDiscrepancy.toFixed(2)}</div>
@@ -79,11 +79,11 @@
 	<div class="stat-card comparison-stat-card">
 		<div class="stat-header">
 			<div class="stat-icon-container conflict-icon">
-				<BarChart3Icon size={24} class="text-pink-400" />
+				<BarChart3Icon size={24} />
 			</div>
 			<span class="stat-label">{$t.comparison?.highConflicts || 'High Conflicts'}</span>
 			<div class="info-tooltip" title={dynamicTooltips.significantDifferences}>
-				<InfoIcon size={14} class="text-white/50 hover:text-white/80 cursor-help" />
+				<InfoIcon size={14} />
 			</div>
 		</div>
 		<div class="stat-value conflict-stat-value">{stats.highConflictArticles}</div>
@@ -95,7 +95,7 @@
 
 <!-- Breakdown by dimension -->
 <div class="breakdown-section comparison-breakdown mt-6">
-	<h4 class="h5 mb-3 text-white">
+	<h4 class="mb-3 breakdown-title">
 		{$t.comparison?.breakdownByDimension || 'Breakdown by Dimension'}
 	</h4>
 
@@ -162,17 +162,19 @@
 			aria-expanded={showArbiterSummary}
 		>
 			<div class="arbiter-header-content">
-				<GavelIcon size={20} class="text-amber-400" />
-				<h4 class="h5 text-white">{$t.arbiter?.summaryTitle || 'Arbiter Evaluation Summary'}</h4>
-				<span class="badge variant-soft-warning"
+				<span class="arbiter-glyph"><GavelIcon size={20} /></span>
+				<h4 class="arbiter-summary-title">
+					{$t.arbiter?.summaryTitle || 'Arbiter Evaluation Summary'}
+				</h4>
+				<span class="badge badge-count"
 					>{arbiterStats.totalEvaluated}
 					{$t.arbiter?.articlesEvaluated || 'articles evaluated'}</span
 				>
 			</div>
 			{#if showArbiterSummary}
-				<ChevronUpIcon size={20} class="text-white/60" />
+				<span class="toggle-chevron"><ChevronUpIcon size={20} /></span>
 			{:else}
-				<ChevronDownIcon size={20} class="text-white/60" />
+				<span class="toggle-chevron"><ChevronDownIcon size={20} /></span>
 			{/if}
 		</button>
 
@@ -247,7 +249,7 @@
 <style>
 	.stats-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+		grid-template-columns: 1fr;
 		gap: var(--space-4);
 		margin-bottom: var(--space-6);
 	}
@@ -278,24 +280,31 @@
 		background: var(--surface-subtle);
 	}
 
+	/* Lucide strokes with currentColor, so each wrapper tints its own glyph.
+	   These replace four Tailwind palette utilities that set the icon to a
+	   colour the token layer had no say in. */
 	.comparison-icon {
 		background: var(--sentiment-comparison-bg);
 		border-color: var(--sentiment-comparison-border);
+		color: var(--sentiment-comparison-accent);
 	}
 
 	.discrepancy-icon {
 		background: color-mix(in oklab, var(--sentiment-discrepancy-light) 12%, transparent);
 		border-color: color-mix(in oklab, var(--sentiment-discrepancy-light) 28%, transparent);
+		color: var(--sentiment-discrepancy-light);
 	}
 
 	.success-icon {
 		background: color-mix(in oklab, var(--sentiment-polarity-very-positive) 12%, transparent);
 		border-color: color-mix(in oklab, var(--sentiment-polarity-very-positive) 28%, transparent);
+		color: var(--sentiment-polarity-very-positive);
 	}
 
 	.conflict-icon {
 		background: color-mix(in oklab, var(--sentiment-comparison-accent) 12%, transparent);
 		border-color: color-mix(in oklab, var(--sentiment-comparison-accent) 28%, transparent);
+		color: var(--sentiment-comparison-accent);
 	}
 
 	.stat-header {
@@ -309,13 +318,20 @@
 		margin-left: auto;
 		display: flex;
 		align-items: center;
+		color: var(--text-subtle);
+		cursor: help;
+		transition: color var(--timing-fast) var(--easing-default);
+	}
+
+	.info-tooltip:hover {
+		color: var(--text-secondary);
 	}
 
 	.stat-label {
 		font-family: var(--font-mono);
-		font-size: 0.6875rem;
+		font-size: var(--font-size-eyebrow);
 		font-weight: 600;
-		letter-spacing: 0.14em;
+		letter-spacing: var(--tracking-widest);
 		text-transform: uppercase;
 		color: var(--text-muted);
 	}
@@ -328,7 +344,7 @@
 		color: var(--text-primary);
 		line-height: 1;
 		margin-bottom: var(--space-1);
-		letter-spacing: -0.02em;
+		letter-spacing: var(--tracking-tight);
 	}
 
 	.comparison-stat-value {
@@ -351,7 +367,7 @@
 
 	.breakdown-section {
 		background: var(--surface-card);
-		padding: var(--space-6);
+		padding: var(--space-4);
 		border: 1px solid var(--border-subtle);
 	}
 
@@ -408,9 +424,9 @@
 
 	.breakdown-label {
 		font-family: var(--font-mono);
-		font-size: 0.6875rem;
+		font-size: var(--font-size-eyebrow);
 		font-weight: 600;
-		letter-spacing: 0.14em;
+		letter-spacing: var(--tracking-widest);
 		text-transform: uppercase;
 		color: var(--text-secondary);
 	}
@@ -422,13 +438,13 @@
 		color: var(--text-primary);
 	}
 
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.stats-grid {
-			grid-template-columns: 1fr;
+			grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
 		}
 
 		.breakdown-section {
-			padding: var(--space-4);
+			padding: var(--space-6);
 		}
 	}
 
@@ -451,7 +467,7 @@
 		align-items: center;
 		justify-content: space-between;
 		width: 100%;
-		padding: var(--space-4) var(--space-6);
+		padding: var(--space-3-5) var(--space-4);
 		background: transparent;
 		border: none;
 		cursor: pointer;
@@ -465,11 +481,19 @@
 	.arbiter-header-content {
 		display: flex;
 		align-items: center;
-		gap: var(--space-3);
+		flex-wrap: wrap;
+		gap: var(--space-2);
+	}
+
+	@media (min-width: 640px) {
+		.arbiter-header-content {
+			flex-wrap: nowrap;
+			gap: var(--space-3);
+		}
 	}
 
 	.arbiter-content {
-		padding: 0 var(--space-6) var(--space-6);
+		padding: 0 var(--space-4) var(--space-4);
 		border-top: 1px solid var(--border-subtle);
 	}
 
@@ -544,18 +568,42 @@
 		border: 1px solid color-mix(in oklab, var(--color-warning-500) 22%, transparent);
 	}
 
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.arbiter-header {
-			padding: var(--space-3-5) var(--space-4);
+			padding: var(--space-4) var(--space-6);
 		}
 
 		.arbiter-content {
-			padding: 0 var(--space-4) var(--space-4);
+			padding: 0 var(--space-6) var(--space-6);
 		}
+	}
 
-		.arbiter-header-content {
-			flex-wrap: wrap;
-			gap: var(--space-2);
-		}
+	/* ---- Text roles, replacing Tailwind colour utilities. ---- */
+	.breakdown-title,
+	.arbiter-summary-title {
+		font-size: var(--font-size-lg);
+		color: var(--text-primary);
+	}
+
+	.arbiter-glyph,
+	.toggle-chevron {
+		display: inline-flex;
+		align-items: center;
+	}
+
+	.arbiter-glyph {
+		color: var(--sentiment-arbiter);
+	}
+
+	.toggle-chevron {
+		color: var(--text-muted);
+	}
+
+	/* Was a Skeleton v2 badge variant class that no stylesheet in this project
+	   defines any more — the count badge had been rendering unstyled. */
+	.badge-count {
+		background: color-mix(in oklab, var(--status-warning) 15%, transparent);
+		border: 1px solid color-mix(in oklab, var(--status-warning) 30%, transparent);
+		color: var(--status-warning);
 	}
 </style>

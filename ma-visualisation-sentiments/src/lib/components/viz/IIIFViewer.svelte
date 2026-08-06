@@ -136,11 +136,11 @@
 		{#if loading}
 			<div class="viewer-placeholder">
 				<div class="viewer-spinner"></div>
-				<p class="text-white/60 text-sm">{$t.messages?.loading ?? 'Loading...'}</p>
+				<p class="viewer-note">{$t.messages?.loading ?? 'Loading...'}</p>
 			</div>
 		{:else if error}
 			<div class="viewer-placeholder">
-				<p class="text-white/60 text-sm">{error}</p>
+				<p class="viewer-note">{error}</p>
 				{#if articleUrl}
 					<a
 						href={articleUrl}
@@ -207,7 +207,7 @@
 
 <style>
 	.iiif-viewer-wrapper {
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-panel);
 		overflow: hidden;
 		background: var(--surface-nested);
 		border: 1px solid var(--border-default);
@@ -217,13 +217,13 @@
 		position: fixed;
 		inset: var(--space-4);
 		z-index: var(--z-tooltip);
-		border-radius: var(--radius-2xl);
+		border-radius: var(--radius-panel);
 		box-shadow: var(--shadow-xl);
 	}
 
 	.osd-container {
 		width: 100%;
-		height: 400px;
+		height: 300px;
 		cursor: grab;
 	}
 
@@ -245,7 +245,7 @@
 		height: var(--size-icon-xl);
 		border: 2px solid var(--border-hover);
 		border-top-color: var(--color-primary-400);
-		border-radius: 50%;
+		border-radius: var(--radius-circle);
 		animation: spin 0.8s linear infinite;
 	}
 
@@ -291,7 +291,7 @@
 		justify-content: center;
 		width: var(--size-control-sm);
 		height: var(--size-control-sm);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 		border: none;
 		background: var(--surface-subtle);
 		color: var(--text-muted);
@@ -322,9 +322,9 @@
 		text-underline-offset: 2px;
 	}
 
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.osd-container {
-			height: 300px;
+			height: 400px;
 		}
 	}
 
@@ -336,5 +336,10 @@
 		.viewer-btn {
 			transition: none;
 		}
+	}
+
+	.viewer-note {
+		font-size: var(--font-size-sm);
+		color: var(--text-muted);
 	}
 </style>

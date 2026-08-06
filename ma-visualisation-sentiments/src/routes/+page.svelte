@@ -13,6 +13,7 @@
 		filterState
 	} from '$lib/stores';
 	import { t, currentLanguage } from '$lib/i18n';
+	import { hasFilterRail } from '$lib/types/data';
 	import type { Article } from '$lib/types/data';
 	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
 
@@ -34,12 +35,6 @@
 		clearSelectedArticleOnly,
 		handlePendingArticleSelection
 	} from '$lib/stores/url';
-
-	/**
-	 * Views that own their internal filters and run full-width, so the page
-	 * renders no shared filter rail for them.
-	 */
-	const SELF_CONTAINED_VIEWS = new Set(['arbiter', 'comparison', 'agreement']);
 
 	// Application state
 	let detailedArticle: Article | null = $state(null);
@@ -230,10 +225,7 @@
 <!-- Dynamic SEO Head -->
 <SEOHead view={currentView} comparisonMode={isComparisonMode} />
 
-<main
-	class="main-container p-2 sm:p-4 md:p-6"
-	data-layout={currentView === 'arbiter' || currentView === 'comparison' ? 'full' : 'rail'}
->
+<main class="main-container" data-layout={hasFilterRail(currentView) ? 'rail' : 'full'}>
 	{#if currentView === 'arbiter'}
 		<ArbiterMethodology />
 	{:else}
@@ -242,7 +234,7 @@
 
 	{#if isLoading}
 		<LoadingState />
-	{:else if SELF_CONTAINED_VIEWS.has(currentView)}
+	{:else if !hasFilterRail(currentView)}
 		<!-- Self-contained views: each owns its internal filters, so no standard
 		     FiltersPanel and no filter rail. Arbiter has its own controls;
 		     ComparisonView carries Country/Journal/Discrepancy filters itself. -->
@@ -288,9 +280,12 @@
 	   (the rail reclaims the left gutter); the self-contained full-width views
 	   (arbiter, comparison) keep the prior, more readable cap so their text and
 	   methodology don't stretch. */
+	/* All padding lives here, not split between Tailwind utilities in the class
+	   attribute and this block. It used to be set twice, in two systems, at two
+	   different breakpoint sets. */
 	.main-container {
 		margin-top: 0;
-		padding-top: var(--space-2);
+		padding: var(--space-2);
 		margin-inline: auto;
 	}
 
@@ -304,12 +299,14 @@
 
 	@media (min-width: 640px) {
 		.main-container {
+			padding: var(--space-4);
 			padding-top: var(--space-3);
 		}
 	}
 
 	@media (min-width: 1024px) {
 		.main-container {
+			padding: var(--space-6);
 			padding-top: var(--space-4);
 		}
 	}

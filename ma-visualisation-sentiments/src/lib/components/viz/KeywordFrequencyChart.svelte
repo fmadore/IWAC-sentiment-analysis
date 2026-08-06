@@ -3,6 +3,7 @@
 	import { innerWidth } from 'svelte/reactivity/window';
 	import { uiState, extremeState } from '$lib/stores';
 	import { t } from '$lib/i18n';
+	import Spinner from '$lib/components/common/Spinner.svelte';
 	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
 	import { getExtremeCategoryConfig, getTopKeywords } from '$lib/utils/extremeAnalysis';
 	import {
@@ -167,8 +168,12 @@
 		<div class="chart-container extreme-chart-container p-4" style="min-height: 500px;">
 			<div class="flex items-center justify-center h-full">
 				<div class="text-center">
-					<div class="loading-spinner extreme-spinner mb-4"></div>
-					<p class="text-white/80">{$t.messages.loading || 'Loading extreme analysis data...'}</p>
+					<Spinner
+						size="2xl"
+						--spinner-track="var(--border-default)"
+						--spinner-accent="var(--sentiment-extreme)"
+					/>
+					<p class="loading-note">{$t.messages.loading || 'Loading extreme analysis data...'}</p>
 				</div>
 			</div>
 		</div>
@@ -183,7 +188,7 @@
 		{@const description = $t.extremeAnalysis.descriptions[descriptionKey]}
 		{#if description && description.trim()}
 			<div class="extreme-description-card">
-				<p class="text-sm text-white/80 leading-relaxed">
+				<p class="description-text leading-relaxed">
 					{description}
 				</p>
 			</div>
@@ -243,20 +248,6 @@
 		}
 	}
 
-	.loading-spinner {
-		width: var(--size-control-xl);
-		height: var(--size-control-xl);
-		border: 3px solid var(--border-default);
-		border-top-color: var(--text-secondary);
-		border-radius: var(--radius-full);
-		animation: spin 1s linear infinite;
-		margin: 0 auto;
-	}
-
-	.extreme-spinner {
-		border-top-color: var(--sentiment-extreme);
-	}
-
 	@keyframes spin {
 		to {
 			transform: rotate(360deg);
@@ -300,8 +291,10 @@
 	/* Statistics Row */
 	.statistics-row {
 		display: flex;
+		flex-direction: column;
 		flex-wrap: wrap;
-		gap: var(--space-8);
+		gap: var(--space-3);
+		align-items: center;
 		justify-content: center;
 	}
 
@@ -309,18 +302,19 @@
 		display: flex;
 		gap: var(--space-2);
 		align-items: center;
+		text-align: center;
 	}
 
 	.stat-label {
 		color: var(--text-muted);
-		font-size: var(--font-size-base);
+		font-size: var(--font-size-sm);
 		font-weight: var(--font-weight-medium);
 	}
 
 	.stat-value {
 		color: var(--text-primary);
 		font-weight: var(--font-weight-bold);
-		font-size: var(--font-size-lg);
+		font-size: var(--font-size-base);
 	}
 
 	.extreme-stat-value {
@@ -328,40 +322,47 @@
 	}
 
 	/* Mobile Responsiveness */
-	@media (max-width: 768px) {
+	@media (min-width: 640px) {
 		.statistics-row {
+			flex-direction: row;
 			gap: var(--space-6);
 		}
 
-		.stat-label {
-			font-size: var(--font-size-sm);
-		}
-
-		.stat-value {
-			font-size: var(--font-size-md);
+		.stat-item {
+			text-align: left;
 		}
 	}
 
-	@media (max-width: 480px) {
+	@media (min-width: 1024px) {
 		.statistics-row {
-			flex-direction: column;
-			gap: var(--space-3);
-			align-items: center;
+			gap: var(--space-8);
 		}
 
-		.stat-item {
-			text-align: center;
+		.stat-label {
+			font-size: var(--font-size-base);
+		}
+
+		.stat-value {
+			font-size: var(--font-size-lg);
 		}
 	}
 
 	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
-		.loading-spinner,
 		.extreme-chart-container,
 		.extreme-description-card,
 		.extreme-stats-card {
 			animation: none;
 			transition: none;
 		}
+	}
+
+	.loading-note {
+		color: var(--text-secondary);
+	}
+
+	.description-text {
+		font-size: var(--font-size-sm);
+		color: var(--text-secondary);
 	}
 </style>

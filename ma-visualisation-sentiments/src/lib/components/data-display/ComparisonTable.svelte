@@ -3,7 +3,7 @@
 	import { t } from '$lib/i18n';
 	import { getJournalName } from '$lib/utils/format';
 	import { formatDate, getModelDisplayName } from '$lib/utils/format';
-	import { getDiffClass, getDiffBadgeClass, formatDiff } from '$lib/utils/discrepancy';
+	import { discrepancyAttributes, formatDiff } from '$lib/utils/discrepancy';
 	import type { ComparisonData } from '$lib/types/data';
 	import ArrowUpDownIcon from '@lucide/svelte/icons/arrow-up-down';
 	import LayoutGridIcon from '@lucide/svelte/icons/layout-grid';
@@ -90,9 +90,8 @@
 			<!-- View Mode Toggle -->
 			<div class="view-controls flex gap-2">
 				<button
-					class="btn btn-sm {viewMode === 'table'
-						? 'variant-filled-primary'
-						: 'variant-soft-surface'}"
+					class="btn btn-sm view-toggle"
+					data-state={viewMode === 'table' ? 'active' : 'inactive'}
 					onclick={() => (viewMode = 'table')}
 					disabled={isMobile}
 				>
@@ -100,9 +99,8 @@
 					<span>{$t.common?.tableView || 'Table'}</span>
 				</button>
 				<button
-					class="btn btn-sm {viewMode === 'cards'
-						? 'variant-filled-primary'
-						: 'variant-soft-surface'}"
+					class="btn btn-sm view-toggle"
+					data-state={viewMode === 'cards' ? 'active' : 'inactive'}
 					onclick={() => (viewMode = 'cards')}
 				>
 					<LayoutGridIcon size={16} />
@@ -112,14 +110,14 @@
 
 			<!-- Results info and items per page -->
 			<div class="flex items-center gap-4">
-				<div class="text-sm text-white/60">
+				<div class="card-total-label">
 					{$t.table?.showingItems || 'Showing'}
 					{pagination.startIndex + 1}-{pagination.endIndex}
 					{$t.common?.of || 'of'}
 					{sortedComparisons.length}
 				</div>
 				<div class="flex items-center gap-2">
-					<label for="items-per-page" class="text-sm text-white whitespace-nowrap"
+					<label for="items-per-page" class="control-label whitespace-nowrap"
 						>{$t.table?.itemsPerPage || 'Items per page'}:</label
 					>
 					<select
@@ -127,7 +125,7 @@
 						bind:value={pagination.itemsPerPage}
 						onchange={(e) =>
 							pagination.changeItemsPerPage(Number((e.target as HTMLSelectElement)?.value))}
-						class="select select-sm bg-surface-700 text-white border-surface-500"
+						class="select select-sm"
 					>
 						{#each pagination.itemsPerPageOptions as option (option)}
 							<option value={option}>{option}</option>
@@ -216,16 +214,11 @@
 				</thead>
 				<tbody>
 					{#each paginatedComparisons as comparison (comparison.article['o:id'])}
-						<tr
-							class="hover:bg-surface-700/30 cursor-pointer transition-colors"
-							onclick={() => selectComparison(comparison)}
-						>
+						<tr class="comparison-row cursor-pointer" onclick={() => selectComparison(comparison)}>
 							<td class="max-w-xs">
 								<div class="flex flex-col gap-1">
-									<span class="text-white font-medium line-clamp-2"
-										>{comparison.article['o:title']}</span
-									>
-									<span class="text-xs text-white/60"
+									<span class="row-title line-clamp-2">{comparison.article['o:title']}</span>
+									<span class="row-meta"
 										>{getJournalName(comparison.article)} • {formatDate(
 											comparison.article.publication_date
 										)}</span
@@ -268,7 +261,8 @@
 							</td>
 							<td class="text-center">
 								<span
-									class="badge badge-lg {getDiffBadgeClass(comparison.discrepancies.totalDiff)}"
+									class="badge badge-lg"
+									{...discrepancyAttributes(comparison.discrepancies.totalDiff)}
 								>
 									{comparison.discrepancies.totalDiff}
 								</span>
@@ -297,10 +291,10 @@
 				>
 					<!-- Header -->
 					<div class="mb-3">
-						<h3 class="text-white font-semibold line-clamp-2 mb-1">
+						<h3 class="row-title line-clamp-2 mb-1">
 							{comparison.article['o:title']}
 						</h3>
-						<p class="text-xs text-white/60">
+						<p class="row-meta">
 							{getJournalName(comparison.article)} • {formatDate(
 								comparison.article.publication_date
 							)}
@@ -319,7 +313,10 @@
 									>
 									<SentimentBadge type="polarity" value={comparison.modelA?.polarite} size="sm" />
 								</div>
-								<div class="diff-indicator {getDiffClass(comparison.discrepancies.polarityDiff)}">
+								<div
+									class="diff-indicator"
+									{...discrepancyAttributes(comparison.discrepancies.polarityDiff)}
+								>
 									{formatDiff(comparison.discrepancies.polarityDiff)}
 								</div>
 								<div class="value-cell">
@@ -346,7 +343,8 @@
 									/>
 								</div>
 								<div
-									class="diff-indicator {getDiffClass(comparison.discrepancies.subjectivityDiff)}"
+									class="diff-indicator"
+									{...discrepancyAttributes(comparison.discrepancies.subjectivityDiff)}
 								>
 									{formatDiff(comparison.discrepancies.subjectivityDiff)}
 								</div>
@@ -377,7 +375,10 @@
 										size="sm"
 									/>
 								</div>
-								<div class="diff-indicator {getDiffClass(comparison.discrepancies.centralityDiff)}">
+								<div
+									class="diff-indicator"
+									{...discrepancyAttributes(comparison.discrepancies.centralityDiff)}
+								>
 									{formatDiff(comparison.discrepancies.centralityDiff)}
 								</div>
 								<div class="value-cell">
@@ -395,11 +396,14 @@
 					</div>
 
 					<!-- Total Discrepancy -->
-					<div class="mt-3 pt-3 border-t border-white/10 flex items-center justify-between">
-						<span class="text-sm text-white/60"
+					<div class="card-total mt-3 pt-3 flex items-center justify-between">
+						<span class="card-total-label"
 							>{$t.comparison?.totalDiscrepancy || 'Total Discrepancy'}</span
 						>
-						<span class="badge badge-lg {getDiffBadgeClass(comparison.discrepancies.totalDiff)}">
+						<span
+							class="badge badge-lg"
+							{...discrepancyAttributes(comparison.discrepancies.totalDiff)}
+						>
 							{comparison.discrepancies.totalDiff}
 						</span>
 					</div>
@@ -416,7 +420,7 @@
 		font-weight: 600;
 		line-height: 1.15;
 		color: var(--text-primary);
-		letter-spacing: -0.005em;
+		letter-spacing: var(--tracking-snug);
 		margin: 0;
 	}
 
@@ -467,15 +471,15 @@
 
 	/* Model-name sub-header row — subordinate to the dimension labels above */
 	.col-subhead {
-		font-size: 0.625rem;
+		font-size: var(--font-size-eyebrow);
 		font-weight: var(--font-weight-regular);
-		letter-spacing: 0.06em;
+		letter-spacing: var(--tracking-wider);
 		color: var(--text-muted);
 	}
 
 	.comparison-card {
 		cursor: pointer;
-		padding: var(--space-4);
+		padding: var(--space-3);
 		background: var(--surface-card);
 		border: 1px solid var(--border-subtle);
 		transition:
@@ -501,7 +505,7 @@
 
 	.cards-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+		grid-template-columns: 1fr;
 		gap: var(--space-4);
 	}
 
@@ -523,9 +527,9 @@
 
 	.dimension-label {
 		font-family: var(--font-mono);
-		font-size: 0.6875rem;
+		font-size: var(--font-size-eyebrow);
 		font-weight: 600;
-		letter-spacing: 0.14em;
+		letter-spacing: var(--tracking-widest);
 		text-transform: uppercase;
 		color: var(--text-muted);
 	}
@@ -546,8 +550,8 @@
 
 	.model-label {
 		font-family: var(--font-mono);
-		font-size: 0.625rem;
-		letter-spacing: 0.06em;
+		font-size: var(--font-size-eyebrow);
+		letter-spacing: var(--tracking-wider);
 		text-transform: uppercase;
 		color: var(--text-muted);
 	}
@@ -563,7 +567,7 @@
 	.badge {
 		padding: var(--space-1) var(--space-2);
 		font-family: var(--font-mono);
-		font-size: 0.6875rem;
+		font-size: var(--font-size-eyebrow);
 		font-weight: 600;
 		font-variant-numeric: tabular-nums;
 		border-radius: 0;
@@ -574,7 +578,7 @@
 
 	.badge-lg {
 		padding: var(--space-1-5) var(--space-3);
-		font-size: 0.75rem;
+		font-size: var(--font-size-xs);
 		cursor: inherit;
 	}
 
@@ -588,7 +592,7 @@
 
 	.controls-section {
 		background: var(--surface-subtle);
-		padding: var(--space-4);
+		padding: var(--space-3);
 		border: 1px solid var(--border-subtle);
 	}
 
@@ -600,7 +604,7 @@
 	.select-sm {
 		padding: var(--space-1) var(--space-2);
 		font-size: var(--font-size-base);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 	}
 
 	/* View controls and other buttons */
@@ -632,17 +636,17 @@
 	}
 
 	/* Responsive adjustments */
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.cards-grid {
-			grid-template-columns: 1fr;
+			grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
 		}
 
 		.comparison-card {
-			padding: var(--space-3);
+			padding: var(--space-4);
 		}
 
 		.controls-section {
-			padding: var(--space-3);
+			padding: var(--space-4);
 		}
 	}
 
@@ -653,5 +657,71 @@
 		tbody tr {
 			transition: none;
 		}
+	}
+
+	/* ---- Text and state roles, replacing Tailwind colour utilities.
+	   Tailwind still lays these out; colour goes through tokens here. ---- */
+	.comparison-row {
+		transition: background-color var(--timing-fast) var(--easing-default);
+	}
+
+	.comparison-row:hover {
+		background: var(--surface-hover);
+	}
+
+	.row-title {
+		font-weight: var(--font-weight-medium);
+		color: var(--text-primary);
+	}
+
+	.row-meta {
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
+	}
+
+	.control-label {
+		font-size: var(--font-size-sm);
+		color: var(--text-primary);
+	}
+
+	.card-total {
+		border-top: 1px solid var(--border-subtle);
+	}
+
+	.card-total-label {
+		font-size: var(--font-size-sm);
+		color: var(--text-muted);
+	}
+
+	/* data-state rather than conditional class concatenation, and rendered from
+	   tokens rather than the Skeleton v2 `variant-*` names that used to sit
+	   here — those classes no longer exist in any stylesheet, so the active
+	   view-mode button had not been visibly active for some time. */
+	.view-toggle[data-state='inactive'] {
+		background: var(--surface-subtle);
+		border: 1px solid var(--border-default);
+		color: var(--text-secondary);
+	}
+
+	.view-toggle[data-state='inactive']:hover:not(:disabled) {
+		background: var(--surface-hover);
+		border-color: var(--border-hover);
+	}
+
+	.view-toggle[data-state='active'] {
+		background: var(--accent-soft);
+		border: 1px solid var(--accent-border);
+		color: var(--accent);
+	}
+
+	/* Severity resolves from the data attribute via app.css. */
+	.badge[data-discrepancy],
+	.diff-indicator[data-discrepancy] {
+		color: var(--discrepancy-fg);
+	}
+
+	.badge[data-discrepancy] {
+		background: var(--discrepancy-bg);
+		border-color: var(--discrepancy-border);
 	}
 </style>

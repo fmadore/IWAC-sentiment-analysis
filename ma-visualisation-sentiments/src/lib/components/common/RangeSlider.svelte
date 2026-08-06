@@ -118,9 +118,16 @@
 
 <style>
 	.range-container {
+		/* Component API — override on any ancestor to retint the track and
+		   handles. Declared once here; it was previously repeated as the same
+		   var() fallback at five separate use sites, so changing the default
+		   meant finding all five. */
+		--range-accent: var(--sentiment-comparison);
+		--range-accent-light: var(--sentiment-comparison-light);
+
 		position: relative;
 		height: 60px;
-		margin: 0 var(--space-2-5);
+		margin: 0 5px;
 	}
 
 	.range-track {
@@ -137,7 +144,7 @@
 		position: absolute;
 		top: 20px;
 		height: 4px;
-		background: var(--range-accent-light, var(--sentiment-comparison-light));
+		background: var(--range-accent-light);
 		border-radius: var(--space-0-5);
 		transition:
 			left var(--timing-fast) var(--easing-default),
@@ -160,9 +167,9 @@
 		appearance: none;
 		width: var(--size-icon-md);
 		height: var(--size-icon-md);
-		border-radius: 50%;
+		border-radius: var(--radius-circle);
 		background: var(--text-primary);
-		border: 2px solid var(--range-accent, var(--sentiment-comparison));
+		border: 2px solid var(--range-accent);
 		cursor: pointer;
 		pointer-events: auto;
 		box-shadow: 0 2px 8px color-mix(in oklab, black 30%, transparent);
@@ -173,16 +180,15 @@
 
 	.range-slider::-webkit-slider-thumb:hover {
 		transform: scale(1.1);
-		box-shadow: 0 4px 12px
-			color-mix(in oklab, var(--range-accent, var(--sentiment-comparison)) 40%, transparent);
+		box-shadow: 0 4px 12px color-mix(in oklab, var(--range-accent) 40%, transparent);
 	}
 
 	.range-slider::-moz-range-thumb {
 		width: var(--size-icon-md);
 		height: var(--size-icon-md);
-		border-radius: 50%;
+		border-radius: var(--radius-circle);
 		background: var(--text-primary);
-		border: 2px solid var(--range-accent, var(--sentiment-comparison));
+		border: 2px solid var(--range-accent);
 		cursor: pointer;
 		pointer-events: auto;
 		box-shadow: 0 2px 8px color-mix(in oklab, black 30%, transparent);
@@ -193,8 +199,7 @@
 
 	.range-slider::-moz-range-thumb:hover {
 		transform: scale(1.1);
-		box-shadow: 0 4px 12px
-			color-mix(in oklab, var(--range-accent, var(--sentiment-comparison)) 40%, transparent);
+		box-shadow: 0 4px 12px color-mix(in oklab, var(--range-accent) 40%, transparent);
 	}
 
 	.range-slider:focus-visible {
@@ -234,9 +239,9 @@
 	}
 
 	/* Responsive */
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.range-container {
-			margin: 0 5px;
+			margin: 0 var(--space-2-5);
 		}
 	}
 

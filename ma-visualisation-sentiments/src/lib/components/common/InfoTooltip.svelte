@@ -39,6 +39,9 @@
 
 <style>
 	.info-tooltip {
+		/* Component API — override on any ancestor to retint the bubble. */
+		--tooltip-bg: var(--surface-card-elevated);
+
 		position: relative;
 		display: inline-block;
 	}
@@ -53,8 +56,8 @@
 		background: var(--surface-active);
 		color: var(--text-secondary);
 		border: none;
-		border-radius: var(--radius-full);
-		font-size: var(--font-size-2xs);
+		border-radius: var(--radius-circle);
+		font-size: var(--font-size-eyebrow);
 		font-weight: var(--font-weight-bold);
 		cursor: help;
 		transition:
@@ -75,11 +78,11 @@
 	.tooltip-content {
 		position: absolute;
 		top: calc(var(--space-2-5) * -1);
-		left: 50%;
-		transform: translateX(-50%) translateY(-100%);
-		background: var(--tooltip-bg, var(--surface-card-elevated));
+		left: 0;
+		transform: translateY(-100%);
+		background: var(--tooltip-bg);
 		border: 1px solid var(--border-strong);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 		padding: var(--space-3);
 		min-width: 320px;
 		max-width: 400px;
@@ -97,35 +100,34 @@
 	.info-icon:focus-visible + .tooltip-content {
 		opacity: 1;
 		visibility: visible;
-		transform: translateX(-50%) translateY(-100%) translateY(-8px);
+		transform: translateY(-100%) translateY(-8px);
 	}
 
 	.tooltip-content::after {
 		content: '';
 		position: absolute;
 		top: 100%;
-		left: 50%;
-		transform: translateX(-50%);
+		left: 24px;
+		transform: none;
 		border: 6px solid transparent;
-		border-top-color: var(--tooltip-bg, var(--surface-card-elevated));
+		border-top-color: var(--tooltip-bg);
 	}
 
 	/* Responsive tooltip */
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.tooltip-content {
-			min-width: 280px;
-			left: 0;
-			transform: translateY(-100%);
+			left: 50%;
+			transform: translateX(-50%) translateY(-100%);
 		}
 
 		.info-tooltip:hover .tooltip-content,
 		.info-icon:focus-visible + .tooltip-content {
-			transform: translateY(-100%) translateY(-8px);
+			transform: translateX(-50%) translateY(-100%) translateY(-8px);
 		}
 
 		.tooltip-content::after {
-			left: 24px;
-			transform: none;
+			left: 50%;
+			transform: translateX(-50%);
 		}
 	}
 

@@ -1,31 +1,30 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { browser } from '$app/environment';
+	import { MediaQuery } from 'svelte/reactivity';
 	import { t } from '$lib/i18n';
 	import { uiState } from '$lib/stores';
-	import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
-	import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
-	import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
-	import AreaChartIcon from '@lucide/svelte/icons/area-chart';
-	import ActivityIcon from '@lucide/svelte/icons/activity';
-	import TableIcon from '@lucide/svelte/icons/table';
-	import GitCompareIcon from '@lucide/svelte/icons/git-compare';
-	import FlameIcon from '@lucide/svelte/icons/flame';
-	import GavelIcon from '@lucide/svelte/icons/gavel';
-	import ScaleIcon from '@lucide/svelte/icons/scale';
-	import MoonStarIcon from '@lucide/svelte/icons/moon-star';
-	import NewspaperIcon from '@lucide/svelte/icons/newspaper';
-	import MapIcon from '@lucide/svelte/icons/map';
+	import { LanguageSwitcher, DatasetPicker } from '$lib/components/ui';
+	import Drawer from '$lib/components/common/Drawer.svelte';
+	import { NAV_ITEMS } from './navItems';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 
 	// Default expanded on wider desktops where the labels fit and where the
 	// flame/gavel/git-compare icons aren't self-explanatory to a researcher.
-	// Below 1280 we keep collapsed to preserve chart real estate.
-	onMount(() => {
-		if (browser && window.innerWidth >= 1280) {
-			uiState.sidebarExpanded = true;
-		}
+	// Below 1280 we default to collapsed to preserve chart real estate.
+	//
+	// This tracks, rather than being read once at mount: the previous
+	// `onMount(() => window.innerWidth >= 1280)` meant opening the app wide and
+	// dragging the window narrow left a 14rem rail eating a fifth of the
+	// viewport, and going the other way never expanded. The fallback is `false`
+	// so the prerendered markup is the collapsed rail.
+	const wideDesktop = new MediaQuery('min-width: 1280px', false);
+
+	// Once the user has an opinion, the viewport stops having one.
+	let userSetSidebar = $state(false);
+
+	$effect(() => {
+		if (userSetSidebar) return;
+		uiState.sidebarExpanded = wideDesktop.current;
 	});
 
 	function change(view: string) {
@@ -35,45 +34,34 @@
 	}
 
 	function toggleSidebar() {
+		userSetSidebar = true;
 		uiState.sidebarExpanded = !uiState.sidebarExpanded;
 	}
 
-	const navItems = [
-		{ id: 'charts', icon: ChartIcon, labelKey: 'charts' as const },
-		{ id: 'trends', icon: TrendingUpIcon, labelKey: 'trends' as const },
-		{ id: 'correlation', icon: BarChart3Icon, labelKey: 'distribution' as const },
-		{ id: 'volume', icon: AreaChartIcon, labelKey: 'volume' as const },
-		{ id: 'seasonality', icon: MoonStarIcon, labelKey: 'seasonality' as const },
-		{ id: 'heatmap', icon: ActivityIcon, labelKey: 'heatmap' as const },
-		{ id: 'ranking', icon: NewspaperIcon, labelKey: 'ranking' as const },
-		{ id: 'map', icon: MapIcon, labelKey: 'map' as const },
-		{ id: 'table', icon: TableIcon, labelKey: 'table' as const },
-		{ id: 'comparison', icon: GitCompareIcon, labelKey: 'comparison' as const },
-		{ id: 'agreement', icon: ScaleIcon, labelKey: 'agreement' as const },
-		{ id: 'extremes', icon: FlameIcon, labelKey: 'extremes' as const },
-		{ id: 'arbiter', icon: GavelIcon, labelKey: 'arbiter' as const }
-	];
+	const navItems = NAV_ITEMS;
+
+	/**
+	 * Below 1024px this rail is the mobile drawer, and it absorbs the controls
+	 * the header used to carry: the model picker and the language switcher.
+	 * They belong here — the dataset is a mode switch over the very views listed
+	 * below it, and the drawer has room that a 375px bar does not.
+	 */
+	const desktop = new MediaQuery('min-width: 1024px', false);
 </script>
 
-<!-- Mobile Overlay -->
-{#if uiState.mobileMenuOpen}
-	<button
-		class="mobile-overlay"
-		onclick={() => (uiState.mobileMenuOpen = false)}
-		aria-label="Close navigation"
-	></button>
-{/if}
-
-<!-- Sidebar Navigation -->
-<nav
+<Drawer
+	open={uiState.mobileMenuOpen}
+	onClose={() => (uiState.mobileMenuOpen = false)}
+	enabled={!desktop.current}
+	label="Main navigation"
+	element="nav"
+	width="var(--sidebar-width-mobile-drawer)"
 	class="sidebar"
-	class:expanded={uiState.sidebarExpanded}
-	class:mobile-open={uiState.mobileMenuOpen}
-	aria-label="Main navigation"
+	data-expanded={uiState.sidebarExpanded}
 >
 	<!-- Desktop Toggle Button -->
 	<button
-		class="toggle-btn desktop-only"
+		class="toggle-btn"
 		onclick={toggleSidebar}
 		aria-label={uiState.sidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
 		aria-expanded={uiState.sidebarExpanded}
@@ -85,14 +73,26 @@
 		{/if}
 	</button>
 
-	<!-- Navigation Items -->
-	<div class="nav-items" role="navigation">
+	<!-- Mobile only: the model picker, above the views it modifies. -->
+	{#if !desktop.current}
+		<div class="drawer-section">
+			<span class="drawer-label">{$t.datasets?.availableModels ?? 'Model'}</span>
+			<DatasetPicker />
+		</div>
+		<span class="drawer-label drawer-label-standalone">{$t.nav?.views ?? 'Views'}</span>
+	{/if}
+
+	<!-- No role="navigation" on this container: the panel Drawer renders is
+	     already a <nav> landmark and a second one is a duplicate. No
+	     role="menuitem" on the buttons either — it is invalid without a
+	     role="menu" parent and it promises arrow-key navigation this component
+	     does not implement. aria-current does the real work. -->
+	<div class="nav-items">
 		{#each navItems as item (item.id)}
 			<button
 				class="nav-item"
 				data-state={uiState.activeView === item.id ? 'active' : 'inactive'}
 				onclick={() => change(item.id)}
-				role="menuitem"
 				aria-current={uiState.activeView === item.id ? 'page' : undefined}
 				title={!uiState.sidebarExpanded ? $t.nav[item.labelKey] || item.id : undefined}
 			>
@@ -105,88 +105,98 @@
 			</button>
 		{/each}
 	</div>
-</nav>
+
+	<!-- Mobile only: language, pinned to the foot of the drawer. -->
+	{#if !desktop.current}
+		<div class="drawer-footer">
+			<span class="drawer-label">{$t.language ?? 'Language'}</span>
+			<LanguageSwitcher />
+		</div>
+	{/if}
+</Drawer>
 
 <style>
-	/* ===== Mobile Overlay ===== */
-	.mobile-overlay {
-		display: block;
-		position: fixed;
-		inset: 0;
-		z-index: var(--z-overlay);
-		background: color-mix(in oklab, black 65%, transparent);
-		border: none;
-		cursor: pointer;
-	}
-
+	/* ===== Sidebar =====
+	   Two presentations from one component:
+	   • < 1024px — the mobile drawer. All of that chrome (fixed panel, scrim,
+	     z-index above the scrim, slide transform, focus trap, Escape, scroll
+	     lock) belongs to common/Drawer.svelte, shared with the filter rail.
+	     This file no longer owns any of it, and the two can no longer disagree
+	     about width, shadow or keyboard behaviour the way they used to.
+	   • >= 1024px — a permanent fixed rail that the page content margins around
+	     (see +layout.svelte). That is what the :global rules below describe;
+	     they target the element Drawer renders, which is why they are global. */
 	@media (min-width: 1024px) {
-		.mobile-overlay {
-			display: none;
-		}
-	}
-
-	/* ===== Sidebar Container ===== */
-	.sidebar {
-		position: fixed;
-		top: 0;
-		left: 0;
-		/* Must sit ABOVE its own mobile scrim (--z-overlay); otherwise the scrim
-		   dims the drawer and swallows nav clicks. Mirrors the filter rail. */
-		z-index: calc(var(--z-overlay) + 1);
-		height: 100dvh;
-		padding-top: var(--space-4);
-
-		/* Collapsed width */
-		width: var(--sidebar-width-collapsed);
-
-		background: var(--app-bg-elevated);
-		border-right: 1px solid var(--border-subtle);
-		box-shadow: 1px 0 0 color-mix(in oklab, black 30%, transparent);
-
-		transition:
-			width var(--timing-normal) var(--easing-default),
-			transform var(--timing-normal) var(--easing-default);
-
-		transform: translateX(-100%);
-	}
-
-	/* Expanded state */
-	.sidebar.expanded {
-		width: var(--sidebar-width-expanded);
-	}
-
-	/* Mobile open state */
-	.sidebar.mobile-open {
-		transform: translateX(0);
-		width: var(--sidebar-width-mobile-drawer);
-	}
-
-	/* Desktop: always visible */
-	@media (min-width: 1024px) {
-		.sidebar {
+		:global(.sidebar) {
+			display: flex;
+			flex-direction: column;
+			position: fixed;
+			top: 0;
+			left: 0;
+			z-index: var(--z-sidebar);
+			height: 100dvh;
+			padding-top: var(--space-4);
+			width: var(--sidebar-width-collapsed);
+			background: var(--app-bg-elevated);
+			border-right: 1px solid var(--border-subtle);
 			transform: translateX(0);
+			transition: width var(--timing-normal) var(--easing-default);
+		}
+
+		:global(.sidebar[data-expanded='true']) {
+			width: var(--sidebar-width-expanded);
 		}
 	}
 
-	/* ===== Toggle Button (Desktop) ===== */
+	/* ===== Drawer sections (mobile only) =====
+	   The controls the header handed over. The drawer is a column: model at the
+	   top, the views it modifies below it, language pinned at the foot. */
+	.drawer-section {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+		padding: 0 var(--space-3) var(--space-4);
+	}
+
+	.drawer-label {
+		font-family: var(--font-mono);
+		font-size: var(--font-size-eyebrow);
+		font-weight: var(--font-weight-semibold);
+		text-transform: uppercase;
+		letter-spacing: var(--tracking-wider);
+		color: var(--text-muted);
+	}
+
+	.drawer-label-standalone {
+		padding: 0 var(--space-3);
+	}
+
+	.drawer-footer {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-3);
+		margin-top: auto;
+		padding: var(--space-3);
+		border-top: 1px solid var(--border-subtle);
+	}
+
+	/* ===== Toggle Button (desktop only) ===== */
 	.toggle-btn {
 		position: absolute;
 		top: var(--space-6);
 		right: -0.75rem;
 		z-index: 10;
-
-		display: flex;
+		display: none;
 		align-items: center;
 		justify-content: center;
 		width: var(--size-icon-lg);
 		height: var(--size-icon-lg);
-
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 		background: var(--color-surface-800);
 		border: 1px solid var(--border-default);
 		color: var(--text-muted);
 		cursor: pointer;
-
 		transition:
 			background-color var(--timing-fast) var(--easing-default),
 			border-color var(--timing-fast) var(--easing-default),
@@ -199,12 +209,8 @@
 		border-color: var(--border-hover);
 	}
 
-	.desktop-only {
-		display: none;
-	}
-
 	@media (min-width: 1024px) {
-		.desktop-only {
+		.toggle-btn {
 			display: flex;
 		}
 	}
@@ -216,7 +222,8 @@
 		gap: var(--space-1);
 		padding: var(--space-2) var(--space-3);
 		overflow-y: auto;
-		max-height: calc(100dvh - 2rem);
+		flex: 1;
+		min-height: 0;
 	}
 
 	/* ===== Navigation Item ===== */
@@ -226,18 +233,15 @@
 		align-items: center;
 		gap: var(--space-3);
 		padding: var(--space-2-5) var(--space-3);
-		border-radius: var(--radius-lg);
-
+		border-radius: var(--radius-panel);
 		background: transparent;
 		border: 1px solid transparent;
 		color: var(--text-muted);
-
 		font-weight: var(--font-weight-medium);
 		font-size: var(--font-size-base);
 		text-align: left;
 		white-space: nowrap;
 		cursor: pointer;
-
 		transition:
 			background-color var(--timing-fast) var(--easing-default),
 			color var(--timing-fast) var(--easing-default);
@@ -261,7 +265,7 @@
 		top: 20%;
 		bottom: 20%;
 		width: 3px;
-		border-radius: var(--radius-full);
+		border-radius: var(--radius-circle);
 		background: var(--color-primary-400);
 	}
 
@@ -280,25 +284,32 @@
 		transition: color var(--timing-fast) var(--easing-default);
 	}
 
-	/* ===== Label ===== */
+	/* ===== Label =====
+	   Always visible in the mobile drawer, which is wide enough for it; on the
+	   desktop rail it collapses with the rail. */
 	.nav-label {
-		opacity: 0;
-		width: 0;
+		opacity: 1;
+		width: auto;
 		overflow: hidden;
 		transition:
 			opacity var(--timing-normal) var(--easing-default),
 			width var(--timing-normal) var(--easing-default);
 	}
 
-	.sidebar.expanded .nav-label,
-	.sidebar.mobile-open .nav-label {
-		opacity: 1;
-		width: auto;
+	@media (min-width: 1024px) {
+		.nav-label {
+			opacity: 0;
+			width: 0;
+		}
+
+		:global(.sidebar[data-expanded='true']) .nav-label {
+			opacity: 1;
+			width: auto;
+		}
 	}
 
 	/* ===== Reduced Motion ===== */
 	@media (prefers-reduced-motion: reduce) {
-		.sidebar,
 		.nav-item,
 		.toggle-btn,
 		.nav-label {

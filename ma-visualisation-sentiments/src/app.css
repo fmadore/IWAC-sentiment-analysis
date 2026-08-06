@@ -1,13 +1,35 @@
 @import 'tailwindcss';
-@import '@skeletonlabs/skeleton';
-@import '@skeletonlabs/skeleton/themes/cerberus';
 
 /* =============================================================================
    IWAC SENTIMENT ANALYSIS — DESIGN SYSTEM
    Investigative-data-journalism aesthetic. Dark only. Editorial type, restrained
    chrome, opaque surfaces, perceptually-uniform sentiment palettes in OKLCH.
-   See REFACTORING-ROADMAP.md for the active design refactor.
+
+   The rules a component author actually has to follow are in DESIGN.md.
    ============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   BREAKPOINTS — three thresholds, one direction
+
+   This app has exactly three: 640 (phone → small tablet), 1024 (the filter rail
+   and sidebar become permanent) and 1280 (the sidebar defaults to expanded).
+   Every media query in the codebase is `min-width` and mobile-first, so a
+   stylesheet reads top to bottom as "smallest first, add as you go" instead of
+   needing five overlapping ranges resolved by source order.
+
+   Retired: 420, 480, 768 and 900. Two of those appeared exactly once, and the
+   480/768 pair was mostly components inside the 320px filter rail asking the
+   *viewport* how much room they had — those are container queries now
+   (`@container filter-rail`), which is a question they can answer correctly.
+
+   Tailwind's own scale is redefined here to the same three, so the two dialects
+   cannot disagree: `md:` and `2xl:` are removed rather than left to shadow
+   thresholds that no longer exist in the CSS.
+   ----------------------------------------------------------------------------- */
+@theme {
+	--breakpoint-md: initial;
+	--breakpoint-2xl: initial;
+}
 
 /* -----------------------------------------------------------------------------
    CSS Custom Properties
@@ -23,7 +45,7 @@
 	--font-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 	--font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 
-	/* Skeleton Cerberus expects --base-font-family — point it at our sans */
+	/* Legacy alias kept for anything reading --base-font-family. */
 	--base-font-family: var(--font-sans);
 	--heading-font-family: var(--font-display);
 
@@ -336,13 +358,39 @@
 	--border-active: color-mix(in oklab, var(--color-surface-50) 28%, transparent);
 	--border-strong: color-mix(in oklab, var(--color-surface-50) 36%, transparent);
 
-	/* --- Text Colors --- */
+	/* --- Text Colors ---
+	   The ramp is an opacity ladder over --text-primary against --app-bg, so
+	   contrast falls off the further down you go. The bottom two steps do not
+	   clear WCAG AA for text and are constrained accordingly — this is the one
+	   place the reasoning was missing from an otherwise well-documented system.
+	   ---------------------------------------------------------------------- */
 	--text-on-light: oklch(0.18 0.014 260); /* For text on light/bright backgrounds */
 	--text-primary: oklch(0.97 0.005 260);
 	--text-secondary: color-mix(in oklab, var(--text-primary) 84%, transparent);
-	--text-muted: color-mix(in oklab, var(--text-primary) 64%, transparent);
+	--text-muted: color-mix(in oklab, var(--text-primary) 64%, transparent); /* AA floor for body */
+	/* ~3:1 — decorative rules, dividers, icon strokes beside a real label.
+	   NOT for text a reader has to make out on its own. */
 	--text-subtle: color-mix(in oklab, var(--text-primary) 46%, transparent);
+	/* ~2:1 — the disabled state of a control, and nothing else. Never a label. */
 	--text-disabled: color-mix(in oklab, var(--text-primary) 30%, transparent);
+	/* Decorative marks that must recede almost completely — the pull-quote
+	   glyph, empty-state iconography. Never text. Opaque rather than alpha so
+	   the chart ramp below can mirror it.
+	   This token was *referenced* by ComparisonPanel, EmptyState and
+	   ArticleDetail long before it was defined: with no var() fallback the
+	   declaration was simply invalid, so those marks inherited their parent's
+	   colour and rendered far too bright. Same failure as --elevation-overlay. */
+	--text-faint: oklch(0.42 0.005 260);
+
+	/* --- Chart text ramp — the opaque twin of the ladder above.
+	   ECharts cannot parse alpha-composited color-mix(), so chartTheme.ts needs
+	   flat values. They are declared here, rather than living only as literals
+	   in that file, so the duplication has a source of truth to mirror.
+	   chartTheme.palette.test.ts fails the build if the two drift apart. --- */
+	--chart-text-secondary: oklch(0.88 0.005 260);
+	--chart-text-muted: oklch(0.74 0.005 260);
+	--chart-text-subtle: oklch(0.62 0.005 260);
+	--chart-tooltip-bg: oklch(0.2 0.012 260);
 
 	/* --- Editorial accent — replaces Skeleton Cerberus's purple primary.
 	   A muted ochre/amber that reads as "investigative wire" rather than
@@ -353,10 +401,10 @@
 	--accent-soft: color-mix(in oklab, var(--accent) 14%, transparent);
 	--accent-border: color-mix(in oklab, var(--accent) 32%, transparent);
 
-	/* Override Skeleton's Cerberus primary/secondary so any built-in component
-	   that inherits these reads in our voice. Cerberus exposes the shades
-	   --color-primary-{50..950} via its theme stylesheet; we override the
-	   ones any UI is likely to use. */
+	/* The primary/secondary ramps. These used to override Cerberus's; with the
+	   dependency gone they are simply the definitions. Primary is the editorial
+	   accent above; secondary is the cool blue the comparison views lean on. */
+	--color-primary-200: oklch(0.9 0.07 80);
 	--color-primary-300: oklch(0.86 0.1 80);
 	--color-primary-400: oklch(0.82 0.12 80);
 	--color-primary-500: var(--accent);
@@ -366,6 +414,70 @@
 	--color-secondary-400: oklch(0.74 0.07 240);
 	--color-secondary-500: oklch(0.66 0.08 240);
 	--color-secondary-600: oklch(0.58 0.08 240);
+
+	/* ==========================================================================
+	   THE `--color-*` RAMPS — ours, not a vendor theme's.
+
+	   These names came from Skeleton's Cerberus theme, which this project no
+	   longer depends on. Cerberus was imported, then its primary and secondary
+	   were overridden here, its success and warning ramps were explicitly
+	   rejected in a comment, and .card/.btn/.badge/.select/.alert/.table were
+	   all re-styled from scratch below — leaving roughly eight values and one
+	   `.h4` class behind a whole dependency, a third naming convention, and a
+	   runes-mode compatibility risk on every Dependabot bump. It also hard-coded
+	   Tailwind's `md` breakpoint, which is not a threshold this app has.
+
+	   The names are kept because ~100 call sites use them and they read fine;
+	   the values are now declared here. The semantic ones point at the --status-*
+	   ramp below so there is one source of truth for "what colour is an error".
+	   ========================================================================== */
+
+	/* Neutral ramp. surface-50 is the near-white the tonal surfaces and borders
+	   are mixed from; the dark steps back a handful of controls. */
+	--color-surface-50: oklch(0.99 0 0);
+	--color-surface-700: oklch(0.39 0 0);
+	--color-surface-800: oklch(0.32 0 0);
+	--color-surface-900: oklch(0.25 0 0);
+	--color-surface-950: oklch(0.18 0 0);
+
+	/* --- Status ramp — error / warning / caution / success / info.
+	   Defined natively in the same OKLCH vocabulary as the sentiment palettes
+	   rather than borrowed from a vendor theme, so status colour is ours and
+	   sits at the same lightness band as everything else on this surface.
+	   Hues are shared with the polarity ramp on purpose: a "severe" indicator
+	   and a "très négatif" badge should not be two different reds. --- */
+	--status-error: oklch(0.7 0.14 25);
+	--status-caution: oklch(0.74 0.145 55); /* between error and warning */
+	--status-warning: oklch(0.8 0.13 85);
+	--status-success: oklch(0.7 0.13 150);
+	--status-info: oklch(0.72 0.09 240);
+
+	/* Semantic ramps. The 500 step IS the status token — one source of truth for
+	   "what colour is an error" — and the lighter steps climb in lightness on
+	   the same hue rather than being a separately hand-picked ladder. Written
+	   out rather than derived with relative-colour syntax so the values are
+	   greppable and the file has no browser-support cliff. */
+	--color-error-200: oklch(0.79 0.11 25);
+	--color-error-300: oklch(0.76 0.12 25);
+	--color-error-400: oklch(0.73 0.13 25);
+	--color-error-500: var(--status-error);
+	--color-warning-300: oklch(0.86 0.1 85);
+	--color-warning-500: var(--status-warning);
+	--color-success-500: var(--status-success);
+
+	/* --- Third-party brand identity.
+	   Not design-system colours and deliberately not on the OKLCH ramps: they
+	   are other organisations' marks, and a model badge that isn't the model's
+	   own red stops being recognisable. Declared here so the literals appear
+	   once rather than being retyped at each of the four sites that draw them.
+	   The TS-side registry in stores/datasets.svelte.ts carries the same values
+	   for chart and logo use, where CSS custom properties can't reach. --- */
+	--brand-mistral: #f54e42;
+	--brand-mistral-light: #f87a71;
+
+	/* --- Print — the one light-background context this app has. --- */
+	--print-surface: white;
+	--print-border: #ccc;
 
 	/* --- Prose width — caps body paragraphs at a comfortable read --- */
 	--prose-width: 65ch;
@@ -383,12 +495,14 @@
 	--sidebar-width-collapsed: 4.5rem;
 	--sidebar-width-expanded: 14rem;
 	--sidebar-width-mobile-drawer: 16rem;
-	/* Sticky filter-rail clearance below the AppHeader (~96px rendered header
-	   height + breathing room). If the header grows, adjust here once. */
-	--rail-top: 6.5rem;
-	/* NOTE on breakpoints: media queries cannot read custom properties, so the
-	   1024px desktop threshold is a repeated literal (SidebarNav, FiltersPanel,
-	   AppHeader, +layout, +page). Change them together. */
+	/* Desktop header height. Declared, not measured: AppHeader sets this as its
+	   own min-height and the sticky filter rail clears it by reading the same
+	   token, so the two cannot drift. It used to be a hand-measured "~96px"
+	   frozen into --rail-top, which silently misaligned the rail whenever the
+	   brand size, padding or font changed. */
+	--header-height: 6rem; /* 96px */
+	/* Sticky filter-rail clearance below the AppHeader, plus breathing room. */
+	--rail-top: calc(var(--header-height) + var(--space-2));
 
 	/* --- Spacing Scale (4px base) --- */
 	--space-0: 0;
@@ -409,34 +523,57 @@
 	--space-12: 3rem; /* 48px */
 	--space-16: 4rem; /* 64px */
 
-	/* --- Border Radius Scale ---
-	   Editorial direction: surfaces are square. The scale collapses to a
-	   near-flat 0–2px range so cards, panels, and chips read as documents,
-	   not rounded SaaS tiles. --radius-full is preserved for true circles
-	   (avatars, dot indicators, spinner ring borders) — pill elements
-	   should NOT use it; switch to --radius-sm or 0 instead. --- */
-	--radius-xs: 0;
-	--radius-sm: 1px;
-	--radius-md: 2px;
-	--radius-lg: 2px;
-	--radius-xl: 2px;
-	--radius-2xl: 2px;
-	--radius-3xl: 2px;
-	--radius-full: 9999px; /* Reserved for circles (avatars, dots), not pills */
+	/* --- Semantic spacing — the layer components are supposed to reach for.
+	   The 16-step primitive scale above has no rhythm of its own, so card
+	   padding drifted onto four different values on a single screen (space-4 in
+	   FilterCard, space-5 in ChartCard, space-6 in ChartCard's large variant,
+	   space-3-5 in FilterCard under 768px). Components use THESE; the numbered
+	   primitives are for one-off nudges and for defining these. --- */
+	--pad-card: var(--space-5); /* 20px - default card/panel padding */
+	--pad-card-compact: var(--space-4); /* 16px - dense contexts (rail, drawer) */
+	--gap-stack: var(--space-4); /* 16px - between stacked blocks */
+	--gap-inline: var(--space-2); /* 8px  - between inline siblings */
+
+	/* --- Border Radius ---
+	   Editorial direction: surfaces are square, so this is not a t-shirt scale.
+	   It used to be — md/lg/xl/2xl/3xl all resolved to the same 2px, and
+	   components picked between them as if the choice meant something, which
+	   taught everyone the scale was live when it was decorative.
+	   Four tokens, each with a distinct value and a job:
+	     none     — deliberately square (inputs, table cells, flush edges)
+	     hairline — the barely-there step for 1px-bordered chips
+	     panel    — cards, panels, buttons, badges: the default surface corner
+	     circle   — true circles ONLY (avatars, dot indicators, spinner rings).
+	                Not pills: a pill wants `panel`. --- */
+	--radius-none: 0;
+	--radius-hairline: 1px;
+	--radius-panel: 2px;
+	--radius-circle: 9999px;
 
 	/* --- Font Size Scale — wider distance between display steps to give
 	   real hierarchy, not a flat ramp. Editorial type wants ~1.33× steps
 	   between display sizes; UI sizes stay tight. --- */
-	--font-size-2xs: 0.6875rem; /* 11px - kept for legacy callers, avoid in new code */
-	--font-size-xs: 0.75rem; /* 12px - captions, eyebrows, mono labels */
+	/* 11px. Named for its job, not its position: this is the mono eyebrow that
+	   the design language leans on constantly — section labels, table `th`,
+	   badges, chip captions. It was previously --font-size-eyebrow and carried an
+	   "avoid in new code" note, which was simply wrong: 20 components and the
+	   global .table th rule depend on it. Because it read as discouraged,
+	   another 15 sites wrote 0.6875rem by hand instead. It is not legacy, and
+	   11px is the floor — nothing in this UI goes smaller. */
+	--font-size-eyebrow: 0.6875rem;
+	--font-size-xs: 0.75rem; /* 12px - captions, small mono labels */
 	--font-size-sm: 0.8125rem; /* 13px - secondary text, chips */
 	--font-size-base: 0.9375rem; /* 15px - body, controls */
-	--font-size-md: 0.9375rem; /* 15px - alias of base, kept for legacy callers */
 	--font-size-lg: 1.0625rem; /* 17px - emphasized body, lede */
 	--font-size-xl: 1.25rem; /* 20px - chart card title */
 	--font-size-2xl: 1.625rem; /* 26px - section title */
 	--font-size-3xl: 2.125rem; /* 34px - view title */
 	--font-size-4xl: 2.875rem; /* 46px - hero numeric */
+
+	/* Decorative open-quote glyph drawn as ::before content on pull-quotes. An
+	   ornament rather than a type-scale member, but tokenised so the two
+	   components that draw it stop drifting (they were 36px and 40px). */
+	--size-quote-glyph: 2.5rem; /* 40px */
 
 	/* --- Font Weight Scale --- */
 	--font-weight-regular: 400;
@@ -458,6 +595,7 @@
 	--tracking-normal: 0; /* body, chips, small UI */
 	--tracking-wide: 0.04em; /* labels */
 	--tracking-wider: 0.08em; /* eyebrows, small uppercase */
+	--tracking-widest: 0.14em; /* masthead eyebrows — the loosest step there is */
 
 	/* --- Icon Size Scale --- */
 	--size-icon-xs: 0.875rem; /* 14px */
@@ -477,6 +615,11 @@
 	--height-chart-md: 28rem; /* 448px */
 	--height-chart-lg: 34rem; /* 544px */
 	--height-chart-xl: 42rem; /* 672px */
+
+	/* Narrowest a chart may be laid out before its grid drops to one column.
+	   Feeds `repeat(auto-fit, minmax(var(--width-chart-min), 1fr))` — auto-fit
+	   already handles the reflow, so no media query should restate it. */
+	--width-chart-min: 25rem; /* 400px */
 
 	/* --- Z-Index Scale --- */
 	--z-base: 0;
@@ -519,6 +662,14 @@
 	--elevation-modal:
 		0 8px 16px color-mix(in oklab, black 36%, transparent),
 		0 32px 64px color-mix(in oklab, black 44%, transparent);
+	/* Off-canvas drawers (nav + filters). Both drawers read this one token so
+	   they cannot drift apart: the hairline is the panel edge, the wide blur is
+	   the lift off the scrim. Never inline a var() fallback for it — a fallback
+	   turns a missing token into silence, which is exactly how the filters
+	   drawer shipped with no elevation at all while its sibling had one. */
+	--elevation-drawer:
+		1px 0 0 color-mix(in oklab, black 30%, transparent),
+		8px 0 32px color-mix(in oklab, black 30%, transparent);
 
 	/* Focus ring — uses the editorial accent (warm amber) */
 	--ring-focus: 0 0 0 3px color-mix(in oklab, var(--accent) 38%, transparent);
@@ -534,6 +685,16 @@
    ----------------------------------------------------------------------------- */
 html {
 	scroll-behavior: smooth;
+}
+
+/* Every component guards its transitions behind prefers-reduced-motion; the
+   smooth scroll above was the one place that did not, and it is the most
+   disorienting of the lot for anyone who asked for less motion — a table
+   paginating jumps the whole viewport. */
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
 }
 
 body {
@@ -559,7 +720,7 @@ h3 {
 :focus-visible {
 	outline: none;
 	box-shadow: var(--ring-focus);
-	border-radius: var(--radius-sm);
+	border-radius: var(--radius-hairline);
 }
 
 ::selection {
@@ -579,7 +740,7 @@ h3 {
 .variant-glass {
 	background: var(--surface-card);
 	border: 1px solid var(--border-subtle);
-	border-radius: var(--radius-2xl);
+	border-radius: var(--radius-panel);
 	box-shadow: var(--elevation-card);
 }
 
@@ -587,7 +748,7 @@ h3 {
    Card Enhancements
    ----------------------------------------------------------------------------- */
 .card {
-	border-radius: var(--radius-xl);
+	border-radius: var(--radius-panel);
 	transition:
 		border-color var(--timing-fast) var(--easing-default),
 		box-shadow var(--timing-normal) var(--easing-default),
@@ -620,7 +781,7 @@ h3 {
    Form Elements
    ----------------------------------------------------------------------------- */
 .select {
-	border-radius: var(--radius-md);
+	border-radius: var(--radius-panel);
 	padding: var(--space-2) var(--space-3);
 	font-size: var(--font-size-base);
 	transition:
@@ -650,7 +811,7 @@ h3 {
    should compose with a leading Lucide icon at 16-18px in the alert color
    for an unambiguous status cue. */
 .alert {
-	border-radius: var(--radius-md);
+	border-radius: var(--radius-panel);
 	padding: var(--space-3) var(--space-4);
 	position: relative;
 	font-size: var(--font-size-base);
@@ -708,7 +869,7 @@ h3 {
    Table Styling
    ----------------------------------------------------------------------------- */
 .table-container {
-	border-radius: var(--radius-xl);
+	border-radius: var(--radius-panel);
 	/* `auto`, not `hidden`: when the content column is narrow (e.g. beside the
 	   filter rail) a wide multi-column table must scroll horizontally rather than
 	   clip. Rounded corners still clip the scrolled content. Component rules add
@@ -716,6 +877,39 @@ h3 {
 	overflow: auto;
 	background: var(--surface-card);
 	border: 1px solid var(--border-subtle);
+
+	/* Scroll affordance. These tables scroll sideways on narrow screens and
+	   previously gave no visual cue that they did — the reader simply saw a
+	   truncated table. The two `linear-gradient`s are the shadow pair; the two
+	   `radial-gradient`s are opaque covers pinned to the scroll extremes, so the
+	   shadow on a given edge fades out exactly when there is nothing more that
+	   way. Attaching the covers to `local` and the shadows to `scroll` is what
+	   makes that self-adjusting with no JS. */
+	background-image:
+		linear-gradient(to right, var(--surface-card), transparent),
+		linear-gradient(to left, var(--surface-card), transparent),
+		radial-gradient(
+			farthest-side at 0 50%,
+			color-mix(in oklab, black 28%, transparent),
+			transparent
+		),
+		radial-gradient(
+			farthest-side at 100% 50%,
+			color-mix(in oklab, black 28%, transparent),
+			transparent
+		);
+	background-position:
+		0 0,
+		100% 0,
+		0 0,
+		100% 0;
+	background-repeat: no-repeat;
+	background-size:
+		2.5rem 100%,
+		2.5rem 100%,
+		0.875rem 100%,
+		0.875rem 100%;
+	background-attachment: local, local, scroll, scroll;
 }
 
 .table {
@@ -732,7 +926,7 @@ h3 {
 	   of truth for every `.table` (ArticleTable, ComparisonTable, ArbiterArticleTable);
 	   components only add sticky positioning, never re-declare header typography. */
 	font-family: var(--font-mono);
-	font-size: var(--font-size-2xs);
+	font-size: var(--font-size-eyebrow);
 	font-weight: var(--font-weight-semibold);
 	text-transform: uppercase;
 	letter-spacing: var(--tracking-wider);
@@ -821,7 +1015,7 @@ h3 {
 	display: inline-flex;
 	align-items: center;
 	padding: var(--space-0-5) var(--space-2-5);
-	border-radius: var(--radius-sm);
+	border-radius: var(--radius-hairline);
 	font-size: var(--font-size-xs);
 	font-weight: var(--font-weight-medium);
 }
@@ -941,6 +1135,39 @@ h3 {
 	--sentiment-border: var(--sentiment-centrality-not-addressed-border);
 }
 
+/* --- Discrepancy severity ---
+   Same contract as the sentiment resolver above and the same rule: a component
+   never maps a magnitude to a colour, it emits `data-discrepancy` from
+   utils/discrepancy.ts and reads these three properties.
+
+   The ramp climbs in chroma and drops in hue angle from amber to red as the two
+   models drift further apart, so severity is legible as heat. `none` is
+   deliberately de-emphasised rather than green: agreement is the baseline, not
+   an achievement. */
+[data-discrepancy] {
+	--discrepancy-fg: var(--text-subtle);
+	--discrepancy-bg: transparent;
+	--discrepancy-border: var(--border-subtle);
+}
+
+[data-discrepancy='minor'] {
+	--discrepancy-fg: var(--status-warning);
+	--discrepancy-bg: color-mix(in oklab, var(--status-warning) 15%, transparent);
+	--discrepancy-border: color-mix(in oklab, var(--status-warning) 30%, transparent);
+}
+
+[data-discrepancy='moderate'] {
+	--discrepancy-fg: var(--status-caution);
+	--discrepancy-bg: color-mix(in oklab, var(--status-caution) 16%, transparent);
+	--discrepancy-border: color-mix(in oklab, var(--status-caution) 32%, transparent);
+}
+
+[data-discrepancy='severe'] {
+	--discrepancy-fg: var(--status-error);
+	--discrepancy-bg: color-mix(in oklab, var(--status-error) 18%, transparent);
+	--discrepancy-border: color-mix(in oklab, var(--status-error) 36%, transparent);
+}
+
 /* --- Arbiter Verdict & Confidence Badges ---
    Semantic classes for the arbiter's preferred-model verdict and confidence
    level, used by ArbiterSection and ArbiterArticleTable (via utils/arbiter.ts).
@@ -1007,7 +1234,7 @@ h3 {
 	min-width: var(--size-control-lg);
 	height: var(--size-control-lg);
 	padding: 0 var(--space-3);
-	border-radius: var(--radius-md);
+	border-radius: var(--radius-panel);
 	font-size: var(--font-size-base);
 	font-weight: var(--font-weight-medium);
 	transition:
@@ -1042,7 +1269,7 @@ h3 {
 .loading-spinner {
 	width: var(--size-icon-xl);
 	height: var(--size-icon-xl);
-	border-radius: var(--radius-full);
+	border-radius: var(--radius-circle);
 	border: 2px solid var(--surface-active);
 	border-top-color: var(--color-primary-500);
 	animation: spin 0.9s linear infinite;
@@ -1073,7 +1300,7 @@ h3 {
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
 	background: var(--border-hover);
-	border-radius: var(--radius-full);
+	border-radius: var(--radius-circle);
 	border: 2px solid transparent;
 	background-clip: padding-box;
 }
@@ -1115,8 +1342,8 @@ h3 {
 	.card,
 	.preset-glass,
 	.preset-surface-card {
-		background: white;
-		border: 1px solid #ccc;
+		background: var(--print-surface);
+		border: 1px solid var(--print-border);
 		box-shadow: none;
 	}
 }

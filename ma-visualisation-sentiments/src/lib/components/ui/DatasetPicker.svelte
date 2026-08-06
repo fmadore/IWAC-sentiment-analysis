@@ -74,13 +74,13 @@
 	}
 
 	.picker-label {
-		font-size: var(--font-size-base);
+		font-size: var(--font-size-sm);
 		font-weight: var(--font-weight-medium);
 		white-space: nowrap;
 	}
 
 	.dataset-icon {
-		font-size: var(--font-size-2xl);
+		font-size: var(--font-size-lg);
 		width: var(--space-6);
 		text-align: center;
 	}
@@ -96,20 +96,17 @@
 		font-size: var(--font-size-lg);
 	}
 
-	/* Responsive Design */
-	@media (max-width: 640px) {
+	/* The model name is the whole point of this control — it says what every
+	   number on screen means — so it is never hidden. Below 1024px the picker
+	   lives in the nav drawer, where there is room for it at full size; the
+	   header no longer mounts a second copy. */
+	@media (min-width: 640px) {
 		.picker-label {
-			font-size: var(--font-size-sm);
+			font-size: var(--font-size-base);
 		}
 
 		.dataset-icon {
-			font-size: var(--font-size-lg);
-		}
-	}
-
-	@media (max-width: 480px) {
-		.picker-label {
-			display: none;
+			font-size: var(--font-size-2xl);
 		}
 	}
 </style>

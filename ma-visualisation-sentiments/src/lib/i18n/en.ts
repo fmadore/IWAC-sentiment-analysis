@@ -10,9 +10,13 @@ export const en = {
 	appSubtitle: 'Islam West Africa Collection – Data visualization and exploration',
 	enterFullscreen: 'Enter fullscreen',
 	exitFullscreen: 'Exit fullscreen',
+	/* Label beside the language segment at the foot of the mobile drawer. */
+	language: 'Language',
 
 	// Navigation
 	nav: {
+		/* Section heading over the view list in the mobile drawer. */
+		views: 'Views',
 		charts: 'Charts',
 		trends: 'Trends',
 		distribution: 'Distribution',

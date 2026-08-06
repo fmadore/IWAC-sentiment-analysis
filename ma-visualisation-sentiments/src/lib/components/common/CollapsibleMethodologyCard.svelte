@@ -75,8 +75,14 @@
 	.info-card {
 		background: var(--surface-card);
 		border: 1px solid var(--border-subtle);
-		padding: var(--space-5);
+		padding: var(--space-4);
 		margin-bottom: var(--space-6);
+	}
+
+	@media (min-width: 640px) {
+		.info-card {
+			padding: var(--space-5);
+		}
 	}
 
 	.info-card[data-variant='arbiter'] {
@@ -136,7 +142,7 @@
 		justify-content: center;
 		width: var(--size-control-sm);
 		height: var(--size-control-sm);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		background: var(--surface-subtle);
 		color: var(--text-muted);
 		transition:
@@ -186,7 +192,7 @@
 	}
 
 	.info-subtitle {
-		font-size: 0.75rem;
+		font-size: var(--font-size-xs);
 		line-height: calc(1 / 0.75);
 		color: color-mix(in oklab, white 60%, transparent);
 		margin: 0.125rem 0 0;
@@ -213,19 +219,30 @@
 	/* ==========================================================================
 	   RESPONSIVE
 	   ========================================================================== */
-	@media (max-width: 640px) {
+	/* The default variant starts compact and grows; the base .info-card padding
+	   above already carries the small step, so only the type and icon need a
+	   larger tier here. */
+	[data-variant='default'] .info-title {
+		font-size: var(--font-size-lg);
+	}
+
+	[data-variant='default'] .header-icon {
+		width: 1.75rem;
+		height: 1.75rem;
+	}
+
+	@media (min-width: 640px) {
 		.info-card[data-variant='default'] {
-			padding: var(--space-4);
-			border-radius: var(--radius-xl);
+			border-radius: var(--radius-panel);
 		}
 
 		[data-variant='default'] .info-title {
-			font-size: var(--font-size-lg);
+			font-size: var(--font-size-xl);
 		}
 
 		[data-variant='default'] .header-icon {
-			width: 1.75rem;
-			height: 1.75rem;
+			width: var(--size-control-sm);
+			height: var(--size-control-sm);
 		}
 	}
 

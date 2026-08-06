@@ -21,7 +21,7 @@
 	import { getJournalName } from '$lib/utils/format';
 	import { formatDate, getArticleUrl, getModelDisplayName } from '$lib/utils/format';
 	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
-	import { getDiffClass, getDiffBadgeClass } from '$lib/utils/discrepancy';
+	import { discrepancyAttributes } from '$lib/utils/discrepancy';
 	import { t } from '$lib/i18n';
 	import { datasetState, getArbiterForArticle, loadJustifications } from '$lib/stores';
 
@@ -95,7 +95,7 @@
 		<div class="comparison-section discrepancy-section">
 			<div class="section-head">
 				<span class="section-eyebrow">{$t.comparison.totalDiscrepancy}</span>
-				<span class="badge badge-lg {getDiffBadgeClass(comparison.discrepancies.totalDiff)}">
+				<span class="badge badge-lg" {...discrepancyAttributes(comparison.discrepancies.totalDiff)}>
 					{comparison.discrepancies.totalDiff}
 					{comparison.discrepancies.totalDiff === 1
 						? $t.comparison.pointDifference
@@ -105,7 +105,10 @@
 			<div class="diff-grid">
 				<div class="diff-cell">
 					<div class="diff-cell-label">{$t.comparison.polarity}</div>
-					<div class="diff-cell-value {getDiffClass(comparison.discrepancies.polarityDiff)}">
+					<div
+						class="diff-cell-value"
+						{...discrepancyAttributes(comparison.discrepancies.polarityDiff)}
+					>
 						{comparison.discrepancies.polarityDiff > 0
 							? `±${comparison.discrepancies.polarityDiff}`
 							: '='}
@@ -113,7 +116,10 @@
 				</div>
 				<div class="diff-cell">
 					<div class="diff-cell-label">{$t.comparison.subjectivity}</div>
-					<div class="diff-cell-value {getDiffClass(comparison.discrepancies.subjectivityDiff)}">
+					<div
+						class="diff-cell-value"
+						{...discrepancyAttributes(comparison.discrepancies.subjectivityDiff)}
+					>
 						{comparison.discrepancies.subjectivityDiff > 0
 							? `±${comparison.discrepancies.subjectivityDiff}`
 							: '='}
@@ -121,7 +127,10 @@
 				</div>
 				<div class="diff-cell">
 					<div class="diff-cell-label">{$t.comparison.centrality}</div>
-					<div class="diff-cell-value {getDiffClass(comparison.discrepancies.centralityDiff)}">
+					<div
+						class="diff-cell-value"
+						{...discrepancyAttributes(comparison.discrepancies.centralityDiff)}
+					>
 						{comparison.discrepancies.centralityDiff > 0
 							? `±${comparison.discrepancies.centralityDiff}`
 							: '='}
@@ -134,7 +143,7 @@
 		<div class="comparison-section centrality-section">
 			<div class="section-head">
 				<span class="section-eyebrow">{$t.analysis.centralitySection}</span>
-				<span class="badge {getDiffBadgeClass(comparison.discrepancies.centralityDiff)}">
+				<span class="badge" {...discrepancyAttributes(comparison.discrepancies.centralityDiff)}>
 					{comparison.discrepancies.centralityDiff > 0
 						? `±${comparison.discrepancies.centralityDiff}`
 						: '='}
@@ -155,7 +164,7 @@
 		<div class="comparison-section polarity-section">
 			<div class="section-head">
 				<span class="section-eyebrow">{$t.analysis.polaritySection}</span>
-				<span class="badge {getDiffBadgeClass(comparison.discrepancies.polarityDiff)}">
+				<span class="badge" {...discrepancyAttributes(comparison.discrepancies.polarityDiff)}>
 					{comparison.discrepancies.polarityDiff > 0
 						? `±${comparison.discrepancies.polarityDiff}`
 						: '='}
@@ -176,7 +185,7 @@
 		<div class="comparison-section subjectivity-section">
 			<div class="section-head">
 				<span class="section-eyebrow">{$t.filters.subjectivityScore}</span>
-				<span class="badge {getDiffBadgeClass(comparison.discrepancies.subjectivityDiff)}">
+				<span class="badge" {...discrepancyAttributes(comparison.discrepancies.subjectivityDiff)}>
 					{comparison.discrepancies.subjectivityDiff > 0
 						? `±${comparison.discrepancies.subjectivityDiff}`
 						: '='}
@@ -209,7 +218,7 @@
 		font-weight: 600;
 		line-height: 1.15;
 		color: var(--text-primary);
-		letter-spacing: -0.005em;
+		letter-spacing: var(--tracking-snug);
 		margin: 0;
 		max-width: 60ch;
 	}
@@ -223,9 +232,9 @@
 	.meta-label {
 		display: block;
 		font-family: var(--font-mono);
-		font-size: 0.6875rem;
+		font-size: var(--font-size-eyebrow);
 		font-weight: 600;
-		letter-spacing: 0.14em;
+		letter-spacing: var(--tracking-widest);
 		text-transform: uppercase;
 		color: var(--text-muted);
 	}
@@ -241,9 +250,9 @@
 		display: inline-flex;
 		align-items: center;
 		font-family: var(--font-mono);
-		font-size: 0.75rem;
+		font-size: var(--font-size-xs);
 		font-weight: 500;
-		letter-spacing: 0.06em;
+		letter-spacing: var(--tracking-wider);
 		text-transform: uppercase;
 		color: var(--sentiment-comparison-light);
 		text-decoration: none;
@@ -290,9 +299,9 @@
 
 	.section-eyebrow {
 		font-family: var(--font-mono);
-		font-size: 0.75rem;
+		font-size: var(--font-size-xs);
 		font-weight: 600;
-		letter-spacing: 0.14em;
+		letter-spacing: var(--tracking-widest);
 		text-transform: uppercase;
 		color: var(--text-secondary);
 	}
@@ -302,9 +311,9 @@
 		align-items: center;
 		padding: var(--space-1) var(--space-2-5);
 		font-family: var(--font-mono);
-		font-size: 0.6875rem;
+		font-size: var(--font-size-eyebrow);
 		font-weight: 600;
-		letter-spacing: 0.06em;
+		letter-spacing: var(--tracking-wider);
 		border-radius: 0;
 		border: 1px solid var(--border-default);
 		background: var(--surface-subtle);
@@ -313,31 +322,45 @@
 	}
 
 	.badge-lg {
-		padding: var(--space-1-5) var(--space-3);
-		font-size: 0.75rem;
+		padding: var(--space-1) var(--space-2);
+		font-size: var(--font-size-eyebrow);
+	}
+
+	/* Discrepancy severity comes from utils/discrepancy.ts as a data attribute
+	   and resolves through app.css — the component never maps a magnitude to a
+	   colour. These previously carried Skeleton `variant-*` class names that no
+	   stylesheet defines any more, so they rendered with no severity at all. */
+	.badge[data-discrepancy] {
+		background: var(--discrepancy-bg);
+		border-color: var(--discrepancy-border);
+		color: var(--discrepancy-fg);
+	}
+
+	.diff-cell-value[data-discrepancy] {
+		color: var(--discrepancy-fg);
 	}
 
 	.diff-grid {
 		display: grid;
-		grid-template-columns: repeat(3, 1fr);
+		grid-template-columns: 1fr;
 		gap: var(--space-4);
 	}
 
 	.diff-cell {
 		text-align: center;
 		padding: var(--space-3) 0;
-		border-left: 1px solid var(--border-subtle);
+		border-top: 1px solid var(--border-subtle);
 	}
 
 	.diff-cell:first-child {
-		border-left: none;
+		border-top: none;
 	}
 
 	.diff-cell-label {
 		font-family: var(--font-mono);
-		font-size: 0.6875rem;
+		font-size: var(--font-size-eyebrow);
 		font-weight: 600;
-		letter-spacing: 0.14em;
+		letter-spacing: var(--tracking-widest);
 		text-transform: uppercase;
 		color: var(--text-muted);
 		margin-bottom: var(--space-2);
@@ -345,29 +368,29 @@
 
 	.diff-cell-value {
 		font-family: var(--font-mono);
-		font-size: 1.5rem;
+		font-size: var(--font-size-2xl);
 		font-weight: 600;
 		font-variant-numeric: tabular-nums;
 		color: var(--text-primary);
 	}
 
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.badge-lg {
-			padding: var(--space-1) var(--space-2);
-			font-size: 0.625rem;
+			padding: var(--space-1-5) var(--space-3);
+			font-size: var(--font-size-xs);
 		}
 
 		.diff-grid {
-			grid-template-columns: 1fr;
+			grid-template-columns: repeat(3, 1fr);
 		}
 
 		.diff-cell {
-			border-left: none;
-			border-top: 1px solid var(--border-subtle);
+			border-top: none;
+			border-left: 1px solid var(--border-subtle);
 		}
 
 		.diff-cell:first-child {
-			border-top: none;
+			border-left: none;
 		}
 	}
 </style>

@@ -105,7 +105,7 @@
 		padding: var(--space-1-5) var(--space-3);
 		font-size: var(--font-size-xs);
 		font-weight: var(--font-weight-medium);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		cursor: pointer;
 		background: transparent;
 		border: 1px solid var(--border-default);

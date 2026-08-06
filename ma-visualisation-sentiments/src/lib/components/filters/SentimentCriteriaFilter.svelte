@@ -109,7 +109,8 @@
 		gap: var(--space-4);
 	}
 
-	@media (max-width: 768px) {
+	/* Keyed on the rail's width, not the viewport's. */
+	@container filter-rail (max-width: 300px) {
 		.sentiment-criteria-container {
 			gap: var(--space-3);
 		}

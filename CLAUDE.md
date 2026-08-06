@@ -11,6 +11,9 @@ Before committing anything that ships through CI, run the checks in
 [.claude/skills/verify/SKILL.md](.claude/skills/verify/SKILL.md) — the ordering
 and the pass criteria are not guessable.
 
+Writing CSS or a component? The rules are in [DESIGN.md](DESIGN.md). Most of them
+are enforced by `npm run lint`.
+
 The rest of this file is gotchas. Structure, scripts and dependencies are
 discoverable from the repo; what follows is not.
 
@@ -48,35 +51,54 @@ populates the build root with the three files Pages only reads from there
   `runes: true`, which also forces runes mode on `node_modules` — a Dependabot
   bump shipping a legacy `export let` component breaks the build and the Pages
   deploy dies quietly
-- **Skeleton UI v5** uses compound components (`AppBar.Toolbar`, not props)
-- **Tailwind v4 has no `tailwind.config.js`** — configuration lives in CSS
+**The design rules a component author has to follow are in [DESIGN.md](DESIGN.md),
+and `npm run lint` enforces most of them.** Read that before writing CSS. What
+follows is only the non-obvious mechanics.
+
+- **Tailwind v4 has no `tailwind.config.js`** — configuration lives in CSS, in
+  the `@theme` block at the top of `app.css`. That block also *removes* the `md`
+  and `2xl` breakpoints, so this app has three: 640 / 1024 / 1280
 - **Unlayered CSS beats Tailwind utilities.** Tailwind v4 utilities sit in a
   layer, so plain `app.css` rules win ties
-- Never hardcode colours or timings — use the custom properties in `app.css`, and
-  `color-mix(in oklab, ...)` rather than `rgba()`. Prefer `data-*` attributes for
-  state over conditional class concatenation
-- **Sentiment colours have exactly one resolver.** Never map a value to a token in
-  a component: emit the data attribute from `utils/sentimentTokens.ts` and read
-  `--sentiment-fg`/`-bg`/`-border`. `app.css` resolves those from
-  `[data-polarity]`/`[data-subjectivity]`/`[data-centrality]`, and the underlying
-  `--sentiment-*` tokens belong to that one block
+- **No Skeleton.** It was dropped once the sweep left only ~8 colour values and a
+  `.h4` class behind it. Beyond the runes-mode Dependabot risk, its typography
+  utilities hard-coded `@variant md`, so it silently required a breakpoint this
+  app does not have. The `--color-*` ramps it used to supply are declared in
+  `app.css` now and are ours
 - **Component-level `@keyframes` duplication is intentional** — Svelte hashes
   animation names with the same scope hash as the selectors referencing them, so
-  a shared global keyframe silently fails. Share spinners via a component instead
-- `--z-overlay` (500) outranks `--z-sidebar` (400), so a drawer needs
-  `z-index: calc(var(--z-overlay) + 1)` or its own scrim covers it
-- **Components inside the 320px filter rail must not branch layout on viewport
-  media queries** — they see the viewport, not the rail. Stack unconditionally or
-  use container queries. This bug shipped twice before it was caught
+  a shared global keyframe silently fails. Share spinners via `common/Spinner.svelte`
+- **`<svelte:element>` defeats Svelte's CSS scoping.** The compiler cannot prove
+  which tag a dynamic element produces, so it prunes scoped selectors targeting
+  it as unused and the component renders with *no* styles, silently. `Drawer.svelte`
+  needs `<svelte:element>` (the nav drawer must stay a `<nav>` landmark, the
+  filter rail an `<aside>`), so its panel rules are deliberately `:global()`
+- Off-canvas panels go through **`common/Drawer.svelte`** — scrim, focus trap,
+  `inert` background, Escape, scroll lock and the z-index-above-its-own-scrim
+  dance all live there. Its `inert` walk climbs from the panel to `<body>`
+  marking each ancestor's *other* children: SvelteKit renders the whole app
+  inside one wrapper div, so inerting `document.body.children` would neutralise
+  the drawer along with the page
+- `--z-overlay` (500) outranks `--z-sidebar` (400), which is why a drawer sits at
+  `calc(var(--z-overlay) + 1)`. Drawer handles this; don't re-derive it
 - Import icons from their specific paths (`@lucide/svelte/icons/menu`) so they
-  tree-shake
+  tree-shake. A `class` passed to a Lucide component is a *prop*, not a scoped
+  class — wrap the icon in a real element and let `currentColor` cascade
 
 ## Charts
 
 - **ECharts (zrender) cannot parse `oklch()`, `color-mix()` or CSS variables.**
   Chart-facing colours stay hex/rgba — this is why `chartTheme.ts` duplicates
-  values that look like they should come from tokens
+  values that look like they should come from tokens. Each hex carries the
+  `// oklch(...)` it was converted from, and `chartTheme.palette.test.ts` fails
+  the build if a hex stops matching its annotation or if that colour is no longer
+  defined in `app.css`. Don't strip those comments — they are the test's input
+- Anything else chart-facing that needs a literal colour must be listed, with a
+  reason, in `scripts/check-design-tokens.mjs`
 - `chartTheme.ts` keys its lookups on the **French** sentiment strings
+- **Sentiment is not encoded by hue alone.** The polarity ramp is equal-lightness
+  at the poles on purpose, so red and green differ only in hue — tooltip swatches
+  therefore also carry a shape (`POLARITY_GLYPHS` in `chartFormatters.ts`)
 - **`setOption` merges by default.** A chart switching coordinate systems (polar ↔
   cartesian) must be wrapped in `{#key mode}` or the old one is left behind — see
   `HijriSeasonalityChart.svelte`

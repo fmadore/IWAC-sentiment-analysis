@@ -49,7 +49,7 @@
 		padding: 2px;
 		background: var(--surface-nested);
 		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 	}
 
 	.chart-type-btn {
@@ -65,7 +65,7 @@
 		color: var(--text-muted);
 		background: transparent;
 		border: none;
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 		cursor: pointer;
 		transition:
 			background-color var(--timing-fast) var(--easing-default),

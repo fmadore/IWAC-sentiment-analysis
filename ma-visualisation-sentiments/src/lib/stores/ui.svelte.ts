@@ -59,26 +59,35 @@ export const uiState = {
 		_activeView = value as ViewId;
 	},
 
-	// Mobile menu
+	// ------------------------------------------------------------------
+	// Off-canvas drawers (< 1024px): the nav menu and the filter rail.
+	//
+	// They are mutually exclusive here rather than by convention at the call
+	// sites. Both are fixed panels at calc(--z-overlay + 1) with their own
+	// scrim, so opening one over the other stacked two scrims and left the
+	// lower panel visible-but-dimmed underneath. Nothing prevented it before;
+	// now opening either closes the other, in one place.
+	// ------------------------------------------------------------------
 	get mobileMenuOpen() {
 		return _mobileMenuOpen;
 	},
 	set mobileMenuOpen(value: boolean) {
 		_mobileMenuOpen = value;
+		if (value) _filtersDrawerOpen = false;
 	},
 	toggleMobileMenu() {
-		_mobileMenuOpen = !_mobileMenuOpen;
+		this.mobileMenuOpen = !_mobileMenuOpen;
 	},
 
-	// Mobile filters drawer (slide-out rail on < 1024px)
 	get filtersDrawerOpen() {
 		return _filtersDrawerOpen;
 	},
 	set filtersDrawerOpen(value: boolean) {
 		_filtersDrawerOpen = value;
+		if (value) _mobileMenuOpen = false;
 	},
 	toggleFiltersDrawer() {
-		_filtersDrawerOpen = !_filtersDrawerOpen;
+		this.filtersDrawerOpen = !_filtersDrawerOpen;
 	},
 
 	// Loading states

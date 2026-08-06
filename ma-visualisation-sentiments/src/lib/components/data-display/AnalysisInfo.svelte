@@ -456,7 +456,7 @@
 	.info-description {
 		color: var(--text-secondary);
 		line-height: var(--line-height-relaxed);
-		font-size: var(--font-size-md);
+		font-size: var(--font-size-base);
 		margin-bottom: var(--space-5);
 		max-width: var(--prose-width);
 	}
@@ -550,27 +550,27 @@
      ========================================================================== */
 	.model-grid {
 		display: grid;
-		grid-template-columns: repeat(3, 1fr);
+		grid-template-columns: 1fr;
 		gap: var(--space-3-5);
 		margin-top: var(--space-2);
 	}
 
-	@media (max-width: 900px) {
+	@media (min-width: 640px) {
 		.model-grid {
 			grid-template-columns: repeat(2, 1fr);
 		}
 	}
 
-	@media (max-width: 640px) {
+	@media (min-width: 1024px) {
 		.model-grid {
-			grid-template-columns: 1fr;
+			grid-template-columns: repeat(3, 1fr);
 		}
 	}
 
 	.model-card {
 		background: var(--surface-card);
 		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-panel);
 		padding: var(--space-4);
 		transition:
 			background-color var(--timing-fast) var(--easing-default),
@@ -628,7 +628,7 @@
 		padding: var(--space-1) var(--space-2-5);
 		font-size: var(--font-size-sm);
 		font-weight: var(--font-weight-semibold);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 		text-decoration: none;
 		transition:
 			background-color var(--timing-fast) var(--easing-default),
@@ -655,15 +655,16 @@
 		background: color-mix(in oklab, var(--color-secondary-500) 28%, transparent);
 	}
 
-	/* Mistral brand red — intentionally hardcoded */
+	/* Mistral's own brand red — deliberately off the OKLCH ramps, via the
+	   --brand-* tokens so the literal lives in exactly one place. */
 	.model-badge.mistral {
-		background: color-mix(in oklab, #f54e42 18%, transparent);
-		border: 1px solid color-mix(in oklab, #f54e42 32%, transparent);
-		color: #f87a71;
+		background: color-mix(in oklab, var(--brand-mistral) 18%, transparent);
+		border: 1px solid color-mix(in oklab, var(--brand-mistral) 32%, transparent);
+		color: var(--brand-mistral-light);
 	}
 
 	.model-badge.mistral:hover {
-		background: color-mix(in oklab, #f54e42 28%, transparent);
+		background: color-mix(in oklab, var(--brand-mistral) 28%, transparent);
 	}
 
 	.model-detail {
@@ -687,7 +688,7 @@
 		font-weight: var(--font-weight-medium);
 		background: color-mix(in oklab, var(--color-primary-500) 14%, transparent);
 		border: 1px solid color-mix(in oklab, var(--color-primary-500) 26%, transparent);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		color: var(--color-primary-200);
 		cursor: pointer;
 		transition:
@@ -715,9 +716,9 @@
 		content: 'Note';
 		display: block;
 		font-family: var(--font-mono);
-		font-size: 0.6875rem;
+		font-size: var(--font-size-eyebrow);
 		font-weight: 600;
-		letter-spacing: 0.14em;
+		letter-spacing: var(--tracking-widest);
 		text-transform: uppercase;
 		color: var(--color-warning-300);
 		margin-bottom: var(--space-2);
@@ -753,7 +754,7 @@
 	.prompt-code-container {
 		background: color-mix(in oklab, var(--color-surface-950) 80%, transparent);
 		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-panel);
 		padding: var(--space-4);
 		overflow-x: auto;
 	}
@@ -771,7 +772,7 @@
 	/* ==========================================================================
      RESPONSIVE
      ========================================================================== */
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.info-description {
 			font-size: var(--font-size-base);
 		}

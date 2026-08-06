@@ -4,6 +4,7 @@
 
 import type { DatasetId } from '$lib/types/data';
 import { base } from '$app/paths';
+import { polarityColors, subjectivityColors, centralityColors } from './chartTheme';
 import type {
 	ExtremeAnalysisData,
 	ExtremeCategoryConfig,
@@ -62,46 +63,49 @@ export async function loadExtremeAnalysisData(
 
 /**
  * Configuration for extreme categories with display properties.
- * Colours mirror the OKLCH-derived editorial sentiment palette in app.css /
- * chartTheme.ts so the extremes view stays coherent with the rest of the
- * dashboard. Hex values (not OKLCH) because ECharts/zrender needs them.
+ * Colours are read from `chartTheme.ts`, which is the one place the OKLCH ramps
+ * in app.css are translated to the hex ECharts/zrender can parse. They used to
+ * be a second set of hex literals repeating those same values — a fifth copy of
+ * the sentiment palette, and the only one with nothing keeping it in step.
  */
+const ramp = (from: string, to: string) => `linear-gradient(135deg, ${from} 0%, ${to} 100%)`;
+
 export const extremeCategoryConfigs: ExtremeCategoryConfig[] = [
 	{
 		id: 'subjectivity_extreme_high',
 		labelKey: 'extremeAnalysis.categories.subjectivityHigh',
-		color: '#E76444', // subjectivity_5 — warm, loud
-		gradient: 'linear-gradient(135deg, #E76444 0%, #D2833B 100%)'
+		color: subjectivityColors[5], // warm, loud
+		gradient: ramp(subjectivityColors[5], subjectivityColors[4])
 	},
 	{
 		id: 'subjectivity_extreme_low',
 		labelKey: 'extremeAnalysis.categories.subjectivityLow',
-		color: '#7AAEBF', // subjectivity_1 — cool, calm
-		gradient: 'linear-gradient(135deg, #7AAEBF 0%, #56AFB3 100%)'
+		color: subjectivityColors[1], // cool, calm
+		gradient: ramp(subjectivityColors[1], subjectivityColors[2])
 	},
 	{
 		id: 'polarity_very_negative',
 		labelKey: 'extremeAnalysis.categories.polarityNegative',
-		color: '#E64343', // polarity_very_negative
-		gradient: 'linear-gradient(135deg, #E64343 0%, #E97871 100%)'
+		color: polarityColors['Très négatif'],
+		gradient: ramp(polarityColors['Très négatif'], polarityColors['Négatif'])
 	},
 	{
 		id: 'polarity_very_positive',
 		labelKey: 'extremeAnalysis.categories.polarityPositive',
-		color: '#00A245', // polarity_very_positive
-		gradient: 'linear-gradient(135deg, #00A245 0%, #5CB572 100%)'
+		color: polarityColors['Très positif'],
+		gradient: ramp(polarityColors['Très positif'], polarityColors['Positif'])
 	},
 	{
 		id: 'centrality_very_central',
 		labelKey: 'extremeAnalysis.categories.centralityHigh',
-		color: '#F3B94C', // centrality_very_central — bright amber
-		gradient: 'linear-gradient(135deg, #F3B94C 0%, #CA9C48 100%)'
+		color: centralityColors['Très central'], // bright amber
+		gradient: ramp(centralityColors['Très central'], centralityColors['Central'])
 	},
 	{
 		id: 'centrality_not_central',
 		labelKey: 'extremeAnalysis.categories.centralityLow',
-		color: '#4E4D4A', // centrality_not_addressed — dark neutral
-		gradient: 'linear-gradient(135deg, #4E4D4A 0%, #75674F 100%)'
+		color: centralityColors['Non abordé'], // dark neutral
+		gradient: ramp(centralityColors['Non abordé'], centralityColors['Marginal'])
 	}
 ];
 

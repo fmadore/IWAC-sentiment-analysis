@@ -277,7 +277,7 @@
 
 	.stat-key {
 		font-family: var(--font-mono);
-		font-size: var(--font-size-2xs);
+		font-size: var(--font-size-eyebrow);
 		font-weight: var(--font-weight-semibold);
 		letter-spacing: var(--tracking-wider);
 		/* Deliberately NOT uppercased. Uppercase turns ρ into Ρ, which is
@@ -295,7 +295,7 @@
 
 	.correlation-note {
 		font-family: var(--font-mono);
-		font-size: var(--font-size-2xs);
+		font-size: var(--font-size-eyebrow);
 		line-height: var(--line-height-relaxed);
 		color: var(--text-muted);
 		max-width: var(--prose-width);

@@ -33,7 +33,7 @@
 
 <SidebarNav />
 
-<div class="app-content" class:expanded={isSidebarExpanded}>
+<div class="app-content" data-sidebar={isSidebarExpanded ? 'expanded' : 'collapsed'}>
 	<AppHeader />
 	<main>
 		{@render children()}
@@ -56,7 +56,7 @@
 			margin-left: var(--sidebar-width-collapsed);
 		}
 
-		.app-content.expanded {
+		.app-content[data-sidebar='expanded'] {
 			margin-left: var(--sidebar-width-expanded);
 		}
 	}

@@ -91,7 +91,7 @@
 >
 	{#snippet icon()}
 		<div class="arbiter-icon-header">
-			<GavelIcon size={20} class="text-amber-400" />
+			<span class="arbiter-glyph"><GavelIcon size={20} /></span>
 		</div>
 	{/snippet}
 
@@ -220,7 +220,7 @@
 <!-- Prompt Modal -->
 <PromptModal open={showPromptModal} onClose={() => (showPromptModal = false)}>
 	{#snippet title()}
-		<GavelIcon size={20} class="text-amber-400" />
+		<span class="arbiter-glyph"><GavelIcon size={20} /></span>
 		{$t.arbiter.arbiterPrompt}
 	{/snippet}
 
@@ -249,7 +249,7 @@
 		justify-content: center;
 		width: var(--size-control-md);
 		height: var(--size-control-md);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		background: var(--sentiment-arbiter-bg);
 		border: 1px solid var(--sentiment-arbiter-border);
 	}
@@ -259,7 +259,7 @@
      ========================================================================== */
 	.key-info-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		grid-template-columns: 1fr;
 		gap: var(--space-4);
 		margin-bottom: var(--space-6);
 	}
@@ -271,7 +271,7 @@
 		padding: var(--space-4);
 		background: var(--surface-nested);
 		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-panel);
 	}
 
 	.key-info-icon {
@@ -280,7 +280,7 @@
 		justify-content: center;
 		width: var(--size-control-lg);
 		height: var(--size-control-lg);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-panel);
 		flex-shrink: 0;
 	}
 
@@ -323,7 +323,7 @@
 		flex-direction: column;
 		gap: var(--space-2);
 		background: var(--surface-nested);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-panel);
 		padding: var(--space-2);
 		border: 1px solid var(--border-subtle);
 	}
@@ -340,7 +340,7 @@
 	.methodology-section {
 		padding: var(--space-3);
 		background: var(--surface-nested);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 	}
 
 	.section-title {
@@ -390,7 +390,7 @@
 	.model-card-single {
 		background: var(--surface-nested);
 		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-panel);
 		padding: var(--space-4);
 	}
 
@@ -415,9 +415,9 @@
 	.model-badge {
 		display: inline-block;
 		padding: var(--space-1) var(--space-2);
-		font-size: var(--font-size-2xs);
+		font-size: var(--font-size-eyebrow);
 		font-weight: var(--font-weight-semibold);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 		text-transform: uppercase;
 		letter-spacing: var(--tracking-wider);
 	}
@@ -448,7 +448,7 @@
 	.scale-section {
 		padding: var(--space-3);
 		background: var(--surface-nested);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 	}
 
 	/* ==========================================================================
@@ -469,7 +469,7 @@
 		color: var(--sentiment-arbiter);
 		background: var(--sentiment-arbiter-bg);
 		border: 1px solid var(--sentiment-arbiter-border);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		cursor: pointer;
 		transition: all var(--timing-fast) var(--easing-default);
 	}
@@ -501,14 +501,14 @@
 	.prompt-code-container {
 		background: color-mix(in oklab, var(--color-surface-950) 80%, transparent);
 		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		overflow: hidden;
 	}
 
 	.prompt-code {
 		padding: var(--space-4);
 		font-family: 'JetBrains Mono', 'Fira Code', monospace;
-		font-size: var(--font-size-xs);
+		font-size: var(--font-size-eyebrow);
 		line-height: var(--line-height-relaxed);
 		color: var(--text-secondary);
 		white-space: pre-wrap;
@@ -519,13 +519,13 @@
 	/* ==========================================================================
      Responsive Styles
      ========================================================================== */
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.key-info-grid {
-			grid-template-columns: 1fr;
+			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 		}
 
 		.prompt-code {
-			font-size: var(--font-size-2xs);
+			font-size: var(--font-size-xs);
 		}
 	}
 
@@ -534,5 +534,11 @@
 		.prompt-btn {
 			transition: none;
 		}
+	}
+
+	.arbiter-glyph {
+		display: inline-flex;
+		align-items: center;
+		color: var(--sentiment-arbiter);
 	}
 </style>

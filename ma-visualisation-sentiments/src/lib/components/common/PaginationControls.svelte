@@ -52,7 +52,7 @@
 		{#if resultsInfo}{@render resultsInfo()}{/if}
 		{#if showItemsPerPage}
 			<div class="flex items-center gap-2">
-				<label for={selectId} class="text-xs sm:text-sm text-white whitespace-nowrap"
+				<label for={selectId} class="per-page-label whitespace-nowrap"
 					>{$t.table?.itemsPerPage || 'Items per page'}:</label
 				>
 				<select
@@ -60,7 +60,7 @@
 					value={pagination.itemsPerPage}
 					onchange={(e) =>
 						pagination.changeItemsPerPage(Number((e.target as HTMLSelectElement)?.value))}
-					class="select select-sm bg-surface-700 text-white border-surface-500"
+					class="select select-sm"
 				>
 					{#each pagination.itemsPerPageOptions as option (option)}
 						<option value={option}>{option}</option>
@@ -111,10 +111,35 @@
 <style>
 	/* Base button chrome comes from the global `.pagination-btn` in app.css.
 	   Only the per-view active accent and responsive sizing live here. */
+	.pagination-btn {
+		/* Component API — a view may retint its active page marker by setting
+		   these on any ancestor. Defaults declared once here rather than as a
+		   var() fallback per property. */
+		--pagination-active-bg: var(--accent-soft);
+		--pagination-active-border: var(--accent-border);
+		--pagination-active-text: var(--accent);
+
+		/* Compact by default; the global `.pagination-btn` in app.css carries
+		   the full-size chrome, restored once there is room for it. */
+		min-width: var(--size-control-sm);
+		height: var(--size-control-sm);
+		font-size: var(--font-size-xs);
+		padding: 0 var(--space-1);
+	}
+
+	@media (min-width: 640px) {
+		.pagination-btn {
+			min-width: var(--size-control-lg);
+			height: var(--size-control-lg);
+			font-size: var(--font-size-sm);
+			padding: 0 var(--space-3);
+		}
+	}
+
 	.pagination-btn[data-active='true'] {
-		background: var(--pagination-active-bg, var(--accent-soft));
-		border-color: var(--pagination-active-border, var(--accent-border));
-		color: var(--pagination-active-text, var(--accent));
+		background: var(--pagination-active-bg);
+		border-color: var(--pagination-active-border);
+		color: var(--pagination-active-text);
 	}
 
 	.pagination-btn.page-number {
@@ -137,12 +162,14 @@
 		cursor: not-allowed;
 	}
 
-	@media (max-width: 640px) {
-		.pagination-btn {
-			min-width: var(--size-control-sm);
-			height: var(--size-control-sm);
-			font-size: var(--font-size-xs);
-			padding: 0 var(--space-1);
+	.per-page-label {
+		font-size: var(--font-size-xs);
+		color: var(--text-primary);
+	}
+
+	@media (min-width: 640px) {
+		.per-page-label {
+			font-size: var(--font-size-sm);
 		}
 	}
 </style>

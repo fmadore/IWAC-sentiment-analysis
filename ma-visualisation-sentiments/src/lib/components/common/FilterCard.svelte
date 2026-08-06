@@ -89,8 +89,10 @@
 	.filter-card {
 		background: var(--surface-card);
 		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-lg);
-		padding: var(--space-4);
+		border-radius: var(--radius-panel);
+		/* Rail cards are the dense variant by default — they live in a 320px
+		   column, not the main content area. */
+		padding: var(--pad-card-compact);
 		box-shadow: var(--elevation-card);
 		transition: border-color var(--timing-fast) var(--easing-default);
 	}
@@ -107,7 +109,7 @@
 	}
 
 	.filter-title {
-		font-size: var(--font-size-md);
+		font-size: var(--font-size-base);
 		font-weight: var(--font-weight-semibold);
 		color: var(--text-primary);
 		margin: 0;
@@ -135,7 +137,7 @@
 		padding: var(--space-1-5) var(--space-3);
 		font-size: var(--font-size-xs);
 		font-weight: var(--font-weight-medium);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		cursor: pointer;
 		background: var(--surface-subtle);
 		border: 1px solid var(--border-default);
@@ -156,28 +158,25 @@
 		margin-top: var(--space-3);
 	}
 
-	/* Responsive */
-	@media (max-width: 768px) {
-		.filter-card {
-			padding: var(--space-3-5);
-		}
-		.filter-title {
-			font-size: var(--font-size-base);
-		}
-		.filter-header {
-			margin-bottom: var(--space-3);
-		}
-	}
-
-	@media (max-width: 480px) {
+	/* Compact treatment, keyed on the rail's own width rather than the
+	   viewport's. Two viewport queries used to sit here (768px and 480px)
+	   producing three sizes of this card — but the card only ever renders in
+	   the ~320px filter rail, whose width barely changes between the desktop
+	   column and the mobile drawer. The result was that the same card at the
+	   same physical width looked different depending on the window behind it.
+	   One threshold now, and it describes something the card can actually see:
+	   below 300px of usable column (a phone under ~340px wide), tighten up. */
+	@container filter-rail (max-width: 300px) {
 		.filter-card {
 			padding: var(--space-3);
 		}
-		.filter-title {
-			font-size: var(--font-size-sm);
+
+		.filter-header {
+			margin-bottom: var(--space-3);
 		}
+
 		.clear-btn {
-			font-size: var(--font-size-2xs);
+			font-size: var(--font-size-eyebrow);
 			padding: var(--space-1) var(--space-2-5);
 		}
 	}

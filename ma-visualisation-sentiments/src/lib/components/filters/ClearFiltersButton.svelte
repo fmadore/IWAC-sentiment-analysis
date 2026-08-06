@@ -50,9 +50,9 @@
 		border: 1px solid color-mix(in oklab, var(--color-error-500) 30%, transparent);
 		color: var(--color-error-400);
 		font-family: var(--font-mono);
-		font-size: 0.75rem;
+		font-size: var(--font-size-xs);
 		font-weight: 600;
-		letter-spacing: 0.06em;
+		letter-spacing: var(--tracking-wider);
 		text-transform: uppercase;
 		padding: var(--space-2-5) var(--space-4);
 		border-radius: 0;
@@ -77,7 +77,10 @@
 		flex-shrink: 0;
 	}
 
-	@media (max-width: 480px) {
+	/* Collapses to an icon-only square when the rail itself is narrow, not when
+	   the window is. Previously a 480px viewport query, which meant the button
+	   kept its label in a 320px desktop rail but lost it in a 330px drawer. */
+	@container filter-rail (max-width: 300px) {
 		.button-text {
 			display: none;
 		}

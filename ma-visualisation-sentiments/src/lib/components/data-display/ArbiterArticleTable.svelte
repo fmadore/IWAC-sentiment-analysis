@@ -253,33 +253,27 @@
 			<div class="table-container arbiter-table-wrapper card variant-glass overflow-hidden">
 				<table class="table">
 					<thead>
-						<tr class="bg-surface-800">
-							<th class="text-white sortable-header" onclick={() => handleSort('title')}>
+						<tr class="table-head-row">
+							<th class="sortable-header" onclick={() => handleSort('title')}>
 								{$t.table?.articleTitle || 'Title'}
 								{#if sortBy === 'title'}
 									<ArrowUpDownIcon size={14} class="inline ml-1" />
 								{/if}
 							</th>
-							<th class="text-white">{$t.filters?.journal || 'Newspaper'}</th>
-							<th class="text-white sortable-header" onclick={() => handleSort('date')}>
+							<th>{$t.filters?.journal || 'Newspaper'}</th>
+							<th class="sortable-header" onclick={() => handleSort('date')}>
 								{$t.table?.date || 'Date'}
 								{#if sortBy === 'date'}
 									<ArrowUpDownIcon size={14} class="inline ml-1" />
 								{/if}
 							</th>
-							<th
-								class="text-white sortable-header text-center"
-								onclick={() => handleSort('verdict')}
-							>
+							<th class="sortable-header text-center" onclick={() => handleSort('verdict')}>
 								{$t.arbiter?.overallVerdict || 'Verdict'}
 								{#if sortBy === 'verdict'}
 									<ArrowUpDownIcon size={14} class="inline ml-1" />
 								{/if}
 							</th>
-							<th
-								class="text-white sortable-header text-center"
-								onclick={() => handleSort('confidence')}
-							>
+							<th class="sortable-header text-center" onclick={() => handleSort('confidence')}>
 								{$t.arbiter?.confidenceLevel || 'Confidence'}
 								{#if sortBy === 'confidence'}
 									<ArrowUpDownIcon size={14} class="inline ml-1" />
@@ -289,15 +283,12 @@
 					</thead>
 					<tbody>
 						{#each paginatedArticles as article (article.articleId)}
-							<tr
-								class="article-row hover:bg-surface-700/30 cursor-pointer transition-colors"
-								onclick={() => handleRowClick(article)}
-							>
+							<tr class="article-row cursor-pointer" onclick={() => handleRowClick(article)}>
 								<td class="max-w-xs">
-									<span class="text-white font-medium line-clamp-2">{article.title}</span>
+									<span class="row-title line-clamp-2">{article.title}</span>
 								</td>
-								<td class="text-white/70">{article.journal}</td>
-								<td class="text-white/70">{formatDate(article.date)}</td>
+								<td class="row-meta">{article.journal}</td>
+								<td class="row-meta">{formatDate(article.date)}</td>
 								<td class="text-center">
 									<span
 										class="badge badge-sm {getVerdictBadgeClass(article.arbiter.overall_winner)}"
@@ -345,8 +336,8 @@
 					>
 						<!-- Header -->
 						<div class="mb-3">
-							<h3 class="text-white font-semibold line-clamp-2 mb-1">{article.title}</h3>
-							<p class="text-xs text-white/60">
+							<h3 class="row-title line-clamp-2 mb-1">{article.title}</h3>
+							<p class="row-submeta">
 								{article.journal} • {formatDate(article.date)}
 							</p>
 						</div>
@@ -431,7 +422,7 @@
 
 	.cards-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+		grid-template-columns: 1fr;
 		gap: var(--space-4);
 	}
 
@@ -441,7 +432,7 @@
 
 	.arbiter-card {
 		cursor: pointer;
-		padding: var(--space-4);
+		padding: var(--space-3);
 		background: var(--surface-card);
 		border: 1px solid var(--border-subtle);
 		transition:
@@ -470,7 +461,7 @@
 
 	.controls-section {
 		background: var(--surface-subtle);
-		padding: var(--space-4);
+		padding: var(--space-3);
 		border: 1px solid var(--border-subtle);
 	}
 
@@ -490,7 +481,7 @@
 		color: var(--text-secondary);
 		background: var(--surface-hover);
 		border: 1px solid var(--border-hover);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		cursor: pointer;
 		transition: all var(--timing-fast) var(--easing-default);
 	}
@@ -544,7 +535,7 @@
 		color: var(--text-primary);
 		background: var(--surface-hover);
 		border: 1px solid var(--border-active);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 		cursor: pointer;
 		transition: all var(--timing-fast) var(--easing-default);
 	}
@@ -576,7 +567,7 @@
 		padding: var(--space-1) var(--space-2);
 		font-size: var(--font-size-xs);
 		font-weight: var(--font-weight-medium);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 		border: 1px solid;
 		display: inline-flex;
 		align-items: center;
@@ -584,7 +575,7 @@
 
 	.badge-sm {
 		padding: var(--space-1) var(--space-1-5);
-		font-size: var(--font-size-2xs);
+		font-size: var(--font-size-eyebrow);
 	}
 
 	.line-clamp-2 {
@@ -625,17 +616,17 @@
 	}
 
 	/* Responsive adjustments */
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.cards-grid {
-			grid-template-columns: 1fr;
+			grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
 		}
 
 		.arbiter-card {
-			padding: var(--space-3);
+			padding: var(--space-4);
 		}
 
 		.controls-section {
-			padding: var(--space-3);
+			padding: var(--space-4);
 		}
 	}
 
@@ -650,5 +641,32 @@
 		.arbiter-card:hover {
 			transform: none;
 		}
+	}
+
+	/* ---- Text roles, replacing Tailwind colour utilities. ---- */
+	.table-head-row {
+		background: var(--surface-nested);
+	}
+
+	.article-row {
+		transition: background-color var(--timing-fast) var(--easing-default);
+	}
+
+	.article-row:hover {
+		background: var(--surface-hover);
+	}
+
+	.row-title {
+		font-weight: var(--font-weight-medium);
+		color: var(--text-primary);
+	}
+
+	.row-meta {
+		color: var(--text-muted);
+	}
+
+	.row-submeta {
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
 	}
 </style>

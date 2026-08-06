@@ -6,9 +6,13 @@ export const fr: Translations = {
 	appSubtitle: "Collection Islam Afrique de l'Ouest – Visualisation et exploration",
 	enterFullscreen: 'Passer en plein écran',
 	exitFullscreen: 'Quitter le mode plein écran',
+	/* Intitulé du sélecteur de langue au bas du tiroir mobile. */
+	language: 'Langue',
 
 	// Navigation
 	nav: {
+		/* Intitulé de section au-dessus de la liste des vues dans le tiroir mobile. */
+		views: 'Vues',
 		charts: 'Graphiques',
 		trends: 'Tendances',
 		distribution: 'Distribution',

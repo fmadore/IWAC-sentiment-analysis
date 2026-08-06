@@ -27,7 +27,7 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
-		"lint": "prettier --check . && eslint . && node scripts/check-store-cycles.mjs",
+		"lint": "prettier --check . && eslint . && node scripts/check-store-cycles.mjs && node scripts/check-design-tokens.mjs",
 		"test": "vitest",
 		"test:run": "vitest run"
 	},
@@ -35,7 +35,6 @@
 	"devDependencies": {
 		"@eslint/compat": "^2.1.0",
 		"@eslint/js": "^10.0.1",
-		"@skeletonlabs/skeleton": "^5.0.0",
 		"@sveltejs/adapter-auto": "^7.0.0",
 		"@sveltejs/adapter-static": "^3.0.9",
 		"@sveltejs/vite-plugin-svelte": "^7.2.0",
@@ -86,7 +85,6 @@
 	},
 	"dependencies": {
 		"@lucide/svelte": "^1.28.0",
-		"@skeletonlabs/skeleton-svelte": "^5.0.0",
 		"@sveltejs/kit": "^2.70.2",
 		"echarts": "^6.1.0",
 		"esm-env": "^1.2.2",

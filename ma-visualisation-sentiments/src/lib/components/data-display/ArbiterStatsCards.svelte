@@ -173,7 +173,7 @@
 <style>
 	.stats-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+		grid-template-columns: repeat(2, 1fr);
 		gap: var(--space-4);
 	}
 
@@ -181,7 +181,7 @@
 		display: flex;
 		align-items: flex-start;
 		gap: var(--space-4);
-		padding: var(--space-5);
+		padding: var(--pad-card-compact);
 		background: var(--surface-card);
 		border: 1px solid var(--border-subtle);
 		transition: border-color var(--timing-fast) var(--easing-default);
@@ -231,8 +231,8 @@
 	}
 
 	.model-logo {
-		width: var(--size-icon-lg);
-		height: var(--size-icon-lg);
+		width: var(--size-icon-md);
+		height: var(--size-icon-md);
 		object-fit: contain;
 	}
 
@@ -248,14 +248,14 @@
 		font-variant-numeric: tabular-nums;
 		color: var(--text-primary);
 		line-height: 1;
-		letter-spacing: -0.02em;
+		letter-spacing: var(--tracking-tight);
 	}
 
 	.stat-label {
 		font-family: var(--font-mono);
-		font-size: 0.6875rem;
+		font-size: var(--font-size-eyebrow);
 		font-weight: 600;
-		letter-spacing: 0.14em;
+		letter-spacing: var(--tracking-widest);
 		text-transform: uppercase;
 		color: var(--text-muted);
 		margin-top: var(--space-2);
@@ -293,7 +293,7 @@
 	}
 
 	.comparison-section {
-		padding: var(--space-5);
+		padding: var(--pad-card-compact);
 		background: var(--surface-card);
 		border: 1px solid var(--border-subtle);
 	}
@@ -307,7 +307,7 @@
 	}
 
 	.comparison-title {
-		font-size: var(--font-size-md);
+		font-size: var(--font-size-base);
 		font-weight: var(--font-weight-semibold);
 		color: var(--text-primary);
 	}
@@ -336,6 +336,18 @@
 		font-size: var(--font-size-sm);
 	}
 
+	/* The model's name is hidden until the card is wide enough to carry it;
+	   the logo beside it identifies the model on its own until then. */
+	.model-label span {
+		display: none;
+	}
+
+	@media (min-width: 640px) {
+		.model-label span {
+			display: inline;
+		}
+	}
+
 	.model-a-label {
 		color: var(--sentiment-polarity-very-positive);
 	}
@@ -355,15 +367,15 @@
 	}
 
 	.comparison-logo {
-		width: var(--size-icon-md);
-		height: var(--size-icon-md);
+		width: 18px;
+		height: 18px;
 		object-fit: contain;
 	}
 
 	.comparison-bar {
 		display: flex;
-		height: var(--size-icon-lg);
-		border-radius: var(--radius-xl);
+		height: var(--size-icon-md);
+		border-radius: var(--radius-panel);
 		overflow: hidden;
 		background: var(--surface-muted);
 	}
@@ -375,11 +387,11 @@
 	}
 
 	.bar-segment:first-child {
-		border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+		border-radius: var(--radius-panel) 0 0 var(--radius-panel);
 	}
 
 	.bar-segment:last-child {
-		border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
+		border-radius: 0 var(--radius-panel) var(--radius-panel) 0;
 	}
 
 	.model-a-segment {
@@ -412,44 +424,31 @@
 		color: color-mix(in oklab, var(--sentiment-subjectivity-3) 70%, var(--color-surface-50));
 	}
 
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.stats-grid {
-			grid-template-columns: repeat(2, 1fr);
+			grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 		}
 
 		.stat-card {
-			padding: var(--space-4);
-		}
-
-		.stat-value {
-			font-size: var(--font-size-3xl);
-		}
-
-		.stat-icon {
-			width: var(--size-control-md);
-			height: var(--size-control-md);
+			padding: var(--pad-card);
 		}
 
 		.model-logo {
-			width: var(--size-icon-md);
-			height: var(--size-icon-md);
+			width: var(--size-icon-lg);
+			height: var(--size-icon-lg);
 		}
 
 		.comparison-section {
-			padding: var(--space-4);
-		}
-
-		.model-label span {
-			display: none;
+			padding: var(--pad-card);
 		}
 
 		.comparison-bar {
-			height: var(--size-icon-md);
+			height: var(--size-icon-lg);
 		}
 
 		.comparison-logo {
-			width: 18px;
-			height: 18px;
+			width: var(--size-icon-md);
+			height: var(--size-icon-md);
 		}
 	}
 </style>

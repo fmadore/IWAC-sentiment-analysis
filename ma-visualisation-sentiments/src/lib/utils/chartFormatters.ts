@@ -29,6 +29,44 @@ function getRawCount(param: TooltipParam): number | null {
 }
 
 /**
+ * A shape for each polarity step, so the swatch is not encoded by hue alone.
+ *
+ * The polarity ramp is deliberately equal-lightness at the poles — the right
+ * call for honest area comparison, since a 'Très négatif' bar should not read
+ * heavier than a 'Très positif' one at equal area. The cost is that the two
+ * poles then differ *only* in hue, and for roughly 8% of male readers red and
+ * green are the same colour. Badges and chips survive that because they carry
+ * their label; a bare colour swatch does not.
+ *
+ * The ramp itself is unchanged. The swatch simply also carries a direction:
+ * pointing up for positive, down for negative, flat for neutral, hollow for
+ * "no stance". Keys are the stored French values, as everywhere else.
+ */
+const POLARITY_GLYPHS: Record<string, string> = {
+	'Très positif': '▲',
+	Positif: '△',
+	Neutre: '■',
+	Négatif: '▽',
+	'Très négatif': '▼',
+	'Non applicable': '○'
+};
+
+/**
+ * Swatch markup for a tooltip row: the series colour, plus a shape whenever the
+ * series is a polarity step. Returns a plain colour chip for everything else,
+ * where hue is not carrying an ordered meaning.
+ */
+function swatch(color: string | undefined, seriesName: string | undefined, round = false): string {
+	const glyph = seriesName ? POLARITY_GLYPHS[seriesName] : undefined;
+
+	if (glyph) {
+		return `<span aria-hidden="true" style="display:inline-block;width:10px;text-align:center;line-height:10px;font-size:10px;color:${color};">${glyph}</span>`;
+	}
+
+	return `<span style="display:inline-block;width:10px;height:10px;border-radius:${round ? '50%' : '2px'};background:${color};"></span>`;
+}
+
+/**
  * Pie chart tooltip: color dot + name + value + percent.
  * Used by: SentimentChart (pie), SubjectivityChart (pie)
  */
@@ -40,13 +78,13 @@ export function createPieTooltipFormatter(options: {
 			return (params as TooltipParam[])
 				.map(
 					(param) =>
-						`<span style="display:inline-block;margin-right:5px;border-radius:50%;width:10px;height:10px;background-color:${param.color};"></span> ${param.seriesName}: ${param.value} (${param.percent}%)`
+						`${swatch(param.color, param.seriesName, true)} ${param.seriesName}: ${param.value} (${param.percent}%)`
 				)
 				.join('<br/>');
 		} else {
 			const p = params as TooltipParam;
 			return `<div style="font-weight:600;margin-bottom:8px;">${p.seriesName}</div>
-				<span style="display:inline-block;margin-right:5px;border-radius:50%;width:10px;height:10px;background-color:${p.color};"></span>
+				${swatch(p.color, p.name, true)}
 				${p.name}: <strong>${options.formatValue(p.value)}</strong> (${p.percent}%)`;
 		}
 	};
@@ -82,7 +120,7 @@ export function createStackedBarTooltipFormatter(options: {
 		items.forEach((param) => {
 			if (param.value > 0) {
 				listHtml += `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">
-					<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${param.color};"></span>
+					${swatch(param.color, param.seriesName)}
 					<span style="flex:1;">${param.seriesName}</span>
 					<strong>${param.value}</strong>
 				</div>`;
@@ -138,7 +176,7 @@ export function createTrendTooltipFormatter(options: {
 					? `${param.value.toFixed(1)}%${rawCount === null ? '' : ` <span style="opacity:0.65;font-weight:400;">(${rawCount})</span>`}`
 					: `${param.value}`;
 				listHtml += `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">
-					<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${param.color};"></span>
+					${swatch(param.color, param.seriesName, true)}
 					<span style="flex:1;">${param.seriesName}</span>
 					<strong>${display}</strong>
 				</div>`;

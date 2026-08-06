@@ -173,7 +173,7 @@
 
 	.stat-label {
 		font-family: var(--font-mono);
-		font-size: var(--font-size-2xs);
+		font-size: var(--font-size-eyebrow);
 		font-weight: var(--font-weight-semibold);
 		letter-spacing: var(--tracking-wider);
 		text-transform: uppercase;
@@ -247,11 +247,11 @@
 		padding: var(--space-3);
 		background: var(--surface-card-elevated);
 		border: 1px solid var(--border-strong);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 		box-shadow: var(--shadow-xl);
 		font-family: var(--font-sans);
 		font-size: var(--font-size-xs);
-		font-weight: var(--font-weight-normal);
+		font-weight: var(--font-weight-regular);
 		line-height: var(--line-height-relaxed);
 		letter-spacing: normal;
 		text-transform: none;

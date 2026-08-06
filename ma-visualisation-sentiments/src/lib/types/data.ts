@@ -75,6 +75,46 @@ export const VIEW_IDS = [
 ] as const;
 export type ViewId = (typeof VIEW_IDS)[number];
 
+/** Per-view layout metadata. */
+export interface ViewMeta {
+	/**
+	 * Whether the shared filter rail is rendered for this view. Self-contained
+	 * views own their internal filters and run full-width instead, so the page
+	 * renders no rail and the header hides its Filters trigger.
+	 */
+	hasFilterRail: boolean;
+}
+
+/**
+ * Single source of truth for which views carry the shared filter rail.
+ *
+ * Typed as a *total* `Record<ViewId, …>` on purpose: adding an id to VIEW_IDS
+ * without adding it here is a compile error. That is the point — this fact used
+ * to be enumerated in three places (the page's rail branch, the page's
+ * `data-layout`, and AppHeader's Filters trigger) and two of them had gone
+ * stale on `agreement`, leaving a visible Filters button that opened nothing.
+ */
+export const VIEW_META: Record<ViewId, ViewMeta> = {
+	charts: { hasFilterRail: true },
+	trends: { hasFilterRail: true },
+	correlation: { hasFilterRail: true },
+	volume: { hasFilterRail: true },
+	seasonality: { hasFilterRail: true },
+	heatmap: { hasFilterRail: true },
+	ranking: { hasFilterRail: true },
+	map: { hasFilterRail: true },
+	table: { hasFilterRail: true },
+	comparison: { hasFilterRail: false },
+	agreement: { hasFilterRail: false },
+	extremes: { hasFilterRail: true },
+	arbiter: { hasFilterRail: false }
+};
+
+/** Whether `view` renders the shared filter rail. The only way to ask. */
+export function hasFilterRail(view: ViewId): boolean {
+	return VIEW_META[view].hasFilterRail;
+}
+
 /**
  * A geocoded place from the IWAC authority file (`index` rows of type `Lieux`).
  * Only records that carry usable coordinates AND are cited by at least one

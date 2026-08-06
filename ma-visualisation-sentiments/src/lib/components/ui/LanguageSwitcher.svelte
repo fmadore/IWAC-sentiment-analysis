@@ -46,7 +46,7 @@
 
 <style>
 	.language-label {
-		font-size: var(--font-size-base);
+		font-size: var(--font-size-sm);
 		font-weight: var(--font-weight-medium);
 		white-space: nowrap;
 	}
@@ -62,16 +62,12 @@
 		font-size: var(--font-size-lg);
 	}
 
-	/* Responsive Design */
-	@media (max-width: 640px) {
+	/* Below 1024px this sits at the foot of the nav drawer rather than in the
+	   header, so the label always has room and is never dropped to a bare
+	   globe icon. */
+	@media (min-width: 640px) {
 		.language-label {
-			font-size: var(--font-size-sm);
-		}
-	}
-
-	@media (max-width: 480px) {
-		.language-label {
-			display: none;
+			font-size: var(--font-size-base);
 		}
 	}
 </style>

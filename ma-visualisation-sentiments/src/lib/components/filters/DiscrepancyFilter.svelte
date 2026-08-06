@@ -225,7 +225,7 @@
 		justify-content: center;
 		width: var(--size-control-md);
 		height: var(--size-control-md);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		background: var(--sentiment-comparison-bg);
 		border: 1px solid var(--sentiment-comparison-border);
 	}
@@ -278,7 +278,7 @@
 		padding: var(--space-1-5) var(--space-3);
 		font-size: var(--font-size-xs);
 		font-weight: var(--font-weight-medium);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		cursor: pointer;
 		background: var(--surface-subtle);
 		border: 1px solid var(--border-default);

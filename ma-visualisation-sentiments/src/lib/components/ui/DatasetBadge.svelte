@@ -46,7 +46,7 @@
 {:else if currentDataset}
 	<div
 		class="dataset-badge {sizeClasses[size]}"
-		style="--dataset-color: {currentDataset.color || '#3B82F6'}"
+		style={currentDataset.color ? `--dataset-color: ${currentDataset.color}` : undefined}
 	>
 		{#if showIcon}
 			{#if currentDataset.logo}
@@ -70,10 +70,15 @@
 
 <style>
 	.dataset-badge {
+		/* Default accent for a dataset whose registry entry carries no colour.
+		   The inline style overrides it when one is present — previously the
+		   fallback was a raw blue hex interpolated in the markup, which put a
+		   colour decision outside the token layer and outside this file. */
+		--dataset-color: var(--status-info);
 		display: inline-flex;
 		align-items: center;
 		gap: var(--space-2);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 		font-weight: var(--font-weight-medium);
 		background: var(--surface-subtle);
 		border: 1px solid var(--border-hover);
@@ -117,23 +122,22 @@
 		z-index: 1;
 	}
 
+	/* Icon-plus-value until there is room for the label. The
+	   `show-label-mobile` opt-out is for callers where the label is the only
+	   thing identifying the dataset. */
 	.badge-label {
 		position: relative;
 		z-index: 1;
 		white-space: nowrap;
+		display: none;
 	}
 
-	/* Responsive adjustments */
-	@media (max-width: 640px) {
-		.dataset-badge {
-			font-size: var(--font-size-xs);
-		}
+	.dataset-badge.show-label-mobile .badge-label {
+		display: inline;
+	}
 
+	@media (min-width: 640px) {
 		.badge-label {
-			display: none;
-		}
-
-		.dataset-badge.show-label-mobile .badge-label {
 			display: inline;
 		}
 	}

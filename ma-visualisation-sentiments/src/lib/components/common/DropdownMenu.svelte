@@ -124,7 +124,7 @@
 				{#each items as item (item.id)}
 					<button
 						class="menu-item"
-						class:active={selectedId === item.id}
+						data-state={selectedId === item.id ? 'active' : 'inactive'}
 						disabled={item.disabled}
 						onclick={(e) => handleSelect(e, item.id)}
 						ontouchend={(e) => handleSelect(e, item.id)}
@@ -165,7 +165,7 @@
 		min-width: var(--button-min-width);
 		height: var(--size-control-lg);
 		padding: 0 var(--space-3);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-panel);
 		background: var(--surface-subtle);
 		border: 1px solid var(--border-default);
 		color: var(--text-primary);
@@ -221,7 +221,7 @@
 		min-width: var(--menu-min-width);
 		background: var(--surface-card-elevated);
 		border: 1px solid var(--border-default);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		box-shadow: var(--elevation-modal);
 		overflow: hidden;
 		animation: dropdownFadeIn var(--timing-fast) var(--easing-default);
@@ -245,7 +245,7 @@
 
 	.section-label {
 		display: block;
-		font-size: var(--font-size-2xs);
+		font-size: var(--font-size-eyebrow);
 		font-weight: var(--font-weight-semibold);
 		color: var(--text-muted);
 		text-transform: uppercase;
@@ -271,7 +271,7 @@
 			color var(--timing-fast) var(--easing-default);
 		font-size: var(--font-size-base);
 		font-weight: var(--font-weight-medium);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		position: relative;
 		-webkit-tap-highlight-color: transparent;
 		touch-action: manipulation;
@@ -288,12 +288,12 @@
 		cursor: not-allowed;
 	}
 
-	.menu-item.active {
+	.menu-item[data-state='active'] {
 		background: color-mix(in oklab, var(--color-primary-500) 16%, transparent);
 		color: var(--color-primary-300);
 	}
 
-	.menu-item.active:hover {
+	.menu-item[data-state='active']:hover {
 		background: color-mix(in oklab, var(--color-primary-500) 22%, transparent);
 	}
 
@@ -316,60 +316,34 @@
 		font-size: var(--font-size-lg);
 	}
 
-	/* Responsive Design */
-	@media (max-width: 640px) {
-		.dropdown-trigger {
-			min-width: 100px;
-			height: var(--size-control-md);
-			padding: 0 var(--space-2-5);
-		}
+	/* ---- Small screens -------------------------------------------------------
+	   The trigger keeps its 40px height at every size. Two viewport queries used
+	   to shrink it — to 36px below 640 and to 32px below 480 — which made the
+	   touch target smallest exactly where fingers are least precise and where
+	   this control is hardest to hit. Only the width and the menu's own
+	   positioning relax; the height does not.
 
-		.trigger-label {
-			font-size: var(--font-size-sm);
-		}
-
-		.trigger-content :global(svg) {
-			width: var(--size-icon-sm);
-			height: var(--size-icon-sm);
-		}
-
-		.dropdown-menu {
-			min-width: 160px;
-			max-width: calc(100vw - 2rem);
-		}
-
-		.menu-item {
-			padding: var(--space-3) var(--space-2);
-			font-size: var(--font-size-sm);
-		}
+	   The menu itself right-aligns and caps its width against the viewport so it
+	   cannot overflow a narrow screen. */
+	.dropdown-trigger {
+		min-width: var(--size-control-lg);
 	}
 
-	@media (max-width: 480px) {
+	.dropdown-menu {
+		right: 0;
+		left: auto;
+		max-width: calc(100vw - var(--space-8));
+	}
+
+	@media (min-width: 640px) {
 		.dropdown-trigger {
-			min-width: var(--size-control-lg);
-			width: auto;
-			height: var(--size-control-sm);
-			padding: 0 var(--space-2);
-		}
-
-		.trigger-label {
-			display: none;
-		}
-
-		.trigger-content {
-			gap: var(--space-1);
+			min-width: var(--button-min-width);
 		}
 
 		.dropdown-menu {
-			right: 0;
-			left: auto;
-			min-width: 140px;
-			max-width: calc(100vw - 1rem);
-		}
-
-		.menu-item {
-			padding: var(--space-3) var(--space-2);
-			font-size: var(--font-size-base);
+			right: auto;
+			left: 0;
+			max-width: none;
 		}
 	}
 
@@ -385,7 +359,7 @@
 			border-color: var(--border-strong);
 		}
 
-		.menu-item.active {
+		.menu-item[data-state='active'] {
 			background: color-mix(in oklab, var(--color-primary-500) 40%, transparent);
 		}
 	}

@@ -89,7 +89,7 @@
 		width: 100%;
 		padding: var(--space-2) var(--space-8) var(--space-2) var(--space-3);
 		font-size: var(--font-size-sm);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		background: var(--surface-subtle);
 		border: 1px solid var(--border-default);
 		color: var(--text-primary);
@@ -136,7 +136,7 @@
 		border: none;
 		color: var(--text-subtle);
 		cursor: pointer;
-		border-radius: var(--radius-xs);
+		border-radius: var(--radius-none);
 		transition:
 			background-color var(--timing-fast) var(--easing-default),
 			color var(--timing-fast) var(--easing-default);
@@ -151,7 +151,7 @@
 	.size-sm .search-input {
 		padding: var(--space-1-5) var(--space-7) var(--space-1-5) var(--space-2-5);
 		font-size: var(--font-size-xs);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 	}
 
 	.size-sm .search-input.has-icon {
@@ -168,7 +168,10 @@
 	}
 
 	/* Responsive */
-	@media (max-width: 768px) {
+	/* This input only renders inside JournalFilter, which lives in the filter
+	   rail — so it asks the rail how much room it has, not the window. The
+	   values match the `size-sm` variant above by design. */
+	@container filter-rail (max-width: 300px) {
 		.search-input {
 			padding: var(--space-1-5) var(--space-7) var(--space-1-5) var(--space-2-5);
 			font-size: var(--font-size-xs);

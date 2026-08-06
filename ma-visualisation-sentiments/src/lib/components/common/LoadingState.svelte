@@ -61,7 +61,7 @@
 	<!-- Reserve space for filters -->
 	{#if showFilters}
 		<div class="filters-skeleton mb-4 sm:mb-6">
-			<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
+			<div class="grid grid-cols-2 lg:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
 				{#each Array(filterCount) as _, i (i)}
 					<div class="skeleton-item filter-skeleton" style="animation-delay: {i * 100}ms">
 						<div class="skeleton-shimmer"></div>
@@ -102,12 +102,12 @@
 		overflow: hidden;
 		background: var(--surface-card);
 		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-panel);
 	}
 
 	.header-skeleton {
-		height: 8rem;
-		border-radius: var(--radius-2xl);
+		height: 6rem;
+		border-radius: var(--radius-panel);
 	}
 
 	.filter-skeleton {
@@ -116,8 +116,8 @@
 	}
 
 	.content-skeleton-inner {
-		height: 24rem;
-		border-radius: var(--radius-2xl);
+		height: 18rem;
+		border-radius: var(--radius-panel);
 	}
 
 	/* Shimmer effect */
@@ -155,7 +155,7 @@
 		display: flex;
 		align-items: center;
 		gap: var(--space-3);
-		padding: var(--space-4) var(--space-5);
+		padding: var(--space-3-5) var(--space-4);
 		background: var(--surface-card);
 		border: 1px solid color-mix(in oklab, var(--color-primary-500) 22%, transparent);
 	}
@@ -166,29 +166,29 @@
 		justify-content: center;
 		width: var(--size-icon-xl);
 		height: var(--size-icon-xl);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		background: color-mix(in oklab, var(--color-primary-500) 14%, transparent);
 		color: var(--color-primary-300);
 	}
 
 	.loading-text {
-		font-size: var(--font-size-md);
+		font-size: var(--font-size-base);
 		font-weight: var(--font-weight-medium);
 		color: var(--text-primary);
 	}
 
 	/* Responsive */
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.header-skeleton {
-			height: 6rem;
+			height: 8rem;
 		}
 
 		.content-skeleton-inner {
-			height: 18rem;
+			height: 24rem;
 		}
 
 		.loading-message-card {
-			padding: var(--space-3-5) var(--space-4);
+			padding: var(--space-4) var(--space-5);
 		}
 
 		.loading-text {

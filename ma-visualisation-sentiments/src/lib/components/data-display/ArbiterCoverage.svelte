@@ -81,7 +81,7 @@
 
 	.coverage-title {
 		font-family: var(--font-mono);
-		font-size: var(--font-size-2xs);
+		font-size: var(--font-size-eyebrow);
 		font-weight: var(--font-weight-semibold);
 		letter-spacing: var(--tracking-wider);
 		text-transform: uppercase;
@@ -110,7 +110,7 @@
 
 	.coverage-key {
 		font-family: var(--font-mono);
-		font-size: var(--font-size-2xs);
+		font-size: var(--font-size-eyebrow);
 		letter-spacing: var(--tracking-wide);
 		color: var(--text-muted);
 	}
@@ -121,7 +121,8 @@
 	}
 
 	.coverage-percent {
-		margin-left: auto;
+		margin-left: 0;
+		width: 100%;
 		font-family: var(--font-mono);
 		font-size: var(--font-size-sm);
 		font-variant-numeric: tabular-nums;
@@ -150,10 +151,10 @@
 		margin: 0;
 	}
 
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.coverage-percent {
-			margin-left: 0;
-			width: 100%;
+			margin-left: auto;
+			width: auto;
 		}
 	}
 </style>

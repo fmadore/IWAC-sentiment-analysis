@@ -26,6 +26,7 @@
 	import { getPairModelNames, getModelsFromPair } from '$lib/types/data';
 	import { t } from '$lib/i18n';
 	import { ChartCard } from '$lib/components/ui';
+	import Spinner from '$lib/components/common/Spinner.svelte';
 	import ModelPairPicker from '$lib/components/ui/ModelPairPicker.svelte';
 	import ArbiterStatsCards from './ArbiterStatsCards.svelte';
 	import ArbiterCoverage from './ArbiterCoverage.svelte';
@@ -128,12 +129,12 @@
 	<div class="pair-picker-section mb-6">
 		<div class="flex flex-wrap items-center gap-4">
 			<div class="flex items-center gap-3">
-				<span class="text-white/60 text-sm">{$t.arbiter.selectModelPair}:</span>
+				<span class="control-label">{$t.arbiter.selectModelPair}:</span>
 				<ModelPairPicker />
 			</div>
 			<div class="arbiter-model-badge">
-				<SparklesIcon size={14} class="text-amber-400" />
-				<span class="text-xs text-white/70">{$t.arbiter.modelName}</span>
+				<SparklesIcon size={14} />
+				<span class="model-badge-label">{$t.arbiter.modelName}</span>
 			</div>
 		</div>
 	</div>
@@ -143,8 +144,12 @@
 		<div class="loading-section">
 			<ChartCard>
 				<div class="flex flex-col items-center justify-center py-16">
-					<div class="loading-spinner mb-4"></div>
-					<p class="text-white/80">{$t.arbiter.loadingArbiter}</p>
+					<Spinner
+						size="2xl"
+						--spinner-track="var(--border-default)"
+						--spinner-accent="var(--sentiment-arbiter)"
+					/>
+					<p class="loading-note">{$t.arbiter.loadingArbiter}</p>
 				</div>
 			</ChartCard>
 		</div>
@@ -168,12 +173,12 @@
 		<!-- Dimension Filter -->
 		<div class="filter-section mb-6">
 			<div class="flex flex-wrap items-center gap-3">
-				<span class="text-white/60 text-sm">{$t.arbiter.filterByDimension}:</span>
+				<span class="control-label">{$t.arbiter.filterByDimension}:</span>
 				<div class="dimension-chips flex flex-wrap gap-2">
 					{#each dimensionOptions as option (option.value ?? 'all')}
 						<button
 							class="dimension-chip"
-							class:active={selectedDimension === option.value}
+							data-state={selectedDimension === option.value ? 'active' : 'inactive'}
 							onclick={() => (selectedDimension = option.value)}
 						>
 							{option.label}
@@ -187,7 +192,7 @@
 		<div class="charts-grid">
 			<!-- Verdict Distribution Chart -->
 			<ChartCard variant="arbiter">
-				<h3 class="h4 mb-4 text-white">{$t.arbiter.verdictDistribution}</h3>
+				<h3 class="mb-4 chart-title">{$t.arbiter.verdictDistribution}</h3>
 				<ArbiterVerdictChart
 					dimension={selectedDimension}
 					modelAName={modelNames.modelAName}
@@ -197,13 +202,13 @@
 
 			<!-- Confidence Distribution Chart -->
 			<ChartCard variant="arbiter">
-				<h3 class="h4 mb-4 text-white">{$t.arbiter.confidenceDistribution}</h3>
+				<h3 class="mb-4 chart-title">{$t.arbiter.confidenceDistribution}</h3>
 				<ArbiterConfidenceChart />
 			</ChartCard>
 
 			<!-- Dimension Breakdown Chart (Full Width) -->
 			<ChartCard variant="arbiter" class="full-width">
-				<h3 class="h4 mb-4 text-white">{$t.arbiter.verdictsByDimension}</h3>
+				<h3 class="mb-4 chart-title">{$t.arbiter.verdictsByDimension}</h3>
 				<ArbiterDimensionChart
 					modelAName={modelNames.modelAName}
 					modelBName={modelNames.modelBName}
@@ -229,9 +234,9 @@
 		<!-- No Data State -->
 		<ChartCard>
 			<div class="empty-state flex flex-col items-center justify-center py-16 text-center">
-				<AlertCircleIcon size={48} class="text-white/40 mb-4" />
-				<h3 class="h4 mb-2 text-white">{$t.arbiter.noDataForPair}</h3>
-				<p class="text-white/60 max-w-md">
+				<span class="empty-icon mb-4"><AlertCircleIcon size={48} /></span>
+				<h3 class="mb-2 chart-title">{$t.arbiter.noDataForPair}</h3>
+				<p class="empty-body">
 					{$t.arbiter.runScript}
 				</p>
 			</div>
@@ -261,9 +266,9 @@
 		align-items: center;
 		gap: var(--space-2);
 		font-family: var(--font-mono);
-		font-size: 0.6875rem;
+		font-size: var(--font-size-eyebrow);
 		font-weight: 600;
-		letter-spacing: 0.14em;
+		letter-spacing: var(--tracking-widest);
 		text-transform: uppercase;
 		color: var(--sentiment-arbiter-light);
 		margin-bottom: var(--space-3);
@@ -276,7 +281,7 @@
 		line-height: 1.05;
 		color: var(--text-primary);
 		margin: 0 0 var(--space-3);
-		letter-spacing: -0.01em;
+		letter-spacing: var(--tracking-snug);
 	}
 
 	.arbiter-lede {
@@ -294,8 +299,8 @@
 		gap: var(--space-1-5);
 		padding: var(--space-1-5) var(--space-3);
 		font-family: var(--font-mono);
-		font-size: 0.6875rem;
-		letter-spacing: 0.08em;
+		font-size: var(--font-size-eyebrow);
+		letter-spacing: var(--tracking-wider);
 		text-transform: uppercase;
 		background: var(--sentiment-arbiter-bg);
 		border: 1px solid var(--sentiment-arbiter-border);
@@ -315,9 +320,9 @@
 		align-items: center;
 		gap: var(--space-2);
 		font-family: var(--font-mono);
-		font-size: 0.6875rem;
+		font-size: var(--font-size-eyebrow);
 		font-weight: 600;
-		letter-spacing: 0.14em;
+		letter-spacing: var(--tracking-widest);
 		text-transform: uppercase;
 		color: var(--sentiment-arbiter-light);
 		margin-bottom: var(--space-2);
@@ -335,8 +340,8 @@
 	.dimension-chip {
 		padding: var(--space-2) var(--space-4);
 		font-family: var(--font-mono);
-		font-size: 0.75rem;
-		letter-spacing: 0.06em;
+		font-size: var(--font-size-xs);
+		letter-spacing: var(--tracking-wider);
 		text-transform: uppercase;
 		background: transparent;
 		border: 1px solid var(--border-default);
@@ -354,7 +359,7 @@
 		color: var(--text-primary);
 	}
 
-	.dimension-chip.active {
+	.dimension-chip[data-state='active'] {
 		background: var(--sentiment-arbiter-bg);
 		border-color: var(--sentiment-arbiter-border);
 		color: var(--sentiment-arbiter-light);
@@ -362,7 +367,10 @@
 
 	.charts-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+		/* auto-fit already drops to one column when the track can't hold two,
+		   so no media query restates it — the pair used to be able to
+		   disagree. The floor is a token now rather than a literal 400px. */
+		grid-template-columns: repeat(auto-fit, minmax(var(--width-chart-min), 1fr));
 		gap: var(--space-6);
 	}
 
@@ -371,14 +379,6 @@
 	}
 
 	/* Loading spinner */
-	.loading-spinner {
-		width: var(--size-control-xl);
-		height: var(--size-control-xl);
-		border: 3px solid var(--border-default);
-		border-top-color: var(--sentiment-arbiter);
-		border-radius: 50%;
-		animation: spin 1s linear infinite;
-	}
 
 	@keyframes spin {
 		to {
@@ -387,20 +387,42 @@
 	}
 
 	/* Responsive */
-	@media (max-width: 768px) {
-		.charts-grid {
-			grid-template-columns: 1fr;
-		}
+	/* No size override for .arbiter-title: its clamp() already scales fluidly
+	   across the whole range. The query that used to sit here forced 34px below
+	   768px, which made the title *larger* on a phone than the clamp intended. */
 
-		.arbiter-title {
-			font-size: var(--font-size-3xl);
-		}
+	/* ---- Text roles, replacing Tailwind colour utilities. ---- */
+	.control-label {
+		font-size: var(--font-size-sm);
+		color: var(--text-muted);
 	}
 
-	/* Reduced motion */
-	@media (prefers-reduced-motion: reduce) {
-		.loading-spinner {
-			animation: none;
-		}
+	.model-badge-label {
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
+	}
+
+	.loading-note {
+		color: var(--text-secondary);
+	}
+
+	.chart-title {
+		font-size: var(--font-size-xl);
+		color: var(--text-primary);
+	}
+
+	.empty-icon {
+		display: inline-flex;
+		align-items: center;
+		color: var(--text-subtle);
+	}
+
+	.empty-body {
+		max-width: 28rem;
+		color: var(--text-muted);
+	}
+
+	.arbiter-model-badge :global(svg) {
+		color: var(--sentiment-arbiter);
 	}
 </style>

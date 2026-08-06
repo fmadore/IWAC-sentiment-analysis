@@ -106,11 +106,14 @@
 					aria-selected={datasetState.pair === pair.id}
 					onclick={() => selectPair(pair.id)}
 				>
+					<!-- No "vs" between the logos here: the pair label beside them already
+					     reads "ChatGPT vs Gemini". It used to be set at 8px to fit, which
+					     is below anything legible — the row needed less content, not
+					     smaller type. -->
 					<div class="pair-logos">
 						{#if logoA}
 							<img src="{base}{logoA}" alt="" class="pair-logo-sm" />
 						{/if}
-						<span class="vs-label-sm">vs</span>
 						{#if logoB}
 							<img src="{base}{logoB}" alt="" class="pair-logo-sm" />
 						{/if}
@@ -135,7 +138,7 @@
 		padding: var(--space-2) var(--space-3);
 		background: var(--surface-muted);
 		border: 1px solid var(--border-default);
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-panel);
 		color: var(--text-primary);
 		cursor: pointer;
 		transition:
@@ -161,7 +164,7 @@
 	}
 
 	.vs-label {
-		font-size: var(--font-size-2xs);
+		font-size: var(--font-size-eyebrow);
 		font-weight: var(--font-weight-semibold);
 		text-transform: uppercase;
 		color: var(--sentiment-comparison-light);
@@ -175,7 +178,7 @@
 		min-width: 200px;
 		background: var(--surface-card-elevated);
 		border: 1px solid var(--border-default);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 		box-shadow: var(--shadow-lg);
 		z-index: var(--z-dropdown);
 		overflow: hidden;
@@ -190,7 +193,7 @@
 		padding: var(--space-2-5) var(--space-3);
 		background: transparent;
 		border: none;
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 		color: var(--text-secondary);
 		cursor: pointer;
 		transition: background-color var(--timing-fast) var(--easing-default);
@@ -216,13 +219,6 @@
 		width: var(--size-icon-sm);
 		height: var(--size-icon-sm);
 		object-fit: contain;
-	}
-
-	.vs-label-sm {
-		font-size: 0.5rem; /* below 2xs */
-		font-weight: var(--font-weight-semibold);
-		text-transform: uppercase;
-		color: var(--sentiment-comparison-light);
 	}
 
 	.pair-label {

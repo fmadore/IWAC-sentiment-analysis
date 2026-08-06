@@ -122,7 +122,7 @@
 		align-items: center;
 		gap: var(--space-2);
 		font-family: var(--font-mono);
-		font-size: var(--font-size-2xs);
+		font-size: var(--font-size-eyebrow);
 		font-weight: var(--font-weight-semibold);
 		letter-spacing: var(--tracking-wider);
 		text-transform: uppercase;
@@ -168,7 +168,7 @@
 	.disclosure-table-wrap :global(tbody th) {
 		font-family: var(--font-sans);
 		font-size: var(--font-size-sm);
-		font-weight: var(--font-weight-normal);
+		font-weight: var(--font-weight-regular);
 		text-transform: none;
 		letter-spacing: normal;
 		background: transparent;

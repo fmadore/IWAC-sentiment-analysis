@@ -199,8 +199,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: var(--space-4);
-		padding: var(--space-4) var(--space-6);
+		gap: var(--space-2);
+		padding: var(--space-3) var(--space-4);
 		max-width: 900px;
 		margin: 0 auto;
 		width: 100%;
@@ -209,7 +209,7 @@
 	.header-left {
 		display: flex;
 		align-items: center;
-		gap: var(--space-6);
+		gap: var(--space-3);
 		min-width: 0;
 		flex: 1;
 	}
@@ -218,8 +218,8 @@
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
-		padding: var(--space-2) var(--space-3);
-		border-radius: var(--radius-md);
+		padding: var(--space-2);
+		border-radius: var(--radius-panel);
 		background: var(--surface-subtle);
 		border: 1px solid var(--border-default);
 		color: var(--text-secondary);
@@ -257,9 +257,9 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: var(--size-control-lg);
-		height: var(--size-control-lg);
-		border-radius: var(--radius-lg);
+		width: var(--size-control-sm);
+		height: var(--size-control-sm);
+		border-radius: var(--radius-panel);
 		background: color-mix(in oklab, var(--color-primary-500) 14%, transparent);
 		border: 1px solid color-mix(in oklab, var(--color-primary-500) 22%, transparent);
 	}
@@ -269,7 +269,7 @@
 	}
 
 	.fs-modal-title {
-		font-size: var(--font-size-xl);
+		font-size: var(--font-size-base);
 		font-weight: var(--font-weight-semibold);
 		color: var(--text-primary);
 		line-height: var(--line-height-snug);
@@ -281,7 +281,7 @@
 	}
 
 	.fs-modal-subtitle {
-		font-size: var(--font-size-sm);
+		font-size: var(--font-size-xs);
 		color: var(--text-muted);
 		margin: var(--space-1) 0 0 0;
 		overflow: hidden;
@@ -306,9 +306,9 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: var(--size-control-lg);
-		height: var(--size-control-lg);
-		border-radius: var(--radius-md);
+		width: var(--size-control-md);
+		height: var(--size-control-md);
+		border-radius: var(--radius-panel);
 		background: var(--surface-subtle);
 		border: 1px solid var(--border-default);
 		color: var(--text-secondary);
@@ -335,7 +335,7 @@
 	.content-wrapper {
 		max-width: 800px;
 		margin: 0 auto;
-		padding: var(--space-6);
+		padding: var(--space-4);
 	}
 
 	/* Responsive adjustments */
@@ -369,41 +369,41 @@
 	}
 
 	/* Mobile optimizations */
-	@media (max-width: 480px) {
+	@media (min-width: 640px) {
 		.header-content {
-			padding: var(--space-3) var(--space-4);
-			gap: var(--space-2);
+			padding: var(--space-4) var(--space-6);
+			gap: var(--space-4);
 		}
 
 		.header-left {
-			gap: var(--space-3);
+			gap: var(--space-6);
 		}
 
 		.back-button {
-			padding: var(--space-2);
+			padding: var(--space-2) var(--space-3);
 		}
 
 		.header-icon {
-			width: var(--size-control-sm);
-			height: var(--size-control-sm);
-			border-radius: var(--radius-md);
+			width: var(--size-control-lg);
+			height: var(--size-control-lg);
+			border-radius: var(--radius-panel);
 		}
 
 		.fs-modal-title {
-			font-size: var(--font-size-base);
+			font-size: var(--font-size-xl);
 		}
 
 		.fs-modal-subtitle {
-			font-size: var(--font-size-xs);
+			font-size: var(--font-size-sm);
 		}
 
 		.close-button {
-			width: var(--size-control-md);
-			height: var(--size-control-md);
+			width: var(--size-control-lg);
+			height: var(--size-control-lg);
 		}
 
 		.content-wrapper {
-			padding: var(--space-4);
+			padding: var(--space-6);
 		}
 	}
 

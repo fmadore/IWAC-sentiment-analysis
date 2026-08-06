@@ -97,7 +97,7 @@
 		display: flex;
 		flex-wrap: wrap;
 		align-items: flex-end;
-		gap: var(--space-5) var(--space-8);
+		gap: var(--space-4);
 		padding: var(--space-4);
 		background: var(--surface-card);
 		border: 1px solid var(--border-subtle);
@@ -112,7 +112,7 @@
 
 	.legend-title {
 		font-family: var(--font-mono);
-		font-size: var(--font-size-2xs);
+		font-size: var(--font-size-eyebrow);
 		font-weight: var(--font-weight-semibold);
 		letter-spacing: var(--tracking-wider);
 		text-transform: uppercase;
@@ -155,7 +155,7 @@
 
 	.size-label {
 		font-family: var(--font-mono);
-		font-size: var(--font-size-2xs);
+		font-size: var(--font-size-eyebrow);
 		font-variant-numeric: tabular-nums;
 		color: var(--text-secondary);
 	}
@@ -176,9 +176,9 @@
 
 	/* The unscored grey is not part of the diverging ramp — separate it. */
 	.ramp-item-unscored {
-		margin-left: var(--space-2);
-		padding-left: var(--space-4);
-		border-left: 1px solid var(--border-subtle);
+		margin-left: 0;
+		padding-left: 0;
+		border-left: none;
 	}
 
 	.ramp-swatch {
@@ -195,15 +195,15 @@
 		white-space: nowrap;
 	}
 
-	@media (max-width: 640px) {
+	@media (min-width: 640px) {
 		.map-legend {
-			gap: var(--space-4);
+			gap: var(--space-5) var(--space-8);
 		}
 
 		.ramp-item-unscored {
-			margin-left: 0;
-			padding-left: 0;
-			border-left: none;
+			margin-left: var(--space-2);
+			padding-left: var(--space-4);
+			border-left: 1px solid var(--border-subtle);
 		}
 	}
 </style>

@@ -78,7 +78,7 @@
 		font-size: var(--font-size-sm);
 		font-weight: var(--font-weight-medium);
 		line-height: var(--line-height-snug);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 		cursor: pointer;
 		white-space: nowrap;
 		transition:
@@ -142,7 +142,9 @@
 	}
 
 	/* Responsive */
-	@media (max-width: 480px) {
+	/* Only tightens inside a narrow filter rail. Chips also render outside the
+	   rail, where this query never matches and the base sizing stands. */
+	@container filter-rail (max-width: 300px) {
 		.filter-chip {
 			padding: var(--space-1) var(--space-2-5);
 			font-size: var(--font-size-xs);

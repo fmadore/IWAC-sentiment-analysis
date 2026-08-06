@@ -81,9 +81,9 @@
 
 	.legend-badge {
 		padding: var(--space-0-5) var(--space-2);
-		font-size: var(--font-size-2xs);
+		font-size: var(--font-size-eyebrow);
 		font-weight: var(--font-weight-medium);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-hairline);
 
 		/* Colours resolved by app.css from each badge's data-subjectivity. */
 		background: var(--sentiment-bg);
@@ -96,13 +96,16 @@
 		color: var(--text-muted);
 	}
 
-	@media (max-width: 768px) {
+	/* Keyed on the rail's width, not the viewport's — this control only ever
+	   renders inside the filter rail. */
+	@container filter-rail (max-width: 300px) {
 		.legend-badge {
-			font-size: var(--font-size-2xs);
+			font-size: var(--font-size-eyebrow);
 			padding: var(--space-0-5) var(--space-1-5);
 		}
+
 		.legend-text {
-			font-size: var(--font-size-2xs);
+			font-size: var(--font-size-eyebrow);
 		}
 	}
 </style>
