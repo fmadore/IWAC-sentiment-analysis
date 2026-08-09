@@ -1,411 +1,411 @@
 {
   "schema_version": "1.0.0",
   "analysis_version": "v1",
-  "generated": "2026-08-09T09:07:42.319410+00:00",
+  "generated": "2026-08-09T10:33:11.651687+00:00",
   "source": {
     "repository": "fmadore/islam-west-africa-collection",
     "revision": "282adc344ad7316811959d0cdfef9a348caee47a"
   },
   "files": {
     "iwac_articles_base.json": {
-      "bytes": 4130773,
-      "sha256": "962d3060e4761d349039052d9bb516d4e62cfd5c906068db727908a828ba9325"
+      "bytes": 4001249,
+      "sha256": "a68d42aafff01f91cdaeabec73f0e70165235dd692b11362d5cca5ac47be4c9a"
     },
     "iwac_sentiment_chatgpt.json": {
-      "bytes": 1696767,
-      "sha256": "624a751b400f44f837937956f0af40dd2295d0d4702ebe9e983bf21c8b3eaa40"
+      "bytes": 1634981,
+      "sha256": "c69e9793405036784a1d2f920a53025ec201d39823ae8a4843de4ba35b6774b1"
     },
     "iwac_justifications_chatgpt_00.json": {
-      "bytes": 241287,
-      "sha256": "b2dc81717b6881174ed74b802cb6342675898127a70093efb86ee3ab838e5d9b"
+      "bytes": 239309,
+      "sha256": "9a09ec943e2915897731a6618e26bef7d8f1e4826f0cf10aeec7b44b6785c117"
     },
     "iwac_justifications_chatgpt_01.json": {
-      "bytes": 240672,
-      "sha256": "2dc6e8194ddc9fa40b173d13e6bfdedefacb7be5ebbad2457d9bceb847eb5429"
+      "bytes": 238689,
+      "sha256": "72557b9f137c39bf52c994d5441295eaeca9364d200806c0611e1490f74e70b5"
     },
     "iwac_justifications_chatgpt_02.json": {
-      "bytes": 235555,
-      "sha256": "e8c8648641c5939b1b6ea02dca2ed1ce877ebf1fe89cea2dfb98193072d43135"
+      "bytes": 233632,
+      "sha256": "9b872c5a0bfd7d02ef562e60102948a8290dd78712ebc06c597d57f32df68fa0"
     },
     "iwac_justifications_chatgpt_03.json": {
-      "bytes": 234565,
-      "sha256": "5f8e86cc2dbf4b5f40d5f7ec98d9f8a4f32b3fc81dc08bffc5802d461f965fce"
+      "bytes": 232642,
+      "sha256": "9e24391d6d4e562a29d49cb4c5c6ad59a91d080d93a9ea89296b0ec46960424d"
     },
     "iwac_justifications_chatgpt_04.json": {
-      "bytes": 226058,
-      "sha256": "1cec4b01be0f85608c90da9710b0a50793d76e9155b851e952fce88a4aea4518"
+      "bytes": 224220,
+      "sha256": "c7a33b42f81ae6e0866ea7257ee14a2e77d88c9174d7ed50dda25ec408295b93"
     },
     "iwac_justifications_chatgpt_05.json": {
-      "bytes": 222461,
-      "sha256": "4f9b5c0367854fc5af3f5dbe5f90acb1d57647551e9c448c98517a010f17829b"
+      "bytes": 220623,
+      "sha256": "a40bbedf38ce6274102dcebef7631e8b7fad77fe336d022a1f624dfc92619de7"
     },
     "iwac_justifications_chatgpt_06.json": {
-      "bytes": 236474,
-      "sha256": "fc21bd72a36976f4264f2a1eb34b95292ccfaa86f67fbb24dda61fda9edcbf06"
+      "bytes": 234546,
+      "sha256": "9d6d194f317d7d5da7673cb09d3512963b3e7b550a7b48681cd25140e0d7dbcc"
     },
     "iwac_justifications_chatgpt_07.json": {
-      "bytes": 234300,
-      "sha256": "3348e7911f6caa2b4599e7067ce87db9f0bb9f0a32a8755855752b2df9e96f35"
+      "bytes": 232392,
+      "sha256": "3c0cdbd28e7ed6ca6977d241fca90cce2462b5fc7d2fa97c8897ae6bfed872cd"
     },
     "iwac_justifications_chatgpt_08.json": {
-      "bytes": 238078,
-      "sha256": "d3faaa10cd4933a2a84c279c957cf54d6443aa9823ef7f9f3f141bc1c98d41d7"
+      "bytes": 236150,
+      "sha256": "6b4b6db04c9b42f652f6720d4ee3256452e84dddf574b2e8f7335ed1d48c1271"
     },
     "iwac_justifications_chatgpt_09.json": {
-      "bytes": 239735,
-      "sha256": "5cc1d51d4b2a89419f4cfa4ad3f0269e2c50b9472d91995ec24012f8b27fa50e"
+      "bytes": 237787,
+      "sha256": "1f04f2dced9a3e77ee6509fb41ad5cdd21c8cd54acea3bafca14f641f03ad75c"
     },
     "iwac_justifications_chatgpt_10.json": {
-      "bytes": 236478,
-      "sha256": "2c8c326d00899787bcc4e80b06e7f3bfb6131dedad0ecc3bb89f83d4a837bb8c"
+      "bytes": 234540,
+      "sha256": "2c4773645d93ad162855f51a0cf8321b9b20652f6e15e8043026b5e740e2569b"
     },
     "iwac_justifications_chatgpt_11.json": {
-      "bytes": 238236,
-      "sha256": "13ce5479d51dd7612c68f5362aba3e63da499219eaae04bf4aaf2d27385abcbc"
+      "bytes": 236303,
+      "sha256": "399ab5fdd7f9d27050058fa51700f55bbf7979d364878222efdcc144fa0c8cbd"
     },
     "iwac_justifications_chatgpt_12.json": {
-      "bytes": 239874,
-      "sha256": "8fdcc3221a25342725d7666a694410052d89709719474570cf912c6a1c07313e"
+      "bytes": 237946,
+      "sha256": "4b01011fb02698766f0cc546a0505112850b6a283af4bc7c1d43c3e0478af157"
     },
     "iwac_justifications_chatgpt_13.json": {
-      "bytes": 234446,
-      "sha256": "3127f8ea026f6521630469a4c47d9b5d9a18e0d9d3cc6be77312ec9d53b2e8f8"
+      "bytes": 232533,
+      "sha256": "5688d6dacea11b5fac588c9ff1c4c73ce0efc0b57f31fd9be0035bf3b2c51eb0"
     },
     "iwac_justifications_chatgpt_14.json": {
-      "bytes": 240592,
-      "sha256": "d2007da7667db54f03648add9b9ae5974030861fd1cdf897102bbd79eea0c4b2"
+      "bytes": 238634,
+      "sha256": "5fba8dcfe674d04b6a313ead553734adb13c0987ef9d3327918a6dbd21d7bef1"
     },
     "iwac_justifications_chatgpt_15.json": {
-      "bytes": 235830,
-      "sha256": "6e18fc454debc453e71ffb16a940112c5d3dad6d3ee10dd641f611302fc534ac"
+      "bytes": 233892,
+      "sha256": "d20c7b3e4706bb995722a890fcc69dfeff53c2d2857c0c95793d379bf9c0b3c2"
     },
     "iwac_justifications_chatgpt_16.json": {
-      "bytes": 243579,
-      "sha256": "2dd33446a3babe26b8ab562b17a2e8bade2809a47900c34f12a7ef3aa04743d0"
+      "bytes": 241611,
+      "sha256": "a2b75b9fcc60712f9b6af876ccb1ae51ae2948f4eecfbffdbf4a1a0e34d288ee"
     },
     "iwac_justifications_chatgpt_17.json": {
-      "bytes": 240581,
-      "sha256": "76eddbc76ba48b3694852965c99a9c4e753fb86fad4f2312996e13140b20c476"
+      "bytes": 238638,
+      "sha256": "3e13ae90d2897de09418c0527463a08ab37180d3b8b21019e80bf1d3f325c60d"
     },
     "iwac_justifications_chatgpt_18.json": {
-      "bytes": 235264,
-      "sha256": "eb4c45b68d3210c76cf364e17a0afa8f0dd5488f922c3e7293976700f3c6af13"
+      "bytes": 233341,
+      "sha256": "e710480fee47e6fd6e19dc5ca7880a6f9be7ac06ad615ad825331d31538b0b1b"
     },
     "iwac_justifications_chatgpt_19.json": {
-      "bytes": 235128,
-      "sha256": "22f0e286edf232a5c5479d413aa95cd046a17d9e5d556b0b7892ee2686613156"
+      "bytes": 233200,
+      "sha256": "1cdee136ecb3393eff8ebf209c8794ab1270a4fcc58bfd2d5614a182aced97eb"
     },
     "iwac_justifications_chatgpt_20.json": {
-      "bytes": 236507,
-      "sha256": "049874279bc264e1b16fdee83daacf00ed160b3e7853d7493f85a1d7f0a987a6"
+      "bytes": 234554,
+      "sha256": "4f4fcd1eecd9af006df361c32fb9c3df9f9ab52a703047f4a11b7dbea6f92f00"
     },
     "iwac_justifications_chatgpt_21.json": {
-      "bytes": 239768,
-      "sha256": "4512d59a5fdc69b9b66a4ab367cf8133c70baa3f2feaf7f9fa1053da8ce00cca"
+      "bytes": 237815,
+      "sha256": "e8bcb6e85b23c92756bbcfbcfacd201f9b271d56a396a8c0a1ecea88332d1b08"
     },
     "iwac_justifications_chatgpt_22.json": {
-      "bytes": 241767,
-      "sha256": "b3fbf20ee6a8c73a3ff64a55f44a1c95bfe148dd056206e3f20a1123bcdc643c"
+      "bytes": 239809,
+      "sha256": "3082ddf96607eacb781fcc4692cd66443ff0b8f099b79dc5a974fb0605a05708"
     },
     "iwac_justifications_chatgpt_23.json": {
-      "bytes": 233432,
-      "sha256": "d5fca7846bbdcbe9c2a94a72d2962dabc9bbc23f8581781baeae99b7c2dff584"
+      "bytes": 231504,
+      "sha256": "e5a4fcddcf96e93d27b22b067ace6d715bc27436ec4eccf8354d72b90ea6ede9"
     },
     "iwac_justifications_chatgpt_24.json": {
-      "bytes": 244692,
-      "sha256": "03b3b1c876a4e28f4ce0a6672704b37f2783a09170505f5629315d130bfc66d0"
+      "bytes": 242709,
+      "sha256": "5b697500486ecf1cc798f4ffa3edfbe8f09754698085ebd7223788f56ee8b17a"
     },
     "iwac_justifications_chatgpt_25.json": {
-      "bytes": 246605,
-      "sha256": "ae59aa95afab349a4ef6228044f384d1704163769b1d11e3aeb1ecc51aa98ab1"
+      "bytes": 244592,
+      "sha256": "417a3df9a9fa2dda8f6201fdeb1e2265e4a9ee4c8194517bb9846c965f0b8714"
     },
     "iwac_justifications_chatgpt_26.json": {
-      "bytes": 235703,
-      "sha256": "5fbc8302c73663cc838f890cf4438508bcd5fa9833c86ed1bd88716d70af55c4"
+      "bytes": 233770,
+      "sha256": "bde90a2c390bec3073ea6bd45a0f5c1b5bae91aa1bc381045d6909092c2c6b95"
     },
     "iwac_justifications_chatgpt_27.json": {
-      "bytes": 237596,
-      "sha256": "6501fbd2392cb5973ab3dcfe0c14d58564c743ae4ab06e8a7ad004ad4bc4fdda"
+      "bytes": 235633,
+      "sha256": "dee84267e77591621495a33e89d8cc6cf85eed4de0d8c1f9402467208bf5ce6b"
     },
     "iwac_justifications_chatgpt_28.json": {
-      "bytes": 237823,
-      "sha256": "29f3f637a9c18a60020a473ef260823cd3e0d2da7b78c94dfc49d6e317dd5c3c"
+      "bytes": 235895,
+      "sha256": "0754721bf9f10d0a7633c7bc44e4268bb702af0b363c2afbaa73162cc9d6ce27"
     },
     "iwac_justifications_chatgpt_29.json": {
-      "bytes": 237735,
-      "sha256": "949dd39e61e4180e64695dfa8609f03afe12902719ee9ce082c32a0101f3761a"
+      "bytes": 235797,
+      "sha256": "eb7a06a86c2411b45282f59be5b74e6a6c78a470e9a51c1bc3b94005774806c2"
     },
     "iwac_justifications_chatgpt_30.json": {
-      "bytes": 240016,
-      "sha256": "503f387f0640ccb9fa4e5865692654d2f9f4b8eaf52929c6622d4ce5824478fd"
+      "bytes": 238058,
+      "sha256": "ecca6bf72c7312b0091a323d75096ca7bf7ff9b37da0512e12b3396a3d1dc4ec"
     },
     "iwac_justifications_chatgpt_31.json": {
-      "bytes": 239839,
-      "sha256": "720a176a72039c5491b0fff924ce837af28b7318576b6aab730f931562842504"
+      "bytes": 237876,
+      "sha256": "7e884170a9c6b88ad6cde495aab6f93c3481d8c08de8697fe353dea3d8082330"
     },
     "iwac_sentiment_gemini.json": {
-      "bytes": 1700595,
-      "sha256": "17d0385fe0a4697bcb506f0ccdd0861cdedac908a74e22d48b9477c2aa6682c9"
+      "bytes": 1638809,
+      "sha256": "602a02284aa92cb393879340e6d60b4883b1173791109b3d871c6764574fa6e7"
     },
     "iwac_justifications_gemini_00.json": {
-      "bytes": 249246,
-      "sha256": "3ac1d16ce410f8dafbcfea8dccd7d989b178eade99dca2f307068eed504fd2f9"
+      "bytes": 247268,
+      "sha256": "46ba5ec4bf6c8562c5677eeb9db1aeed5c1f1922c9d82134a1503982bf7541d4"
     },
     "iwac_justifications_gemini_01.json": {
-      "bytes": 247296,
-      "sha256": "3f784057e29920c3c6b39e028126443b7c41ba10f6c2fb5dd442b1bbcbaabe01"
+      "bytes": 245313,
+      "sha256": "a2be35c7762784e5d7716b729d8933cb7af731d79ce4fe8b4bdf34adfbac031a"
     },
     "iwac_justifications_gemini_02.json": {
-      "bytes": 242728,
-      "sha256": "d675eada59e251c9bcc3c3cf847b2bd9df4117f3113b49e54dcfff51b007df23"
+      "bytes": 240805,
+      "sha256": "912762449d2531bba311fc884141aad6816942ec52889bf69c59e7d376450879"
     },
     "iwac_justifications_gemini_03.json": {
-      "bytes": 239736,
-      "sha256": "2afd397fe8ee6ea4105f826789ad0f9860a98fc5d49959ee5d8fdf823b100228"
+      "bytes": 237813,
+      "sha256": "95b91078a9677d0cea1f9bc54b5313c2411fa12b1da0b22d0149f8d0e599b4f6"
     },
     "iwac_justifications_gemini_04.json": {
-      "bytes": 230438,
-      "sha256": "ac4b68cc04e4ed0b874efd9759e8326adf84b6c490e56160c174e67da01e0166"
+      "bytes": 228600,
+      "sha256": "27a41ccba529c85c2d20b81a823d2412c4412390e583a227569f40612b9e5873"
     },
     "iwac_justifications_gemini_05.json": {
-      "bytes": 228886,
-      "sha256": "ce41bbd9ea7064cf870ded22771708456ce86003e33ce5a96f174314e93dbe56"
+      "bytes": 227048,
+      "sha256": "8fb7b6541e360ae8f9ad82be98d92f933e7e96ba485af089582eafaf5d9a9aab"
     },
     "iwac_justifications_gemini_06.json": {
-      "bytes": 242056,
-      "sha256": "ec5d763573684c29b697b754deead87d4c18a45138293a687198f6e00ef28528"
+      "bytes": 240128,
+      "sha256": "50524e4ee792dd0797dbde330fe62daa5fcd90629d2004368d52fc6f1f608f93"
     },
     "iwac_justifications_gemini_07.json": {
-      "bytes": 237869,
-      "sha256": "60aff48de7a4de18c5431ea84a4f5d4b805abba486215f074576402c9749b593"
+      "bytes": 235961,
+      "sha256": "32f78f075b3f45bd56c9199429de8036efc8d92d1c03087ed6ab3468a4ee648c"
     },
     "iwac_justifications_gemini_08.json": {
-      "bytes": 242124,
-      "sha256": "0c4ac1ad48608bb6d01c018e8b3474109fd4eca966223677f1590f09b8683804"
+      "bytes": 240196,
+      "sha256": "554e6c78134b77ab0885d09c428618ad4e93f6e643bb1ccdd74abceff3968500"
     },
     "iwac_justifications_gemini_09.json": {
-      "bytes": 244217,
-      "sha256": "b00a8d61f972a358702b3975fd3f1b1dc4d85521a3e7e43ebe9b3c8c293c8d4e"
+      "bytes": 242269,
+      "sha256": "6d177e877bd9cfe39b7d14b9bff08fa735f489953458f6838498343e80e478cf"
     },
     "iwac_justifications_gemini_10.json": {
-      "bytes": 242653,
-      "sha256": "b727a77b7a16a5cd76511726ebab1f48234b1c9fa5b6a8286387c180fd935792"
+      "bytes": 240715,
+      "sha256": "844555711140960547463b19a7d9389a8540b779dbe934f1d1dd11b10713fbf2"
     },
     "iwac_justifications_gemini_11.json": {
-      "bytes": 242611,
-      "sha256": "de8e6f3408f1f9aa50463a3f237a2edad31ee402d4c2c28b91d3647ee01030a3"
+      "bytes": 240678,
+      "sha256": "d7214cb4f7399fab0915140171c286295a1309a692efe364e0748e86af61442c"
     },
     "iwac_justifications_gemini_12.json": {
-      "bytes": 242909,
-      "sha256": "e658b466e497fcc06e66ab71589570f50d984b3a569ddfc984835fe37bef576f"
+      "bytes": 240981,
+      "sha256": "017a097f473752953d953db3613ed33961756378df0221fc6b18be8dbeadb74c"
     },
     "iwac_justifications_gemini_13.json": {
-      "bytes": 238821,
-      "sha256": "d482091f7c13b4e32811a3a862ea7cc1360dc6dcbe9d04d21f7514b7bc421376"
+      "bytes": 236908,
+      "sha256": "758ad44c82b59f19e564a9a9cda8def817949270e8944e44322b48e6094e8ecb"
     },
     "iwac_justifications_gemini_14.json": {
-      "bytes": 247107,
-      "sha256": "831e4fa874c41b521e89e5c1be20905eb59610bd8a18c67eb1f1daa43a6879cd"
+      "bytes": 245149,
+      "sha256": "920eca7ad0f11a7af96b69e185ce2cb51e4c495b9fa879b6146ae2991036c000"
     },
     "iwac_justifications_gemini_15.json": {
-      "bytes": 239040,
-      "sha256": "8a45129f33ea5198f2c4d8c919684d04a781f9ad40f71191dd002c60891058b1"
+      "bytes": 237102,
+      "sha256": "b179ba620dd901012e110c45f3286590e3942dde5ebee58c90041d4c317b9803"
     },
     "iwac_justifications_gemini_16.json": {
-      "bytes": 257082,
-      "sha256": "56a1197f5c42161798435087a71c2c15b8af2ba3a0ce68dbc8b47dc469e6a7a1"
+      "bytes": 255114,
+      "sha256": "0b568812c9075fbbbc3c80786482655694c36d801a263bff87564cb46c86af11"
     },
     "iwac_justifications_gemini_17.json": {
-      "bytes": 244715,
-      "sha256": "83b73a6c2bfff9832ec8bc63f071a955a18473fd6917f12a298657d93c6f2866"
+      "bytes": 242772,
+      "sha256": "652d98c32faf5ace795650b928a989a4cf9b7e1005a342e1d48d3c1021ee139f"
     },
     "iwac_justifications_gemini_18.json": {
-      "bytes": 241921,
-      "sha256": "9f501b6ff906ee7c16940bd1bdb618f00b96ba8c1cf398ddcf416cc51ded47a3"
+      "bytes": 239998,
+      "sha256": "f024acc0962210e2e9e1aadeceeba816e98173df0fd3d27d685cc3008aaf1214"
     },
     "iwac_justifications_gemini_19.json": {
-      "bytes": 239682,
-      "sha256": "caacd155b92580987333bb3cf019e6032b5247477025348fb92693b9d2b1de1e"
+      "bytes": 237754,
+      "sha256": "6b20322e8c85e62d17253fcda37e0c1c727f64fa5707dcb2a43e11b56fa71c28"
     },
     "iwac_justifications_gemini_20.json": {
-      "bytes": 242977,
-      "sha256": "f3dfea30b79b8d4ca52bbc726c6f2acad5e9074f339c7aaef54fb4fc261a9748"
+      "bytes": 241024,
+      "sha256": "07c3346e17a8b13611efdc87e58b9a3e048d9879afe0b51c32b1f54ff5b11011"
     },
     "iwac_justifications_gemini_21.json": {
-      "bytes": 244759,
-      "sha256": "fb533ef53a2751d5eea1149b2358389eb670153ff4e5366d47b4ce3f70a795c0"
+      "bytes": 242806,
+      "sha256": "4b73903f3e97054d5d33d15d273fa02df7ef7387b6c84f68544c2ccd9b26faa7"
     },
     "iwac_justifications_gemini_22.json": {
-      "bytes": 247951,
-      "sha256": "a6e5952ca26f2e592f2c430807900b72f4ca1423f8967f71259f50d58cb7ed0f"
+      "bytes": 245993,
+      "sha256": "8245537b44e002cfee3b26179f6852848366a08265c916e5e4e895b8ecb054e3"
     },
     "iwac_justifications_gemini_23.json": {
-      "bytes": 239574,
-      "sha256": "ee7619b02c576f387b7351268227ef9b20ab992d79300c4e5cbbe85ebb2b01d4"
+      "bytes": 237646,
+      "sha256": "29be8c31110ce405b786539ae8f9d61af13ac09d5916328a05954a59edeb8b6a"
     },
     "iwac_justifications_gemini_24.json": {
-      "bytes": 249354,
-      "sha256": "5a57bac44af27f6cea734b5477216a9b87e856f11b4a9c22df97bb6b6a00d0ad"
+      "bytes": 247371,
+      "sha256": "61814dff1a11325f113bb4cece17a8398889af27d5dbbe0a9f6c4078274b0504"
     },
     "iwac_justifications_gemini_25.json": {
-      "bytes": 253791,
-      "sha256": "37f62d2c93586176d68aecf00b9b319e3a1c3dcdc0c2fd87f03f214109bf858f"
+      "bytes": 251778,
+      "sha256": "56fb78683c93cb19e8afa9e0729f4af9c4645c51b4f656575933805d2e83e4b4"
     },
     "iwac_justifications_gemini_26.json": {
-      "bytes": 241376,
-      "sha256": "e02ef2636f50ae58415fe9a52400f78d3f5fc26ee73237dac8bbf612a150cbb1"
+      "bytes": 239443,
+      "sha256": "9c27d457a7a7b5807ab0449dc883abdebfac62e10dd0e98d5fd6947b5934d1dc"
     },
     "iwac_justifications_gemini_27.json": {
-      "bytes": 244662,
-      "sha256": "8664b3c42f734d9ac213cc17c613cbd128bd7533f26a19355d82b393f7253565"
+      "bytes": 242699,
+      "sha256": "77eefe60d2094f7814fe913e8e329db2017347e7e50b2821f940e1d103c078eb"
     },
     "iwac_justifications_gemini_28.json": {
-      "bytes": 243346,
-      "sha256": "585be588cb6a323b40e3be623624f9630a2036402efb576789eb5992c6d88aeb"
+      "bytes": 241418,
+      "sha256": "58c293df75dcd6738ac8ccada87f7bb878011b41fff8f9bb80d2f4268dd093ed"
     },
     "iwac_justifications_gemini_29.json": {
-      "bytes": 244197,
-      "sha256": "c7974b557c4c18eadc77e0108203d4451408b3a9144239c4518ea3a242eb6f3f"
+      "bytes": 242259,
+      "sha256": "5605b5d0cf7c3611900e277d6367ccd8b7cc7053a492ac0b70486cfd863f29ba"
     },
     "iwac_justifications_gemini_30.json": {
-      "bytes": 246369,
-      "sha256": "c84a3f7b5450eeaf1de758f7e15a7ccbf9ec68c63ba5974d0648e1401e9cfe1a"
+      "bytes": 244411,
+      "sha256": "0790604de4b6e2a6a93baee57ba2173c57ae715b10b0b9772860f478c120edf1"
     },
     "iwac_justifications_gemini_31.json": {
-      "bytes": 246248,
-      "sha256": "baf74becb9ec4016a4a1dbd52faf93e28a1ff3a4f22daaa035d0cb9c3f5cc008"
+      "bytes": 244285,
+      "sha256": "bc72db09df7b302b43b71372c77a40ce77ac11b4155e17bc44063a2efc6d55d0"
     },
     "iwac_sentiment_mistral.json": {
-      "bytes": 1659852,
-      "sha256": "9992561b757b6f819d41bb5a5c9ddb9255e46f3dc96b3a81302d8fb0d9a31057"
+      "bytes": 1598066,
+      "sha256": "e6be3e1fc9ad8b05645de1fd09c0e24a753f0f9e071666455ce9da1be36bab2b"
     },
     "iwac_justifications_mistral_00.json": {
-      "bytes": 424445,
-      "sha256": "a0ea19abe8cdd7fcb853c58e8be958bed96a209110425b0cf112a13dce638e17"
+      "bytes": 422467,
+      "sha256": "5fe3424c834c631c416f5cccc87307bf783ee7b244458f71459d21a131dcc333"
     },
     "iwac_justifications_mistral_01.json": {
-      "bytes": 419910,
-      "sha256": "b9df7982d2a804bea8920b488455988be4d10ae016fdff8e44142baced78a9ee"
+      "bytes": 417927,
+      "sha256": "6b1e55d0078161d4bc794857a406cc846a77dea432a99464dedd3dbc14f1b97a"
     },
     "iwac_justifications_mistral_02.json": {
-      "bytes": 415926,
-      "sha256": "5836988f53784e02e56a307a1eddbca687d94ca94723e7f333e3d527a02794ca"
+      "bytes": 414003,
+      "sha256": "1f5e7538c21fee79d857e1fa2a01b080a75cdd707e417dd5a7f3140f9d045ca0"
     },
     "iwac_justifications_mistral_03.json": {
-      "bytes": 407200,
-      "sha256": "8ec320e787611eea66ecfaaa391c4936da07b2ab628c18be0e8cddbee83c5a34"
+      "bytes": 405277,
+      "sha256": "90f07610a0e66053d0be928b3736ab05c21af869599c9a821487625bfc5249c2"
     },
     "iwac_justifications_mistral_04.json": {
-      "bytes": 398349,
-      "sha256": "c87b1f76abfe2031c4b13095038801d29d5cdae6ab2614fda8f937d0a4635183"
+      "bytes": 396511,
+      "sha256": "9c1090264957301ba18a6764698d4a2eb4d91bd9813715f94bfe699f6580c78b"
     },
     "iwac_justifications_mistral_05.json": {
-      "bytes": 390565,
-      "sha256": "55f4ec445a42cad8c5ac5f52390f131a5bd71370563152916e0e708b2bb18db6"
+      "bytes": 388727,
+      "sha256": "0e8ebc8f11974344fe472ed5ec88104d85563b4241d2741ca1a31894797b7f4d"
     },
     "iwac_justifications_mistral_06.json": {
-      "bytes": 414415,
-      "sha256": "b35e44a9c00a64106506913743b10cc16db6b27ea9d2518384a4fcbe3479ac34"
+      "bytes": 412487,
+      "sha256": "33cde0402e313c73e6dc15883fcdc1590df8ff2e35f78e575f5dcaef41f1dcd7"
     },
     "iwac_justifications_mistral_07.json": {
-      "bytes": 407643,
-      "sha256": "fb805c013f6b55d4deb76c57f40a037209bda85bd35d7beec7321ce39b86cb52"
+      "bytes": 405735,
+      "sha256": "c4d44ce71b0f5b56971378a1c42a1f6118be4e93585726febe37af40144097d0"
     },
     "iwac_justifications_mistral_08.json": {
-      "bytes": 413997,
-      "sha256": "e91bb9fb0fdff510c5ac79e71fa8eb538cbba1d9c3c365da2c27562f2676ad23"
+      "bytes": 412069,
+      "sha256": "9b8a1781c858b1c18144d8a22a91aaf9ea9d76e1d111f02bc95b964ca53466bf"
     },
     "iwac_justifications_mistral_09.json": {
-      "bytes": 425881,
-      "sha256": "756879e416e9915a398df90d370610192b07ad61c2a9b9013de31b5aeecc4642"
+      "bytes": 423933,
+      "sha256": "6959c6dc7dae00330d1d129ae5ca6d45adb5c65dc64b0382b21d3911091c4bc9"
     },
     "iwac_justifications_mistral_10.json": {
-      "bytes": 410968,
-      "sha256": "714eccf9c55407204f5064a5d7f83f1057d278080058f8a0edc8705ff46ab4c0"
+      "bytes": 409030,
+      "sha256": "2d14fddfdb954ae306f8b6ef93069f65da812431a03386782e3ea151b47e9064"
     },
     "iwac_justifications_mistral_11.json": {
-      "bytes": 419969,
-      "sha256": "9aa8fb0fd7e4814cd4fe401a19043d57bc578130bc1424569b4d2ecc6adc4cf7"
+      "bytes": 418036,
+      "sha256": "b6113890ee306ad75f79e2c7007c03743377396754ec616e21892c05201d097e"
     },
     "iwac_justifications_mistral_12.json": {
-      "bytes": 417151,
-      "sha256": "cd0b683814cd4fa1ffc72dbb278d5ea1c21871aa4aa071b2083d0caaa3bbb83c"
+      "bytes": 415223,
+      "sha256": "23160eec14a2ba0e4015aef9d3d68293b51e7d21c1ec02e100dead6cdec93d63"
     },
     "iwac_justifications_mistral_13.json": {
-      "bytes": 409161,
-      "sha256": "6bb2375313efdb36aace15db75e31a6d275b79101d55c7abf2535b7eb31386e3"
+      "bytes": 407248,
+      "sha256": "a793b2798c670a60b94ee96101e7e062eeaafb8f3bececbcf5a5d5ccaf44af3c"
     },
     "iwac_justifications_mistral_14.json": {
-      "bytes": 423881,
-      "sha256": "f50288f9f7fb16acfe4073c84c35aedc2935ce096a2901110edad3b1f63506a4"
+      "bytes": 421923,
+      "sha256": "df0412d059f45b03bf1ace87784ea3d1253d20db70d71c16382f99657263255e"
     },
     "iwac_justifications_mistral_15.json": {
-      "bytes": 413662,
-      "sha256": "2fe7b1fd541129835a84bc6090dbcb2b77d6dfe17bb5cb0358adb638bed5a733"
+      "bytes": 411724,
+      "sha256": "774e037db0e1f5233443d048d7bd605f33c2e3a07525610d900b5ecadee9e4f1"
     },
     "iwac_justifications_mistral_16.json": {
-      "bytes": 424319,
-      "sha256": "645aed32ce29185bcb6c3b85ca3b3e6acdb40731a606652030ad388643976889"
+      "bytes": 422351,
+      "sha256": "4c3a4ef55c9669f2162156d0d9c671b62f66c325d44b15b87957ab78484377c3"
     },
     "iwac_justifications_mistral_17.json": {
-      "bytes": 421665,
-      "sha256": "c79a2d5e182b253d469e078066257393e4b2c889a3430f92791e338e0f3c2255"
+      "bytes": 419722,
+      "sha256": "217047414fd50e412129a6029245b8e1ba60865265dc0fad7a227b468179e932"
     },
     "iwac_justifications_mistral_18.json": {
-      "bytes": 415045,
-      "sha256": "30b8db9a118f5ca20dc3484f12afb99a0c121b682cf3f5aa52a4cb9b4707b545"
+      "bytes": 413122,
+      "sha256": "f5821fb0de5672afe83bb63abbae1b8adb3ef7fc95332990ce3ddadb09e7e3ee"
     },
     "iwac_justifications_mistral_19.json": {
-      "bytes": 414563,
-      "sha256": "5117658fb0166fbfc8e78dc3bcdb5ac77b7dd468701d91f603820b2c4fbc7fd4"
+      "bytes": 412635,
+      "sha256": "651910245faff911d4da4418a63599058bca7980c58fbf07c2feac9f01d79701"
     },
     "iwac_justifications_mistral_20.json": {
-      "bytes": 411419,
-      "sha256": "594ec5c2f2eb7b928d8956bf2b760ccc94d2d8dc618c7f0acab9d077b7f98bf2"
+      "bytes": 409466,
+      "sha256": "14aeddb4f1ba325c0d6238ed358c6bad164a43ccc1de6a7d4f66ec3383f7e6a2"
     },
     "iwac_justifications_mistral_21.json": {
-      "bytes": 422812,
-      "sha256": "2d65325dd3c4b11e406408a3cd3785a0b7e001f31b0c77b5f3c1086c5c9c676a"
+      "bytes": 420859,
+      "sha256": "ab1c71d67a6c697e59178ac4fc223b89ae0b88eb2f10d79eda4b636b264d3d75"
     },
     "iwac_justifications_mistral_22.json": {
-      "bytes": 423194,
-      "sha256": "603387ba8ca280faee95f3b76b0ebd09ca3c5787ec7e32a4d29fed648033e48d"
+      "bytes": 421236,
+      "sha256": "711811bebbd8e6a8d8bd537203023886859bbc6be940fbef825088f46c764032"
     },
     "iwac_justifications_mistral_23.json": {
-      "bytes": 407539,
-      "sha256": "557c5bbdd96722b401d7d83612ee372cf3ee18b6f8494ff4eaa4d38ce2246b9e"
+      "bytes": 405611,
+      "sha256": "2f07b9c0a3a5554807e341839f3045e8784cf6717d56502e17f3577613d867b4"
     },
     "iwac_justifications_mistral_24.json": {
-      "bytes": 428281,
-      "sha256": "4c78bc1665c2ca9bbb5cb39af9577684b9c2d8376c9f96b39b4ff9d3799bb573"
+      "bytes": 426298,
+      "sha256": "6629aa232d897afa4c348bc73aba094c01f2b17e0fad86310dd1184ace40eef6"
     },
     "iwac_justifications_mistral_25.json": {
-      "bytes": 436797,
-      "sha256": "9a9dd7dbcedc80bba582b8906a0158428d75137f29d7ce55809388ab1f926851"
+      "bytes": 434784,
+      "sha256": "2db1af913d5cd0ed3ceb0acda9b50ef76b24b956c8d950c59ee7ddfa310dfe45"
     },
     "iwac_justifications_mistral_26.json": {
-      "bytes": 411638,
-      "sha256": "703a19830745a25a156c896a3e40208c39ce9d0010fb8f4278c5a70f5b9e2590"
+      "bytes": 409705,
+      "sha256": "ee4d6bc5d447656d8308e42cb4beec2c4f6647d3218b38a82115a93b6e4da69f"
     },
     "iwac_justifications_mistral_27.json": {
-      "bytes": 424280,
-      "sha256": "511ac0c6b454cf4b88b71c668b0070788a0a4142927905bfe0aa728148c8982f"
+      "bytes": 422317,
+      "sha256": "918fcd25ff5324100d415634e7483b641106fc429d2f455d97fa4e5b670d9a71"
     },
     "iwac_justifications_mistral_28.json": {
-      "bytes": 419925,
-      "sha256": "72104fea73619904f36d442561d969bfcf15fdfbc53ff59773423db43e6fbd17"
+      "bytes": 417997,
+      "sha256": "92b1b3b646687a660423148b68521a6c2c4ba24cf4409b5f1823cfa459c34c20"
     },
     "iwac_justifications_mistral_29.json": {
-      "bytes": 422394,
-      "sha256": "f5a9ab538601bb542cfd528140974466160865776814d9ffa5e7411ed2a8c6b6"
+      "bytes": 420456,
+      "sha256": "5361914118945407e7c1c79d1f6790e82ff00dd01f6538e5fe5871ab3d70e7fe"
     },
     "iwac_justifications_mistral_30.json": {
-      "bytes": 425132,
-      "sha256": "8da63dc54258a442c5b8f95d241439f193e2ec4604a1fea976b9f8b96c13140a"
+      "bytes": 423174,
+      "sha256": "bd2da4d75f6f469b92983a065772c4fed6b0df95227e8b52634e432f9baa61bc"
     },
     "iwac_justifications_mistral_31.json": {
-      "bytes": 428702,
-      "sha256": "2e80fb83203403fc458c2a6424b224424bc36facf2b56bff410b45eca1a0277b"
+      "bytes": 426739,
+      "sha256": "6bd78fa47af762b6a3ace725a231f2705a11f44be20e4ecf55e77c11a10dca5c"
     }
   }
 }

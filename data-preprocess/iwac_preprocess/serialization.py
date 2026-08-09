@@ -23,6 +23,7 @@ def save_json(data: Any, filepath: str | os.PathLike[str], indent: int | None = 
         with tempfile.NamedTemporaryFile(
             mode="w",
             encoding="utf-8",
+            newline="\n",
             dir=target.parent,
             prefix=f".{target.name}.",
             suffix=".tmp",
