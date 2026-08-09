@@ -31,33 +31,38 @@ Usage:
 Output: JSON file with arbiter evaluations to be consumed by the visualization app
 """
 
-import os
-import json
-import time
-import random
 import argparse
-import pandas as pd
-from tqdm import tqdm
+import json
+import os
+import random
+import time
+from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Optional, Literal
-from dataclasses import dataclass, asdict
-from pydantic import BaseModel, Field
 from pathlib import Path
-from dotenv import load_dotenv
+from typing import Any, Literal
 
+import pandas as pd
+from pydantic import BaseModel, Field, ValidationError
 from shared import (
+    ANALYSIS_VERSION,
+    CONTRACT,
+    CONTRACT_SCHEMA_VERSION,
     MODEL_NAMES,
     MODEL_PAIRS,
+    cache_fingerprint,
     calculate_discrepancies,
     extract_model_analysis,
     get_article_text,
     get_logger,
     get_models_from_pair,
+    get_source_revision,
     get_webapp_data_dir,
     load_iwac_dataset,
+    reconcile_cached_evaluations,
     safe_save_json,
     validate_columns,
 )
+from tqdm import tqdm
 
 logger = get_logger(__name__)
 
@@ -66,39 +71,23 @@ logger = get_logger(__name__)
 # ============================================================================
 
 ARBITER_MODEL = "gemini-3-pro-preview"
-ARBITER_MAX_INPUT_CHARS = 15000   # article text is truncated to this length
+ARBITER_MAX_INPUT_CHARS = 15000  # article text is truncated to this length
 ARBITER_TEMPERATURE = 0.2
 ARBITER_MAX_OUTPUT_TOKENS = 8192
-SAVE_INTERVAL = 10                # save progress every N successful evaluations
-RATE_LIMIT_INTERVAL = 10          # pause for a second after every N API calls
+SAVE_INTERVAL = 10  # save progress every N successful evaluations
+RATE_LIMIT_INTERVAL = 10  # pause for a second after every N API calls
 
 # Dataset columns every pair evaluation depends on.
-REQUIRED_BASE_COLUMNS = ['o:id', 'title', 'OCR', 'newspaper', 'country', 'pub_date']
-
-# Load environment variables from .env file
-env_path = Path(__file__).parent.parent / '.env'
-if env_path.exists():
-    load_dotenv(env_path)
-    logger.info("Loaded environment variables from %s", env_path)
-else:
-    logger.warning("No .env file found at %s", env_path)
-
-# Google GenAI SDK (new unified SDK)
-try:
-    from google import genai
-    from google.genai import types
-except ImportError:
-    logger.error("Please install google-genai: pip install google-genai")
-    exit(1)
-
+REQUIRED_BASE_COLUMNS = ["o:id", "title", "OCR", "newspaper", "country", "pub_date"]
 
 # ============================================================================
 # Pydantic Models for Structured Output
 # ============================================================================
 
-class DimensionScore(BaseModel):
-    """Score for a single dimension (polarity, subjectivity, or centrality)"""
-    arbiter_score: str = Field(description="Le score de l'arbitre pour cette dimension")
+
+class DimensionVerdict(BaseModel):
+    """Verdict fields shared by each independently constrained dimension."""
+
     justification: str = Field(description="Raisonnement pour ce score")
     preferred_model: Literal["model_a", "model_b", "both", "neither"] = Field(
         description="Quel modèle a l'analyse la plus précise (model_a ou model_b)"
@@ -106,11 +95,28 @@ class DimensionScore(BaseModel):
     verdict_explanation: str = Field(description="Pourquoi l'analyse de ce modèle est préférée")
 
 
+class PolarityScore(DimensionVerdict):
+    arbiter_score: Literal[
+        "Très positif", "Positif", "Neutre", "Négatif", "Très négatif", "Non applicable"
+    ]
+
+
+class SubjectivityScore(DimensionVerdict):
+    arbiter_score: int = Field(ge=1, le=5)
+
+
+class CentralityScore(DimensionVerdict):
+    arbiter_score: Literal["Très central", "Central", "Secondaire", "Marginal", "Non abordé"]
+
+
 class ArbiterResponse(BaseModel):
     """Complete structured response from the arbiter"""
-    polarity: DimensionScore = Field(description="Évaluation de la polarité/sentiment")
-    subjectivity: DimensionScore = Field(description="Évaluation du score de subjectivité")
-    centrality: DimensionScore = Field(description="Évaluation de la centralité de l'islam/musulmans")
+
+    polarity: PolarityScore = Field(description="Évaluation de la polarité/sentiment")
+    subjectivity: SubjectivityScore = Field(description="Évaluation du score de subjectivité")
+    centrality: CentralityScore = Field(
+        description="Évaluation de la centralité de l'islam/musulmans"
+    )
     overall_winner: Literal["model_a", "model_b", "both", "neither"] = Field(
         description="Quel modèle est globalement meilleur: 'model_a', 'model_b', 'both' (les deux équivalents), ou 'neither' (aucun précis)"
     )
@@ -124,9 +130,11 @@ class ArbiterResponse(BaseModel):
 # Dataclasses for internal processing (matching frontend types)
 # ============================================================================
 
+
 @dataclass
 class ArbiterScore:
     """Arbiter's score for a dimension"""
+
     score: str  # The arbiter's own score (e.g., "Positif", "3", "Central")
     justification: str  # Why the arbiter chose this score
     preferred_model: str  # "model_a", "model_b", "both", or "neither" (actual model assignment stored separately)
@@ -136,6 +144,7 @@ class ArbiterScore:
 @dataclass
 class ArbiterAnalysis:
     """Complete arbiter analysis for an article"""
+
     article_id: str
     polarity: ArbiterScore
     subjectivity: ArbiterScore
@@ -193,8 +202,9 @@ Votre rôle est de :
 - Pour overall_explanation, fournissez une explication détaillée en français du verdict global"""
 
 
-def create_arbiter_prompt(article_text: str, title: str,
-                          model_a_analysis: dict, model_b_analysis: dict) -> str:
+def create_arbiter_prompt(
+    article_text: str, title: str, model_a_analysis: dict, model_b_analysis: dict
+) -> str:
     """Create the user prompt for the arbiter model.
 
     Note: The system instruction already contains the evaluation scales and guidelines.
@@ -213,20 +223,20 @@ def create_arbiter_prompt(article_text: str, title: str,
 ---
 
 ## Analyse du Modèle A :
-- **Polarité (sentiment envers l'islam/les musulmans) :** {model_a_analysis.get('polarite', 'N/A')}
-  - Justification : {model_a_analysis.get('polarite_justification', 'N/A')}
-- **Score de subjectivité (1=très objectif, 5=très subjectif) :** {model_a_analysis.get('subjectivite_score', 'N/A')}
-  - Justification : {model_a_analysis.get('subjectivite_justification', 'N/A')}
-- **Centralité de l'islam/des musulmans :** {model_a_analysis.get('centralite_islam_musulmans', 'N/A')}
-  - Justification : {model_a_analysis.get('centralite_justification', 'N/A')}
+- **Polarité (sentiment envers l'islam/les musulmans) :** {model_a_analysis.get("polarite", "N/A")}
+  - Justification : {model_a_analysis.get("polarite_justification", "N/A")}
+- **Score de subjectivité (1=très objectif, 5=très subjectif) :** {model_a_analysis.get("subjectivite_score", "N/A")}
+  - Justification : {model_a_analysis.get("subjectivite_justification", "N/A")}
+- **Centralité de l'islam/des musulmans :** {model_a_analysis.get("centralite_islam_musulmans", "N/A")}
+  - Justification : {model_a_analysis.get("centralite_justification", "N/A")}
 
 ## Analyse du Modèle B :
-- **Polarité :** {model_b_analysis.get('polarite', 'N/A')}
-  - Justification : {model_b_analysis.get('polarite_justification', 'N/A')}
-- **Score de subjectivité :** {model_b_analysis.get('subjectivite_score', 'N/A')}
-  - Justification : {model_b_analysis.get('subjectivite_justification', 'N/A')}
-- **Centralité :** {model_b_analysis.get('centralite_islam_musulmans', 'N/A')}
-  - Justification : {model_b_analysis.get('centralite_justification', 'N/A')}
+- **Polarité :** {model_b_analysis.get("polarite", "N/A")}
+  - Justification : {model_b_analysis.get("polarite_justification", "N/A")}
+- **Score de subjectivité :** {model_b_analysis.get("subjectivite_score", "N/A")}
+  - Justification : {model_b_analysis.get("subjectivite_justification", "N/A")}
+- **Centralité :** {model_b_analysis.get("centralite_islam_musulmans", "N/A")}
+  - Justification : {model_b_analysis.get("centralite_justification", "N/A")}
 
 ---
 
@@ -243,30 +253,59 @@ def convert_pydantic_to_dataclass(response: ArbiterResponse, article_id: str) ->
             score=response.polarity.arbiter_score,
             justification=response.polarity.justification,
             preferred_model=response.polarity.preferred_model,
-            verdict_explanation=response.polarity.verdict_explanation
+            verdict_explanation=response.polarity.verdict_explanation,
         ),
         subjectivity=ArbiterScore(
             score=str(response.subjectivity.arbiter_score),
             justification=response.subjectivity.justification,
             preferred_model=response.subjectivity.preferred_model,
-            verdict_explanation=response.subjectivity.verdict_explanation
+            verdict_explanation=response.subjectivity.verdict_explanation,
         ),
         centrality=ArbiterScore(
             score=response.centrality.arbiter_score,
             justification=response.centrality.justification,
             preferred_model=response.centrality.preferred_model,
-            verdict_explanation=response.centrality.verdict_explanation
+            verdict_explanation=response.centrality.verdict_explanation,
         ),
         overall_winner=response.overall_winner,
         overall_explanation=response.overall_explanation,
         confidence_level=response.confidence_level,
-        timestamp=datetime.now().isoformat()
+        timestamp=datetime.now().isoformat(),
     )
 
 
-def evaluate_with_arbiter(client: genai.Client, article: dict, first_analysis: dict,
-                          second_analysis: dict, model_a_is_first: bool,
-                          max_retries: int = 3) -> Optional[ArbiterAnalysis]:
+def is_transient_api_error(error: Exception) -> bool:
+    """Return True only for rate limits, timeouts, and server-side failures."""
+    status = getattr(error, "status_code", None) or getattr(error, "code", None)
+    if isinstance(status, int) and (status == 429 or status >= 500):
+        return True
+    name = type(error).__name__.lower()
+    message = str(error).lower()
+    return any(
+        token in name or token in message
+        for token in ("timeout", "temporar", "rate limit", "resource exhausted", "unavailable")
+    )
+
+
+def retry_delay(error: Exception, attempt: int) -> float:
+    """Honor Retry-After when exposed, otherwise exponential backoff + jitter."""
+    retry_after = getattr(error, "retry_after", None)
+    try:
+        if retry_after is not None:
+            return max(0.0, float(retry_after))
+    except (TypeError, ValueError):
+        pass
+    return (2**attempt) + random.random()
+
+
+def evaluate_with_arbiter(
+    client: Any,
+    article: dict,
+    first_analysis: dict,
+    second_analysis: dict,
+    model_a_is_first: bool,
+    max_retries: int = 3,
+) -> ArbiterAnalysis | None:
     """Send an article to the arbiter for evaluation using structured outputs.
 
     Uses:
@@ -285,8 +324,10 @@ def evaluate_with_arbiter(client: genai.Client, article: dict, first_analysis: d
         max_retries: Number of attempts before giving up on an article.
     """
 
-    article_id = str(article.get('o:id', article.get('id', 'unknown')))
-    title = article.get('o:title', article.get('title', 'Unknown Title'))
+    from google.genai import types
+
+    article_id = str(article.get("o:id", article.get("id", "unknown")))
+    title = article.get("o:title", article.get("title", "Unknown Title"))
     text = get_article_text(article)
 
     if not text:
@@ -315,7 +356,7 @@ def evaluate_with_arbiter(client: genai.Client, article: dict, first_analysis: d
                     response_schema=ArbiterResponse,
                     temperature=ARBITER_TEMPERATURE,
                     max_output_tokens=ARBITER_MAX_OUTPUT_TOKENS,
-                )
+                ),
             )
 
             if response.text:
@@ -326,14 +367,21 @@ def evaluate_with_arbiter(client: genai.Client, article: dict, first_analysis: d
 
             logger.warning("Empty response for article %s, attempt %d", article_id, attempt + 1)
 
-        except json.JSONDecodeError as e:
-            logger.warning("JSON parse error for article %s, attempt %d: %s", article_id, attempt + 1, e)
-            if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)
+        except (json.JSONDecodeError, ValidationError) as e:
+            # A response that violates the schema is deterministic bad output,
+            # not a transport failure. Retrying it spends quota without making
+            # the contract more likely to pass.
+            logger.error("Invalid structured response for article %s: %s", article_id, e)
+            return None
         except Exception as e:
-            logger.warning("Error for article %s, attempt %d: %s", article_id, attempt + 1, e)
+            if not is_transient_api_error(e):
+                logger.error("Non-retryable arbiter error for article %s: %s", article_id, e)
+                return None
+            logger.warning(
+                "Transient error for article %s, attempt %d: %s", article_id, attempt + 1, e
+            )
             if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)  # Exponential backoff
+                time.sleep(retry_delay(e, attempt))
 
     return None
 
@@ -341,16 +389,26 @@ def evaluate_with_arbiter(client: genai.Client, article: dict, first_analysis: d
 def load_dataset_with_text_info() -> pd.DataFrame:
     """Load the IWAC dataset, validate required columns, and log text-field info."""
     df = load_iwac_dataset()
-    logger.info("Available columns: %s", ', '.join(df.columns.tolist()))
+    logger.info("Available columns: %s", ", ".join(df.columns.tolist()))
     validate_columns(df, REQUIRED_BASE_COLUMNS)
 
     # Check for OCR/text field coverage
-    ocr_fields = [col for col in df.columns if 'ocr' in col.lower() or 'text' in col.lower() or 'content' in col.lower()]
+    ocr_fields = [
+        col
+        for col in df.columns
+        if "ocr" in col.lower() or "text" in col.lower() or "content" in col.lower()
+    ]
     if ocr_fields:
-        logger.info("Found text fields: %s", ', '.join(ocr_fields))
+        logger.info("Found text fields: %s", ", ".join(ocr_fields))
         for field in ocr_fields:
             non_empty = df[field].notna().sum()
-            logger.info("  %s: %d/%d non-empty (%.1f%%)", field, non_empty, len(df), 100 * non_empty / len(df))
+            logger.info(
+                "  %s: %d/%d non-empty (%.1f%%)",
+                field,
+                non_empty,
+                len(df),
+                100 * non_empty / len(df),
+            )
     else:
         logger.warning("No OCR/text field found in dataset!")
 
@@ -370,8 +428,12 @@ def find_significant_differences(records: list[dict], model_a: str, model_b: str
     model_a_name = MODEL_NAMES.get(model_a, model_a)
     model_b_name = MODEL_NAMES.get(model_b, model_b)
 
-    logger.info("Processing %d articles to find significant differences between %s and %s...",
-                len(records), model_a_name, model_b_name)
+    logger.info(
+        "Processing %d articles to find significant differences between %s and %s...",
+        len(records),
+        model_a_name,
+        model_b_name,
+    )
 
     for item in tqdm(records, total=len(records), desc="Finding conflicts"):
         # Dynamically build column names based on model prefixes
@@ -381,24 +443,26 @@ def find_significant_differences(records: list[dict], model_a: str, model_b: str
         discrepancies = calculate_discrepancies(model_a_analysis, model_b_analysis)
 
         if discrepancies and discrepancies["has_significant_conflict"]:
-            significant_articles.append({
-                'o:id': item.get('o:id'),
-                'o:title': item.get('title'),
-                'OCR': get_article_text(item),  # Full text - uppercase column in dataset
-                'newspaper': item.get('newspaper'),
-                'country': item.get('country'),
-                'pub_date': item.get('pub_date'),
-                'model_a_analysis': model_a_analysis,
-                'model_b_analysis': model_b_analysis,
-                'model_a_id': model_a,
-                'model_b_id': model_b,
-                'discrepancies': discrepancies
-            })
+            significant_articles.append(
+                {
+                    "o:id": item.get("o:id"),
+                    "o:title": item.get("title"),
+                    "OCR": get_article_text(item),  # Full text - uppercase column in dataset
+                    "newspaper": item.get("newspaper"),
+                    "country": item.get("country"),
+                    "pub_date": item.get("pub_date"),
+                    "model_a_analysis": model_a_analysis,
+                    "model_b_analysis": model_b_analysis,
+                    "model_a_id": model_a,
+                    "model_b_id": model_b,
+                    "discrepancies": discrepancies,
+                }
+            )
 
     return significant_articles
 
 
-def load_cached_evaluations(webapp_file: str) -> tuple[list, set, Optional[bool]]:
+def load_cached_evaluations(webapp_file: str) -> tuple[list, set, bool | None]:
     """Load previously saved evaluations from a webapp output file (the cache).
 
     Returns:
@@ -410,26 +474,33 @@ def load_cached_evaluations(webapp_file: str) -> tuple[list, set, Optional[bool]
         return [], set(), None
 
     try:
-        with open(webapp_file, 'r', encoding='utf-8') as f:
+        with open(webapp_file, encoding="utf-8") as f:
             existing_data = json.load(f)
-        arbiter_results = existing_data.get('evaluations', [])
-        evaluated_ids = {str(r['article_id']) for r in arbiter_results}
+        arbiter_results = existing_data.get("evaluations", [])
+        evaluated_ids = {str(r["article_id"]) for r in arbiter_results}
         # Preserve the blind assignment from previous runs. Files written
         # before the key was persisted derive it from arbiter_model_a ==
         # pair_first_model - re-randomizing on an incremental run would
         # silently flip the model_a/model_b mapping for new rows relative
         # to the cached ones.
-        metadata = existing_data.get('metadata', {})
-        model_a_is_first = metadata.get('model_a_is_first')
-        if model_a_is_first is None and metadata.get('arbiter_model_a'):
-            model_a_is_first = metadata['arbiter_model_a'] == metadata.get('pair_first_model')
+        metadata = existing_data.get("metadata", {})
+        model_a_is_first = metadata.get("model_a_is_first")
+        if model_a_is_first is None and metadata.get("arbiter_model_a"):
+            model_a_is_first = metadata["arbiter_model_a"] == metadata.get("pair_first_model")
         return arbiter_results, evaluated_ids, model_a_is_first
     except (OSError, json.JSONDecodeError) as e:
         logger.warning("Failed to load existing data from %s: %s", webapp_file, e)
         return [], set(), None
 
 
-def process_pair(client, significant_articles: list[dict], pair: str, webapp_data_dir: str) -> dict:
+def process_pair(
+    client,
+    significant_articles: list[dict],
+    pair: str,
+    webapp_data_dir: str,
+    *,
+    evaluate_missing: bool = True,
+) -> dict:
     """Process a single model pair and return statistics.
 
     Uses the webapp output file as cache for incremental processing.
@@ -451,34 +522,123 @@ def process_pair(client, significant_articles: list[dict], pair: str, webapp_dat
 
     logger.info("Processing: %s vs %s", model_a_name, model_b_name)
 
+    # The published file is also the incremental cache. Load it even when the
+    # current corpus has no eligible rows so stale paid evaluations are not
+    # left behind indefinitely.
+    webapp_file = os.path.join(webapp_data_dir, f"iwac_arbiter_evaluations_{pair}.json")
+    cached_results, _, model_a_is_first = load_cached_evaluations(webapp_file)
+
     if not significant_articles:
-        logger.warning("No articles with significant differences found!")
-        return {'pair': pair, 'total': 0, 'new': 0, 'cached': 0, 'failed': 0}
+        if model_a_is_first is None:
+            model_a_is_first = random.choice([True, False])
+        save_results(
+            webapp_file,
+            [],
+            pair,
+            model_a_is_first,
+            model_a_name,
+            model_b_name,
+            0,
+            0,
+            0,
+        )
+        logger.warning(
+            "No current significant differences; published an empty cache and pruned %d stale rows",
+            len(cached_results),
+        )
+        return {"pair": pair, "total": 0, "new": 0, "cached": 0, "failed": 0}
 
     logger.info("Found %d articles with significant differences", len(significant_articles))
 
-    # Use webapp output file as primary cache (for incremental processing)
-    webapp_file = os.path.join(webapp_data_dir, f"iwac_arbiter_evaluations_{pair}.json")
-    arbiter_results, evaluated_ids, model_a_is_first = load_cached_evaluations(webapp_file)
-    if arbiter_results:
-        logger.info("Loaded %d cached evaluations from %s", len(arbiter_results), os.path.basename(webapp_file))
+    reconciliation = reconcile_cached_evaluations(
+        cached_results,
+        significant_articles,
+        pair=pair,
+        arbiter_model=ARBITER_MODEL,
+        source_revision=get_source_revision(),
+        max_input_chars=ARBITER_MAX_INPUT_CHARS,
+    )
+    arbiter_results = reconciliation.evaluations
+    evaluated_ids = reconciliation.evaluated_ids
+    if cached_results:
+        logger.info(
+            "Reconciled cache: %d kept, %d stale/duplicate pruned, %d changed invalidated, %d legacy adopted",
+            len(arbiter_results),
+            reconciliation.pruned,
+            reconciliation.invalidated,
+            reconciliation.adopted_legacy,
+        )
 
     # Filter out already-evaluated articles
-    remaining_articles = [a for a in significant_articles if str(a.get('o:id')) not in evaluated_ids]
+    remaining_articles = [
+        a for a in significant_articles if str(a.get("o:id")) not in evaluated_ids
+    ]
     cached_count = len(evaluated_ids)
-
-    if not remaining_articles:
-        logger.info("All %d articles already evaluated!", len(significant_articles))
-        return {'pair': pair, 'total': len(significant_articles), 'new': 0, 'cached': cached_count, 'failed': 0}
-
-    logger.info("%d new articles to evaluate (%d cached)", len(remaining_articles), cached_count)
 
     # BLIND EVALUATION: Use existing assignment or create new one
     if model_a_is_first is None:
         model_a_is_first = random.choice([True, False])
-        logger.info("New blind assignment: Model A = %s", model_a_name if model_a_is_first else model_b_name)
+        logger.info(
+            "New blind assignment: Model A = %s", model_a_name if model_a_is_first else model_b_name
+        )
     else:
-        logger.info("Using existing blind assignment: Model A = %s", model_a_name if model_a_is_first else model_b_name)
+        logger.info(
+            "Using existing blind assignment: Model A = %s",
+            model_a_name if model_a_is_first else model_b_name,
+        )
+
+    if not remaining_articles:
+        # Still publish reconciled/pruned cache rows and upgraded metadata.
+        save_results(
+            webapp_file,
+            arbiter_results,
+            pair,
+            model_a_is_first,
+            model_a_name,
+            model_b_name,
+            len(significant_articles),
+            len(arbiter_results),
+            0,
+            legacy_cache_adopted=reconciliation.adopted_legacy,
+        )
+        logger.info(
+            "All %d current articles already evaluated; cache metadata refreshed",
+            len(significant_articles),
+        )
+        return {
+            "pair": pair,
+            "total": len(significant_articles),
+            "new": 0,
+            "cached": cached_count,
+            "failed": 0,
+        }
+
+    logger.info(
+        "%d new or changed articles to evaluate (%d cached)", len(remaining_articles), cached_count
+    )
+
+    if not evaluate_missing:
+        save_results(
+            webapp_file,
+            arbiter_results,
+            pair,
+            model_a_is_first,
+            model_a_name,
+            model_b_name,
+            len(significant_articles),
+            len(arbiter_results),
+            0,
+            legacy_cache_adopted=reconciliation.adopted_legacy,
+        )
+        logger.info("Prune-only mode left %d articles pending evaluation", len(remaining_articles))
+        return {
+            "pair": pair,
+            "total": len(significant_articles),
+            "new": 0,
+            "cached": cached_count,
+            "failed": 0,
+            "pending": len(remaining_articles),
+        }
 
     # Process new articles with arbiter
     successful = 0
@@ -486,26 +646,40 @@ def process_pair(client, significant_articles: list[dict], pair: str, webapp_dat
 
     for i, item in enumerate(tqdm(remaining_articles, desc=f"Arbiter eval ({pair})")):
         result = evaluate_with_arbiter(
-            client,
-            item,
-            item['model_a_analysis'],
-            item['model_b_analysis'],
-            model_a_is_first
+            client, item, item["model_a_analysis"], item["model_b_analysis"], model_a_is_first
         )
 
         if result:
-            arbiter_results.append({
-                'article_id': result.article_id,
-                'arbiter': asdict(result),
-                'discrepancies': item['discrepancies']
-            })
+            arbiter_results.append(
+                {
+                    "article_id": result.article_id,
+                    "arbiter": asdict(result),
+                    "discrepancies": item["discrepancies"],
+                    "cache_fingerprint": cache_fingerprint(
+                        item,
+                        pair=pair,
+                        arbiter_model=ARBITER_MODEL,
+                        source_revision=get_source_revision(),
+                        max_input_chars=ARBITER_MAX_INPUT_CHARS,
+                    ),
+                }
+            )
             successful += 1
 
             # Save progress periodically
             if successful % SAVE_INTERVAL == 0:
-                save_results(webapp_file, arbiter_results, pair, model_a_is_first,
-                            model_a_name, model_b_name, len(significant_articles),
-                            len(arbiter_results), failed)
+                save_results(
+                    webapp_file,
+                    arbiter_results,
+                    pair,
+                    model_a_is_first,
+                    model_a_name,
+                    model_b_name,
+                    len(significant_articles),
+                    len(arbiter_results),
+                    failed,
+                    legacy_cache_adopted=reconciliation.adopted_legacy,
+                )
                 logger.info("Saved %d results", len(arbiter_results))
         else:
             failed += 1
@@ -515,23 +689,43 @@ def process_pair(client, significant_articles: list[dict], pair: str, webapp_dat
             time.sleep(1)
 
     # Save final results
-    save_results(webapp_file, arbiter_results, pair, model_a_is_first,
-                model_a_name, model_b_name, len(significant_articles),
-                len(arbiter_results), failed)
+    save_results(
+        webapp_file,
+        arbiter_results,
+        pair,
+        model_a_is_first,
+        model_a_name,
+        model_b_name,
+        len(significant_articles),
+        len(arbiter_results),
+        failed,
+        legacy_cache_adopted=reconciliation.adopted_legacy,
+    )
 
     logger.info("Completed: %d new, %d cached, %d failed", successful, cached_count, failed)
 
     return {
-        'pair': pair,
-        'total': len(significant_articles),
-        'new': successful,
-        'cached': cached_count,
-        'failed': failed
+        "pair": pair,
+        "total": len(significant_articles),
+        "new": successful,
+        "cached": cached_count,
+        "failed": failed,
     }
 
 
-def save_results(filepath: str, results: list, pair: str, model_a_is_first: bool,
-                 first_model_name: str, second_model_name: str, total: int, successful: int, failed: int):
+def save_results(
+    filepath: str,
+    results: list,
+    pair: str,
+    model_a_is_first: bool,
+    first_model_name: str,
+    second_model_name: str,
+    total: int,
+    successful: int,
+    failed: int,
+    *,
+    legacy_cache_adopted: int = 0,
+):
     """Save arbiter results to JSON file
 
     Args:
@@ -544,26 +738,35 @@ def save_results(filepath: str, results: list, pair: str, model_a_is_first: bool
     arbiter_model_a = first_model_name if model_a_is_first else second_model_name
     arbiter_model_b = second_model_name if model_a_is_first else first_model_name
 
-    safe_save_json({
-        'metadata': {
-            'generated': datetime.now().isoformat(),
-            'arbiter_model': ARBITER_MODEL,
-            'thinking_level': 'high',
-            'blind_evaluation': True,
-            'arbiter_model_a': arbiter_model_a,
-            'arbiter_model_b': arbiter_model_b,
-            # Persisted so incremental runs keep the same blind assignment
-            'model_a_is_first': model_a_is_first,
-            'pair': pair,
-            'pair_first_model': first_model_name,
-            'pair_second_model': second_model_name,
-            'note': 'arbiter_model_a/b = what the arbiter saw. preferred_model in verdicts directly maps to these names.',
-            'total_articles': total,
-            'successful_evaluations': successful,
-            'failed_evaluations': failed
+    safe_save_json(
+        {
+            "metadata": {
+                "generated": datetime.now().isoformat(),
+                "arbiter_model": ARBITER_MODEL,
+                "thinking_level": "high",
+                "blind_evaluation": True,
+                "arbiter_model_a": arbiter_model_a,
+                "arbiter_model_b": arbiter_model_b,
+                # Persisted so incremental runs keep the same blind assignment
+                "model_a_is_first": model_a_is_first,
+                "pair": pair,
+                "pair_first_model": first_model_name,
+                "pair_second_model": second_model_name,
+                "note": "arbiter_model_a/b = what the arbiter saw. preferred_model in verdicts directly maps to these names.",
+                "total_articles": total,
+                "successful_evaluations": successful,
+                "failed_evaluations": failed,
+                "contract_schema_version": CONTRACT_SCHEMA_VERSION,
+                "analysis_version": ANALYSIS_VERSION,
+                "cache_schema_version": CONTRACT["arbiter"]["cacheSchemaVersion"],
+                "prompt_version": CONTRACT["arbiter"]["promptVersion"],
+                "source_revision": get_source_revision(),
+                "legacy_cache_adopted": legacy_cache_adopted,
+            },
+            "evaluations": results,
         },
-        'evaluations': results
-    }, filepath)
+        filepath,
+    )
 
 
 def confirm_api_calls(total_new: int, assume_yes: bool) -> bool:
@@ -582,10 +785,21 @@ def confirm_api_calls(total_new: int, assume_yes: bool) -> bool:
     except EOFError:
         logger.error("No input available (non-interactive run?). Use --yes to skip the prompt.")
         return False
-    return response in ['yes', 'y']
+    return response in ["yes", "y"]
 
 
-def main(pairs: list[str] | None = None, assume_yes: bool = False):
+def create_genai_client(api_key: str):
+    """Import the optional paid-API dependency only for an evaluation run."""
+    try:
+        from google import genai
+    except ImportError as error:
+        raise RuntimeError("google-genai is required for arbiter API calls") from error
+    return genai.Client(api_key=api_key)
+
+
+def main(
+    pairs: list[str] | None = None, assume_yes: bool = False, prune_cache_only: bool = False
+) -> int:
     """Main function - processes all specified pairs
 
     Args:
@@ -595,26 +809,23 @@ def main(pairs: list[str] | None = None, assume_yes: bool = False):
     if pairs is None:
         pairs = MODEL_PAIRS
 
+    env_path = Path(__file__).parent.parent / ".env"
+    if env_path.exists():
+        from dotenv import load_dotenv
+
+        load_dotenv(env_path)
+        logger.info("Loaded environment variables from %s", env_path)
+
     logger.info("IWAC Arbiter Evaluation - %s (thinking_level=high)", ARBITER_MODEL)
-    logger.info("Processing %d model pair(s): %s", len(pairs), ', '.join(pairs))
-
-    # Check for API key
-    api_key = os.environ.get('GOOGLE_API_KEY') or os.environ.get('GEMINI_API_KEY')
-    if not api_key:
-        logger.error("No API key found! Please set GOOGLE_API_KEY or GEMINI_API_KEY environment variable")
-        return
-
-    # Create GenAI client
-    client = genai.Client(api_key=api_key)
-    logger.info("Configured %s as arbiter (thinking_level=high)", ARBITER_MODEL)
+    logger.info("Processing %d model pair(s): %s", len(pairs), ", ".join(pairs))
 
     # Load dataset
     try:
         df = load_dataset_with_text_info()
     except Exception as e:
         logger.error("Failed to load dataset: %s", e)
-        return
-    records = df.to_dict('records')
+        return 2
+    records = df.to_dict("records")
 
     # Setup webapp data directory
     webapp_data_dir = get_webapp_data_dir()
@@ -628,35 +839,66 @@ def main(pairs: list[str] | None = None, assume_yes: bool = False):
         significant_by_pair[pair] = articles
 
         webapp_file = os.path.join(webapp_data_dir, f"iwac_arbiter_evaluations_{pair}.json")
-        _, evaluated_ids, _ = load_cached_evaluations(webapp_file)
-        total_new += len([a for a in articles if str(a.get('o:id')) not in evaluated_ids])
+        cached, _, _ = load_cached_evaluations(webapp_file)
+        reconciled = reconcile_cached_evaluations(
+            cached,
+            articles,
+            pair=pair,
+            arbiter_model=ARBITER_MODEL,
+            source_revision=get_source_revision(),
+            max_input_chars=ARBITER_MAX_INPUT_CHARS,
+        )
+        total_new += len(articles) - len(reconciled.evaluated_ids)
+
+    client = None
+    if total_new > 0 and not prune_cache_only:
+        api_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            logger.error("No API key found! Set GOOGLE_API_KEY or use --prune-cache-only")
+            return 2
+        try:
+            client = create_genai_client(api_key)
+        except RuntimeError as error:
+            logger.error("%s", error)
+            return 2
+        logger.info("Configured %s as arbiter (thinking_level=high)", ARBITER_MODEL)
 
     if total_new == 0:
         logger.info("All articles across all pairs are already evaluated! No API calls needed.")
-    elif not confirm_api_calls(total_new, assume_yes):
+    elif not prune_cache_only and not confirm_api_calls(total_new, assume_yes):
         logger.info("Aborted.")
-        return
+        return 0
 
     # Process each pair
     all_stats = []
     for pair in pairs:
-        stats = process_pair(client, significant_by_pair[pair], pair, webapp_data_dir)
+        stats = process_pair(
+            client,
+            significant_by_pair[pair],
+            pair,
+            webapp_data_dir,
+            evaluate_missing=not prune_cache_only,
+        )
         all_stats.append(stats)
 
     # Print summary
     logger.info("ARBITER EVALUATION COMPLETE")
     for stats in all_stats:
-        logger.info("%s:", stats['pair'])
-        logger.info("  Total articles: %d", stats['total'])
-        logger.info("  Newly evaluated: %d", stats['new'])
-        logger.info("  From cache: %d", stats['cached'])
-        logger.info("  Failed: %d", stats['failed'])
+        logger.info("%s:", stats["pair"])
+        logger.info("  Total articles: %d", stats["total"])
+        logger.info("  Newly evaluated: %d", stats["new"])
+        logger.info("  From cache: %d", stats["cached"])
+        logger.info("  Failed: %d", stats["failed"])
+        if stats.get("pending"):
+            logger.info("  Pending: %d", stats["pending"])
+
+    return 0
 
 
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description='IWAC Arbiter Evaluation - Compare AI models using Gemini 3 Pro as arbiter',
+        description="IWAC Arbiter Evaluation - Compare AI models using Gemini 3 Pro as arbiter",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -664,20 +906,27 @@ Examples:
   python arbiter-evaluation.py --pair chatgpt-gemini  # Process single pair
   python arbiter-evaluation.py --pair chatgpt-mistral --pair gemini-mistral
   python arbiter-evaluation.py --yes                # Skip the confirmation prompt (CI)
-"""
+""",
     )
     parser.add_argument(
-        '--pair', '-p',
+        "--pair",
+        "-p",
         type=str,
         choices=MODEL_PAIRS,
-        action='append',
-        dest='pairs',
-        help='Model pair(s) to evaluate. Can be specified multiple times. Default: all pairs'
+        action="append",
+        dest="pairs",
+        help="Model pair(s) to evaluate. Can be specified multiple times. Default: all pairs",
     )
     parser.add_argument(
-        '--yes', '-y',
-        action='store_true',
-        help='Skip the interactive confirmation prompt (for non-interactive runs)'
+        "--prune-cache-only",
+        action="store_true",
+        help="Reconcile/prune cache files without making paid API calls",
+    )
+    parser.add_argument(
+        "--yes",
+        "-y",
+        action="store_true",
+        help="Skip the interactive confirmation prompt (for non-interactive runs)",
     )
 
     args = parser.parse_args()
@@ -687,4 +936,10 @@ Examples:
 
     # Set random seed - no fixed seed for true randomization of blind assignment
     random.seed()
-    main(pairs=pairs_to_process, assume_yes=args.yes)
+    raise SystemExit(
+        main(
+            pairs=pairs_to_process,
+            assume_yes=args.yes,
+            prune_cache_only=args.prune_cache_only,
+        )
+    )

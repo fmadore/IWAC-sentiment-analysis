@@ -42,16 +42,17 @@
 	// Both models' justification prose loads on demand (see articles.svelte.ts).
 	$effect(() => {
 		if (comparison) {
-			loadJustifications(comparison.modelAId);
-			loadJustifications(comparison.modelBId);
+			const articleIds = [comparison.article['o:id']];
+			loadJustifications(comparison.modelAId, fetch, articleIds).catch((error) =>
+				console.error('Failed to load model A justification:', error)
+			);
+			loadJustifications(comparison.modelBId, fetch, articleIds).catch((error) =>
+				console.error('Failed to load model B justification:', error)
+			);
 		}
 	});
 
-	const modalTitle = $derived(
-		comparison?.article['o:title'] ||
-			$t.arbiter?.articleWithArbiter ||
-			'Article with Arbiter Verdict'
-	);
+	const modalTitle = $derived(comparison?.article['o:title'] || $t.arbiter.articleWithArbiter);
 	const modalSubtitle = $derived(
 		comparison
 			? `${getJournalName(comparison.article)} • ${formatDate(comparison.article.publication_date)}`
@@ -76,11 +77,11 @@
 			<div class="article-metadata mb-6">
 				<div class="meta-grid">
 					<div class="meta-card card preset-glass p-4">
-						<span class="meta-label">{$t.filters?.journal || 'Newspaper'}</span>
+						<span class="meta-label">{$t.filters.journal}</span>
 						<p class="meta-value">{getJournalName(comparison.article)}</p>
 					</div>
 					<div class="meta-card card preset-glass p-4">
-						<span class="meta-label">{$t.article?.publicationDate || 'Publication Date'}</span>
+						<span class="meta-label">{$t.article.publicationDate}</span>
 						<p class="meta-value">{formatDate(comparison.article.publication_date)}</p>
 					</div>
 				</div>
@@ -98,19 +99,19 @@
 					class="article-link"
 				>
 					<ExternalLinkIcon size={16} />
-					{$t.article?.consultOriginalArticle || 'View original article →'}
+					{$t.article.consultOriginalArticle}
 				</a>
 			</div>
 
 			<!-- Model Comparison — shared ComparisonPanel (same component as ComparisonDetail) -->
 			<div class="model-comparison mb-6">
 				<h4 class="section-title">
-					{$t.comparison?.compareDimensions || 'Compare Dimensions'}
+					{$t.comparison.compareDimensions}
 				</h4>
 
 				<div class="dimension-sections">
 					<div>
-						<span class="dimension-eyebrow">{$t.comparison?.polarity || 'Polarity'}</span>
+						<span class="dimension-eyebrow">{$t.comparison.polarity}</span>
 						<ComparisonPanel
 							compact
 							dimension="polarity"
@@ -123,7 +124,7 @@
 						/>
 					</div>
 					<div>
-						<span class="dimension-eyebrow">{$t.comparison?.subjectivity || 'Subjectivity'}</span>
+						<span class="dimension-eyebrow">{$t.comparison.subjectivity}</span>
 						<ComparisonPanel
 							compact
 							dimension="subjectivity"
@@ -136,7 +137,7 @@
 						/>
 					</div>
 					<div>
-						<span class="dimension-eyebrow">{$t.comparison?.centrality || 'Centrality'}</span>
+						<span class="dimension-eyebrow">{$t.comparison.centrality}</span>
 						<ComparisonPanel
 							compact
 							dimension="centrality"
@@ -157,7 +158,7 @@
 			<!-- Article not found in comparison data -->
 			<div class="article-metadata mb-6">
 				<h3 class="article-title">Article {articleId}</h3>
-				<p class="metadata-fallback">{$t.messages?.noData || 'Article data not available'}</p>
+				<p class="metadata-fallback">{$t.messages.noData}</p>
 			</div>
 
 			<!-- Still show arbiter section -->

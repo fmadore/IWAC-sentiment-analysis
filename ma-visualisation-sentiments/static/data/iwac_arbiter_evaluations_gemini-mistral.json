@@ -1,18 +1,25 @@
 {
   "metadata": {
-    "generated": "2026-01-08T10:33:16.662588",
+    "generated": "2026-08-09T11:08:03.317135",
     "arbiter_model": "gemini-3-pro-preview",
     "thinking_level": "high",
     "blind_evaluation": true,
     "arbiter_model_a": "Mistral",
     "arbiter_model_b": "Gemini",
+    "model_a_is_first": false,
     "pair": "gemini-mistral",
     "pair_first_model": "Gemini",
     "pair_second_model": "Mistral",
     "note": "arbiter_model_a/b = what the arbiter saw. preferred_model in verdicts directly maps to these names.",
-    "total_articles": 176,
-    "successful_evaluations": 176,
-    "failed_evaluations": 0
+    "total_articles": 167,
+    "successful_evaluations": 167,
+    "failed_evaluations": 0,
+    "contract_schema_version": "1.0.0",
+    "analysis_version": "v1",
+    "cache_schema_version": 2,
+    "prompt_version": "v1.0.0",
+    "source_revision": "282adc344ad7316811959d0cdfef9a348caee47a",
+    "legacy_cache_adopted": 0
   },
   "evaluations": [
     {
@@ -48,7 +55,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "05dd0143e2d366faf01d90a2c0edfa5d9e29714e70f77801da13074437e92870"
     },
     {
       "article_id": "2494",
@@ -83,7 +91,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "510c05af8c3c955f6c1fe4b827b039cdbc0aa8837ea33277a87ec6b97c66b52a"
     },
     {
       "article_id": "2648",
@@ -118,7 +127,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "c72dc307b5957b279efc4d80ac98bdf3c39c7d0d13b1cec381d497827c00c36e"
     },
     {
       "article_id": "2728",
@@ -153,7 +163,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "f0b8c02da554e939ac46ea30e1875aa66c6ba6aaaad6406e9da78c89f5041e4e"
     },
     {
       "article_id": "2771",
@@ -188,7 +199,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "5806c39e5e8b00898a9f37c04fbbca4c2e7a432bef23f48240d1e23997503378"
     },
     {
       "article_id": "2798",
@@ -223,7 +235,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "c8dbd87efd82118aa694543a051934d834a19688cc3d96c8af8a83c9c09ee0ac"
     },
     {
       "article_id": "2961",
@@ -258,7 +271,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "363039df7983b7662aef0faf998d9cf7104fcdf0aafc79d93c09eac28e46fe26"
     },
     {
       "article_id": "2999",
@@ -293,7 +307,8 @@
         "centrality_diff": 0,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "da54f0a31f2ca71e431e2916fd86d0e2329614c741c226240acecddc805481bc"
     },
     {
       "article_id": "3007",
@@ -328,7 +343,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "ba92925d8cae679d5b699c02aa773126ed88f6eff5a48b23f74049b0242fc9af"
     },
     {
       "article_id": "3255",
@@ -363,7 +379,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "9d14788d4d57ec7c7744286c76e9113ad19ede9818cda14188afba907f47312d"
     },
     {
       "article_id": "3271",
@@ -398,7 +415,8 @@
         "centrality_diff": 1,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "483c0de065fd7836532921148e0e8cc72f306035e7272419c43898ea5a96202f"
     },
     {
       "article_id": "3463",
@@ -433,7 +451,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "0476b2320f6c1f21f7d86b76fe89503d85971227d0e04c5b0ed03c537b6782d2"
     },
     {
       "article_id": "3559",
@@ -468,7 +487,8 @@
         "centrality_diff": 2,
         "total_diff": 6,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "940ffbf8f1d3ec3251915e0470f5a508d7b029547582087eb2aaf9ea4dc3cf30"
     },
     {
       "article_id": "3692",
@@ -503,7 +523,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "74dc292dc9a78830be20a23cbcc172a4c3ac68db6032956b0b2013e8ff28e091"
     },
     {
       "article_id": "3728",
@@ -538,7 +559,8 @@
         "centrality_diff": 1,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "770fa419a717bc73fc999ccd46ae041683b3782c9285cf73db4b75f943eeea0d"
     },
     {
       "article_id": "3736",
@@ -573,7 +595,8 @@
         "centrality_diff": 1,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "afe20f170efd5161432cff782103cfa29f60bed412bc5101a39c5efd37e0ecd0"
     },
     {
       "article_id": "3739",
@@ -608,7 +631,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "92f3bffbc1f003568941cf412219e54cd66028e938e10b751f19f7bc283c0755"
     },
     {
       "article_id": "3740",
@@ -643,7 +667,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "371705753c6a9934b53c36f8dc691998ec30297c53e309660a85cdd32dea7aa2"
     },
     {
       "article_id": "3742",
@@ -678,7 +703,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "1f7b7432f3d3182d78773859bb67e96dba543d172a8862fcc57a671ae2fc1059"
     },
     {
       "article_id": "3748",
@@ -713,7 +739,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "5a1bbdc5d91afabcf4f63d265aea36ea7421211d5f28c9da879099e7eef8a810"
     },
     {
       "article_id": "3767",
@@ -748,7 +775,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "715570335bc21e8a9551402f39552de732a448b710abddfad3794a70c556087d"
     },
     {
       "article_id": "3797",
@@ -783,7 +811,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "7c81d2c53b370635963ddee6ac3611155e2c4001c196cef2e44f2cc6ea292d9b"
     },
     {
       "article_id": "3897",
@@ -818,7 +847,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "c99e50ec494c2cac91cc92951f7b48b6a4ce6998dcecac644d9936999fa499e6"
     },
     {
       "article_id": "3909",
@@ -853,7 +883,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "71d4ebc91a986ca0525aa1c69bf0fe93d3ead8455fb162883f6758a2322dfb98"
     },
     {
       "article_id": "3919",
@@ -888,7 +919,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "1b8af9959ba0d6f3942fce2764b56c78d8ced3605463746c6c27a79a5bb18c90"
     },
     {
       "article_id": "3950",
@@ -923,7 +955,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "649ce5d219a1f389f600c25031489653747d80b13457eb699dd55f8dedc1b05b"
     },
     {
       "article_id": "3953",
@@ -958,7 +991,8 @@
         "centrality_diff": 1,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "81754f9b63615f0a617fdeb6cf11153bafa8f2c6df350ee1e1b9cc578308d097"
     },
     {
       "article_id": "3955",
@@ -993,7 +1027,8 @@
         "centrality_diff": 1,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "c828717d41dca535383f278b68173790fe5d6acfdf64f9973b6bac7500db7b33"
     },
     {
       "article_id": "3972",
@@ -1028,7 +1063,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "3858b4db4230631b085de6ac45ee7c833426c119b7fad256cb6c9c79985e4fda"
     },
     {
       "article_id": "3978",
@@ -1063,7 +1099,8 @@
         "centrality_diff": 3,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "7495d667bd8980e2a5def247ff9cd96ddf547f9ac1195f36745e48a9972637e0"
     },
     {
       "article_id": "4005",
@@ -1098,7 +1135,8 @@
         "centrality_diff": 3,
         "total_diff": 9,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "d91c920f5335dd786822679750a12e7d84b7023abb698becc90a5e04f235402a"
     },
     {
       "article_id": "4163",
@@ -1133,7 +1171,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "aa9d949409e75c7e1a82db9399025560a2efede420b70699153683630b88e323"
     },
     {
       "article_id": "4279",
@@ -1168,7 +1207,8 @@
         "centrality_diff": 1,
         "total_diff": 6,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "b6bf5949f34f126a3538752b3ba573ffc483ad2db50d6d9df414a90567b160a8"
     },
     {
       "article_id": "4316",
@@ -1203,7 +1243,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "ea36b3edbedde174cf5c8beeecb9eacfb7bcb09f27923e074a14ba0c20c4afc7"
     },
     {
       "article_id": "4330",
@@ -1238,7 +1279,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "e2ed7949286d506d40e1d2457e3490fa5aefadd9faa6d5a787abb78f083c87ab"
     },
     {
       "article_id": "4484",
@@ -1273,7 +1315,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "1c673a2ef97a5ae2c6b4c4f5e06818df81c0591b52793fb8a7883782b7474b69"
     },
     {
       "article_id": "4485",
@@ -1308,7 +1351,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "43ad44b751eee9cd59c9bad254ab251f3fa0826bc473de191ad44210ae3eb0af"
     },
     {
       "article_id": "4519",
@@ -1343,7 +1387,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "9bdfa720e7be17085dde2a22754c1a0163cf97444916d9e9ba9c25245b510d6e"
     },
     {
       "article_id": "4542",
@@ -1378,7 +1423,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "117cca6175cd2fa2bdad552559ed4e15d6b60ad0d2307bdeba94b4e725d123fa"
     },
     {
       "article_id": "4909",
@@ -1413,7 +1459,8 @@
         "centrality_diff": 1,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "e918a30296d5e3616b6db2797058ab05926ef3f6d8e80771d7de0cafa3230da7"
     },
     {
       "article_id": "5506",
@@ -1448,7 +1495,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "c78d2919c06b01a9a0ab442d8d1d6f83b8fcf6ae64f028d28112e26d5d0452d4"
     },
     {
       "article_id": "5519",
@@ -1483,7 +1531,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "1dbc766e6fa4c4b1f65ee84d55687cc03ed5c54b037c0bfd2f3d7da3b5d23873"
     },
     {
       "article_id": "5549",
@@ -1518,7 +1567,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "58b1f99b4ce1f0d67ce76744bd41561eee9f16c7d89ad5eefe97ed34b05b3d02"
     },
     {
       "article_id": "5608",
@@ -1553,7 +1603,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "6fb9fa835c8f5d20f53ed449973ac906392351e10e7dd19b2c9c4e071939584b"
     },
     {
       "article_id": "5610",
@@ -1588,7 +1639,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "b4aeff5b067a25fb5485eeaee80c13e80cbc2472600c0ae9bb8c2c021f14b61b"
     },
     {
       "article_id": "5626",
@@ -1623,7 +1675,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "5428bdb3838e76c36a607a4dc25d872d66cb25423d26b614b7b635564a73fb38"
     },
     {
       "article_id": "5738",
@@ -1658,7 +1711,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "bc938324370e7479604ca4047f27ee993378982fcdfcb1bd4eb4a1ae715e64e9"
     },
     {
       "article_id": "5744",
@@ -1693,7 +1747,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "b0b44a17a6dab15e504167c9b57e11487214237e76877807f6112512a8d2649a"
     },
     {
       "article_id": "5779",
@@ -1728,7 +1783,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "6555eb082852ea301d154a6ec3d12dbf56d7a6d6e9f3d12ef8370818a6deb863"
     },
     {
       "article_id": "5850",
@@ -1763,7 +1819,8 @@
         "centrality_diff": 3,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "6fe4e6dc07121cc531fc645aff01e6bc6e6e4ea539b1df43a1b3131560fd1307"
     },
     {
       "article_id": "5901",
@@ -1798,7 +1855,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "a9a62774f57549557d19a86c65355a94e21d96b79a14820e0a9ac1995e77117e"
     },
     {
       "article_id": "5942",
@@ -1833,7 +1891,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "899178289d4b4aafe71f66e7376e366ca89d55739fce21e143f4bfa7b3787aea"
     },
     {
       "article_id": "5967",
@@ -1868,7 +1927,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "b36f4ab0398c817343493eb1f1dbfe7358cecb5f664a6eb1fcfee1506fa62322"
     },
     {
       "article_id": "6110",
@@ -1903,7 +1963,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "f7ceb873f4555e92275a8af41807cf0298d76cb90cb630b0ccf960ced9464fb2"
     },
     {
       "article_id": "6144",
@@ -1938,7 +1999,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "755ed622bbc56abaf2a0bbf1a62499377cc2f5faf6e617d9394fa7779f328863"
     },
     {
       "article_id": "6159",
@@ -1973,7 +2035,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "13dd5b9d795efd2f797b889f5ae350cfbb99f80be30a73289960803f72575d83"
     },
     {
       "article_id": "6294",
@@ -2008,7 +2071,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "706435101de43890b55abd04fe0ca94820cddbf18d817776ad8bb2b79bbd4b69"
     },
     {
       "article_id": "6510",
@@ -2043,7 +2107,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "bdd4492b4b6f09ca5c445c4ddedb579c48dcc29ff28d533264fdb41e2fc83bff"
     },
     {
       "article_id": "6660",
@@ -2078,7 +2143,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "9675e19f821ebf5583ee2b838068149ffa5be1c1b151448ab57ddc643c8e7548"
     },
     {
       "article_id": "6846",
@@ -2113,7 +2179,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "50757030e676d14c8ee6443c3af314bd123e2b99941c88e3fd226cb3967ebdca"
     },
     {
       "article_id": "7369",
@@ -2148,7 +2215,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "95e1756d8b5b77efc1bc214e68922608aeceda49244ab998ba422bd654e6c0a4"
     },
     {
       "article_id": "7858",
@@ -2183,7 +2251,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "78f3ba9c260f4112da2a49c2d1531f081e75df684247e4c764024251dbdf581f"
     },
     {
       "article_id": "8044",
@@ -2218,7 +2287,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "8797740aa82009248271ff3003c0a1639cd292e3d39a453c4745c6cbe824c4d0"
     },
     {
       "article_id": "8104",
@@ -2253,7 +2323,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "d8f612a81cfe931e2e75212cdcd9a475ba70a89b28b6e9f575422c51662d5f2c"
     },
     {
       "article_id": "8283",
@@ -2288,7 +2359,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "2204ff2e8508d1a7e4e3cc5df23bb23389a3160a170651de48c522a300f59ac8"
     },
     {
       "article_id": "8466",
@@ -2323,7 +2395,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "3979194de0e862171bdbafd0fc46b46139076d79c346a220e3c192ead10f232b"
     },
     {
       "article_id": "8504",
@@ -2358,7 +2431,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "cb716f52af53b9038f29eb51fdc4f8a4e7aca84c77e3ba8f8175fd324cc49eca"
     },
     {
       "article_id": "8624",
@@ -2393,7 +2467,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "cf8144937b4d593b18ae19715df610c2ec687461c83b8ccb1abf04621876083f"
     },
     {
       "article_id": "8886",
@@ -2428,7 +2503,8 @@
         "centrality_diff": 0,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "c28766cdf17bbb53557819081df2991375f63ac791e79fe927ba2ab87ca8dc26"
     },
     {
       "article_id": "9087",
@@ -2463,7 +2539,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "635f96d23efe5e68f34ae6d23e5194730b28961deea17f011b4d19d20210ee80"
     },
     {
       "article_id": "9155",
@@ -2498,7 +2575,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "e96da86b95c7bd21f8b7c8374d3fc31eab898a2870e70c928b052204c00f5b9e"
     },
     {
       "article_id": "9179",
@@ -2533,7 +2611,8 @@
         "centrality_diff": 1,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "63a1d7b7867ca4f6d10f4366b328576c3117c9890c0387037d2c51e13bb77fd7"
     },
     {
       "article_id": "9255",
@@ -2568,7 +2647,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "367e286a4b2a0778ae15df48b3ae5bcdb4218e978d9b2f90da0d46dff3d69a6d"
     },
     {
       "article_id": "9396",
@@ -2603,7 +2683,8 @@
         "centrality_diff": 1,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "be34dc4bed16dcb616b60f383ee87059b23202e1614957e5ebe5bb73494e28f9"
     },
     {
       "article_id": "9515",
@@ -2638,7 +2719,8 @@
         "centrality_diff": 1,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "137c96b6ed33a0c8035b514b17413301f361b5f93f11efa9ca50293e0493edcd"
     },
     {
       "article_id": "10143",
@@ -2673,7 +2755,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "5bc63782005510ca068bc52bb9f5a904fe6e26a96d07ca23870568548b533ae8"
     },
     {
       "article_id": "10149",
@@ -2708,7 +2791,8 @@
         "centrality_diff": 0,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "4de64e7af47493b0036bb6c935aebf7bce880fbfb509ca73701390295ffc98fb"
     },
     {
       "article_id": "20423",
@@ -2743,7 +2827,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "1f10c1edff5f8bd581cf306b06dce93c5a567666054da0718dc4013881e7fefb"
     },
     {
       "article_id": "25785",
@@ -2778,7 +2863,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "d858b6b8d0e546d00b093d79e5b1d706ecda551ed0e6d8429a9992c0f0ace52e"
     },
     {
       "article_id": "28653",
@@ -2813,7 +2899,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "cbe6bb5eac217ae0fc7c124760563fb36f6ad2c10ea1589e463dcdc9aa5e9083"
     },
     {
       "article_id": "28920",
@@ -2848,7 +2935,8 @@
         "centrality_diff": 2,
         "total_diff": 6,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "cf2783e863ed2a22e2f3c2dd452e504ec48902f42ae343b3e628371f76507d7e"
     },
     {
       "article_id": "29080",
@@ -2883,7 +2971,8 @@
         "centrality_diff": 1,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "677213ef21e4ab575426926218c559996af18f859c9b154c23eaa28ba5206657"
     },
     {
       "article_id": "29361",
@@ -2918,7 +3007,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "3ad1758d4374a88194ebe7cabeed124cf70f28f54a4df2e06d3f188e0390db42"
     },
     {
       "article_id": "45968",
@@ -2953,7 +3043,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "f35ce62b614fe4db556bb3f62a2e81c0e7f8cad01bc53f55c87ddeba8247d004"
     },
     {
       "article_id": "46513",
@@ -2988,7 +3079,8 @@
         "centrality_diff": 3,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "de59d8b622a558ddd848537cc4ce8825a4812ce4786a4fa5764bf5006f57a7bb"
     },
     {
       "article_id": "46522",
@@ -3023,7 +3115,8 @@
         "centrality_diff": 0,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "c074e2f4aef779bce0d2224a4d58fcf050351c77ad78f3da1a8a9153b89436a7"
     },
     {
       "article_id": "48499",
@@ -3058,7 +3151,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "7629bd19b2eb84c605602709c128eeb5b7599e9ec096449d37a332b52f93177e"
     },
     {
       "article_id": "48636",
@@ -3093,7 +3187,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "288e25de79500a4d3fb61a270525f08b7eb40993f57fc97e7840726eb3b57434"
     },
     {
       "article_id": "48701",
@@ -3128,7 +3223,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "f4d60efff3acf07ad20f0503d83af9ab5bd9d219eca82de78632babb82d07668"
     },
     {
       "article_id": "48706",
@@ -3163,7 +3259,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "00cdef4cbbc64740ffc5169598c54d63a96ccb57a2f6d6c540aaf2b9b7b650f8"
     },
     {
       "article_id": "48953",
@@ -3198,7 +3295,8 @@
         "centrality_diff": 3,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "5e6ce6a3bb43525c23a27c7808198c59a128fe8e13d74be800f6b46de7db1087"
     },
     {
       "article_id": "61194",
@@ -3233,7 +3331,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "e1050663782e3e8d1a33e72dcac51dd017fa22440abf092566a169198cf5df36"
     },
     {
       "article_id": "61379",
@@ -3268,7 +3367,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "c07e1195cd4eb655aaf0591bb38b8e7d24e9925e4ae710f5535e0fe2124e7d71"
     },
     {
       "article_id": "61467",
@@ -3303,7 +3403,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "7974d6d64a5ae6d8440b5740889a6932de893a434ab04c7e762b1c3aa05de033"
     },
     {
       "article_id": "61579",
@@ -3338,7 +3439,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "3d9adf43cd040e992c25e20775c546e4d0bd9d44e10cb267b76a5466e354ca93"
     },
     {
       "article_id": "61581",
@@ -3373,7 +3475,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "30e0080ef8ea8a789830fddd744c97eef9851d955a92bba129ff2837f22e1d21"
     },
     {
       "article_id": "61587",
@@ -3408,7 +3511,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "928a69084a5ff8607c1e5f109943c80285eb42d46029e4183938ed0ca831e3de"
     },
     {
       "article_id": "61588",
@@ -3443,7 +3547,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "26c386ec42045571a1f83da6937e7ee7049207849fac112a844a33ea869e7c3c"
     },
     {
       "article_id": "61664",
@@ -3478,7 +3583,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "1b53f478264ba84755d65771fcad62b96508ba10364a99d70ae50e23ba58f09d"
     },
     {
       "article_id": "62054",
@@ -3513,7 +3619,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "006c746fa1b664ea1ac767474abdb068aa2fc9653bd40cbad4c8cd0763ede76e"
     },
     {
       "article_id": "62452",
@@ -3548,7 +3655,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "6c92a1196a870d75bb5227952507a795366804c7d8cf2c4bdc125b0a0715e6bd"
     },
     {
       "article_id": "62578",
@@ -3583,7 +3691,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "f56e700e2dac7931723b59f37a46532452d599ac58f3326c1380aa0950812c62"
     },
     {
       "article_id": "63447",
@@ -3618,7 +3727,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "b72266b5b46e075f1b07b6838a9796461ab7c238ba43cbbd06f6694f726d1b6b"
     },
     {
       "article_id": "63547",
@@ -3653,7 +3763,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "4b379a1177cd73e86d34cc188ef6ca424119ab8b15f42c493b3058b3156225c0"
     },
     {
       "article_id": "63592",
@@ -3688,7 +3799,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "cda6ea24a909be973f0746447cd5dc30d97947431253cdee8879a69dfd022f2b"
     },
     {
       "article_id": "63740",
@@ -3723,7 +3835,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "08567b8bca6568a68d9ee13c09899c2d215af7cc78cdca0c9d0b34177160c430"
     },
     {
       "article_id": "63947",
@@ -3758,7 +3871,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "7abd7e4ae33737c16b215d962953a669cbd4758dc4c0f7572affbf8b3dd1f7f7"
     },
     {
       "article_id": "63982",
@@ -3793,7 +3907,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "a2613f539b22902ec15c2cacd374e302cb6f522387d6d1464ed0129c3238377a"
     },
     {
       "article_id": "64672",
@@ -3828,7 +3943,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "3af4e70b73bedb77a9052389b91c1d979ab55408dabf1e9b6ea9c74f60214d99"
     },
     {
       "article_id": "64711",
@@ -3863,7 +3979,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "3dda738f0009ea0c74645738e563dae7543de41954bbf42e10acbcac77a86466"
     },
     {
       "article_id": "65070",
@@ -3898,7 +4015,8 @@
         "centrality_diff": 2,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "986eb8b52d7bb4dea8d106193336da1f830869f738d121a457e413c01a000164"
     },
     {
       "article_id": "65548",
@@ -3933,7 +4051,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "55321691f1a5c93f598e4067923fdb19598835e85bdcafcb19a7e84c49a1be57"
     },
     {
       "article_id": "65566",
@@ -3968,7 +4087,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "67661ca0066e0676ae751e0b2cd082399c9c320bc56b9cf8cb39d8b1f7f860b1"
     },
     {
       "article_id": "65594",
@@ -4003,7 +4123,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "c0fb252f15f9eaa8fcaec0b7d0f1b7b45c81754e36851af9ab81ac2caeb26bb3"
     },
     {
       "article_id": "65606",
@@ -4038,7 +4159,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "b11297591f39b07f2edeb9bf0a2ecc495c1a771c3549c4bdbd0d8febcb5c74e8"
     },
     {
       "article_id": "65665",
@@ -4073,7 +4195,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "d2a395ff0591d07ab542fd09bf257dd5d14a380cf76741c4fd763527d73181fd"
     },
     {
       "article_id": "65669",
@@ -4108,7 +4231,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "870a9e5d89ad8ab37bc3739d8b0f105458cebb06926023d394a09fe7466cfcdf"
     },
     {
       "article_id": "65673",
@@ -4143,7 +4267,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "712d15cf1682414aa32ed86bd1da96a977461d3dcd35c6ba90964ace2feb85ba"
     },
     {
       "article_id": "66042",
@@ -4178,7 +4303,8 @@
         "centrality_diff": 3,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "486585024829e5763b498b056bcfa40c93025b56b17cef0ef6355aa77b9cc184"
     },
     {
       "article_id": "67442",
@@ -4213,7 +4339,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "3584b22d16596b3bd76318132e4b66d8cc1bcddca7a2ac09a501c468ec3283ee"
     },
     {
       "article_id": "67443",
@@ -4248,7 +4375,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "5df70c4a480f63ef70dd0f582c0a46cc276f69626a99f6ced84a167604fde0ee"
     },
     {
       "article_id": "67646",
@@ -4283,7 +4411,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "4f5e1a87b59eda55f0a6cfcf82aefa4391a798db4351a9616fac9f5b865ab9a4"
     },
     {
       "article_id": "68027",
@@ -4318,7 +4447,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "78ebb9c97f3976ce753056971c1ff3a56354301a27f02e7df5c2b6b1673647ab"
     },
     {
       "article_id": "68042",
@@ -4353,7 +4483,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "de79363b09f0593f781386f853c5ab6106e3f1415431f70d636e423260026695"
     },
     {
       "article_id": "68068",
@@ -4388,7 +4519,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "c4e886ea6437f36cf9057b383a87b196c1ef26091a7758339298a976f926df4b"
     },
     {
       "article_id": "68082",
@@ -4423,7 +4555,8 @@
         "centrality_diff": 1,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "8d5b93dbcaa4f92a3e6a71a38cbf4cfad7a46f9845c6ea46f4d419a8c87f2e59"
     },
     {
       "article_id": "68116",
@@ -4458,7 +4591,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "dfbcfdfff9404d177c77bfdd27befb7fff5e3ca4f3fb8d5f38914681a1fc36ef"
     },
     {
       "article_id": "68238",
@@ -4493,7 +4627,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "61984c22ae3a5622fd96495159b2210ab512172a758c08355aa1a1655e15d519"
     },
     {
       "article_id": "68276",
@@ -4528,7 +4663,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "1cc2f4edc9ec7b71f79a2bae589c1dd37e5cb301e6efaed7fbfa447ad6187394"
     },
     {
       "article_id": "68382",
@@ -4563,7 +4699,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "afd848e9a2dfa8b508eb12048ab0fb51d3b54c1497841ed598ae498003f1a6c0"
     },
     {
       "article_id": "70466",
@@ -4598,7 +4735,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "801835d2cc103381933404390dee950b4a0bf55c90be7ef752ef2cc1fdedf314"
     },
     {
       "article_id": "70473",
@@ -4633,7 +4771,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "062b1ee749e151c5e1512189f4c82eb6f455240cde4ad8ed44449d2de2928518"
     },
     {
       "article_id": "70746",
@@ -4668,7 +4807,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "9bc81bc3a7b777143d019e88c82d00405512d64d08a99144d6ebc2770ec696a7"
     },
     {
       "article_id": "70861",
@@ -4703,7 +4843,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "ecef05a9c74fd0489b24dadfd477c0935210bdc1af413d92d26788407b4d6b33"
     },
     {
       "article_id": "70911",
@@ -4738,7 +4879,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "9fb7c33fe15b962e0105b3dbf789b5388defc3ecd616784be112e9806c1a1c2f"
     },
     {
       "article_id": "71060",
@@ -4773,7 +4915,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "07706b6658685823042701920f868b00fe84b7fea6804c273d4637d1dca9921f"
     },
     {
       "article_id": "71061",
@@ -4808,7 +4951,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "ff625b192c1d003e9b982e2c1d4cfc09611e8393b59306a71d1a271918ea25fb"
     },
     {
       "article_id": "71068",
@@ -4843,42 +4987,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
-    },
-    {
-      "article_id": "71101",
-      "arbiter": {
-        "article_id": "71101",
-        "polarity": {
-          "score": "Neutre",
-          "justification": "L'article maintient un ton analytique d'expert. Il opère une distinction claire entre l'islam radical (source de conflit) et l'islam traditionnel/soufi (source de résilience et de paix). Le sentiment n'est ni globalement élogieux ni critique envers les musulmans en général, mais factuel quant aux dynamiques religieuses dans la crise sécuritaire.",
-          "preferred_model": "model_b",
-          "verdict_explanation": "Le Modèle A a échoué (erreur technique). Le Modèle B a correctement identifié le ton analytique et la distinction faite entre les différents courants religieux."
-        },
-        "subjectivity": {
-          "score": "3 (Mixte)",
-          "justification": "Il s'agit d'une interview, ce qui implique intrinsèquement l'expression d'opinions et de points de vue personnels (ceux de Dr. Sambe). Bien que ce soit une expertise, l'intervenant porte des jugements sur les stratégies étatiques (critique du 'tout-militaire') et préconise des solutions. Ce n'est pas purement factuel (2), mais un mélange équilibré d'analyse factuelle et d'opinions (3).",
-          "preferred_model": "model_b",
-          "verdict_explanation": "Le Modèle A a échoué. Bien que le score de 2.0 du Modèle B soit un peu bas pour une interview (qui est par nature subjective), son analyse reste la seule disponible et pertinente."
-        },
-        "centrality": {
-          "score": "Central",
-          "justification": "Le sujet principal est la sécurité et la géopolitique au Sahel (terrorisme, stratégies militaires, rôle de l'État). Cependant, l'islam est central dans l'argumentation : on y discute des conflits religieux, du rôle des leaders religieux dans la médiation et de la dualité entre islam traditionnel et radicalisme.",
-          "preferred_model": "model_b",
-          "verdict_explanation": "Le Modèle A a échoué. Le Modèle B a correctement évalué la place de la thématique religieuse comme étant centrale mais intégrée dans un sujet sécuritaire plus large."
-        },
-        "overall_winner": "model_b",
-        "overall_explanation": "Le Modèle A a rencontré une erreur technique et n'a produit aucune analyse ('ERREUR_ANALYSE'). Par conséquent, le Modèle B gagne par défaut. De plus, l'analyse du Modèle B est globalement cohérente et précise, bien que son score de subjectivité (2.0) soit légèrement sous-évalué pour un format d'interview qui correspondrait davantage à un score de 3 (Mixte).",
-        "confidence_level": "high",
-        "timestamp": "2026-01-08T10:14:55.609931"
       },
-      "discrepancies": {
-        "polarity_diff": 3,
-        "subjectivity_diff": 2,
-        "centrality_diff": 4,
-        "total_diff": 9,
-        "has_significant_conflict": true
-      }
+      "cache_fingerprint": "fdc8e2971645b00da460d427f3795047fb61ee18ca620bd36aac7b332029d258"
     },
     {
       "article_id": "71159",
@@ -4913,7 +5023,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "9f9a1d8a91056ead4beac47e2ff25b980971bf7eaae4f1f870643946ba7c257b"
     },
     {
       "article_id": "71179",
@@ -4948,7 +5059,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "4488dc1e1ffbb99a0ac87528dd760a73c06631c935902d4972c9e86cea0272b1"
     },
     {
       "article_id": "71201",
@@ -4983,7 +5095,8 @@
         "centrality_diff": 1,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "2acc57555ffc72f3555ecabe2d3be82cdbf5e82407af4fb6c793fc1feebf90a8"
     },
     {
       "article_id": "71220",
@@ -5018,7 +5131,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "f281cacf9c1317662bff27c8c0aadab0acb319b0e3fd2a25ab42698e8dad68b2"
     },
     {
       "article_id": "71400",
@@ -5053,7 +5167,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "6c3e8ff89033f224bf82c57b471c8409b2a677cd9b81a7eb6fba6c55547ebf32"
     },
     {
       "article_id": "71568",
@@ -5088,7 +5203,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "c246d223ad06e24c5fc154736c7dd37677ac8b4572855839cbeed5803909cd13"
     },
     {
       "article_id": "72001",
@@ -5123,7 +5239,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "6d2c628e68c9c69fdf3b360c4495218d996e3aa99daac91e109537800853a7dd"
     },
     {
       "article_id": "72049",
@@ -5158,7 +5275,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "cf2f4b9005d763ddb7fdcb971405085be8916e41da75b660feb70cf1a50814c7"
     },
     {
       "article_id": "72158",
@@ -5193,7 +5311,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "59991e47cc85ecb3fb150eb8e6f410d81bf4b238501ae6574c0f4ae9d41d73ac"
     },
     {
       "article_id": "73537",
@@ -5228,7 +5347,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "80312619dbe32fb50c1c0d7e709e41ab6254658c4d4b8f03ae5f7dd54982ebc0"
     },
     {
       "article_id": "73567",
@@ -5263,7 +5383,8 @@
         "centrality_diff": 2,
         "total_diff": 6,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "f4e417489711aa822af8128bfc2cabd600b7cd2ae10dba83211cf0a8e3ce0547"
     },
     {
       "article_id": "73646",
@@ -5298,7 +5419,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "03a62563eb709a8219bc39d1edab4095e0344a258f6c032844053ab34622dd81"
     },
     {
       "article_id": "73670",
@@ -5333,7 +5455,8 @@
         "centrality_diff": 2,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "c2697c8d6b211184f9d037a006f1121cd2785a0d321c76a52e7f0756a0df6c10"
     },
     {
       "article_id": "73674",
@@ -5368,7 +5491,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "ff95b1565e44126cf2d3b133c9e209cb579e63540bb337aefd3737b27427726a"
     },
     {
       "article_id": "74035",
@@ -5403,7 +5527,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "d247ab5cc16f263dbf53a0658a5df0a23f971cc0e697d20eb011ff2e73706150"
     },
     {
       "article_id": "74185",
@@ -5438,7 +5563,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "42377a883bd9af744d3859a3aebbf800fa09a5581f57b3674cdcde1e2da2efdb"
     },
     {
       "article_id": "74401",
@@ -5473,7 +5599,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "357d04077a5648682ecd268fe1af9d26bb3b80d920b2c328da806f94af1f6ca1"
     },
     {
       "article_id": "74542",
@@ -5508,7 +5635,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "eca14b46c256a7780c1a63d270b5fc0f836df65cf2e164a63a6658531e5c0df4"
     },
     {
       "article_id": "74544",
@@ -5543,7 +5671,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "7f5b80531c4e9e4e9d16f89b5da8a855db5b8f4ce1921e07292b3bf29e94ae4c"
     },
     {
       "article_id": "74695",
@@ -5578,7 +5707,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "a2fa532429c6d4419bbf14031212de2f1de78f6708d56062af7b0b54dba591bd"
     },
     {
       "article_id": "74834",
@@ -5613,42 +5743,8 @@
         "centrality_diff": 0,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
-    },
-    {
-      "article_id": "75971",
-      "arbiter": {
-        "article_id": "75971",
-        "polarity": {
-          "score": "Neutre",
-          "justification": "L'article adopte une position nuancée. Il critique sévèrement la pratique de la mendicité et son instrumentalisation religieuse (les marabouts, l'argument des préceptes coraniques par les mendiants), mais il souligne explicitement que la « communauté musulmane » officielle soutient l'interdiction et participe aux mesures de solidarité. Il ne s'agit pas d'une critique de l'islam, mais d'un phénomène social ancré dans des pratiques religieuses spécifiques.",
-          "preferred_model": "model_b",
-          "verdict_explanation": "Le Modèle A a échoué à produire une analyse. Le Modèle B a correctement identifié l'équilibre entre la critique sociale et le rôle de la communauté."
-        },
-        "subjectivity": {
-          "score": "4 (Plutôt subjectif)",
-          "justification": "Bien que l'article contienne des éléments de reportage (interviews, faits), le ton du journaliste est engagé et critique. L'utilisation de termes comme « fléau », « agressent ostensiblement », et surtout la conclusion qualifiant la société d'« arriérée » démontrent une prise de position éditoriale forte.",
-          "preferred_model": "model_b",
-          "verdict_explanation": "Le Modèle A a échoué. Le Modèle B a proposé un score de 3, ce qui est acceptable, bien que je penche vers 4 en raison du vocabulaire fort (arriérée, fléau). Le Modèle B reste le seul choix valide."
-        },
-        "centrality": {
-          "score": "Central",
-          "justification": "La dimension religieuse est indissociable du sujet de la mendicité traité ici. L'article aborde les « garibous », l'aumône (Zakat/Sadaqa), les marabouts, les divergences au sein de la communauté musulmane et l'interprétation du Coran par les mendiants. L'islam est le prisme à travers lequel le phénomène social est analysé.",
-          "preferred_model": "model_b",
-          "verdict_explanation": "Le Modèle A a échoué. Le Modèle B a correctement identifié que le sujet est central sans être exclusif (c'est un problème social aux racines religieuses)."
-        },
-        "overall_winner": "model_b",
-        "overall_explanation": "Le Modèle A a rencontré une erreur technique et n'a fourni aucune analyse ('ERREUR_ANALYSE'). Le Modèle B gagne donc par défaut. De plus, l'analyse fournie par le Modèle B est pertinente : elle saisit bien la nuance de la polarité (critique de la pratique vs soutien institutionnel) et la centralité du thème religieux dans ce problème social. Son évaluation de la subjectivité est également défendable.",
-        "confidence_level": "high",
-        "timestamp": "2026-01-08T10:25:43.327714"
       },
-      "discrepancies": {
-        "polarity_diff": 3,
-        "subjectivity_diff": 3,
-        "centrality_diff": 4,
-        "total_diff": 10,
-        "has_significant_conflict": true
-      }
+      "cache_fingerprint": "574a9ed1186446c07e81fe2ff5b18fce83051e9ae32a06d9da9670ec483c0140"
     },
     {
       "article_id": "76987",
@@ -5683,7 +5779,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "8d99678efb3cd6af2bc8de2bbd6f9e5ff9a8995cc2a9bd023b382653f72b4e21"
     },
     {
       "article_id": "76992",
@@ -5718,7 +5815,8 @@
         "centrality_diff": 2,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "40244935b171ac0d71e9eedbfb822241afd84ac4840d3af4bc61f453a09fe47d"
     },
     {
       "article_id": "77094",
@@ -5753,7 +5851,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "ed2a8b95199ec272a5bbacce1d153c9d1c76bf194701509c25cc4e9e9bccecde"
     },
     {
       "article_id": "77279",
@@ -5788,7 +5887,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "cd15b6bb7f12adfedb585b951d5608673fb6bfc05d23d0c7a6b3d4ca3febfa6e"
     },
     {
       "article_id": "77288",
@@ -5823,7 +5923,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "aa4f617ff792444f5413a581a44d6e92d6ca07d6e620ee3498a72044ab6e2bdf"
     },
     {
       "article_id": "77297",
@@ -5858,42 +5959,8 @@
         "centrality_diff": 1,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
-    },
-    {
-      "article_id": "77339",
-      "arbiter": {
-        "article_id": "77339",
-        "polarity": {
-          "score": "Positif",
-          "justification": "L'article dresse un portrait favorable de l'islam en Côte d'Ivoire, soulignant sa position de \"première religion\" du pays, sa vitalité spirituelle (le Ramadan comme moment d'élévation) et sa capacité d'adaptation culturelle. Il met en avant le rajeunissement de la communauté et cite des figures respectées (Hampaté Ba) qui valorisent la religion.",
-          "preferred_model": "model_b",
-          "verdict_explanation": "Le Modèle B a correctement identifié la tonalité positive de l'article. Le Modèle A a échoué à produire une analyse."
-        },
-        "subjectivity": {
-          "score": "3 (Mixte)",
-          "justification": "L'article est un mélange équilibré de journalisme factuel (données du recensement de 1975, statistiques par ville, faits historiques) et de contenu subjectif (citations théologiques, opinions de leaders religieux sur le marxisme, descriptions lyriques de la foi).",
-          "preferred_model": "model_b",
-          "verdict_explanation": "Le Modèle B a fourni une évaluation précise (3.0) justifiée par la combinaison de données et de témoignages. Le Modèle A n'a fourni aucun résultat."
-        },
-        "centrality": {
-          "score": "Très central",
-          "justification": "L'article est entièrement consacré à l'islam : son histoire, sa démographie, ses pratiques (Ramadan), ses défis structurels et son expansion en Afrique de l'Ouest. Il n'y a pas d'autre sujet principal.",
-          "preferred_model": "model_b",
-          "verdict_explanation": "Le Modèle B a correctement identifié que l'islam est le sujet exclusif de l'enquête. Le Modèle A a échoué."
-        },
-        "overall_winner": "model_b",
-        "overall_explanation": "Le Modèle A a rencontré une erreur technique et n'a produit aucune analyse (résultats marqués comme 'ERREUR_ANALYSE' ou 'nan'). Le Modèle B, par défaut et par mérite, remporte l'évaluation car il a fourni une analyse cohérente, juste et bien argumentée sur les trois dimensions, capturant bien la nature de cet article de 1979 qui présente l'islam comme une force sociale et spirituelle montante.",
-        "confidence_level": "high",
-        "timestamp": "2026-01-08T10:29:33.670122"
       },
-      "discrepancies": {
-        "polarity_diff": 4,
-        "subjectivity_diff": 3,
-        "centrality_diff": 5,
-        "total_diff": 12,
-        "has_significant_conflict": true
-      }
+      "cache_fingerprint": "26d12240ac7e8f7d5f4f97c1f462cad7b7de3ac90645ef1ec00ffcb83db68940"
     },
     {
       "article_id": "77440",
@@ -5928,7 +5995,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "1bf1fbc94f4142193b07169cb6870d040ba9c190ae9d7274ef996299fcc21d3e"
     },
     {
       "article_id": "77917",
@@ -5963,217 +6031,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
-    },
-    {
-      "article_id": "78001",
-      "arbiter": {
-        "article_id": "78001",
-        "polarity": {
-          "score": "Neutre",
-          "justification": "L'article rapporte une tentative d'enlèvement et des menaces contre un leader musulman (Idriss Koudouss). Bien que les événements décrits soient négatifs (violence, menaces), le ton de l'article envers la victime et sa communauté n'est ni critique ni élogieux. Il s'agit d'un compte-rendu factuel d'un événement criminel où le leader musulman est la victime.",
-          "preferred_model": "model_a",
-          "verdict_explanation": "Le Modèle A identifie correctement la neutralité du ton journalistique vis-à-vis de l'islam, notant que la violence décrite est factuelle et non un jugement sur la religion. Le Modèle B n'a fourni aucune analyse."
-        },
-        "subjectivity": {
-          "score": "2 (Plutôt objectif)",
-          "justification": "L'article est principalement narratif et factuel, détaillant la chronologie des événements ('le film des événements'). Cependant, l'utilisation de termes comme 'étranges visiteurs', 'quidams' ou 'fameuse 405' et la description dramatique ('l'arme fumante') introduisent une légère coloration narrative qui l'éloigne de la pure objectivité clinique (score 1), sans pour autant exprimer d'opinion personnelle forte (score 3+).",
-          "preferred_model": "model_a",
-          "verdict_explanation": "Le Modèle A attribue un score pertinent (2.0) et justifie bien son choix en pointant le vocabulaire narratif ('étranges visiteurs'). Le Modèle B a échoué."
-        },
-        "centrality": {
-          "score": "Central",
-          "justification": "Le sujet principal est le président du Conseil National Islamique (CNI). L'article mentionne explicitement ses fonctions religieuses (prêche à la mosquée, préparation du pèlerinage, réunions du CNI). L'identité islamique de la victime et de l'institution qu'il dirige est au cœur du contexte de l'article.",
-          "preferred_model": "model_a",
-          "verdict_explanation": "Le Modèle A a correctement évalué la centralité en liant l'événement à la fonction religieuse de la victime et aux activités du CNI. Le Modèle B n'a rien produit."
-        },
-        "overall_winner": "model_a",
-        "overall_explanation": "Le Modèle A est le seul à avoir fourni une analyse. Ses évaluations sont par ailleurs précises et bien justifiées : il a correctement identifié que le reportage d'un crime contre un leader musulman reste neutre envers l'islam (polarité), que le style est narratif mais factuel (subjectivité), et que l'islam est central via l'identité de la victime et les institutions mentionnées (centralité). Le Modèle B a totalement échoué en ne retournant aucune valeur ('None' / 'nan').",
-        "confidence_level": "high",
-        "timestamp": "2026-01-08T10:30:44.851752"
       },
-      "discrepancies": {
-        "polarity_diff": 3,
-        "subjectivity_diff": 2,
-        "centrality_diff": 4,
-        "total_diff": 9,
-        "has_significant_conflict": true
-      }
-    },
-    {
-      "article_id": "78002",
-      "arbiter": {
-        "article_id": "78002",
-        "polarity": {
-          "score": "Négatif",
-          "justification": "L'article dépeint une situation de conflit ouvert et de violence au sein de la communauté musulmane institutionnelle (tensions CNI/CSI, tentatives d'enlèvement, accusations de politisation). Bien que l'interviewé exprime sa foi, le tableau général des instances islamiques est marqué par la division et l'insécurité.",
-          "preferred_model": "model_a",
-          "verdict_explanation": "Le Modèle A identifie correctement la tonalité négative due aux critiques envers le CSI et aux tensions décrites. Le Modèle B n'a fourni aucune analyse."
-        },
-        "subjectivity": {
-          "score": "4 (Plutôt subjectif)",
-          "justification": "Le texte est une interview où El Hadj Idriss Koudouss exprime des opinions tranchées, des accusations personnelles ('Il n'est pas un homme de Dieu', 'Ce sont des plaisantins') et sa propre version des faits concernant les menaces dont il fait l'objet.",
-          "preferred_model": "model_a",
-          "verdict_explanation": "Le Modèle A attribue un score pertinent (4.0) en justifiant cela par la présence d'opinions marquées et de jugements personnels dans l'interview. Le Modèle B a échoué."
-        },
-        "centrality": {
-          "score": "Central",
-          "justification": "Bien que l'accroche soit un fait divers (tentative d'enlèvement), la victime est ciblée en tant que président du CNI. Une grande partie de l'article traite des conflits de leadership entre le CNI et le CSI, et de la gouvernance des associations islamiques.",
-          "preferred_model": "model_a",
-          "verdict_explanation": "Le Modèle A évalue correctement la centralité en notant que l'islam est abordé via le prisme des tensions institutionnelles (CNI vs CSI), même si le sujet immédiat est sécuritaire. Le Modèle B n'a rien produit."
-        },
-        "overall_winner": "model_a",
-        "overall_explanation": "Le Modèle A a fourni une analyse complète, cohérente et justifiée sur toutes les dimensions. Il a correctement identifié la nature conflictuelle du contenu (polarité négative), la subjectivité inhérente au format de l'interview, et la place centrale des institutions islamiques dans le récit. À l'inverse, le Modèle B a subi une défaillance technique ou un refus de traitement, ne produisant aucun résultat ('None' / 'nan'). Par conséquent, le Modèle A est le seul choix valide.",
-        "confidence_level": "high",
-        "timestamp": "2026-01-08T10:31:12.458659"
-      },
-      "discrepancies": {
-        "polarity_diff": 2,
-        "subjectivity_diff": 4,
-        "centrality_diff": 4,
-        "total_diff": 10,
-        "has_significant_conflict": true
-      }
-    },
-    {
-      "article_id": "78003",
-      "arbiter": {
-        "article_id": "78003",
-        "polarity": {
-          "score": "Positif",
-          "justification": "L'auteur adopte une posture de défense envers la communauté musulmane et son leader Idriss Koudouss. Il les présente comme des victimes dignes et indépendantes face à un 'complot' et un 'banditisme d'État'. Les termes négatifs comme 'barbarie' ou 'intégrisme' sont utilisés pour dénoncer la rhétorique du gouvernement (qui cherche à piéger les musulmans), et non pour décrire la réalité de la communauté selon l'auteur.",
-          "preferred_model": "model_a",
-          "verdict_explanation": "Bien que le Modèle A se trompe sur l'étiquette finale (la qualifiant de négative alors que l'auteur défend les musulmans), il identifie correctement les thèmes de persécution. Le Modèle B n'a fourni aucune réponse."
-        },
-        "subjectivity": {
-          "score": "5 (Très subjectif)",
-          "justification": "L'article est un pamphlet politique virulent. L'auteur utilise un vocabulaire extrêmement chargé émotionnellement et péjoratif envers le gouvernement ('débile', 'laboratoire de complots', 'funestes plans'), et exprime des opinions tranchées sans nuance.",
-          "preferred_model": "model_a",
-          "verdict_explanation": "Le Modèle A a parfaitement identifié le ton éditorial et émotionnel du texte, attribuant le score maximal justifié. Le Modèle B a échoué."
-        },
-        "centrality": {
-          "score": "Très central",
-          "justification": "La persécution supposée de la communauté musulmane et de ses leaders par le pouvoir en place est le sujet unique et principal de l'article. Tout le texte tourne autour de la question : 'Que recherche le pouvoir en persécutant les musulmans ?'.",
-          "preferred_model": "model_a",
-          "verdict_explanation": "Le Modèle A a correctement identifié que les musulmans sont au cœur du sujet, même s'il note que c'est lié à une critique du régime. Le Modèle B a échoué."
-        },
-        "overall_winner": "model_a",
-        "overall_explanation": "Le Modèle B a subi une défaillance technique et n'a produit aucune analyse (valeurs 'None' ou 'nan'). Par conséquent, le Modèle A gagne par défaut sur toutes les dimensions. Cependant, il faut noter une erreur d'interprétation du Modèle A sur la polarité : il a confondu la description d'une situation négative (persécution) avec un sentiment négatif envers le groupe. L'auteur défend en réalité les musulmans contre les accusations d'intégrisme du gouvernement. Malgré cette nuance manquée, l'analyse de la subjectivité et de la centralité par le Modèle A est pertinente.",
-        "confidence_level": "high",
-        "timestamp": "2026-01-08T10:31:49.148080"
-      },
-      "discrepancies": {
-        "polarity_diff": 2,
-        "subjectivity_diff": 5,
-        "centrality_diff": 4,
-        "total_diff": 11,
-        "has_significant_conflict": true
-      }
-    },
-    {
-      "article_id": "78004",
-      "arbiter": {
-        "article_id": "78004",
-        "polarity": {
-          "score": "Positif",
-          "justification": "L'article dresse un portrait favorable de la communauté musulmane. Bien que le texte relate des événements négatifs (agressions, gazages), l'auteur défend la communauté, la décrivant comme 'sereine', respectueuse de la 'laïcité' et victime d'injustices de la part du pouvoir. Le sentiment de l'auteur envers l'islam est donc de soutien et de défense, et non critique.",
-          "preferred_model": "model_a",
-          "verdict_explanation": "Le Modèle B n'a fourni aucune analyse. Le Modèle A est choisi par défaut, bien que sa classification 'Négatif' soit discutable (elle confond la négativité des événements subis avec le sentiment envers le groupe, qui est ici sympathique/défensif)."
-        },
-        "subjectivity": {
-          "score": "4 (Plutôt subjectif)",
-          "justification": "L'article est un plaidoyer qui prend clairement parti pour le CNI et le COSIM contre les 'hommes du pouvoir'. Il utilise un langage chargé ('provocations', 'acculent', 'crier au loup') et présente une sélection de faits pour soutenir une thèse de persécution.",
-          "preferred_model": "model_a",
-          "verdict_explanation": "Le Modèle A a correctement identifié la subjectivité du texte (4.0) et fourni une justification pertinente sur le mélange de faits et d'opinions accusatrices. Le Modèle B est vide."
-        },
-        "centrality": {
-          "score": "Très central",
-          "justification": "L'ensemble de l'article, du titre à la conclusion, est consacré à la situation de la communauté musulmane et de ses dirigeants face au pouvoir politique. C'est le sujet unique et principal.",
-          "preferred_model": "model_a",
-          "verdict_explanation": "Le Modèle A identifie correctement le sujet comme 'Central' (bien que 'Très central' soit plus juste), notant les liens avec la politique. Le Modèle B n'a rien produit."
-        },
-        "overall_winner": "model_a",
-        "overall_explanation": "Le Modèle A est le vainqueur par défaut car le Modèle B a échoué à générer une réponse (valeurs 'None' ou 'nan'). Bien que l'analyse de polarité du Modèle A soit imparfaite (classant le texte comme 'Négatif' en raison des événements violents décrits, alors que le ton de l'auteur envers les musulmans est favorable/défensif), il fournit des justifications cohérentes et une évaluation correcte de la subjectivité. Le Modèle B est inutilisable.",
-        "confidence_level": "high",
-        "timestamp": "2026-01-08T10:32:22.191294"
-      },
-      "discrepancies": {
-        "polarity_diff": 2,
-        "subjectivity_diff": 4,
-        "centrality_diff": 4,
-        "total_diff": 10,
-        "has_significant_conflict": true
-      }
-    },
-    {
-      "article_id": "78005",
-      "arbiter": {
-        "article_id": "78005",
-        "polarity": {
-          "score": "Positif",
-          "justification": "L'article est un communiqué de presse émanant d'une organisation islamique (le CNI). Le texte présente l'organisation et ses membres comme des victimes d'actes 'crapuleux' mais surtout comme des défenseurs de la 'Paix', de l'Unité' et de la 'Concorde'. L'islam est associé à une 'noble mission' et à la résilience divine (citation du Coran). L'auto-représentation est donc favorable.",
-          "preferred_model": "model_a",
-          "verdict_explanation": "Le Modèle A identifie correctement que le texte présente l'organisation islamique sous un jour favorable (force de paix, résilience), malgré le contexte de menaces. Le Modèle B n'a fourni aucune réponse."
-        },
-        "subjectivity": {
-          "score": "4 (Plutôt subjectif)",
-          "justification": "Il s'agit d'un communiqué de presse défensif et accusateur. Le vocabulaire est fortement connoté ('étrange incident', 'actes crapuleux', 'dérive', 'haine', 'noble mission'). L'auteur (le CNI) exprime clairement ses opinions, ses craintes et ses jugements moraux.",
-          "preferred_model": "model_a",
-          "verdict_explanation": "Le Modèle A attribue un score de 4.0, ce qui est très pertinent pour un communiqué de presse qui mélange quelques faits (dates, lieux) avec une forte dose de plaidoyer et d'émotion. Le Modèle B a échoué."
-        },
-        "centrality": {
-          "score": "Très central",
-          "justification": "Le sujet principal et quasi unique de l'article est le Conseil National Islamique (CNI), son président, et les menaces qui pèsent sur cette institution religieuse. L'identité islamique de l'organisation est au cœur du propos, renforcée par les citations coraniques.",
-          "preferred_model": "model_a",
-          "verdict_explanation": "Le Modèle A évalue la centralité comme 'Central', ce qui est acceptable (bien que 'Très central' soit plus précis étant donné que le CNI est le sujet). Le Modèle B n'a rien produit."
-        },
-        "overall_winner": "model_a",
-        "overall_explanation": "Le Modèle A a fourni une analyse complète, cohérente et justifiée sur toutes les dimensions. Il a correctement saisi la nature du texte (un communiqué de presse subjectif) et l'image positive que l'organisation tente de projeter d'elle-même. Le Modèle B a subi une défaillance technique ou n'a pas réussi à générer de réponse (valeurs 'None' ou 'nan'), ce qui rend le Modèle A vainqueur par défaut et par mérite.",
-        "confidence_level": "high",
-        "timestamp": "2026-01-08T10:32:46.511508"
-      },
-      "discrepancies": {
-        "polarity_diff": 4,
-        "subjectivity_diff": 4,
-        "centrality_diff": 4,
-        "total_diff": 12,
-        "has_significant_conflict": true
-      }
-    },
-    {
-      "article_id": "78006",
-      "arbiter": {
-        "article_id": "78006",
-        "polarity": {
-          "score": "Positif",
-          "justification": "L'article prend clairement la défense du président du Conseil national islamique (CNI) face à la version du gouvernement. L'auteur valide la version de la victime (le leader musulman), critique le manque de protection de l'État et met en garde contre le fait de 's'amuser avec la religion'. Le portrait du leader musulman est celui d'une victime importante et respectée qu'il faut protéger, ce qui constitue un sentiment favorable (soutien/solidarité) envers la communauté représentée.",
-          "preferred_model": "model_a",
-          "verdict_explanation": "Le Modèle B n'a fourni aucune analyse. Le Modèle A a fourni une analyse détaillée. Bien que l'étiquette 'Négatif' du Modèle A soit techniquement incorrecte (confondant la négativité envers le gouvernement avec le sentiment envers l'islam), sa justification nuance correctement en notant une posture 'indirectement positive envers les musulmans'. Le Modèle A est donc le seul utilisable malgré l'erreur d'étiquetage."
-        },
-        "subjectivity": {
-          "score": "5 (Très subjectif)",
-          "justification": "L'article est un éditorial ou un pamphlet politique utilisant un langage très familier, accusateur et émotionnel ('se fourvoie', 's'est littéralement planté', 'tourner en bourrique', 'complots puérils'). L'auteur prend ouvertement parti et exprime des jugements de valeur intenses.",
-          "preferred_model": "model_a",
-          "verdict_explanation": "Le Modèle B a échoué. Le Modèle A a correctement identifié la forte subjectivité (4.0) et a relevé les expressions critiques clés dans sa justification."
-        },
-        "centrality": {
-          "score": "Très central",
-          "justification": "Le sujet unique et principal de l'article est la tentative d'enlèvement du plus haut représentant de l'islam en Côte d'Ivoire (Président du CNI) et les risques de 'tourmente religieuse' qui en découlent. L'islam et ses représentants sont le cœur du propos.",
-          "preferred_model": "model_a",
-          "verdict_explanation": "Le Modèle B a échoué. Le Modèle A a correctement identifié que le sujet était central."
-        },
-        "overall_winner": "model_a",
-        "overall_explanation": "Le Modèle B a rencontré une erreur critique et n'a produit aucune sortie ('None'/'nan'), ce qui le disqualifie d'office. Le Modèle A a fourni une analyse structurée et raisonnée. Bien que son étiquette de polarité ('Négatif') soit discutable car elle reflète le ton critique envers le gouvernement plutôt que le sentiment de soutien envers le leader musulman, la justification textuelle fournie par le Modèle A montre une bonne compréhension des nuances ('défense implicite des musulmans'). Le Modèle A est donc le seul choix valide.",
-        "confidence_level": "high",
-        "timestamp": "2026-01-08T10:33:16.655742"
-      },
-      "discrepancies": {
-        "polarity_diff": 2,
-        "subjectivity_diff": 4,
-        "centrality_diff": 4,
-        "total_diff": 10,
-        "has_significant_conflict": true
-      }
+      "cache_fingerprint": "d494697a201d7f72e222d3d04ee4c30c8ff621fd2217c2dc0f5e1ab8e6ed097b"
     }
   ]
 }

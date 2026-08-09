@@ -26,8 +26,6 @@ mentioning X*; anything stronger is a claim the data does not support.
 import os
 from collections import Counter
 
-from tqdm import tqdm
-
 from shared import (
     INDEX_TYPE_PLACE,
     get_logger,
@@ -40,6 +38,7 @@ from shared import (
     safe_str,
     split_pipe_field,
 )
+from tqdm import tqdm
 
 logger = get_logger(__name__)
 
@@ -128,11 +127,18 @@ def main() -> None:
     cited = {pid: rec for pid, rec in records.items() if mentions[pid] > 0}
 
     total_pairs = sum(mentions.values())
-    logger.info("Mappable articles: %d / %d (%.1f%%)",
-                len(edges), len(articles), 100 * len(edges) / max(len(articles), 1))
+    logger.info(
+        "Mappable articles: %d / %d (%.1f%%)",
+        len(edges),
+        len(articles),
+        100 * len(edges) / max(len(articles), 1),
+    )
     logger.info("Cited places: %d   article-place pairs: %d", len(cited), total_pairs)
-    logger.info("Unresolved spatial labels: %d distinct, %d mentions",
-                len(unresolved), sum(unresolved.values()))
+    logger.info(
+        "Unresolved spatial labels: %d distinct, %d mentions",
+        len(unresolved),
+        sum(unresolved.values()),
+    )
     for label, count in unresolved.most_common(10):
         logger.info("  unresolved: %-40s %d", label[:40], count)
 

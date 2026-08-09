@@ -58,10 +58,10 @@ describe('mapArticleProperties', () => {
 		expect(article.publication_date).toBe('1999-12-31');
 	});
 
-	it('uses N/A when no journal or date source exists', () => {
+	it('uses a display fallback for journals and null for missing dates', () => {
 		const article = mapArticleProperties({ 'o:id': 3, sentiment_analysis: null }, 'chatgpt');
 		expect(article.journal_source).toBe('N/A');
-		expect(article.publication_date).toBe('N/A');
+		expect(article.publication_date).toBeNull();
 	});
 
 	it('defaults sentiment_analysis to null when absent', () => {
@@ -83,7 +83,7 @@ describe('joinArticles', () => {
 				subjectivite_score: 2,
 				centralite_islam_musulmans: 'Central'
 			}
-		};
+		} satisfies Parameters<typeof joinArticles>[1];
 		const articles = joinArticles(baseRecords, sentiments, 'chatgpt');
 		expect(articles).toHaveLength(2);
 		expect(articles[0].sentiment_analysis?.polarite).toBe('Positif');
@@ -198,6 +198,8 @@ describe('loadDatasetArticles', () => {
 		{ 'o:id': 1, 'o:title': 'T', Newspaper: 'J', Country: 'Benin', 'dcterms:date': '2001-01-01' }
 	];
 	const sentimentFile = {
+		schema_version: '1.0.0',
+		analysis_version: 'v1',
 		model: 'chatgpt',
 		sentiments: {
 			'1': {
@@ -235,24 +237,22 @@ describe('loadDatasetArticles', () => {
 		expect(articles[0].dataset_id).toBe('chatgpt');
 	});
 
-	it('returns [] for an unrecognized sentiment payload shape', async () => {
-		const articles = await loadDatasetArticles(
-			'/data/iwac_sentiment_chatgpt.json',
-			'chatgpt',
-			mockFetch({
-				iwac_articles_base: baseRecords,
-				iwac_sentiment_chatgpt: { nope: true }
-			})
-		);
-		expect(articles).toEqual([]);
+	it('rejects an unrecognized sentiment payload shape', async () => {
+		await expect(
+			loadDatasetArticles(
+				'/data/iwac_sentiment_chatgpt.json',
+				'chatgpt',
+				mockFetch({
+					iwac_articles_base: baseRecords,
+					iwac_sentiment_chatgpt: { nope: true }
+				})
+			)
+		).rejects.toThrow('Sentiment file schema_version must be 1.0.0');
 	});
 
-	it('returns [] when a fetch fails instead of throwing', async () => {
-		const articles = await loadDatasetArticles(
-			'/data/iwac_sentiment_chatgpt.json',
-			'chatgpt',
-			mockFetch({}, false)
-		);
-		expect(articles).toEqual([]);
+	it('rejects a failed fetch so the UI can expose and retry it', async () => {
+		await expect(
+			loadDatasetArticles('/data/iwac_sentiment_chatgpt.json', 'chatgpt', mockFetch({}, false))
+		).rejects.toThrow('Failed to fetch');
 	});
 });

@@ -1,10 +1,5 @@
 name: CI / Deploy to GitHub Pages
 
-# One workflow, two roles. The verification steps (types, lint, tests, build)
-# run for every pull request as well as for pushes to main, so a PR is gated by
-# exactly the same checks that gate a deploy — no second, drifting copy of the
-# pipeline. Only the Pages-specific steps and the deploy job are restricted to
-# pushes/manual runs.
 on:
   push:
     branches: [main]
@@ -12,59 +7,46 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# Least privilege at the top; the two jobs that talk to Pages opt into more.
-# This also matters for pull_request runs, where requesting write scopes the
-# run doesn't need would simply fail on forks.
 permissions:
   contents: read
 
 concurrency:
-  # Deploys serialize under a single `pages` group and are never cancelled —
-  # interrupting one can leave the live site half-published. PR runs get a
-  # per-branch group instead, so a follow-up push supersedes the run it made
-  # obsolete rather than queueing behind it.
   group: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.ref) || 'pages' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  build:
+  frontend:
+    name: Frontend / data contract
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: ./ma-visualisation-sentiments
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: ma-visualisation-sentiments/package-lock.json
 
       - name: Cache SvelteKit artifacts
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
             ma-visualisation-sentiments/.svelte-kit
             ma-visualisation-sentiments/node_modules/.cache
           key: ${{ runner.os }}-sveltekit-${{ hashFiles('ma-visualisation-sentiments/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-sveltekit-
-
-      # Only needed to publish. The build itself doesn't depend on it: the base
-      # path comes from svelte.config.js, not from configure-pages' outputs.
-      - name: Setup Pages
-        if: github.event_name != 'pull_request'
-        uses: actions/configure-pages@v6
+          restore-keys: ${{ runner.os }}-sveltekit-
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Check types
         run: npm run check
@@ -72,55 +54,74 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Run tests
+      - name: Run unit and integration tests
         run: npm run test:run
 
-      # The preprocessing helpers produce the dataset the dashboard cites, so
-      # their tests gate the deploy alongside the frontend's. Only the pure
-      # helpers are exercised — no network, no API keys.
-      #
-      # Install from requirements.txt rather than naming packages inline. The
-      # pins are what reproduce the published figures, so a Dependabot bump has
-      # to be exercised against the constraint it actually changes; an ad-hoc
-      # `pip install pandas huggingface_hub pytest` resolves to whatever is
-      # current that day and reports green without testing the bump at all.
-      # That gap is invisible — the check name and colour are identical either
-      # way. Installing the pinned set also proves the constraints still
-      # co-resolve, which naming three packages never did.
-      - name: Setup Python
-        uses: actions/setup-python@v7
-        with:
-          python-version: '3.12'
-          # The pinned set is heavier than the three packages this replaced
-          # (datasets and pyarrow dominate), so cache the wheels against the
-          # file whose changes are the only reason to re-resolve.
-          cache: pip
-          cache-dependency-path: data-preprocess/requirements.txt
-
-      - name: Run preprocessing tests
-        working-directory: .
-        run: |
-          pip install -r data-preprocess/requirements.txt
-          python -m pytest data-preprocess/test_shared.py -q
-
-      # Runs on pull requests too: a build failure is a real failure, and
-      # NODE_ENV=production here means PRs also exercise the base-path branch
-      # that only production takes.
-      - name: Build
+      - name: Build and verify artifact budgets
         run: npm run build
 
-      - name: Upload artifact
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser and accessibility smoke tests
+        run: npm run test:e2e
+
+      - name: Upload Pages artifact
         if: github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         with:
           path: ./ma-visualisation-sentiments/build
 
-  deploy:
-    # Verification-only on pull requests — publishing from a PR would push
-    # unreviewed code to the live site.
-    if: github.event_name != 'pull_request'
-    needs: build
+  python:
+    name: Python / generated data
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            data-preprocess/requirements.txt
+            data-preprocess/requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r data-preprocess/requirements-dev.txt
+
+      - name: Compile Python sources
+        run: python -m compileall -q data-preprocess
+
+      - name: Lint and format check
+        run: |
+          ruff check data-preprocess
+          ruff format --check data-preprocess
+
+      - name: Run all preprocessing and checked-in data tests
+        run: python -m pytest data-preprocess -q
+
+      - name: Audit Python runtime dependencies
+        run: pip-audit -r data-preprocess/requirements.txt
+
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    name: Dependency review
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: [frontend, python]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       pages: write
       id-token: write
@@ -130,4 +131,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5

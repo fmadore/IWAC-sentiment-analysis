@@ -1,4 +1,6 @@
 {
+  "schema_version": "1.0.0",
+  "analysis_version": "v1",
   "model": "mistral",
   "sentiments": {
     "2231": {
@@ -37471,11 +37473,6 @@
       "subjectivite_score": 4,
       "polarite": "Négatif"
     },
-    "61457": {
-      "centralite_islam_musulmans": "Non abordé",
-      "subjectivite_score": null,
-      "polarite": "Non applicable"
-    },
     "61458": {
       "centralite_islam_musulmans": "Très central",
       "subjectivite_score": 2,
@@ -61435,6 +61432,356 @@
       "centralite_islam_musulmans": "Central",
       "subjectivite_score": 4,
       "polarite": "Négatif"
+    },
+    "78363": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78365": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78366": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78367": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78368": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78369": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78370": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78371": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78372": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78373": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78374": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78376": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78378": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78379": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78380": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78381": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78382": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78385": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78386": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78387": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78388": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78389": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78391": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78393": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78394": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78395": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "78587": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79331": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79333": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79335": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79337": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79339": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79341": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79343": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79345": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79347": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79349": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79351": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79353": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79355": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79357": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79359": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79361": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79363": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79365": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79367": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79369": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79371": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79373": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79375": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79377": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79379": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79381": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79383": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79385": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79387": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79389": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79391": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79393": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79395": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79397": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79399": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79401": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79403": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79405": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79407": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79409": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79411": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79413": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
+    },
+    "79415": {
+      "centralite_islam_musulmans": null,
+      "subjectivite_score": null,
+      "polarite": null
     }
   }
 }

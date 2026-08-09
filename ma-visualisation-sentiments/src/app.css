@@ -145,7 +145,7 @@
 	--sentiment-subjectivity-2: oklch(0.7 0.085 200);
 	--sentiment-subjectivity-3: oklch(0.68 0.09 130); /* mixed: muted green-yellow */
 	--sentiment-subjectivity-4: oklch(0.68 0.13 60);
-	--sentiment-subjectivity-5: oklch(0.66 0.17 35); /* subjective: warm, loud */
+	--sentiment-subjectivity-5: oklch(0.7 0.17 35); /* subjective: warm, loud; AA on badge bg */
 
 	--sentiment-subjectivity-1-bg: color-mix(
 		in oklab,

@@ -5,7 +5,7 @@
  * Provides both modern $state-based API and legacy store compatibility.
  */
 
-import type { ViewId } from '$lib/types/data';
+import { VIEW_IDS, type ViewId } from '$lib/types/data';
 
 // ============================================
 // Svelte 5 Runes State
@@ -50,13 +50,13 @@ export const uiState = {
 		_sidebarExpanded = !_sidebarExpanded;
 	},
 
-	// Active view. Getter narrowed to the ViewId union; setter stays
-	// permissive (string) so call sites holding plain strings keep compiling.
+	// Active view. URL parsing validates strings before they reach this setter.
 	get activeView(): ViewId {
 		return _activeView;
 	},
-	set activeView(value: string) {
-		_activeView = value as ViewId;
+	set activeView(value: ViewId) {
+		if (!VIEW_IDS.includes(value)) throw new Error(`Unknown view: ${value}`);
+		_activeView = value;
 	},
 
 	// ------------------------------------------------------------------

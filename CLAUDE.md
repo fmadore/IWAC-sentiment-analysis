@@ -33,9 +33,11 @@ populates the build root with the three files Pages only reads from there
 
 - `static/404.html` carries a `__DEPLOY_PATH__` placeholder stamped at build time;
   `static/sw.js` derives `BASE_PATH` from `self.location`. Neither hardcodes the path
-- Anything generated before the postbuild stamp — the `.gz`/`.br` variants from
-  `vite-plugin-compression` — captures placeholders verbatim. `stamp-sw.mjs`
-  re-compresses the worker; `nest-build.mjs` drops the 404 variants instead
+- The build intentionally emits no `.gz`/`.br` siblings: GitHub Pages handles
+  transfer compression and duplicated files bloated the artifact. Postbuild
+  stamps the plain worker/404 files, then `check-build-artifact.mjs` rejects
+  placeholders, precompressed duplicates, missing nested files, and initial JS
+  over 300 KiB gzip
 - Changing the served path means editing `deploy.config.js` and nothing else.
   `DEPLOY_PATH = ''` serves at the subdomain root and skips the nesting
 - DNS: `frederickmadore.com` is registered at Porkbun but its DNS is managed at
@@ -165,10 +167,11 @@ Sentiment values are stored as **French strings and used as lookup keys**:
 - Subjectivity: `1` (very objective) to `5` (very subjective)
 - Centrality: `Tres central`, `Central`, `Secondaire`, `Marginal`, `Non aborde`
 
-Ordinal scales put `Non applicable` / `Non abordé` at the **bottom**, matching
-`stores/derivations.ts`. Weighted kappa reads ordinal positions, so moving them
-changes published figures — `utils/agreementCorpus.test.ts` pins those figures
-against the shipped data and will fail if they drift.
+Agreement statistics retain the full ordinal scales, but discrepancy/arbiter
+comparisons treat `Non applicable`, `Non abordé`, and missing categorical values
+as **non-comparable** and exclude the row. Missing subjectivity skips only that
+dimension. These rules live in `lib/data/sentiment-v1.json`; cross-language
+fixtures ensure Python and TypeScript cannot drift.
 
 **`chatgpt`/`gemini`/`mistral` are this repo's ids, not the dataset's column
 prefixes.** They were the same word until the Hugging Face dataset renamed its
@@ -177,7 +180,7 @@ produced each annotation (`gpt_5_mini_`, `gemini_3_flash_preview_`,
 `ministral_14b_2512_`). Only the read side moved: the ids remain the `dataset`
 and `pair` URL parameters, the `static/data/iwac_*_{model}.json` filenames and
 the `model` key inside them, and the UI already names the precise models on its
-cards. `shared.HF_COLUMN_PREFIXES` holds the mapping and `sentiment_column()`
+cards. `iwac_preprocess.contract.HF_COLUMN_PREFIXES` holds the mapping and `sentiment_column()`
 is the only place a column name is assembled — never interpolate
 `f"{model_id}_{suffix}"` again. The failure mode is silent, which is why
 `load_iwac_dataset()` now validates all 18 columns up front: every `.get()`
@@ -189,9 +192,12 @@ well-formed JSON files full of nulls without erroring anywhere.
 - `iwac_articles_base.json` holds shared article metadata once;
   `iwac_sentiment_{model}.json` holds per-model scores keyed by article id, joined
   at load time in `articles.svelte.ts`
-- `iwac_justifications_{model}.json` is ~90% of a model's bytes and is read only
-  by detail views and CSV exports, so `loadJustifications()` fetches it lazily and
-  merges into the existing `sentiment_analysis` objects
+- `iwac_justifications_{model}_{00..31}.json` contains the ~90% prose portion.
+  `loadJustifications()` fetches only the stable article-id shard for a detail
+  view, or all shards in bounded batches for CSV, then merges into the existing
+  `sentiment_analysis` objects
+- `iwac_data_manifest.json` is published last and records the v1 contract,
+  immutable Hugging Face revision, byte sizes, and SHA-256 hashes
 - `iwac_extreme_analysis_{model}.json` is normalized (`articles_index` +
   per-category `article_ids`), denormalized at load in `utils/extremeAnalysis.ts`
 - `iwac_places.json` is an **edge list** (article id → place ids) plus a place

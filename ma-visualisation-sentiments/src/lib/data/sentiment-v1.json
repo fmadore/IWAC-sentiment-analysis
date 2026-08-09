@@ -1,0 +1,72 @@
+{
+	"schemaVersion": "1.0.0",
+	"analysisVersion": "v1",
+	"description": "Stable three-model IWAC sentiment-analysis contract used by the published v1 visualisation.",
+	"models": {
+		"chatgpt": {
+			"displayName": "ChatGPT",
+			"analysisModel": "GPT-5 mini",
+			"hfPrefixes": ["gpt_5_mini", "chatgpt"]
+		},
+		"gemini": {
+			"displayName": "Gemini",
+			"analysisModel": "Gemini 3 Flash preview",
+			"hfPrefixes": ["gemini_3_flash_preview", "gemini"]
+		},
+		"mistral": {
+			"displayName": "Mistral",
+			"analysisModel": "Ministral 14B 2512",
+			"hfPrefixes": ["ministral_14b_2512", "mistral"]
+		}
+	},
+	"pairs": ["chatgpt-gemini", "chatgpt-mistral", "gemini-mistral"],
+	"fields": {
+		"scores": ["centralite_islam_musulmans", "subjectivite_score", "polarite"],
+		"justifications": [
+			"centralite_justification",
+			"subjectivite_justification",
+			"polarite_justification"
+		]
+	},
+	"scales": {
+		"polarity": {
+			"scores": {
+				"Très positif": 5,
+				"Positif": 4,
+				"Neutre": 3,
+				"Négatif": 2,
+				"Très négatif": 1,
+				"Non applicable": 0
+			},
+			"nonComparable": ["Non applicable"]
+		},
+		"centrality": {
+			"scores": {
+				"Très central": 5,
+				"Central": 4,
+				"Secondaire": 3,
+				"Marginal": 2,
+				"Non abordé": 1,
+				"Non applicable": 0
+			},
+			"nonComparable": ["Non abordé", "Non applicable"]
+		},
+		"subjectivity": {
+			"minimum": 1,
+			"maximum": 5
+		}
+	},
+	"discrepancy": {
+		"significantDimensionGap": 3,
+		"maximumTotal": 11,
+		"missingSubjectivity": "skip-dimension",
+		"nonComparableAnalysis": "exclude-row"
+	},
+	"arbiter": {
+		"promptVersion": "v1.0.0",
+		"cacheSchemaVersion": 2
+	},
+	"delivery": {
+		"justificationShards": 32
+	}
+}

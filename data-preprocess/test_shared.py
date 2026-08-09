@@ -11,7 +11,6 @@ quietly disagreeing.
 Run with: python -m pytest data-preprocess/test_shared.py
 """
 
-import math
 import os
 import sys
 
@@ -63,6 +62,7 @@ class TestSafeStr:
     def test_returns_none_for_missing_values(self):
         assert safe_str(None) is None
         assert safe_str(float("nan")) is None
+        assert safe_str("") is None
 
 
 class TestFieldSuffixes:

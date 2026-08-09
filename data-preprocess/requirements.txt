@@ -16,8 +16,3 @@ google-genai~=2.16.0
 pydantic~=2.13.4
 python-dotenv~=1.2.2
 pyarrow~=25.0.0
-
-# Test-only. The preprocessing helpers are the source of the published
-# figures, so they carry tests (test_shared.py); pytest is not needed to run
-# the pipeline itself.
-pytest~=9.1.1

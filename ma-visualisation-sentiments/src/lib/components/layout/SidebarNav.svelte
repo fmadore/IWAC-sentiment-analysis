@@ -7,6 +7,7 @@
 	import { NAV_ITEMS } from './navItems';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
+	import type { ViewId } from '$lib/types/data';
 
 	// Default expanded on wider desktops where the labels fit and where the
 	// flame/gavel/git-compare icons aren't self-explanatory to a researcher.
@@ -27,7 +28,7 @@
 		uiState.sidebarExpanded = wideDesktop.current;
 	});
 
-	function change(view: string) {
+	function change(view: ViewId) {
 		if (view !== uiState.activeView) uiState.activeView = view;
 		// Close mobile menu after selection
 		if (uiState.mobileMenuOpen) uiState.mobileMenuOpen = false;
@@ -76,10 +77,10 @@
 	<!-- Mobile only: the model picker, above the views it modifies. -->
 	{#if !desktop.current}
 		<div class="drawer-section">
-			<span class="drawer-label">{$t.datasets?.availableModels ?? 'Model'}</span>
+			<span class="drawer-label">{$t.datasets.availableModels ?? 'Model'}</span>
 			<DatasetPicker />
 		</div>
-		<span class="drawer-label drawer-label-standalone">{$t.nav?.views ?? 'Views'}</span>
+		<span class="drawer-label drawer-label-standalone">{$t.nav.views ?? 'Views'}</span>
 	{/if}
 
 	<!-- No role="navigation" on this container: the panel Drawer renders is

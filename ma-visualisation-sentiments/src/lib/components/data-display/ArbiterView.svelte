@@ -221,11 +221,10 @@
 			<div class="section-header mb-4">
 				<div class="section-eyebrow">
 					<TableIcon size={12} strokeWidth={2.25} aria-hidden="true" />
-					<span>{$t.arbiter?.evaluatedArticles || 'Evaluated articles'}</span>
+					<span>{$t.arbiter.evaluatedArticles}</span>
 				</div>
 				<p class="section-lede">
-					{$t.arbiter?.evaluatedArticlesSubtitle ||
-						'Articles analyzed by the arbiter for disagreement resolution'}
+					{$t.arbiter.evaluatedArticlesSubtitle}
 				</p>
 			</div>
 			<ArbiterArticleTable onSelectArticle={handleSelectArticle} />

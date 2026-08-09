@@ -32,8 +32,13 @@
 	// a comparison detail needs each side's reasoning, not just the scores.
 	$effect(() => {
 		if (comparison) {
-			loadJustifications(comparison.modelAId);
-			loadJustifications(comparison.modelBId);
+			const articleIds = [comparison.article['o:id']];
+			loadJustifications(comparison.modelAId, fetch, articleIds).catch((error) =>
+				console.error('Failed to load model A justification:', error)
+			);
+			loadJustifications(comparison.modelBId, fetch, articleIds).catch((error) =>
+				console.error('Failed to load model B justification:', error)
+			);
 		}
 	});
 

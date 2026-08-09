@@ -71,12 +71,7 @@ function isDataFilePath(pathname) {
 // model-specific, and the runtime rule below caches them into the same stable
 // DATA_CACHE_NAME the moment they're actually requested. Precaching them cost a
 // first-time visitor tens of MB before they had opened anything.
-const DATA_FILES_PRIORITY = [
-	`${BASE_PATH}/data/iwac_articles_base.json`,
-	`${BASE_PATH}/data/iwac_arbiter_evaluations_chatgpt-gemini.json`,
-	`${BASE_PATH}/data/iwac_arbiter_evaluations_chatgpt-mistral.json`,
-	`${BASE_PATH}/data/iwac_arbiter_evaluations_gemini-mistral.json`
-];
+const DATA_FILES_PRIORITY = [`${BASE_PATH}/data/iwac_articles_base.json`];
 
 // Install event - cache static files (tolerantly), then data files progressively.
 self.addEventListener('install', (event) => {
@@ -380,49 +375,6 @@ async function cacheFirstStrategy(request, cacheName, event = null) {
 	}
 
 	return new Response('Not found', { status: 404 });
-}
-
-// Background sync for data updates (if supported)
-if ('sync' in self.registration) {
-	self.addEventListener('sync', (event) => {
-		if (event.tag === 'background-sync-data') {
-			event.waitUntil(updateDataCache());
-		}
-	});
-}
-
-// Update data cache in background.
-//
-// Refreshes whatever this client has ALREADY cached rather than a hardcoded
-// file list: the entries present are exactly the datasets this user has opened,
-// so we never re-download a 14MB model payload for someone who only ever looks
-// at one model — and the list can't drift out of sync with static/data/ again.
-async function updateDataCache() {
-	const cache = await caches.open(DATA_CACHE_NAME);
-	const cachedRequests = await cache.keys();
-
-	const updatePromises = cachedRequests.map(async (request) => {
-		try {
-			const response = await fetch(request);
-			if (response.ok) {
-				await cache.put(request, response);
-				console.log('[SW] Updated cache for:', request.url);
-			}
-		} catch (_error) {
-			console.log('[SW] Failed to update cache for:', request.url);
-		}
-	});
-
-	await Promise.all(updatePromises);
-}
-
-// Periodic background sync (if supported)
-if ('periodicSync' in self.registration) {
-	self.addEventListener('periodicsync', (event) => {
-		if (event.tag === 'daily-data-sync') {
-			event.waitUntil(updateDataCache());
-		}
-	});
 }
 
 // Listen for messages from the client

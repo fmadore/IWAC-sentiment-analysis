@@ -82,12 +82,13 @@ describe('calculateDiscrepancies', () => {
 			expect(result.polarityDiff).toBe(4);
 		});
 
-		it('handles Non applicable polarity', () => {
+		it('excludes Non applicable polarity from comparison', () => {
 			const modelA = createAnalysis({ polarite: 'Non applicable' });
 			const modelB = createAnalysis({ polarite: 'Neutre' });
 			const result = calculateDiscrepancies(modelA, modelB);
 
-			expect(result.polarityDiff).toBe(3); // 0 vs 3
+			expect(result.polarityDiff).toBe(0);
+			expect(result.isComparable).toBe(false);
 		});
 	});
 
@@ -130,12 +131,13 @@ describe('calculateDiscrepancies', () => {
 			expect(result.centralityDiff).toBe(1);
 		});
 
-		it('calculates correct diff for extreme centralities (4 steps)', () => {
+		it('excludes Non abordé centrality from comparison', () => {
 			const modelA = createAnalysis({ centralite_islam_musulmans: 'Très central' });
 			const modelB = createAnalysis({ centralite_islam_musulmans: 'Non abordé' });
 			const result = calculateDiscrepancies(modelA, modelB);
 
-			expect(result.centralityDiff).toBe(4);
+			expect(result.centralityDiff).toBe(0);
+			expect(result.isComparable).toBe(false);
 		});
 	});
 
@@ -204,7 +206,7 @@ describe('calculateDiscrepancies', () => {
 			expect(result.hasConflict).toBe(true);
 		});
 
-		it('is true when multiple dimensions exceed threshold', () => {
+		it('excludes the row when any categorical dimension is non-comparable', () => {
 			const modelA = createAnalysis({
 				polarite: 'Très positif',
 				subjectivite_score: 1,
@@ -217,8 +219,9 @@ describe('calculateDiscrepancies', () => {
 			});
 			const result = calculateDiscrepancies(modelA, modelB);
 
-			expect(result.hasConflict).toBe(true);
-			expect(result.totalDiff).toBe(12);
+			expect(result.hasConflict).toBe(false);
+			expect(result.totalDiff).toBe(0);
+			expect(result.isComparable).toBe(false);
 		});
 	});
 });
@@ -228,13 +231,13 @@ describe('calculateDiscrepancies', () => {
 // ============================================
 
 describe('Edge Cases', () => {
-	it('handles empty string values gracefully', () => {
+	it('treats missing categorical values as non-comparable', () => {
 		const modelA: SentimentAnalysis = {
-			centralite_islam_musulmans: '',
+			centralite_islam_musulmans: null,
 			centralite_justification: '',
 			subjectivite_score: null,
 			subjectivite_justification: '',
-			polarite: '',
+			polarite: null,
 			polarite_justification: ''
 		};
 		const modelB: SentimentAnalysis = {
@@ -248,7 +251,8 @@ describe('Edge Cases', () => {
 
 		// Should not throw
 		const result = calculateDiscrepancies(modelA, modelB);
-		expect(result).toBeDefined();
+		expect(result.isComparable).toBe(false);
+		expect(result.totalDiff).toBe(0);
 	});
 
 	it('handles unknown polarity values', () => {

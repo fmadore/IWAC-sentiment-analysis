@@ -6,6 +6,7 @@
 
 import {
 	DATASET_IDS,
+	MODEL_PAIR_IDS,
 	VIEW_IDS,
 	type DatasetId,
 	type ViewId,
@@ -21,11 +22,7 @@ export const VALID_DATASETS = DATASET_IDS;
 export type ValidDataset = DatasetId;
 
 // Valid comparison pairs
-export const VALID_PAIRS: readonly ModelPair[] = [
-	'chatgpt-gemini',
-	'chatgpt-mistral',
-	'gemini-mistral'
-] as const;
+export const VALID_PAIRS: readonly ModelPair[] = MODEL_PAIR_IDS;
 
 // URL parameter names
 export const URL_PARAMS = {

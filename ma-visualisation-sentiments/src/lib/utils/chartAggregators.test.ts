@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Article } from '$lib/types/data';
+import type { Article, PolarityValue } from '$lib/types/data';
 import {
 	aggregateByJournalAndDimension,
 	aggregateByYearAndDimension,
@@ -15,7 +15,7 @@ import {
 function article(
 	id: number,
 	journal: string,
-	polarite: string | null,
+	polarite: PolarityValue | null,
 	overrides: Partial<Article> = {}
 ): Article {
 	return {
@@ -65,7 +65,7 @@ describe('aggregateByJournalAndDimension', () => {
 
 	it('ignores keys not present in the label set', () => {
 		const result = aggregateByJournalAndDimension(
-			[article(1, 'A', 'Inconnu')],
+			[article(1, 'A', 'Inconnu' as never)],
 			labels,
 			(a) => a.sentiment_analysis?.polarite ?? null
 		);
@@ -132,7 +132,7 @@ describe('aggregateByYearAndDimension', () => {
 
 	it('skips keys not present in the label set entirely (not counted)', () => {
 		const result = aggregateByYearAndDimension(
-			[article(1, 'A', 'Inconnu', { publication_date: '2001-01-01' })],
+			[article(1, 'A', 'Inconnu' as never, { publication_date: '2001-01-01' })],
 			labels,
 			getPolarity
 		);

@@ -1,0 +1,149 @@
+[
+	{
+		"name": "identical comparable analyses",
+		"analysisA": {
+			"polarite": "Positif",
+			"subjectivite_score": 2,
+			"centralite_islam_musulmans": "Central"
+		},
+		"analysisB": {
+			"polarite": "Positif",
+			"subjectivite_score": 2,
+			"centralite_islam_musulmans": "Central"
+		},
+		"expected": {
+			"comparable": true,
+			"polarity": 0,
+			"subjectivity": 0,
+			"centrality": 0,
+			"total": 0,
+			"conflict": false
+		}
+	},
+	{
+		"name": "summed differences",
+		"analysisA": {
+			"polarite": "Très positif",
+			"subjectivite_score": 1,
+			"centralite_islam_musulmans": "Très central"
+		},
+		"analysisB": {
+			"polarite": "Neutre",
+			"subjectivite_score": 3,
+			"centralite_islam_musulmans": "Central"
+		},
+		"expected": {
+			"comparable": true,
+			"polarity": 2,
+			"subjectivity": 2,
+			"centrality": 1,
+			"total": 5,
+			"conflict": false
+		}
+	},
+	{
+		"name": "dimension threshold",
+		"analysisA": {
+			"polarite": "Très positif",
+			"subjectivite_score": 2,
+			"centralite_islam_musulmans": "Central"
+		},
+		"analysisB": {
+			"polarite": "Négatif",
+			"subjectivite_score": 2,
+			"centralite_islam_musulmans": "Central"
+		},
+		"expected": {
+			"comparable": true,
+			"polarity": 3,
+			"subjectivity": 0,
+			"centrality": 0,
+			"total": 3,
+			"conflict": true
+		}
+	},
+	{
+		"name": "missing subjectivity skips one dimension",
+		"analysisA": {
+			"polarite": "Neutre",
+			"subjectivite_score": null,
+			"centralite_islam_musulmans": "Central"
+		},
+		"analysisB": {
+			"polarite": "Neutre",
+			"subjectivite_score": 5,
+			"centralite_islam_musulmans": "Central"
+		},
+		"expected": {
+			"comparable": true,
+			"polarity": 0,
+			"subjectivity": 0,
+			"centrality": 0,
+			"total": 0,
+			"conflict": false
+		}
+	},
+	{
+		"name": "non-applicable polarity excludes row",
+		"analysisA": {
+			"polarite": "Non applicable",
+			"subjectivite_score": 2,
+			"centralite_islam_musulmans": "Central"
+		},
+		"analysisB": {
+			"polarite": "Très positif",
+			"subjectivite_score": 2,
+			"centralite_islam_musulmans": "Central"
+		},
+		"expected": {
+			"comparable": false,
+			"polarity": 0,
+			"subjectivity": 0,
+			"centrality": 0,
+			"total": 0,
+			"conflict": false
+		}
+	},
+	{
+		"name": "not-addressed centrality excludes row",
+		"analysisA": {
+			"polarite": "Neutre",
+			"subjectivite_score": 2,
+			"centralite_islam_musulmans": "Non abordé"
+		},
+		"analysisB": {
+			"polarite": "Neutre",
+			"subjectivite_score": 2,
+			"centralite_islam_musulmans": "Très central"
+		},
+		"expected": {
+			"comparable": false,
+			"polarity": 0,
+			"subjectivity": 0,
+			"centrality": 0,
+			"total": 0,
+			"conflict": false
+		}
+	},
+	{
+		"name": "maximum comparable total",
+		"analysisA": {
+			"polarite": "Très positif",
+			"subjectivite_score": 1,
+			"centralite_islam_musulmans": "Très central"
+		},
+		"analysisB": {
+			"polarite": "Très négatif",
+			"subjectivite_score": 5,
+			"centralite_islam_musulmans": "Marginal"
+		},
+		"expected": {
+			"comparable": true,
+			"polarity": 4,
+			"subjectivity": 4,
+			"centrality": 3,
+			"total": 11,
+			"conflict": true
+		}
+	}
+]

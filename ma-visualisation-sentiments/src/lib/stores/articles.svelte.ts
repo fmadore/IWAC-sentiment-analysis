@@ -5,13 +5,27 @@
  * Provides both modern $state-based API and legacy store compatibility.
  */
 
-import { SvelteSet } from 'svelte/reactivity';
-import type { Article, SentimentAnalysis } from '$lib/types/data';
+import { SvelteMap, SvelteSet } from 'svelte/reactivity';
+import type { Article, DatasetId, LoadState, SentimentAnalysis } from '$lib/types/data';
 import { base } from '$app/paths';
 import { datasetState } from './datasets.svelte';
 import { filterState } from './filters.svelte';
 import { uiState } from './ui.svelte';
 import { filterArticles, computeAvailableJournals } from './derivations';
+import {
+	parseBaseArticles,
+	parseJustificationFile,
+	parseSentimentFile,
+	type BaseArticleRecord,
+	type JustificationFile,
+	type SentimentFile,
+	type SentimentScores
+} from '$lib/data/validation';
+import {
+	JUSTIFICATION_SHARD_COUNT,
+	isDatasetId,
+	justificationShard
+} from '$lib/domain/sentimentContract';
 
 // ============================================
 // Svelte 5 Runes State
@@ -20,6 +34,8 @@ import { filterArticles, computeAvailableJournals } from './derivations';
 let _datasetArticles = $state<Record<string, Article[]>>({});
 let _currentDatasetArticles = $state<Article[]>([]);
 let _selectedArticle = $state<Article | null>(null);
+const _loadStates = $state<Partial<Record<DatasetId, LoadState<Article[]>>>>({});
+const _justificationErrors = $state<Partial<Record<DatasetId, Error>>>({});
 
 // ============================================
 // Derived State (reactive runes)
@@ -69,7 +85,8 @@ const _availableJournalsRune = $derived.by(() => {
  * that loop was measured at 14 loader entries per page load.
  */
 // eslint-disable-next-line svelte/prefer-svelte-reactivity -- reactivity here causes an effect loop
-const inFlightLoads = new Map<string, Promise<Article[]>>();
+const inFlightLoads = new Map<DatasetId, Promise<Article[]>>();
+let foregroundLoadCount = 0;
 
 interface PrefetchTask {
 	id: string;
@@ -85,7 +102,7 @@ interface PrefetchTask {
 /** Map article properties from different formats (exported for tests) */
 export function mapArticleProperties(
 	item: Record<string, unknown> & Partial<Article>,
-	datasetId: string
+	datasetId: DatasetId
 ): Article {
 	// Spread first so the computed fallbacks below win over null/empty raw values
 	return {
@@ -100,9 +117,12 @@ export function mapArticleProperties(
 		Newspaper: item.Newspaper as string,
 		Country: item.Country as string,
 		publication_date:
-			(item.publication_date as string) ||
-			((item as { 'dcterms:date'?: string })['dcterms:date'] as string) ||
-			'N/A',
+			(item.publication_date as string | null | undefined) ||
+			(item as { 'dcterms:date'?: string | null })['dcterms:date'] ||
+			null,
+		hijri_year: (item.hijri_year as number | null | undefined) ?? null,
+		hijri_month: (item.hijri_month as number | null | undefined) ?? null,
+		hijri_day: (item.hijri_day as number | null | undefined) ?? null,
 		sentiment_analysis: item.sentiment_analysis ?? null,
 		dataset_id: datasetId
 	};
@@ -121,30 +141,6 @@ export function mapArticleProperties(
  * old combined payload). Justifications load on demand — see
  * loadJustifications below.
  */
-type BaseArticleRecord = Record<string, unknown> & Partial<Article>;
-
-/** The three score fields carried by iwac_sentiment_<model>.json. */
-type SentimentScores = Pick<
-	SentimentAnalysis,
-	'centralite_islam_musulmans' | 'subjectivite_score' | 'polarite'
->;
-
-/** The three prose fields carried by iwac_justifications_<model>.json. */
-type SentimentJustifications = Pick<
-	SentimentAnalysis,
-	'centralite_justification' | 'subjectivite_justification' | 'polarite_justification'
->;
-
-interface SentimentFile {
-	model: string;
-	sentiments: Record<string, SentimentScores | null>;
-}
-
-interface JustificationFile {
-	model: string;
-	justifications: Record<string, SentimentJustifications | null>;
-}
-
 /**
  * Expand a score-only record into a full SentimentAnalysis with the
  * justification keys present but empty.
@@ -180,10 +176,7 @@ const fetchJSON = async (filePath: string, fetchFunction: typeof fetch): Promise
 const loadArticleBase = (fetchFunction: typeof fetch): Promise<BaseArticleRecord[]> => {
 	if (!baseArticlesPromise) {
 		baseArticlesPromise = fetchJSON('/data/iwac_articles_base.json', fetchFunction).then((data) => {
-			if (!Array.isArray(data)) {
-				throw new Error('Unrecognized article base format');
-			}
-			return data as BaseArticleRecord[];
+			return parseBaseArticles(data);
 		});
 		// Allow a retry on transient failure instead of caching the rejection
 		baseArticlesPromise.catch(() => {
@@ -197,7 +190,7 @@ const loadArticleBase = (fetchFunction: typeof fetch): Promise<BaseArticleRecord
 export function joinArticles(
 	baseRecords: BaseArticleRecord[],
 	sentiments: SentimentFile['sentiments'],
-	datasetId: string
+	datasetId: DatasetId
 ): Article[] {
 	return baseRecords.map((record) =>
 		mapArticleProperties(
@@ -238,30 +231,30 @@ export function applyJustifications(
 /** Load articles for a dataset: shared base metadata + per-model sentiments */
 export const loadDatasetArticles = async (
 	filePath: string,
-	datasetId: string,
+	datasetId: DatasetId,
 	fetchFunction: typeof fetch
 ): Promise<Article[]> => {
-	try {
-		const [baseRecords, sentimentData] = await Promise.all([
-			loadArticleBase(fetchFunction),
-			fetchJSON(filePath, fetchFunction) as Promise<SentimentFile>
-		]);
-
-		if (!sentimentData || typeof sentimentData.sentiments !== 'object') {
-			console.error('Unrecognized sentiment data format:', sentimentData);
-			return [];
-		}
-
-		return joinArticles(baseRecords, sentimentData.sentiments, datasetId);
-	} catch (error) {
-		console.error(`Error fetching dataset ${datasetId}:`, error);
-		return [];
+	const [baseRecords, rawSentimentData] = await Promise.all([
+		loadArticleBase(fetchFunction),
+		fetchJSON(filePath, fetchFunction)
+	]);
+	const sentimentData = parseSentimentFile(rawSentimentData, datasetId);
+	const baseIds = new SvelteSet(baseRecords.map((record) => String(record['o:id'])));
+	const sentimentIds = Object.keys(sentimentData.sentiments);
+	if (
+		sentimentIds.length !== baseIds.size ||
+		sentimentIds.some((articleId) => !baseIds.has(articleId))
+	) {
+		throw new Error(
+			`Sentiment/base ID coverage mismatch for ${datasetId}: ${sentimentIds.length} vs ${baseIds.size}`
+		);
 	}
+	return joinArticles(baseRecords, sentimentData.sentiments, datasetId);
 };
 
 /** True once a dataset's articles are in the store */
-const isDatasetLoaded = (datasetId: string): boolean =>
-	(_datasetArticles[datasetId]?.length ?? 0) > 0;
+const isDatasetLoaded = (datasetId: DatasetId): boolean =>
+	_loadStates[datasetId]?.status === 'ready';
 
 /**
  * Load a specific dataset into the store. Idempotent and race-free: an
@@ -274,6 +267,7 @@ export const loadSpecificDataset = async (
 	options: { showLoading?: boolean } = {}
 ): Promise<void> => {
 	const { showLoading = true } = options;
+	if (!isDatasetId(datasetId)) throw new Error(`Dataset ${datasetId} not found`);
 
 	if (isDatasetLoaded(datasetId)) {
 		if (datasetState.selected === datasetId) {
@@ -288,10 +282,17 @@ export const loadSpecificDataset = async (
 		if (!dataset) {
 			throw new Error(`Dataset ${datasetId} not found`);
 		}
+		_loadStates[datasetId] = { status: 'loading' };
 		load = loadDatasetArticles(dataset.file, datasetId, fetchFunction)
 			.then((articles) => {
 				articleState.updateDatasets(datasetId, articles);
+				_loadStates[datasetId] = { status: 'ready', data: articles };
 				return articles;
+			})
+			.catch((error: unknown) => {
+				const normalizedError = error instanceof Error ? error : new Error(String(error));
+				_loadStates[datasetId] = { status: 'error', error: normalizedError };
+				throw normalizedError;
 			})
 			.finally(() => {
 				inFlightLoads.delete(datasetId);
@@ -301,7 +302,8 @@ export const loadSpecificDataset = async (
 
 	// Only show loading indicator for foreground loads, not background prefetch
 	if (showLoading) {
-		uiState.isLoadingDataset = true;
+		foregroundLoadCount++;
+		uiState.isLoadingDataset = foregroundLoadCount > 0;
 	}
 
 	try {
@@ -313,7 +315,8 @@ export const loadSpecificDataset = async (
 		}
 	} finally {
 		if (showLoading) {
-			uiState.isLoadingDataset = false;
+			foregroundLoadCount = Math.max(0, foregroundLoadCount - 1);
+			uiState.isLoadingDataset = foregroundLoadCount > 0;
 		}
 	}
 };
@@ -323,10 +326,41 @@ export const loadSpecificDataset = async (
 // ============================================
 
 /** Datasets whose prose has already been merged in. */
-const justificationsLoaded = new SvelteSet<string>();
-/** One promise per justification file currently being fetched. */
+const justificationsLoaded = new SvelteSet<DatasetId>();
+/** Shards already merged and one promise per shard currently being fetched. */
+const loadedJustificationShards = new SvelteMap<DatasetId, SvelteSet<number>>();
 // eslint-disable-next-line svelte/prefer-svelte-reactivity -- internal plumbing read inside effects
 const justificationLoads = new Map<string, Promise<void>>();
+
+async function loadJustificationShard(
+	datasetId: DatasetId,
+	shard: number,
+	fetchFunction: typeof fetch
+): Promise<void> {
+	const loaded = loadedJustificationShards.get(datasetId) ?? new SvelteSet<number>();
+	loadedJustificationShards.set(datasetId, loaded);
+	if (loaded.has(shard)) return;
+
+	const key = `${datasetId}:${shard}`;
+	const existing = justificationLoads.get(key);
+	if (existing) return existing;
+
+	const load = (async () => {
+		const data = parseJustificationFile(
+			await fetchJSON(
+				`/data/iwac_justifications_${datasetId}_${shard.toString().padStart(2, '0')}.json`,
+				fetchFunction
+			),
+			datasetId,
+			shard
+		);
+		applyJustifications(_datasetArticles[datasetId] ?? [], data.justifications);
+		loaded.add(shard);
+	})().finally(() => justificationLoads.delete(key));
+
+	justificationLoads.set(key, load);
+	return load;
+}
 
 /**
  * Fetch and merge a model's justification prose.
@@ -338,42 +372,41 @@ const justificationLoads = new Map<string, Promise<void>>();
  * app stays usable without prose (scores, charts and filters never need it).
  */
 export const loadJustifications = async (
-	datasetId: string,
-	fetchFunction: typeof fetch = fetch
+	datasetId: DatasetId,
+	fetchFunction: typeof fetch = fetch,
+	articleIds?: Array<string | number>
 ): Promise<void> => {
 	if (justificationsLoaded.has(datasetId)) return;
-
-	const existing = justificationLoads.get(datasetId);
-	if (existing) return existing;
-
-	const load = (async () => {
+	try {
 		await loadSpecificDataset(datasetId, fetchFunction, { showLoading: false });
+		const shards = articleIds
+			? [...new SvelteSet(articleIds.map(justificationShard))]
+			: Array.from({ length: JUSTIFICATION_SHARD_COUNT }, (_, index) => index);
 
-		const data = (await fetchJSON(
-			`/data/iwac_justifications_${datasetId}.json`,
-			fetchFunction
-		)) as JustificationFile;
-
-		if (!data || typeof data.justifications !== 'object') {
-			throw new Error(`Unrecognized justification data format for ${datasetId}`);
+		// A bounded batch avoids opening 32 HTTP connections for a CSV export.
+		for (let start = 0; start < shards.length; start += 8) {
+			await Promise.all(
+				shards
+					.slice(start, start + 8)
+					.map((shard) => loadJustificationShard(datasetId, shard, fetchFunction))
+			);
 		}
-
-		applyJustifications(_datasetArticles[datasetId] ?? [], data.justifications);
-		justificationsLoaded.add(datasetId);
-	})()
-		.catch((error) => {
-			console.error(`Error fetching justifications for ${datasetId}:`, error);
-		})
-		.finally(() => {
-			justificationLoads.delete(datasetId);
-		});
-
-	justificationLoads.set(datasetId, load);
-	return load;
+		if (
+			!articleIds &&
+			(loadedJustificationShards.get(datasetId)?.size ?? 0) === JUSTIFICATION_SHARD_COUNT
+		) {
+			justificationsLoaded.add(datasetId);
+		}
+		delete _justificationErrors[datasetId];
+	} catch (error) {
+		_justificationErrors[datasetId] = error instanceof Error ? error : new Error(String(error));
+		console.error(`Error fetching justifications for ${datasetId}:`, error);
+		throw error;
+	}
 };
 
 /** True once a dataset's justification prose has been merged in. */
-export const hasJustifications = (datasetId: string): boolean =>
+export const hasJustifications = (datasetId: DatasetId): boolean =>
 	justificationsLoaded.has(datasetId);
 
 /** Load all available datasets */
@@ -439,7 +472,7 @@ const scheduleSmartPrefetch = (queue: PrefetchTask[]): void => {
 };
 
 const prefetchOtherDatasets = async (
-	currentDatasetId: string,
+	currentDatasetId: DatasetId,
 	fetchFunction: typeof fetch
 ): Promise<void> => {
 	const datasets = datasetState.available;
@@ -523,8 +556,18 @@ export const articleState = {
 		return _availableJournalsRune;
 	},
 
+	get loadStates() {
+		return _loadStates;
+	},
+	get currentLoadState(): LoadState<Article[]> {
+		return _loadStates[datasetState.selected] ?? { status: 'idle' };
+	},
+	get justificationErrors() {
+		return _justificationErrors;
+	},
+
 	// Update datasets
-	updateDatasets(datasetId: string, articles: Article[]) {
+	updateDatasets(datasetId: DatasetId, articles: Article[]) {
 		_datasetArticles = { ..._datasetArticles, [datasetId]: articles };
 	}
 };

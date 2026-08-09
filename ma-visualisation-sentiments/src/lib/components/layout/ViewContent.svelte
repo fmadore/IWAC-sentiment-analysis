@@ -17,33 +17,11 @@
   />
 -->
 <script lang="ts">
-	import type { Article } from '$lib/types/data';
+	import type { Article, ViewId } from '$lib/types/data';
 	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
 	import { t } from '$lib/i18n';
 	import { datasetState, articleState } from '$lib/stores';
 	import { getModelDisplayName } from '$lib/utils/format';
-
-	// Charts
-	import {
-		SentimentChart,
-		SentimentTrendsChart,
-		SubjectivityChart,
-		SubjectivityTrendsChart,
-		CorrelationChart,
-		VolumeChart,
-		CentralityHeatmap,
-		KeywordFrequencyChart,
-		HijriSeasonalityChart,
-		NewspaperRankingChart
-	} from '$lib/components/viz';
-
-	// Data Display
-	import {
-		ArticleTable,
-		ComparisonView,
-		ArbiterView,
-		AgreementView
-	} from '$lib/components/data-display';
 
 	// UI
 	import { CSVExportButton, ChartCard } from '$lib/components/ui';
@@ -64,9 +42,16 @@
 		return mapModulePromise;
 	}
 
+	const chartViews = import('$lib/components/views/ChartViews.svelte');
+	const tableView = () => import('$lib/components/data-display/ArticleTable.svelte');
+	const comparisonView = () => import('$lib/components/data-display/ComparisonView.svelte');
+	const agreementView = () => import('$lib/components/data-display/AgreementView.svelte');
+	const extremeView = () => import('$lib/components/views/ExtremeViewContent.svelte');
+	const arbiterView = () => import('$lib/components/data-display/ArbiterView.svelte');
+
 	interface ViewContentProps {
 		/** Currently active view */
-		activeView: string;
+		activeView: ViewId;
 		/** Selected extreme analysis category */
 		selectedCategory: ExtremeCategory;
 		/** Selected keyword type for extreme analysis */
@@ -119,19 +104,7 @@
 		return parts.join('  ·  ');
 	});
 
-	type ViewKey =
-		| 'charts'
-		| 'trends'
-		| 'correlation'
-		| 'volume'
-		| 'seasonality'
-		| 'heatmap'
-		| 'ranking'
-		| 'map'
-		| 'table'
-		| 'comparison'
-		| 'agreement'
-		| 'extremes';
+	type ViewKey = Exclude<ViewId, 'arbiter'>;
 
 	type ViewMeta = {
 		eyebrow: string;
@@ -143,26 +116,22 @@
 		charts: {
 			eyebrow: $t.nav.charts,
 			title: $t.nav.charts,
-			lede:
-				$t.charts?.subtitle ||
-				'Visualize sentiment distribution across polarity and subjectivity dimensions.'
+			lede: $t.charts.subtitle
 		},
 		trends: {
 			eyebrow: $t.nav.trends,
 			title: $t.nav.trends,
-			lede: $t.trends?.subtitle || 'Track sentiment evolution over time across publications.'
+			lede: $t.trends.subtitle
 		},
 		correlation: {
 			eyebrow: $t.nav.distribution,
 			title: $t.nav.distribution,
-			lede:
-				$t.correlation?.subtitle ||
-				'Analyze the relationship between polarity and subjectivity dimensions.'
+			lede: $t.correlation.subtitle
 		},
 		volume: {
 			eyebrow: $t.nav.volume,
 			title: $t.nav.volume,
-			lede: $t.volume?.subtitle || 'Analyze publication volume and temporal patterns in the corpus.'
+			lede: $t.volume.subtitle
 		},
 		seasonality: {
 			eyebrow: $t.nav.seasonality,
@@ -172,9 +141,7 @@
 		heatmap: {
 			eyebrow: $t.nav.heatmap,
 			title: $t.nav.heatmap,
-			lede:
-				$t.heatmap?.subtitle ||
-				'Explore centrality patterns across countries and themes with interactive visualization.'
+			lede: $t.heatmap.subtitle
 		},
 		ranking: {
 			eyebrow: $t.nav.ranking,
@@ -189,7 +156,7 @@
 		table: {
 			eyebrow: $t.table.title,
 			title: $t.table.title,
-			lede: $t.table?.subtitle || 'Browse and search all articles with detailed sentiment data.'
+			lede: $t.table.subtitle
 		},
 		agreement: {
 			eyebrow: $t.nav.agreement,
@@ -199,9 +166,7 @@
 		comparison: {
 			eyebrow: $t.nav.comparison,
 			title: $t.nav.comparison,
-			lede:
-				$t.comparison.subtitle ||
-				'Compare sentiment analyses between different AI models and identify significant discrepancies.'
+			lede: $t.comparison.subtitle
 		},
 		extremes: {
 			eyebrow: $t.extremeAnalysis.title,
@@ -231,41 +196,51 @@
 {#if activeView === 'charts'}
 	<div class="view mb-6">
 		{@render header('charts')}
-		<div class="space-y-4 sm:space-y-6">
-			<ChartCard variant="charts"><SentimentChart /></ChartCard>
-			<ChartCard variant="charts"><SubjectivityChart /></ChartCard>
-		</div>
+		{#await chartViews}<LoadingState />{:then module}
+			{@const ChartViews = module.default}<ChartViews view="charts" />
+		{/await}
 	</div>
 {:else if activeView === 'trends'}
 	<div class="view mb-6">
 		{@render header('trends')}
-		<ChartCard variant="trends" class="mb-6"><SentimentTrendsChart /></ChartCard>
-		<ChartCard variant="trends"><SubjectivityTrendsChart /></ChartCard>
+		{#await chartViews}<LoadingState />{:then module}
+			{@const ChartViews = module.default}<ChartViews view="trends" />
+		{/await}
 	</div>
 {:else if activeView === 'correlation'}
 	<div class="view mb-6">
 		{@render header('correlation')}
-		<ChartCard variant="correlation"><CorrelationChart /></ChartCard>
+		{#await chartViews}<LoadingState />{:then module}
+			{@const ChartViews = module.default}<ChartViews view="correlation" />
+		{/await}
 	</div>
 {:else if activeView === 'volume'}
 	<div class="view mb-6">
 		{@render header('volume')}
-		<ChartCard variant="volume"><VolumeChart /></ChartCard>
+		{#await chartViews}<LoadingState />{:then module}
+			{@const ChartViews = module.default}<ChartViews view="volume" />
+		{/await}
 	</div>
 {:else if activeView === 'seasonality'}
 	<div class="view mb-6">
 		{@render header('seasonality')}
-		<ChartCard variant="volume"><HijriSeasonalityChart /></ChartCard>
+		{#await chartViews}<LoadingState />{:then module}
+			{@const ChartViews = module.default}<ChartViews view="seasonality" />
+		{/await}
 	</div>
 {:else if activeView === 'heatmap'}
 	<div class="view mb-6">
 		{@render header('heatmap')}
-		<ChartCard variant="heatmap"><CentralityHeatmap /></ChartCard>
+		{#await chartViews}<LoadingState />{:then module}
+			{@const ChartViews = module.default}<ChartViews view="heatmap" />
+		{/await}
 	</div>
 {:else if activeView === 'ranking'}
 	<div class="view mb-6">
 		{@render header('ranking')}
-		<ChartCard variant="charts"><NewspaperRankingChart /></ChartCard>
+		{#await chartViews}<LoadingState />{:then module}
+			{@const ChartViews = module.default}<ChartViews view="ranking" />
+		{/await}
 	</div>
 {:else if activeView === 'map'}
 	<div class="view mb-6">
@@ -283,27 +258,37 @@
 			<CSVExportButton />
 		{/snippet}
 		{@render header('table', tableTrail)}
-		<ChartCard variant="table"><ArticleTable {onShowDetails} /></ChartCard>
+		{#await tableView()}<LoadingState />{:then module}
+			{@const ArticleTable = module.default}
+			<ChartCard variant="table"><ArticleTable {onShowDetails} /></ChartCard>
+		{/await}
 	</div>
 {:else if activeView === 'comparison'}
 	<div class="view comparison-view mb-6">
 		{@render header('comparison')}
-		<ComparisonView />
+		{#await comparisonView()}<LoadingState />{:then module}
+			{@const ComparisonView = module.default}<ComparisonView />
+		{/await}
 	</div>
 {:else if activeView === 'agreement'}
 	<div class="view agreement-view mb-6">
 		{@render header('agreement')}
-		<AgreementView />
+		{#await agreementView()}<LoadingState />{:then module}
+			{@const AgreementView = module.default}<AgreementView />
+		{/await}
 	</div>
 {:else if activeView === 'extremes'}
 	<div class="view extreme-view mb-6">
 		{@render header('extremes')}
-		<ChartCard variant="extreme">
-			<KeywordFrequencyChart {selectedCategory} {selectedKeywordType} {showTopN} />
-		</ChartCard>
+		{#await extremeView()}<LoadingState />{:then module}
+			{@const ExtremeView = module.default}
+			<ExtremeView {selectedCategory} {selectedKeywordType} {showTopN} />
+		{/await}
 	</div>
 {:else if activeView === 'arbiter'}
-	<ArbiterView />
+	{#await arbiterView()}<LoadingState />{:then module}
+		{@const ArbiterView = module.default}<ArbiterView />
+	{/await}
 {/if}
 
 <style>

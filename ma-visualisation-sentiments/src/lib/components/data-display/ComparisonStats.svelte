@@ -36,10 +36,10 @@
 			<div class="stat-icon-container comparison-icon">
 				<GitCompareArrowsIcon size={24} />
 			</div>
-			<span class="stat-label">{$t.comparison?.totalArticles || 'Total Articles'}</span>
+			<span class="stat-label">{$t.comparison.totalArticles}</span>
 		</div>
 		<div class="stat-value comparison-stat-value">{stats.totalArticles}</div>
-		<div class="stat-detail">{$t.comparison?.articlesAnalyzed || 'Articles analyzed'}</div>
+		<div class="stat-detail">{$t.comparison.articlesAnalyzed}</div>
 	</div>
 
 	<div class="stat-card comparison-stat-card">
@@ -47,14 +47,14 @@
 			<div class="stat-icon-container discrepancy-icon">
 				<AlertCircleIcon size={24} />
 			</div>
-			<span class="stat-label">{$t.comparison?.totalDiscrepancies || 'Total Discrepancies'}</span>
+			<span class="stat-label">{$t.comparison.totalDiscrepancies}</span>
 			<div class="info-tooltip" title={dynamicTooltips.totalDiscrepancies}>
 				<InfoIcon size={14} />
 			</div>
 		</div>
 		<div class="stat-value discrepancy-stat-value">{stats.totalDiscrepancies}</div>
 		<div class="stat-detail">
-			{$t.comparison?.articlesWithDifferences || 'Articles with differences'}
+			{$t.comparison.articlesWithDifferences}
 		</div>
 	</div>
 
@@ -63,17 +63,13 @@
 			<div class="stat-icon-container success-icon">
 				<TrendingUpIcon size={24} />
 			</div>
-			<span class="stat-label">{$t.comparison?.averageDiscrepancy || 'Average Discrepancy'}</span>
-			<div
-				class="info-tooltip"
-				title={$t.comparison?.averageDiscrepancyExplanation ||
-					'Average total difference points per article across all three dimensions (polarity + subjectivity + centrality)'}
-			>
+			<span class="stat-label">{$t.comparison.averageDiscrepancy}</span>
+			<div class="info-tooltip" title={$t.comparison.averageDiscrepancyExplanation}>
 				<InfoIcon size={14} />
 			</div>
 		</div>
 		<div class="stat-value">{stats.averageDiscrepancy.toFixed(2)}</div>
-		<div class="stat-detail">{$t.comparison?.pointsPerArticle || 'Points per article'}</div>
+		<div class="stat-detail">{$t.comparison.pointsPerArticle}</div>
 	</div>
 
 	<div class="stat-card comparison-stat-card">
@@ -81,14 +77,14 @@
 			<div class="stat-icon-container conflict-icon">
 				<BarChart3Icon size={24} />
 			</div>
-			<span class="stat-label">{$t.comparison?.highConflicts || 'High Conflicts'}</span>
+			<span class="stat-label">{$t.comparison.highConflicts}</span>
 			<div class="info-tooltip" title={dynamicTooltips.significantDifferences}>
 				<InfoIcon size={14} />
 			</div>
 		</div>
 		<div class="stat-value conflict-stat-value">{stats.highConflictArticles}</div>
 		<div class="stat-detail">
-			{$t.comparison?.significantDifferences || 'Significant differences'}
+			{$t.comparison.significantDifferences}
 		</div>
 	</div>
 </div>
@@ -96,7 +92,7 @@
 <!-- Breakdown by dimension -->
 <div class="breakdown-section comparison-breakdown mt-6">
 	<h4 class="mb-3 breakdown-title">
-		{$t.comparison?.breakdownByDimension || 'Breakdown by Dimension'}
+		{$t.comparison.breakdownByDimension}
 	</h4>
 
 	<div class="breakdown-grid">
@@ -108,7 +104,7 @@
 				<div class="breakdown-fill polarity"></div>
 			</div>
 			<div class="breakdown-info">
-				<span class="breakdown-label">{$t.comparison?.polarity || 'Polarity'}</span>
+				<span class="breakdown-label">{$t.comparison.polarity}</span>
 				<span class="breakdown-value"
 					>{stats.polarityConflicts} ({(
 						(stats.polarityConflicts / stats.totalArticles) * 100 || 0
@@ -125,7 +121,7 @@
 				<div class="breakdown-fill subjectivity"></div>
 			</div>
 			<div class="breakdown-info">
-				<span class="breakdown-label">{$t.comparison?.subjectivity || 'Subjectivity'}</span>
+				<span class="breakdown-label">{$t.comparison.subjectivity}</span>
 				<span class="breakdown-value"
 					>{stats.subjectivityConflicts} ({(
 						(stats.subjectivityConflicts / stats.totalArticles) * 100 || 0
@@ -142,7 +138,7 @@
 				<div class="breakdown-fill centrality"></div>
 			</div>
 			<div class="breakdown-info">
-				<span class="breakdown-label">{$t.comparison?.centrality || 'Centrality'}</span>
+				<span class="breakdown-label">{$t.comparison.centrality}</span>
 				<span class="breakdown-value"
 					>{stats.centralityConflicts} ({(
 						(stats.centralityConflicts / stats.totalArticles) * 100 || 0
@@ -164,11 +160,11 @@
 			<div class="arbiter-header-content">
 				<span class="arbiter-glyph"><GavelIcon size={20} /></span>
 				<h4 class="arbiter-summary-title">
-					{$t.arbiter?.summaryTitle || 'Arbiter Evaluation Summary'}
+					{$t.arbiter.summaryTitle}
 				</h4>
 				<span class="badge badge-count"
 					>{arbiterStats.totalEvaluated}
-					{$t.arbiter?.articlesEvaluated || 'articles evaluated'}</span
+					{$t.arbiter.articlesEvaluated}</span
 				>
 			</div>
 			{#if showArbiterSummary}
@@ -187,7 +183,7 @@
 						</div>
 						<div class="arbiter-stat-info">
 							<span class="arbiter-stat-label"
-								>{arbiterStats.modelAName} {$t.arbiter?.preferred || 'preferred'}</span
+								>{arbiterStats.modelAName} {$t.arbiter.preferred}</span
 							>
 							<span class="arbiter-stat-value"
 								>{arbiterStats.modelAPreferred} ({arbiterStats.modelAPercentage.toFixed(1)}%)</span
@@ -201,7 +197,7 @@
 						</div>
 						<div class="arbiter-stat-info">
 							<span class="arbiter-stat-label"
-								>{arbiterStats.modelBName} {$t.arbiter?.preferred || 'preferred'}</span
+								>{arbiterStats.modelBName} {$t.arbiter.preferred}</span
 							>
 							<span class="arbiter-stat-value"
 								>{arbiterStats.modelBPreferred} ({arbiterStats.modelBPercentage.toFixed(1)}%)</span
@@ -214,7 +210,7 @@
 							<div class="arbiter-stat-fill equal"></div>
 						</div>
 						<div class="arbiter-stat-info">
-							<span class="arbiter-stat-label">{$t.arbiter?.bothEqual || 'Both equal'}</span>
+							<span class="arbiter-stat-label">{$t.arbiter.bothEqual}</span>
 							<span class="arbiter-stat-value"
 								>{arbiterStats.bothEqual} ({arbiterStats.bothPercentage.toFixed(1)}%)</span
 							>
@@ -226,9 +222,7 @@
 							<div class="arbiter-stat-fill neither"></div>
 						</div>
 						<div class="arbiter-stat-info">
-							<span class="arbiter-stat-label"
-								>{$t.arbiter?.neitherAccurate || 'Neither accurate'}</span
-							>
+							<span class="arbiter-stat-label">{$t.arbiter.neitherAccurate}</span>
 							<span class="arbiter-stat-value"
 								>{arbiterStats.neitherAccurate} ({arbiterStats.neitherPercentage.toFixed(1)}%)</span
 							>
@@ -238,8 +232,7 @@
 
 				<p class="arbiter-note">
 					<InfoIcon size={14} class="inline-block mr-1" />
-					{$t.arbiter?.blindEvaluationNote ||
-						`Evaluations were conducted blind - the arbiter model did not know which analysis came from ${arbiterStats.modelAName} or ${arbiterStats.modelBName}.`}
+					{$t.arbiter.blindEvaluationNote}
 				</p>
 			</div>
 		{/if}

@@ -404,6 +404,9 @@ export const fr: Translations = {
 		loadingData: 'Chargement des données du corpus IWAC...',
 		noData: 'Aucune donnée disponible',
 		error: "Une erreur s'est produite",
+		dataLoadError:
+			'Les données du corpus n’ont pas pu être chargées ou ne correspondent pas au schéma v1 attendu.',
+		retry: 'Réessayer',
 		shareUrl: 'Partager cette vue',
 		urlCopied: 'URL copiée dans le presse-papiers'
 	},

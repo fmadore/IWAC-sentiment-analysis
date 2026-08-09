@@ -24,9 +24,9 @@ def oklab_to_linear_srgb(L: float, a: float, b: float):
     m_ = L - 0.1055613458 * a - 0.0638541728 * b
     s_ = L - 0.0894841775 * a - 1.2914855480 * b
 
-    l = l_ ** 3
-    m = m_ ** 3
-    s = s_ ** 3
+    l = l_**3
+    m = m_**3
+    s = s_**3
 
     r = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s
     g = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s
@@ -81,7 +81,7 @@ COLORS = {
     "subjectivity_2": (0.70, 0.085, 200),
     "subjectivity_3": (0.68, 0.09, 130),
     "subjectivity_4": (0.68, 0.13, 60),
-    "subjectivity_5": (0.66, 0.17, 35),
+    "subjectivity_5": (0.70, 0.17, 35),
     # Centrality (single-hue amber sequential)
     "centrality_not_addressed": (0.42, 0.005, 80),
     "centrality_marginal": (0.52, 0.04, 80),

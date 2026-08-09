@@ -19,7 +19,7 @@
 <script lang="ts">
 	import type { ComparisonData } from '$lib/types/data';
 	import { t } from '$lib/i18n';
-	import { ComparisonDetail } from '$lib/components/data-display';
+	import ComparisonDetail from '$lib/components/data-display/ComparisonDetail.svelte';
 	import FullScreenModal from './FullScreenModal.svelte';
 	import { getJournalName } from '$lib/utils/format';
 	import GitCompareArrowsIcon from '@lucide/svelte/icons/git-compare-arrows';

@@ -5,12 +5,7 @@
 	import { base } from '$app/paths';
 	import { DEV } from 'esm-env';
 	import { createControllerChangeTracker } from '$lib/utils/swUpdate';
-	interface ExtendedServiceWorkerRegistration extends ServiceWorkerRegistration {
-		sync?: { register(tag: string): Promise<void> };
-		periodicSync?: { register(tag: string, options: { minInterval: number }): Promise<void> };
-	}
-
-	let registration = $state<ExtendedServiceWorkerRegistration | null>(null);
+	let registration = $state<ServiceWorkerRegistration | null>(null);
 
 	onMount(async () => {
 		if (!browser || !('serviceWorker' in navigator)) {
@@ -34,12 +29,12 @@
 			// Register service worker with proper base path for GitHub Pages
 			// Ensure basePath ends with a slash for proper URL construction
 			const basePath = base ? (base.endsWith('/') ? base : `${base}/`) : '/';
-			registration = (await navigator.serviceWorker.register(`${basePath}sw.js`, {
+			registration = await navigator.serviceWorker.register(`${basePath}sw.js`, {
 				scope: basePath,
 				// Always revalidate the worker script against the network so a new
 				// deploy is detected immediately (never served from the HTTP cache).
 				updateViaCache: 'none'
-			})) as ExtendedServiceWorkerRegistration;
+			});
 
 			// When a new worker finishes installing, apply it right away. The active
 			// view/dataset/filters live in the URL, so the reload below restores state.
@@ -67,34 +62,6 @@
 			// A worker updated on a previous visit may already be waiting — apply it.
 			if (registration.waiting && navigator.serviceWorker.controller) {
 				registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-			}
-
-			// Request background sync permission (if supported)
-			if ('sync' in window.ServiceWorkerRegistration.prototype && registration?.sync) {
-				try {
-					await registration.sync.register('background-sync-data');
-				} catch (error) {
-					console.log('Background sync registration failed:', error);
-				}
-			}
-
-			// Request periodic sync (if supported)
-			if (
-				'periodicSync' in window.ServiceWorkerRegistration.prototype &&
-				registration?.periodicSync
-			) {
-				try {
-					const status = await navigator.permissions.query({
-						name: 'periodic-background-sync' as PermissionName
-					});
-					if (status.state === 'granted') {
-						await registration.periodicSync.register('daily-data-sync', {
-							minInterval: 24 * 60 * 60 * 1000 // 24 hours
-						});
-					}
-				} catch (error) {
-					console.log('Periodic sync registration failed:', error);
-				}
 			}
 		} catch (error) {
 			console.error('Service Worker registration failed:', error);

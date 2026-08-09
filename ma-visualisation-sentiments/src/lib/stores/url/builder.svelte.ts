@@ -8,6 +8,7 @@ import { SvelteURLSearchParams } from 'svelte/reactivity';
 import { LANGUAGES } from '$lib/i18n';
 import { VALID_VIEWS, VALID_DATASETS, VALID_PAIRS, URL_PARAMS } from './constants';
 import type { URLState } from './types';
+import { TOTAL_DISCREPANCY_MAXIMUM } from '$lib/domain/sentimentContract';
 
 /**
  * Convert application state to URL search parameters
@@ -51,7 +52,8 @@ export function buildURLSearchParams(state: URLState): SvelteURLSearchParams {
 	const isArbiterView = state.view === 'arbiter';
 	const hasSpecificArticle = state.comparisonArticleId !== undefined;
 	const diffMinIsDefault = state.diffMin === undefined || state.diffMin === 0;
-	const diffMaxIsDefault = state.diffMax === undefined || state.diffMax === 5;
+	const diffMaxIsDefault =
+		state.diffMax === undefined || state.diffMax === TOTAL_DISCREPANCY_MAXIMUM;
 
 	if (state.compare === true && !isArbiterView) {
 		// Include diffMin if: not viewing specific article, OR it's not the default value
@@ -76,24 +78,14 @@ export function buildURLSearchParams(state: URLState): SvelteURLSearchParams {
 
 	// Exclude regular filters for arbiter view (it has its own filter system)
 	if (!isArbiterView) {
-		if (state.countries && state.countries.length > 0) {
-			params.set(URL_PARAMS.countries, state.countries.join(','));
-		}
-
-		if (state.journals && state.journals.length > 0) {
-			params.set(URL_PARAMS.journals, state.journals.join(','));
-		}
-
-		if (state.polarities && state.polarities.length > 0) {
-			params.set(URL_PARAMS.polarities, state.polarities.join(','));
-		}
-
-		if (state.subjectivities && state.subjectivities.length > 0) {
-			params.set(URL_PARAMS.subjectivities, state.subjectivities.join(','));
-		}
-
-		if (state.centralities && state.centralities.length > 0) {
-			params.set(URL_PARAMS.centralities, state.centralities.join(','));
+		for (const [key, values] of [
+			[URL_PARAMS.countries, state.countries],
+			[URL_PARAMS.journals, state.journals],
+			[URL_PARAMS.polarities, state.polarities],
+			[URL_PARAMS.subjectivities, state.subjectivities],
+			[URL_PARAMS.centralities, state.centralities]
+		] as const) {
+			for (const value of values ?? []) params.append(key, value);
 		}
 	}
 

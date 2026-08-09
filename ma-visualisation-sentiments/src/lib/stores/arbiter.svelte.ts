@@ -7,6 +7,7 @@
 
 import type { ArbiterEvaluationData, ArbiterAnalysis, ModelPair } from '$lib/types/data';
 import { getPairModelNames } from '$lib/types/data';
+import { parseArbiterEvaluationData } from '$lib/data/validation';
 import { base } from '$app/paths';
 // Import the leaf stores directly — importing from './index' would create a
 // cycle (the barrel re-exports this module). Same convention as url/*.
@@ -325,7 +326,7 @@ const fetchArbiterEvaluations = async (
 			return;
 		}
 
-		const data = (await response.json()) as ArbiterEvaluationData;
+		const data = parseArbiterEvaluationData(await response.json(), targetPair);
 		arbiterCache.set(targetPair, data);
 		_arbiterEvaluations = data;
 		_currentArbiterPair = targetPair;

@@ -17,26 +17,27 @@ from __future__ import annotations
 
 import os
 from collections import Counter, defaultdict
-from typing import Any, Callable, NamedTuple, Optional
+from collections.abc import Callable
+from typing import Any, NamedTuple
 
 import pandas as pd
-from tqdm import tqdm
-
 from shared import (
+    EXTREME_CENTRALITY_MARGINAL,
+    EXTREME_CENTRALITY_VERY_CENTRAL,
+    EXTREME_POLARITY_VERY_NEGATIVE,
+    EXTREME_POLARITY_VERY_POSITIVE,
+    EXTREME_SUBJECTIVITY_HIGH,
+    EXTREME_SUBJECTIVITY_LOW,
     MODEL_NAMES,
     get_logger,
     get_webapp_data_dir,
     load_iwac_records,
     safe_int_convert,
     safe_save_json,
+    safe_str,
     sentiment_column,
-    EXTREME_SUBJECTIVITY_HIGH,
-    EXTREME_SUBJECTIVITY_LOW,
-    EXTREME_POLARITY_VERY_NEGATIVE,
-    EXTREME_POLARITY_VERY_POSITIVE,
-    EXTREME_CENTRALITY_VERY_CENTRAL,
-    EXTREME_CENTRALITY_MARGINAL,
 )
+from tqdm import tqdm
 
 logger = get_logger(__name__)
 
@@ -62,34 +63,40 @@ class ExtremeCategory(NamedTuple):
 
     key: str
     stat_key: str
-    matches: Callable[[Optional[int], Any, Any], bool]
+    matches: Callable[[int | None, Any, Any], bool]
 
 
 # The 6 extreme categories. Order matters: it is preserved in the output JSON
 # ``analysis`` and ``statistics`` blocks.
 CATEGORIES: list[ExtremeCategory] = [
     ExtremeCategory(
-        'subjectivity_extreme_high', 'subjectivity_high',
+        "subjectivity_extreme_high",
+        "subjectivity_high",
         lambda subj, pol, cen: bool(subj) and subj >= EXTREME_SUBJECTIVITY_HIGH,
     ),
     ExtremeCategory(
-        'subjectivity_extreme_low', 'subjectivity_low',
+        "subjectivity_extreme_low",
+        "subjectivity_low",
         lambda subj, pol, cen: bool(subj) and subj <= EXTREME_SUBJECTIVITY_LOW,
     ),
     ExtremeCategory(
-        'polarity_very_negative', 'polarity_very_negative',
+        "polarity_very_negative",
+        "polarity_very_negative",
         lambda subj, pol, cen: pol == EXTREME_POLARITY_VERY_NEGATIVE,
     ),
     ExtremeCategory(
-        'polarity_very_positive', 'polarity_very_positive',
+        "polarity_very_positive",
+        "polarity_very_positive",
         lambda subj, pol, cen: pol == EXTREME_POLARITY_VERY_POSITIVE,
     ),
     ExtremeCategory(
-        'centrality_very_central', 'centrality_very_central',
+        "centrality_very_central",
+        "centrality_very_central",
         lambda subj, pol, cen: cen == EXTREME_CENTRALITY_VERY_CENTRAL,
     ),
     ExtremeCategory(
-        'centrality_not_central', 'centrality_not_central',
+        "centrality_not_central",
+        "centrality_not_central",
         lambda subj, pol, cen: cen == EXTREME_CENTRALITY_MARGINAL,
     ),
 ]
@@ -112,7 +119,7 @@ def clean_and_split_keywords(text: Any) -> list[str]:
     if not text or pd.isna(text):
         return []
 
-    keywords = [kw.strip() for kw in str(text).split('|') if kw.strip()]
+    keywords = [kw.strip() for kw in str(text).split("|") if kw.strip()]
     return [kw for kw in keywords if len(kw) >= MIN_KEYWORD_LENGTH]
 
 
@@ -211,8 +218,8 @@ def analyze_extreme_keywords(records: list[dict], model_id: str, top_n: int = TO
         centrality = item.get(sentiment_column(model_id, "centralite_islam_musulmans"))
 
         # Metadata + facets
-        country = item.get("country")
-        newspaper = item.get("newspaper")
+        country = safe_str(item.get("country"))
+        newspaper = safe_str(item.get("newspaper"))
         if country:
             all_countries[country] += 1
         if newspaper:
@@ -221,13 +228,16 @@ def analyze_extreme_keywords(records: list[dict], model_id: str, top_n: int = TO
         subject_keywords = clean_and_split_keywords(item.get("subject"))
         spatial_keywords = clean_and_split_keywords(item.get("spatial"))
 
-        article_id = str(item.get("o:id"))
+        raw_article_id = safe_int_convert(item.get("o:id"))
+        if raw_article_id is None:
+            continue
+        article_id = str(raw_article_id)
         article_info = {
-            "id": item.get("o:id"),
-            "title": item.get("title"),
+            "id": raw_article_id,
+            "title": safe_str(item.get("title")),
             "country": country,
             "newspaper": newspaper,
-            "pub_date": item.get("pub_date"),
+            "pub_date": safe_str(item.get("pub_date")),
             "subject_keywords": subject_keywords,
             "spatial_keywords": spatial_keywords,
         }
@@ -309,7 +319,9 @@ def main() -> None:
         logger.info("  Total articles: %d", total)
         for category in CATEGORIES:
             count = stats[f"{category.stat_key}_count"]
-            logger.info("  %s: %d (%.1f%%)", category.key, count, count / total * 100 if total else 0.0)
+            logger.info(
+                "  %s: %d (%.1f%%)", category.key, count, count / total * 100 if total else 0.0
+            )
 
     logger.info(
         "Total countries in dataset: %d",

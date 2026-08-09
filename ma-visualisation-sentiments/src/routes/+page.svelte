@@ -21,13 +21,14 @@
 	import { FiltersPanel, ViewContent } from '$lib/components/layout';
 
 	// Data Display
-	import { AnalysisInfo, ArbiterMethodology } from '$lib/components/data-display';
+	import AnalysisInfo from '$lib/components/data-display/AnalysisInfo.svelte';
+	import ArbiterMethodology from '$lib/components/data-display/ArbiterMethodology.svelte';
 
 	// Common
 	import { ArticleDetailModal, LoadingState } from '$lib/components/common';
 
 	// Utilities
-	import { SEOHead } from '$lib/components';
+	import SEOHead from '$lib/components/SEOHead.svelte';
 	import {
 		initializeURLState,
 		updateURL,
@@ -53,6 +54,7 @@
 	let currentDatasetId = $derived(datasetState.selected);
 	let currentArticles = $derived(articleState.datasets[currentDatasetId] || []);
 	let currentSelectedArticle = $derived(articleState.selected);
+	let currentLoadState = $derived(articleState.currentLoadState);
 
 	// Close the mobile filters drawer whenever the active view changes (e.g. the
 	// user picks another view from the sidebar while the drawer is open).
@@ -91,6 +93,7 @@
 		const lang = $currentLanguage;
 		if (browser && typeof document !== 'undefined') {
 			document.documentElement.lang = lang;
+			if (isInitialized) updateURL(currentView, true);
 		}
 	});
 
@@ -208,6 +211,10 @@
 		clearSelectedArticle();
 	}
 
+	function retryDataset() {
+		loadCurrentDataset(fetch).catch((error) => console.error('Failed to retry dataset:', error));
+	}
+
 	// Handlers for extreme analysis controls
 	function handleCategoryChange(category: ExtremeCategory) {
 		selectedCategory = category;
@@ -225,7 +232,7 @@
 <!-- Dynamic SEO Head -->
 <SEOHead view={currentView} comparisonMode={isComparisonMode} />
 
-<main class="main-container" data-layout={hasFilterRail(currentView) ? 'rail' : 'full'}>
+<section class="main-container" data-layout={hasFilterRail(currentView) ? 'rail' : 'full'}>
 	{#if currentView === 'arbiter'}
 		<ArbiterMethodology />
 	{:else}
@@ -234,6 +241,17 @@
 
 	{#if isLoading}
 		<LoadingState />
+	{:else if currentLoadState.status === 'error'}
+		<div class="alert alert-error p-4 mb-4 sm:mb-6" role="alert">
+			<p>{$t.messages.dataLoadError}</p>
+			<details>
+				<summary>{$t.messages.error}</summary>
+				<code>{currentLoadState.error.message}</code>
+			</details>
+			<button type="button" class="retry-button mt-3" onclick={retryDataset}
+				>{$t.messages.retry}</button
+			>
+		</div>
 	{:else if !hasFilterRail(currentView)}
 		<!-- Self-contained views: each owns its internal filters, so no standard
 		     FiltersPanel and no filter rail. Arbiter has its own controls;
@@ -270,7 +288,7 @@
 	{:else}
 		<div class="alert alert-error p-4 mb-4 sm:mb-6">{$t.messages.noData}</div>
 	{/if}
-</main>
+</section>
 
 <!-- Article Details Modal -->
 <ArticleDetailModal article={detailedArticle} open={showDetailsSidebar} onClose={closeDetails} />
@@ -322,6 +340,26 @@
 		/* Allow charts/tables to shrink within the grid track instead of
 		   overflowing it (ECharts canvases otherwise force the column wider). */
 		min-width: 0;
+	}
+
+	.retry-button {
+		background: color-mix(in oklab, var(--status-error) 18%, var(--surface-card));
+		border: 1px solid var(--color-error-500);
+		border-radius: var(--radius-panel);
+		color: var(--status-error);
+		cursor: pointer;
+		font: inherit;
+		font-weight: 600;
+		padding: var(--space-2) var(--space-4);
+	}
+
+	.retry-button:hover {
+		background: color-mix(in oklab, var(--status-error) 28%, var(--surface-card));
+	}
+
+	.retry-button:focus-visible {
+		outline: 2px solid currentColor;
+		outline-offset: 2px;
 	}
 
 	@media (min-width: 1024px) {

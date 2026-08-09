@@ -136,7 +136,7 @@
 		{#if loading}
 			<div class="viewer-placeholder">
 				<div class="viewer-spinner"></div>
-				<p class="viewer-note">{$t.messages?.loading ?? 'Loading...'}</p>
+				<p class="viewer-note">{$t.messages.loading ?? 'Loading...'}</p>
 			</div>
 		{:else if error}
 			<div class="viewer-placeholder">
@@ -148,7 +148,7 @@
 						rel="noopener noreferrer"
 						class="viewer-fallback-link"
 					>
-						{$t.article?.consultOriginalArticle ?? 'View original article'}
+						{$t.article.consultOriginalArticle ?? 'View original article'}
 						<ExternalLinkIcon size={14} />
 					</a>
 				{/if}

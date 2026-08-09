@@ -63,8 +63,8 @@ export function aggregateByJournalAndDimension(
  * previously copy-pasted into the year-bucketing chart loops.
  */
 export function extractYear(article: Article): string | null {
-	if (!article.publication_date) return null;
-	return article.publication_date.substring(0, 4);
+	const match = article.publication_date?.match(/^(\d{4})(?:-|$)/);
+	return match?.[1] ?? null;
 }
 
 export interface YearDimensionAggregation {
@@ -250,7 +250,18 @@ export function aggregateByHijriMonth(
 	let undated = 0;
 
 	for (const article of articles) {
-		const hijri = publicationDateToHijri(article.publication_date);
+		// Stored Umm al-Qura fields are the canonical IWAC chronology. The
+		// conversion fallback keeps pre-contract v1 files readable only.
+		const hijri =
+			Number.isInteger(article.hijri_month) &&
+			Number(article.hijri_month) >= 1 &&
+			Number(article.hijri_month) <= 12
+				? {
+						year: article.hijri_year ?? 0,
+						month: article.hijri_month as number,
+						day: article.hijri_day ?? 0
+					}
+				: publicationDateToHijri(article.publication_date ?? undefined);
 		if (!hijri) {
 			undated++;
 			continue;
@@ -340,7 +351,7 @@ export function aggregateDisagreement(
 }
 
 /** Decade label ('1990s') for a publication date, or null when undatable. */
-export function bucketDecade(publicationDate: string | undefined): string | null {
+export function bucketDecade(publicationDate: string | null | undefined): string | null {
 	if (!publicationDate || publicationDate.length < 4) return null;
 	const year = Number(publicationDate.slice(0, 4));
 	if (!Number.isInteger(year)) return null;

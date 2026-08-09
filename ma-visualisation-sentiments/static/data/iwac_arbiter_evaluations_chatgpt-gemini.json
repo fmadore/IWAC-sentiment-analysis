@@ -1,18 +1,25 @@
 {
   "metadata": {
-    "generated": "2026-01-07T13:09:24.381790",
+    "generated": "2026-08-09T11:08:03.255191",
     "arbiter_model": "gemini-3-pro-preview",
     "thinking_level": "high",
     "blind_evaluation": true,
     "arbiter_model_a": "ChatGPT",
     "arbiter_model_b": "Gemini",
+    "model_a_is_first": true,
     "pair": "chatgpt-gemini",
     "pair_first_model": "ChatGPT",
     "pair_second_model": "Gemini",
     "note": "arbiter_model_a/b = what the arbiter saw. preferred_model in verdicts directly maps to these names.",
     "total_articles": 61,
     "successful_evaluations": 61,
-    "failed_evaluations": 0
+    "failed_evaluations": 0,
+    "contract_schema_version": "1.0.0",
+    "analysis_version": "v1",
+    "cache_schema_version": 2,
+    "prompt_version": "v1.0.0",
+    "source_revision": "282adc344ad7316811959d0cdfef9a348caee47a",
+    "legacy_cache_adopted": 0
   },
   "evaluations": [
     {
@@ -48,7 +55,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "7ff477679d86f6a00c37f2a05b08d241d44cabd4bd16f11f42c1f0451485d98e"
     },
     {
       "article_id": "3092",
@@ -83,7 +91,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "327924b885ed35216a311f9a84f4480d5489a9753263c60407c33bf27d1e7894"
     },
     {
       "article_id": "3743",
@@ -118,7 +127,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "5321ab0ab8d41a5b8d8632ba069f1025ee79a36fc6d458485efaef596548f0a1"
     },
     {
       "article_id": "3930",
@@ -153,7 +163,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "acb06c15f9f410c4aea81353d0e4d02ac98b76458c5380e2308cd804c39fccf5"
     },
     {
       "article_id": "4317",
@@ -188,7 +199,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "9fcb8194405958038548251f9b990d933bd5052a1e8ea2d88ca667c6f2de2ec8"
     },
     {
       "article_id": "4394",
@@ -223,7 +235,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "8ce8d00d95a0ef02816583e974ea3d4d1942ddd6d04f1156c09dd0fc6db49b40"
     },
     {
       "article_id": "4882",
@@ -258,7 +271,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "dabe23ee859c862e0b336eeb536c3f5df1e0b873d01864b080eb468e77ca5ff5"
     },
     {
       "article_id": "4892",
@@ -293,7 +307,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "20e341294966bb9fcb1d8a810c66b52d2d672a8ee0e0c87fe63ec6561e6bd491"
     },
     {
       "article_id": "5519",
@@ -328,7 +343,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "dfa7b19dbd0b721e77eae4c6df5fab8ae96ab591e5d992155e1ede6ab56e012a"
     },
     {
       "article_id": "5775",
@@ -363,7 +379,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "2d5b0e2c2197b7c10459c56c55e6545375351bb62536c9de333baebf55daa269"
     },
     {
       "article_id": "8068",
@@ -398,7 +415,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "740b1988bb46657012cc0a6fc17eebc27c6bfa4dca0baec070a1b9f7398dfac0"
     },
     {
       "article_id": "8104",
@@ -433,7 +451,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "6315a8b95f1d03db35543f6e7ab75bafb36c91af9817781f7037d73b9a8cd1fb"
     },
     {
       "article_id": "8240",
@@ -468,7 +487,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "84f5344520df8db73e2896eee593c15a8f49d790fe36503fedb8966d867e425d"
     },
     {
       "article_id": "8624",
@@ -503,7 +523,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "5b9a337aac10db4527fc2ad05dc7c8f408073480076addef42a93f883af72450"
     },
     {
       "article_id": "8886",
@@ -538,7 +559,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "fdd8823b0ece07f7cae50df68367edbbfab4512d01225489ea3166b5c84c899a"
     },
     {
       "article_id": "9153",
@@ -573,7 +595,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "fbf2999b98a836f2241307a4fd3b67979954ac4744d6ac89be5906b97a3b0cf3"
     },
     {
       "article_id": "9370",
@@ -608,7 +631,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "c49be860ceb1fb0b5f4aa2d885356549af3a3a5920329d61f313b44736f02305"
     },
     {
       "article_id": "9492",
@@ -643,7 +667,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "a5912288fd324dbcb8da648ee0e5c64dd6f25808f84cb3187ac7f352f5216fdc"
     },
     {
       "article_id": "9595",
@@ -678,7 +703,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "40f4e34cba6a9604a35d03a0af2c824b5f40242fe150238aed6a7a142ed90c8f"
     },
     {
       "article_id": "9665",
@@ -713,7 +739,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "d6c477dfe2d067680cea97fc30bd3284ed6698b3ca941093490b0fca26946d83"
     },
     {
       "article_id": "10082",
@@ -748,7 +775,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "3c8bf97cb70f84efedebc3a94ba018a86211276081a42da9b2df998cef62eb05"
     },
     {
       "article_id": "10132",
@@ -783,7 +811,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "d9fc8ad18adadf37e7f0ae1fd146434c4da4fabf049b2a33df11dae3df03be12"
     },
     {
       "article_id": "23356",
@@ -818,7 +847,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "45aa4153b75fe4d9541030e6c5b9a53efa28d75ca230ca0ec8ab496cd3a4083c"
     },
     {
       "article_id": "25864",
@@ -853,7 +883,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "8a0bcdf22762abbae934248c13e322650f5fee0b69c7f6460ad0fe366131332e"
     },
     {
       "article_id": "28536",
@@ -888,7 +919,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "eb7815d4aed2b16ae4cdef221105e61d9763d47b877009f40e494d3c86e498fa"
     },
     {
       "article_id": "29633",
@@ -923,7 +955,8 @@
         "centrality_diff": 1,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "e94dfe4b93a79f7c323d8586dd7d6a83db437ab510015eaa06fe4a1a577a4817"
     },
     {
       "article_id": "46493",
@@ -958,7 +991,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "26311115b4618dd9ac1fac2179f4ff7432288d549b8898d13ad34d53f46abaa0"
     },
     {
       "article_id": "48296",
@@ -993,7 +1027,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "5b8cc48313ddfa53b2daed3c7fdde31599647eaf5902874f4cca651405bd9088"
     },
     {
       "article_id": "48552",
@@ -1028,7 +1063,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "60a253679b4f8c86847bd3e98bae3efcde961960e44907d0f3ec2a93a24b08e6"
     },
     {
       "article_id": "48628",
@@ -1063,7 +1099,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "de2676fc1839a70e02af45b4651b6113e9021cdefcef99482090507b28b71776"
     },
     {
       "article_id": "61175",
@@ -1098,7 +1135,8 @@
         "centrality_diff": 1,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "015182eb31b690852a7a8b2c534f0890dc9236237be308be798912a5edbfa8db"
     },
     {
       "article_id": "61425",
@@ -1133,7 +1171,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "428688441518e60c3e383c9cbf08dd6089cae3e41c63df1bc988e7cffec13fd8"
     },
     {
       "article_id": "62054",
@@ -1168,7 +1207,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "0cf7e180699ee159b96c1d7ef44ce2b135b09a4cf2ae5475eb6d34af0107d782"
     },
     {
       "article_id": "63579",
@@ -1203,7 +1243,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "94f0de7640a36feb7e2262fdd4934f544dd5d34b090fa3ad67992bd08be774ad"
     },
     {
       "article_id": "63657",
@@ -1238,7 +1279,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "67709f8a685c5b2438963a0a0a4d676904a27d63d11e40d85e414fad92cac95d"
     },
     {
       "article_id": "67646",
@@ -1273,7 +1315,8 @@
         "centrality_diff": 1,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "66e115909085935541c2a4f5b5a7537d73ce3f8d57c29b11cbfc099e0ce76fea"
     },
     {
       "article_id": "70549",
@@ -1308,7 +1351,8 @@
         "centrality_diff": 1,
         "total_diff": 5,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "5af6c09700303db23c0f7567c69d29820155697fcb55ee8d64db4cad4db39e55"
     },
     {
       "article_id": "71068",
@@ -1343,7 +1387,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "9fb4ca9b933b63687246708c1128a45ad1da30dc7296d845bfde3881cf625072"
     },
     {
       "article_id": "71120",
@@ -1378,7 +1423,8 @@
         "centrality_diff": 1,
         "total_diff": 6,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "4cf8fe293448054cd4f73d18b3f9d7896a63ec1f31c8197bcc0d0ea591ad7c1b"
     },
     {
       "article_id": "71136",
@@ -1413,7 +1459,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "12a44871084e729618b8c87f2dd75f63dbb8937a61c65065bc9ec10736306057"
     },
     {
       "article_id": "71179",
@@ -1448,7 +1495,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "566bdc60fb8ed975c0d9e4afd081ce8ce5a529e90609ec562f2229c0781a5baf"
     },
     {
       "article_id": "71400",
@@ -1483,7 +1531,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "2c5299b8f13d1d90e25f7a7550abc5b6872efbe4078527b1267a14282fcead47"
     },
     {
       "article_id": "72079",
@@ -1518,7 +1567,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "f6d65aca7f79afc521e8950fe38d98d7ad151c551f14e8e98babd52749b2f4d9"
     },
     {
       "article_id": "72166",
@@ -1553,7 +1603,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "614c9314dccf00e33df61783ce0aa6af324b0ee7fe604c6733f7da582e7100b3"
     },
     {
       "article_id": "72238",
@@ -1588,7 +1639,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "e89236f9af71df5e21d5d931884b9fe904edc9da2287fddda1cacdf2f88661a6"
     },
     {
       "article_id": "72383",
@@ -1623,7 +1675,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "9c7b099a3f1e5dcc775473cfdbe933b1a2cad978702a40e1b2750b8ff490fdf6"
     },
     {
       "article_id": "73646",
@@ -1658,7 +1711,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "00ff549d9bf3634742c65d7f708a686c4021b4ee4aa406d740097c9d5aaecac2"
     },
     {
       "article_id": "73698",
@@ -1693,7 +1747,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "96e71e2ef8cacc1d92661783c53d03b1c9da2a2eaa7659f701f23740b43a459e"
     },
     {
       "article_id": "73726",
@@ -1728,7 +1783,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "82b50f2e92178e807b37f69d76cd1fe403915bae7b261478a10c498e2777d56e"
     },
     {
       "article_id": "74035",
@@ -1763,7 +1819,8 @@
         "centrality_diff": 1,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "8b12fa0393b024ba89e8aa439f47ed1f46360d234f1e98dea70201f037a1fd48"
     },
     {
       "article_id": "74146",
@@ -1798,7 +1855,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "e8dca220394c0a2c55448c6e6b16be9c111e79b856037978a82fd06324fa7d73"
     },
     {
       "article_id": "74186",
@@ -1833,7 +1891,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "a04c3668a9d79b256f244fbcd063567ab006d415195e16068a7a21ba80ead30a"
     },
     {
       "article_id": "74316",
@@ -1868,7 +1927,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "b01e2e915be4905f53b3e3bffb275bf59177061664fab016f0cb4dad342b4216"
     },
     {
       "article_id": "74360",
@@ -1903,7 +1963,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "c713ade85af7e0c71cafba0e5d4f3f83741bf028fecbc692a60a4174a87f1dc7"
     },
     {
       "article_id": "74393",
@@ -1938,7 +1999,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "e7d89d464dfd1a4b2d6cc128508aa8d7b104246d3e472d5a4dbb60819400fbdf"
     },
     {
       "article_id": "75917",
@@ -1973,7 +2035,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "0d7ead838b0dad5ef25aabd5eaf17afcd7c87d32691741abf78d78e9ea363787"
     },
     {
       "article_id": "76946",
@@ -2008,7 +2071,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "04c544f9231f335be389889e76c22678175ab9742f665c1e4faf115b0ed36f02"
     },
     {
       "article_id": "77288",
@@ -2043,7 +2107,8 @@
         "centrality_diff": 0,
         "total_diff": 4,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "0e64aa39c643359d386c1af215c70ca33652ca06120aa6b8958edbf7f8c73e5a"
     },
     {
       "article_id": "77409",
@@ -2078,7 +2143,8 @@
         "centrality_diff": 3,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "ad0c994152569d12453ccc4d98c99c7f379b86922f68f2ec6a209f5102a6cdf5"
     },
     {
       "article_id": "77931",
@@ -2113,7 +2179,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "868b5ad09c977a801e52cf7e701007c0628abb0de829a666c6047430b46e8eef"
     },
     {
       "article_id": "77945",
@@ -2148,7 +2215,8 @@
         "centrality_diff": 0,
         "total_diff": 3,
         "has_significant_conflict": true
-      }
+      },
+      "cache_fingerprint": "8fa4dd6641a6c9d659759f64de2e09b80236e976f5a238b2041f70ff75909bf8"
     }
   ]
 }

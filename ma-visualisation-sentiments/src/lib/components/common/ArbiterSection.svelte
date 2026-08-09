@@ -67,11 +67,11 @@
 		switch (preferredModel) {
 			case 'model_a':
 			case 'model_b':
-				return `${$t.arbiter?.prefers || 'Prefers'} ${getActualModelName(preferredModel)}`;
+				return `${$t.arbiter.prefers} ${getActualModelName(preferredModel)}`;
 			case 'both':
-				return $t.arbiter?.prefersBoth || 'Both equal';
+				return $t.arbiter.prefersBoth;
 			case 'neither':
-				return $t.arbiter?.prefersNeither || 'Neither accurate';
+				return $t.arbiter.prefersNeither;
 			default:
 				return preferredModel;
 		}

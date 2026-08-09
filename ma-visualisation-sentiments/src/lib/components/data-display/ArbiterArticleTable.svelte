@@ -77,13 +77,13 @@
 			return [];
 		}
 
+		const comparisonsById = new Map(
+			(comparisons ?? []).map((comparison) => [String(comparison.article['o:id']), comparison])
+		);
 		const result: ArticleWithArbiter[] = [];
 
 		for (const evaluation of evaluations) {
-			// Find the corresponding article in comparison data
-			const comparison = comparisons?.find(
-				(c) => String(c.article['o:id']) === String(evaluation.article_id)
-			);
+			const comparison = comparisonsById.get(String(evaluation.article_id));
 
 			if (comparison) {
 				result.push({
@@ -163,9 +163,9 @@
 			case 'model_b':
 				return modelNames.modelBName;
 			case 'both':
-				return $t.arbiter?.bothEqual || 'Both equal';
+				return $t.arbiter.bothEqual;
 			case 'neither':
-				return $t.arbiter?.neitherAccurate || 'Neither accurate';
+				return $t.arbiter.neitherAccurate;
 			default:
 				return verdict;
 		}
@@ -199,14 +199,14 @@
 						disabled={isMobile}
 					>
 						<TableIcon size={16} />
-						<span>{$t.common?.tableView || 'Table'}</span>
+						<span>{$t.common.tableView}</span>
 					</button>
 					<button
 						class="control-btn {viewMode === 'cards' ? 'control-btn-active' : ''}"
 						onclick={() => (viewMode = 'cards')}
 					>
 						<LayoutGridIcon size={16} />
-						<span>{$t.common?.cardView || 'Cards'}</span>
+						<span>{$t.common.cardView}</span>
 					</button>
 
 					<!-- CSV Export Button -->
@@ -216,14 +216,14 @@
 				<!-- Results info and items per page -->
 				<div class="flex items-center gap-4">
 					<div class="results-info">
-						{$t.table?.showingItems || 'Showing'}
+						{$t.table.showingItems}
 						<strong>{pagination.startIndex + 1}-{pagination.endIndex}</strong>
-						{$t.common?.of || 'of'}
+						{$t.common.of}
 						<strong>{sortedArticles.length}</strong>
 					</div>
 					<div class="flex items-center gap-2">
 						<label for="arbiter-items-per-page" class="items-per-page-label"
-							>{$t.table?.itemsPerPage || 'Items per page'}:</label
+							>{$t.table.itemsPerPage}:</label
 						>
 						<select
 							id="arbiter-items-per-page"
@@ -254,36 +254,56 @@
 				<table class="table">
 					<thead>
 						<tr class="table-head-row">
-							<th class="sortable-header" onclick={() => handleSort('title')}>
-								{$t.table?.articleTitle || 'Title'}
-								{#if sortBy === 'title'}
-									<ArrowUpDownIcon size={14} class="inline ml-1" />
-								{/if}
+							<th class="sortable-header">
+								<button class="sort-button" type="button" onclick={() => handleSort('title')}>
+									{$t.table.articleTitle}
+									{#if sortBy === 'title'}
+										<ArrowUpDownIcon size={14} class="inline ml-1" />
+									{/if}
+								</button>
 							</th>
-							<th>{$t.filters?.journal || 'Newspaper'}</th>
-							<th class="sortable-header" onclick={() => handleSort('date')}>
-								{$t.table?.date || 'Date'}
-								{#if sortBy === 'date'}
-									<ArrowUpDownIcon size={14} class="inline ml-1" />
-								{/if}
+							<th>{$t.filters.journal}</th>
+							<th class="sortable-header">
+								<button class="sort-button" type="button" onclick={() => handleSort('date')}>
+									{$t.table.date}
+									{#if sortBy === 'date'}
+										<ArrowUpDownIcon size={14} class="inline ml-1" />
+									{/if}
+								</button>
 							</th>
-							<th class="sortable-header text-center" onclick={() => handleSort('verdict')}>
-								{$t.arbiter?.overallVerdict || 'Verdict'}
-								{#if sortBy === 'verdict'}
-									<ArrowUpDownIcon size={14} class="inline ml-1" />
-								{/if}
+							<th class="sortable-header text-center">
+								<button class="sort-button" type="button" onclick={() => handleSort('verdict')}>
+									{$t.arbiter.overallVerdict}
+									{#if sortBy === 'verdict'}
+										<ArrowUpDownIcon size={14} class="inline ml-1" />
+									{/if}
+								</button>
 							</th>
-							<th class="sortable-header text-center" onclick={() => handleSort('confidence')}>
-								{$t.arbiter?.confidenceLevel || 'Confidence'}
-								{#if sortBy === 'confidence'}
-									<ArrowUpDownIcon size={14} class="inline ml-1" />
-								{/if}
+							<th class="sortable-header text-center">
+								<button class="sort-button" type="button" onclick={() => handleSort('confidence')}>
+									{$t.arbiter.confidenceLevel}
+									{#if sortBy === 'confidence'}
+										<ArrowUpDownIcon size={14} class="inline ml-1" />
+									{/if}
+								</button>
 							</th>
 						</tr>
 					</thead>
 					<tbody>
 						{#each paginatedArticles as article (article.articleId)}
-							<tr class="article-row cursor-pointer" onclick={() => handleRowClick(article)}>
+							<tr
+								class="article-row cursor-pointer"
+								onclick={() => handleRowClick(article)}
+								onkeydown={(event) => {
+									if (event.key === 'Enter' || event.key === ' ') {
+										event.preventDefault();
+										handleRowClick(article);
+									}
+								}}
+								role="button"
+								tabindex="0"
+								aria-label="{$t.arbiter.viewArticleDetails}: {article.title}"
+							>
 								<td class="max-w-xs">
 									<span class="row-title line-clamp-2">{article.title}</span>
 								</td>
@@ -332,7 +352,7 @@
 						}}
 						role="button"
 						tabindex="0"
-						aria-label="{$t.arbiter?.viewArticleDetails || 'View article details'}: {article.title}"
+						aria-label="{$t.arbiter.viewArticleDetails}: {article.title}"
 					>
 						<!-- Header -->
 						<div class="mb-3">
@@ -368,7 +388,7 @@
 		<!-- Empty state -->
 		<div class="empty-state">
 			<p class="empty-state-lede">
-				{$t.arbiter?.noEvaluatedArticles || 'No evaluated articles available'}
+				{$t.arbiter.noEvaluatedArticles}
 			</p>
 		</div>
 	{/if}
@@ -391,6 +411,31 @@
 		cursor: pointer;
 		user-select: none;
 		transition: background-color var(--timing-fast) var(--easing-default);
+	}
+
+	.sort-button {
+		align-items: center;
+		appearance: none;
+		background: none;
+		border: 0;
+		color: inherit;
+		cursor: pointer;
+		display: flex;
+		font: inherit;
+		font-weight: inherit;
+		gap: var(--space-1);
+		padding: 0;
+		text-align: inherit;
+		width: 100%;
+	}
+
+	.sortable-header.text-center .sort-button {
+		justify-content: center;
+	}
+
+	.sort-button:focus-visible {
+		outline: 2px solid var(--color-primary-400);
+		outline-offset: 3px;
 	}
 
 	.sortable-header:hover {

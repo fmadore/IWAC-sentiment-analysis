@@ -53,7 +53,7 @@ describe('buildURLSearchParams', () => {
 				compare: true,
 				pair: 'gemini-mistral',
 				diffMin: 0,
-				diffMax: 5,
+				diffMax: 11,
 				lang: 'fr'
 			};
 
@@ -64,7 +64,7 @@ describe('buildURLSearchParams', () => {
 			expect(params.get('lang')).toBe('fr');
 			expect(params.get('pair')).toBe('gemini-mistral');
 			expect(params.get('diffMin')).toBe('0');
-			expect(params.get('diffMax')).toBe('5');
+			expect(params.get('diffMax')).toBe('11');
 		});
 	});
 
@@ -106,7 +106,7 @@ describe('buildURLSearchParams', () => {
 				compare: true,
 				pair: 'chatgpt-gemini',
 				diffMin: 0,
-				diffMax: 5,
+				diffMax: 11,
 				comparisonArticleId: 1234
 			};
 
@@ -129,9 +129,9 @@ describe('buildURLSearchParams', () => {
 
 			const params = buildURLSearchParams(state);
 
-			expect(params.get('countries')).toBe('Nigeria,Senegal');
-			expect(params.get('journals')).toBe('Journal1');
-			expect(params.get('polarities')).toBe('positive,negative');
+			expect(params.getAll('countries')).toEqual(['Nigeria', 'Senegal']);
+			expect(params.getAll('journals')).toEqual(['Journal1']);
+			expect(params.getAll('polarities')).toEqual(['positive', 'negative']);
 		});
 
 		it('excludes empty array filters', () => {

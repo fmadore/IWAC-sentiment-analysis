@@ -9,6 +9,7 @@
 <script lang="ts">
 	import { filterState } from '$lib/stores';
 	import { t } from '$lib/i18n';
+	import { TOTAL_DISCREPANCY_MAXIMUM } from '$lib/domain/sentimentContract';
 	import { FilterCard, FilterChip } from '$lib/components/common';
 	import RangeSlider from '$lib/components/common/RangeSlider.svelte';
 	import ToggleSwitch from '$lib/components/common/ToggleSwitch.svelte';
@@ -19,7 +20,7 @@
 	type Dimension = 'polarity' | 'subjectivity' | 'centrality';
 
 	let minDiff = $state(0);
-	let maxDiff = $state(5);
+	let maxDiff = $state(TOTAL_DISCREPANCY_MAXIMUM);
 	let selectedDimensions = $state<string[]>(['polarity', 'subjectivity', 'centrality']);
 	let excludeNonApplicable = $state(true);
 
@@ -58,7 +59,7 @@
 
 	function resetFilters() {
 		minDiff = 0;
-		maxDiff = 5;
+		maxDiff = TOTAL_DISCREPANCY_MAXIMUM;
 		selectedDimensions = ['polarity', 'subjectivity', 'centrality'];
 		excludeNonApplicable = true;
 		updateFilters();
@@ -66,22 +67,28 @@
 
 	// Quick range presets and dimension chips ($derived so labels track language)
 	let quickFilters = $derived([
-		{ label: `1 ${$t.comparison?.pointDifference || 'point difference'}`, min: 1, max: 1 },
-		{ label: `2 ${$t.comparison?.pointsDifference || 'points difference'}`, min: 2, max: 2 },
-		{ label: `3+ ${$t.comparison?.pointsDifference || 'points difference'}`, min: 3, max: 5 },
-		{ label: $t.common?.all || 'All', min: 0, max: 5, variant: 'warning' as const }
+		{ label: `1 ${$t.comparison.pointDifference}`, min: 1, max: 1 },
+		{ label: `2 ${$t.comparison.pointsDifference}`, min: 2, max: 2 },
+		{
+			label: `3+ ${$t.comparison.pointsDifference}`,
+			min: 3,
+			max: TOTAL_DISCREPANCY_MAXIMUM
+		},
+		{
+			label: $t.common.all,
+			min: 0,
+			max: TOTAL_DISCREPANCY_MAXIMUM,
+			variant: 'warning' as const
+		}
 	]);
 	let dimensionChips = $derived([
-		{ value: 'polarity', label: $t.analysis?.polaritySection || 'Polarity' },
-		{ value: 'subjectivity', label: $t.analysis?.subjectivitySection || 'Subjectivity' },
-		{ value: 'centrality', label: $t.analysis?.centralitySection || 'Centrality' }
+		{ value: 'polarity', label: $t.analysis.polaritySection },
+		{ value: 'subjectivity', label: $t.analysis.subjectivitySection },
+		{ value: 'centrality', label: $t.analysis.centralitySection }
 	]);
 </script>
 
-<FilterCard
-	title={$t.comparison?.filterByDiscrepancy || 'Filter by Discrepancy'}
-	class="comparison-filter-card"
->
+<FilterCard title={$t.comparison.filterByDiscrepancy} class="comparison-filter-card">
 	{#snippet header()}
 		<span class="filter-icon-container">
 			<FilterIcon size={20} />
@@ -94,16 +101,16 @@
 			<div class="section-header">
 				<span class="section-label">
 					<SlidersIcon size={16} />
-					{$t.comparison?.differenceRange || 'Difference Range'}: {minDiff} - {maxDiff}
+					{$t.comparison.differenceRange}: {minDiff} - {maxDiff}
 				</span>
 				<button class="reset-btn" type="button" onclick={resetFilters}>
-					{$t.filters?.reset || 'Reset'}
+					{$t.filters.reset}
 				</button>
 			</div>
 
 			<RangeSlider
 				min={0}
-				max={5}
+				max={TOTAL_DISCREPANCY_MAXIMUM}
 				step={1}
 				lowValue={minDiff}
 				highValue={maxDiff}
@@ -116,15 +123,13 @@
 					maxDiff = high;
 					updateFilters();
 				}}
-				lowAriaLabel={$t.comparison?.differenceRange || 'Difference Range'}
-				highAriaLabel={$t.comparison?.differenceRange || 'Difference Range'}
+				lowAriaLabel={$t.comparison.differenceRange}
+				highAriaLabel={$t.comparison.differenceRange}
 			/>
 		</div>
 
 		<!-- Quick Filters -->
-		<span class="section-subtitle block-label"
-			>{$t.comparison?.quickFilters || 'Quick Filters'}:</span
-		>
+		<span class="section-subtitle block-label">{$t.comparison.quickFilters}:</span>
 	{/snippet}
 
 	{#snippet chips()}
@@ -143,35 +148,28 @@
 		<div class="filter-section">
 			<div class="section-header-inline">
 				<span class="section-subtitle">
-					{$t.comparison?.compareDimensions || 'Compare Dimensions'}:
+					{$t.comparison.compareDimensions}:
 				</span>
-				<InfoTooltip
-					ariaLabel={$t.comparison?.dimensionsExplanation ||
-						'Select which dimensions to analyze for disagreements between models:'}
-				>
+				<InfoTooltip ariaLabel={$t.comparison.dimensionsExplanation}>
 					<p class="tooltip-text">
-						{$t.comparison?.dimensionsExplanation ||
-							'Select which dimensions to analyze for disagreements between models:'}
+						{$t.comparison.dimensionsExplanation}
 					</p>
 					<ul class="tooltip-list">
 						<li>
-							<strong>{$t.analysis?.polaritySection || 'Polarity'}:</strong>
-							{$t.comparison?.polarityExplanation || 'Positive/Negative sentiment differences'}
+							<strong>{$t.analysis.polaritySection}:</strong>
+							{$t.comparison.polarityExplanation}
 						</li>
 						<li>
-							<strong>{$t.analysis?.subjectivitySection || 'Subjectivity'}:</strong>
-							{$t.comparison?.subjectivityExplanation ||
-								'Objectivity vs. opinion differences (1-5 scale)'}
+							<strong>{$t.analysis.subjectivitySection}:</strong>
+							{$t.comparison.subjectivityExplanation}
 						</li>
 						<li>
-							<strong>{$t.analysis?.centralitySection || 'Centrality'}:</strong>
-							{$t.comparison?.centralityExplanation ||
-								'How central Islam/Muslims are to the article'}
+							<strong>{$t.analysis.centralitySection}:</strong>
+							{$t.comparison.centralityExplanation}
 						</li>
 					</ul>
 					<p class="tooltip-note">
-						{$t.comparison?.dimensionsNote ||
-							'Tip: Select only one dimension to focus your analysis on specific types of disagreements. Discrepancy scores will be recalculated based on your selection.'}
+						{$t.comparison.dimensionsNote}
 					</p>
 				</InfoTooltip>
 			</div>
@@ -191,7 +189,7 @@
 		<div class="filter-section">
 			<div class="toggle-row">
 				<span class="section-subtitle">
-					{$t.comparison?.excludeNonApplicable || 'Exclude "Non Applicable" Articles'}:
+					{$t.comparison.excludeNonApplicable}:
 				</span>
 				<ToggleSwitch
 					checked={excludeNonApplicable}
@@ -203,8 +201,7 @@
 				/>
 			</div>
 			<p class="helper-text">
-				{$t.comparison?.excludeNonApplicableDescription ||
-					'Hide articles where one model marked centrality as "Non applicable", which creates artificially high discrepancies.'}
+				{$t.comparison.excludeNonApplicableDescription}
 			</p>
 		</div>
 	{/snippet}

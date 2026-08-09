@@ -33,7 +33,7 @@
 
 	// Dispatcher is removed
 
-	function selectArticle(article: Article, event: MouseEvent) {
+	function selectArticle(article: Article, event?: MouseEvent) {
 		articleState.selected = article;
 
 		// Update URL to include the selected article ID
@@ -43,7 +43,7 @@
 		if (onShowDetails) {
 			onShowDetails({
 				article, // Ensure article is passed as per the prop type
-				position: { x: event.clientX, y: event.clientY }
+				position: { x: event?.clientX ?? 0, y: event?.clientY ?? 0 }
 			});
 		}
 	}
@@ -194,17 +194,6 @@
 				<button
 					class="mobile-card card variant-glass p-4 cursor-pointer w-full text-left border-0"
 					onclick={(event) => selectArticle(article, event)}
-					onkeydown={(e) => {
-						if (e.key === 'Enter' || e.key === ' ') {
-							e.preventDefault();
-							const mouseEvent = new MouseEvent('click', {
-								clientX: 0,
-								clientY: 0,
-								bubbles: true
-							});
-							selectArticle(article, mouseEvent);
-						}
-					}}
 					aria-label="{$t.table.viewDetails}: {article['o:title']}"
 				>
 					<div class="mb-2">
@@ -244,29 +233,41 @@
 			<table class="table">
 				<thead>
 					<tr class="bg-surface-800">
-						<th class="sortable-header" onclick={() => sortBy('titre')}>
-							{$t.table.articleTitle}
-							{sortColumn === 'titre' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+						<th class="sortable-header">
+							<button class="sort-button" type="button" onclick={() => sortBy('titre')}>
+								{$t.table.articleTitle}
+								{sortColumn === 'titre' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+							</button>
 						</th>
-						<th class="sortable-header" onclick={() => sortBy('journal')}>
-							{$t.filters.journal}
-							{sortColumn === 'journal' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+						<th class="sortable-header">
+							<button class="sort-button" type="button" onclick={() => sortBy('journal')}>
+								{$t.filters.journal}
+								{sortColumn === 'journal' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+							</button>
 						</th>
-						<th class="sortable-header" onclick={() => sortBy('date')}>
-							{$t.table.date}
-							{sortColumn === 'date' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+						<th class="sortable-header">
+							<button class="sort-button" type="button" onclick={() => sortBy('date')}>
+								{$t.table.date}
+								{sortColumn === 'date' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+							</button>
 						</th>
-						<th class="sortable-header" onclick={() => sortBy('centralite')}>
-							{$t.table.centrality}
-							{sortColumn === 'centralite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+						<th class="sortable-header">
+							<button class="sort-button" type="button" onclick={() => sortBy('centralite')}>
+								{$t.table.centrality}
+								{sortColumn === 'centralite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+							</button>
 						</th>
-						<th class="sortable-header" onclick={() => sortBy('polarite')}>
-							{$t.table.polarity}
-							{sortColumn === 'polarite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+						<th class="sortable-header">
+							<button class="sort-button" type="button" onclick={() => sortBy('polarite')}>
+								{$t.table.polarity}
+								{sortColumn === 'polarite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+							</button>
 						</th>
-						<th class="sortable-header" onclick={() => sortBy('subjectivite')}>
-							{$t.table.subjectivity}
-							{sortColumn === 'subjectivite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+						<th class="sortable-header">
+							<button class="sort-button" type="button" onclick={() => sortBy('subjectivite')}>
+								{$t.table.subjectivity}
+								{sortColumn === 'subjectivite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+							</button>
 						</th>
 					</tr>
 				</thead>
@@ -276,6 +277,15 @@
 							class="article-row"
 							title={$t.table.viewDetails}
 							onclick={(event) => selectArticle(article, event)}
+							onkeydown={(event) => {
+								if (event.key === 'Enter' || event.key === ' ') {
+									event.preventDefault();
+									selectArticle(article);
+								}
+							}}
+							role="button"
+							tabindex="0"
+							aria-label="{$t.table.viewDetails}: {article['o:title']}"
 						>
 							<td class="article-title">{article['o:title']}</td>
 							<td>{getJournalName(article)}</td>
@@ -388,6 +398,24 @@
 		cursor: pointer;
 		user-select: none;
 		transition: background-color var(--timing-fast) var(--easing-default);
+	}
+
+	.sort-button {
+		appearance: none;
+		background: none;
+		border: 0;
+		color: inherit;
+		cursor: pointer;
+		font: inherit;
+		font-weight: inherit;
+		padding: 0;
+		text-align: inherit;
+		width: 100%;
+	}
+
+	.sort-button:focus-visible {
+		outline: 2px solid var(--color-primary-400);
+		outline-offset: 3px;
 	}
 
 	.sortable-header:hover {
