@@ -1,61 +1,59 @@
 // Définitions TypeScript pour vos données
 
-/** Known centrality values from the AI models */
-export type CentralityValue = 'Très central' | 'Central' | 'Secondaire' | 'Marginal' | 'Non abordé';
+import {
+	CENTRALITY_ORDER,
+	DATASET_IDS,
+	MODEL_PAIR_IDS,
+	POLARITY_ORDER,
+	type CentralityValue,
+	type DatasetId,
+	type ModelPair,
+	type PolarityValue,
+	type SubjectivityScore
+} from '$lib/domain/sentimentContract';
 
-/** Known polarity values from the AI models */
-export type PolarityValue =
-	'Très positif' | 'Positif' | 'Neutre' | 'Négatif' | 'Très négatif' | 'Non applicable';
-
-/** Subjectivity score from 1 (very objective) to 5 (very subjective) */
-export type SubjectivityScore = 1 | 2 | 3 | 4 | 5;
-
-/** Canonical sort order for polarity values (higher = more positive). */
-export const POLARITY_ORDER: Record<PolarityValue, number> = {
-	'Très positif': 5,
-	Positif: 4,
-	Neutre: 3,
-	Négatif: 2,
-	'Très négatif': 1,
-	'Non applicable': 0
-};
-
-/** Canonical sort order for centrality values (higher = more central). */
-export const CENTRALITY_ORDER: Record<CentralityValue, number> = {
-	'Très central': 5,
-	Central: 4,
-	Secondaire: 3,
-	Marginal: 2,
-	'Non abordé': 1
+export {
+	CENTRALITY_ORDER,
+	DATASET_IDS,
+	MODEL_PAIR_IDS,
+	POLARITY_ORDER,
+	type CentralityValue,
+	type DatasetId,
+	type ModelPair,
+	type PolarityValue,
+	type SubjectivityScore
 };
 
 export interface SentimentAnalysis {
-	centralite_islam_musulmans: CentralityValue | string | null;
+	centralite_islam_musulmans: CentralityValue | null;
 	centralite_justification: string | null;
-	subjectivite_score: SubjectivityScore | number | null;
+	subjectivite_score: SubjectivityScore | null;
 	subjectivite_justification: string | null;
-	polarite: PolarityValue | string | null;
+	polarite: PolarityValue | null;
 	polarite_justification: string | null;
 }
 
+export type LoadState<T> =
+	| { status: 'idle' }
+	| { status: 'loading' }
+	| { status: 'ready'; data: T }
+	| { status: 'error'; error: Error };
+
 export interface Article {
 	'o:id': number | string;
-	'o:title'?: string;
-	journal_source?: string;
-	Newspaper?: string; // Field from the JSON data
-	Country?: string; // Field from the JSON data
-	publication_date?: string; // YYYY-MM-DD
+	'o:title'?: string | null;
+	journal_source?: string | null;
+	Newspaper?: string | null; // Field from the JSON data
+	Country?: string | null; // Field from the JSON data
+	publication_date?: string | null; // ISO date or partial ISO date
+	hijri_year?: number | null;
+	hijri_month?: number | null;
+	hijri_day?: number | null;
 	iiif_manifest?: string; // IIIF v3 manifest URL (e.g. https://islam.zmo.de/iiif/3/5504/manifest)
 	sentiment_analysis: SentimentAnalysis | null;
 	// Propriété ajoutée dynamiquement pour savoir de quel dataset vient l'article
-	dataset_id: string;
+	dataset_id: DatasetId;
 }
-
-/** Canonical model/dataset ids — single source of truth for the union that
- *  was previously re-derived in url/constants, extreme-analysis and the
- *  dataset config. */
-export const DATASET_IDS = ['chatgpt', 'gemini', 'mistral'] as const;
-export type DatasetId = (typeof DATASET_IDS)[number];
 
 /** Canonical view ids (sidebar navigation + `view` URL param). */
 export const VIEW_IDS = [
@@ -153,11 +151,8 @@ export interface DatasetOption {
 	color?: string;
 }
 
-// Model pair type for comparison mode
-export type ModelPair = 'chatgpt-gemini' | 'chatgpt-mistral' | 'gemini-mistral';
-
 // Helper to get model IDs from a pair
-export function getModelsFromPair(pair: ModelPair): [string, string] {
+export function getModelsFromPair(pair: ModelPair): [DatasetId, DatasetId] {
 	switch (pair) {
 		case 'chatgpt-gemini':
 			return ['chatgpt', 'gemini'];
@@ -190,8 +185,8 @@ export interface ComparisonData {
 	/** Model B sentiment analysis (second model in pair) */
 	modelB: SentimentAnalysis | null;
 	/** IDs of the models being compared */
-	modelAId: string;
-	modelBId: string;
+	modelAId: DatasetId;
+	modelBId: DatasetId;
 	discrepancies: DiscrepancyInfo;
 }
 
@@ -201,6 +196,8 @@ export interface DiscrepancyInfo {
 	centralityDiff: number;
 	totalDiff: number;
 	hasConflict: boolean;
+	/** False when either v1 analysis marks the sentiment task non-applicable. */
+	isComparable: boolean;
 }
 
 export interface DiscrepancyFilter {
@@ -212,7 +209,7 @@ export interface DiscrepancyFilter {
 
 // Arbiter (Gemini 3 Pro) evaluation types
 export interface ArbiterDimensionScore {
-	score: string; // The arbiter's own score
+	score: string; // Dimension-specific score (subjectivity is serialized as "1"-"5")
 	justification: string; // Why the arbiter chose this score
 	preferred_model: 'model_a' | 'model_b' | 'both' | 'neither'; // Blind assignment
 	verdict_explanation: string; // Why one model is preferred
@@ -238,16 +235,22 @@ export interface ArbiterEvaluationData {
 		arbiter_model_a: string; // Model name that arbiter saw as "Model A"
 		arbiter_model_b: string; // Model name that arbiter saw as "Model B"
 		// Pair reference info
-		pair: string; // Model pair (e.g., 'chatgpt-gemini')
+		pair: ModelPair;
 		pair_first_model: string; // First model in pair name (e.g., ChatGPT for chatgpt-gemini)
 		pair_second_model: string; // Second model in pair name (e.g., Gemini for chatgpt-gemini)
 		// Statistics
 		total_articles: number;
 		successful_evaluations: number;
 		failed_evaluations: number;
+		contract_schema_version: string;
+		analysis_version: 'v1';
+		cache_schema_version: number;
+		prompt_version: string;
+		source_revision?: string | null;
 	};
 	evaluations: Array<{
 		article_id: string;
+		cache_fingerprint: string;
 		arbiter: ArbiterAnalysis;
 		discrepancies: {
 			polarity_diff: number;

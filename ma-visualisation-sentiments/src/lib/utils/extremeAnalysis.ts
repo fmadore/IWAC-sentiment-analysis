@@ -31,8 +31,56 @@ interface RawExtremeAnalysisData extends Omit<ExtremeAnalysisData, 'analysis'> {
 	analysis: Record<ExtremeCategory, RawExtremeCategoryAnalysis>;
 }
 
+const EXTREME_CATEGORIES: ExtremeCategory[] = [
+	'subjectivity_extreme_high',
+	'subjectivity_extreme_low',
+	'polarity_very_negative',
+	'polarity_very_positive',
+	'centrality_very_central',
+	'centrality_not_central'
+];
+
+function validateRawExtremeAnalysis(
+	raw: unknown,
+	expectedModel?: DatasetId
+): RawExtremeAnalysisData {
+	if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+		throw new Error('Extreme-analysis file must be an object');
+	}
+	const candidate = raw as Partial<RawExtremeAnalysisData>;
+	if (expectedModel && candidate.model !== expectedModel) {
+		throw new Error(`Extreme-analysis file model must be ${expectedModel}`);
+	}
+	if (
+		!candidate.articles_index ||
+		!candidate.analysis ||
+		!candidate.statistics ||
+		!candidate.facets
+	) {
+		throw new Error('Extreme-analysis file is missing a required section');
+	}
+	for (const category of EXTREME_CATEGORIES) {
+		const entry = candidate.analysis[category];
+		if (!entry || !Array.isArray(entry.article_ids)) {
+			throw new Error(`Extreme-analysis category ${category} is missing article_ids`);
+		}
+		for (const articleId of entry.article_ids) {
+			if (!candidate.articles_index[articleId]) {
+				throw new Error(
+					`Extreme-analysis category ${category} references unknown article ${articleId}`
+				);
+			}
+		}
+	}
+	return candidate as RawExtremeAnalysisData;
+}
+
 /** Rebuild the in-memory shape from the normalized on-disk file (exported for tests). */
-export function denormalizeExtremeAnalysis(raw: RawExtremeAnalysisData): ExtremeAnalysisData {
+export function denormalizeExtremeAnalysis(
+	rawData: RawExtremeAnalysisData,
+	expectedModel?: DatasetId
+): ExtremeAnalysisData {
+	const raw = validateRawExtremeAnalysis(rawData, expectedModel);
 	const index = raw.articles_index ?? {};
 	const analysis = {} as ExtremeAnalysisData['analysis'];
 	for (const key of Object.keys(raw.analysis) as ExtremeCategory[]) {
@@ -58,7 +106,7 @@ export async function loadExtremeAnalysisData(
 	if (!response.ok) {
 		throw new Error(`Failed to load extreme analysis data for ${model}: ${response.statusText}`);
 	}
-	return denormalizeExtremeAnalysis(await response.json());
+	return denormalizeExtremeAnalysis(await response.json(), model);
 }
 
 /**

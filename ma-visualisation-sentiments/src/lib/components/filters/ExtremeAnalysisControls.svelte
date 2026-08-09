@@ -115,7 +115,7 @@
 			<!-- Keywords Count -->
 			<div class="control-group">
 				<label for="keywords-count" class="control-label">
-					{$t.extremeAnalysis.numberOfKeywords || 'Number of Keywords'}
+					{$t.extremeAnalysis.numberOfKeywords}
 				</label>
 				<input
 					id="keywords-count"

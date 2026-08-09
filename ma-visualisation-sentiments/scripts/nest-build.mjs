@@ -11,7 +11,7 @@
 //
 // Runs as part of the npm `postbuild` chain, before stamp-sw.mjs.
 
-import { readFile, writeFile, access, unlink, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, access, mkdir } from 'node:fs/promises';
 import { DEPLOY_PATH, CUSTOM_DOMAIN } from '../deploy.config.js';
 
 const BUILD_ROOT = new URL('../build/', import.meta.url);
@@ -21,8 +21,7 @@ const PLACEHOLDER = '__DEPLOY_PATH__';
 try {
 	await access(BUILD_ROOT);
 } catch {
-	console.warn('[nest-build] no build/ directory — skipping.');
-	process.exit(0);
+	throw new Error('[nest-build] no build/ directory');
 }
 
 if (!DEPLOY_PATH) {
@@ -47,26 +46,16 @@ let notFound;
 try {
 	notFound = await readFile(nested404, 'utf8');
 } catch {
-	console.warn(`[nest-build] ${DEPLOY_PATH}/404.html not found — skipping 404 hoist.`);
-	notFound = null;
+	throw new Error(`[nest-build] ${DEPLOY_PATH}/404.html not found`);
 }
 
 if (notFound) {
 	if (!notFound.includes(PLACEHOLDER)) {
-		console.warn(`[nest-build] no ${PLACEHOLDER} in 404.html — already stamped?`);
+		throw new Error(`[nest-build] no ${PLACEHOLDER} in 404.html`);
 	}
 	const stamped = notFound.replaceAll(PLACEHOLDER, DEPLOY_PATH);
 	await writeFile(new URL('404.html', BUILD_ROOT), stamped);
 	await writeFile(nested404, stamped);
-
-	// vite-plugin-compression emitted 404.html.gz/.br during `vite build`, i.e.
-	// BEFORE this step, so they captured the placeholder verbatim. A server that
-	// negotiates encoding — GitHub Pages does — would then serve a 404 page that
-	// redirects to a literal `/__DEPLOY_PATH__/`. Drop them: the 404 page is a
-	// rarely-hit fallback and Pages compresses at the edge anyway.
-	for (const variant of ['404.html.gz', '404.html.br']) {
-		await unlink(new URL(variant, NESTED)).catch(() => {});
-	}
 }
 
 // ---------------------------------------------------------------- index.html

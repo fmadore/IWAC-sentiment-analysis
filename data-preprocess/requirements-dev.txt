@@ -1,0 +1,6 @@
+-r requirements.txt
+
+# Development/CI only. Runtime generation does not need these packages.
+pytest~=9.1.1
+ruff~=0.16.2
+pip-audit~=2.10.1

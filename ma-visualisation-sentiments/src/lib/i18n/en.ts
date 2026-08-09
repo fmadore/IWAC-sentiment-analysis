@@ -398,6 +398,8 @@ export const en = {
 		loadingData: 'Loading IWAC corpus data...',
 		noData: 'No data available',
 		error: 'An error occurred',
+		dataLoadError: 'The corpus data could not be loaded or did not match the expected v1 schema.',
+		retry: 'Retry',
 		shareUrl: 'Share this view',
 		urlCopied: 'URL copied to clipboard'
 	},

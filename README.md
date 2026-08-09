@@ -6,7 +6,7 @@
 [![ORCID](https://img.shields.io/badge/ORCID-0000--0003--0959--2092-A6CE39?logo=orcid&logoColor=white)](https://orcid.org/0000-0003-0959-2092)
 [![Dataset](https://img.shields.io/badge/dataset-Hugging%20Face-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/datasets/fmadore/islam-west-africa-collection)
 
-![IWAC Sentiment Analysis: polarity distributions from GPT-5 mini, Gemini 3 Flash and Ministral 3 14B across 12,287 francophone West African press articles](ma-visualisation-sentiments/static/social-preview.png)
+![IWAC Sentiment Analysis: polarity distributions from GPT-5 mini, Gemini 3 Flash preview and Ministral 14B 2512 across 12,356 francophone West African press articles](ma-visualisation-sentiments/static/social-preview.png)
 
 This SvelteKit application visualizes sentiment analysis results performed on press article corpora. It loads and explores the [*Islam West Africa Collection* (IWAC)](https://islam.zmo.de/s/afrique_ouest/page/accueil), filtering articles by various criteria (country, newspaper, polarity, subjectivity score, centrality) and displaying sentiment distributions as interactive charts.
 
@@ -45,31 +45,32 @@ https://iwac.frederickmadore.com/sentiment-analysis/?view=charts&countries=Togo
 https://iwac.frederickmadore.com/sentiment-analysis/?view=trends&lang=en&polarities=Positif
 
 # Comparison mode with discrepancy filters
-https://iwac.frederickmadore.com/sentiment-analysis/?view=comparison&compare=true&diffMin=2&diffMax=5
+https://iwac.frederickmadore.com/sentiment-analysis/?view=comparison&compare=true&pair=chatgpt-gemini&diffMin=2&diffMax=11
 
 # Heatmap with specific centrality
-https://iwac.frederickmadore.com/sentiment-analysis/?view=heatmap&centralities=Central,Très%20central
+https://iwac.frederickmadore.com/sentiment-analysis/?view=heatmap&centralities=Central&centralities=Très%20central
 
 # Table with multiple filters
-https://iwac.frederickmadore.com/sentiment-analysis/?view=table&countries=Mali&subjectivities=1,2
+https://iwac.frederickmadore.com/sentiment-analysis/?view=table&countries=Togo&subjectivities=1&subjectivities=2
 
 # Model comparison
-https://iwac.frederickmadore.com/sentiment-analysis/?view=comparison&compare=true&dataset=chatgpt
+https://iwac.frederickmadore.com/sentiment-analysis/?view=comparison&compare=true&pair=chatgpt-mistral
 ```
 
 ## Performance Optimizations
 
-The application has been optimized for high performance despite large data volumes (a shared 2.4MB article-metadata file, per-model score and justification files, plus extreme-analysis and arbiter data):
+The application has been optimized for high performance despite a 12,356-article corpus (a shared 3.9 MiB metadata file, per-model score and justification files, plus extreme-analysis and arbiter data):
 
 ### Lazy Loading
-- **Score/prose split**: Each model's data is stored as a small score file (~59KB gzipped) plus a large justification file (~1.4MB gzipped). Charts, trends, filters and aggregates need only the scores, so drawing a view never downloads the prose
+- **Score/prose split**: Each model's data is stored as a small score file (~57–59 KiB gzipped) plus 32 stable justification shards. Charts, trends, filters and aggregates need only the scores; opening one article downloads one ~40–90 KiB prose shard, while CSV export fetches all shards in bounded batches
 - **Reduced initial transfer**: Only the selected model's scores load at startup
 - **On-demand loading**: Justification prose loads when an article detail is opened or a CSV is exported; the other models' datasets load only when comparison mode is activated; arbiter and extreme-analysis data load with their views
 - **Smart caching**: Datasets remain in memory after loading for instant switching; the service worker keeps corpus files in a deploy-stable cache so a new release doesn't re-download them
+- **View-level code splitting**: Charts, maps, tables, comparisons, agreement, extremes and arbiter UI are lazy chunks. The build gate currently measures 111 KiB gzip of initial JavaScript against a 300 KiB budget
 
-### Data Compression
-- **Brotli/Gzip precompression**: Build assets are precompressed with `vite-plugin-compression` (~90% reduction for JSON)
-- **Automatic configuration**: Precompression enabled in the Vite build
+### Delivery
+- **Host-native HTTP compression**: GitHub Pages negotiates transfer compression; the repository does not duplicate every asset as checked-in `.gz`/`.br` files
+- **Artifact checks**: Postbuild validation rejects unresolved deploy placeholders, missing nested Pages files, precompressed duplicates, and an initial JavaScript bundle over 300 KiB gzip
 
 ### CLS Optimization (Cumulative Layout Shift)
 - Optimized font loading with preconnect and preload for Google Fonts
@@ -84,18 +85,6 @@ The application has been optimized for high performance despite large data volum
 - JSON-LD structured data with WebApplication schema
 - Canonical URLs with view and language parameters
 
-### Technical Configuration
-```javascript
-// svelte.config.js - Precompression enabled
-precompress: true
-
-// vite.config.ts - Compression plugin
-compression({
-  algorithm: 'brotliCompress',
-  compressionOptions: { level: 11 }
-})
-```
-
 ## Project Structure
 
 Two top-level areas: `ma-visualisation-sentiments/` (the SvelteKit app) and `data-preprocess/` (the Python that builds its JSON payloads).
@@ -105,16 +94,16 @@ Two top-level areas: `ma-visualisation-sentiments/` (the SvelteKit app) and `dat
 -   `lib/components/` — grouped by role: `common/` (base pieces), `layout/` (page structure), `filters/` (the shared filter rail), `viz/` (ECharts charts and the MapLibre map), `ui/` (pickers and export buttons), `data-display/` (tables, detail views, comparison).
 -   `lib/stores/` — Svelte 5 runes accessor objects, one per domain (`filters`, `articles`, `datasets`, `comparison`, `arbiter`, `extreme-analysis`, `ui`), plus `url/` for filter-state to URL synchronisation.
 -   `lib/utils/` — pure helpers, including the statistics modules: `agreement.ts` (Cohen's/Fleiss' kappa), `correlation.ts` (Spearman's rho), `newspaperRanking.ts` (means with confidence intervals), `hijri.ts` (Islamic calendar conversion), `placeAggregation.ts` (per-place counts and means).
--   `lib/i18n/` — French and English catalogues. `lib/types/` — `Article`, `SentimentAnalysis` and the named value unions (`PolarityValue`, `SubjectivityScore`, `CentralityValue`).
+-   `lib/data/sentiment-v1.json` and `lib/domain/sentimentContract.ts` — the language-neutral v1 model/scale/schema contract shared with Python. `lib/i18n/` contains exact-typed French and English catalogues; `lib/types/` contains the browser data types.
 -   `routes/` — a single prerendered page; `app.css` holds the design tokens and the sentiment-colour resolver.
 
 ### `ma-visualisation-sentiments/static/data/`
 
-`iwac_articles_base.json` (shared metadata) plus per-model `iwac_sentiment_*`, `iwac_justifications_*` and `iwac_extreme_analysis_*` files, per-pair `iwac_arbiter_evaluations_*`, and `iwac_places.json` + `world-110m.geojson` for the map. See [Data](#data) for how they fit together.
+`iwac_articles_base.json` (shared metadata), per-model score files, 32 prose shards per model, per-model extreme-analysis files, per-pair arbiter files, `iwac_places.json`, `world-110m.geojson`, and a checksummed generation manifest. See [Data](#data) for how they fit together.
 
 ### `data-preprocess/`
 
-`shared.py` (loading, conversions, export helpers) with one script per payload: `data-fetch.py`, `extreme-analysis.py`, `significant-differences-export.py`, `arbiter-evaluation.py`, `places-export.py`, `basemap-export.py`.
+`iwac_preprocess/` is an importable package split into the v1 contract, source normalization, discrepancy rules, atomic serialization, and arbiter-cache reconciliation. `shared.py` remains a compatibility facade for the command-line scripts.
 
 ## Data
 
@@ -123,11 +112,12 @@ Two top-level areas: `ma-visualisation-sentiments/` (the SvelteKit app) and `dat
 The application automatically loads the IWAC corpus from JSON files in `static/data/`:
 - `iwac_articles_base.json`: Shared article metadata, stored once for all models
 - `iwac_sentiment_{model}.json`: Per-model sentiment **scores** (polarity, subjectivity, centrality), keyed by article id
-- `iwac_justifications_{model}.json`: Per-model justification **prose**, keyed by article id
+- `iwac_justifications_{model}_{00..31}.json`: Per-model justification **prose**, deterministically sharded by article id
+- `iwac_data_manifest.json`: v1 schema/analysis version, immutable Hugging Face source revision, sizes, and SHA-256 hashes for every core file
 - `iwac_places.json`: The map's geography — a registry of geocoded IWAC `Lieux` authority records plus an **edge list** of article id to place ids. Edges rather than pre-computed averages, so the map answers to the same filters as every other view; aggregation happens in the browser
 - `world-110m.geojson`: Natural Earth 1:110m country outlines (public domain), the map's basemap. Written minified on purpose — pretty-printing it costs roughly 700 kB of whitespace
 
-The frontend joins the base metadata with the selected model's score file at load time, so switching models only downloads that model's scores (~59KB gzipped). The justification prose is roughly 90% of a model's data but is only shown in the article-detail views and included in CSV exports, so it is fetched on demand and merged into the loaded articles rather than blocking the first chart.
+The frontend validates each JSON boundary at runtime, joins base metadata to the selected model's score map by article id, and exposes a retryable error state on fetch/schema failure. It uses stored `hijri_year`, `hijri_month`, and `hijri_day` values for Islamic-calendar views, with browser conversion only as a legacy fallback.
 
 Each file contains a list of `Article` objects, where each article includes metadata (title, newspaper, country, date) and a `sentiment_analysis` object with analysis results (polarity, subjectivity, centrality, etc.).
 
@@ -146,7 +136,7 @@ See `src/lib/types/data.ts` for the detailed structure of `Article`, `SentimentA
 
 ### Data Preparation
 
-The Python scripts share a common module `data-preprocess/shared.py` that centralizes data loading from Hugging Face, score conversions, model name mappings, and JSON export utilities.
+The Python scripts share the importable `data-preprocess/iwac_preprocess/` package. Both Python and TypeScript read the same checked-in v1 contract, and cross-language fixtures assert identical discrepancy behavior.
 
 `data-preprocess/data-fetch.py` fetches data from the Hugging Face dataset ["fmadore/islam-west-africa-collection"](https://huggingface.co/datasets/fmadore/islam-west-africa-collection) and transforms it into the format expected by the application.
 
@@ -155,6 +145,8 @@ The Python scripts share a common module `data-preprocess/shared.py` that centra
 `data-preprocess/significant-differences-export.py` exports significant discrepancies between different model analyses for the comparison mode.
 
 `data-preprocess/arbiter-evaluation.py` runs arbiter evaluations using the Gemini API to generate verdicts between model pairs.
+
+The published v1 contract deliberately reads only `gpt_5_mini_*`, `gemini_3_flash_preview_*`, and `ministral_14b_2512_*` (with legacy vendor-prefix fallback). Newer Hugging Face analyses—including GPT-5.6 Luna, DeepSeek v4 Flash, and the newer Mistral series—are intentionally deferred to a separately versioned migration so existing figures and URLs remain reproducible.
 
 `data-preprocess/places-export.py` joins articles to the geocoded `Lieux` authority records and writes the map's `iwac_places.json` payload.
 
@@ -387,11 +379,11 @@ Prerequisites: Node.js and npm installed.
 -   `npm run build`: Build the application for production.
 -   `npm run preview`: Preview the production build locally.
 -   `npm run check`: Run Svelte Check for type and error verification.
--   `npm run lint`: Run ESLint for code style checking.
+-   `npm run lint`: Run Prettier, ESLint, store-cycle detection, and design-token validation.
 -   `npm run format`: Run Prettier for code formatting.
 -   `npm run test`: Run Vitest unit tests in watch mode.
 -   `npm run test:run`: Run unit tests once (used in CI).
--   `npm run deploy`: Build and publish to GitHub Pages manually (CI normally does this).
+-   `npm run test:e2e`: Run Playwright deep-link, failure-state, and axe accessibility smoke tests.
 
 Repository-level helpers live in `scripts/` and run against the root `.venv`:
 
@@ -404,22 +396,28 @@ To update the IWAC corpus data:
 
 1.  **Install Python dependencies:**
     ```bash
-    pip install -r data-preprocess/requirements.txt
+    pip install -r data-preprocess/requirements-dev.txt
     ```
 
 2.  **Run the data fetch script:**
     ```bash
     python data-preprocess/data-fetch.py
     ```
-    This script automatically fetches data from the Hugging Face dataset and generates `iwac_articles_base.json` plus `iwac_sentiment_chatgpt.json`, `iwac_sentiment_gemini.json`, and `iwac_sentiment_mistral.json`.
+    This script fetches the current Hugging Face `articles` parquet and atomically publishes the v1 base file, three score files, 96 prose shards, and the generation manifest.
 
-3.  **Generate arbiter evaluations (Admin only):**
+3.  **Reconcile existing arbiter caches without paid API calls:**
+    ```bash
+    python data-preprocess/arbiter-evaluation.py --prune-cache-only
+    ```
+    This removes stale/duplicate evaluations, adopts or checks deterministic cache fingerprints, and refreshes provenance metadata.
+
+4.  **Generate missing arbiter evaluations (Admin only):**
     ```bash
     python data-preprocess/arbiter-evaluation.py
     ```
     This script uses the Gemini API to generate arbiter verdicts between models. Requires a valid Google API key.
 
-4.  **Generate lexical extreme analysis (optional):**
+5.  **Generate lexical extreme analysis:**
     ```bash
     python data-preprocess/extreme-analysis.py
     ```
@@ -428,17 +426,24 @@ To update the IWAC corpus data:
     - `iwac_extreme_analysis_gemini.json`: Lexical extreme analysis for Gemini
     - `iwac_extreme_analysis_mistral.json`: Lexical extreme analysis for Mistral
 
-5.  **Export significant differences (optional):**
+6.  **Export significant differences (optional):**
     ```bash
     python data-preprocess/significant-differences-export.py
     ```
     Exports significant discrepancies between model analyses for the comparison mode.
 
-6.  **Rebuild the map payload (optional):**
+7.  **Rebuild the map payload:**
     ```bash
     python data-preprocess/places-export.py
     ```
     Joins articles to the geocoded place authority records and writes `iwac_places.json`.
+
+8.  **Validate before committing generated data:**
+    ```bash
+    python -m pytest data-preprocess -q
+    python data-preprocess/validate_generated_data.py
+    ```
+    The validator checks category domains, article-id coverage and references, prose shard placement, arbiter eligibility/fingerprints, and manifest hashes entirely offline.
 
 ## Tech Stack
 
@@ -447,12 +452,12 @@ To update the IWAC corpus data:
 - **SvelteKit 2**: Full-stack Svelte framework with SSG via `adapter-static`
 - **TypeScript**: Static typing (strict mode)
 - **Tailwind CSS v4**: Utility-first CSS framework
-- **Skeleton UI v5**: Svelte UI components with dark theme
+- **Repository-owned design system**: CSS tokens and reusable Svelte controls, with automated token/class checks
 
 ### Visualizations
 - **ECharts 6**: High-performance interactive charting library
 - **svelte-echarts**: Svelte wrapper for ECharts
-- **MapLibre GL v5**: Vector-tile map behind the corpus map view, loaded on demand
+- **MapLibre GL v6**: Vector-tile map behind the corpus map view, loaded on demand
 
 ### Internationalization
 - **Svelte stores**: Reactive current language management
@@ -466,9 +471,9 @@ To update the IWAC corpus data:
 - **History API**: Natural browser button navigation
 
 ### Performance
-- **vite-plugin-compression**: Automatic Brotli/Gzip asset compression
-- **SvelteKit precompress**: Static file precompression
-- **Lazy loading**: Smart on-demand dataset loading
+- **Measured build budget**: Initial JavaScript must remain below 300 KiB gzip
+- **Lazy loading**: View-level code splitting plus on-demand datasets and prose shards
+- **Service worker caching**: Immutable app assets and deploy-stable corpus data caches
 - **Hardware acceleration**: GPU-optimized animations
 
 ### SEO
@@ -480,8 +485,10 @@ To update the IWAC corpus data:
 ### Dev Tools
 - **Vite 8 (Rolldown)**: Fast modern build tool
 - **Vitest**: Unit testing framework
+- **Playwright + axe-core**: Browser, deep-link, error-path, and WCAG smoke testing
 - **ESLint**: Code quality linting
 - **Prettier**: Automatic code formatting
+- **Ruff + pytest + pip-audit**: Python formatting/linting, tests, and dependency auditing
 
 ### Python Preprocessing
 - **pandas**: Data manipulation
@@ -490,7 +497,7 @@ To update the IWAC corpus data:
 
 ## Deployment
 
-The application is automatically deployed to GitHub Pages on every push to the `main` branch, by the workflow in `.github/workflows/deploy.yml` (types, lint, tests and build gate the deploy, and run on pull requests too).
+The application is automatically deployed to GitHub Pages on every push to `main` by `.github/workflows/deploy.yml`. Frontend and Python jobs run in parallel; type checks, lint, 388 Vitest tests, the measured production build, Playwright/axe, 39 Python/data tests, Ruff, npm audit, pip-audit, and pull-request dependency review gate deployment. Actions are pinned to immutable commit SHAs and only the deploy job receives Pages permissions.
 
 Access the live version here: [https://iwac.frederickmadore.com/sentiment-analysis/](https://iwac.frederickmadore.com/sentiment-analysis/)
 

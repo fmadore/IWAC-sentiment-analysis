@@ -18,9 +18,6 @@ const translations: Record<Language, Translations> = {
 	en
 };
 
-// Flag to track if language has been initialized from URL
-let languageInitialized = false;
-
 // Current language store
 function createLanguageStore() {
 	// Get initial language - will be updated by URL state initialization
@@ -37,14 +34,6 @@ function createLanguageStore() {
 				localStorage.setItem('app-language', lang);
 			}
 			set(lang);
-
-			// Update URL when language changes (avoid circular imports by using dynamic import)
-			// Only update URL if this is a user-initiated change (not during initialization)
-			if (browser && languageInitialized) {
-				import('../stores/url/index.js').then(({ updateURL }) => {
-					updateURL(undefined, true);
-				});
-			}
 		},
 		update
 	};
@@ -81,9 +70,7 @@ export function initializeLanguage(urlLang?: Language): void {
 	}
 
 	// Set the language without triggering URL update
-	languageInitialized = false;
 	currentLanguage.set(targetLang);
-	languageInitialized = true;
 }
 
 // Current translations store

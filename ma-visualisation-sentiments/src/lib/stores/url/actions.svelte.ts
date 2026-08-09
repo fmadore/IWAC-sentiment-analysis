@@ -31,7 +31,7 @@ import {
 /**
  * Apply URL state to application stores
  */
-export function applyURLState(state: URLState): string | undefined {
+export function applyURLState(state: URLState): ValidView | undefined {
 	// Initialize language first (this handles URL lang, localStorage, and browser detection)
 	initializeLanguage(state.lang);
 
@@ -178,7 +178,7 @@ export function updateURL(currentView?: ValidView, replaceState = false): void {
  * Initialize URL state management
  * Should be called once when the app loads
  */
-export function initializeURLState(): string | undefined {
+export function initializeURLState(): ValidView | undefined {
 	if (!browser) return;
 
 	const currentPage = get(page);

@@ -7,7 +7,14 @@
  * accessors both delegate here, so green tests prove behavioural parity.
  */
 import { describe, it, expect } from 'vitest';
-import type { Article, ComparisonData, DiscrepancyFilter } from '$lib/types/data';
+import type {
+	Article,
+	CentralityValue,
+	ComparisonData,
+	DiscrepancyFilter,
+	PolarityValue,
+	SubjectivityScore
+} from '$lib/types/data';
 import {
 	filterArticles,
 	computeAvailableJournals,
@@ -132,9 +139,9 @@ describe('computeAvailableJournals', () => {
 });
 
 const sa = (
-	polarite: string,
-	subjectivite_score: number | null,
-	centralite: string
+	polarite: PolarityValue,
+	subjectivite_score: SubjectivityScore | null,
+	centralite: CentralityValue
 ): Article['sentiment_analysis'] => ({
 	centralite_islam_musulmans: centralite,
 	centralite_justification: null,
@@ -180,7 +187,7 @@ const baseFilter: DiscrepancyFilter = {
 	excludeNonApplicable: false
 };
 
-function comparison(id: number, polA: string, polB: string): ComparisonData {
+function comparison(id: number, polA: PolarityValue, polB: PolarityValue): ComparisonData {
 	const modelA = sa(polA, 3, 'Central');
 	const modelB = sa(polB, 3, 'Central');
 	return {

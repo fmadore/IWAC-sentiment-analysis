@@ -148,7 +148,13 @@ describe('computeMarginals', () => {
 
 	it('counts a label outside the scale as unanalysed rather than dropping it silently', () => {
 		const result = computeMarginals(
-			[article(1, { polarite: 'Complètement inventé' })],
+			[
+				article(1, {
+					polarite: 'Complètement inventé' as unknown as NonNullable<
+						Article['sentiment_analysis']
+					>['polarite']
+				})
+			],
 			'polarity',
 			'chatgpt'
 		);

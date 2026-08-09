@@ -173,7 +173,7 @@
 						--spinner-track="var(--border-default)"
 						--spinner-accent="var(--sentiment-extreme)"
 					/>
-					<p class="loading-note">{$t.messages.loading || 'Loading extreme analysis data...'}</p>
+					<p class="loading-note">{$t.messages.loading}</p>
 				</div>
 			</div>
 		</div>

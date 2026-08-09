@@ -59,18 +59,20 @@ def main() -> None:
     features = []
     for feature in collection.get("features", []):
         properties = feature.get("properties") or {}
-        features.append({
-            "type": "Feature",
-            "properties": {
-                key.lower(): properties[key]
-                for key in KEEP_PROPERTIES
-                if properties.get(key) is not None
-            },
-            "geometry": {
-                "type": feature["geometry"]["type"],
-                "coordinates": round_coords(feature["geometry"]["coordinates"]),
-            },
-        })
+        features.append(
+            {
+                "type": "Feature",
+                "properties": {
+                    key.lower(): properties[key]
+                    for key in KEEP_PROPERTIES
+                    if properties.get(key) is not None
+                },
+                "geometry": {
+                    "type": feature["geometry"]["type"],
+                    "coordinates": round_coords(feature["geometry"]["coordinates"]),
+                },
+            }
+        )
 
     logger.info("Kept %d country features", len(features))
 

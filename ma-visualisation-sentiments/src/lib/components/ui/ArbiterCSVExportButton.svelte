@@ -30,9 +30,9 @@
 			case 'model_b':
 				return getActualModelName(verdict);
 			case 'both':
-				return $t.arbiter?.bothEqual || 'Both equal';
+				return $t.arbiter.bothEqual;
 			case 'neither':
-				return $t.arbiter?.neitherAccurate || 'Neither accurate';
+				return $t.arbiter.neitherAccurate;
 			default:
 				return verdict;
 		}
@@ -41,11 +41,11 @@
 	function translateConfidence(level: 'high' | 'medium' | 'low'): string {
 		switch (level) {
 			case 'high':
-				return $t.arbiter?.confidenceHigh || 'High';
+				return $t.arbiter.confidenceHigh;
 			case 'medium':
-				return $t.arbiter?.confidenceMedium || 'Medium';
+				return $t.arbiter.confidenceMedium;
 			case 'low':
-				return $t.arbiter?.confidenceLow || 'Low';
+				return $t.arbiter.confidenceLow;
 			default:
 				return level;
 		}
@@ -59,48 +59,32 @@
 		const comparisons = comparisonState.data;
 
 		const headers = [
-			$t.table?.articleTitle || 'Title',
-			$t.filters?.country || 'Country',
-			$t.filters?.journal || 'Newspaper',
-			$t.table?.date || 'Date',
-			modelNames.modelAName + ' - ' + ($t.table?.polarity || 'Polarity'),
-			modelNames.modelAName + ' - ' + ($t.table?.subjectivity || 'Subjectivity'),
-			modelNames.modelAName + ' - ' + ($t.table?.centrality || 'Centrality'),
-			modelNames.modelBName + ' - ' + ($t.table?.polarity || 'Polarity'),
-			modelNames.modelBName + ' - ' + ($t.table?.subjectivity || 'Subjectivity'),
-			modelNames.modelBName + ' - ' + ($t.table?.centrality || 'Centrality'),
-			$t.arbiter?.overallVerdict || 'Overall Verdict',
-			$t.arbiter?.confidenceLevel || 'Confidence Level',
-			($t.arbiter?.polarity || 'Polarity') + ' - ' + ($t.arbiter?.arbiterScore || 'Arbiter Score'),
-			($t.arbiter?.polarity || 'Polarity') +
-				' - ' +
-				($t.arbiter?.arbiterJustification || 'Arbiter Justification'),
-			($t.arbiter?.polarity || 'Polarity') + ' - ' + ($t.arbiter?.verdict || 'Verdict'),
-			($t.arbiter?.polarity || 'Polarity') +
-				' - ' +
-				($t.arbiter?.verdictExplanation || 'Verdict Explanation'),
-			($t.arbiter?.subjectivity || 'Subjectivity') +
-				' - ' +
-				($t.arbiter?.arbiterScore || 'Arbiter Score'),
-			($t.arbiter?.subjectivity || 'Subjectivity') +
-				' - ' +
-				($t.arbiter?.arbiterJustification || 'Arbiter Justification'),
-			($t.arbiter?.subjectivity || 'Subjectivity') + ' - ' + ($t.arbiter?.verdict || 'Verdict'),
-			($t.arbiter?.subjectivity || 'Subjectivity') +
-				' - ' +
-				($t.arbiter?.verdictExplanation || 'Verdict Explanation'),
-			($t.arbiter?.centrality || 'Centrality') +
-				' - ' +
-				($t.arbiter?.arbiterScore || 'Arbiter Score'),
-			($t.arbiter?.centrality || 'Centrality') +
-				' - ' +
-				($t.arbiter?.arbiterJustification || 'Arbiter Justification'),
-			($t.arbiter?.centrality || 'Centrality') + ' - ' + ($t.arbiter?.verdict || 'Verdict'),
-			($t.arbiter?.centrality || 'Centrality') +
-				' - ' +
-				($t.arbiter?.verdictExplanation || 'Verdict Explanation'),
-			$t.arbiter?.arbiterJustification || 'Overall Justification',
-			$t.export?.articleId || 'Article ID'
+			$t.table.articleTitle,
+			$t.filters.country,
+			$t.filters.journal,
+			$t.table.date,
+			modelNames.modelAName + ' - ' + $t.table.polarity,
+			modelNames.modelAName + ' - ' + $t.table.subjectivity,
+			modelNames.modelAName + ' - ' + $t.table.centrality,
+			modelNames.modelBName + ' - ' + $t.table.polarity,
+			modelNames.modelBName + ' - ' + $t.table.subjectivity,
+			modelNames.modelBName + ' - ' + $t.table.centrality,
+			$t.arbiter.overallVerdict,
+			$t.arbiter.confidenceLevel,
+			$t.arbiter.polarity + ' - ' + $t.arbiter.arbiterScore,
+			$t.arbiter.polarity + ' - ' + $t.arbiter.arbiterJustification,
+			$t.arbiter.polarity + ' - ' + $t.arbiter.verdict,
+			$t.arbiter.polarity + ' - ' + $t.arbiter.verdictExplanation,
+			$t.arbiter.subjectivity + ' - ' + $t.arbiter.arbiterScore,
+			$t.arbiter.subjectivity + ' - ' + $t.arbiter.arbiterJustification,
+			$t.arbiter.subjectivity + ' - ' + $t.arbiter.verdict,
+			$t.arbiter.subjectivity + ' - ' + $t.arbiter.verdictExplanation,
+			$t.arbiter.centrality + ' - ' + $t.arbiter.arbiterScore,
+			$t.arbiter.centrality + ' - ' + $t.arbiter.arbiterJustification,
+			$t.arbiter.centrality + ' - ' + $t.arbiter.verdict,
+			$t.arbiter.centrality + ' - ' + $t.arbiter.verdictExplanation,
+			$t.arbiter.arbiterJustification,
+			$t.export.articleId
 		];
 
 		const csvRows = [

@@ -6,6 +6,7 @@
 
 import { LANGUAGES, type Language } from '$lib/i18n';
 import type { ModelPair } from '$lib/types/data';
+import { TOTAL_DISCREPANCY_MAXIMUM } from '$lib/domain/sentimentContract';
 import {
 	VALID_VIEWS,
 	VALID_DATASETS,
@@ -54,17 +55,17 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
 
 	// Parse discrepancy filters
 	const diffMin = searchParams.get(URL_PARAMS.diffMin);
-	if (diffMin) {
-		const min = parseInt(diffMin, 10);
-		if (!isNaN(min) && min >= 0 && min <= 5) {
+	if (diffMin && /^\d+$/.test(diffMin)) {
+		const min = Number(diffMin);
+		if (min >= 0 && min <= TOTAL_DISCREPANCY_MAXIMUM) {
 			state.diffMin = min;
 		}
 	}
 
 	const diffMax = searchParams.get(URL_PARAMS.diffMax);
-	if (diffMax) {
-		const max = parseInt(diffMax, 10);
-		if (!isNaN(max) && max >= 0 && max <= 5) {
+	if (diffMax && /^\d+$/.test(diffMax)) {
+		const max = Number(diffMax);
+		if (max >= 0 && max <= TOTAL_DISCREPANCY_MAXIMUM) {
 			state.diffMax = max;
 		}
 	}
@@ -73,8 +74,7 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
 	const articleId = searchParams.get(URL_PARAMS.articleId);
 	if (articleId) {
 		// Try to parse as number first, fallback to string
-		const numericId = parseInt(articleId, 10);
-		state.articleId = !isNaN(numericId) ? numericId : articleId;
+		state.articleId = /^\d+$/.test(articleId) ? Number(articleId) : articleId;
 
 		// If articleId is present but no view is specified, default to table view
 		if (!state.view) {
@@ -85,8 +85,9 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
 	// Parse comparison article ID (for full-screen comparison modal)
 	const comparisonArticleId = searchParams.get(URL_PARAMS.comparisonArticleId);
 	if (comparisonArticleId) {
-		const numericId = parseInt(comparisonArticleId, 10);
-		state.comparisonArticleId = !isNaN(numericId) ? numericId : comparisonArticleId;
+		state.comparisonArticleId = /^\d+$/.test(comparisonArticleId)
+			? Number(comparisonArticleId)
+			: comparisonArticleId;
 
 		// If comparisonArticleId is present, ensure comparison mode is enabled
 		if (state.compare !== true) {
@@ -99,29 +100,23 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
 	}
 
 	// Parse array parameters
-	const countries = searchParams.get(URL_PARAMS.countries);
-	if (countries) {
-		state.countries = countries.split(',').filter(Boolean);
-	}
+	const parseArray = (key: string): string[] => {
+		const values = searchParams.getAll(key);
+		// Backward compatibility for existing shared links that used commas.
+		return values
+			.flatMap((value) => (values.length === 1 ? value.split(',') : [value]))
+			.filter(Boolean);
+	};
 
-	const journals = searchParams.get(URL_PARAMS.journals);
-	if (journals) {
-		state.journals = journals.split(',').filter(Boolean);
-	}
-
-	const polarities = searchParams.get(URL_PARAMS.polarities);
-	if (polarities) {
-		state.polarities = polarities.split(',').filter(Boolean);
-	}
-
-	const subjectivities = searchParams.get(URL_PARAMS.subjectivities);
-	if (subjectivities) {
-		state.subjectivities = subjectivities.split(',').filter(Boolean);
-	}
-
-	const centralities = searchParams.get(URL_PARAMS.centralities);
-	if (centralities) {
-		state.centralities = centralities.split(',').filter(Boolean);
+	for (const [key, stateKey] of [
+		[URL_PARAMS.countries, 'countries'],
+		[URL_PARAMS.journals, 'journals'],
+		[URL_PARAMS.polarities, 'polarities'],
+		[URL_PARAMS.subjectivities, 'subjectivities'],
+		[URL_PARAMS.centralities, 'centralities']
+	] as const) {
+		const values = parseArray(key);
+		if (values.length > 0) state[stateKey] = values;
 	}
 
 	return state;

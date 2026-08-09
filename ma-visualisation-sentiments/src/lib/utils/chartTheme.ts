@@ -44,7 +44,7 @@ export const subjectivityColors = {
 	2: '#56AFB3', // oklch(0.70 0.085 200)
 	3: '#86A468', // oklch(0.68 0.09 130)
 	4: '#D2833B', // oklch(0.68 0.13 60)
-	5: '#E76444' // oklch(0.66 0.17 35)
+	5: '#F57050' // oklch(0.70 0.17 35)
 } as const;
 
 /**
@@ -55,7 +55,7 @@ export const subjectivityColorsByLabel = {
 	'Plutôt factuel': '#56AFB3',
 	Mixte: '#86A468',
 	'Plutôt subjectif': '#D2833B',
-	Subjectif: '#E76444',
+	Subjectif: '#F57050',
 	'Non applicable': '#6E7278'
 } as const;
 

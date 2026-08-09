@@ -6,6 +6,7 @@
  */
 
 import type { DiscrepancyFilter } from '$lib/types/data';
+import { TOTAL_DISCREPANCY_MAXIMUM } from '$lib/domain/sentimentContract';
 
 // ============================================
 // Svelte 5 Runes State
@@ -18,7 +19,7 @@ let _subjectivityFilters = $state<string[]>([]);
 let _centralityFilters = $state<string[]>([]);
 let _discrepancyFilters = $state<DiscrepancyFilter>({
 	minDifference: 0,
-	maxDifference: 5,
+	maxDifference: TOTAL_DISCREPANCY_MAXIMUM,
 	dimensions: ['polarity', 'subjectivity', 'centrality'],
 	excludeNonApplicable: true
 });

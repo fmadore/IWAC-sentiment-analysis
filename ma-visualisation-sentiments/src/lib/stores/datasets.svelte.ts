@@ -6,6 +6,7 @@
  */
 
 import type { DatasetId, DatasetOption, ModelPair } from '$lib/types/data';
+import { isDatasetId } from '$lib/domain/sentimentContract';
 
 // ============================================
 // Dataset Configuration (Static)
@@ -68,13 +69,13 @@ export const datasetState = {
 	},
 
 	// Selected dataset. The getter is narrowed to the DatasetId union; the
-	// setter stays permissive (string) so component call sites that hold a
-	// plain string keep compiling — the cast happens once, here.
+	// Invalid external values are rejected at their parsing boundary.
 	get selected(): DatasetId {
 		return _selectedDataset;
 	},
-	set selected(value: string) {
-		_selectedDataset = value as DatasetId;
+	set selected(value: DatasetId) {
+		if (!isDatasetId(value)) throw new Error(`Unknown dataset: ${value}`);
+		_selectedDataset = value;
 	},
 
 	// Comparison mode

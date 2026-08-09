@@ -3,6 +3,7 @@
 	import { t } from '$lib/i18n';
 	import { base } from '$app/paths';
 	import { DropdownMenu } from '$lib/components/common';
+	import { isDatasetId } from '$lib/domain/sentimentContract';
 
 	let currentDataset = $derived(datasetState.available.find((d) => d.id === datasetState.selected));
 
@@ -20,7 +21,7 @@
 	);
 
 	function handleSelect(id: string) {
-		datasetState.selected = id;
+		if (isDatasetId(id)) datasetState.selected = id;
 	}
 </script>
 
@@ -28,11 +29,11 @@
 	items={menuItems}
 	selectedId={datasetState.selected}
 	onSelect={handleSelect}
-	sectionLabel={$t.datasets?.availableModels || 'Available Models'}
+	sectionLabel={$t.datasets.availableModels}
 	menuMinWidth="220px"
 	buttonMinWidth="180px"
 	zIndex={1001}
-	ariaLabel={$t.datasets?.selectModel || 'Select model'}
+	ariaLabel={$t.datasets.selectModel}
 >
 	{#snippet trigger()}
 		{#if currentDataset?.logo}

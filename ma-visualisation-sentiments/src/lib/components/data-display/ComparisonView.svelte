@@ -87,11 +87,10 @@
 		<div class="empty-state comparison-empty-state p-8 text-center">
 			<span class="empty-icon mx-auto mb-4"><AlertCircleIcon size={48} /></span>
 			<h3 class="mb-2 empty-title">
-				{$t.comparison?.enableComparisonMode || 'Enable Comparison Mode'}
+				{$t.comparison.enableComparisonMode}
 			</h3>
 			<p class="empty-body mx-auto">
-				{$t.comparison?.enableComparisonDescription ||
-					'Click the comparison button in the dataset picker to compare ChatGPT and Gemini analyses.'}
+				{$t.comparison.enableComparisonDescription}
 			</p>
 		</div>
 	{:else if uiState.isLoadingComparison}
@@ -103,14 +102,14 @@
 					--spinner-track="var(--border-default)"
 					--spinner-accent="var(--sentiment-comparison)"
 				/>
-				<p class="loading-note">{$t.messages?.loading || 'Loading comparison data...'}</p>
+				<p class="loading-note">{$t.messages.loading}</p>
 			</div>
 		</div>
 	{:else}
 		<!-- Model Pair Picker -->
 		<div class="pair-picker-section comparison-pair-picker mb-4">
 			<div class="flex items-center gap-3">
-				<span class="control-label">{$t.comparison?.selectModelPair || 'Compare:'}</span>
+				<span class="control-label">{$t.comparison.selectModelPair}</span>
 				<ModelPairPicker />
 			</div>
 		</div>
@@ -147,11 +146,10 @@
 			<div class="empty-results comparison-empty-results p-8 text-center">
 				<span class="empty-icon mx-auto mb-4"><AlertCircleIcon size={48} /></span>
 				<h3 class="mb-2 empty-title">
-					{$t.comparison?.noDiscrepancies || 'No Discrepancies Found'}
+					{$t.comparison.noDiscrepancies}
 				</h3>
 				<p class="empty-body mx-auto">
-					{$t.comparison?.adjustFilters ||
-						'Try adjusting your filters to see articles with differences between models.'}
+					{$t.comparison.adjustFilters}
 				</p>
 			</div>
 		{/if}

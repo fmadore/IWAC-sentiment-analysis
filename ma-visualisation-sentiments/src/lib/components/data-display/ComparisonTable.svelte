@@ -78,7 +78,7 @@
 	<!-- Header with title and export button -->
 	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
 		<h2 class="comparison-table-title">
-			{$t.datasets?.compareModels || 'Model Comparison'}
+			{$t.datasets.compareModels}
 		</h2>
 		<ComparisonCSVExportButton />
 	</div>
@@ -96,7 +96,7 @@
 					disabled={isMobile}
 				>
 					<TableIcon size={16} />
-					<span>{$t.common?.tableView || 'Table'}</span>
+					<span>{$t.common.tableView}</span>
 				</button>
 				<button
 					class="view-toggle"
@@ -104,21 +104,21 @@
 					onclick={() => (viewMode = 'cards')}
 				>
 					<LayoutGridIcon size={16} />
-					<span>{$t.common?.cardView || 'Cards'}</span>
+					<span>{$t.common.cardView}</span>
 				</button>
 			</div>
 
 			<!-- Results info and items per page -->
 			<div class="flex items-center gap-4">
 				<div class="card-total-label">
-					{$t.table?.showingItems || 'Showing'}
+					{$t.table.showingItems}
 					{pagination.startIndex + 1}-{pagination.endIndex}
-					{$t.common?.of || 'of'}
+					{$t.common.of}
 					{sortedComparisons.length}
 				</div>
 				<div class="flex items-center gap-2">
 					<label for="items-per-page" class="control-label whitespace-nowrap"
-						>{$t.table?.itemsPerPage || 'Items per page'}:</label
+						>{$t.table.itemsPerPage}:</label
 					>
 					<select
 						id="items-per-page"
@@ -149,32 +149,38 @@
 					<!-- Row backgrounds live on the cells, not the rows: a `tr` fill sits
 					     behind the sticky cells and scrolls away from under them. -->
 					<tr>
-						<th
-							class="sortable-header"
-							onclick={() => {
-								sortBy = 'title';
-								sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-							}}
-						>
-							{$t.table?.articleTitle || 'Article'}
-							{#if sortBy === 'title'}
-								<ArrowUpDownIcon size={14} class="inline ml-1" />
-							{/if}
+						<th class="sortable-header">
+							<button
+								class="sort-button"
+								type="button"
+								onclick={() => {
+									sortBy = 'title';
+									sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+								}}
+							>
+								{$t.table.articleTitle}
+								{#if sortBy === 'title'}
+									<ArrowUpDownIcon size={14} class="inline ml-1" />
+								{/if}
+							</button>
 						</th>
-						<th class="text-center" colspan="2">{$t.comparison?.polarity || 'Polarity'}</th>
-						<th class="text-center" colspan="2">{$t.comparison?.subjectivity || 'Subjectivity'}</th>
-						<th class="text-center" colspan="2">{$t.comparison?.centrality || 'Centrality'}</th>
-						<th
-							class="sortable-header text-center"
-							onclick={() => {
-								sortBy = 'discrepancy';
-								sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-							}}
-						>
-							{$t.comparison?.totalDiscrepancy || 'Total'}
-							{#if sortBy === 'discrepancy'}
-								<ArrowUpDownIcon size={14} class="inline ml-1" />
-							{/if}
+						<th class="text-center" colspan="2">{$t.comparison.polarity}</th>
+						<th class="text-center" colspan="2">{$t.comparison.subjectivity}</th>
+						<th class="text-center" colspan="2">{$t.comparison.centrality}</th>
+						<th class="sortable-header text-center">
+							<button
+								class="sort-button"
+								type="button"
+								onclick={() => {
+									sortBy = 'discrepancy';
+									sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+								}}
+							>
+								{$t.comparison.totalDiscrepancy}
+								{#if sortBy === 'discrepancy'}
+									<ArrowUpDownIcon size={14} class="inline ml-1" />
+								{/if}
+							</button>
 						</th>
 					</tr>
 					<tr class="text-xs">
@@ -214,7 +220,19 @@
 				</thead>
 				<tbody>
 					{#each paginatedComparisons as comparison (comparison.article['o:id'])}
-						<tr class="comparison-row cursor-pointer" onclick={() => selectComparison(comparison)}>
+						<tr
+							class="comparison-row cursor-pointer"
+							onclick={() => selectComparison(comparison)}
+							onkeydown={(event) => {
+								if (event.key === 'Enter' || event.key === ' ') {
+									event.preventDefault();
+									selectComparison(comparison);
+								}
+							}}
+							role="button"
+							tabindex="0"
+							aria-label="View comparison details for {comparison.article['o:title']}"
+						>
 							<td class="max-w-xs">
 								<div class="flex flex-col gap-1">
 									<span class="row-title line-clamp-2">{comparison.article['o:title']}</span>
@@ -305,7 +323,7 @@
 					<div class="comparison-grid">
 						<!-- Polarity -->
 						<div class="comparison-row">
-							<span class="dimension-label">{$t.comparison?.polarity || 'Polarity'}</span>
+							<span class="dimension-label">{$t.comparison.polarity}</span>
 							<div class="values-grid">
 								<div class="value-cell">
 									<span class="model-label"
@@ -330,7 +348,7 @@
 
 						<!-- Subjectivity -->
 						<div class="comparison-row">
-							<span class="dimension-label">{$t.comparison?.subjectivity || 'Subjectivity'}</span>
+							<span class="dimension-label">{$t.comparison.subjectivity}</span>
 							<div class="values-grid">
 								<div class="value-cell">
 									<span class="model-label"
@@ -363,7 +381,7 @@
 
 						<!-- Centrality -->
 						<div class="comparison-row">
-							<span class="dimension-label">{$t.comparison?.centrality || 'Centrality'}</span>
+							<span class="dimension-label">{$t.comparison.centrality}</span>
 							<div class="values-grid">
 								<div class="value-cell">
 									<span class="model-label"
@@ -397,9 +415,7 @@
 
 					<!-- Total Discrepancy -->
 					<div class="card-total mt-3 pt-3 flex items-center justify-between">
-						<span class="card-total-label"
-							>{$t.comparison?.totalDiscrepancy || 'Total Discrepancy'}</span
-						>
+						<span class="card-total-label">{$t.comparison.totalDiscrepancy}</span>
 						<span
 							class="badge badge-lg"
 							{...discrepancyAttributes(comparison.discrepancies.totalDiff)}
@@ -438,6 +454,31 @@
 		cursor: pointer;
 		user-select: none;
 		transition: background-color var(--timing-fast) var(--easing-default);
+	}
+
+	.sort-button {
+		align-items: center;
+		appearance: none;
+		background: none;
+		border: 0;
+		color: inherit;
+		cursor: pointer;
+		display: flex;
+		font: inherit;
+		font-weight: inherit;
+		gap: var(--space-1);
+		padding: 0;
+		text-align: inherit;
+		width: 100%;
+	}
+
+	.sortable-header.text-center .sort-button {
+		justify-content: center;
+	}
+
+	.sort-button:focus-visible {
+		outline: 2px solid var(--color-primary-400);
+		outline-offset: 3px;
 	}
 
 	.sortable-header:hover {

@@ -20,15 +20,14 @@ const config = {
 	},
 
 	kit: {
-		// adapter-auto only supports some environments, see https://svelte.dev/docs/kit/adapter-auto for a list.
-		// If your environment is not supported, or you settled on a specific environment, switch out the adapter.
-		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
 		adapter: adapter({
 			pages: outDir,
 			assets: outDir,
 			// Don't generate fallback - we use a custom 404.html in static/ for GitHub Pages SPA routing
 			fallback: undefined,
-			precompress: true,
+			// GitHub Pages/Fastly compresses responses at the edge and does not
+			// negotiate sibling .gz/.br files from the artifact.
+			precompress: false,
 			strict: true
 		}),
 		paths: {

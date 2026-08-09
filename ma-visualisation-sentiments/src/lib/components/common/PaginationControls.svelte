@@ -53,7 +53,7 @@
 		{#if showItemsPerPage}
 			<div class="flex items-center gap-2">
 				<label for={selectId} class="per-page-label whitespace-nowrap"
-					>{$t.table?.itemsPerPage || 'Items per page'}:</label
+					>{$t.table.itemsPerPage}:</label
 				>
 				<select
 					id={selectId}
@@ -77,9 +77,9 @@
 			class="pagination-btn"
 			onclick={pagination.previousPage}
 			disabled={pagination.currentPage === 1}
-			title={$t.common?.previous || 'Previous'}
+			title={$t.common.previous}
 		>
-			←{showLabels ? ` ${$t.common?.previous || 'Previous'}` : ''}
+			←{showLabels ? ` ${$t.common.previous}` : ''}
 		</button>
 
 		{#if showPageNumbers}
@@ -101,9 +101,9 @@
 			class="pagination-btn"
 			onclick={pagination.nextPage}
 			disabled={pagination.currentPage === pagination.totalPages}
-			title={$t.common?.next || 'Next'}
+			title={$t.common.next}
 		>
-			{showLabels ? `${$t.common?.next || 'Next'} ` : ''}→
+			{showLabels ? `${$t.common.next} ` : ''}→
 		</button>
 	</div>
 </nav>

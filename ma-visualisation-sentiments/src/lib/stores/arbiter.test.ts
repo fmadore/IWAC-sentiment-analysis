@@ -50,6 +50,7 @@ function makeEvaluation(
 	};
 	return {
 		article_id: '1',
+		cache_fingerprint: 'test-fingerprint',
 		arbiter: {
 			article_id: '1',
 			polarity: dim,
@@ -87,7 +88,11 @@ function makeEvaluationData(
 			pair_second_model: pairFirstModel === 'ChatGPT' ? 'Gemini' : 'ChatGPT',
 			total_articles: evaluations.length,
 			successful_evaluations: evaluations.length,
-			failed_evaluations: 0
+			failed_evaluations: 0,
+			contract_schema_version: '1.0.0',
+			analysis_version: 'v1',
+			cache_schema_version: 2,
+			prompt_version: 'v1.0.0'
 		},
 		evaluations
 	};

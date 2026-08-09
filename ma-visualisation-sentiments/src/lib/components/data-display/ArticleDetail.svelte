@@ -16,7 +16,9 @@
 	// as soon as it lands, without re-rendering anything else.
 	$effect(() => {
 		if (article?.dataset_id) {
-			loadJustifications(article.dataset_id);
+			loadJustifications(article.dataset_id, fetch, [article['o:id']]).catch((error) =>
+				console.error('Failed to load article justification:', error)
+			);
 		}
 	});
 </script>

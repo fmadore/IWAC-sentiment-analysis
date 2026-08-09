@@ -19,6 +19,7 @@
 import { base } from '$app/paths';
 import type { Place, PlacesPayload } from '$lib/types/data';
 import { aggregatePlaces, type PlaceAggregate } from '$lib/utils/placeAggregation';
+import { parsePlacesPayload } from '$lib/data/validation';
 // Leaf/data stores imported directly — importing from './index' would create a
 // cycle (the barrel re-exports this module). Same convention as agreement.svelte.
 import { articleState } from './articles.svelte';
@@ -49,13 +50,7 @@ export async function loadPlaces(fetchFunction: typeof fetch = fetch): Promise<v
 				}
 				return response.json();
 			})
-			.then((data: unknown) => {
-				const payload = data as PlacesPayload;
-				if (!payload || !Array.isArray(payload.places) || !payload.articles) {
-					throw new Error('Unrecognized place data format');
-				}
-				return payload;
-			});
+			.then((data: unknown) => parsePlacesPayload(data));
 		payloadPromise.catch(() => {
 			payloadPromise = null;
 		});

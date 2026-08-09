@@ -4,7 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { AppHeader, SidebarNav } from '$lib/components/layout';
-	import { PWAManager } from '$lib/components';
+	import PWAManager from '$lib/components/PWAManager.svelte';
 	import { uiState } from '$lib/stores';
 
 	let { children } = $props();

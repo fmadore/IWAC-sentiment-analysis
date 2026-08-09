@@ -17,27 +17,20 @@ import type {
 } from '$lib/types/data';
 import { getModelsFromPair } from '$lib/types/data';
 import { getJournalName } from '$lib/utils/format';
+import {
+	CENTRALITY_NON_COMPARABLE,
+	CENTRALITY_ORDER,
+	POLARITY_NON_COMPARABLE,
+	POLARITY_ORDER,
+	SIGNIFICANT_CONFLICT_THRESHOLD
+} from '$lib/domain/sentimentContract';
 
 // ============================================
 // Score Mappings
 // ============================================
 
-export const polarityScores: Record<string, number> = {
-	'Très positif': 5,
-	Positif: 4,
-	Neutre: 3,
-	Négatif: 2,
-	'Très négatif': 1,
-	'Non applicable': 0
-};
-
-export const centralityScores: Record<string, number> = {
-	'Très central': 5,
-	Central: 4,
-	Secondaire: 3,
-	Marginal: 2,
-	'Non abordé': 1
-};
+export const polarityScores: Record<string, number> = POLARITY_ORDER;
+export const centralityScores: Record<string, number> = CENTRALITY_ORDER;
 
 // ============================================
 // Article filtering
@@ -125,7 +118,29 @@ export function calculateDiscrepancies(
 			subjectivityDiff: 0,
 			centralityDiff: 0,
 			totalDiff: 0,
-			hasConflict: false
+			hasConflict: false,
+			isComparable: false
+		};
+	}
+
+	const isComparable =
+		modelA.polarite !== null &&
+		modelB.polarite !== null &&
+		modelA.centralite_islam_musulmans !== null &&
+		modelB.centralite_islam_musulmans !== null &&
+		!POLARITY_NON_COMPARABLE.has(modelA.polarite) &&
+		!POLARITY_NON_COMPARABLE.has(modelB.polarite) &&
+		!CENTRALITY_NON_COMPARABLE.has(modelA.centralite_islam_musulmans) &&
+		!CENTRALITY_NON_COMPARABLE.has(modelB.centralite_islam_musulmans);
+
+	if (!isComparable) {
+		return {
+			polarityDiff: 0,
+			subjectivityDiff: 0,
+			centralityDiff: 0,
+			totalDiff: 0,
+			hasConflict: false,
+			isComparable: false
 		};
 	}
 
@@ -148,9 +163,12 @@ export function calculateDiscrepancies(
 	);
 
 	const totalDiff = polarityDiff + subjectivityDiff + centralityDiff;
-	const hasConflict = polarityDiff >= 3 || subjectivityDiff >= 3 || centralityDiff >= 3;
+	const hasConflict =
+		polarityDiff >= SIGNIFICANT_CONFLICT_THRESHOLD ||
+		subjectivityDiff >= SIGNIFICANT_CONFLICT_THRESHOLD ||
+		centralityDiff >= SIGNIFICANT_CONFLICT_THRESHOLD;
 
-	return { polarityDiff, subjectivityDiff, centralityDiff, totalDiff, hasConflict };
+	return { polarityDiff, subjectivityDiff, centralityDiff, totalDiff, hasConflict, isComparable };
 }
 
 /** Build the per-article comparison rows for the active model pair. */
@@ -210,7 +228,8 @@ export function filterComparisons(
 					: 0,
 				centralityDiff: filters.dimensions.includes('centrality') ? originalDisc.centralityDiff : 0,
 				totalDiff: 0,
-				hasConflict: false
+				hasConflict: false,
+				isComparable: originalDisc.isComparable
 			};
 
 			if (filters.dimensions.length === 0) {
@@ -222,9 +241,9 @@ export function filterComparisons(
 					filteredDiscrepancy.centralityDiff;
 
 				filteredDiscrepancy.hasConflict =
-					filteredDiscrepancy.polarityDiff >= 3 ||
-					filteredDiscrepancy.subjectivityDiff >= 3 ||
-					filteredDiscrepancy.centralityDiff >= 3;
+					filteredDiscrepancy.polarityDiff >= SIGNIFICANT_CONFLICT_THRESHOLD ||
+					filteredDiscrepancy.subjectivityDiff >= SIGNIFICANT_CONFLICT_THRESHOLD ||
+					filteredDiscrepancy.centralityDiff >= SIGNIFICANT_CONFLICT_THRESHOLD;
 			}
 
 			return { ...comparison, discrepancies: filteredDiscrepancy };
@@ -239,18 +258,8 @@ export function filterComparisons(
 				return false;
 			}
 
-			if (filters.excludeNonApplicable) {
-				const modelACentrality = comparison.modelA?.centralite_islam_musulmans;
-				const modelBCentrality = comparison.modelB?.centralite_islam_musulmans;
-
-				if (
-					modelACentrality === 'Non applicable' ||
-					modelACentrality === 'Non abordé' ||
-					modelBCentrality === 'Non applicable' ||
-					modelBCentrality === 'Non abordé'
-				) {
-					return false;
-				}
+			if (filters.excludeNonApplicable && !comparison.discrepancies.isComparable) {
+				return false;
 			}
 
 			const disc = comparison.discrepancies;

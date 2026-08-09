@@ -67,10 +67,7 @@ def ok_ramp(anchors: list[tuple[float, float, float]], t: float):
     end = _oklch.oklch_to_oklab(*anchors[low + 1])
     L, a, b = (p + (q - p) * f for p, q in zip(start, end))
     channels = _oklch.oklab_to_linear_srgb(L, a, b)
-    return tuple(
-        max(0, min(255, round(_oklch.linear_to_srgb_channel(c) * 255)))
-        for c in channels
-    )
+    return tuple(max(0, min(255, round(_oklch.linear_to_srgb_channel(c) * 255))) for c in channels)
 
 
 BG_TOP = ok(0.205, 0.012, 260)  # --surface-card
@@ -95,21 +92,35 @@ POLARITY = [
 MODELS = [
     ("chatgpt", "GPT-5 mini"),
     ("gemini", "Gemini 3 Flash"),
-    ("mistral", "Ministral 3 14B"),
+    ("mistral", "Ministral 14B 2512"),
 ]
 
 # The three annotated dimensions, each with its scale's five steps - the same
 # ramps the dashboard uses, so the card previews the legend a visitor will meet.
 DIMENSIONS = [
     ("Polarity", "negative → positive", [c for _, _, c in POLARITY[:5]]),
-    ("Subjectivity", "factual → subjective", [
-        (0.72, 0.06, 220), (0.70, 0.085, 200), (0.68, 0.09, 130),
-        (0.68, 0.13, 60), (0.66, 0.17, 35),
-    ]),
-    ("Centrality", "marginal → central", [
-        (0.42, 0.005, 80), (0.52, 0.04, 80), (0.62, 0.075, 80),
-        (0.72, 0.115, 80), (0.82, 0.14, 80),
-    ]),
+    (
+        "Subjectivity",
+        "factual → subjective",
+        [
+            (0.72, 0.06, 220),
+            (0.70, 0.085, 200),
+            (0.68, 0.09, 130),
+            (0.68, 0.13, 60),
+            (0.70, 0.17, 35),
+        ],
+    ),
+    (
+        "Centrality",
+        "marginal → central",
+        [
+            (0.42, 0.005, 80),
+            (0.52, 0.04, 80),
+            (0.62, 0.075, 80),
+            (0.72, 0.115, 80),
+            (0.82, 0.14, 80),
+        ],
+    ),
 ]
 
 
@@ -135,14 +146,10 @@ def font(candidates: list[str], size: int) -> ImageFont.FreeTypeFont:
 # --- data ------------------------------------------------------------------
 def load_stats() -> dict:
     articles = json.loads((DATA_DIR / "iwac_articles_base.json").read_text("utf-8"))
-    years = sorted(
-        str(a["dcterms:date"])[:4] for a in articles if a.get("dcterms:date")
-    )
+    years = sorted(str(a["dcterms:date"])[:4] for a in articles if a.get("dcterms:date"))
     stacks = {}
     for model_id, _ in MODELS:
-        payload = json.loads(
-            (DATA_DIR / f"iwac_sentiment_{model_id}.json").read_text("utf-8")
-        )
+        payload = json.loads((DATA_DIR / f"iwac_sentiment_{model_id}.json").read_text("utf-8"))
         stacks[model_id] = Counter(
             entry.get("polarite") for entry in payload["sentiments"].values()
         )
@@ -216,21 +223,31 @@ def render() -> Image.Image:
 
     m = 72  # margin
 
-    text(draw, (m, 58), "ISLAM WEST AFRICA COLLECTION", font(SANS_BOLD, 15), ACCENT,
-         spacing=2.6)
+    text(draw, (m, 58), "ISLAM WEST AFRICA COLLECTION", font(SANS_BOLD, 15), ACCENT, spacing=2.6)
     text(draw, (m, 88), "Sentiment Analysis", font(SERIF_BOLD, 58), TEXT_PRIMARY)
-    text(draw, (m, 168),
-         "How the francophone West African press writes about Islam \u2014",
-         font(SANS, 21), TEXT_MUTED)
-    text(draw, (m, 198), "three LLM annotations, compared and arbitrated.",
-         font(SANS, 21), TEXT_MUTED)
+    text(
+        draw,
+        (m, 168),
+        "How the francophone West African press writes about Islam \u2014",
+        font(SANS, 21),
+        TEXT_MUTED,
+    )
+    text(
+        draw,
+        (m, 198),
+        "three LLM annotations, compared and arbitrated.",
+        font(SANS, 21),
+        TEXT_MUTED,
+    )
 
-    facts = "  ·  ".join([
-        f"{stats['articles']:,} articles",
-        f"{stats['newspapers']} newspapers",
-        f"{stats['countries']} countries",
-        f"{stats['year_min']}\u2013{stats['year_max']}",
-    ])
+    facts = "  ·  ".join(
+        [
+            f"{stats['articles']:,} articles",
+            f"{stats['newspapers']} newspapers",
+            f"{stats['countries']} countries",
+            f"{stats['year_min']}\u2013{stats['year_max']}",
+        ]
+    )
     text(draw, (m, 246), facts, font(SANS_BOLD, 18), TEXT_SUBTLE)
 
     # Right column: the three annotated dimensions and their colour ramps.
@@ -241,13 +258,13 @@ def render() -> Image.Image:
     for i, (name, note, ramp_colours) in enumerate(DIMENSIONS):
         y = 76 + i * 62
         text(draw, (WIDTH - m, y), name, dim_label, TEXT_PRIMARY, anchor="ra")
-        text(draw, (WIDTH - m - strip_w - 16, y + 1), note, dim_note, TEXT_SUBTLE,
-             anchor="ra")
+        text(draw, (WIDTH - m - strip_w - 16, y + 1), note, dim_note, TEXT_SUBTLE, anchor="ra")
         for j, colour in enumerate(ramp_colours):
             left = WIDTH - m - strip_w + j * (swatch_w + swatch_gap)
             draw.rounded_rectangle(
                 [px(left), px(y + 26), px(left + swatch_w), px(y + 36)],
-                px(3), fill=ok(*colour),
+                px(3),
+                fill=ok(*colour),
             )
 
     draw.line([(px(m), px(288)), (px(WIDTH - m), px(288))], fill=RULE, width=SCALE)
@@ -264,18 +281,21 @@ def render() -> Image.Image:
     legend_font = font(SANS, 15)
     x = float(m)
     for _, label, colour in POLARITY:
-        draw.rounded_rectangle(
-            [px(x), px(508), px(x + 12), px(520)], px(3), fill=ok(*colour)
-        )
+        draw.rounded_rectangle([px(x), px(508), px(x + 12), px(520)], px(3), fill=ok(*colour))
         text(draw, (x + 20, 514), label, legend_font, TEXT_MUTED, anchor="lm")
         x += 20 + draw.textlength(label, font=legend_font) / SCALE + 26
 
     draw.line([(px(m), px(556)), (px(WIDTH - m), px(556))], fill=RULE, width=SCALE)
 
-    text(draw, (m, 590), "iwac.frederickmadore.com/sentiment-analysis",
-         font(SANS_BOLD, 18), ACCENT)
-    text(draw, (WIDTH - m, 590), "Frédérick Madore  ·  University of Bayreuth",
-         font(SANS, 18), TEXT_SUBTLE, anchor="ra")
+    text(draw, (m, 590), "iwac.frederickmadore.com/sentiment-analysis", font(SANS_BOLD, 18), ACCENT)
+    text(
+        draw,
+        (WIDTH - m, 590),
+        "Frédérick Madore  ·  University of Bayreuth",
+        font(SANS, 18),
+        TEXT_SUBTLE,
+        anchor="ra",
+    )
 
     return image.resize((WIDTH, HEIGHT), Image.LANCZOS)
 

@@ -40,7 +40,7 @@
 			<GitCompareIcon size={iconSizes[size]} />
 		{/if}
 		{#if showLabel}
-			<span class="badge-label">{$t.datasets?.comparisonMode || 'Comparison Mode'}</span>
+			<span class="badge-label">{$t.datasets.comparisonMode}</span>
 		{/if}
 	</div>
 {:else if currentDataset}

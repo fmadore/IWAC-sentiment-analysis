@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Article } from '$lib/types/data';
+import type { Article, PolarityValue } from '$lib/types/data';
 import {
 	getMeasureValue,
 	rankNewspapers,
@@ -31,7 +31,7 @@ function article(
 }
 
 /** n copies of one newspaper's articles at a fixed polarity. */
-function repeat(newspaper: string, polarite: string, count: number): Article[] {
+function repeat(newspaper: string, polarite: PolarityValue, count: number): Article[] {
 	return Array.from({ length: count }, () => article(newspaper, { polarite }));
 }
 
@@ -60,9 +60,13 @@ describe('getMeasureValue', () => {
 
 	it('returns null for unanalysed articles and out-of-range scores', () => {
 		expect(getMeasureValue(article('J', null), 'polarity')).toBeNull();
-		expect(getMeasureValue(article('J', { subjectivite_score: 0 }), 'subjectivity')).toBeNull();
-		expect(getMeasureValue(article('J', { subjectivite_score: 9 }), 'subjectivity')).toBeNull();
-		expect(getMeasureValue(article('J', { polarite: 'inventé' }), 'polarity')).toBeNull();
+		expect(
+			getMeasureValue(article('J', { subjectivite_score: 0 as never }), 'subjectivity')
+		).toBeNull();
+		expect(
+			getMeasureValue(article('J', { subjectivite_score: 9 as never }), 'subjectivity')
+		).toBeNull();
+		expect(getMeasureValue(article('J', { polarite: 'inventé' as never }), 'polarity')).toBeNull();
 	});
 });
 
