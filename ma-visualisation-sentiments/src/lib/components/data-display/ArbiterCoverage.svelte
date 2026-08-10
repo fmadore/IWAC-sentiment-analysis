@@ -21,11 +21,17 @@
 	interface ArbiterCoverageProps {
 		/** Articles the arbiter actually evaluated. */
 		evaluated: number;
-		/** Articles in the corpus both models analysed. */
+		/** Articles in the corpus the models analysed. */
 		corpusTotal: number;
+		/**
+		 * The conditionality warning. Defaults to the pairwise wording; the
+		 * three-way view passes its own, because "the two models disagreed" is
+		 * the wrong claim about a three-model panel.
+		 */
+		note?: string;
 	}
 
-	let { evaluated, corpusTotal }: ArbiterCoverageProps = $props();
+	let { evaluated, corpusTotal, note }: ArbiterCoverageProps = $props();
 
 	const percentage = $derived(corpusTotal > 0 ? (evaluated / corpusTotal) * 100 : 0);
 
@@ -60,7 +66,7 @@
 		<div class="coverage-fill" style="width: {barWidth}%"></div>
 	</div>
 
-	<p class="coverage-note">{$t.arbiter.samplingFrameNote}</p>
+	<p class="coverage-note">{note ?? $t.arbiter.samplingFrameNote}</p>
 </div>
 
 <style>

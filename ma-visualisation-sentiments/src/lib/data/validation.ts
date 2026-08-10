@@ -1,10 +1,14 @@
 import type {
+	ArbiterBlindLabel,
 	ArbiterEvaluationData,
+	ArbiterV2EvaluationData,
 	PlacesPayload,
 	SentimentAnalysis,
 	SubjectivityScore
 } from '$lib/types/data';
+import { ARBITER_BLIND_LABELS } from '$lib/types/data';
 import {
+	datasetIdsOf,
 	generationOf,
 	isCentralityValue,
 	isDatasetId,
@@ -12,6 +16,7 @@ import {
 	isPolarityValue,
 	isSubjectivityScore,
 	SENTIMENT_CONTRACT,
+	SENTIMENT_CONTRACT_V2,
 	SENTIMENT_CONTRACTS,
 	type DatasetId,
 	type ModelPair
@@ -245,6 +250,79 @@ export function parseArbiterEvaluationData(
 		throw new Error('Arbiter metadata successful_evaluations does not match the payload');
 	}
 	return root as unknown as ArbiterEvaluationData;
+}
+
+/**
+ * Parse the generation-2 three-way arbiter file.
+ *
+ * The load-bearing check is the blind permutation: it must be a bijection from
+ * the three labels onto the contract's three models. Every verdict in the file
+ * is expressed in labels, so a permutation that is missing a label, repeats a
+ * model, or names a model from another generation would silently attribute
+ * verdicts to the wrong model rather than fail.
+ */
+export function parseArbiterV2EvaluationData(data: unknown): ArbiterV2EvaluationData {
+	const root = requireRecord(data, 'Three-way arbiter file');
+	const metadata = requireRecord(root.metadata, 'Three-way arbiter metadata');
+
+	if (metadata.mode !== SENTIMENT_CONTRACT_V2.arbiter.mode) {
+		throw new Error(`Three-way arbiter file mode must be ${SENTIMENT_CONTRACT_V2.arbiter.mode}`);
+	}
+	if (
+		metadata.contract_schema_version !== SENTIMENT_CONTRACT_V2.schemaVersion ||
+		metadata.analysis_version !== SENTIMENT_CONTRACT_V2.analysisVersion ||
+		metadata.cache_schema_version !== SENTIMENT_CONTRACT_V2.arbiter.cacheSchemaVersion ||
+		metadata.prompt_version !== SENTIMENT_CONTRACT_V2.arbiter.promptVersion
+	) {
+		throw new Error('Three-way arbiter file must match the v2 sentiment contract');
+	}
+
+	const expectedModels = datasetIdsOf('v2');
+	const models = metadata.models;
+	if (
+		!Array.isArray(models) ||
+		models.length !== expectedModels.length ||
+		models.some((model, index) => model !== expectedModels[index])
+	) {
+		throw new Error('Three-way arbiter metadata does not list the v2 models in contract order');
+	}
+
+	const permutation = requireRecord(
+		metadata.blind_permutation,
+		'Three-way arbiter blind_permutation'
+	);
+	const assigned = ARBITER_BLIND_LABELS.map((label: ArbiterBlindLabel) => permutation[label]);
+	if (
+		assigned.some((model) => !isDatasetId(model) || !expectedModels.includes(model)) ||
+		new Set(assigned).size !== expectedModels.length
+	) {
+		throw new Error('Three-way arbiter blind_permutation must be a bijection over the v2 models');
+	}
+
+	if (!Array.isArray(root.evaluations)) {
+		throw new Error('Three-way arbiter evaluations must be an array');
+	}
+	const ids = new Set<string>();
+	for (const [index, value] of root.evaluations.entries()) {
+		const evaluation = requireRecord(value, `Three-way arbiter evaluation ${index}`);
+		const id = requireString(
+			evaluation.article_id,
+			`Three-way arbiter evaluation ${index}.article_id`
+		);
+		if (ids.has(id)) throw new Error(`Duplicate three-way arbiter evaluation ${id}`);
+		ids.add(id);
+		requireString(
+			evaluation.cache_fingerprint,
+			`Three-way arbiter evaluation ${id}.cache_fingerprint`
+		);
+		requireRecord(evaluation.arbiter, `Three-way arbiter evaluation ${id}.arbiter`);
+		requireRecord(evaluation.spread, `Three-way arbiter evaluation ${id}.spread`);
+	}
+	if (metadata.successful_evaluations !== root.evaluations.length) {
+		throw new Error('Three-way arbiter metadata successful_evaluations does not match the payload');
+	}
+
+	return root as unknown as ArbiterV2EvaluationData;
 }
 
 export function normalizeSubjectivityScore(value: unknown): SubjectivityScore | null {

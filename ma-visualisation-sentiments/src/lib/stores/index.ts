@@ -16,6 +16,18 @@ export { datasetState } from './datasets.svelte';
 export { articleState } from './articles.svelte';
 export { comparisonState } from './comparison.svelte';
 export { type ArbiterStatistics } from './arbiter.svelte';
+export {
+	arbiterV2Evaluations,
+	arbiterV2Statistics,
+	computeArbiterV2Statistics,
+	getArbiterV2ForArticle,
+	loadArbiterV2Evaluations,
+	ARBITER_V2_DIMENSIONS,
+	type ArbiterV2Dimension,
+	type ArbiterV2DimensionBreakdown,
+	type ArbiterV2ModelShare,
+	type ArbiterV2Statistics
+} from './arbiterV2.svelte';
 export { extremeState } from './extreme-analysis.svelte';
 export { placeState, type PlaceAggregate } from './places.svelte';
 export {

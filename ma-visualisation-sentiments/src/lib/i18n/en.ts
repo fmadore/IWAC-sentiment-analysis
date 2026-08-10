@@ -653,6 +653,79 @@ export const en = {
 		justification: 'Justification'
 	},
 
+	// Three-way arbiter (generation 2). A separate block from `arbiter` because
+	// almost every string differs: three analyses instead of two, "multiple"
+	// and "none" instead of "both"/"neither", spread instead of pairwise gap.
+	arbiterV2: {
+		viewTitle: 'Three-Way Arbiter',
+		viewSubtitle:
+			'One blind verdict per article, comparing all three generation-2 analyses at once',
+		modelName: 'Claude Opus 5',
+		arbiterRole: 'Third-Party Judge',
+		samplingFrameNote:
+			'The arbiter did not review the whole corpus. It reviewed articles selected because the three models disagreed most sharply about them, so every percentage below is conditional on a disagreement already existing — not a measure of which model is better across the corpus.',
+		articlesEvaluated: 'articles evaluated',
+		eligibleArticles: 'eligible',
+		dimensionVerdicts: 'dimension verdicts',
+		preferred: 'preferred',
+		multiple: 'Several equivalent',
+		none: 'None accurate',
+		overallVerdicts: 'Overall verdicts',
+		overallVerdictsNote: 'One verdict per article, across all three dimensions',
+		byDimension: 'Verdicts by dimension',
+		confidenceDistribution: 'Confidence distribution',
+		blindLabel: 'Shown as',
+		polarity: 'Polarity',
+		subjectivity: 'Subjectivity',
+		centrality: 'Centrality',
+		evaluatedArticles: 'Evaluated Articles',
+		evaluatedArticlesSubtitle:
+			'Every article the arbiter reviewed, widest disagreement first. Open a row for its reasoning.',
+		spread: 'Spread',
+		arbiterScore: 'Arbiter score',
+		verdict: 'Verdict',
+		confidence: 'Confidence',
+		showReasoning: 'Show reasoning',
+		hideReasoning: 'Hide reasoning',
+		noData: 'No three-way arbiter data yet',
+		noDataDescription:
+			'The three-way arbiter run is paid and is triggered by hand. Run data-preprocess/arbiter-evaluation-v2.py --dry-run to see what it would cost, then again with --yes to publish verdicts here.',
+		loading: 'Loading arbiter data…',
+		// Methodology
+		methodologyTitle: 'Three-Way Arbiter Methodology',
+		methodologySubtitle: 'How one judge compares all three generation-2 analyses at once',
+		blindEvaluation: 'Blind Evaluation',
+		blindEvaluationDesc:
+			'The three analyses are anonymised as A, B and C by one random permutation, fixed for the whole run.',
+		selectionProcess: 'Article Selection',
+		selectionProcessDesc:
+			'An article qualifies when the three models are at least 3 points apart on any dimension — the highest score minus the lowest, not a pairwise gap. Articles where any model reports that the task does not apply are excluded rather than counted as a maximal disagreement.',
+		fullText: 'Unmasked Article Text',
+		fullTextDesc:
+			'The arbiter reads the article from the private mirror, where the text is complete. The v1 arbiter read the public projection, which masks the text of a large share of rows, so some v1 verdicts were formed without the article.',
+		independentVerdict: 'Independent Verdict',
+		independentVerdictDesc: 'The arbiter scores the article itself before comparing the three.',
+		reasoningEffort: 'Reasoning Effort',
+		reasoningEffortDesc:
+			'Claude Opus 5 thinks adaptively; the run sets an effort level rather than a token budget, which is also the cost lever.',
+		howItWorks: 'How It Works',
+		step1: 'The arbiter reads the full article text',
+		step2: 'It scores polarity, subjectivity and centrality on its own',
+		step3: 'It compares the three anonymised analyses against its own assessment',
+		step4:
+			'It names the most accurate analysis per dimension, or says several tie or none is right',
+		arbiterModel: 'Arbiter Model',
+		arbiterModelDesc:
+			'Claude Opus 5 judges all three analyses in a single call, so its verdicts are internally consistent in a way three separate pairwise runs cannot be.',
+		viewPrompt: 'View Prompt',
+		promptExplanation:
+			'The exact French system instruction and user prompt sent to the arbiter, verbatim.',
+		viewFullPrompt: 'View Full Prompt',
+		arbiterPrompt: 'Three-Way Arbiter Prompt',
+		systemInstruction: 'System Instruction',
+		userPromptTemplate: 'User Prompt Template'
+	},
+
 	// Extreme Analysis
 	extremeAnalysis: {
 		title: 'Lexical Extremes Analysis',

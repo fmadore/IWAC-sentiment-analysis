@@ -663,6 +663,79 @@ export const fr: Translations = {
 		justification: 'Justification'
 	},
 
+	// Arbitre à trois voies (génération 2)
+	arbiterV2: {
+		viewTitle: 'Arbitre à trois voies',
+		viewSubtitle:
+			'Un verdict aveugle par article, comparant les trois analyses de la génération 2 en une seule fois',
+		modelName: 'Claude Opus 5',
+		arbiterRole: 'Juge tiers',
+		samplingFrameNote:
+			"L'arbitre n'a pas examiné tout le corpus. Il a examiné des articles sélectionnés parce que les trois modèles s'y opposaient le plus nettement : chaque pourcentage ci-dessous est donc conditionnel à l'existence d'un désaccord, et ne mesure pas quel modèle est le meilleur sur l'ensemble du corpus.",
+		articlesEvaluated: 'articles évalués',
+		eligibleArticles: 'éligibles',
+		dimensionVerdicts: 'verdicts par dimension',
+		preferred: 'préféré',
+		multiple: 'Plusieurs équivalentes',
+		none: 'Aucune juste',
+		overallVerdicts: 'Verdicts globaux',
+		overallVerdictsNote: 'Un verdict par article, toutes dimensions confondues',
+		byDimension: 'Verdicts par dimension',
+		confidenceDistribution: 'Répartition de la confiance',
+		blindLabel: 'Présentée comme',
+		polarity: 'Polarité',
+		subjectivity: 'Subjectivité',
+		centrality: 'Centralité',
+		evaluatedArticles: 'Articles évalués',
+		evaluatedArticlesSubtitle:
+			"Tous les articles examinés par l'arbitre, désaccord le plus large en premier. Ouvrez une ligne pour lire son raisonnement.",
+		spread: 'Écart',
+		arbiterScore: "Score de l'arbitre",
+		verdict: 'Verdict',
+		confidence: 'Confiance',
+		showReasoning: 'Afficher le raisonnement',
+		hideReasoning: 'Masquer le raisonnement',
+		noData: "Pas encore de données d'arbitrage à trois voies",
+		noDataDescription:
+			"L'arbitrage à trois voies est payant et se déclenche à la main. Lancez data-preprocess/arbiter-evaluation-v2.py --dry-run pour en estimer le coût, puis relancez avec --yes pour publier les verdicts ici.",
+		loading: "Chargement des données de l'arbitre…",
+		// Méthodologie
+		methodologyTitle: "Méthodologie de l'arbitre à trois voies",
+		methodologySubtitle:
+			'Comment un seul juge compare les trois analyses de la génération 2 en une fois',
+		blindEvaluation: 'Évaluation aveugle',
+		blindEvaluationDesc:
+			'Les trois analyses sont anonymisées en A, B et C par une permutation aléatoire unique, fixée pour toute la campagne.',
+		selectionProcess: 'Sélection des articles',
+		selectionProcessDesc:
+			"Un article est retenu lorsque les trois modèles s'écartent d'au moins 3 points sur une dimension — le score le plus haut moins le plus bas, et non un écart deux à deux. Les articles où un modèle indique que la tâche ne s'applique pas sont exclus plutôt que comptés comme un désaccord maximal.",
+		fullText: 'Texte intégral non masqué',
+		fullTextDesc:
+			"L'arbitre lit l'article depuis le miroir privé, où le texte est complet. L'arbitre v1 lisait la projection publique, qui masque le texte d'une part importante des lignes : certains verdicts v1 ont donc été formés sans l'article.",
+		independentVerdict: 'Verdict indépendant',
+		independentVerdictDesc:
+			"L'arbitre note lui-même l'article avant de comparer les trois analyses.",
+		reasoningEffort: 'Effort de raisonnement',
+		reasoningEffortDesc:
+			"Claude Opus 5 raisonne de façon adaptative ; la campagne fixe un niveau d'effort plutôt qu'un budget de jetons, ce qui est aussi le levier de coût.",
+		howItWorks: 'Fonctionnement',
+		step1: "L'arbitre lit le texte intégral de l'article",
+		step2: 'Il attribue lui-même polarité, subjectivité et centralité',
+		step3: 'Il compare les trois analyses anonymisées à sa propre évaluation',
+		step4:
+			"Il désigne l'analyse la plus juste par dimension, ou indique que plusieurs se valent ou qu'aucune n'est juste",
+		arbiterModel: 'Modèle arbitre',
+		arbiterModelDesc:
+			'Claude Opus 5 juge les trois analyses en un seul appel : ses verdicts sont donc cohérents entre eux, ce que trois campagnes deux à deux ne peuvent pas garantir.',
+		viewPrompt: 'Voir le prompt',
+		promptExplanation:
+			"L'instruction système et le prompt utilisateur exacts envoyés à l'arbitre, mot pour mot.",
+		viewFullPrompt: 'Voir le prompt complet',
+		arbiterPrompt: "Prompt de l'arbitre à trois voies",
+		systemInstruction: 'Instruction système',
+		userPromptTemplate: 'Modèle de prompt utilisateur'
+	},
+
 	// Extreme Analysis
 	extremeAnalysis: {
 		title: 'Analyse des extrêmes lexicaux',
