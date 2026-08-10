@@ -1,0 +1,20 @@
+{
+	"description": "Generation-2 stores subjectivity as an ordinal label and the pipeline maps it onto the shared 1-5 rank. Python coerces at generation time, TypeScript renders the label back for display, so both sides read these cases.",
+	"labels": [
+		{ "label": "Très objectif", "rank": 1 },
+		{ "label": "Plutôt objectif", "rank": 2 },
+		{ "label": "Mixte", "rank": 3 },
+		{ "label": "Plutôt subjectif", "rank": 4 },
+		{ "label": "Très subjectif", "rank": 5 }
+	],
+	"declined": [
+		{ "name": "empty string is a declined score, not an error", "value": "" },
+		{ "name": "whitespace only is a declined score", "value": "   " },
+		{ "name": "null is a declined score", "value": null }
+	],
+	"rejected": [
+		{ "name": "a v1 numeric score is not a v2 label", "value": "3" },
+		{ "name": "an unknown label must fail loudly", "value": "Assez objectif" },
+		{ "name": "case and accents are significant", "value": "tres objectif" }
+	]
+}

@@ -247,6 +247,26 @@ describe('loadDatasetArticles', () => {
 					iwac_sentiment_chatgpt: { nope: true }
 				})
 			)
+		).rejects.toThrow('Sentiment file model must be chatgpt');
+	});
+
+	it("rejects a payload declaring the other generation's contract", async () => {
+		// The generation is derived from the model id, so a v1 model served with
+		// v2 version markers is a mismatch rather than a newer file.
+		await expect(
+			loadDatasetArticles(
+				'/data/iwac_sentiment_chatgpt.json',
+				'chatgpt',
+				mockFetch({
+					iwac_articles_base: baseRecords,
+					iwac_sentiment_chatgpt: {
+						schema_version: '2.0.0',
+						analysis_version: 'v2',
+						model: 'chatgpt',
+						sentiments: {}
+					}
+				})
+			)
 		).rejects.toThrow('Sentiment file schema_version must be 1.0.0');
 	});
 

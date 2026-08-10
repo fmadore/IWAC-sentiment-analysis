@@ -186,7 +186,7 @@ export const fr: Translations = {
 			'Kappa de Fleiss sur les trois modèles simultanément, pour les articles analysés par tous.',
 		threeWayTitle: 'Les trois modèles',
 		threeWayLede:
-			'Accord entre ChatGPT, Gemini et Mistral simultanément, par dimension. Seuls les articles analysés par les trois sont comptabilisés.',
+			"Accord entre les trois modèles de l'analyse sélectionnée simultanément, par dimension. Seuls les articles analysés par les trois sont comptabilisés.",
 		matrixTitle: 'Matrice d\u2019accord',
 		rowsAre: 'Lignes :',
 		columnsAre: 'Colonnes :',
@@ -333,7 +333,7 @@ export const fr: Translations = {
 		methodologyCorpusDeveloper:
 			', une base de données numérique collaborative et en libre accès développée par',
 		methodologyCorpusEnd:
-			", a été analysé à l'aide de trois LLMs : GPT-5 mini d'OpenAI, Gemini 3 Flash de Google et Ministral 3 14B de Mistral. Chaque article a été évalué selon trois dimensions complémentaires :",
+			", a été analysé à l'aide de trois LLMs : GPT-5.6 Luna d'OpenAI, Mistral Small 4 et DeepSeek v4 Flash. Chaque article a été évalué selon trois dimensions complémentaires :",
 		methodology:
 			"Cette visualisation présente une analyse automatisée des sentiments concernant la représentation de l'islam et des musulmans dans la presse d'Afrique de l'Ouest francophone. Les articles analysés sont issus de la",
 		methodologyAiModel: "Méthodologie et modèle d'IA",
@@ -460,6 +460,18 @@ export const fr: Translations = {
 		compareModels: 'Comparer les modèles'
 	},
 
+	// Générations d'analyse (panel v2 actuel vs panel v1 archivé)
+	generations: {
+		archivedLabel: 'Analyse archivée',
+		archivedTitle: "Vous consultez l'analyse archivée de 2026 (v1).",
+		archivedDescription:
+			'GPT-5 mini, Gemini 3 Flash preview et Ministral 14B, annotés avec le premier prompt. Conservée en ligne pour que les résultats publiés et les citations restent reproductibles.',
+		backToCurrent: "Revenir à l'analyse actuelle",
+		archiveLinkLabel: "Consulter l'analyse archivée v1",
+		archiveLinkDescription:
+			'La première campagne (GPT-5 mini, Gemini 3 Flash preview, Ministral 14B) reste disponible, y compris son arbitre par paires.'
+	},
+
 	// Comparison
 	comparison: {
 		byDecade: 'Décennie',
@@ -509,11 +521,10 @@ export const fr: Translations = {
 		centralityExplanation: "Importance de l'Islam/Musulmans dans l'article",
 		dimensionsNote:
 			'Astuce : Sélectionnez une seule dimension pour concentrer votre analyse sur des types spécifiques de désaccords. Les scores de divergence seront recalculés selon votre sélection.',
-		// Model pair picker
+		// Model pair picker. Pair labels are built from the model names in the
+		// contract registry, so only the joining word is translated.
 		selectModelPair: 'Sélectionner les modèles à comparer',
-		chatgptVsGemini: 'ChatGPT vs Gemini',
-		chatgptVsMistral: 'ChatGPT vs Mistral',
-		geminiVsMistral: 'Gemini vs Mistral',
+		versus: 'vs',
 		modelALabel: 'Modèle A',
 		modelBLabel: 'Modèle B'
 	},
@@ -695,15 +706,15 @@ export const fr: Translations = {
 		siteTitle: 'Analyse de sentiments IWAC',
 		comparisonTitle: 'Comparaison de modèles IA',
 		comparisonDescription:
-			"Comparez les résultats d'analyse de sentiments entre les modèles ChatGPT, Gemini et Mistral sur la Collection Islam Afrique de l'Ouest. Analysez les différences d'interprétation IA.",
+			"Comparez les résultats d'analyse de sentiments entre les modèles GPT-5.6 Luna, Mistral Small 4 et DeepSeek v4 Flash sur la Collection Islam Afrique de l'Ouest. Analysez les différences d'interprétation IA.",
 		comparisonKeywords:
-			'comparaison IA, ChatGPT vs Gemini vs Mistral, comparaison de modèles, analyse de sentiments, IWAC, évaluation IA',
+			'comparaison IA, GPT-5.6 Luna vs Mistral Small 4 vs DeepSeek, comparaison de modèles, analyse de sentiments, IWAC, évaluation IA',
 		viewDescriptionPrefix: 'Explorez ',
 		viewDescriptionSuffix:
 			" de l'analyse de sentiments de la Collection Islam Afrique de l'Ouest. Visualisation interactive de l'analyse de couverture médiatique utilisant des modèles IA avancés.",
 		baseKeywords: "analyse de sentiments, IWAC, Islam Afrique de l'Ouest, visualisation de données",
 		ogImageAlt:
-			'Analyse de sentiments IWAC — distributions de polarité de GPT-5 mini, Gemini 3 Flash et Ministral 3 14B sur 12 287 articles de presse ouest-africaine francophone',
+			'Analyse de sentiments IWAC — distributions de polarité de GPT-5.6 Luna, Mistral Small 4 et DeepSeek v4 Flash sur 12 305 articles de presse ouest-africaine francophone',
 		views: {
 			charts: {
 				title: 'Graphiques et distributions',

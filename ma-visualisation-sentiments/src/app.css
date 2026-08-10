@@ -474,6 +474,8 @@
 	   for chart and logo use, where CSS custom properties can't reach. --- */
 	--brand-mistral: #f54e42;
 	--brand-mistral-light: #f87a71;
+	--brand-deepseek: #4d6bfe;
+	--brand-deepseek-light: #7f95ff;
 
 	/* --- Print — the one light-background context this app has. --- */
 	--print-surface: white;

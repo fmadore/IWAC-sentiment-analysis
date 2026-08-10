@@ -1,4 +1,9 @@
-"""Offline integrity checks for every checked-in v1 browser data asset."""
+"""Offline integrity checks for every checked-in browser data asset.
+
+Both published generations are validated. The shared article base is checked
+once, then each generation's score, justification, extreme-analysis, arbiter
+and manifest files are checked against their own contract.
+"""
 
 from __future__ import annotations
 
@@ -9,15 +14,12 @@ from pathlib import Path
 from typing import Any
 
 from iwac_preprocess import (
-    ANALYSIS_VERSION,
-    CENTRALITY_SCORES,
-    CONTRACT,
-    CONTRACT_SCHEMA_VERSION,
-    MODEL_NAMES,
-    MODEL_PAIRS,
-    POLARITY_SCORES,
+    CONTRACTS,
+    SentimentContract,
     calculate_discrepancies,
+    calculate_three_way_spread,
     get_models_from_pair,
+    manifest_filename,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,6 +33,7 @@ EXTREME_CATEGORIES = {
     "centrality_very_central",
     "centrality_not_central",
 }
+ARBITER_V2_FILENAME = "iwac_arbiter_evaluations_v2.json"
 
 
 class ContractError(AssertionError):
@@ -46,7 +49,7 @@ def read_json(name: str) -> Any:
     return json.loads((DATA_DIR / name).read_text(encoding="utf-8"))
 
 
-def validate_core() -> tuple[set[str], dict[str, dict[str, dict | None]]]:
+def validate_base() -> set[str]:
     base = read_json("iwac_articles_base.json")
     require(isinstance(base, list), "iwac_articles_base.json must be an array")
     ids: list[str] = []
@@ -66,19 +69,24 @@ def validate_core() -> tuple[set[str], dict[str, dict[str, dict | None]]]:
             f"article {article_id} has invalid hijri_month",
         )
     require(len(ids) == len(set(ids)), "base article IDs must be unique")
-    id_set = set(ids)
+    return set(ids)
 
+
+def validate_core(
+    contract: SentimentContract, id_set: set[str]
+) -> dict[str, dict[str, dict | None]]:
+    version = contract.analysis_version
     sentiments: dict[str, dict[str, dict | None]] = {}
-    for model_id in MODEL_NAMES:
+    for model_id in contract.model_names:
         payload = read_json(f"iwac_sentiment_{model_id}.json")
         require(payload.get("model") == model_id, f"sentiment file/model mismatch for {model_id}")
         require(
-            payload.get("schema_version") == CONTRACT_SCHEMA_VERSION,
-            f"sentiment {model_id} schema does not match the v1 contract",
+            payload.get("schema_version") == contract.schema_version,
+            f"sentiment {model_id} schema does not match the {version} contract",
         )
         require(
-            payload.get("analysis_version") == ANALYSIS_VERSION,
-            f"sentiment {model_id} is not v1",
+            payload.get("analysis_version") == version,
+            f"sentiment {model_id} is not {version}",
         )
         model_sentiments = payload.get("sentiments")
         require(isinstance(model_sentiments, dict), f"sentiment {model_id} has no map")
@@ -89,23 +97,28 @@ def validate_core() -> tuple[set[str], dict[str, dict[str, dict | None]]]:
             if analysis is None:
                 continue
             require(
-                analysis.get("polarite") in POLARITY_SCORES or analysis.get("polarite") is None,
+                analysis.get("polarite") in contract.polarity_scores
+                or analysis.get("polarite") is None,
                 f"unknown polarity for {model_id}/{article_id}",
             )
             require(
-                analysis.get("centralite_islam_musulmans") in CENTRALITY_SCORES
+                analysis.get("centralite_islam_musulmans") in contract.centrality_scores
                 or analysis.get("centralite_islam_musulmans") is None,
                 f"unknown centrality for {model_id}/{article_id}",
             )
+            # Subjectivity is stored as the shared 1-5 rank in every
+            # generation, whatever the upstream encoding was.
             score = analysis.get("subjectivite_score")
             require(
-                score is None or isinstance(score, int) and 1 <= score <= 5,
+                score is None
+                or isinstance(score, int)
+                and contract.subjectivity_minimum <= score <= contract.subjectivity_maximum,
                 f"invalid subjectivity for {model_id}/{article_id}",
             )
         sentiments[model_id] = model_sentiments
 
         prose_ids: set[str] = set()
-        shard_count = int(CONTRACT["delivery"]["justificationShards"])
+        shard_count = contract.justification_shards
         for shard in range(shard_count):
             prose = read_json(f"iwac_justifications_{model_id}_{shard:02d}.json")
             require(
@@ -113,9 +126,9 @@ def validate_core() -> tuple[set[str], dict[str, dict[str, dict | None]]]:
                 f"justification file/model mismatch for {model_id}/{shard}",
             )
             require(
-                prose.get("schema_version") == CONTRACT_SCHEMA_VERSION
-                and prose.get("analysis_version") == ANALYSIS_VERSION,
-                f"justification {model_id}/{shard} is not v1",
+                prose.get("schema_version") == contract.schema_version
+                and prose.get("analysis_version") == version,
+                f"justification {model_id}/{shard} is not {version}",
             )
             require(
                 prose.get("shard") == shard and prose.get("shard_count") == shard_count,
@@ -127,11 +140,11 @@ def validate_core() -> tuple[set[str], dict[str, dict[str, dict | None]]]:
             )
             prose_ids.update(shard_ids)
         require(prose_ids == id_set, f"justification/base ID coverage mismatch for {model_id}")
-    return id_set, sentiments
+    return sentiments
 
 
-def validate_extremes(base_ids: set[str]) -> None:
-    for model_id in MODEL_NAMES:
+def validate_extremes(contract: SentimentContract, base_ids: set[str]) -> None:
+    for model_id in contract.model_names:
         payload = read_json(f"iwac_extreme_analysis_{model_id}.json")
         require(payload.get("model") == model_id, f"extreme file/model mismatch for {model_id}")
         index = payload.get("articles_index", {})
@@ -165,14 +178,18 @@ def validate_places(base_ids: set[str]) -> None:
         )
 
 
-def validate_arbiter(base_ids: set[str], sentiments: dict[str, dict[str, dict | None]]) -> None:
-    for pair in MODEL_PAIRS:
+def validate_arbiter(
+    contract: SentimentContract, base_ids: set[str], sentiments: dict[str, dict[str, dict | None]]
+) -> None:
+    """Validate the v1 pairwise arbiter files."""
+    for pair in contract.model_pairs:
         model_a, model_b = get_models_from_pair(pair)
         eligible: set[str] = set()
         for article_id in base_ids:
             discrepancies = calculate_discrepancies(
                 sentiments[model_a].get(article_id) or {},
                 sentiments[model_b].get(article_id) or {},
+                contract,
             )
             if discrepancies and discrepancies["has_significant_conflict"]:
                 eligible.add(article_id)
@@ -183,9 +200,9 @@ def validate_arbiter(base_ids: set[str], sentiments: dict[str, dict[str, dict | 
         evaluation_ids = [str(row.get("article_id")) for row in evaluations]
         require(metadata.get("pair") == pair, f"arbiter file/pair mismatch for {pair}")
         require(
-            metadata.get("contract_schema_version") == CONTRACT_SCHEMA_VERSION
-            and metadata.get("analysis_version") == ANALYSIS_VERSION,
-            f"arbiter {pair} is not bound to the v1 contract",
+            metadata.get("contract_schema_version") == contract.schema_version
+            and metadata.get("analysis_version") == contract.analysis_version,
+            f"arbiter {pair} is not bound to the {contract.analysis_version} contract",
         )
         require(
             len(evaluation_ids) == len(set(evaluation_ids)),
@@ -209,34 +226,102 @@ def validate_arbiter(base_ids: set[str], sentiments: dict[str, dict[str, dict | 
             )
 
 
-def validate_manifest() -> None:
-    path = DATA_DIR / "iwac_data_manifest.json"
+def validate_arbiter_three_way(
+    contract: SentimentContract, base_ids: set[str], sentiments: dict[str, dict[str, dict | None]]
+) -> None:
+    """Validate the v2 three-way arbiter file, which is optional until it runs."""
+    path = DATA_DIR / ARBITER_V2_FILENAME
     if not path.exists():
         return
-    manifest = read_json(path.name)
+
+    model_ids = list(contract.model_names)
+    eligible: set[str] = set()
+    for article_id in base_ids:
+        spread = calculate_three_way_spread(
+            [sentiments[model_id].get(article_id) or {} for model_id in model_ids], contract
+        )
+        if spread and spread["has_significant_spread"]:
+            eligible.add(article_id)
+
+    payload = read_json(ARBITER_V2_FILENAME)
+    metadata = payload.get("metadata", {})
+    evaluations = payload.get("evaluations", [])
+    evaluation_ids = [str(row.get("article_id")) for row in evaluations]
+
     require(
-        manifest.get("schema_version") == CONTRACT_SCHEMA_VERSION,
-        "manifest schema version mismatch",
+        metadata.get("contract_schema_version") == contract.schema_version
+        and metadata.get("analysis_version") == contract.analysis_version,
+        f"three-way arbiter is not bound to the {contract.analysis_version} contract",
+    )
+    require(metadata.get("mode") == "three-way", "three-way arbiter metadata mode mismatch")
+    require(
+        list(metadata.get("models", [])) == model_ids,
+        "three-way arbiter metadata does not list the contract's models",
+    )
+    permutation = metadata.get("blind_permutation", {})
+    require(
+        set(permutation) == {"a", "b", "c"} and sorted(permutation.values()) == sorted(model_ids),
+        "three-way arbiter blind permutation must be a bijection over the models",
     )
     require(
-        manifest.get("analysis_version") == ANALYSIS_VERSION, "manifest analysis version mismatch"
+        len(evaluation_ids) == len(set(evaluation_ids)),
+        "three-way arbiter contains duplicate IDs",
     )
-    for name, expected in manifest.get("files", {}).items():
-        file_path = DATA_DIR / name
-        require(file_path.is_file(), f"manifest references missing {name}")
-        require(file_path.stat().st_size == expected["bytes"], f"manifest size mismatch for {name}")
+    require(
+        set(evaluation_ids).issubset(eligible),
+        "three-way arbiter contains stale/non-eligible IDs",
+    )
+    require(
+        metadata.get("successful_evaluations") == len(evaluations),
+        "three-way arbiter metadata count is stale",
+    )
+    require(
+        all(row.get("cache_fingerprint") for row in evaluations),
+        "three-way arbiter row lacks a fingerprint",
+    )
+
+
+def validate_manifest(contract: SentimentContract) -> None:
+    name = manifest_filename(contract.analysis_version)
+    path = DATA_DIR / name
+    if not path.exists():
+        return
+    manifest = read_json(name)
+    require(
+        manifest.get("schema_version") == contract.schema_version,
+        f"{name} schema version mismatch",
+    )
+    require(
+        manifest.get("analysis_version") == contract.analysis_version,
+        f"{name} analysis version mismatch",
+    )
+    for entry_name, expected in manifest.get("files", {}).items():
+        file_path = DATA_DIR / entry_name
+        require(file_path.is_file(), f"{name} references missing {entry_name}")
+        require(
+            file_path.stat().st_size == expected["bytes"], f"{name} size mismatch for {entry_name}"
+        )
         actual = hashlib.sha256(file_path.read_bytes()).hexdigest()
-        require(actual == expected["sha256"], f"manifest checksum mismatch for {name}")
+        require(actual == expected["sha256"], f"{name} checksum mismatch for {entry_name}")
+
+
+def validate_generation(contract: SentimentContract, base_ids: set[str]) -> None:
+    sentiments = validate_core(contract, base_ids)
+    validate_extremes(contract, base_ids)
+    if contract.arbiter.get("mode") == "three-way":
+        validate_arbiter_three_way(contract, base_ids, sentiments)
+    else:
+        validate_arbiter(contract, base_ids, sentiments)
+    validate_manifest(contract)
 
 
 def validate_all() -> None:
-    base_ids, sentiments = validate_core()
-    validate_extremes(base_ids)
+    base_ids = validate_base()
     validate_places(base_ids)
-    validate_arbiter(base_ids, sentiments)
-    validate_manifest()
+    for contract in CONTRACTS.values():
+        validate_generation(contract, base_ids)
 
 
 if __name__ == "__main__":
     validate_all()
-    print("Generated v1 data contract: OK")
+    print("Generated data contract: OK (" + ", ".join(CONTRACTS) + ")")

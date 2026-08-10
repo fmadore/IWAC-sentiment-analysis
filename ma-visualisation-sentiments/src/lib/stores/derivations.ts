@@ -22,7 +22,8 @@ import {
 	CENTRALITY_ORDER,
 	POLARITY_NON_COMPARABLE,
 	POLARITY_ORDER,
-	SIGNIFICANT_CONFLICT_THRESHOLD
+	SIGNIFICANT_CONFLICT_THRESHOLD,
+	SIGNIFICANT_SPREAD_THRESHOLD
 } from '$lib/domain/sentimentContract';
 
 // ============================================
@@ -169,6 +170,82 @@ export function calculateDiscrepancies(
 		centralityDiff >= SIGNIFICANT_CONFLICT_THRESHOLD;
 
 	return { polarityDiff, subjectivityDiff, centralityDiff, totalDiff, hasConflict, isComparable };
+}
+
+/** How far apart three analyses of the same article sit, per dimension. */
+export interface SpreadInfo {
+	polaritySpread: number;
+	subjectivitySpread: number;
+	centralitySpread: number;
+	totalSpread: number;
+	/** At least one dimension spans the significance threshold. */
+	hasSignificantSpread: boolean;
+	/** False when any model marks the sentiment task non-applicable. */
+	isComparable: boolean;
+}
+
+const EMPTY_SPREAD: SpreadInfo = {
+	polaritySpread: 0,
+	subjectivitySpread: 0,
+	centralitySpread: 0,
+	totalSpread: 0,
+	hasSignificantSpread: false,
+	isComparable: false
+};
+
+/**
+ * Measure the disagreement across all three models of a generation at once.
+ *
+ * This is the selection metric for the three-way arbiter, and it mirrors
+ * `calculate_three_way_spread` in data-preprocess/iwac_preprocess/discrepancy.py
+ * — the shared fixtures in `discrepancy-v2-fixtures.json` hold the two
+ * implementations together.
+ *
+ * Spread is the full range (max − min), not a pairwise gap: three models one
+ * step apart in a row disagree more than the widest single pair suggests.
+ */
+export function calculateThreeWaySpread(
+	analyses: (SentimentAnalysis | null | undefined)[]
+): SpreadInfo {
+	if (analyses.length < 2 || analyses.some((analysis) => !analysis)) return EMPTY_SPREAD;
+	const present = analyses as SentimentAnalysis[];
+
+	const isComparable = present.every(
+		(analysis) =>
+			analysis.polarite !== null &&
+			analysis.centralite_islam_musulmans !== null &&
+			!POLARITY_NON_COMPARABLE.has(analysis.polarite) &&
+			!CENTRALITY_NON_COMPARABLE.has(analysis.centralite_islam_musulmans)
+	);
+	if (!isComparable) return EMPTY_SPREAD;
+
+	const range = (values: number[]) => Math.max(...values) - Math.min(...values);
+
+	const polaritySpread = range(
+		present.map((analysis) => polarityScores[analysis.polarite || 'Non applicable'] || 0)
+	);
+	const centralitySpread = range(
+		present.map(
+			(analysis) => centralityScores[analysis.centralite_islam_musulmans || 'Non abordé'] || 0
+		)
+	);
+
+	// One declined score drops the whole dimension, exactly as the pairwise rule
+	// skips it: a model that did not answer is not a model that agreed.
+	const subjectivityScores = present.map((analysis) => analysis.subjectivite_score);
+	const subjectivitySpread = subjectivityScores.some((score) => score == null)
+		? 0
+		: range(subjectivityScores as number[]);
+
+	const spreads = [polaritySpread, subjectivitySpread, centralitySpread];
+	return {
+		polaritySpread,
+		subjectivitySpread,
+		centralitySpread,
+		totalSpread: spreads.reduce((total, value) => total + value, 0),
+		hasSignificantSpread: spreads.some((spread) => spread >= SIGNIFICANT_SPREAD_THRESHOLD),
+		isComparable: true
+	};
 }
 
 /** Build the per-article comparison rows for the active model pair. */

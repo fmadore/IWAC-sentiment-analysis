@@ -1,0 +1,95 @@
+{
+	"schemaVersion": "2.0.0",
+	"analysisVersion": "v2",
+	"description": "Generation-2 three-model IWAC sentiment-analysis contract. Polarity and centrality scales are identical to v1; subjectivity is stored upstream as an ordinal label and is mapped to the shared 1-5 rank at generation time.",
+	"models": {
+		"luna": {
+			"displayName": "GPT-5.6 Luna",
+			"analysisModel": "GPT-5.6 Luna",
+			"hfPrefixes": ["gpt_5_6_luna"]
+		},
+		"mistral-small": {
+			"displayName": "Mistral Small 4 (2603)",
+			"analysisModel": "Mistral Small 4 2603",
+			"hfPrefixes": ["mistral_small_2603"]
+		},
+		"deepseek": {
+			"displayName": "DeepSeek v4 Flash",
+			"analysisModel": "DeepSeek v4 Flash 0731",
+			"hfPrefixes": ["deepseek_v4_flash_0731"]
+		}
+	},
+	"pairs": [
+		{ "id": "luna-mistral-small", "models": ["luna", "mistral-small"] },
+		{ "id": "luna-deepseek", "models": ["luna", "deepseek"] },
+		{ "id": "mistral-small-deepseek", "models": ["mistral-small", "deepseek"] }
+	],
+	"fields": {
+		"scores": ["centralite_islam_musulmans", "subjectivite_score", "polarite"],
+		"justifications": [
+			"centralite_justification",
+			"subjectivite_justification",
+			"polarite_justification"
+		]
+	},
+	"scales": {
+		"polarity": {
+			"scores": {
+				"Très positif": 5,
+				"Positif": 4,
+				"Neutre": 3,
+				"Négatif": 2,
+				"Très négatif": 1,
+				"Non applicable": 0
+			},
+			"nonComparable": ["Non applicable"]
+		},
+		"centrality": {
+			"scores": {
+				"Très central": 5,
+				"Central": 4,
+				"Secondaire": 3,
+				"Marginal": 2,
+				"Non abordé": 1,
+				"Non applicable": 0
+			},
+			"nonComparable": ["Non abordé", "Non applicable"]
+		},
+		"subjectivity": {
+			"minimum": 1,
+			"maximum": 5,
+			"encoding": "label",
+			"declined": "null",
+			"scores": {
+				"Très objectif": 1,
+				"Plutôt objectif": 2,
+				"Mixte": 3,
+				"Plutôt subjectif": 4,
+				"Très subjectif": 5
+			}
+		}
+	},
+	"discrepancy": {
+		"significantDimensionGap": 3,
+		"maximumTotal": 11,
+		"missingSubjectivity": "skip-dimension",
+		"nonComparableAnalysis": "exclude-row",
+		"threeWaySpread": {
+			"significantSpread": 3,
+			"rule": "Per dimension, spread is max minus min across all three models. A row is excluded when any model reports a non-comparable polarity or centrality. Subjectivity contributes a spread only when all three models scored it, otherwise 0."
+		}
+	},
+	"arbiter": {
+		"promptVersion": "v2.0.0",
+		"arbiterModel": "claude-opus-5",
+		"cacheSchemaVersion": 1,
+		"mode": "three-way"
+	},
+	"delivery": {
+		"justificationShards": 32
+	},
+	"provenance": {
+		"sentimentPromptFingerprint": "d14ace9ac192",
+		"sentimentPromptSource": "iwac-ai-pipelines/AI_sentiment_analysis/sentiment_prompt.md"
+	}
+}

@@ -23,7 +23,8 @@
 		type AgreementDimension
 	} from '$lib/stores/agreement.svelte';
 	import { interpretKappa } from '$lib/utils/agreement';
-	import { getPairModelNames, DATASET_IDS } from '$lib/types/data';
+	import { getPairModelNames } from '$lib/types/data';
+	import { datasetIdsOf } from '$lib/domain/sentimentContract';
 	import { t } from '$lib/i18n';
 	import { StatCard } from '$lib/components/common';
 	import ModelPairPicker from '$lib/components/ui/ModelPairPicker.svelte';
@@ -41,7 +42,9 @@
 	const agreement = $derived(pairAgreement.current);
 	const threeWay = $derived(threeWayAgreement.current);
 	const marginals = $derived(modelMarginals.current);
-	const modelNames = $derived(getPairModelNames(datasetState.pair, datasetState.available));
+	const modelNames = $derived(
+		getPairModelNames(datasetState.pair, datasetState.availableInGeneration)
+	);
 
 	const active = $derived(agreement?.[selectedDimension] ?? null);
 
@@ -51,9 +54,11 @@
 		centrality: $t.filters.centrality
 	});
 
-	/** Both models present? The view is useless with only one loaded. */
+	/** Every model of the active generation present? One alone says nothing. */
 	const ready = $derived(
-		DATASET_IDS.every((id) => (articleState.datasets[id]?.length ?? 0) > 0) && agreement !== null
+		datasetIdsOf(datasetState.generation).every(
+			(id) => (articleState.datasets[id]?.length ?? 0) > 0
+		) && agreement !== null
 	);
 
 	function formatKappa(value: number): string {

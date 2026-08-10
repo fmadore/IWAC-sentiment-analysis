@@ -10,7 +10,8 @@
  */
 
 import type { Article, DatasetId, ModelPair } from '$lib/types/data';
-import { DATASET_IDS, getModelsFromPair } from '$lib/types/data';
+import { getModelsFromPair } from '$lib/types/data';
+import { datasetIdsOf } from '$lib/domain/sentimentContract';
 import {
 	buildConfusionMatrix,
 	cohensKappa,
@@ -103,22 +104,29 @@ export const pairAgreement = {
 	}
 };
 
-/** Fleiss' kappa across all three models, per dimension. */
+/**
+ * Fleiss' kappa across all three models of the active generation, per dimension.
+ *
+ * Scoped to one generation: the two panels annotated the corpus under different
+ * prompts, so a six-rater kappa would measure prompt change as if it were
+ * disagreement between models.
+ */
 export const threeWayAgreement = {
 	get current(): Record<AgreementDimension, FleissResult> | null {
 		const datasets = articleState.datasets;
-		const allLoaded = DATASET_IDS.every((id: DatasetId) => datasets[id]?.length);
+		const generationIds = datasetIdsOf(datasetState.generation);
+		const allLoaded = generationIds.every((id: DatasetId) => datasets[id]?.length);
 		if (!allLoaded) return null;
 
 		const filtered = Object.fromEntries(
-			DATASET_IDS.map((id) => [id, applyCorpusFilters(datasets[id])])
+			generationIds.map((id) => [id, applyCorpusFilters(datasets[id])])
 		) as Record<string, Article[]>;
 
 		return Object.fromEntries(
 			AGREEMENT_DIMENSIONS.map((dimension) => [
 				dimension,
 				fleissKappa(
-					buildRaterItems(filtered, DATASET_IDS, dimension),
+					buildRaterItems(filtered, generationIds, dimension),
 					DIMENSION_CATEGORIES[dimension]
 				)
 			])
@@ -126,11 +134,13 @@ export const threeWayAgreement = {
 	}
 };
 
-/** Marginal distributions for every loaded model, per dimension. */
+/** Marginal distributions for every loaded model of the active generation. */
 export const modelMarginals = {
 	get current(): Record<AgreementDimension, ModelMarginals[]> | null {
 		const datasets = articleState.datasets;
-		const loadedIds = DATASET_IDS.filter((id: DatasetId) => datasets[id]?.length);
+		const loadedIds = datasetIdsOf(datasetState.generation).filter(
+			(id: DatasetId) => datasets[id]?.length
+		);
 		if (loadedIds.length === 0) return null;
 
 		return Object.fromEntries(

@@ -1,0 +1,286 @@
+{
+	"pairwise": [
+		{
+			"name": "identical comparable analyses",
+			"analysisA": {
+				"polarite": "Positif",
+				"subjectivite_score": 2,
+				"centralite_islam_musulmans": "Central"
+			},
+			"analysisB": {
+				"polarite": "Positif",
+				"subjectivite_score": 2,
+				"centralite_islam_musulmans": "Central"
+			},
+			"expected": {
+				"comparable": true,
+				"polarity": 0,
+				"subjectivity": 0,
+				"centrality": 0,
+				"total": 0,
+				"conflict": false
+			}
+		},
+		{
+			"name": "declined subjectivity skips one dimension",
+			"analysisA": {
+				"polarite": "Neutre",
+				"subjectivite_score": null,
+				"centralite_islam_musulmans": "Central"
+			},
+			"analysisB": {
+				"polarite": "Neutre",
+				"subjectivite_score": 5,
+				"centralite_islam_musulmans": "Central"
+			},
+			"expected": {
+				"comparable": true,
+				"polarity": 0,
+				"subjectivity": 0,
+				"centrality": 0,
+				"total": 0,
+				"conflict": false
+			}
+		},
+		{
+			"name": "non-applicable polarity excludes row",
+			"analysisA": {
+				"polarite": "Non applicable",
+				"subjectivite_score": 2,
+				"centralite_islam_musulmans": "Central"
+			},
+			"analysisB": {
+				"polarite": "Très positif",
+				"subjectivite_score": 2,
+				"centralite_islam_musulmans": "Central"
+			},
+			"expected": {
+				"comparable": false,
+				"polarity": 0,
+				"subjectivity": 0,
+				"centrality": 0,
+				"total": 0,
+				"conflict": false
+			}
+		},
+		{
+			"name": "maximum comparable total",
+			"analysisA": {
+				"polarite": "Très positif",
+				"subjectivite_score": 1,
+				"centralite_islam_musulmans": "Très central"
+			},
+			"analysisB": {
+				"polarite": "Très négatif",
+				"subjectivite_score": 5,
+				"centralite_islam_musulmans": "Marginal"
+			},
+			"expected": {
+				"comparable": true,
+				"polarity": 4,
+				"subjectivity": 4,
+				"centrality": 3,
+				"total": 11,
+				"conflict": true
+			}
+		}
+	],
+	"threeWay": [
+		{
+			"name": "unanimous analyses have no spread",
+			"analyses": [
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"comparable": true,
+				"polarity": 0,
+				"subjectivity": 0,
+				"centrality": 0,
+				"total": 0,
+				"significant": false
+			}
+		},
+		{
+			"name": "spread is the full range, not a pairwise gap",
+			"analyses": [
+				{
+					"polarite": "Très positif",
+					"subjectivite_score": 1,
+					"centralite_islam_musulmans": "Très central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Secondaire"
+				}
+			],
+			"expected": {
+				"comparable": true,
+				"polarity": 2,
+				"subjectivity": 2,
+				"centrality": 2,
+				"total": 6,
+				"significant": false
+			}
+		},
+		{
+			"name": "spread of exactly three is significant",
+			"analyses": [
+				{
+					"polarite": "Très positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Négatif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"comparable": true,
+				"polarity": 3,
+				"subjectivity": 0,
+				"centrality": 0,
+				"total": 3,
+				"significant": true
+			}
+		},
+		{
+			"name": "one declined subjectivity drops the whole dimension",
+			"analyses": [
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 1,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 5,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": null,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"comparable": true,
+				"polarity": 0,
+				"subjectivity": 0,
+				"centrality": 0,
+				"total": 0,
+				"significant": false
+			}
+		},
+		{
+			"name": "one non-applicable polarity excludes the row",
+			"analyses": [
+				{
+					"polarite": "Très positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Très négatif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Non applicable",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"comparable": false,
+				"polarity": 0,
+				"subjectivity": 0,
+				"centrality": 0,
+				"total": 0,
+				"significant": false
+			}
+		},
+		{
+			"name": "one not-addressed centrality excludes the row",
+			"analyses": [
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Non abordé"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Très central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"comparable": false,
+				"polarity": 0,
+				"subjectivity": 0,
+				"centrality": 0,
+				"total": 0,
+				"significant": false
+			}
+		},
+		{
+			"name": "maximum comparable total",
+			"analyses": [
+				{
+					"polarite": "Très positif",
+					"subjectivite_score": 1,
+					"centralite_islam_musulmans": "Très central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Secondaire"
+				},
+				{
+					"polarite": "Très négatif",
+					"subjectivite_score": 5,
+					"centralite_islam_musulmans": "Marginal"
+				}
+			],
+			"expected": {
+				"comparable": true,
+				"polarity": 4,
+				"subjectivity": 4,
+				"centrality": 3,
+				"total": 11,
+				"significant": true
+			}
+		}
+	]
+}

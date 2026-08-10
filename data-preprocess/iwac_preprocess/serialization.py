@@ -11,6 +11,21 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+# The v1 manifest keeps its original unsuffixed name so that the published v1
+# artifact set stays byte-stable; later generations are suffixed.
+MANIFEST_FILENAMES = {"v1": "iwac_data_manifest.json", "v2": "iwac_data_manifest_v2.json"}
+
+
+def manifest_filename(analysis_version: str) -> str:
+    """Return the manifest filename for one analysis generation."""
+    try:
+        return MANIFEST_FILENAMES[analysis_version]
+    except KeyError:
+        raise ValueError(
+            f"No manifest filename registered for {analysis_version!r}; expected one of "
+            f"{', '.join(MANIFEST_FILENAMES)}"
+        ) from None
+
 
 def save_json(data: Any, filepath: str | os.PathLike[str], indent: int | None = 2) -> None:
     """Atomically serialize JSON to ``filepath`` using a sibling temp file."""

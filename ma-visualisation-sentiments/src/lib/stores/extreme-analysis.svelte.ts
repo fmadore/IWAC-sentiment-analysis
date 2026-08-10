@@ -7,6 +7,7 @@
 
 import type { ExtremeAnalysisData } from '$lib/types/extremeAnalysis';
 import { loadExtremeAnalysisData, filterExtremeAnalysisData } from '$lib/utils/extremeAnalysis';
+import { DATASET_IDS } from '$lib/domain/sentimentContract';
 import { datasetState } from './datasets.svelte';
 import { filterState } from './filters.svelte';
 import { uiState } from './ui.svelte';
@@ -15,11 +16,10 @@ import { uiState } from './ui.svelte';
 // Svelte 5 Runes State
 // ============================================
 
-let _extremeAnalysisData = $state<Record<string, ExtremeAnalysisData | null>>({
-	chatgpt: null,
-	gemini: null,
-	mistral: null
-});
+// Seeded from the contract so a new model cannot be forgotten here.
+let _extremeAnalysisData = $state<Record<string, ExtremeAnalysisData | null>>(
+	Object.fromEntries(DATASET_IDS.map((id) => [id, null]))
+);
 
 // ============================================
 // Derived State (reactive runes)

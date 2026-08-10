@@ -13,22 +13,21 @@ from typing import Any
 import pandas as pd
 from huggingface_hub import hf_hub_download
 
-from .contract import (
-    SENTIMENT_COLUMNS,
-    SENTIMENT_FIELD_SUFFIXES,
-    SENTIMENT_JUSTIFICATION_SUFFIXES,
-    SENTIMENT_SCORE_SUFFIXES,
-    normalize_sentiment_columns,
-    sentiment_column,
-)
+from .contract import CONTRACT_V1, CONTRACTS, SentimentContract
 
 HF_REPO_ID = "fmadore/islam-west-africa-collection"
+# The private mirror is a superset of the public projection: identical sentiment
+# columns, but `OCR` is populated for every row instead of being masked per row
+# by `OCR_is_public`. Scores and justifications are read from the public repo so
+# that the published revision stays citable; only full text comes from here.
+HF_FULL_REPO_ID = "fmadore/islam-west-africa-collection-full"
 HF_PARQUET_FILENAME = "articles/train-00000-of-00001.parquet"
 HF_INDEX_PARQUET_FILENAME = "index/train-00000-of-00001.parquet"
 INDEX_TYPE_PLACE = "Lieux"
 IWAC_ITEM_URL_BASE = "https://islam.zmo.de/s/afrique_ouest/item/"
 _COORD_RE = re.compile(r"\s*(-?\d+(?:\.\d+)?)[,;\s]+(-?\d+(?:\.\d+)?)\s*$")
 _last_source_revision: str | None = None
+_revisions_by_repo: dict[str, str | None] = {}
 
 
 def get_logger(name: str) -> logging.Logger:
@@ -80,15 +79,23 @@ def validate_columns(df: pd.DataFrame, required: list[str]) -> None:
         )
 
 
-def _load_subset(config: str, direct_filename: str) -> pd.DataFrame:
+def _load_subset(
+    config: str,
+    direct_filename: str,
+    repo_id: str = HF_REPO_ID,
+    token: str | None = None,
+) -> pd.DataFrame:
     global _last_source_revision
     try:
-        path = hf_hub_download(repo_id=HF_REPO_ID, filename=direct_filename, repo_type="dataset")
+        path = hf_hub_download(
+            repo_id=repo_id, filename=direct_filename, repo_type="dataset", token=token
+        )
         parts = Path(path).parts
         if "snapshots" in parts:
             snapshot_index = parts.index("snapshots")
             if snapshot_index + 1 < len(parts):
                 _last_source_revision = parts[snapshot_index + 1]
+                _revisions_by_repo[repo_id] = parts[snapshot_index + 1]
         return pd.read_parquet(path)
     except Exception as direct_error:
         _logger.warning(
@@ -96,28 +103,61 @@ def _load_subset(config: str, direct_filename: str) -> pd.DataFrame:
         )
         from datasets import load_dataset
 
-        dataset = load_dataset(HF_REPO_ID, name=config, verification_mode="no_checks")
+        dataset = load_dataset(repo_id, name=config, verification_mode="no_checks", token=token)
         _last_source_revision = os.getenv("IWAC_HF_REVISION")
+        _revisions_by_repo[repo_id] = _last_source_revision
         return pd.DataFrame(dataset["train"])
 
 
-def load_iwac_dataset() -> pd.DataFrame:
-    df = normalize_sentiment_columns(_load_subset("articles", HF_PARQUET_FILENAME))
-    validate_columns(df, SENTIMENT_COLUMNS)
+def load_iwac_dataset(contract: SentimentContract = CONTRACT_V1) -> pd.DataFrame:
+    df = contract.normalize_sentiment_columns(_load_subset("articles", HF_PARQUET_FILENAME))
+    validate_columns(df, contract.sentiment_columns)
     return df
+
+
+def load_iwac_full_text() -> dict[str, str]:
+    """Return ``o:id -> OCR`` from the private mirror, which masks nothing.
+
+    The public projection blanks ``OCR`` per row by ``OCR_is_public``, so about
+    two fifths of articles carry no text there. Anything that reasons over the
+    article itself (the arbiter) must read the full mirror instead of silently
+    working from an empty string. Requires ``HF_TOKEN``.
+    """
+    token = os.getenv("HF_TOKEN")
+    if not token:
+        raise RuntimeError(
+            "HF_TOKEN is required to read the private mirror "
+            f"{HF_FULL_REPO_ID}; the public projection masks article text per row."
+        )
+    df = _load_subset("articles", HF_PARQUET_FILENAME, repo_id=HF_FULL_REPO_ID, token=token)
+    validate_columns(df, ["o:id", "OCR"])
+    texts: dict[str, str] = {}
+    for article_id, ocr in zip(df["o:id"], df["OCR"], strict=True):
+        key = safe_str(article_id)
+        text = safe_str(ocr)
+        if key and text:
+            texts[key] = text
+    return texts
 
 
 def load_iwac_index() -> pd.DataFrame:
     return _load_subset("index", HF_INDEX_PARQUET_FILENAME)
 
 
-def load_iwac_records() -> list[dict]:
-    return load_iwac_dataset().to_dict("records")
+def load_iwac_records(contract: SentimentContract = CONTRACT_V1) -> list[dict]:
+    return load_iwac_dataset(contract).to_dict("records")
 
 
-def get_source_revision() -> str | None:
-    """Return the immutable HF snapshot revision used by the latest load."""
-    return _last_source_revision
+def get_source_revision(repo_id: str | None = None) -> str | None:
+    """Return the immutable HF snapshot revision used by the latest load.
+
+    Without an argument this reports the most recent load of any repository,
+    which is what the single-source v1 scripts expect. Pass ``repo_id`` when a
+    run reads from more than one repository and each revision must be recorded.
+    """
+    if repo_id is None:
+        return _last_source_revision
+    return _revisions_by_repo.get(repo_id)
 
 
 def split_pipe_field(value: Any) -> list[str]:
@@ -143,36 +183,58 @@ def get_item_url(o_id: Any) -> str | None:
 
 
 def get_models_from_pair(pair: str) -> tuple[str, str]:
-    return tuple(pair.split("-", 1))  # type: ignore[return-value]
+    """Resolve a pair id to its two model ids.
+
+    Never split the id on ``-``: a model id may contain a hyphen
+    (``mistral-small``), so ``mistral-small-deepseek`` would split into a model
+    that does not exist. The contract carries the mapping explicitly.
+    """
+    for contract in CONTRACTS.values():
+        members = contract.pair_models.get(pair)
+        if members is not None:
+            return members
+    known = sorted(name for contract in CONTRACTS.values() for name in contract.pair_models)
+    raise KeyError(f"Unknown model pair {pair!r}; expected one of {', '.join(known)}")
 
 
-def extract_model_analysis(item: dict, model_id: str) -> dict:
+def extract_model_analysis(
+    item: dict, model_id: str, contract: SentimentContract = CONTRACT_V1
+) -> dict:
     return {
-        suffix: item.get(sentiment_column(model_id, suffix)) for suffix in SENTIMENT_FIELD_SUFFIXES
+        suffix: item.get(contract.sentiment_column(model_id, suffix))
+        for suffix in contract.field_suffixes
     }
 
 
-def _build_model_fields(item: dict, model_id: str, suffixes: Sequence[str]) -> dict:
+def _build_model_fields(
+    item: dict, model_id: str, suffixes: Sequence[str], contract: SentimentContract = CONTRACT_V1
+) -> dict:
     return {
         suffix: (
-            safe_int_convert(item.get(sentiment_column(model_id, suffix)))
+            contract.coerce_subjectivity(item.get(contract.sentiment_column(model_id, suffix)))
             if suffix == "subjectivite_score"
-            else safe_str(item.get(sentiment_column(model_id, suffix)))
+            else safe_str(item.get(contract.sentiment_column(model_id, suffix)))
         )
         for suffix in suffixes
     }
 
 
-def build_model_sentiment(item: dict, model_id: str) -> dict:
-    return _build_model_fields(item, model_id, SENTIMENT_FIELD_SUFFIXES)
+def build_model_sentiment(
+    item: dict, model_id: str, contract: SentimentContract = CONTRACT_V1
+) -> dict:
+    return _build_model_fields(item, model_id, contract.field_suffixes, contract)
 
 
-def build_model_scores(item: dict, model_id: str) -> dict:
-    return _build_model_fields(item, model_id, SENTIMENT_SCORE_SUFFIXES)
+def build_model_scores(
+    item: dict, model_id: str, contract: SentimentContract = CONTRACT_V1
+) -> dict:
+    return _build_model_fields(item, model_id, contract.score_suffixes, contract)
 
 
-def build_model_justifications(item: dict, model_id: str) -> dict:
-    return _build_model_fields(item, model_id, SENTIMENT_JUSTIFICATION_SUFFIXES)
+def build_model_justifications(
+    item: dict, model_id: str, contract: SentimentContract = CONTRACT_V1
+) -> dict:
+    return _build_model_fields(item, model_id, contract.justification_suffixes, contract)
 
 
 def build_base_article(item: dict) -> dict:

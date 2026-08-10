@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { t, currentLanguage, type Language } from '$lib/i18n';
-	import { datasetState, articleState } from '$lib/stores';
+	import { datasetState, articleState, uiState } from '$lib/stores';
+	import { updateURL } from '$lib/stores/url';
+	import { ARCHIVED_GENERATION, generationOf, type DatasetId } from '$lib/domain/sentimentContract';
 	import { AccordionItem, PromptModal } from '$lib/components/common';
 	import CollapsibleMethodologyCard from '$lib/components/common/CollapsibleMethodologyCard.svelte';
 	import SentimentScaleList, {
 		type ScaleItem
 	} from '$lib/components/common/SentimentScaleList.svelte';
-	import { SENTIMENT_ANALYSIS_PROMPT } from '$lib/data/prompts';
+	import { SENTIMENT_ANALYSIS_PROMPT, SENTIMENT_ANALYSIS_PROMPT_V2 } from '$lib/data/prompts';
 	import { base } from '$app/paths';
 	import { createAccordion } from '$lib/utils/accordion.svelte';
 
@@ -25,7 +27,7 @@
 	type LocalizedText = Record<Language, string>;
 
 	interface ModelInfo {
-		id: 'chatgpt' | 'gemini' | 'mistral';
+		id: DatasetId;
 		logo: string;
 		logoAlt: string;
 		/** Name shown on the comparison-grid card */
@@ -101,10 +103,86 @@
 				en: ", Mistral's largest model in the Ministral 3 family, offering state-of-the-art capabilities comparable to Mistral Small 3.2 24B, released December 2025.",
 				fr: ', le plus grand modèle de Mistral dans la famille Ministral 3, offrant des capacités de pointe comparables à Mistral Small 3.2 24B, publié en décembre 2025.'
 			}
+		},
+		{
+			id: 'luna',
+			logo: '/logo/ChatGPT_logo.svg',
+			logoAlt: 'OpenAI logo',
+			cardName: 'GPT-5.6 Luna',
+			badgeName: 'GPT-5.6 Luna',
+			docsUrl: 'https://platform.openai.com/docs/models',
+			cardDescription: {
+				en: "OpenAI's reasoning model for the second campaign, run at medium reasoning effort.",
+				fr: "Le modèle de raisonnement d'OpenAI pour la seconde campagne, exécuté avec un effort de raisonnement moyen."
+			},
+			detail: {
+				en: 'Fastest of the three on the full corpus, and the only one that never declined to score an article it considered relevant.',
+				fr: "Le plus rapide des trois sur l'ensemble du corpus, et le seul à n'avoir jamais refusé de noter un article qu'il jugeait pertinent."
+			},
+			inlineDescription: {
+				en: ", OpenAI's reasoning model, run at medium reasoning effort for the second annotation campaign.",
+				fr: ", le modèle de raisonnement d'OpenAI, exécuté avec un effort de raisonnement moyen pour la seconde campagne d'annotation."
+			}
+		},
+		{
+			id: 'mistral-small',
+			logo: '/logo/Mistral_AI_logo.svg',
+			logoAlt: 'Mistral logo',
+			cardName: 'Mistral Small 4 (2603)',
+			badgeName: 'Mistral Small 4',
+			docsUrl: 'https://docs.mistral.ai/models',
+			cardDescription: {
+				en: "Mistral's small reasoning model, run at high reasoning effort — the API rejects the lower levels for this model.",
+				fr: "Le petit modèle de raisonnement de Mistral, exécuté avec un effort de raisonnement élevé — l'API refuse les niveaux inférieurs pour ce modèle."
+			},
+			detail: {
+				en: 'Reads centrality more generously than the other two, which is a long-standing property of the Mistral family rather than a quirk of this run.',
+				fr: "Interprète la centralité plus généreusement que les deux autres, une propriété ancienne de la famille Mistral plutôt qu'une particularité de cette exécution."
+			},
+			inlineDescription: {
+				en: ", Mistral's small reasoning model, run at high reasoning effort for the second annotation campaign.",
+				fr: ', le petit modèle de raisonnement de Mistral, exécuté avec un effort de raisonnement élevé pour la seconde campagne.'
+			}
+		},
+		{
+			id: 'deepseek',
+			logo: '/logo/DeepSeek_logo.svg',
+			logoAlt: 'DeepSeek logo',
+			cardName: 'DeepSeek v4 Flash (0731)',
+			badgeName: 'DeepSeek v4 Flash',
+			docsUrl: 'https://api-docs.deepseek.com/',
+			cardDescription: {
+				en: 'An open-weights reasoning model, the only member of the panel not served by its vendor directly.',
+				fr: "Un modèle de raisonnement à poids ouverts, le seul membre du panel qui n'est pas servi directement par son fournisseur."
+			},
+			detail: {
+				en: 'Declined to score subjectivity on 489 articles it otherwise analysed, so subjectivity statistics involving it rest on a slightly smaller sample.',
+				fr: "A refusé de noter la subjectivité sur 489 articles qu'il a par ailleurs analysés : les statistiques de subjectivité le concernant reposent donc sur un échantillon légèrement plus petit."
+			},
+			inlineDescription: {
+				en: ', an open-weights reasoning model, the only member of the panel not served by its vendor directly.',
+				fr: ", un modèle de raisonnement à poids ouverts, le seul membre du panel qui n'est pas servi directement par son fournisseur."
+			}
 		}
 	];
 
+	// Only the generation on screen: the grid describes the panel being shown,
+	// and mixing six cards would imply the six were run under one protocol.
+	const generationModels = $derived(
+		MODELS.filter((model) => generationOf(model.id) === datasetState.generation)
+	);
 	const selectedModel = $derived(MODELS.find((m) => m.id === datasetState.selected));
+
+	// Each generation ran its own prompt text; the modal must show the one that
+	// produced the scores on screen.
+	const activePrompt = $derived(
+		datasetState.generation === 'v2' ? SENTIMENT_ANALYSIS_PROMPT_V2 : SENTIMENT_ANALYSIS_PROMPT
+	);
+
+	function viewArchive() {
+		datasetState.setGeneration(ARCHIVED_GENERATION);
+		updateURL(uiState.activeView, datasetState.isComparisonMode);
+	}
 
 	// Evaluation-scale items (badge class + label + description)
 	const polarityItems: ScaleItem[] = $derived([
@@ -278,7 +356,7 @@
 								: "L'analyse utilise trois grands modèles de langage (LLM) pour fournir des insights comparatifs :"}
 						</p>
 						<div class="model-grid">
-							{#each MODELS as model (model.id)}
+							{#each generationModels as model (model.id)}
 								<div class="model-card">
 									<div class="model-header">
 										<img src="{base}{model.logo}" alt={model.logoAlt} class="model-logo" />
@@ -318,6 +396,18 @@
 								{selectedModel.inlineDescription[$currentLanguage]}
 								<span class="model-detail">{selectedModel.detail[$currentLanguage]}</span>
 							{/if}
+						</p>
+					{/if}
+
+					{#if !datasetState.isArchived}
+						<!-- The only route into the archived analysis. Deliberately a quiet
+						     footnote: the earlier campaign stays citable without competing
+						     with the current one for attention. -->
+						<p class="archive-link-row">
+							<button type="button" class="archive-link" onclick={viewArchive}>
+								{$t.generations.archiveLinkLabel}
+							</button>
+							<span class="archive-link-note">{$t.generations.archiveLinkDescription}</span>
 						</p>
 					{/if}
 				</div>
@@ -439,7 +529,9 @@
 	{/if}
 
 	<div class="prompt-code-container">
-		<pre class="prompt-code">{SENTIMENT_ANALYSIS_PROMPT[$currentLanguage]}</pre>
+		<!-- The prompt was rewritten between generations, so showing the current
+		     text next to archived scores would misattribute them. -->
+		<pre class="prompt-code">{activePrompt[$currentLanguage]}</pre>
 	</div>
 </PromptModal>
 
@@ -530,6 +622,36 @@
 		font-size: var(--font-size-sm);
 		font-style: italic;
 		margin: 0;
+	}
+
+	.archive-link-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: var(--space-2);
+		margin: var(--space-3) 0 0;
+		font-size: var(--font-size-sm);
+	}
+
+	/* A link, not a button box: this is a footnote, not a call to action. */
+	.archive-link {
+		padding: 0;
+		border: 0;
+		background: none;
+		color: var(--text-secondary);
+		font-size: inherit;
+		font-family: inherit;
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+		cursor: pointer;
+	}
+
+	.archive-link:hover {
+		color: var(--text-primary);
+	}
+
+	.archive-link-note {
+		color: var(--text-muted);
 	}
 
 	.config-list {
@@ -665,6 +787,38 @@
 
 	.model-badge.mistral:hover {
 		background: color-mix(in oklab, var(--brand-mistral) 28%, transparent);
+	}
+
+	/* Generation 2. Luna and mistral-small reuse their vendor's badge colour;
+	   the two generations never render together, so there is no ambiguity. */
+	.model-badge.luna {
+		background: color-mix(in oklab, var(--color-primary-500) 18%, transparent);
+		border: 1px solid color-mix(in oklab, var(--color-primary-500) 32%, transparent);
+		color: var(--color-primary-300);
+	}
+
+	.model-badge.luna:hover {
+		background: color-mix(in oklab, var(--color-primary-500) 28%, transparent);
+	}
+
+	.model-badge.mistral-small {
+		background: color-mix(in oklab, var(--brand-mistral) 18%, transparent);
+		border: 1px solid color-mix(in oklab, var(--brand-mistral) 32%, transparent);
+		color: var(--brand-mistral-light);
+	}
+
+	.model-badge.mistral-small:hover {
+		background: color-mix(in oklab, var(--brand-mistral) 28%, transparent);
+	}
+
+	.model-badge.deepseek {
+		background: color-mix(in oklab, var(--brand-deepseek) 18%, transparent);
+		border: 1px solid color-mix(in oklab, var(--brand-deepseek) 32%, transparent);
+		color: var(--brand-deepseek-light);
+	}
+
+	.model-badge.deepseek:hover {
+		background: color-mix(in oklab, var(--brand-deepseek) 28%, transparent);
 	}
 
 	.model-detail {

@@ -7,9 +7,10 @@
 
 	let currentDataset = $derived(datasetState.available.find((d) => d.id === datasetState.selected));
 
-	// Transform datasets to DropdownMenu items
+	// Only the generation on screen. The archived models stay reachable by URL
+	// and through the methodology card's archive link, never by browsing here.
 	let menuItems = $derived(
-		datasetState.available.map((dataset) => ({
+		datasetState.availableInGeneration.map((dataset) => ({
 			id: dataset.id,
 			label: dataset.name,
 			data: {
