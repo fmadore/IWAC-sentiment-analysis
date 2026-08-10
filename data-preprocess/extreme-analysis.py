@@ -2,7 +2,8 @@
 Extreme lexical analysis for the IWAC corpus.
 
 Analyses the subject and spatial keywords associated with sentiment extremes
-in the IWAC corpus. For each model (ChatGPT, Gemini, and Mistral) it produces:
+in the IWAC corpus. For each model of the selected analysis generation it
+produces:
 
 1. The most frequent keywords for each extreme category
 2. The distribution by country and newspaper
@@ -15,6 +16,7 @@ adding a seventh category is a one-line change.
 
 from __future__ import annotations
 
+import argparse
 import os
 from collections import Counter, defaultdict
 from collections.abc import Callable
@@ -22,20 +24,22 @@ from typing import Any, NamedTuple
 
 import pandas as pd
 from shared import (
+    CONTRACT_V1,
     EXTREME_CENTRALITY_MARGINAL,
     EXTREME_CENTRALITY_VERY_CENTRAL,
     EXTREME_POLARITY_VERY_NEGATIVE,
     EXTREME_POLARITY_VERY_POSITIVE,
     EXTREME_SUBJECTIVITY_HIGH,
     EXTREME_SUBJECTIVITY_LOW,
-    MODEL_NAMES,
+    GENERATIONS,
+    SentimentContract,
+    get_contract,
     get_logger,
     get_webapp_data_dir,
     load_iwac_records,
     safe_int_convert,
     safe_save_json,
     safe_str,
-    sentiment_column,
 )
 from tqdm import tqdm
 
@@ -156,7 +160,12 @@ def _new_category_accumulator() -> dict:
     }
 
 
-def analyze_extreme_keywords(records: list[dict], model_id: str, top_n: int = TOP_KEYWORDS) -> dict:
+def analyze_extreme_keywords(
+    records: list[dict],
+    model_id: str,
+    top_n: int = TOP_KEYWORDS,
+    contract: SentimentContract = CONTRACT_V1,
+) -> dict:
     """Analyse keywords associated with sentiment extremes for one model.
 
     Identifies articles with extreme scores (subjectivity, polarity,
@@ -165,10 +174,11 @@ def analyze_extreme_keywords(records: list[dict], model_id: str, top_n: int = TO
 
     Args:
         records: IWAC article rows as plain dicts.
-        model_id: Which model's scores to read ('chatgpt', 'gemini' or
-            'mistral'). Not the dataset column prefix — see
-            ``shared.HF_COLUMN_PREFIXES``.
+        model_id: Which model's scores to read. Not the dataset column prefix
+            — see ``SentimentContract.hf_column_prefixes``.
         top_n: Number of most frequent keywords to keep globally per category.
+        contract: Analysis generation the model id belongs to. It also decides
+            how subjectivity is decoded: v1 stores the 1-5 rank, v2 a label.
 
     Returns:
         dict with the exact structure consumed by the webapp::
@@ -213,9 +223,11 @@ def analyze_extreme_keywords(records: list[dict], model_id: str, top_n: int = TO
         stats["total_articles"] += 1
 
         # Model scores for this article
-        subj_score = safe_int_convert(item.get(sentiment_column(model_id, "subjectivite_score")))
-        polarity = item.get(sentiment_column(model_id, "polarite"))
-        centrality = item.get(sentiment_column(model_id, "centralite_islam_musulmans"))
+        subj_score = contract.coerce_subjectivity(
+            item.get(contract.sentiment_column(model_id, "subjectivite_score"))
+        )
+        polarity = item.get(contract.sentiment_column(model_id, "polarite"))
+        centrality = item.get(contract.sentiment_column(model_id, "centralite_islam_musulmans"))
 
         # Metadata + facets
         country = safe_str(item.get("country"))
@@ -288,22 +300,35 @@ def analyze_extreme_keywords(records: list[dict], model_id: str, top_n: int = TO
     }
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     """Run the extreme lexical analysis for every model and save the results.
 
-    Loads the IWAC dataset from Hugging Face, analyses the extremes for
-    ChatGPT, Gemini, and Mistral, writes one JSON file per model into the
+    Loads the IWAC dataset from Hugging Face, analyses the extremes for each
+    model of the selected generation, writes one JSON file per model into the
     webapp's static/data directory, and logs summary statistics.
     """
-    logger.info("IWAC Extreme Lexical Analysis")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--generation",
+        required=True,
+        choices=GENERATIONS,
+        help="Analysis generation to publish. Required: a v1 run rewrites the frozen "
+        "published files.",
+    )
+    args = parser.parse_args(argv)
+    contract = get_contract(args.generation)
 
-    records = load_iwac_records()
+    logger.info("IWAC Extreme Lexical Analysis (%s)", contract.analysis_version)
+
+    records = load_iwac_records(contract)
     logger.info("Dataset loaded: %d articles", len(records))
 
     all_results = {}
-    for model_id in MODEL_NAMES:
+    for model_id in contract.model_names:
         logger.info("Analyzing %s results...", model_id.upper())
-        all_results[model_id] = analyze_extreme_keywords(records, model_id, top_n=TOP_KEYWORDS)
+        all_results[model_id] = analyze_extreme_keywords(
+            records, model_id, top_n=TOP_KEYWORDS, contract=contract
+        )
 
     output_dir = get_webapp_data_dir()
     for model_id, results in all_results.items():
@@ -323,14 +348,11 @@ def main() -> None:
                 "  %s: %d (%.1f%%)", category.key, count, count / total * 100 if total else 0.0
             )
 
-    logger.info(
-        "Total countries in dataset: %d",
-        len(all_results["chatgpt"]["facets"]["countries"]),
-    )
-    logger.info(
-        "Total newspapers in dataset: %d",
-        len(all_results["chatgpt"]["facets"]["newspapers"]),
-    )
+    # The facets are identical across models; report them from whichever model
+    # the generation happens to list first.
+    facets = next(iter(all_results.values()))["facets"]
+    logger.info("Total countries in dataset: %d", len(facets["countries"]))
+    logger.info("Total newspapers in dataset: %d", len(facets["newspapers"]))
     logger.info("Files created in: %s", output_dir)
 
 
