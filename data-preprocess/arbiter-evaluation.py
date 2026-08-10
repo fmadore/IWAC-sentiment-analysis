@@ -38,6 +38,7 @@ import random
 import time
 from dataclasses import asdict, dataclass
 from datetime import datetime
+from functools import partial
 from pathlib import Path
 from typing import Any, Literal
 
@@ -79,6 +80,22 @@ RATE_LIMIT_INTERVAL = 10  # pause for a second after every N API calls
 
 # Dataset columns every pair evaluation depends on.
 REQUIRED_BASE_COLUMNS = ["o:id", "title", "OCR", "newspaper", "country", "pub_date"]
+
+
+def pair_fingerprint(pair: str):
+    """Bind this run's arbiter model and source revision to one pair's hasher.
+
+    `reconcile_cached_evaluations` takes the hasher as a callable so the
+    pairwise (v1) and three-way (v2) modes can share the reconciliation logic
+    without either one knowing the other's payload shape.
+    """
+    return partial(
+        cache_fingerprint,
+        pair=pair,
+        arbiter_model=ARBITER_MODEL,
+        source_revision=get_source_revision(),
+        max_input_chars=ARBITER_MAX_INPUT_CHARS,
+    )
 
 # ============================================================================
 # Pydantic Models for Structured Output
@@ -553,10 +570,7 @@ def process_pair(
     reconciliation = reconcile_cached_evaluations(
         cached_results,
         significant_articles,
-        pair=pair,
-        arbiter_model=ARBITER_MODEL,
-        source_revision=get_source_revision(),
-        max_input_chars=ARBITER_MAX_INPUT_CHARS,
+        fingerprint=pair_fingerprint(pair),
     )
     arbiter_results = reconciliation.evaluations
     evaluated_ids = reconciliation.evaluated_ids
@@ -841,12 +855,7 @@ def main(
         webapp_file = os.path.join(webapp_data_dir, f"iwac_arbiter_evaluations_{pair}.json")
         cached, _, _ = load_cached_evaluations(webapp_file)
         reconciled = reconcile_cached_evaluations(
-            cached,
-            articles,
-            pair=pair,
-            arbiter_model=ARBITER_MODEL,
-            source_revision=get_source_revision(),
-            max_input_chars=ARBITER_MAX_INPUT_CHARS,
+            cached, articles, fingerprint=pair_fingerprint(pair)
         )
         total_new += len(articles) - len(reconciled.evaluated_ids)
 

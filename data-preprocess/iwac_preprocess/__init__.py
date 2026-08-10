@@ -1,6 +1,11 @@
 """Importable core for the IWAC v1 sentiment preprocessing pipeline."""
 
-from .arbiter_cache import CacheReconciliation, cache_fingerprint, reconcile_cached_evaluations
+from .arbiter_cache import (
+    CacheReconciliation,
+    cache_fingerprint,
+    reconcile_cached_evaluations,
+    three_way_cache_fingerprint,
+)
 from .contract import (
     ANALYSIS_VERSION,
     CENTRALITY_NON_COMPARABLE,
@@ -121,6 +126,7 @@ __all__ = [
     "save_json",
     "sentiment_column",
     "split_pipe_field",
+    "three_way_cache_fingerprint",
     "validate_columns",
     "write_generation_manifest",
 ]

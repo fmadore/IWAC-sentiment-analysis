@@ -347,3 +347,102 @@ export const ARBITER_USER_PROMPT_TEMPLATE = `Evaluate the following article and 
 ---
 
 Provide your independent evaluation for each dimension, determine which model is more accurate, and explain your reasoning.`;
+
+/**
+ * Generation-2 arbiter system instruction, verbatim.
+ *
+ * Unlike the v1 constants above — which are English display translations of a
+ * French prompt — this is the exact string `arbiter-evaluation-v2.py` sends.
+ * A methodology card that paraphrases the prompt is not a methodology card, and
+ * the v2 run is the one a reader is most likely to want to reproduce.
+ */
+export const ARBITER_SYSTEM_INSTRUCTION_V2 = `Vous êtes un arbitre expert évaluant l'analyse de sentiment d'articles de presse sur l'islam et les musulmans en Afrique de l'Ouest francophone.
+
+Votre rôle est de :
+1. Analyser l'article de manière indépendante et fournir votre propre évaluation
+2. Comparer les analyses de trois modèles d'IA (Analyse A, Analyse B et Analyse C)
+3. Déterminer laquelle est la plus précise, ou si plusieurs se valent, ou si aucune n'est juste
+4. Fournir des justifications claires et bien argumentées pour vos décisions
+
+## Référence des échelles d'évaluation :
+
+### Polarité (Sentiment envers l'islam/les musulmans) :
+- **Très positif** : Portrait extrêmement favorable, enthousiaste, élogieux
+- **Positif** : Portrait favorable, optimiste
+- **Neutre** : Pas de sentiment clair ou équilibre entre positif/négatif ; ton factuel
+- **Négatif** : Portrait défavorable, critique, pessimiste
+- **Très négatif** : Portrait extrêmement défavorable, alarmiste, très critique
+- **Non applicable** : L'article ne traite pas de l'islam ou des musulmans
+
+### Subjectivité :
+- **Très objectif** : Rapporte des faits vérifiables sans opinions personnelles, purement informatif
+- **Plutôt objectif** : Principalement factuel, peut contenir de subtiles traces d'opinions
+- **Mixte** : Mélange équilibré de faits et d'opinions, ou présente plusieurs points de vue
+- **Plutôt subjectif** : Exprime clairement des opinions et des jugements
+- **Très subjectif** : Fortement biaisé, opinions intenses avec peu de présentation factuelle
+
+### Centralité :
+- **Très central** : L'islam/les musulmans sont le sujet principal de l'article
+- **Central** : Thème important mais partagé avec d'autres sujets
+- **Secondaire** : Mentionné significativement mais de façon secondaire
+- **Marginal** : Mentionné brièvement ou anecdotiquement
+- **Non abordé** : Aucune mention de l'islam ou des musulmans
+
+## Règles de démarcation :
+- « Non applicable » et « Non abordé » signifient que la tâche ne s'applique pas à l'article, et non qu'elle s'y applique faiblement. N'utilisez ces valeurs que si l'islam et les musulmans sont réellement absents du texte.
+- Une simple mention nominative (un nom propre, une date du calendrier islamique) relève de « Marginal », pas de « Secondaire ».
+- La subjectivité mesure le ton de l'article envers l'islam et les musulmans, pas la subjectivité générale de la prose.
+- La polarité porte sur la représentation de l'islam et des musulmans, pas sur le caractère heureux ou malheureux des faits rapportés.
+
+## Directives :
+- Soyez rigoureux et analytique dans votre évaluation
+- Tenez compte du contexte culturel et régional de l'Afrique de l'Ouest francophone
+- Fournissez des preuves textuelles spécifiques lorsque possible
+- Soyez honnête sur l'incertitude lorsque la réponse correcte est ambiguë
+- Les trois analyses sont anonymisées : jugez-les uniquement sur leur contenu
+- Utilisez la terminologie française pour les scores (comme indiqué ci-dessus)
+- Répondez entièrement en français (justifications, explications et verdicts)
+- Pour \`preferred\` et \`overall_winner\`, utilisez strictement : "a", "b", "c", "multiple" (plusieurs analyses équivalentes) ou "none" (aucune n'est juste)`;
+
+/**
+ * Generation-2 user prompt template, with the runtime values as placeholders.
+ * The three analysis blocks are emitted in permutation order — A, B, C — and
+ * carry no model name, which is what makes the evaluation blind.
+ */
+export const ARBITER_USER_PROMPT_TEMPLATE_V2 = `Évaluez l'article suivant et les trois analyses de modèles.
+
+## Informations sur l'article
+**Titre :** {title}
+
+**Texte intégral :**
+{article_text}
+
+---
+
+## Analyse A :
+- **Polarité (sentiment envers l'islam/les musulmans) :** {a.polarite}
+  - Justification : {a.polarite_justification}
+- **Subjectivité :** {a.subjectivite_label}
+  - Justification : {a.subjectivite_justification}
+- **Centralité de l'islam/des musulmans :** {a.centralite_islam_musulmans}
+  - Justification : {a.centralite_justification}
+
+## Analyse B :
+- **Polarité (sentiment envers l'islam/les musulmans) :** {b.polarite}
+  - Justification : {b.polarite_justification}
+- **Subjectivité :** {b.subjectivite_label}
+  - Justification : {b.subjectivite_justification}
+- **Centralité de l'islam/des musulmans :** {b.centralite_islam_musulmans}
+  - Justification : {b.centralite_justification}
+
+## Analyse C :
+- **Polarité (sentiment envers l'islam/les musulmans) :** {c.polarite}
+  - Justification : {c.polarite_justification}
+- **Subjectivité :** {c.subjectivite_label}
+  - Justification : {c.subjectivite_justification}
+- **Centralité de l'islam/des musulmans :** {c.centralite_islam_musulmans}
+  - Justification : {c.centralite_justification}
+
+---
+
+Fournissez votre évaluation indépendante pour chaque dimension, déterminez quelle analyse est la plus précise et expliquez votre raisonnement.`;
