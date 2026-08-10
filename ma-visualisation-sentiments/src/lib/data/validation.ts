@@ -5,12 +5,14 @@ import type {
 	SubjectivityScore
 } from '$lib/types/data';
 import {
+	generationOf,
 	isCentralityValue,
 	isDatasetId,
 	isModelPair,
 	isPolarityValue,
 	isSubjectivityScore,
 	SENTIMENT_CONTRACT,
+	SENTIMENT_CONTRACTS,
 	type DatasetId,
 	type ModelPair
 } from '$lib/domain/sentimentContract';
@@ -70,12 +72,20 @@ export interface JustificationFile {
 	justifications: Record<string, SentimentJustifications | null>;
 }
 
-function requireV1(root: UnknownRecord, label: string): void {
-	if (root.schema_version !== SENTIMENT_CONTRACT.schemaVersion) {
-		throw new Error(`${label} schema_version must be ${SENTIMENT_CONTRACT.schemaVersion}`);
+/**
+ * Assert a payload declares the contract of the generation its model belongs to.
+ *
+ * The generation is never passed in by a caller — it is derived from the model
+ * id, so a v2 file served under a v1 model's name (or the reverse) is rejected
+ * rather than silently mixed.
+ */
+function requireGeneration(root: UnknownRecord, label: string, model: DatasetId): void {
+	const contract = SENTIMENT_CONTRACTS[generationOf(model)];
+	if (root.schema_version !== contract.schemaVersion) {
+		throw new Error(`${label} schema_version must be ${contract.schemaVersion}`);
 	}
-	if (root.analysis_version !== SENTIMENT_CONTRACT.analysisVersion) {
-		throw new Error(`${label} analysis_version must be ${SENTIMENT_CONTRACT.analysisVersion}`);
+	if (root.analysis_version !== contract.analysisVersion) {
+		throw new Error(`${label} analysis_version must be ${contract.analysisVersion}`);
 	}
 }
 
@@ -125,10 +135,10 @@ function parseScores(value: unknown, id: string): SentimentScores | null {
 
 export function parseSentimentFile(data: unknown, expectedModel: DatasetId): SentimentFile {
 	const root = requireRecord(data, 'Sentiment file');
-	requireV1(root, 'Sentiment file');
 	if (!isDatasetId(root.model) || root.model !== expectedModel) {
 		throw new Error(`Sentiment file model must be ${expectedModel}`);
 	}
+	requireGeneration(root, 'Sentiment file', expectedModel);
 	const raw = requireRecord(root.sentiments, 'Sentiment file sentiments');
 	const sentiments = Object.fromEntries(
 		Object.entries(raw).map(([id, value]) => [id, parseScores(value, id)])
@@ -156,10 +166,10 @@ export function parseJustificationFile(
 	expectedShard?: number
 ): JustificationFile {
 	const root = requireRecord(data, 'Justification file');
-	requireV1(root, 'Justification file');
 	if (!isDatasetId(root.model) || root.model !== expectedModel) {
 		throw new Error(`Justification file model must be ${expectedModel}`);
 	}
+	requireGeneration(root, 'Justification file', expectedModel);
 	if (
 		expectedShard !== undefined &&
 		(root.shard !== expectedShard ||

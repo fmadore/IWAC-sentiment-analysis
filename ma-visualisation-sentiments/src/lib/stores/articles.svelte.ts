@@ -23,6 +23,7 @@ import {
 } from '$lib/data/validation';
 import {
 	JUSTIFICATION_SHARD_COUNT,
+	getPairModels,
 	isDatasetId,
 	justificationShard
 } from '$lib/domain/sentimentContract';
@@ -57,8 +58,10 @@ const _filteredArticlesRune = $derived.by(() => {
 
 /** Available journals based on selected countries */
 const _availableJournalsRune = $derived.by(() => {
+	// In comparison mode the journals must come from the pair actually being
+	// compared, not from a fixed pair of models.
 	const articles = datasetState.isComparisonMode
-		? [...(_datasetArticles['chatgpt'] || []), ...(_datasetArticles['gemini'] || [])]
+		? getPairModels(datasetState.pair).flatMap((id: DatasetId) => _datasetArticles[id] || [])
 		: _datasetArticles[datasetState.selected] || [];
 	return computeAvailableJournals(articles, filterState.countries);
 });
@@ -409,10 +412,18 @@ export const loadJustifications = async (
 export const hasJustifications = (datasetId: DatasetId): boolean =>
 	justificationsLoaded.has(datasetId);
 
-/** Load all available datasets */
+/**
+ * Load every dataset of the active generation.
+ *
+ * Scoped to one generation on purpose: the three-way agreement statistics
+ * compare models within a generation, and loading all six corpora would double
+ * the transfer to answer a question nothing asks.
+ */
 export const loadAllDatasets = async (fetchFunction: typeof fetch): Promise<void> => {
 	await Promise.all(
-		datasetState.available.map((dataset) => loadSpecificDataset(dataset.id, fetchFunction))
+		datasetState.availableInGeneration.map((dataset) =>
+			loadSpecificDataset(dataset.id, fetchFunction)
+		)
 	);
 };
 
@@ -475,7 +486,9 @@ const prefetchOtherDatasets = async (
 	currentDatasetId: DatasetId,
 	fetchFunction: typeof fetch
 ): Promise<void> => {
-	const datasets = datasetState.available;
+	// Only the active generation: the archived models are never compared against
+	// the current ones, so prefetching them would be pure waste.
+	const datasets = datasetState.availableInGeneration;
 	const prefetchQueue: PrefetchTask[] = [];
 
 	// Priority 2: Other main datasets (for comparison mode). Dedup against

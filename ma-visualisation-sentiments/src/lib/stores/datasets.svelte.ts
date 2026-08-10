@@ -2,19 +2,37 @@
  * Dataset State Module
  *
  * Manages dataset configuration and selection state using Svelte 5 runes.
- * Provides both modern $state-based API and legacy store compatibility.
+ *
+ * Two analysis generations are published. v2 is the showcased set; v1 stays
+ * selectable so its URLs and figures keep resolving, but nothing offers it up
+ * except the archive link in the methodology card. The active generation is
+ * *derived* from the selected id rather than stored, so there is no way for a
+ * generation flag and a model id to disagree.
  */
 
-import type { DatasetId, DatasetOption, ModelPair } from '$lib/types/data';
-import { isDatasetId } from '$lib/domain/sentimentContract';
+import type { DatasetId, DatasetOption, GenerationId, ModelPair } from '$lib/types/data';
+import {
+	CURRENT_GENERATION,
+	datasetIdsOf,
+	defaultDatasetOf,
+	defaultPairOf,
+	generationOf,
+	getPairModels,
+	isDatasetId,
+	isModelPair,
+	pairIdsOf
+} from '$lib/domain/sentimentContract';
 
 // ============================================
 // Dataset Configuration (Static)
 // ============================================
 
+// Brand colours are duplicated from app.css on purpose: chart and logo code
+// cannot read CSS custom properties (see the note beside --brand-* there).
 const DATASETS: DatasetOption[] = [
 	{
 		id: 'chatgpt',
+		generation: 'v1',
 		name: 'ChatGPT',
 		file: '/data/iwac_sentiment_chatgpt.json',
 		logo: '/logo/ChatGPT_logo.svg',
@@ -22,6 +40,7 @@ const DATASETS: DatasetOption[] = [
 	},
 	{
 		id: 'gemini',
+		generation: 'v1',
 		name: 'Gemini',
 		file: '/data/iwac_sentiment_gemini.json',
 		logo: '/logo/Gemini_logo.svg',
@@ -29,10 +48,35 @@ const DATASETS: DatasetOption[] = [
 	},
 	{
 		id: 'mistral',
+		generation: 'v1',
 		name: 'Mistral',
 		file: '/data/iwac_sentiment_mistral.json',
 		logo: '/logo/Mistral_AI_logo.svg',
 		color: '#F54E42'
+	},
+	{
+		id: 'luna',
+		generation: 'v2',
+		name: 'GPT-5.6 Luna',
+		file: '/data/iwac_sentiment_luna.json',
+		logo: '/logo/ChatGPT_logo.svg',
+		color: '#10a37f'
+	},
+	{
+		id: 'mistral-small',
+		generation: 'v2',
+		name: 'Mistral Small 4',
+		file: '/data/iwac_sentiment_mistral-small.json',
+		logo: '/logo/Mistral_AI_logo.svg',
+		color: '#F54E42'
+	},
+	{
+		id: 'deepseek',
+		generation: 'v2',
+		name: 'DeepSeek v4 Flash',
+		file: '/data/iwac_sentiment_deepseek.json',
+		logo: '/logo/DeepSeek_logo.svg',
+		color: '#4d6bfe'
 	}
 ];
 
@@ -40,9 +84,9 @@ const DATASETS: DatasetOption[] = [
 // Svelte 5 Runes State
 // ============================================
 
-let _selectedDataset = $state<DatasetId>('chatgpt');
+let _selectedDataset = $state<DatasetId>(defaultDatasetOf(CURRENT_GENERATION));
 let _comparisonMode = $state<boolean>(false);
-let _comparisonPair = $state<ModelPair>('chatgpt-gemini');
+let _comparisonPair = $state<ModelPair>(defaultPairOf(CURRENT_GENERATION));
 
 // ============================================
 // Modern State Accessors (Recommended)
@@ -57,15 +101,40 @@ let _comparisonPair = $state<ModelPair>('chatgpt-gemini');
  * const current = datasetState.selected;
  *
  * // Write state
- * datasetState.selected = 'gemini';
+ * datasetState.selected = 'luna';
  *
  * // Get dataset config
- * const config = datasetState.getById('chatgpt');
+ * const config = datasetState.getById('luna');
  */
 export const datasetState = {
-	// Available datasets (static config; matches the legacy store's type)
+	// Every dataset of every generation. Pickers should use `availableInGeneration`
+	// instead, so the archived models stay out of the way.
 	get available(): DatasetOption[] {
 		return DATASETS;
+	},
+
+	/** The datasets a picker should offer: those of the active generation. */
+	get availableInGeneration(): DatasetOption[] {
+		const ids = datasetIdsOf(this.generation);
+		return DATASETS.filter((dataset) => ids.includes(dataset.id));
+	},
+
+	/** The pair ids a picker should offer, in contract order. */
+	get pairsInGeneration(): readonly ModelPair[] {
+		return pairIdsOf(this.generation);
+	},
+
+	/**
+	 * The generation currently on screen, derived from whichever id is in play.
+	 * Comparison mode is driven by the pair, every other view by the dataset.
+	 */
+	get generation(): GenerationId {
+		return generationOf(_comparisonMode ? _comparisonPair : _selectedDataset);
+	},
+
+	/** True while the archived analysis is being shown. */
+	get isArchived(): boolean {
+		return this.generation !== CURRENT_GENERATION;
 	},
 
 	// Selected dataset. The getter is narrowed to the DatasetId union; the
@@ -83,10 +152,21 @@ export const datasetState = {
 		return _comparisonMode;
 	},
 	set isComparisonMode(value: boolean) {
+		if (value === _comparisonMode) return;
+		// Carry the generation across the mode switch. Without this, entering
+		// comparison from an archived model would silently jump to the current
+		// generation's default pair, and leaving it would jump back.
+		if (value) {
+			if (generationOf(_comparisonPair) !== generationOf(_selectedDataset)) {
+				_comparisonPair = defaultPairOf(generationOf(_selectedDataset));
+			}
+		} else if (generationOf(_selectedDataset) !== generationOf(_comparisonPair)) {
+			_selectedDataset = getPairModels(_comparisonPair)[0];
+		}
 		_comparisonMode = value;
 	},
 	toggleComparisonMode() {
-		_comparisonMode = !_comparisonMode;
+		this.isComparisonMode = !_comparisonMode;
 	},
 
 	// Comparison pair
@@ -94,7 +174,17 @@ export const datasetState = {
 		return _comparisonPair;
 	},
 	set pair(value: ModelPair) {
+		if (!isModelPair(value)) throw new Error(`Unknown model pair: ${value}`);
 		_comparisonPair = value;
+	},
+
+	/**
+	 * Switch the whole dashboard to another generation, keeping the current
+	 * mode. Used by the archive link and by the "back to current" control.
+	 */
+	setGeneration(generation: GenerationId) {
+		_comparisonPair = defaultPairOf(generation);
+		_selectedDataset = defaultDatasetOf(generation);
 	},
 
 	// Utility: Get dataset by ID

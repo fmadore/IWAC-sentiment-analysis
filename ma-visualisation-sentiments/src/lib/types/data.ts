@@ -5,8 +5,10 @@ import {
 	DATASET_IDS,
 	MODEL_PAIR_IDS,
 	POLARITY_ORDER,
+	getPairModels,
 	type CentralityValue,
 	type DatasetId,
+	type GenerationId,
 	type ModelPair,
 	type PolarityValue,
 	type SubjectivityScore
@@ -19,6 +21,7 @@ export {
 	POLARITY_ORDER,
 	type CentralityValue,
 	type DatasetId,
+	type GenerationId,
 	type ModelPair,
 	type PolarityValue,
 	type SubjectivityScore
@@ -142,6 +145,8 @@ export interface PlacesPayload {
 // New types for multi-dataset support
 export interface DatasetOption {
 	id: DatasetId;
+	/** Which analysis generation the model belongs to. Derived from `id`. */
+	generation: GenerationId;
 	name: string;
 	file: string;
 	/** Path to SVG logo (relative to static folder, e.g., '/logo/ChatGPT_logo.svg') */
@@ -151,16 +156,14 @@ export interface DatasetOption {
 	color?: string;
 }
 
-// Helper to get model IDs from a pair
+/**
+ * Helper to get model IDs from a pair.
+ *
+ * Delegates to the contract registry rather than splitting the id: a v2 model
+ * id contains a hyphen, so `mistral-small-deepseek` cannot be parsed positionally.
+ */
 export function getModelsFromPair(pair: ModelPair): [DatasetId, DatasetId] {
-	switch (pair) {
-		case 'chatgpt-gemini':
-			return ['chatgpt', 'gemini'];
-		case 'chatgpt-mistral':
-			return ['chatgpt', 'mistral'];
-		case 'gemini-mistral':
-			return ['gemini', 'mistral'];
-	}
+	return getPairModels(pair);
 }
 
 /**
