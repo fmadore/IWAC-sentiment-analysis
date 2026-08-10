@@ -93,8 +93,7 @@ export const SUBJECTIVITY_LABELS_V2 = Object.freeze(
 
 export const SIGNIFICANT_CONFLICT_THRESHOLD = contractV1.discrepancy.significantDimensionGap;
 export const TOTAL_DISCREPANCY_MAXIMUM = contractV1.discrepancy.maximumTotal;
-export const SIGNIFICANT_SPREAD_THRESHOLD =
-	contractV2.discrepancy.threeWaySpread.significantSpread;
+export const SIGNIFICANT_SPREAD_THRESHOLD = contractV2.discrepancy.threeWaySpread.significantSpread;
 export const JUSTIFICATION_SHARD_COUNT = contractV1.delivery.justificationShards;
 
 export function justificationShard(articleId: string | number): number {

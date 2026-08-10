@@ -7,33 +7,23 @@
 	import { updateURL } from '$lib/stores/url';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 
-	// Available comparison pairs
-	const pairs: { id: ModelPair; label: string }[] = [
-		{ id: 'chatgpt-gemini', label: 'ChatGPT vs Gemini' },
-		{ id: 'chatgpt-mistral', label: 'ChatGPT vs Mistral' },
-		{ id: 'gemini-mistral', label: 'Gemini vs Mistral' }
-	];
+	// The pairs of the generation on screen. Offering both generations' pairs
+	// here would invite a comparison across a prompt rewrite, which is not a
+	// comparison between models.
+	let pairs = $derived(datasetState.pairsInGeneration);
 
-	// Get translated label for a pair
+	/**
+	 * Label a pair from the model names themselves.
+	 *
+	 * This used to be a switch over three hardcoded translation keys that the
+	 * catalogue never defined, so every label fell through to its English
+	 * fallback. Building the label from the registry means a new model is named
+	 * correctly without a new key.
+	 */
 	function getPairLabel(pairId: ModelPair): string {
-		const comparison = $t.comparison;
-		if (!comparison) return pairId;
-		switch (pairId) {
-			case 'chatgpt-gemini':
-				return (
-					(comparison as { pairChatGPTGemini?: string }).pairChatGPTGemini || 'ChatGPT vs Gemini'
-				);
-			case 'chatgpt-mistral':
-				return (
-					(comparison as { pairChatGPTMistral?: string }).pairChatGPTMistral || 'ChatGPT vs Mistral'
-				);
-			case 'gemini-mistral':
-				return (
-					(comparison as { pairGeminiMistral?: string }).pairGeminiMistral || 'Gemini vs Mistral'
-				);
-			default:
-				return pairId;
-		}
+		const [modelAId, modelBId] = getModelsFromPair(pairId);
+		const nameOf = (id: string) => datasetState.getById(id)?.name ?? id;
+		return `${nameOf(modelAId)} ${$t.comparison.versus} ${nameOf(modelBId)}`;
 	}
 
 	let isOpen = $state(false);
@@ -98,13 +88,13 @@
 
 	{#if isOpen}
 		<div class="dropdown-menu" role="listbox">
-			{#each pairs as pair (pair.id)}
-				{@const [logoA, logoB] = getLogosForPair(pair.id, datasetState.available)}
+			{#each pairs as pairId (pairId)}
+				{@const [logoA, logoB] = getLogosForPair(pairId, datasetState.available)}
 				<button
-					class="dropdown-item {datasetState.pair === pair.id ? 'selected' : ''}"
+					class="dropdown-item {datasetState.pair === pairId ? 'selected' : ''}"
 					role="option"
-					aria-selected={datasetState.pair === pair.id}
-					onclick={() => selectPair(pair.id)}
+					aria-selected={datasetState.pair === pairId}
+					onclick={() => selectPair(pairId)}
 				>
 					<!-- No "vs" between the logos here: the pair label beside them already
 					     reads "ChatGPT vs Gemini". It used to be set at 8px to fit, which
@@ -118,7 +108,7 @@
 							<img src="{base}{logoB}" alt="" class="pair-logo-sm" />
 						{/if}
 					</div>
-					<span class="pair-label">{getPairLabel(pair.id)}</span>
+					<span class="pair-label">{getPairLabel(pairId)}</span>
 				</button>
 			{/each}
 		</div>

@@ -12,6 +12,7 @@ export { default as FullScreenModal } from './FullScreenModal.svelte';
 export { default as ArbiterArticleDetailModal } from './ArbiterArticleDetailModal.svelte';
 
 // Layout & Containers
+export { default as ArchiveNotice } from './ArchiveNotice.svelte';
 export { default as Drawer } from './Drawer.svelte';
 export { default as AccordionItem } from './AccordionItem.svelte';
 export { default as FilterCard } from './FilterCard.svelte';

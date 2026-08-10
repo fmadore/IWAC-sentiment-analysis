@@ -25,7 +25,7 @@
 	import ArbiterMethodology from '$lib/components/data-display/ArbiterMethodology.svelte';
 
 	// Common
-	import { ArticleDetailModal, LoadingState } from '$lib/components/common';
+	import { ArchiveNotice, ArticleDetailModal, LoadingState } from '$lib/components/common';
 
 	// Utilities
 	import SEOHead from '$lib/components/SEOHead.svelte';
@@ -233,6 +233,9 @@
 <SEOHead view={currentView} comparisonMode={isComparisonMode} />
 
 <section class="main-container" data-layout={hasFilterRail(currentView) ? 'rail' : 'full'}>
+	<!-- Renders nothing unless the archived generation is on screen. -->
+	<ArchiveNotice />
+
 	{#if currentView === 'arbiter'}
 		<ArbiterMethodology />
 	{:else}

@@ -189,7 +189,16 @@ export function aggregateByCountryAndYear(articles: Article[]): CountryYearAggre
 	return { countryYearCounts, countries, years, articlesAnalyzed };
 }
 
-/** Numeric subjectivity score (1-5) to the French label used in the data. */
+/**
+ * Numeric subjectivity score (1-5) to the internal series key.
+ *
+ * These strings are join keys, not display text: the charts pair them
+ * positionally with the translated labels from `getSentimentLabels`, and the
+ * colour maps are keyed on them. They are therefore generation-independent —
+ * both generations store the same 1-5 rank (v2 labels are mapped to it by the
+ * pipeline), and both render the same translated wording. Renaming them would
+ * mean re-keying every chart's colour lookup for no visible gain.
+ */
 export function getSubjectivityLabel(score: number | null | undefined): string {
 	switch (score) {
 		case 1:

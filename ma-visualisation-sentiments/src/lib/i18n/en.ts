@@ -188,7 +188,7 @@ export const en = {
 			"Fleiss' kappa across all three models at once, over articles every model analysed.",
 		threeWayTitle: 'All three models',
 		threeWayLede:
-			'Agreement across ChatGPT, Gemini and Mistral simultaneously, per dimension. Only articles all three analysed are counted.',
+			'Agreement across all three models of the selected analysis simultaneously, per dimension. Only articles all three analysed are counted.',
 		matrixTitle: 'Agreement matrix',
 		rowsAre: 'Rows:',
 		columnsAre: 'Columns:',
@@ -330,7 +330,7 @@ export const en = {
 		methodologyCorpusArticles: 'articles from the',
 		methodologyCorpusDeveloper: ', a collaborative and open-access digital database developed by',
 		methodologyCorpusEnd:
-			", was analyzed using three LLMs: OpenAI's GPT-5 mini, Google's Gemini 3 Flash, and Mistral's Ministral 3 14B. Each article was evaluated according to three complementary dimensions:",
+			", was analyzed using three LLMs: OpenAI's GPT-5.6 Luna, Mistral Small 4 and DeepSeek v4 Flash. Each article was evaluated according to three complementary dimensions:",
 		methodology:
 			'This visualization presents an automated sentiment analysis concerning the representation of Islam and Muslims in the Francophone West African press. The analyzed articles come from the',
 		methodologyAiModel: 'Methodology and AI model',
@@ -453,6 +453,18 @@ export const en = {
 		compareModels: 'Compare Models'
 	},
 
+	// Analysis generations (current v2 panel vs archived v1 panel)
+	generations: {
+		archivedLabel: 'Archived analysis',
+		archivedTitle: 'You are viewing the archived 2026 analysis (v1).',
+		archivedDescription:
+			'GPT-5 mini, Gemini 3 Flash preview and Ministral 14B, scored under the first prompt. Kept online so published figures and citations stay reproducible.',
+		backToCurrent: 'Back to the current analysis',
+		archiveLinkLabel: 'View the archived v1 analysis',
+		archiveLinkDescription:
+			'The first campaign (GPT-5 mini, Gemini 3 Flash preview, Ministral 14B) remains available, including its pairwise arbiter.'
+	},
+
 	// Comparison
 	comparison: {
 		byDecade: 'Decade',
@@ -500,11 +512,10 @@ export const en = {
 		centralityExplanation: 'How central Islam/Muslims are to the article',
 		dimensionsNote:
 			'Tip: Select only one dimension to focus your analysis on specific types of disagreements. Discrepancy scores will be recalculated based on your selection.',
-		// Model pair picker
+		// Model pair picker. Pair labels are built from the model names in the
+		// contract registry, so only the joining word is translated.
 		selectModelPair: 'Select models to compare',
-		chatgptVsGemini: 'ChatGPT vs Gemini',
-		chatgptVsMistral: 'ChatGPT vs Mistral',
-		geminiVsMistral: 'Gemini vs Mistral',
+		versus: 'vs',
 		modelALabel: 'Model A',
 		modelBLabel: 'Model B'
 	},
@@ -685,15 +696,15 @@ export const en = {
 		siteTitle: 'IWAC Sentiment Analysis',
 		comparisonTitle: 'AI Model Comparison',
 		comparisonDescription:
-			'Compare sentiment analysis results between the ChatGPT, Gemini, and Mistral models on the Islam West Africa Collection. Analyze differences in AI interpretation of media coverage.',
+			'Compare sentiment analysis results between the GPT-5.6 Luna, Mistral Small 4 and DeepSeek v4 Flash models on the Islam West Africa Collection. Analyze differences in AI interpretation of media coverage.',
 		comparisonKeywords:
-			'AI comparison, ChatGPT vs Gemini vs Mistral, model comparison, sentiment analysis, IWAC, AI evaluation',
+			'AI comparison, GPT-5.6 Luna vs Mistral Small 4 vs DeepSeek, model comparison, sentiment analysis, IWAC, AI evaluation',
 		viewDescriptionPrefix: 'Explore ',
 		viewDescriptionSuffix:
 			' from sentiment analysis of the Islam West Africa Collection. Interactive visualization of media coverage analysis using advanced AI models.',
 		baseKeywords: 'sentiment analysis, IWAC, Islam West Africa, data visualization',
 		ogImageAlt:
-			'IWAC Sentiment Analysis — polarity distributions from GPT-5 mini, Gemini 3 Flash and Ministral 3 14B across 12,287 francophone West African press articles',
+			'IWAC Sentiment Analysis — polarity distributions from GPT-5.6 Luna, Mistral Small 4 and DeepSeek v4 Flash across 12,305 francophone West African press articles',
 		views: {
 			charts: {
 				title: 'Charts & Distributions',

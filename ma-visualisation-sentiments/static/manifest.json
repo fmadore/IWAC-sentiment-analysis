@@ -32,10 +32,10 @@
 	],
 	"shortcuts": [
 		{
-			"name": "ChatGPT Analysis",
-			"short_name": "ChatGPT",
-			"description": "View ChatGPT sentiment analysis results",
-			"url": "./?dataset=chatgpt",
+			"name": "GPT-5.6 Luna Analysis",
+			"short_name": "Luna",
+			"description": "View the GPT-5.6 Luna sentiment analysis results",
+			"url": "./?dataset=luna",
 			"icons": [
 				{
 					"src": "./icons/icon-192x192.png",
@@ -44,10 +44,10 @@
 			]
 		},
 		{
-			"name": "Gemini Analysis",
-			"short_name": "Gemini",
-			"description": "View Gemini sentiment analysis results",
-			"url": "./?dataset=gemini",
+			"name": "Mistral Small 4 Analysis",
+			"short_name": "Mistral Small",
+			"description": "View the Mistral Small 4 sentiment analysis results",
+			"url": "./?dataset=mistral-small",
 			"icons": [
 				{
 					"src": "./icons/icon-192x192.png",
@@ -56,10 +56,10 @@
 			]
 		},
 		{
-			"name": "Mistral Analysis",
-			"short_name": "Mistral",
-			"description": "View Mistral sentiment analysis results",
-			"url": "./?dataset=mistral",
+			"name": "DeepSeek v4 Flash Analysis",
+			"short_name": "DeepSeek",
+			"description": "View the DeepSeek v4 Flash sentiment analysis results",
+			"url": "./?dataset=deepseek",
 			"icons": [
 				{
 					"src": "./icons/icon-192x192.png",
