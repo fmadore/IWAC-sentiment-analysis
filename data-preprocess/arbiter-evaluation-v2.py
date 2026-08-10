@@ -24,10 +24,20 @@ What differs from `arbiter-evaluation.py`, and why:
 * **`--dry-run` prints the eligible/selected counts and a cost estimate and
   exits without making a single API call.** The paid run is deliberately gated.
 
+**Which disagreements are worth paying for.** On the current corpus the
+contract rule (any dimension >= 3) selects 1,449 of 12,356 articles, and 1,223
+of those are triggered by *subjectivity* alone — the dimension the models argue
+about most and the one where "who is right" is least well defined. Polarity, the
+dimension the research question actually turns on, triggers only 89. So
+`--dimensions` and `--threshold` narrow the rule; they can only ever tighten it,
+because the repo's validator recomputes eligibility from the contract.
+
 Usage:
   python arbiter-evaluation-v2.py --dry-run            # counts + cost, no spend
-  python arbiter-evaluation-v2.py --limit 200 --dry-run
-  python arbiter-evaluation-v2.py --limit 200 --yes    # the paid run
+  python arbiter-evaluation-v2.py --dimensions polarity --dry-run
+  python arbiter-evaluation-v2.py --dimensions polarity --yes      # ~90 articles
+  python arbiter-evaluation-v2.py --threshold 4 --yes              # ~165 articles
+  python arbiter-evaluation-v2.py --limit 200 --yes
   python arbiter-evaluation-v2.py --prune-cache-only   # reconcile, no spend
 
 Requires ANTHROPIC_API_KEY for a paid run and HF_TOKEN for the private mirror.
@@ -38,6 +48,7 @@ import argparse
 import json
 import os
 import random
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from functools import partial
@@ -100,6 +111,15 @@ REQUIRED_BASE_COLUMNS = ["o:id", "title", "newspaper", "country", "pub_date"]
 # The anonymised labels the three models are presented under.
 BLIND_LABELS = ("a", "b", "c")
 PREFERENCE_VALUES = (*BLIND_LABELS, "multiple", "none")
+
+# Which dimensions may *trigger* selection, and where each one's spread lives.
+# All three by default, matching the contract rule the validator enforces.
+SPREAD_KEYS = {
+    "polarity": "polarity_spread",
+    "subjectivity": "subjectivity_spread",
+    "centrality": "centrality_spread",
+}
+DIMENSIONS = tuple(SPREAD_KEYS)
 
 MODEL_IDS = list(CONTRACT.model_names)
 # rank -> upstream ordinal label. v2 stores subjectivity as the shared 1-5 rank
@@ -176,9 +196,7 @@ def _assert_schema_matches_contract(contract: SentimentContract) -> None:
     declared = {
         "polarity": set(get_args(PolarityVerdict.model_fields["arbiter_score"].annotation)),
         "centrality": set(get_args(CentralityVerdict.model_fields["arbiter_score"].annotation)),
-        "subjectivity": set(
-            get_args(SubjectivityVerdict.model_fields["arbiter_score"].annotation)
-        ),
+        "subjectivity": set(get_args(SubjectivityVerdict.model_fields["arbiter_score"].annotation)),
     }
     for dimension, values in expected.items():
         # Centrality's "Non applicable" is a v1 legacy key the arbiter is never
@@ -278,7 +296,9 @@ Votre rôle est de :
 def format_analysis(label: str, analysis: dict, contract: SentimentContract) -> str:
     """Render one anonymised analysis block for the user prompt."""
     rank = analysis.get("subjectivite_score")
-    subjectivity = SUBJECTIVITY_LABELS.get(rank, "Non renseigné") if rank is not None else "Non renseigné"
+    subjectivity = (
+        SUBJECTIVITY_LABELS.get(rank, "Non renseigné") if rank is not None else "Non renseigné"
+    )
     return f"""## Analyse {label.upper()} :
 - **Polarité (sentiment envers l'islam/les musulmans) :** {analysis.get("polarite") or "N/A"}
   - Justification : {analysis.get("polarite_justification") or "N/A"}
@@ -324,6 +344,26 @@ Fournissez votre évaluation indépendante pour chaque dimension, déterminez qu
 # ============================================================================
 
 
+def resolve_threshold(threshold: int | None, contract: SentimentContract = CONTRACT) -> int:
+    """Validate a threshold override, defaulting to the contract's.
+
+    A *lower* threshold is rejected rather than clamped. `validate_arbiter_three_way`
+    recomputes eligibility from the contract rule and requires the published ids
+    to be a subset of it, so a looser run would write a file the repo's own
+    validator rejects — days after the money was spent.
+    """
+    floor = contract.significant_spread_threshold
+    if threshold is None:
+        return floor
+    if threshold < floor:
+        raise SystemExit(
+            f"--threshold {threshold} is looser than the {contract.analysis_version} contract's "
+            f"significant spread ({floor}). The published file would fail validate_generated_data. "
+            "Selection can only be tightened here; loosening it is a contract change."
+        )
+    return threshold
+
+
 def load_dataset_records(contract: SentimentContract = CONTRACT) -> list[dict]:
     """Load the public projection and validate the columns selection needs."""
     df = load_iwac_dataset(contract)
@@ -332,16 +372,36 @@ def load_dataset_records(contract: SentimentContract = CONTRACT) -> list[dict]:
     return df.to_dict("records")
 
 
+def qualifies(spread: dict, dimensions: Sequence[str], threshold: int) -> bool:
+    """Whether one article's spread trips the configured selection rule.
+
+    Separate from `calculate_three_way_spread` on purpose: the stored `spread`
+    dict — and therefore the cache fingerprint — is the same whatever rule
+    selected the row, so narrowing the rule prunes articles instead of
+    invalidating the ones that survive.
+    """
+    return any(spread[SPREAD_KEYS[dimension]] >= threshold for dimension in dimensions)
+
+
 def find_three_way_conflicts(
-    records: list[dict], contract: SentimentContract = CONTRACT
+    records: list[dict],
+    contract: SentimentContract = CONTRACT,
+    *,
+    dimensions: Sequence[str] = DIMENSIONS,
+    threshold: int | None = None,
 ) -> list[dict]:
     """Select every article where the three models disagree significantly.
 
     Comparability is the contract's: one non-comparable polarity or centrality
     excludes the row, because the models are then disagreeing about whether the
     task applies rather than about the answer.
+
+    `dimensions` and `threshold` narrow *which* disagreements are worth paying
+    to arbitrate. They can only ever tighten the contract rule — see
+    `resolve_threshold`.
     """
     model_ids = list(contract.model_names)
+    threshold = resolve_threshold(threshold, contract)
     selected: list[dict] = []
 
     for item in tqdm(records, total=len(records), desc="Finding three-way conflicts"):
@@ -349,7 +409,7 @@ def find_three_way_conflicts(
             model_id: build_model_sentiment(item, model_id, contract) for model_id in model_ids
         }
         spread = calculate_three_way_spread([analyses[m] for m in model_ids], contract)
-        if not spread or not spread["has_significant_spread"]:
+        if not spread or not qualifies(spread, dimensions, threshold):
             continue
         selected.append(
             {
@@ -694,7 +754,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         epilog="""
 Examples:
   python arbiter-evaluation-v2.py --dry-run
-  python arbiter-evaluation-v2.py --limit 200 --dry-run
+  python arbiter-evaluation-v2.py --dimensions polarity --dry-run
+  python arbiter-evaluation-v2.py --dimensions polarity --yes
+  python arbiter-evaluation-v2.py --threshold 4 --yes
   python arbiter-evaluation-v2.py --limit 200 --yes
   python arbiter-evaluation-v2.py --prune-cache-only
 """,
@@ -705,6 +767,23 @@ Examples:
         default=None,
         help="Evaluate at most N articles, the widest disagreements first "
         "(ties broken by article id).",
+    )
+    parser.add_argument(
+        "--dimensions",
+        nargs="+",
+        choices=DIMENSIONS,
+        default=list(DIMENSIONS),
+        metavar="DIM",
+        help="Which dimensions may trigger selection (default: all three). "
+        "Subjectivity disagreement dominates the corpus, so restricting to "
+        "polarity is the difference between ~1,450 articles and ~90.",
+    )
+    parser.add_argument(
+        "--threshold",
+        type=int,
+        default=None,
+        help="Minimum spread on a triggering dimension (default: the contract's "
+        "significant spread). Can only be raised, never lowered.",
     )
     parser.add_argument(
         "--effort",
@@ -756,12 +835,19 @@ def main(argv: list[str] | None = None) -> int:
         logger.error("Failed to load dataset: %s", error)
         return 2
 
-    eligible = find_three_way_conflicts(records)
+    try:
+        threshold = resolve_threshold(args.threshold)
+    except SystemExit as error:
+        logger.error("%s", error)
+        return 2
+
+    eligible = find_three_way_conflicts(records, dimensions=args.dimensions, threshold=threshold)
     logger.info(
-        "%d of %d articles have a three-way spread >= %d on some dimension",
+        "%d of %d articles have a three-way spread >= %d on %s",
         len(eligible),
         len(records),
-        CONTRACT.significant_spread_threshold,
+        threshold,
+        " / ".join(args.dimensions),
     )
 
     try:
@@ -814,7 +900,11 @@ def main(argv: list[str] | None = None) -> int:
     ]
     selection = {
         "rule": CONTRACT.contract["discrepancy"]["threeWaySpread"]["rule"],
-        "threshold": CONTRACT.significant_spread_threshold,
+        # What this run actually selected on, which may be tighter than the
+        # contract rule above. A reader of the published file needs both.
+        "dimensions": list(args.dimensions),
+        "threshold": threshold,
+        "contract_threshold": CONTRACT.significant_spread_threshold,
         "limit": args.limit,
         "eligible_articles": len(eligible),
         "selected_articles": len(selected),

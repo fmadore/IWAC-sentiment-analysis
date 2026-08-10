@@ -97,6 +97,7 @@ def pair_fingerprint(pair: str):
         max_input_chars=ARBITER_MAX_INPUT_CHARS,
     )
 
+
 # ============================================================================
 # Pydantic Models for Structured Output
 # ============================================================================

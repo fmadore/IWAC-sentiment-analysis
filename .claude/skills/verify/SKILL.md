@@ -60,12 +60,24 @@ variant is the usual culprit, because compression runs before stamping.
 
 ## Python
 
-Only the pure helpers are covered; nothing here touches the network or API keys.
+The `Python / generated data` job runs **three** gates, and the formatter is the
+one that gets missed — `pytest` passing says nothing about it. Run all three,
+from the repo root, before pushing anything under `data-preprocess/`:
 
 ```bash
-python -m pytest data-preprocess/test_shared.py -q
-python -m py_compile data-preprocess/<changed>.py
+ruff check data-preprocess && ruff format --check data-preprocess && python -m pytest data-preprocess -q
 ```
+
+`ruff` is in `requirements-dev.txt`, not `requirements.txt`, so a venv set up for
+running the pipeline will not have it — `python -m pip install -r
+data-preprocess/requirements-dev.txt` first. Use `ruff format data-preprocess`
+(no `--check`) to fix; the diff is always cosmetic.
+
+Note `pytest data-preprocess` runs the **whole** directory in CI, including
+`test_generated_data.py`, which validates every checked-in JSON asset. Running
+one test file locally is not the same check.
+
+Nothing here touches the network or API keys.
 
 ## Known lint trap
 

@@ -125,6 +125,75 @@ def test_selection_carries_the_analyses_and_spread_the_fingerprint_hashes():
 
 
 # ---------------------------------------------------------------------------
+# --dimensions / --threshold
+# ---------------------------------------------------------------------------
+
+
+def subjectivity_only_conflict(article_id: int) -> dict:
+    """Models agree on polarity and centrality, disagree only on subjectivity."""
+    return record(
+        article_id,
+        {
+            MODEL_IDS[0]: ("Neutre", "Très objectif", "Central"),
+            MODEL_IDS[1]: ("Neutre", "Très subjectif", "Central"),
+            MODEL_IDS[2]: ("Neutre", "Mixte", "Central"),
+        },
+    )
+
+
+def polarity_conflict(article_id: int) -> dict:
+    return record(article_id, spread_of(["Positif", "Neutre", "Très négatif"]))
+
+
+def test_dimensions_narrows_which_disagreements_are_worth_arbitrating():
+    """Subjectivity dominates the corpus; polarity is the substantive question."""
+    records = [subjectivity_only_conflict(1), polarity_conflict(2)]
+
+    everything = arbiter.find_three_way_conflicts(records)
+    assert {str(a["o:id"]) for a in everything} == {"1", "2"}
+
+    polarity_only = arbiter.find_three_way_conflicts(records, dimensions=["polarity"])
+    assert {str(a["o:id"]) for a in polarity_only} == {"2"}
+
+    subjectivity_only = arbiter.find_three_way_conflicts(records, dimensions=["subjectivity"])
+    assert {str(a["o:id"]) for a in subjectivity_only} == {"1"}
+
+
+def test_a_narrowed_rule_does_not_change_the_stored_spread():
+    """So narrowing prunes rows instead of invalidating the survivors' cache."""
+    wide = arbiter.find_three_way_conflicts([polarity_conflict(1)])[0]
+    narrow = arbiter.find_three_way_conflicts([polarity_conflict(1)], dimensions=["polarity"])[0]
+    assert wide["spread"] == narrow["spread"]
+
+    options = {
+        "arbiter_model": "claude-opus-5",
+        "source_revision": "r1",
+        "text_revision": "r2",
+        "max_input_chars": arbiter.ARBITER_MAX_INPUT_CHARS,
+        "contract": CONTRACT_V2,
+    }
+    assert arbiter.three_way_cache_fingerprint(
+        {**wide, "OCR": "t"}, **options
+    ) == arbiter.three_way_cache_fingerprint({**narrow, "OCR": "t"}, **options)
+
+
+def test_threshold_can_be_raised():
+    # Positif (4) .. Très négatif (1) is a spread of exactly 3, so a threshold
+    # of 4 must drop it.
+    records = [polarity_conflict(1)]
+    assert len(arbiter.find_three_way_conflicts(records, threshold=3)) == 1
+    assert arbiter.find_three_way_conflicts(records, threshold=4) == []
+
+
+def test_threshold_cannot_be_lowered_below_the_contract():
+    """A looser run would write a file validate_generated_data rejects."""
+    with pytest.raises(SystemExit, match="looser than"):
+        arbiter.resolve_threshold(2)
+    assert arbiter.resolve_threshold(None) == CONTRACT_V2.significant_spread_threshold
+    assert arbiter.resolve_threshold(4) == 4
+
+
+# ---------------------------------------------------------------------------
 # --limit
 # ---------------------------------------------------------------------------
 
@@ -400,12 +469,21 @@ def test_dry_run_honours_the_limit(stub_pipeline, caplog):
     assert "1 selected" in caplog.text
 
 
+def test_dry_run_honours_the_dimension_filter(stub_pipeline, caplog):
+    """Both stub articles disagree on polarity only, so subjectivity selects none."""
+    with caplog.at_level("INFO"):
+        assert arbiter.main(["--dry-run", "--dimensions", "subjectivity"]) == 0
+    assert "0 selected" in caplog.text
+
+
+def test_a_threshold_below_the_contract_exits_nonzero_before_spending(stub_pipeline):
+    assert arbiter.main(["--dry-run", "--threshold", "1"]) == 2
+
+
 def test_prune_cache_only_publishes_the_envelope_the_validator_expects(stub_pipeline):
     assert arbiter.main(["--prune-cache-only"]) == 0
 
-    payload = json.loads(
-        (stub_pipeline / arbiter.OUTPUT_FILENAME).read_text(encoding="utf-8")
-    )
+    payload = json.loads((stub_pipeline / arbiter.OUTPUT_FILENAME).read_text(encoding="utf-8"))
     metadata = payload["metadata"]
     assert payload["evaluations"] == []
     assert metadata["successful_evaluations"] == 0
@@ -417,6 +495,10 @@ def test_prune_cache_only_publishes_the_envelope_the_validator_expects(stub_pipe
     assert sorted(metadata["blind_permutation"].values()) == sorted(MODEL_IDS)
     assert set(metadata["blind_permutation"]) == set(arbiter.BLIND_LABELS)
     assert metadata["selection"]["eligible_articles"] == 2
+    # The published file has to document the rule this run actually used, not
+    # just the contract's.
+    assert metadata["selection"]["dimensions"] == list(arbiter.DIMENSIONS)
+    assert metadata["selection"]["threshold"] == CONTRACT_V2.significant_spread_threshold
     assert metadata["source"]["scores"]["repository"] == arbiter.HF_REPO_ID
     assert metadata["source"]["text"]["repository"] == arbiter.HF_FULL_REPO_ID
     # No OCR is ever serialised — the mirror's text stays private.
