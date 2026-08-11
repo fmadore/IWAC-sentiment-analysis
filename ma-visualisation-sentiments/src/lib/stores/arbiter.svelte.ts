@@ -1,13 +1,15 @@
 /**
  * Arbiter State Module
  *
- * Manages arbiter (Gemini 3 Pro) evaluation state.
+ * Manages the **generation-1** pairwise arbiter (Gemini 3 Pro) evaluation state.
+ * Generation 2 arbitrates all three models at once and lives in `arbiterV2`.
  * Uses Svelte 5 runes for reactivity.
  */
 
 import type { ArbiterEvaluationData, ArbiterAnalysis, ModelPair } from '$lib/types/data';
 import { getPairModelNames } from '$lib/types/data';
 import { parseArbiterEvaluationData } from '$lib/data/validation';
+import { generationOf } from '$lib/domain/sentimentContract';
 import { base } from '$app/paths';
 // Import the leaf stores directly — importing from './index' would create a
 // cycle (the barrel re-exports this module). Same convention as url/*.
@@ -289,6 +291,16 @@ export const loadArbiterEvaluations = async (
 	pair?: ModelPair
 ): Promise<void> => {
 	const targetPair: ModelPair = pair || datasetState.pair;
+
+	// Only generation 1 has a per-pair arbiter file. A v2 pair would build a
+	// filename that cannot exist (`iwac_arbiter_evaluations_luna-mistral-small.json`)
+	// and 404 on every comparison mount and every pair switch. The v2 arbiter is
+	// three-way and is loaded by `arbiterV2` from a single file.
+	if (generationOf(targetPair) !== 'v1') {
+		_arbiterEvaluations = null;
+		_currentArbiterPair = targetPair;
+		return;
+	}
 
 	if (arbiterCache.has(targetPair)) {
 		_arbiterEvaluations = arbiterCache.get(targetPair) ?? null;

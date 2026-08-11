@@ -3,14 +3,17 @@
 Working document for the two-generation migration. **Delete it once #129 closes**
 — the repo does not keep completed tracking docs.
 
-**Status:** Phases A and B are implemented, verified and merged into this branch.
-Phases C and D remain.
+**Status:** Phases A, B and C are implemented, verified and merged to `main`.
+Phase D is partly done. **The one substantive thing left is the paid arbiter
+run** — the script and the view are shipped, but nobody has spent yet, so
+`iwac_arbiter_evaluations_v2.json` does not exist and the v2 arbiter view shows
+its empty state by design.
 
-|              |                                                                                                |
-| ------------ | ---------------------------------------------------------------------------------------------- |
-| Issue        | [#129](https://github.com/fmadore/IWAC-sentiment-analysis/issues/129)                          |
-| Pull request | [#137](https://github.com/fmadore/IWAC-sentiment-analysis/pull/137)                            |
-| Commits      | `3e7d3d6` data pipeline · `affa34b` generation derivation · `d796c3c` v2 showcase + v1 archive |
+|               |                                                                                                                                                                                       |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Issue         | [#129](https://github.com/fmadore/IWAC-sentiment-analysis/issues/129)                                                                                                                 |
+| Pull requests | [#137](https://github.com/fmadore/IWAC-sentiment-analysis/pull/137) (A + B) · [#138](https://github.com/fmadore/IWAC-sentiment-analysis/pull/138) (C)                                 |
+| Commits       | `3e7d3d6` data pipeline · `affa34b` generation derivation · `d796c3c` v2 showcase + v1 archive · `c1cd952` three-way arbiter · `9004905` arbiter view · `4f46892` dimension selection |
 
 ---
 
@@ -43,7 +46,8 @@ model change with prompt change; say so when reporting one.
   code paths (kappa weighting, correlation, map scales, filters, sorting, CSV).
 - **Arbiter** — three-way simultaneous with `claude-opus-5`, replacing v1's
   pairwise Gemini 3 Pro runs. Selection is any dimension with a 3-way spread ≥ 3,
-  with a `--limit N` cap and a `--dry-run` cost gate.
+  with a `--limit N` cap and a `--dry-run` cost gate. (Phase C also added
+  `--dimensions` and `--threshold`, which can only tighten this — see below.)
 
 ## Invariants worth guarding
 
@@ -108,82 +112,65 @@ hyphenated v2 pair resolves.
 
 ---
 
-## Todo — Phase C: the three-way arbiter
+## Done — Phase C: the three-way arbiter
 
-Until this lands, the arbiter view under v2 shows an honest "no arbiter data
-available" state and `ArbiterMethodology` still names Gemini 3 Pro.
+Shipped as planned, in `data-preprocess/arbiter-evaluation-v2.py` (the v1 script
+is untouched), `ArbiterV2View` / `ArbiterV2StatsCards` / `ArbiterV2Methodology` /
+`ArbiterCoverage`, and the `arbiterV2` leaf store, selected by generation in
+`ViewContent.svelte`. `arbiter_cache.py` was generalised to take a contract plus
+extra payload, with the v1 fingerprint pinned by a regression test.
 
-### `data-preprocess/arbiter-evaluation-v2.py` (leave the v1 script alone)
+Two things landed differently from the plan:
 
-- **Selection** — public-repo dataset plus `CONTRACT_V2` through
-  `calculate_three_way_spread`; eligible rows are those with a significant
-  spread. `--limit N` keeps the top N by `total_spread`, tie-broken by article id
-  so the choice is deterministic. `--dry-run` prints the eligible and selected
-  counts plus a cost estimate and exits without an API call.
-- **Article text from the private mirror.** The public projection masks `OCR`
-  per row, so roughly two fifths of the articles v1 arbitrated were judged on an
-  empty string. v2 reads `load_iwac_full_text()` (needs `HF_TOKEN`) and records
-  **both** revisions — public scores and private text — in the metadata and the
-  cache fingerprint. Only verdicts and justifications are published; no OCR is
-  serialised.
-- **Blind assignment** — one global random permutation of the three ids onto
-  labels a/b/c, persisted as `blind_permutation` and reused on incremental runs.
-  This is the analogue of v1's `model_a_is_first`, which must round-trip.
-- **Anthropic** — add `anthropic` to `requirements.txt`, checking the current
-  version on PyPI at implementation time. Use
-  `client.messages.parse(model="claude-opus-5", …, output_format=ArbiterResponseV2)`.
-  Pass **no temperature**: sampling parameters are rejected on Opus 5. Thinking
-  is on by default and counts against `max_tokens`, so leave headroom
-  (16000 is safe non-streaming). A refusal `stop_reason` is a failure, not a
-  retry; a Pydantic `ValidationError` is deterministic and must not be retried
-  either. Re-check the structured-output API against the `claude-api` skill.
-- **Prompt** — a French system instruction generalising v1's to three anonymised
-  analyses (A/B/C), with subjectivity presented under the v2 label names. The
-  user prompt is title + text truncated to 15000 characters + the three analyses
-  in permuted order. Store both verbatim in `src/lib/data/prompts.ts`.
-- **Cache** — generalise `arbiter_cache.py` to take a contract plus extra payload.
-  Key the v2 payload's analyses by **canonical model id** so the fingerprint is
-  permutation-independent. Pin the v1 fingerprint with a regression test so the
-  refactor cannot shift it. `--prune-cache-only`, incremental saves and
-  confirm-before-spend all mirror v1.
+- **`--dimensions` and `--threshold` were added** (commit `4f46892`), because the
+  dry run showed the contract rule selects 1,449 articles of which **1,223 are
+  triggered by subjectivity alone** — the dimension the models argue about most
+  and where "who is right" is least well defined. Polarity, the dimension the
+  research question turns on, triggers only 89. Both flags can only ever
+  _tighten_ the rule: the validator recomputes eligibility from the contract, so
+  a loosened selection would fail validation. `test_threshold_cannot_be_lowered_below_the_contract`
+  pins this.
+- **`--effort` rather than a token budget.** `output_config.effort` (default
+  `medium`) is the depth _and_ cost lever on Opus 5; `max_tokens` only has to
+  leave headroom for adaptive thinking. A `refusal` stop reason counts the
+  article as failed rather than retrying or falling back to another model —
+  the published metadata names one `arbiter_model`, and quietly mixing in a
+  second would corrupt provenance.
 
-### Output `static/data/iwac_arbiter_evaluations_v2.json`
-
-The filename matches the existing `iwac_arbiter_evaluations_` prefix in `sw.js`,
-so no service-worker change is needed. Metadata carries the contract, cache and
-prompt versions, the arbiter model, `mode: "three-way"`, the model list, the
-blind permutation, the selection rule and both source revisions. Each evaluation
-carries the article id, cache fingerprint, spread block and the arbiter's
-per-dimension verdicts with `preferred: "a" | "b" | "c" | "multiple" | "none"`.
-
-### Dashboard view
-
-Build **new components plus a new leaf store**, selected by generation in
-`ViewContent.svelte` — not branches inside `ArbiterView`, whose A/B
-`model_a_is_first` logic is deeply pairwise and has to stay stable for the
-archive. Stats cards should look models up **by dataset id**, not by the
-display-name string match the v1 cards use.
-
-The paid run is user-gated: land the script and its dry-run output, and let the
-maintainer trigger the real run.
+**Still to do: the paid run itself.** It is user-gated by design. Land order is
+`--dry-run` to price it, then `--dimensions polarity --yes` for the ~90 articles
+the research question actually turns on.
 
 ## Todo — Phase D: polish
 
-- Update the model list in `scripts/social-preview.py`, re-run it (needs Pillow)
-  and commit the PNG; the GitHub social-preview upload is manual.
-- Document the two-generation model, the frozen-base invariant, the required
-  `--generation` flag, `HF_TOKEN` / `ANTHROPIC_API_KEY` and the archive UX in
-  `README.md` and `CLAUDE.md`.
-- Map every #129 checkbox to where it landed.
+- [x] `scripts/social-preview.py` now reads its model list from the generation's
+      contract instead of a hardcoded triple — it had already gone stale once.
+      Keyed on `analysisModel`, not `displayName`, because in v1 `displayName` is
+      the vendor slot ("ChatGPT") and only `analysisModel` names the model
+      ("GPT-5 mini"). Card regenerated for v2; **the GitHub social-preview upload
+      under Settings → General is still manual and has no REST API.**
+- [x] `README.md` rewritten for the two-generation model (538 → 261 lines):
+      generation table, id-derivation, the archive UX, the v1↔v2 prompt
+      confound, the required `--generation` flag, `HF_TOKEN` /
+      `ANTHROPIC_API_KEY` / `GOOGLE_API_KEY`, and the unpublished-arbiter state.
+- [x] `CITATION.cff` abstract and `package.json` description now describe both
+      campaigns. **The version was deliberately not bumped** — publishing a
+      release mints a permanent Zenodo DOI, so that is the maintainer's call.
+- [ ] `CLAUDE.md` still describes only the v1 contract and the vendor-prefix
+      mapping; it needs the two-generation model and the never-split-a-pair-id
+      rule.
+- [ ] Map every #129 checkbox to where it landed, then delete this file.
 
 ## Open risks
 
 1. **DeepSeek declined subjectivity on 489 articles** it otherwise analysed, so
    subjectivity statistics involving it rest on a slightly smaller sample. Worth
    a methodology note.
-2. **Arbiter cost is unknown until the dry-run.** For scale, the
-   `mistral-small` ↔ `deepseek` _pairwise_ comparison shows 926 significant
-   conflicts; the three-way spread count will differ.
+2. **Arbiter selection is dominated by subjectivity.** The contract rule picks
+   1,449 articles, 1,223 of them on subjectivity alone and only 89 on polarity.
+   Paying for the unfiltered set would buy mostly verdicts on the dimension
+   where "who is right" is least well defined — hence `--dimensions`. The cost
+   of a given selection is still only knowable from `--dry-run`.
 3. **HF revision drift.** If a future snapshot's article id set differs from the
    frozen base, the v2 fetch fails by design — the choice is then between pinning
    an older revision and a coordinated dual-generation refresh that breaks v1

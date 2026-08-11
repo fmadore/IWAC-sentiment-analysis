@@ -4,16 +4,20 @@ type: software
 title: "IWAC Sentiment Analysis Visualization"
 abstract: >-
   Interactive SvelteKit dashboard for exploring large language model sentiment
-  annotations of the Islam West Africa Collection (IWAC), a corpus of 12,287
-  francophone West African press articles published between 1961 and 2025 in
-  Benin, Burkina Faso, Côte d'Ivoire, Niger and Togo. Three models — GPT-5 mini,
-  Gemini 3 Flash and Ministral 3 14B — annotated every article on three
-  dimensions: polarity, subjectivity, and the centrality of Islam and Muslims to
-  the article. The dashboard reports each model's distributions, their pairwise
-  agreement (including weighted Cohen's kappa), and blind third-party arbiter
-  evaluations by Gemini 3 Pro of which annotation better fits the source text,
-  with geographic and temporal views, a bilingual French/English interface, and
-  CSV export.
+  annotations of the Islam West Africa Collection (IWAC), a corpus of 12,356
+  francophone West African press articles from 57 newspapers, published between
+  1961 and 2025 in Benin, Burkina Faso, Côte d'Ivoire, Niger and Togo. Each
+  article is annotated on three dimensions — polarity, subjectivity, and the
+  centrality of Islam and Muslims to the article — by three models per
+  annotation campaign. Two campaigns are published side by side: the current one
+  (GPT-5.6 Luna, Mistral Small 4, DeepSeek v4 Flash) and an archived first
+  campaign (GPT-5 mini, Gemini 3 Flash preview, Ministral 14B 2512), retained
+  unchanged so figures and citations published from it stay reproducible. The
+  dashboard reports each model's distributions, their agreement (Cohen's kappa,
+  quadratic-weighted kappa and Fleiss' kappa), where and how they diverge, and
+  blind third-party arbiter evaluations of which annotation better fits the
+  source text, with geographic and temporal views, a bilingual French/English
+  interface, and CSV export.
 authors:
   - family-names: Madore
     given-names: Frédérick
