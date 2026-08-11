@@ -169,9 +169,26 @@ export const datasetState = {
 		this.isComparisonMode = !_comparisonMode;
 	},
 
-	// Comparison pair
-	get pair() {
-		return _comparisonPair;
+	/**
+	 * The active model pair, always of the generation on screen.
+	 *
+	 * The stored pair can belong to the other generation, because outside
+	 * comparison mode the generation follows `_selectedDataset` and nothing
+	 * reconciles the two — `set isComparisonMode` only does it on the mode
+	 * switch. That left the agreement view, which is not comparison mode but
+	 * reads this pair, asking for a v2 pair while the v1 corpora were the ones
+	 * being loaded: its models were never present, `pairAgreement` returned null,
+	 * and the whole archived view sat in its loading state forever.
+	 *
+	 * Answering with the active generation's default makes "the pair belongs to
+	 * the generation on screen" true by construction instead of by whoever
+	 * remembers to reconcile it. Inside comparison mode the generation is derived
+	 * FROM this pair, so the guard can never fire there.
+	 */
+	get pair(): ModelPair {
+		return generationOf(_comparisonPair) === this.generation
+			? _comparisonPair
+			: defaultPairOf(this.generation);
 	},
 	set pair(value: ModelPair) {
 		if (!isModelPair(value)) throw new Error(`Unknown model pair: ${value}`);

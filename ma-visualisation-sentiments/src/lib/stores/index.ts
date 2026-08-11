@@ -34,9 +34,12 @@ export {
 	pairAgreement,
 	threeWayAgreement,
 	modelMarginals,
+	consensusRows,
+	consensusModels,
 	AGREEMENT_DIMENSIONS,
 	DIMENSION_CATEGORIES,
 	type AgreementDimension,
+	type ConsensusRow,
 	type DimensionAgreement,
 	type ModelMarginals
 } from './agreement.svelte';

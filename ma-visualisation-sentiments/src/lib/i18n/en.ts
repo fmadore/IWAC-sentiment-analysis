@@ -204,7 +204,77 @@ export const en = {
 			moderate: 'Moderate',
 			substantial: 'Substantial',
 			almostPerfect: 'Almost perfect'
-		}
+		},
+
+		// Three-way consensus section
+		scopeLabel: 'Comparison scope',
+		scopePair: 'Two models',
+		scopeTrio: 'All three',
+		consensusTitle: 'Where the three models disagree',
+		consensusLede:
+			'A pairwise view can show that two models differ; it cannot show that one stands apart from the other two. Everything below decomposes each article across all three at once, so a model’s calibration shows up as a signature rather than as noise.',
+		unanimous: 'Unanimous',
+		unanimousHelp: 'Share of articles where all three models chose the identical category.',
+		majoritySplit: 'Two against one',
+		majoritySplitHelp:
+			'Share of articles where two models agreed and one stood apart. The charts below name which one.',
+		allDiffer: 'All three differ',
+		allDifferHelp:
+			'Share of articles where no two models chose the same category — no majority exists to dissent from.',
+		meanSpread: 'Mean spread',
+		meanSpreadHelp:
+			'Mean of (highest − lowest) across the three models, in scale positions. Zero is unanimity; the maximum is the full width of the scale.',
+		declinedToggle: 'Declined ratings',
+		declinedInclude: 'Included',
+		declinedExclude: 'Excluded',
+		declinedNote:
+			'{count} articles are excluded because at least one model answered “Non applicable”. A refusal to rate sits below the bottom of the scale, so counting it as a rating makes a model that declined look like a model that disagreed — and it does so most on the titles whose articles are only marginally about Islam.',
+		declinedIncludedNote:
+			'Declined ratings are counted at the bottom of the scale. Titles with many of them will rank as highly disagreed, but what the models disagree about there is whether the article concerns Islam at all — not how favourable it is.',
+
+		disagreementTitle: 'Newspapers ranked by model disagreement',
+		disagreementSubtitle:
+			'Mean three-way spread with 95% CI · titles with at least {min} rated articles',
+		disagreementAxis: 'Scale positions between the highest and lowest model',
+		disagreementNote:
+			'The mirror of the Newspapers view: same titles, same threshold, but the axis is how far apart the models are rather than what they say. A title can be unremarkable in sentiment and an outlier in disagreement.',
+		spread: 'Mean spread',
+		unanimityRate: 'Unanimity',
+		declinedShare: 'Declined ratings',
+		medianYear: 'Median year',
+		disagreementExcluded:
+			'{count} newspapers omitted: fewer than {min} rated articles. Small titles read as more disagreed, so ranking them here would be misleading.',
+		disagreementEmpty: 'No newspaper has at least {min} rated articles under the current filters.',
+
+		dissentTitle: 'Who breaks ranks',
+		dissentSubtitle: 'Every article decomposed into five mutually exclusive outcomes',
+		dissentStacked: 'By newspaper',
+		dissentTernary: 'Triangle',
+		dissentTernaryNote:
+			'One point per newspaper, positioned by which model most often stands alone there; a point at a corner means that model does all the dissenting, a point at the centre means the three share it evenly. Size is the article count. Titles with no two-against-one splits have no position and are not drawn.',
+		dissentsAlone: 'dissents alone',
+		dissentShare: 'Share of splits',
+
+		directionTitle: 'Which way each model leans',
+		directionSubtitle:
+			'When a model stands alone, does it grade above the other two or below? Bars above the axis are higher, below are lower.',
+		directionAbove: 'Grades higher',
+		directionBelow: 'Grades lower',
+		directionNote:
+			'This is the clearest single statement the data makes about how these models differ. A model whose bars sit almost entirely on one side is not disagreeing at random — it is applying the scale differently.',
+
+		flowTitle: 'Label flow across the three models',
+		flowSubtitle: 'Each ribbon is a set of articles, tracked from one model’s label to the next',
+		flowNote:
+			'The three-way generalisation of the agreement matrix. A systematic offset appears as a mass of ribbons sliding down one band, and the routes a pairwise matrix hides — articles where the first and last model agree through a disagreeing middle one — become visible.',
+		flowArticles: 'articles',
+
+		scatterTitle: 'Is disagreement about extreme coverage or ambiguous coverage?',
+		scatterSubtitle: 'One bubble per newspaper · sized by article count, coloured by country',
+		scatterX: 'Consensus mean (the three models averaged)',
+		scatterY: 'Mean three-way spread',
+		scatterNote:
+			'Correlation between the two axes: r = {r}. Near zero would mean disagreement is independent of how favourable a title’s coverage is; a strong value in either direction means the models argue hardest about one end of the scale, and the ranking above should be read with that in mind. It is not the same number in both analysis generations, or across the three dimensions.'
 	},
 
 	// Per-chart data disclosure
@@ -224,7 +294,13 @@ export const en = {
 		rowPercent: '% of row',
 		seasonalityCaption: 'Article volume and mean centrality by Hijri month',
 		rankingCaption: 'Newspapers ranked by mean, with confidence intervals',
-		matrixCaption: 'Cross-tabulation of the two models\u2019 labels'
+		matrixCaption: 'Cross-tabulation of the two models\u2019 labels',
+		spread: 'Mean spread',
+		unanimity: 'Unanimity',
+		declined: 'Declined',
+		medianYear: 'Median year',
+		disagreementCaption:
+			'Newspapers ranked by mean three-way spread, with confidence intervals, unanimity and declined share'
 	},
 
 	// Chart titles and labels

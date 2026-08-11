@@ -55,6 +55,20 @@ export function getModelDisplayName(
 }
 
 /**
+ * Display names for a list of model ids, in the order given.
+ *
+ * The three-way charts each need the whole generation's names to label a series,
+ * an axis or a triangle corner; mapping `getModelDisplayName` in every one of
+ * them is the same line four times.
+ */
+export function getModelDisplayNames(
+	modelIds: readonly string[],
+	datasets: { id: string; name: string }[]
+): string[] {
+	return modelIds.map((id) => getModelDisplayName(id, datasets));
+}
+
+/**
  * Get the journal name for an article consistently across the app.
  */
 export function getJournalName(article: Article): string {

@@ -174,6 +174,32 @@ describe('datasetState.pair', () => {
 		datasetState.pair = 'gemini-mistral';
 		expect(datasetState.pair).toBe('gemini-mistral');
 	});
+
+	it('never reports a pair from the other generation outside comparison mode', () => {
+		// The agreement view is not comparison mode but reads this pair, so a
+		// stale cross-generation value made it ask for models that were never
+		// loaded — the archived view then sat in its loading state forever.
+		datasetState.pair = 'luna-deepseek';
+		datasetState.selected = 'mistral';
+
+		expect(datasetState.generation).toBe('v1');
+		expect(datasetState.pair).toBe('chatgpt-gemini');
+	});
+
+	it('normalizes in the other direction too', () => {
+		datasetState.pair = 'chatgpt-mistral';
+		datasetState.selected = 'deepseek';
+
+		expect(datasetState.generation).toBe('v2');
+		expect(datasetState.pair).toBe('luna-mistral-small');
+	});
+
+	it('leaves a same-generation pair alone', () => {
+		datasetState.pair = 'gemini-mistral';
+		datasetState.selected = 'mistral';
+
+		expect(datasetState.pair).toBe('gemini-mistral');
+	});
 });
 
 describe('datasetState.getById', () => {

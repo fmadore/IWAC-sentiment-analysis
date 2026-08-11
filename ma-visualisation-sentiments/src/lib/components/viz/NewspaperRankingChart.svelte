@@ -298,7 +298,7 @@
 	/>
 
 	{#if excluded > 0}
-		<p class="threshold-note">
+		<p class="chart-note">
 			{$t.ranking.excludedNote
 				.replace('{count}', String(excluded))
 				.replace('{min}', String(minArticles))}
@@ -307,17 +307,3 @@
 {:else}
 	<p class="chart-empty">{$t.ranking.noneAboveThreshold.replace('{min}', String(minArticles))}</p>
 {/if}
-
-<style>
-	/* Says out loud what the threshold hid, rather than silently truncating. */
-	.threshold-note {
-		font-family: var(--font-mono);
-		font-size: var(--font-size-eyebrow);
-		line-height: var(--line-height-relaxed);
-		color: var(--text-muted);
-		max-width: var(--prose-width);
-		margin: var(--space-3) auto 0;
-		padding-top: var(--space-3);
-		border-top: 1px dashed var(--border-subtle);
-	}
-</style>

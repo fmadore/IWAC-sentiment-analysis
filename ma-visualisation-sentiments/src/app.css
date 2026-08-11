@@ -886,6 +886,30 @@ h3 {
 	font-size: var(--font-size-sm);
 }
 
+/* Eyebrow naming what a .chart-toolbar's controls act on. */
+.toolbar-label {
+	font-family: var(--font-mono);
+	font-size: var(--font-size-eyebrow);
+	font-weight: var(--font-weight-semibold);
+	letter-spacing: var(--tracking-wider);
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+
+/* Caveat under a chart: what a threshold hid, what a measure does not mean.
+   Was .threshold-note / .breakdown-note / .chart-note in seven components,
+   byte-identical in all of them — the same drift the three rules above fixed. */
+.chart-note {
+	font-family: var(--font-mono);
+	font-size: var(--font-size-eyebrow);
+	line-height: var(--line-height-relaxed);
+	color: var(--text-muted);
+	max-width: var(--prose-width);
+	margin: var(--space-3) auto 0;
+	padding-top: var(--space-3);
+	border-top: 1px dashed var(--border-subtle);
+}
+
 /* -----------------------------------------------------------------------------
    Table Styling
    ----------------------------------------------------------------------------- */

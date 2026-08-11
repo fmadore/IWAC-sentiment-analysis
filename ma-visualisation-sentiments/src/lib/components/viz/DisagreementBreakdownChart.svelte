@@ -183,29 +183,7 @@
 		<Chart {init} {options} />
 	</div>
 
-	<p class="breakdown-note">{$t.comparison.disagreementBreakdownNote}</p>
+	<p class="chart-note">{$t.comparison.disagreementBreakdownNote}</p>
 {:else}
 	<p class="chart-empty">{$t.table.noFilteredArticles}</p>
 {/if}
-
-<style>
-	.toolbar-label {
-		font-family: var(--font-mono);
-		font-size: var(--font-size-eyebrow);
-		font-weight: var(--font-weight-semibold);
-		letter-spacing: var(--tracking-wider);
-		text-transform: uppercase;
-		color: var(--text-muted);
-	}
-
-	.breakdown-note {
-		font-family: var(--font-mono);
-		font-size: var(--font-size-eyebrow);
-		line-height: var(--line-height-relaxed);
-		color: var(--text-muted);
-		max-width: var(--prose-width);
-		margin: var(--space-3) auto 0;
-		padding-top: var(--space-3);
-		border-top: 1px dashed var(--border-subtle);
-	}
-</style>

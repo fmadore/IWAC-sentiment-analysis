@@ -29,6 +29,7 @@ import {
 	type AgreementDimension,
 	type ModelMarginals
 } from '$lib/utils/agreementData';
+import { buildConsensusRows, type ConsensusRow } from '$lib/utils/consensus';
 // Leaf stores imported directly — importing from './index' would create a
 // cycle (the barrel re-exports this module). Same convention as url/* and
 // arbiter.svelte.
@@ -70,6 +71,7 @@ export interface DimensionAgreement {
 // Re-exported so callers have one import site for "agreement" regardless of
 // whether a symbol is reactive state or a pure helper.
 export { AGREEMENT_DIMENSIONS, DIMENSION_CATEGORIES, type AgreementDimension, type ModelMarginals };
+export type { ConsensusRow };
 
 /** Per-dimension agreement for the active model pair. */
 export const pairAgreement = {
@@ -131,6 +133,39 @@ export const threeWayAgreement = {
 				)
 			])
 		) as Record<AgreementDimension, FleissResult>;
+	}
+};
+
+/**
+ * Every article's ordinals from all three models of the active generation.
+ *
+ * One join, shared by every consensus chart. The charts then run the pure
+ * aggregations in `utils/consensus.ts` over these rows with their own local UI
+ * state (dimension, declined-ratings toggle, threshold) — which is why this is
+ * a parameter-free accessor rather than a family of them.
+ *
+ * Generation-scoped for the same reason `threeWayAgreement` is: a six-model
+ * spread would measure the v2 prompt rewrite as if it were disagreement between
+ * models.
+ */
+export const consensusRows = {
+	get current(): ConsensusRow[] {
+		const datasets = articleState.datasets;
+		const generationIds = datasetIdsOf(datasetState.generation);
+		if (!generationIds.every((id: DatasetId) => datasets[id]?.length)) return [];
+
+		const filtered = Object.fromEntries(
+			generationIds.map((id) => [id, applyCorpusFilters(datasets[id])])
+		) as Record<string, Article[]>;
+
+		return buildConsensusRows(filtered, generationIds);
+	}
+};
+
+/** The active generation's model ids, in contract order — the consensus axis. */
+export const consensusModels = {
+	get current(): readonly DatasetId[] {
+		return datasetIdsOf(datasetState.generation);
 	}
 };
 
