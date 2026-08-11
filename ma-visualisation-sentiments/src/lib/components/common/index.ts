@@ -16,6 +16,8 @@ export { default as ArchiveNotice } from './ArchiveNotice.svelte';
 export { default as Drawer } from './Drawer.svelte';
 export { default as AccordionItem } from './AccordionItem.svelte';
 export { default as FilterCard } from './FilterCard.svelte';
+export { default as SectionHead } from './SectionHead.svelte';
+export { default as StatCardGrid } from './StatCardGrid.svelte';
 
 // Interactive Elements
 export { default as DropdownMenu } from './DropdownMenu.svelte';

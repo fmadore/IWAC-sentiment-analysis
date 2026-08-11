@@ -67,6 +67,57 @@ function swatch(color: string | undefined, seriesName: string | undefined, round
 }
 
 /**
+ * Tooltip building blocks.
+ *
+ * The four factories below cover the recurring tooltip *shapes*; these cover
+ * the one-off panels that don't fit any of them, which otherwise each re-typed
+ * the same flex markup and the same hairline-rule header. Kept here rather than
+ * in a component because ECharts formatters return an HTML string, so there is
+ * no Svelte to render — and this module is already the exempted home for the
+ * literal rgba() a zrender tooltip needs.
+ */
+
+/** Header row: a bold title over a hairline rule. */
+export function tooltipHeader(title: string): string {
+	return `<div style="font-weight:600;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid rgba(243,245,249,0.14);">${title}</div>`;
+}
+
+/** Label on the left, value on the right. */
+export function tooltipRow(label: string, value: string): string {
+	return `<div style="display:flex;justify-content:space-between;gap:12px;padding:2px 0;">
+		<span>${label}:</span><strong>${value}</strong>
+	</div>`;
+}
+
+/**
+ * A series row: swatch, name, value. Uses the same `swatch()` as the factories,
+ * so a polarity series keeps its glyph and is never encoded by hue alone.
+ */
+export function tooltipSeriesRow(
+	color: string | undefined,
+	name: string | undefined,
+	value: string
+): string {
+	return `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">
+		${swatch(color, name, true)}
+		<span style="flex:1;">${name}</span>
+		<strong>${value}</strong>
+	</div>`;
+}
+
+/** A row set off from the ones above it by a rule — a total, or a summary. */
+export function tooltipFooterRow(label: string, value: string): string {
+	return `<div style="display:flex;justify-content:space-between;gap:12px;padding-top:6px;margin-top:4px;border-top:1px solid rgba(243,245,249,0.14);">
+		<span>${label}:</span><strong>${value}</strong>
+	</div>`;
+}
+
+/** Wrap rows in the panel every tooltip uses, with a minimum width. */
+export function tooltipPanel(minWidth: number, ...sections: string[]): string {
+	return `<div style="min-width:${minWidth}px;">${sections.join('')}</div>`;
+}
+
+/**
  * Pie chart tooltip: color dot + name + value + percent.
  * Used by: SentimentChart (pie), SubjectivityChart (pie)
  */

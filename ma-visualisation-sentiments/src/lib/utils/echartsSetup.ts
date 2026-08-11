@@ -22,7 +22,10 @@ import {
 	LineChart,
 	HeatmapChart,
 	ScatterChart,
-	// Backs the confidence-interval whiskers on the newspaper ranking chart.
+	// Backs the three-way label flow on the agreement view.
+	SankeyChart,
+	// Backs the confidence-interval whiskers on the newspaper ranking chart,
+	// and the ternary plot's triangular backdrop.
 	CustomChart
 } from 'echarts/charts';
 import {
@@ -51,6 +54,7 @@ function ensureRegistered(): void {
 		LineChart,
 		HeatmapChart,
 		ScatterChart,
+		SankeyChart,
 		CustomChart,
 		TitleComponent,
 		TooltipComponent,

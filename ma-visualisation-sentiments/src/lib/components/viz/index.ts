@@ -20,6 +20,13 @@ export { default as DisagreementBreakdownChart } from './DisagreementBreakdownCh
 export { default as AgreementMatrix } from './AgreementMatrix.svelte';
 export { default as ModelCalibrationChart } from './ModelCalibrationChart.svelte';
 
+// Three-way consensus (all models of one generation at once)
+export { default as NewspaperDisagreementChart } from './NewspaperDisagreementChart.svelte';
+export { default as DissentProfileChart } from './DissentProfileChart.svelte';
+export { default as DirectionalDissentChart } from './DirectionalDissentChart.svelte';
+export { default as LabelFlowChart } from './LabelFlowChart.svelte';
+export { default as ConsensusScatterChart } from './ConsensusScatterChart.svelte';
+
 // Arbiter Charts
 export { default as ArbiterVerdictChart } from './ArbiterVerdictChart.svelte';
 export { default as ArbiterDimensionChart } from './ArbiterDimensionChart.svelte';

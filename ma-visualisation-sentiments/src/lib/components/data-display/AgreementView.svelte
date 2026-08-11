@@ -11,6 +11,12 @@
   yet nearly all their disagreement is Mistral labelling exactly one notch
   lower — kappa 0.25, weighted kappa 0.73. A mean discrepancy of 1.48 points
   describes that as noise. The matrix and the two kappas describe it correctly.
+
+  The view answers at two scopes, and the toggle is explicit rather than implied.
+  It used to be pair-framed throughout — a ModelPairPicker in the header, every
+  panel below it pair-scoped — and the three-way section that has since grown
+  underneath would have left that picker visually governing charts it has no
+  effect on. So the picker renders only in pair scope.
 -->
 <script lang="ts">
 	import { datasetState, articleState } from '$lib/stores';
@@ -26,18 +32,28 @@
 	import { getPairModelNames } from '$lib/types/data';
 	import { datasetIdsOf } from '$lib/domain/sentimentContract';
 	import { t } from '$lib/i18n';
-	import { StatCard } from '$lib/components/common';
+	import { StatCard, StatCardGrid, SectionHead } from '$lib/components/common';
 	import ModelPairPicker from '$lib/components/ui/ModelPairPicker.svelte';
 	import { CountryFilter, JournalFilter } from '$lib/components/filters';
 	import { AgreementMatrix, ModelCalibrationChart } from '$lib/components/viz';
+	import ChartTypeToggle from '$lib/components/viz/ChartTypeToggle.svelte';
+	import ConsensusSection from './ConsensusSection.svelte';
 	import ChartCard from '$lib/components/ui/ChartCard.svelte';
 	import LoadingState from '$lib/components/common/LoadingState.svelte';
 	import TargetIcon from '@lucide/svelte/icons/target';
 	import ScaleIcon from '@lucide/svelte/icons/scale';
 	import LayersIcon from '@lucide/svelte/icons/layers';
 	import UsersIcon from '@lucide/svelte/icons/users';
+	import GitCompareIcon from '@lucide/svelte/icons/git-compare';
+	import NetworkIcon from '@lucide/svelte/icons/network';
 
 	let selectedDimension = $state<AgreementDimension>('polarity');
+	let scope = $state<'pair' | 'trio'>('pair');
+
+	const scopeOptions = $derived([
+		{ value: 'pair', label: $t.agreement.scopePair, icon: GitCompareIcon },
+		{ value: 'trio', label: $t.agreement.scopeTrio, icon: NetworkIcon }
+	]);
 
 	const agreement = $derived(pairAgreement.current);
 	const threeWay = $derived(threeWayAgreement.current);
@@ -93,8 +109,20 @@
 			</button>
 		{/each}
 
-		<div class="pair-picker">
-			<ModelPairPicker />
+		<div class="scope-controls">
+			<ChartTypeToggle
+				options={scopeOptions}
+				value={scope}
+				onChange={(value) => (scope = value as 'pair' | 'trio')}
+				ariaLabel={$t.agreement.scopeLabel}
+			/>
+			<!--
+				Only in pair scope: a picker sitting above charts it cannot affect
+				reads as a control that is broken.
+			-->
+			{#if scope === 'pair'}
+				<ModelPairPicker />
+			{/if}
 		</div>
 	</div>
 
@@ -108,106 +136,110 @@
 		<JournalFilter />
 	</div>
 
-	<!-- Headline statistics for the active dimension -->
-	<div class="stats-grid">
-		<StatCard
-			label={$t.agreement.exactAgreement}
-			value={formatPercent(active.matrix.exactAgreement)}
-			detail="{active.matrix.n.toLocaleString()} {$t.agreement.articlesCompared}"
-			tooltip={$t.agreement.exactAgreementHelp}
-			accent="comparison"
-		>
-			{#snippet icon()}<TargetIcon size={20} />{/snippet}
-		</StatCard>
+	{#if scope === 'pair'}
+		<!-- Headline statistics for the active dimension -->
+		<StatCardGrid>
+			<StatCard
+				label={$t.agreement.exactAgreement}
+				value={formatPercent(active.matrix.exactAgreement)}
+				detail="{active.matrix.n.toLocaleString()} {$t.agreement.articlesCompared}"
+				tooltip={$t.agreement.exactAgreementHelp}
+				accent="comparison"
+			>
+				{#snippet icon()}<TargetIcon size={20} />{/snippet}
+			</StatCard>
 
-		<StatCard
-			label={$t.agreement.adjacentAgreement}
-			value={formatPercent(active.matrix.adjacentAgreement)}
-			detail={$t.agreement.adjacentDetail}
-			tooltip={$t.agreement.adjacentAgreementHelp}
-			accent="comparison"
-		>
-			{#snippet icon()}<LayersIcon size={20} />{/snippet}
-		</StatCard>
+			<StatCard
+				label={$t.agreement.adjacentAgreement}
+				value={formatPercent(active.matrix.adjacentAgreement)}
+				detail={$t.agreement.adjacentDetail}
+				tooltip={$t.agreement.adjacentAgreementHelp}
+				accent="comparison"
+			>
+				{#snippet icon()}<LayersIcon size={20} />{/snippet}
+			</StatCard>
 
-		<StatCard
-			label={$t.agreement.kappa}
-			value={formatKappa(active.kappa.kappa)}
-			detail={strengthLabel(active.kappa.kappa)}
-			tooltip={$t.agreement.kappaHelp}
-			accent="arbiter"
-		>
-			{#snippet icon()}<ScaleIcon size={20} />{/snippet}
-		</StatCard>
+			<StatCard
+				label={$t.agreement.kappa}
+				value={formatKappa(active.kappa.kappa)}
+				detail={strengthLabel(active.kappa.kappa)}
+				tooltip={$t.agreement.kappaHelp}
+				accent="arbiter"
+			>
+				{#snippet icon()}<ScaleIcon size={20} />{/snippet}
+			</StatCard>
 
-		<StatCard
-			label={$t.agreement.weightedKappa}
-			value={formatKappa(active.weightedKappa.kappa)}
-			detail={strengthLabel(active.weightedKappa.kappa)}
-			tooltip={$t.agreement.weightedKappaHelp}
-			accent="arbiter"
-		>
-			{#snippet icon()}<ScaleIcon size={20} />{/snippet}
-		</StatCard>
-	</div>
+			<StatCard
+				label={$t.agreement.weightedKappa}
+				value={formatKappa(active.weightedKappa.kappa)}
+				detail={strengthLabel(active.weightedKappa.kappa)}
+				tooltip={$t.agreement.weightedKappaHelp}
+				accent="arbiter"
+			>
+				{#snippet icon()}<ScaleIcon size={20} />{/snippet}
+			</StatCard>
+		</StatCardGrid>
 
-	<!--
+		<!--
 		The gap between the two kappas IS the finding when it is large, so say so
 		in words rather than leaving the reader to notice two numbers differ.
 	-->
-	{#if !Number.isNaN(active.kappa.kappa) && !Number.isNaN(active.weightedKappa.kappa)}
-		{@const gap = active.weightedKappa.kappa - active.kappa.kappa}
-		{#if gap >= 0.2}
-			<p class="reading-note">
-				{$t.agreement.systematicOffsetNote
-					.replace('{modelA}', modelNames.modelAName)
-					.replace('{modelB}', modelNames.modelBName)}
-			</p>
+		{#if !Number.isNaN(active.kappa.kappa) && !Number.isNaN(active.weightedKappa.kappa)}
+			{@const gap = active.weightedKappa.kappa - active.kappa.kappa}
+			{#if gap >= 0.2}
+				<p class="reading-note">
+					{$t.agreement.systematicOffsetNote
+						.replace('{modelA}', modelNames.modelAName)
+						.replace('{modelB}', modelNames.modelBName)}
+				</p>
+			{/if}
 		{/if}
-	{/if}
 
-	<ChartCard variant="comparison" class="mb-6">
-		<AgreementMatrix
-			matrix={active.matrix}
-			dimension={selectedDimension}
-			modelAName={modelNames.modelAName}
-			modelBName={modelNames.modelBName}
-		/>
-	</ChartCard>
-
-	<!-- Three-way agreement across all models -->
-	{#if threeWay}
-		<div class="section-head">
-			<h2 class="section-title">{$t.agreement.threeWayTitle}</h2>
-			<p class="section-lede">{$t.agreement.threeWayLede}</p>
-		</div>
-
-		<div class="stats-grid mb-6">
-			{#each AGREEMENT_DIMENSIONS as dimension (dimension)}
-				{@const result = threeWay[dimension]}
-				<StatCard
-					label={dimensionLabels[dimension]}
-					value={formatKappa(result.kappa)}
-					detail="{$t.agreement.fleissKappa} · {result.n.toLocaleString()} {$t.common.articles}"
-					tooltip={$t.agreement.fleissHelp}
-					accent="arbiter"
-					layout="inline"
-				>
-					{#snippet icon()}<UsersIcon size={20} />{/snippet}
-				</StatCard>
-			{/each}
-		</div>
-	{/if}
-
-	<!-- Per-model calibration -->
-	{#if marginals}
 		<ChartCard variant="comparison">
-			<ModelCalibrationChart
-				marginals={marginals[selectedDimension]}
+			<AgreementMatrix
+				matrix={active.matrix}
 				dimension={selectedDimension}
-				categories={DIMENSION_CATEGORIES[selectedDimension]}
+				modelAName={modelNames.modelAName}
+				modelBName={modelNames.modelBName}
 			/>
 		</ChartCard>
+	{:else}
+		<!--
+			Trio scope. The Fleiss cards and the calibration chart were already
+			three-way, so they move here rather than being rebuilt — this is where
+			they always belonged.
+		-->
+		{#if threeWay}
+			<SectionHead title={$t.agreement.threeWayTitle} lede={$t.agreement.threeWayLede} />
+
+			<StatCardGrid class="mb-6">
+				{#each AGREEMENT_DIMENSIONS as dimension (dimension)}
+					{@const result = threeWay[dimension]}
+					<StatCard
+						label={dimensionLabels[dimension]}
+						value={formatKappa(result.kappa)}
+						detail="{$t.agreement.fleissKappa} · {result.n.toLocaleString()} {$t.common.articles}"
+						tooltip={$t.agreement.fleissHelp}
+						accent="arbiter"
+						layout="inline"
+					>
+						{#snippet icon()}<UsersIcon size={20} />{/snippet}
+					</StatCard>
+				{/each}
+			</StatCardGrid>
+		{/if}
+
+		{#if marginals}
+			<ChartCard variant="comparison" class="mb-6">
+				<ModelCalibrationChart
+					marginals={marginals[selectedDimension]}
+					dimension={selectedDimension}
+					categories={DIMENSION_CATEGORIES[selectedDimension]}
+				/>
+			</ChartCard>
+		{/if}
+
+		<ConsensusSection dimension={selectedDimension} />
 	{/if}
 {/if}
 
@@ -250,13 +282,18 @@
 		border-color: color-mix(in oklab, var(--accent) 40%, transparent);
 	}
 
-	.pair-picker {
+	/* Scope toggle and, in pair scope, the picker it governs. */
+	.scope-controls {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-3);
 		margin-left: 0;
 		width: 100%;
 	}
 
 	@media (min-width: 640px) {
-		.pair-picker {
+		.scope-controls {
 			margin-left: auto;
 			width: auto;
 		}
@@ -274,13 +311,6 @@
 		}
 	}
 
-	.stats-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-		gap: var(--space-4);
-		margin-bottom: var(--space-5);
-	}
-
 	/* Plain-language reading of the two kappas when they diverge sharply. */
 	.reading-note {
 		font-family: var(--font-sans);
@@ -292,25 +322,5 @@
 		margin-bottom: var(--space-5);
 		background: var(--surface-subtle);
 		border-left: 2px solid var(--accent);
-	}
-
-	.section-head {
-		margin-bottom: var(--space-4);
-	}
-
-	.section-title {
-		font-family: var(--font-display);
-		font-size: var(--font-size-xl);
-		font-weight: 600;
-		color: var(--text-primary);
-		margin: 0 0 var(--space-2);
-	}
-
-	.section-lede {
-		font-family: var(--font-sans);
-		font-size: var(--font-size-sm);
-		color: var(--text-secondary);
-		max-width: var(--prose-width);
-		margin: 0;
 	}
 </style>

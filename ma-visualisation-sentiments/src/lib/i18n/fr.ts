@@ -202,7 +202,80 @@ export const fr: Translations = {
 			moderate: 'Modéré',
 			substantial: 'Important',
 			almostPerfect: 'Presque parfait'
-		}
+		},
+
+		// Section consensus à trois
+		scopeLabel: 'Portée de la comparaison',
+		scopePair: 'Deux modèles',
+		scopeTrio: 'Les trois',
+		consensusTitle: 'Où les trois modèles divergent',
+		consensusLede:
+			'Une vue par paire peut montrer que deux modèles diffèrent ; elle ne peut pas montrer que l’un se démarque des deux autres. Tout ce qui suit décompose chaque article sur les trois à la fois, de sorte que la calibration d’un modèle apparaisse comme une signature plutôt que comme du bruit.',
+		unanimous: 'Unanimité',
+		unanimousHelp:
+			'Proportion d’articles pour lesquels les trois modèles ont choisi la même catégorie.',
+		majoritySplit: 'Deux contre un',
+		majoritySplitHelp:
+			'Proportion d’articles pour lesquels deux modèles s’accordent et un se démarque. Les graphiques ci-dessous indiquent lequel.',
+		allDiffer: 'Les trois diffèrent',
+		allDifferHelp:
+			'Proportion d’articles pour lesquels aucun modèle ne rejoint un autre — il n’existe alors aucune majorité dont se démarquer.',
+		meanSpread: 'Écart moyen',
+		meanSpreadHelp:
+			'Moyenne de (maximum − minimum) entre les trois modèles, en positions d’échelle. Zéro correspond à l’unanimité ; le maximum correspond à toute la largeur de l’échelle.',
+		declinedToggle: 'Notations refusées',
+		declinedInclude: 'Incluses',
+		declinedExclude: 'Exclues',
+		declinedNote:
+			'{count} articles sont exclus parce qu’au moins un modèle a répondu « Non applicable ». Un refus de noter se situe sous le bas de l’échelle : le compter comme une notation fait passer un modèle qui s’abstient pour un modèle en désaccord — et cela pèse surtout sur les titres dont les articles ne portent que marginalement sur l’islam.',
+		declinedIncludedNote:
+			'Les notations refusées sont comptées au bas de l’échelle. Les titres qui en comptent beaucoup apparaîtront comme très discutés, mais ce sur quoi les modèles divergent alors est de savoir si l’article concerne l’islam — non pas s’il en parle favorablement.',
+
+		disagreementTitle: 'Journaux classés par désaccord entre modèles',
+		disagreementSubtitle:
+			'Écart moyen à trois avec IC à 95 % · titres comptant au moins {min} articles notés',
+		disagreementAxis: 'Positions d’échelle entre le modèle le plus haut et le plus bas',
+		disagreementNote:
+			'Le miroir de la vue Journaux : mêmes titres, même seuil, mais l’axe mesure l’écart entre les modèles plutôt que ce qu’ils disent. Un titre peut être banal quant au sentiment et atypique quant au désaccord.',
+		spread: 'Écart moyen',
+		unanimityRate: 'Unanimité',
+		declinedShare: 'Notations refusées',
+		medianYear: 'Année médiane',
+		disagreementExcluded:
+			'{count} journaux omis : moins de {min} articles notés. Les petits titres paraissent plus discutés, si bien que les classer ici induirait en erreur.',
+		disagreementEmpty: 'Aucun journal n’atteint {min} articles notés avec les filtres actuels.',
+
+		dissentTitle: 'Qui se démarque',
+		dissentSubtitle: 'Chaque article décomposé en cinq issues mutuellement exclusives',
+		dissentStacked: 'Par journal',
+		dissentTernary: 'Triangle',
+		dissentTernaryNote:
+			'Un point par journal, placé selon le modèle qui s’y démarque le plus souvent ; un point à un sommet signifie que ce modèle assume tout le désaccord, un point au centre que les trois se le partagent également. La taille indique le nombre d’articles. Les titres sans partage deux contre un n’ont pas de position et ne sont pas tracés.',
+		dissentsAlone: 'se démarque seul',
+		dissentShare: 'Part des partages',
+
+		directionTitle: 'Dans quel sens penche chaque modèle',
+		directionSubtitle:
+			'Lorsqu’un modèle se démarque, note-t-il au-dessus des deux autres ou en dessous ? Les barres au-dessus de l’axe notent plus haut, celles en dessous plus bas.',
+		directionAbove: 'Note plus haut',
+		directionBelow: 'Note plus bas',
+		directionNote:
+			'C’est l’énoncé le plus net que ces données produisent sur la façon dont ces modèles diffèrent. Un modèle dont les barres se rangent presque entièrement d’un côté ne diverge pas au hasard : il applique l’échelle autrement.',
+
+		flowTitle: 'Circulation des étiquettes entre les trois modèles',
+		flowSubtitle:
+			'Chaque ruban est un ensemble d’articles, suivi de l’étiquette d’un modèle à la suivante',
+		flowNote:
+			'La généralisation à trois de la matrice d’accord. Un décalage systématique apparaît comme une masse de rubans glissant d’un cran, et les trajets qu’une matrice par paire dissimule — les articles où le premier et le dernier modèle s’accordent en passant par un modèle intermédiaire divergent — deviennent visibles.',
+		flowArticles: 'articles',
+
+		scatterTitle: 'Le désaccord porte-t-il sur les couvertures extrêmes ou ambiguës ?',
+		scatterSubtitle:
+			'Une bulle par journal · taille selon le nombre d’articles, couleur selon le pays',
+		scatterX: 'Moyenne du consensus (les trois modèles moyennés)',
+		scatterY: 'Écart moyen à trois',
+		scatterNote:
+			'Corrélation entre les deux axes : r = {r}. Une valeur proche de zéro signifierait que le désaccord est indépendant du caractère favorable de la couverture d’un titre ; une valeur forte, dans un sens ou dans l’autre, signifie que les modèles se disputent surtout un bout de l’échelle, et le classement ci-dessus doit alors se lire en conséquence. Ce n’est pas le même nombre selon la génération d’analyse ni selon la dimension.'
 	},
 
 	// Données sous-jacentes des graphiques
@@ -221,6 +294,12 @@ export const fr: Translations = {
 		count: 'Effectif',
 		rowPercent: '% de la ligne',
 		seasonalityCaption: 'Volume d\u2019articles et centralité moyenne par mois hégirien',
+		spread: 'Écart moyen',
+		unanimity: 'Unanimité',
+		declined: 'Refusées',
+		medianYear: 'Année médiane',
+		disagreementCaption:
+			'Journaux classés par écart moyen à trois, avec intervalles de confiance, unanimité et part de notations refusées',
 		rankingCaption: 'Journaux classés par moyenne, avec intervalles de confiance',
 		matrixCaption: 'Tableau croisé des étiquettes des deux modèles'
 	},
