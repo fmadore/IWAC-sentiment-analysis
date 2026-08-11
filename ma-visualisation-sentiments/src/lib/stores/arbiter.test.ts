@@ -6,9 +6,14 @@
  * - Model name mapping respects model_a_is_first flag
  * - Statistics computation correctly swaps counts when needed
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { getModelsFromPair, type ArbiterEvaluationData } from '$lib/types/data';
-import { computeArbiterStatistics } from './arbiter.svelte';
+import {
+	arbiterEvaluations,
+	computeArbiterStatistics,
+	currentArbiterPair,
+	loadArbiterEvaluations
+} from './arbiter.svelte';
 
 // ============================================
 // getModelsFromPair Tests
@@ -270,5 +275,37 @@ describe('getActualModelName Logic', () => {
 			const result = getActualModelNamePure('model_b', 'Gemini', 'Mistral', false);
 			expect(result).toBe('Gemini');
 		});
+	});
+});
+
+// ============================================
+// Generation scoping
+// ============================================
+
+/**
+ * The per-pair arbiter file only ever existed for generation 1. Generation 2
+ * arbitrates all three models at once, into a single `_v2` file that `arbiterV2`
+ * owns. Without a guard the loader happily builds
+ * `iwac_arbiter_evaluations_luna-mistral-small.json` — a name nothing will ever
+ * publish — and 404s on every comparison mount and every pair switch.
+ */
+describe('loadArbiterEvaluations generation scoping', () => {
+	it('does not fetch anything for a generation-2 pair', async () => {
+		const spy = vi.fn<typeof fetch>();
+
+		await loadArbiterEvaluations(spy as unknown as typeof fetch, 'luna-mistral-small');
+
+		expect(spy).not.toHaveBeenCalled();
+		expect(arbiterEvaluations.current).toBeNull();
+		expect(currentArbiterPair.current).toBe('luna-mistral-small');
+	});
+
+	it('still fetches the pair file for a generation-1 pair', async () => {
+		const spy = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 404 }));
+
+		await loadArbiterEvaluations(spy as unknown as typeof fetch, 'chatgpt-mistral');
+
+		expect(spy).toHaveBeenCalledTimes(1);
+		expect(String(spy.mock.calls[0][0])).toContain('iwac_arbiter_evaluations_chatgpt-mistral.json');
 	});
 });
