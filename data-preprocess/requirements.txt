@@ -7,12 +7,17 @@
 # test (ma-visualisation-sentiments/src/lib/utils/agreementCorpus.test.ts),
 # which pins the headline agreement figures against the shipped data and will
 # fail loudly if regenerating the corpus moves a published number.
+#
+# The two arbiter generations use different judges and therefore different
+# SDKs: google-genai drives the frozen v1 pairwise arbiter, anthropic the v2
+# three-way one. Neither is imported until a paid run actually starts.
 
 datasets~=5.0.1
 tqdm~=4.70.0
 pandas~=3.0.5
 huggingface_hub~=1.26.0
 google-genai~=2.16.0
+anthropic~=0.121.0
 pydantic~=2.13.4
 python-dotenv~=1.2.2
 pyarrow~=25.0.0

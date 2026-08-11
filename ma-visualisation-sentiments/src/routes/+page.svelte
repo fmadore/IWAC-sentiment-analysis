@@ -23,6 +23,7 @@
 	// Data Display
 	import AnalysisInfo from '$lib/components/data-display/AnalysisInfo.svelte';
 	import ArbiterMethodology from '$lib/components/data-display/ArbiterMethodology.svelte';
+	import ArbiterV2Methodology from '$lib/components/data-display/ArbiterV2Methodology.svelte';
 
 	// Common
 	import { ArchiveNotice, ArticleDetailModal, LoadingState } from '$lib/components/common';
@@ -236,8 +237,14 @@
 	<!-- Renders nothing unless the archived generation is on screen. -->
 	<ArchiveNotice />
 
+	<!-- The arbiter card is generation-specific: the two runs used different
+	     judges, different selection rules and different article text. -->
 	{#if currentView === 'arbiter'}
-		<ArbiterMethodology />
+		{#if datasetState.generation === 'v2'}
+			<ArbiterV2Methodology />
+		{:else}
+			<ArbiterMethodology />
+		{/if}
 	{:else}
 		<AnalysisInfo />
 	{/if}

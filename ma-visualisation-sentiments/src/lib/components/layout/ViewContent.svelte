@@ -47,7 +47,12 @@
 	const comparisonView = () => import('$lib/components/data-display/ComparisonView.svelte');
 	const agreementView = () => import('$lib/components/data-display/AgreementView.svelte');
 	const extremeView = () => import('$lib/components/views/ExtremeViewContent.svelte');
+	// Two arbiter views, selected by generation rather than branched inside one
+	// component: the v1 view is pairwise all the way down (pair picker,
+	// `model_a_is_first`, two-way percentages) and has to stay stable for the
+	// archive, while v2 asks one three-way question per article.
 	const arbiterView = () => import('$lib/components/data-display/ArbiterView.svelte');
+	const arbiterV2View = () => import('$lib/components/data-display/ArbiterV2View.svelte');
 
 	interface ViewContentProps {
 		/** Currently active view */
@@ -286,9 +291,15 @@
 		{/await}
 	</div>
 {:else if activeView === 'arbiter'}
-	{#await arbiterView()}<LoadingState />{:then module}
-		{@const ArbiterView = module.default}<ArbiterView />
-	{/await}
+	{#if datasetState.generation === 'v2'}
+		{#await arbiterV2View()}<LoadingState />{:then module}
+			{@const ArbiterV2View = module.default}<ArbiterV2View />
+		{/await}
+	{:else}
+		{#await arbiterView()}<LoadingState />{:then module}
+			{@const ArbiterView = module.default}<ArbiterView />
+		{/await}
+	{/if}
 {/if}
 
 <style>

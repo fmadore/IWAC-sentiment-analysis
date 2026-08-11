@@ -264,3 +264,92 @@ export interface ArbiterEvaluationData {
 		};
 	}>;
 }
+
+// ---------------------------------------------------------------------------
+// Generation-2 arbiter: one three-way verdict per article
+//
+// v1 asks a pairwise question three times over; v2 asks it once, so the shapes
+// are deliberately separate rather than one union. `preferred` names an
+// anonymised analysis label — only `metadata.blind_permutation` resolves a
+// label back to a model, and nothing else in the payload may.
+// ---------------------------------------------------------------------------
+
+/** The anonymised labels the three analyses are presented under. */
+export const ARBITER_BLIND_LABELS = ['a', 'b', 'c'] as const;
+export type ArbiterBlindLabel = (typeof ARBITER_BLIND_LABELS)[number];
+
+/** A verdict names one analysis, several of them, or none. */
+export type ArbiterV2Preference = ArbiterBlindLabel | 'multiple' | 'none';
+
+export interface ArbiterV2DimensionScore {
+	/** The arbiter's own score (subjectivity is serialized as "1"-"5"). */
+	score: string;
+	justification: string;
+	preferred: ArbiterV2Preference;
+	verdict_explanation: string;
+}
+
+export interface ArbiterV2Analysis {
+	article_id: string;
+	polarity: ArbiterV2DimensionScore;
+	subjectivity: ArbiterV2DimensionScore;
+	centrality: ArbiterV2DimensionScore;
+	overall_winner: ArbiterV2Preference;
+	overall_explanation: string;
+	confidence_level: 'high' | 'medium' | 'low';
+	timestamp: string;
+}
+
+export interface ArbiterV2Spread {
+	polarity_spread: number;
+	subjectivity_spread: number;
+	centrality_spread: number;
+	total_spread: number;
+	has_significant_spread: boolean;
+}
+
+export interface ArbiterV2EvaluationData {
+	metadata: {
+		generated: string;
+		arbiter_model: string;
+		mode: 'three-way';
+		/** Reasoning effort the run was made at — the cost/depth lever. */
+		effort?: string;
+		blind_evaluation: boolean;
+		/** The models judged, in contract order. */
+		models: DatasetId[];
+		model_names: Record<string, string>;
+		/** Label → model id. The only place a verdict can be de-anonymised. */
+		blind_permutation: Record<ArbiterBlindLabel, DatasetId>;
+		selection: {
+			rule: string;
+			threshold: number;
+			limit: number | null;
+			eligible_articles: number;
+			selected_articles: number;
+		};
+		total_articles: number;
+		successful_evaluations: number;
+		failed_evaluations: number;
+		refused_evaluations?: number;
+		articles_without_text?: number;
+		contract_schema_version: string;
+		analysis_version: 'v2';
+		cache_schema_version: number;
+		prompt_version: string;
+		/**
+		 * Two repositories: the scores come from the public projection, the
+		 * article text from the private mirror that masks nothing.
+		 */
+		source: {
+			scores: { repository: string; revision: string | null };
+			text: { repository: string; revision: string | null };
+		};
+	};
+	evaluations: Array<{
+		article_id: string;
+		cache_fingerprint: string;
+		spread: ArbiterV2Spread;
+		arbiter: ArbiterV2Analysis;
+	}>;
+}
