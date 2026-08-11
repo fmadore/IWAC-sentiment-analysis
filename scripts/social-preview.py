@@ -7,10 +7,16 @@ Social preview, which has no REST API - upload it by hand) and as the site's
 Open Graph / Twitter image, so it is written into the SvelteKit `static/`
 directory and served from there.
 
-Everything on the card is derived, not hardcoded: the article counts and the
-polarity stacks are read out of `static/data/`, and the palette comes from the
-same OKLCH values as `app.css` via `oklch-to-hex.py`. Re-run after a data
-refresh so the card never claims figures the dashboard no longer shows.
+Everything on the card is derived, not hardcoded: the model list comes from the
+generation's shared contract, the article counts and polarity stacks are read
+out of `static/data/`, and the palette comes from the same OKLCH values as
+`app.css` via `oklch-to-hex.py`. Re-run after a data refresh so the card never
+claims figures the dashboard no longer shows.
+
+`--generation` defaults to the showcased generation, unlike the pipeline
+scripts, where an unflagged run would rewrite frozen data. Nothing here is at
+risk: the card is a presentation asset rendered from data it only reads. Pass
+`--generation v1` to re-render the archived panel's card.
 
 Rendered at 2x and downsampled, because Pillow does not antialias shape edges.
 
@@ -20,6 +26,7 @@ Usage (needs Pillow, which is not a pipeline dependency):
 
 from __future__ import annotations
 
+import argparse
 import importlib.util
 import json
 from collections import Counter
@@ -29,7 +36,12 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "ma-visualisation-sentiments" / "static" / "data"
+CONTRACT_DIR = ROOT / "ma-visualisation-sentiments" / "src" / "lib" / "data"
 OUTPUT = ROOT / "ma-visualisation-sentiments" / "static" / "social-preview.png"
+
+# The generation the dashboard shows by default, and therefore the one the
+# social card should advertise.
+SHOWCASED_GENERATION = "v2"
 
 WIDTH, HEIGHT = 1280, 640
 SCALE = 2  # render at 2x, downsample with LANCZOS
@@ -89,11 +101,34 @@ POLARITY = [
     ("Non applicable", "Not applicable", (0.55, 0.01, 260)),
 ]
 
-MODELS = [
-    ("chatgpt", "GPT-5 mini"),
-    ("gemini", "Gemini 3 Flash"),
-    ("mistral", "Ministral 14B 2512"),
-]
+# Card labels are trimmed from the contract's `analysisModel`, dropping release
+# dates and qualifiers that no reader needs at 17px — 172px of gutter is all a
+# stacked bar leaves. Anything not listed is used verbatim, so a new model
+# renders correctly before anyone thinks about width.
+CARD_LABELS = {
+    "Gemini 3 Flash preview": "Gemini 3 Flash",
+    "Mistral Small 4 2603": "Mistral Small 4",
+    "DeepSeek v4 Flash 0731": "DeepSeek v4 Flash",
+}
+
+
+def load_models(generation: str) -> list[tuple[str, str]]:
+    """(id, card label) for one generation, in contract order.
+
+    Read from the contract rather than hardcoded: this list went stale once
+    already, when generation 2 shipped and the card kept advertising the
+    archived models to every link preview.
+
+    Keyed on `analysisModel`, not `displayName`. The card names the model that
+    actually produced the annotations, and in v1 `displayName` is the vendor
+    slot ("ChatGPT") while only `analysisModel` carries the model ("GPT-5 mini").
+    """
+    contract = json.loads((CONTRACT_DIR / f"sentiment-{generation}.json").read_text("utf-8"))
+    return [
+        (model_id, CARD_LABELS.get(spec["analysisModel"], spec["analysisModel"]))
+        for model_id, spec in contract["models"].items()
+    ]
+
 
 # The three annotated dimensions, each with its scale's five steps - the same
 # ramps the dashboard uses, so the card previews the legend a visitor will meet.
@@ -144,11 +179,11 @@ def font(candidates: list[str], size: int) -> ImageFont.FreeTypeFont:
 
 
 # --- data ------------------------------------------------------------------
-def load_stats() -> dict:
+def load_stats(models: list[tuple[str, str]]) -> dict:
     articles = json.loads((DATA_DIR / "iwac_articles_base.json").read_text("utf-8"))
     years = sorted(str(a["dcterms:date"])[:4] for a in articles if a.get("dcterms:date"))
     stacks = {}
-    for model_id, _ in MODELS:
+    for model_id, _ in models:
         payload = json.loads((DATA_DIR / f"iwac_sentiment_{model_id}.json").read_text("utf-8"))
         stacks[model_id] = Counter(
             entry.get("polarite") for entry in payload["sentiments"].values()
@@ -183,7 +218,11 @@ def stacked_bar(image, xy, size, counts, radius=6):
     """Paint one polarity stack, rounded at both ends via an alpha mask."""
     x, y = px(xy[0]), px(xy[1])
     w, h = px(size[0]), px(size[1])
-    total = sum(counts.values()) or 1
+    # Denominator is the *annotated* rows, not every row in the file. Generation
+    # 2 carries 51 all-null articles by design (the prompt is French; those are
+    # neither French nor English), and counting them would leave each bar
+    # visibly short of its right edge with nothing to explain the gap.
+    total = sum(counts.get(key, 0) for key, _, _ in POLARITY) or 1
 
     layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     layer_draw = ImageDraw.Draw(layer)
@@ -200,8 +239,8 @@ def stacked_bar(image, xy, size, counts, radius=6):
     image.paste(layer, (x, y), mask)
 
 
-def render() -> Image.Image:
-    stats = load_stats()
+def render(models: list[tuple[str, str]]) -> Image.Image:
+    stats = load_stats(models)
     image = Image.new("RGB", (WIDTH * SCALE, HEIGHT * SCALE), BG_TOP)
     draw = ImageDraw.Draw(image)
 
@@ -272,7 +311,7 @@ def render() -> Image.Image:
     # One stacked polarity bar per model.
     label_font = font(SANS_BOLD, 17)
     bar_x, bar_w, bar_h = m + 172, WIDTH - m - (m + 172), 30
-    for i, (model_id, label) in enumerate(MODELS):
+    for i, (model_id, label) in enumerate(models):
         y = 322 + i * 52
         text(draw, (m, y + bar_h / 2), label, label_font, TEXT_PRIMARY, anchor="lm")
         stacked_bar(image, (bar_x, y), (bar_w, bar_h), stats["stacks"][model_id])
@@ -301,6 +340,17 @@ def render() -> Image.Image:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--generation",
+        choices=["v1", "v2"],
+        default=SHOWCASED_GENERATION,
+        help=f"Analysis generation to advertise (default: {SHOWCASED_GENERATION}).",
+    )
+    args = parser.parse_args()
+
+    models = load_models(args.generation)
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    render().save(OUTPUT, "PNG", optimize=True)
+    render(models).save(OUTPUT, "PNG", optimize=True)
     print(f"wrote {OUTPUT} ({OUTPUT.stat().st_size / 1024:.0f} kB)")
+    print(f"generation {args.generation}: {', '.join(label for _, label in models)}")
