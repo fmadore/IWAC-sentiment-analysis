@@ -320,76 +320,161 @@ export const en = {
 		justification: 'Justification'
 	},
 
-	// Analysis info
+	// Analysis info. The card chrome only — everything a generation can
+	// contradict (scales, run configuration, prompt) lives in analysisV1 /
+	// analysisV2 below.
 	analysis: {
 		title: 'Analysis methodology',
 		methodologyIntro:
-			'This dashboard explores the potential of AI as a research partner for analyzing large corpora. The proliferation of digital archiving has produced vast collections that often exceed human processing capacity. Using "distant reading" (Moretti 2000), computational techniques can survey thousands of articles and reveal patterns that traditional methods would miss.',
+			'This dashboard explores the potential of AI as a research partner for analyzing large corpora. The proliferation of digital archiving has produced vast collections that often exceed human processing capacity. Using "distant reading" (',
+		/* Link text between the two halves of the intro; the citation is a link. */
+		methodologyIntroCitation: 'Moretti 2000',
+		methodologyIntroEnd:
+			'), computational techniques can survey thousands of articles and reveal patterns that traditional methods would miss.',
 		methodologyCorpus:
 			'This experiment analyzes how Islam and Muslims are represented in West African newspapers. Instead of manually coding thousands of articles—which would introduce inconsistency—the entire corpus of',
 		methodologyCorpusArticles: 'articles from the',
 		methodologyCorpusDeveloper: ', a collaborative and open-access digital database developed by',
-		methodologyCorpusEnd:
-			", was analyzed using three LLMs: OpenAI's GPT-5.6 Luna, Mistral Small 4 and DeepSeek v4 Flash. Each article was evaluated according to three complementary dimensions:",
-		methodology:
-			'This visualization presents an automated sentiment analysis concerning the representation of Islam and Muslims in the Francophone West African press. The analyzed articles come from the',
+		/* The three model names that follow are rendered as links from the
+		   contract registry, so the generation on screen names its own panel. */
+		methodologyCorpusEnd: ', was analyzed using three LLMs:',
+		methodologyCorpusDimensions:
+			'Each article was evaluated according to three complementary dimensions:',
 		methodologyAiModel: 'Methodology and AI model',
 		modelUsed: 'Model used',
-		modelDescription: 'The analysis was performed with',
-		modelDetails:
-			', an OpenAI GPT-5 series model ("GPT-5 mini", Aug 2025). It offers a 400,000-token context window and enhanced reasoning capabilities, providing strong quality at an efficient cost for large French-language corpora.',
-		modelSummary: 'Model overview',
-		modelUsageGuide: 'Usage guide',
-		modelDocsLink: 'Model documentation',
-		modelSpecs: 'Model specifications',
 		technicalConfiguration: 'Technical configuration',
-		temperatureConfig: 'Temperature: 0.2 (for deterministic output)',
-		outputFormat: 'Output format: Structured JSON with Pydantic validation',
-		cacheSystem: 'Cache system to avoid redundant analyses',
-		errorHandling: 'Automatic error handling with multiple attempts',
 		analysisPrompt: 'Analysis prompt',
 		promptDescription: 'The model receives a specialized prompt that:',
-		promptFeature1: 'Defines the role of sentiment analysis expert for Francophone West Africa',
-		promptFeature2:
-			'Specifies evaluation criteria for each dimension (polarity, subjectivity, centrality)',
-		promptFeature3: 'Provides detailed scales with concrete examples',
-		promptFeature4: 'Requests justification for each classification',
-		promptFeature5: 'Imposes a structured JSON output format to ensure consistency',
 		viewFullPrompt: 'View full prompt',
 		limitationsTitle: 'Limitations and precautions',
 		limitationsDescription:
 			'This automated analysis constitutes a research assistance tool. Results may require human validation for complex or ambiguous cases. The justifications provided by the AI allow evaluation of the relevance of each classification.',
-		notApplicableNote: 'The article does not deal with Islam or Muslims',
 		polaritySection: 'Sentiment polarity',
 		subjectivitySection: 'Subjectivity',
-		centralitySection: 'Islam/Muslims centrality',
+		centralitySection: 'Islam/Muslims centrality'
+	},
+
+	/**
+	 * Archived generation (v1). Its prompt defined the scales differently and
+	 * its run configuration differs on every line, so the archive keeps its own
+	 * copy: describing January 2026 scores with the August wording would
+	 * misattribute them.
+	 */
+	analysisV1: {
+		config: [
+			'Corpus run: January–February 2026',
+			'No reasoning or thinking parameter — the models ran without one, and thinking_level postdates this campaign',
+			'Temperature: 0.2 for Gemini 3 Flash preview and Ministral 14B; GPT-5 mini ran at the API default',
+			'Ministral 14B alone capped output at 512 tokens, so its longest justifications could be truncated',
+			'Output format: structured JSON validated against a Pydantic schema',
+			'Cache system to avoid redundant analyses',
+			'Automatic error handling with multiple attempts'
+		],
+		promptFeatures: [
+			'Defines the role of sentiment analysis expert for Francophone West Africa',
+			'Specifies evaluation criteria for each dimension (polarity, subjectivity, centrality)',
+			'Asks the model to open with a checklist of 3 to 7 conceptual steps',
+			'Requests a justification in French for each classification',
+			'Imposes a structured JSON output format to ensure consistency'
+		],
 		polarityDescription:
-			'Evaluates the general emotional orientation of the article towards its main subject.',
+			'Evaluates the general sentiment expressed in the article towards Islam and/or Muslims, or concerning their representation.',
+		polarityVeryPositive: 'Extremely favorable, enthusiastic, praising portrait of Islam/Muslims',
+		polarityPositive: 'Favorable, optimistic portrait of Islam/Muslims',
+		polarityNeutral:
+			'No clear sentiment towards Islam/Muslims or balance between positive and negative aspects in their representation; factual tone without marked emotional charge towards them',
+		polarityNegative: 'Unfavorable, critical, pessimistic portrait of Islam/Muslims',
+		polarityVeryNegative:
+			'Extremely unfavorable, alarmist, very critical portrait of Islam/Muslims',
+		polarityNotApplicable: 'The article does not deal with Islam or Muslims',
 		subjectivityDescription:
-			'Measures the degree of objectivity/subjectivity of the article IN ITS WAY OF REPRESENTING Islam and/or Muslims on a scale from 1 (very objective) to 5 (very subjective).',
+			'Measures the degree of objectivity/subjectivity of the article in its way of representing Islam and/or Muslims, on a scale from 1 (very objective) to 5 (very subjective).',
+		subjectivity1:
+			'Reports verifiable facts about Islam/Muslims without expressing personal opinions or feelings about them, purely informative style on this theme',
+		subjectivity2:
+			'Mainly factual concerning Islam/Muslims, but may contain subtle traces of opinions or word choices suggesting a limited perspective on this theme',
+		subjectivity3:
+			'Contains a balanced mix of facts and personal opinions/feelings concerning Islam/Muslims, or presents multiple viewpoints on this theme',
+		subjectivity4:
+			'Clearly expresses opinions, feelings, or judgments about Islam/Muslims, even if based on some facts to support them',
+		subjectivity5:
+			'Heavily biased in its representation of Islam/Muslims, expresses intense opinions and emotions about them, with little or no objective presentation of facts, editorial or opinion piece style on this theme',
 		centralityDescription:
 			'Evaluates the importance given to themes related to Islam and Muslims in the article.',
-		veryPositiveDesc: 'Extremely favorable, enthusiastic, praising portrait of Islam/Muslims',
-		positiveDesc: 'Favorable, optimistic portrait of Islam/Muslims',
-		neutralDesc:
-			'No clear sentiment towards Islam/Muslims or balance between positive and negative aspects in their representation; factual tone without marked emotional charge towards them',
-		negativeDesc: 'Unfavorable, critical, pessimistic portrait of Islam/Muslims',
-		veryNegativeDesc: 'Extremely unfavorable, alarmist, very critical portrait of Islam/Muslims',
-		factualDesc:
-			'Reports verifiable facts about Islam/Muslims without expressing personal opinions or feelings about them, purely informative style on this theme',
-		ratherFactualDesc:
-			'Mainly factual concerning Islam/Muslims, but may contain subtle traces of opinions or word choices suggesting a limited perspective on this theme',
-		mixedDesc:
-			'Contains a balanced mix of facts and personal opinions/feelings concerning Islam/Muslims, or presents multiple viewpoints on this theme',
-		ratherSubjectiveDesc:
-			'Clearly expresses opinions, feelings, or judgments about Islam/Muslims, even if based on some facts to support them',
-		subjectiveDesc:
-			'Heavily biased in its representation of Islam/Muslims, expresses intense opinions and emotions about them, with little or no objective presentation of facts, editorial or opinion piece style on this theme',
-		veryCentralDesc: 'Islam/Muslims constitute the main subject of the article',
-		centralDesc: 'Important theme but shared with other subjects',
-		secondaryDesc: 'Mentioned significantly but secondarily',
-		marginalDesc: 'Briefly or anecdotally mentioned',
-		notAddressedDesc: 'No mention of Islam or Muslims'
+		centralityVeryCentral: 'Islam/Muslims constitute the main subject of the article',
+		centralityCentral: 'Important theme but shared with other subjects',
+		centralitySecondary: 'Mentioned significantly but secondarily',
+		centralityMarginal: 'Briefly or anecdotally mentioned',
+		centralityNotAddressed: 'No mention of Islam or Muslims'
+	},
+
+	/**
+	 * Current generation (v2). The scale wording is the prompt's own, and the
+	 * notes are its prose boundary rules — the part that most changes how an
+	 * article is coded, and the part a reader cannot infer from the labels.
+	 * Upstream: iwac-ai-pipelines/AI_sentiment_analysis/sentiment_prompt.md
+	 */
+	analysisV2: {
+		config: [
+			'Corpus run: 3–5 August 2026',
+			'Reasoning effort: medium for GPT-5.6 Luna; high for Mistral Small 4 and DeepSeek v4 Flash, whose APIs offer no middle setting',
+			'Temperature: not set by the pipeline — each model runs at its vendor default',
+			'Output format: structured JSON validated against a Pydantic schema',
+			'Resumable cache holding one record per (article, model); only successful calls are cached',
+			'Error handling: three attempts per call with backoff, under a per-model timeout',
+			'Prompt fingerprint d14ace9ac192, recorded with every cached result'
+		],
+		promptFeatures: [
+			'Defines the role of an expert analyst of representations of Islam and Muslims in the Francophone West African press',
+			'Defines each scale step and states that the intermediate steps are answers in their own right, not fallbacks',
+			'Adds boundary rules for the recurring ambiguous cases: a Muslim actor in a secular story, cooperation with Arab states, armed groups, and reported speech',
+			'Requires a justification in French, one or two sentences, citing something concrete from the text',
+			'Asks for subjectivity as a label rather than a number, and imposes a structured JSON output',
+			'Carries no worked examples: an August 2026 A/B comparison showed they pulled the label distribution towards the examples themselves'
+		],
+		polarityDescription:
+			'The sentiment the article expresses towards Islam or Muslims — its own framing, vocabulary and handling of sources, not the opinions of the people it quotes.',
+		polarityVeryPositive: 'An extremely favorable, laudatory, enthusiastic portrayal',
+		polarityPositive: 'A favorable, well-disposed, optimistic portrayal',
+		polarityNeutral:
+			'No marked sentiment, or a balance between favorable and unfavorable aspects; factual tone',
+		polarityNegative: 'An unfavorable, critical, pessimistic portrayal',
+		polarityVeryNegative: 'An extremely unfavorable, alarmist, hostile portrayal',
+		polarityNotApplicable: 'The article does not deal with Islam or Muslims',
+		polarityNotes: [
+			'Neutral reporting is the ordinary case in news journalism: an article that reports facts without commenting on them is neutral, even when those facts are favorable or unfavorable in themselves.',
+			'Reported speech: an article that reports hostile statements with attribution, distance and counterpoint is neutral; it becomes negative if it takes up that framing as its own.',
+			'Negative facts are not negative polarity: the factual reporting of an attack is neutral unless the article extends responsibility to Muslims in general.'
+		],
+		subjectivityDescription:
+			"The degree of the article's own commitment on the theme of Islam and Muslims, regardless of whether the treatment is favorable. This generation asked for the label; the 1–5 rank is kept for the ordinal statistics.",
+		subjectivity1:
+			'Verifiable facts, no opinion or mark of appraisal on this theme; informative style',
+		subjectivity2:
+			'Essentially factual, with subtle traces of appraisal (word choice, angle) on this theme',
+		subjectivity3:
+			'A balanced mix of facts and opinions, or a plurality of viewpoints reported on this theme',
+		subjectivity4:
+			'Explicit opinions, feelings or judgments on this theme, even when supported by facts',
+		subjectivity5:
+			'Marked bias, intense emotions or judgments, little factual material; editorial, op-ed or opinion piece',
+		subjectivityNotes: [
+			'Opinions quoted and attributed to a third party do not make the article subjective — reporting them is journalistic work. What does is the article taking them on as its own.',
+			'An article that is violently hostile but written in a factual tone remains low in subjectivity.'
+		],
+		centralityDescription:
+			'The importance the article gives to themes related to Islam and Muslims.',
+		centralityVeryCentral: 'Islam or Muslims are the main subject',
+		centralityCentral: 'An important theme, shared with other subjects',
+		centralitySecondary: 'Mentioned significantly, but subordinate to another subject',
+		centralityMarginal: 'Mentioned briefly, anecdotally or incidentally',
+		centralityNotAddressed: 'No mention of Islam or Muslims',
+		centralityNotes: [
+			'A person\'s religious affiliation does not make an article religious: a Muslim minister presenting a budget is "not addressed" unless the article makes something of their faith.',
+			'Institutions and practices count — mosque, imam, medersa, Islamic association, Ramadan, hajj, Tabaski, preaching — even when the word "Islam" is absent.',
+			'Cooperation with Arab states or Islamic organizations (Libya, Saudi Arabia, Kuwait, Iran, the OIC, ISESCO, the Islamic Development Bank) is at least marginal, even when the surface topic is a loan or a hospital.',
+			'An armed group claiming to act in the name of Islam is central, or very central when the article is about the group itself. High centrality presumes nothing about polarity.'
+		]
 	},
 
 	// Loading and messages

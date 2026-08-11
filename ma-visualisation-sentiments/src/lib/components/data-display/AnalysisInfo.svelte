@@ -37,8 +37,21 @@
 		docsUrl: string;
 		/** First card paragraph (comparison grid) */
 		cardDescription: LocalizedText;
-		/** Second card paragraph (grid) / detail line (single-model view) */
-		detail: LocalizedText;
+		/**
+		 * Second card paragraph (grid) / detail line (single-model view).
+		 * Optional: the generation-2 cards carry the run configuration only, so
+		 * a claim about a model's behaviour has somewhere to be checked.
+		 */
+		detail?: LocalizedText;
+		/**
+		 * What one full pass over the corpus cost, measured against the
+		 * provider's own billing rather than inferred from a rate card — the
+		 * rate cards in the pipeline's registry have been wrong by 5×. Per model
+		 * rather than in one line of the configuration list because the currency
+		 * differs: Mistral bills in euros, the other two in dollars. Recorded
+		 * only for the generation whose invoices were kept.
+		 */
+		cost?: LocalizedText;
 		/** Sentence following the badge link in the single-model view */
 		inlineDescription: LocalizedText;
 	}
@@ -110,14 +123,14 @@
 			logoAlt: 'OpenAI logo',
 			cardName: 'GPT-5.6 Luna',
 			badgeName: 'GPT-5.6 Luna',
-			docsUrl: 'https://platform.openai.com/docs/models',
+			docsUrl: 'https://developers.openai.com/api/docs/models/gpt-5.6-luna',
 			cardDescription: {
-				en: "OpenAI's reasoning model for the second campaign, run at medium reasoning effort.",
-				fr: "Le modèle de raisonnement d'OpenAI pour la seconde campagne, exécuté avec un effort de raisonnement moyen."
+				en: "OpenAI's reasoning model for the second campaign, run at medium reasoning effort — the panel's reference setting.",
+				fr: "Le modèle de raisonnement d'OpenAI pour la seconde campagne, exécuté avec un effort de raisonnement moyen — le réglage de référence du panel."
 			},
-			detail: {
-				en: 'Fastest of the three on the full corpus, and the only one that never declined to score an article it considered relevant.',
-				fr: "Le plus rapide des trois sur l'ensemble du corpus, et le seul à n'avoir jamais refusé de noter un article qu'il jugeait pertinent."
+			cost: {
+				en: 'Full corpus pass: US$9.48',
+				fr: 'Passage sur le corpus complet : 9,48 $ US'
 			},
 			inlineDescription: {
 				en: ", OpenAI's reasoning model, run at medium reasoning effort for the second annotation campaign.",
@@ -130,14 +143,14 @@
 			logoAlt: 'Mistral logo',
 			cardName: 'Mistral Small 4 (2603)',
 			badgeName: 'Mistral Small 4',
-			docsUrl: 'https://docs.mistral.ai/models',
+			docsUrl: 'https://docs.mistral.ai/models/model-cards/mistral-small-4-0-26-03',
 			cardDescription: {
-				en: "Mistral's small reasoning model, run at high reasoning effort — the API rejects the lower levels for this model.",
-				fr: "Le petit modèle de raisonnement de Mistral, exécuté avec un effort de raisonnement élevé — l'API refuse les niveaux inférieurs pour ce modèle."
+				en: "Mistral's small reasoning model, open weights under Apache 2.0, run at high reasoning effort — its API rejects the lower levels.",
+				fr: 'Le petit modèle de raisonnement de Mistral, à poids ouverts sous licence Apache 2.0, exécuté avec un effort de raisonnement élevé — son API refuse les niveaux inférieurs.'
 			},
-			detail: {
-				en: 'Reads centrality more generously than the other two, which is a long-standing property of the Mistral family rather than a quirk of this run.',
-				fr: "Interprète la centralité plus généreusement que les deux autres, une propriété ancienne de la famille Mistral plutôt qu'une particularité de cette exécution."
+			cost: {
+				en: 'Full corpus pass: €6.48',
+				fr: 'Passage sur le corpus complet : 6,48 €'
 			},
 			inlineDescription: {
 				en: ", Mistral's small reasoning model, run at high reasoning effort for the second annotation campaign.",
@@ -150,14 +163,14 @@
 			logoAlt: 'DeepSeek logo',
 			cardName: 'DeepSeek v4 Flash (0731)',
 			badgeName: 'DeepSeek v4 Flash',
-			docsUrl: 'https://api-docs.deepseek.com/',
+			docsUrl: 'https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731',
 			cardDescription: {
-				en: 'An open-weights reasoning model, the only member of the panel not served by its vendor directly.',
-				fr: "Un modèle de raisonnement à poids ouverts, le seul membre du panel qui n'est pas servi directement par son fournisseur."
+				en: 'An open-weights reasoning model under an MIT licence, served through OpenRouter rather than by its vendor, and run at high reasoning effort — it has no middle level.',
+				fr: "Un modèle de raisonnement à poids ouverts sous licence MIT, servi via OpenRouter plutôt que par son fournisseur, et exécuté avec un effort de raisonnement élevé — il n'a pas de niveau intermédiaire."
 			},
-			detail: {
-				en: 'Declined to score subjectivity on 489 articles it otherwise analysed, so subjectivity statistics involving it rest on a slightly smaller sample.',
-				fr: "A refusé de noter la subjectivité sur 489 articles qu'il a par ailleurs analysés : les statistiques de subjectivité le concernant reposent donc sur un échantillon légèrement plus petit."
+			cost: {
+				en: 'Full corpus pass: US$10.96',
+				fr: 'Passage sur le corpus complet : 10,96 $ US'
 			},
 			inlineDescription: {
 				en: ', an open-weights reasoning model, the only member of the panel not served by its vendor directly.',
@@ -179,6 +192,34 @@
 		datasetState.generation === 'v2' ? SENTIMENT_ANALYSIS_PROMPT_V2 : SENTIMENT_ANALYSIS_PROMPT
 	);
 
+	// Everything the two campaigns disagree about — scale wording, run
+	// configuration, what the prompt asks for. Same reasoning as activePrompt:
+	// describing archived scores with the current prompt's wording would
+	// misattribute them.
+	const copy = $derived(datasetState.generation === 'v2' ? $t.analysisV2 : $t.analysisV1);
+
+	// v2 added prose boundary rules to every dimension; v1 had none, so the
+	// notes list simply renders nothing for the archive.
+	const notes = $derived(
+		datasetState.generation === 'v2'
+			? {
+					polarity: $t.analysisV2.polarityNotes,
+					subjectivity: $t.analysisV2.subjectivityNotes,
+					centrality: $t.analysisV2.centralityNotes
+				}
+			: { polarity: [], subjectivity: [], centrality: [] }
+	);
+
+	// The collection is published as two sites, one per language.
+	const collectionUrl = $derived(
+		$currentLanguage === 'en'
+			? 'https://islam.zmo.de/s/westafrica/'
+			: 'https://islam.zmo.de/s/afrique_ouest/page/accueil'
+	);
+
+	const MORETTI_URL =
+		'https://newleftreview.org/issues/ii1/articles/franco-moretti-conjectures-on-world-literature';
+
 	function viewArchive() {
 		datasetState.setGeneration(ARCHIVED_GENERATION);
 		updateURL(uiState.activeView, datasetState.isComparisonMode);
@@ -189,65 +230,68 @@
 		{
 			variant: 'polarity-very-positive',
 			badge: $t.sentiment.veryPositive,
-			description: $t.analysis.veryPositiveDesc
+			description: copy.polarityVeryPositive
 		},
 		{
 			variant: 'polarity-positive',
 			badge: $t.sentiment.positive,
-			description: $t.analysis.positiveDesc
+			description: copy.polarityPositive
 		},
 		{
 			variant: 'polarity-neutral',
 			badge: $t.sentiment.neutral,
-			description: $t.analysis.neutralDesc
+			description: copy.polarityNeutral
 		},
 		{
 			variant: 'polarity-negative',
 			badge: $t.sentiment.negative,
-			description: $t.analysis.negativeDesc
+			description: copy.polarityNegative
 		},
 		{
 			variant: 'polarity-very-negative',
 			badge: $t.sentiment.veryNegative,
-			description: $t.analysis.veryNegativeDesc
+			description: copy.polarityVeryNegative
 		},
 		{
 			variant: 'polarity-na',
 			badge: $t.sentiment.notApplicable,
-			description: $t.analysis.notApplicableNote
+			description: copy.polarityNotApplicable
 		}
 	]);
 
+	// The badge stays the 1-5 rank the data files store, even though v2 asked
+	// the models for the label — every chart, filter and export is keyed on the
+	// rank, and showing two different scales for one dimension would not help.
 	const subjectivityItems: ScaleItem[] = $derived([
 		{
 			variant: 'subjectivity-1',
 			badge: '1',
 			label: $t.subjectivity.factual,
-			description: $t.analysis.factualDesc
+			description: copy.subjectivity1
 		},
 		{
 			variant: 'subjectivity-2',
 			badge: '2',
 			label: $t.subjectivity.ratherFactual,
-			description: $t.analysis.ratherFactualDesc
+			description: copy.subjectivity2
 		},
 		{
 			variant: 'subjectivity-3',
 			badge: '3',
 			label: $t.subjectivity.mixed,
-			description: $t.analysis.mixedDesc
+			description: copy.subjectivity3
 		},
 		{
 			variant: 'subjectivity-4',
 			badge: '4',
 			label: $t.subjectivity.ratherSubjective,
-			description: $t.analysis.ratherSubjectiveDesc
+			description: copy.subjectivity4
 		},
 		{
 			variant: 'subjectivity-5',
 			badge: '5',
 			label: $t.subjectivity.subjective,
-			description: $t.analysis.subjectiveDesc
+			description: copy.subjectivity5
 		}
 	]);
 
@@ -255,46 +299,46 @@
 		{
 			variant: 'centrality-very-central',
 			badge: $t.centrality.veryCentral,
-			description: $t.analysis.veryCentralDesc
+			description: copy.centralityVeryCentral
 		},
 		{
 			variant: 'centrality-central',
 			badge: $t.centrality.central,
-			description: $t.analysis.centralDesc
+			description: copy.centralityCentral
 		},
 		{
 			variant: 'centrality-secondary',
 			badge: $t.centrality.secondary,
-			description: $t.analysis.secondaryDesc
+			description: copy.centralitySecondary
 		},
 		{
 			variant: 'centrality-marginal',
 			badge: $t.centrality.marginal,
-			description: $t.analysis.marginalDesc
+			description: copy.centralityMarginal
 		},
 		{
 			variant: 'centrality-not-addressed',
 			badge: $t.centrality.notAddressed,
-			description: $t.analysis.notAddressedDesc
+			description: copy.centralityNotAddressed
 		}
 	]);
 </script>
 
 <CollapsibleMethodologyCard title={$t.analysis.title}>
 	<p class="info-description">
-		{$t.analysis.methodologyIntro}
+		{$t.analysis.methodologyIntro}<a
+			href={MORETTI_URL}
+			target="_blank"
+			rel="noopener noreferrer"
+			class="info-link">{$t.analysis.methodologyIntroCitation}</a
+		>{$t.analysis.methodologyIntroEnd}
 	</p>
 
 	<p class="info-description">
 		{$t.analysis.methodologyCorpus}
 		<strong class="article-count">{totalArticleCount.toLocaleString()}</strong>
 		{$t.analysis.methodologyCorpusArticles}
-		<a
-			href="https://islam.zmo.de/s/westafrica/"
-			target="_blank"
-			rel="noopener noreferrer"
-			class="info-link"
-		>
+		<a href={collectionUrl} target="_blank" rel="noopener noreferrer" class="info-link">
 			{#if $currentLanguage === 'en'}
 				<em>Islam West Africa Collection</em> (IWAC)
 			{:else}
@@ -307,6 +351,19 @@
 			rel="noopener noreferrer"
 			class="info-link">Frédérick Madore</a
 		>{$t.analysis.methodologyCorpusEnd}
+		<!-- The panel is named from the contract registry, so the sentence follows
+		     the generation on screen instead of hardcoding one campaign's models. -->
+		{#each generationModels as model, index (model.id)}{#if index > 0}{index ===
+				generationModels.length - 1
+					? $currentLanguage === 'en'
+						? ' and '
+						: ' et '
+					: ', '}{/if}<a
+				href={model.docsUrl}
+				target="_blank"
+				rel="noopener noreferrer"
+				class="info-link">{model.badgeName}</a
+			>{/each}. {$t.analysis.methodologyCorpusDimensions}
 	</p>
 
 	<div class="accordion-container">
@@ -316,8 +373,15 @@
 			open={accordion.isOpen('polarite')}
 			onToggle={() => accordion.toggle('polarite')}
 		>
-			<p class="panel-description">{$t.analysis.polarityDescription}</p>
+			<p class="panel-description">{copy.polarityDescription}</p>
 			<SentimentScaleList items={polarityItems} />
+			{#if notes.polarity.length > 0}
+				<ul class="scale-notes">
+					{#each notes.polarity as note (note)}
+						<li>{note}</li>
+					{/each}
+				</ul>
+			{/if}
 		</AccordionItem>
 
 		<!-- Subjectivity Section -->
@@ -326,8 +390,15 @@
 			open={accordion.isOpen('subjectivite')}
 			onToggle={() => accordion.toggle('subjectivite')}
 		>
-			<p class="panel-description">{$t.analysis.subjectivityDescription}</p>
+			<p class="panel-description">{copy.subjectivityDescription}</p>
 			<SentimentScaleList items={subjectivityItems} />
+			{#if notes.subjectivity.length > 0}
+				<ul class="scale-notes">
+					{#each notes.subjectivity as note (note)}
+						<li>{note}</li>
+					{/each}
+				</ul>
+			{/if}
 		</AccordionItem>
 
 		<!-- Centrality Section -->
@@ -336,8 +407,15 @@
 			open={accordion.isOpen('centralite')}
 			onToggle={() => accordion.toggle('centralite')}
 		>
-			<p class="panel-description">{$t.analysis.centralityDescription}</p>
+			<p class="panel-description">{copy.centralityDescription}</p>
 			<SentimentScaleList items={centralityItems} />
+			{#if notes.centrality.length > 0}
+				<ul class="scale-notes">
+					{#each notes.centrality as note (note)}
+						<li>{note}</li>
+					{/each}
+				</ul>
+			{/if}
 		</AccordionItem>
 
 		<!-- Methodology Section -->
@@ -363,7 +441,12 @@
 										<span class="model-name">{model.cardName}</span>
 									</div>
 									<p class="model-description">{model.cardDescription[$currentLanguage]}</p>
-									<p class="model-description">{model.detail[$currentLanguage]}</p>
+									{#if model.detail}
+										<p class="model-description">{model.detail[$currentLanguage]}</p>
+									{/if}
+									{#if model.cost}
+										<p class="model-cost">{model.cost[$currentLanguage]}</p>
+									{/if}
 									<a
 										class="model-link"
 										href={model.docsUrl}
@@ -389,12 +472,14 @@
 									href={selectedModel.docsUrl}
 									target="_blank"
 									rel="noopener noreferrer"
-									class="model-badge {selectedModel.id}"
-								>
-									{selectedModel.badgeName}
-								</a>
-								{selectedModel.inlineDescription[$currentLanguage]}
-								<span class="model-detail">{selectedModel.detail[$currentLanguage]}</span>
+									class="model-badge {selectedModel.id}">{selectedModel.badgeName}</a
+								>{selectedModel.inlineDescription[$currentLanguage]}
+								{#if selectedModel.detail}
+									<span class="model-detail">{selectedModel.detail[$currentLanguage]}</span>
+								{/if}
+								{#if selectedModel.cost}
+									<span class="model-detail">{selectedModel.cost[$currentLanguage]}</span>
+								{/if}
 							{/if}
 						</p>
 					{/if}
@@ -414,23 +499,19 @@
 
 				<div class="methodology-section">
 					<h4 class="section-title">{$t.analysis.technicalConfiguration}</h4>
+					<!-- The run configuration is a fact about one campaign, so it comes
+					     from the generation block rather than being assembled here. The
+					     two runs share no parameter: v1 sent no reasoning setting at all
+					     and pinned temperature on two of its three models. -->
 					<ul class="config-list">
-						{#if datasetState.isComparisonMode}
-							<li>
-								{$currentLanguage === 'en' ? 'Gemini: ' : 'Gemini : '}{$t.analysis
-									.temperatureConfig}
-							</li>
-						{:else if datasetState.selected === 'gemini'}
-							<li>{$t.analysis.temperatureConfig}</li>
-						{/if}
-						<li>{$t.analysis.outputFormat}</li>
-						<li>{$t.analysis.cacheSystem}</li>
-						<li>{$t.analysis.errorHandling}</li>
+						{#each copy.config as line (line)}
+							<li>{line}</li>
+						{/each}
 						{#if datasetState.isComparisonMode}
 							<li>
 								{$currentLanguage === 'en'
-									? 'Parallel processing: Both models analyze the same articles independently'
-									: 'Traitement parallèle : Les deux modèles analysent les mêmes articles de manière indépendante'}
+									? 'Parallel processing: every model analyzes the same articles independently'
+									: 'Traitement parallèle : chaque modèle analyse les mêmes articles de manière indépendante'}
 							</li>
 							<li>
 								{$currentLanguage === 'en'
@@ -438,11 +519,6 @@
 									: "Détection des divergences : Identification automatique des différences dans l'analyse de sentiment"}
 							</li>
 						{/if}
-						<li>
-							{$currentLanguage === 'en'
-								? 'API parameters: temperature=0.2, thinking_level="low" (Gemini 3)'
-								: 'Paramètres API : temperature=0.2, thinking_level="low" (Gemini 3)'}
-						</li>
 					</ul>
 				</div>
 
@@ -451,16 +527,14 @@
 					<p class="section-text">
 						{datasetState.isComparisonMode
 							? $currentLanguage === 'en'
-								? 'Both models use the same standardized prompt to ensure consistent analysis criteria across different AI systems:'
-								: "Les deux modèles utilisent le même prompt standardisé pour assurer des critères d'analyse cohérents entre les différents systèmes d'IA :"
+								? 'Every model receives the same prompt, so the comparison measures the models rather than their instructions:'
+								: 'Chaque modèle reçoit le même prompt : la comparaison mesure donc les modèles et non leurs instructions :'
 							: $t.analysis.promptDescription}
 					</p>
 					<ul class="config-list">
-						<li>{$t.analysis.promptFeature1}</li>
-						<li>{$t.analysis.promptFeature2}</li>
-						<li>{$t.analysis.promptFeature3}</li>
-						<li>{$t.analysis.promptFeature4}</li>
-						<li>{$t.analysis.promptFeature5}</li>
+						{#each copy.promptFeatures as feature (feature)}
+							<li>{feature}</li>
+						{/each}
 						{#if datasetState.isComparisonMode}
 							<li>
 								{$currentLanguage === 'en'
@@ -586,6 +660,27 @@
 		line-height: var(--line-height-relaxed);
 		margin-bottom: var(--space-4);
 		max-width: var(--prose-width);
+	}
+
+	/* The prompt's prose boundary rules. They decide how an ambiguous article is
+	   coded, so they belong beside the scale — but under it, in a quieter
+	   register, because the labels are what a reader looks up. */
+	.scale-notes {
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2-5);
+		padding: 0;
+		margin: var(--space-4) 0 0;
+		max-width: var(--prose-width);
+	}
+
+	.scale-notes li {
+		border-left: 1px solid var(--border-subtle);
+		padding-left: var(--space-3);
+		color: var(--text-muted);
+		font-size: var(--font-size-sm);
+		line-height: var(--line-height-relaxed);
 	}
 
 	/* ==========================================================================
@@ -722,6 +817,16 @@
 	.model-description {
 		font-size: var(--font-size-xs);
 		color: var(--text-muted);
+		line-height: var(--line-height-normal);
+		margin: 0 0 var(--space-2) 0;
+	}
+
+	/* A measured figure, so it reads as data rather than prose: same size as the
+	   description above it, tabular so three cards line their amounts up. */
+	.model-cost {
+		font-size: var(--font-size-xs);
+		color: var(--text-secondary);
+		font-variant-numeric: tabular-nums;
 		line-height: var(--line-height-normal);
 		margin: 0 0 var(--space-2) 0;
 	}
