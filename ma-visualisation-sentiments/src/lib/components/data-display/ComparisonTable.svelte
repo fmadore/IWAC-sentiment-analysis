@@ -220,8 +220,14 @@
 				</thead>
 				<tbody>
 					{#each paginatedComparisons as comparison (comparison.article['o:id'])}
+						<!-- Deliberately carries no class: `tbody tr` below already owns the
+						     cursor and hover, and `.comparison-row` is the CARD view's stacked
+						     dimension row (display: flex; flex-direction: column). Putting that
+						     class here turns the row into a column flex container, so every
+						     `<td>` stacks inside column 1 — valid markup, valid CSS, wrong
+						     everywhere except on screen. It shipped that way once already. -->
 						<tr
-							class="comparison-row cursor-pointer"
+							class="cursor-pointer"
 							onclick={() => selectComparison(comparison)}
 							onkeydown={(event) => {
 								if (event.key === 'Enter' || event.key === ' ') {
@@ -560,6 +566,9 @@
 		gap: var(--space-3);
 	}
 
+	/* CARD VIEW ONLY — one stacked dimension block (label over the two models'
+	   values). Never put this on the table's `<tr>`: `display: flex` overrides
+	   `display: table-row` and collapses all eight `<td>`s into column 1. */
 	.comparison-row {
 		display: flex;
 		flex-direction: column;
