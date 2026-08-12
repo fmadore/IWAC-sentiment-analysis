@@ -1,5 +1,6 @@
+import { derived } from 'svelte/store';
 import type { Language } from './index.js';
-import { translate } from './index.js';
+import { currentLanguage, translate } from './index.js';
 
 // Mapping of French sentiment values to translation keys
 export const SENTIMENT_VALUE_MAP = {
@@ -120,9 +121,74 @@ export function getFrenchSentimentValue(translatedValue: string): string {
 }
 
 /**
- * Formats a number according to the current language locale
+ * Formats a number for display in the active language: `12,356` in English,
+ * `12 356` in French (a narrow no-break space, which is the French convention).
+ *
+ * Always pass `lang`. A bare `num.toLocaleString()` follows the *browser's*
+ * locale, not the language the reader chose, so an English page on a French
+ * machine grouped its thousands the French way and vice versa — wrong one way
+ * or the other for everyone.
  */
 export function formatNumber(num: number, lang?: Language): string {
-	const locale = lang === 'en' ? 'en-US' : 'fr-FR';
-	return num.toLocaleString(locale);
+	return num.toLocaleString(localeOf(lang));
 }
+
+/** The BCP 47 tag behind every locale-aware format in the app. */
+export function localeOf(lang?: Language): 'en-GB' | 'fr-FR' {
+	return lang === 'en' ? 'en-GB' : 'fr-FR';
+}
+
+/**
+ * A number with a fixed number of decimal places, in the active language:
+ * `0.359` in English, `0,359` in French.
+ *
+ * `toFixed` always emits a full stop, which is not a decimal separator in
+ * French. Non-finite input formats as `NaN`, exactly as `toFixed` does, so the
+ * guards call sites already have keep working.
+ */
+export function formatDecimal(value: number, digits: number, lang?: Language): string {
+	return new Intl.NumberFormat(localeOf(lang), {
+		minimumFractionDigits: digits,
+		maximumFractionDigits: digits
+	}).format(value);
+}
+
+/**
+ * A percentage, from a fraction between 0 and 1: `58.1%` in English,
+ * `58,1 %` in French.
+ *
+ * Intl supplies the French narrow no-break space before the sign, which is why
+ * this goes through `style: 'percent'` rather than formatting the number and
+ * appending a literal `%`. Call sites holding a 0–100 value pass `value / 100`.
+ */
+export function formatPercent(fraction: number, digits: number, lang?: Language): string {
+	return new Intl.NumberFormat(localeOf(lang), {
+		style: 'percent',
+		minimumFractionDigits: digits,
+		maximumFractionDigits: digits
+	}).format(fraction);
+}
+
+/**
+ * The three formatters bound to the active language, as stores: `{$num(12356)}`,
+ * `{$dec(0.359, 3)}`, `{$pct(0.581, 1)}`.
+ *
+ * Stores rather than plain functions so that a template — or an ECharts option
+ * object built inside a `$derived` — re-runs when the language changes. Reading
+ * the language with a one-shot `get()` would format correctly on first paint
+ * and then silently keep the old separators after a switch.
+ */
+export const num = derived(
+	currentLanguage,
+	($lang) => (value: number) => formatNumber(value, $lang)
+);
+
+export const dec = derived(
+	currentLanguage,
+	($lang) => (value: number, digits: number) => formatDecimal(value, digits, $lang)
+);
+
+export const pct = derived(
+	currentLanguage,
+	($lang) => (fraction: number, digits: number) => formatPercent(fraction, digits, $lang)
+);

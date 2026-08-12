@@ -126,7 +126,8 @@
 					...tooltipConfig,
 					trigger: 'item',
 					formatter: createPieTooltipFormatter({
-						formatValue: (n) => formatNumber(n, currentLang)
+						formatValue: (n) => formatNumber(n, currentLang),
+						lang: () => currentLang
 					})
 				},
 				// The pie is aggregated globally by dimension, so a journal legend would
@@ -193,6 +194,7 @@
 					confine: true,
 					formatter: createStackedBarTooltipFormatter({
 						getTotalLabel: () => currentT.common.total,
+						lang: () => currentLang,
 						getIsMobile: () => isMobile,
 						scrollableList: true
 					})

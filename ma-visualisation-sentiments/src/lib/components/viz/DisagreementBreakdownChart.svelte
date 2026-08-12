@@ -15,6 +15,7 @@
 -->
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
+	import { dec, num, pct } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
@@ -104,13 +105,13 @@
 					return `<div style="min-width:220px;">
 						<div style="font-weight:600;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid ${chartColors.border.light};">${bucket.key}</div>
 						<div style="display:flex;justify-content:space-between;padding:2px 0;">
-							<span>${currentT.comparison.averageDiscrepancy}:</span><strong>${bucket.meanTotal.toFixed(2)}</strong>
+							<span>${currentT.comparison.averageDiscrepancy}:</span><strong>${$dec(bucket.meanTotal, 2)}</strong>
 						</div>
 						<div style="display:flex;justify-content:space-between;padding:2px 0;">
-							<span>${currentT.comparison.highConflicts}:</span><strong>${bucket.conflictRate.toFixed(1)}%</strong>
+							<span>${currentT.comparison.highConflicts}:</span><strong>${$pct(bucket.conflictRate / 100, 1)}</strong>
 						</div>
 						<div style="display:flex;justify-content:space-between;padding:2px 0;">
-							<span>${currentT.common.articles}:</span><strong>${bucket.n.toLocaleString()}</strong>
+							<span>${currentT.common.articles}:</span><strong>${$num(bucket.n)}</strong>
 						</div>
 					</div>`;
 				}

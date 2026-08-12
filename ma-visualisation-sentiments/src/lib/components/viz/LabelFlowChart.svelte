@@ -15,6 +15,7 @@
 -->
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
+	import { num } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
@@ -87,7 +88,7 @@
 			backgroundColor: 'transparent',
 			title: {
 				text: currentT.agreement.flowTitle,
-				subtext: `${modelNames.join('  →  ')} · ${total.toLocaleString()} ${currentT.common.articles}`,
+				subtext: `${modelNames.join('  →  ')} · ${$num(total)} ${currentT.common.articles}`,
 				left: 'center',
 				top: '1%',
 				textStyle: getTitleStyle(isMobile),
@@ -116,7 +117,7 @@
 					return tooltipPanel(
 						item.dataType === 'edge' ? 220 : 200,
 						`<div style="font-weight:600;margin-bottom:4px;">${title}</div>`,
-						`<div>${(item.value ?? 0).toLocaleString()} ${currentT.agreement.flowArticles}</div>`
+						`<div>${$num(item.value ?? 0)} ${currentT.agreement.flowArticles}</div>`
 					);
 				}
 			},

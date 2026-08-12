@@ -15,6 +15,7 @@
 -->
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
+	import { dec, num } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
@@ -86,21 +87,21 @@
 			return `<div style="min-width:210px;">
 				<div style="font-weight:600;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid ${chartColors.border.light};">${names[i]}</div>
 				<div style="display:flex;justify-content:space-between;padding:2px 0;">
-					<span>${currentT.common.articles}:</span><strong>${bucket.count.toLocaleString()}</strong>
+					<span>${currentT.common.articles}:</span><strong>${$num(bucket.count)}</strong>
 				</div>
 				<div style="display:flex;justify-content:space-between;padding:2px 0;">
-					<span>${currentT.seasonality.coverageIndex}:</span><strong>${bucket.index.toFixed(2)}×</strong>
+					<span>${currentT.seasonality.coverageIndex}:</span><strong>${$dec(bucket.index, 2)}×</strong>
 				</div>
 				<div style="display:flex;justify-content:space-between;padding:2px 0;">
 					<span>${currentT.filters.averageCentrality}:</span><strong>${
-						bucket.meanCentrality === null ? '—' : bucket.meanCentrality.toFixed(2)
+						bucket.meanCentrality === null ? '—' : $dec(bucket.meanCentrality, 2)
 					}</strong>
 				</div>
 			</div>`;
 		};
 
 		const title = {
-			text: `${currentT.seasonality.chartTitle} (${total.toLocaleString()} ${currentT.common.articles})`,
+			text: `${currentT.seasonality.chartTitle} (${$num(total)} ${currentT.common.articles})`,
 			subtext: currentT.seasonality.chartSubtitle,
 			left: 'center',
 			top: '1%',
@@ -270,16 +271,16 @@
 
 	<ChartDataTable
 		columns={[
-			$t.chartData.month,
-			$t.chartData.articles,
-			$t.chartData.coverageIndex,
-			$t.chartData.meanCentrality
+			{ label: $t.chartData.month },
+			{ label: $t.chartData.articles, format: 'integer' },
+			{ label: $t.chartData.coverageIndex, format: 'decimal', digits: 2 },
+			{ label: $t.chartData.meanCentrality, format: 'decimal', digits: 2 }
 		]}
 		rows={seasonality.buckets.map((bucket, i) => [
 			monthNames[i],
-			bucket.count.toLocaleString(),
-			bucket.index.toFixed(2),
-			bucket.meanCentrality === null ? '—' : bucket.meanCentrality.toFixed(2)
+			bucket.count,
+			bucket.index,
+			bucket.meanCentrality
 		])}
 		filenamePrefix="iwac-hijri-seasonality"
 		caption={$t.chartData.seasonalityCaption}
@@ -289,7 +290,7 @@
 
 	{#if seasonality.undated > 0}
 		<p class="calendar-note">
-			{$t.seasonality.undatedNote.replace('{count}', seasonality.undated.toLocaleString())}
+			{$t.seasonality.undatedNote.replace('{count}', $num(seasonality.undated))}
 		</p>
 	{/if}
 {:else}

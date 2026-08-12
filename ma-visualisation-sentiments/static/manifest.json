@@ -2,7 +2,7 @@
 	"id": "iwac-sentiment-analysis",
 	"name": "IWAC Sentiment Analysis",
 	"short_name": "IWAC Analysis",
-	"description": "Interactive visualization of sentiment analysis results from the Islam West Africa Collection (IWAC)",
+	"description": "How three AI models read the Islam West Africa Collection: an interactive view of their sentiment ratings of the francophone West African press",
 	"start_url": "./",
 	"display": "standalone",
 	"background_color": "#0a0d12",

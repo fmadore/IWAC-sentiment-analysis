@@ -101,7 +101,7 @@
 			<div class="section-header">
 				<span class="section-label">
 					<SlidersIcon size={16} />
-					{$t.comparison.differenceRange}: {minDiff} - {maxDiff}
+					{$t.comparison.differenceRange}: {minDiff}–{maxDiff}
 				</span>
 				<button class="reset-btn" type="button" onclick={resetFilters}>
 					{$t.filters.reset}

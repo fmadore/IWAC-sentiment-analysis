@@ -1,9 +1,18 @@
 import type { Translations } from './types.js';
 
+/**
+ * Catalogue français. Le type vient de en.ts, ce qui garantit la parité des
+ * clés à la compilation.
+ *
+ * Conventions : français de France, majuscule initiale seule pour les titres et
+ * les intitulés, guillemets français « » pour les citations, apostrophes
+ * typographiques, tirets demi-cadratins pour les intervalles (1–5), tirets
+ * cadratins avec parcimonie.
+ */
 export const fr: Translations = {
 	// App header and branding
 	appTitle: 'Analyse de sentiments CIAO',
-	appSubtitle: "Collection Islam Afrique de l'Ouest – Visualisation et exploration",
+	appSubtitle: "Collection Islam Afrique de l'Ouest – visualisation et exploration des données",
 	enterFullscreen: 'Passer en plein écran',
 	exitFullscreen: 'Quitter le mode plein écran',
 	/* Intitulé du sélecteur de langue au bas du tiroir mobile. */
@@ -24,13 +33,21 @@ export const fr: Translations = {
 		ranking: 'Journaux',
 		map: 'Carte',
 		agreement: 'Accord',
-		extremes: 'Analyses extrêmes',
+		extremes: 'Extrêmes',
 		arbiter: 'Arbitre'
+	},
+
+	/* Le filet sous le titre de chaque vue : « Modèle · X · Échantillon · N
+	   articles ». Assemblé dans ViewContent à partir de ces deux mots et de
+	   `common.of` et `common.articles`. */
+	viewMeta: {
+		model: 'Modèle',
+		sample: 'Échantillon'
 	},
 
 	// Filters
 	filters: {
-		title: 'Facettes',
+		title: 'Filtres',
 		country: 'Pays',
 		journal: 'Journal',
 		polarity: 'Polarité',
@@ -38,21 +55,17 @@ export const fr: Translations = {
 		centrality: 'Centralité',
 		clearAll: 'Tout effacer',
 		clearAllFilters: 'Effacer tous les filtres',
-		searchJournals: 'Rechercher des journaux...',
+		searchJournals: 'Rechercher un journal…',
 		showingJournals: 'Affichage de',
 		of: 'sur',
-		selectAll: 'Tout sélectionner',
-		deselectAll: 'Tout désélectionner',
 		selectedCountries: 'Pays sélectionnés',
 		selectedJournals: 'Journaux sélectionnés',
 		selectedPolarities: 'Polarités sélectionnées',
-		selectedSubjectivities: 'Subjectivités sélectionnées',
-		selectedCentralities: 'Centralités sélectionnées',
-		sentimentCriteria: "Critères d'analyse des sentiments",
+		selectedCentralities: 'Niveaux de centralité sélectionnés',
 		subjectivityScore: 'Score de subjectivité',
 		ratherObjective: 'Plutôt objectif',
-		mixedSubjectivity: 'Subjectivité mixte',
-		ratherVerySubjective: 'Plutôt/très subjectif',
+		mixedSubjectivity: 'Mixte',
+		ratherVerySubjective: 'Plutôt ou très subjectif',
 		averageCentrality: 'Centralité moyenne',
 		level: 'Niveau',
 		veryObjectiveScore: 'Très objectif',
@@ -61,8 +74,6 @@ export const fr: Translations = {
 		ratherSubjectiveScore: 'Plutôt subjectif',
 		verySubjectiveScore: 'Très subjectif',
 		numberOfArticles: "Nombre d'articles",
-		polarityRange: 'Plage de polarité',
-		centralityLevel: 'Niveau de centralité',
 		reset: 'Réinitialiser'
 	},
 
@@ -99,7 +110,7 @@ export const fr: Translations = {
 	ranking: {
 		title: 'Journaux',
 		subtitle:
-			'Les journaux classés par sentiment moyen, avec intervalles de confiance à 95 %. Les titres comptant moins d\u2019articles évalués présentent des intervalles plus larges : une moyenne élevée sur un petit échantillon n\u2019est pas un résultat solide.',
+			'Les journaux classés selon leur note moyenne sur la dimension choisie. L’intervalle de confiance à 95 % indique de combien cette moyenne pourrait bouger sur un autre échantillon : les titres comptant peu d’articles évalués présentent des intervalles larges, si bien qu’une moyenne élevée sur un petit échantillon ne constitue pas un résultat solide.',
 		chartTitle: 'Classement des journaux',
 		chartSubtitle: 'Moyenne et IC à 95 % · titres comptant au moins {min} articles évalués',
 		netPolarity: 'Polarité nette',
@@ -107,7 +118,6 @@ export const fr: Translations = {
 		meanCentrality: 'Centralité moyenne',
 		confidenceInterval: 'IC à 95 %',
 		neutralLine: 'neutre',
-		minArticles: 'Articles min.',
 		excludedNote:
 			'{count} journaux écartés : moins de {min} articles évalués. Leurs moyennes seraient trop incertaines pour être classées.',
 		noneAboveThreshold:
@@ -118,18 +128,18 @@ export const fr: Translations = {
 	map: {
 		title: 'Carte',
 		subtitle:
-			'Où le corpus porte son regard. Une bulle par lieu indexé dans les articles, dimensionnée selon le nombre d’articles qui le mentionnent et colorée selon la dimension choisie.',
+			'Les lieux que les articles nomment. Une bulle par lieu, dimensionnée selon le nombre d’articles qui le mentionnent et colorée selon la dimension choisie.',
 		articlesMentioning: 'articles mentionnant ce lieu',
 		meanOf: '{dimension} moyenne',
-		scoredArticles: 'Articles notés',
+		scoredArticles: 'Articles évalués',
 		legendSizeTitle: 'Articles mentionnant',
 		legendColorTitle: '{dimension} moyenne',
-		legendUnscored: 'Non noté',
+		legendUnscored: 'Non évalué',
 		caveat:
-			'Une bulle compte les articles qui MENTIONNENT un lieu, et non les articles qui portent sur lui. Chaque article indexe environ quatre lieux, si bien que les totaux dépassent le nombre d’articles. La couleur correspond à la note attribuée à l’article sur une échelle de 1 à 5, moyennée sur les articles que le modèle a effectivement notés pour cette dimension. Pour la polarité, « Non applicable » signifie qu’aucune position n’est exprimée : la valeur est exclue de la moyenne mais reste comptabilisée dans la bulle ; pour la centralité, « Non abordé » constitue un véritable bas d’échelle et est donc inclus. Les lieux sans coordonnées dans le fichier d’autorité IWAC sont absents.',
+			'Une bulle compte les articles qui mentionnent un lieu, et non ceux qui portent sur lui. Chaque article nomme environ quatre lieux, si bien que ces totaux dépassent le nombre d’articles. La couleur correspond à la note attribuée à l’article entier sur une échelle de 1 à 5, moyennée sur les articles que le modèle a effectivement évalués pour cette dimension. Pour la polarité, « Non applicable » signifie qu’aucune position n’est exprimée : la valeur sort de la moyenne mais compte toujours dans la taille de la bulle. Pour la centralité, « Non abordé » constitue un véritable bas d’échelle et reste inclus. Les lieux dépourvus de coordonnées dans le référentiel IWAC n’apparaissent pas.',
 		noPlacesTitle: 'Aucun lieu cartographié',
 		noPlacesLede:
-			'Aucun article de la sélection actuelle n’indexe un lieu dont les coordonnées sont connues.',
+			'Aucun article de la sélection actuelle ne nomme un lieu dont les coordonnées sont connues.',
 		loadErrorTitle: 'Données cartographiques indisponibles'
 	},
 
@@ -137,14 +147,14 @@ export const fr: Translations = {
 	seasonality: {
 		title: 'Saisonnalité',
 		subtitle:
-			'La couverture au fil du calendrier lunaire islamique. Comme l\u2019année hégirienne se décale par rapport au calendrier grégorien, ce motif reste invisible dans toute vue par année ou par mois.',
+			'La couverture au fil du calendrier lunaire islamique. L’année hégirienne compte environ onze jours de moins que l’année grégorienne : une fête religieuse traverse donc lentement les douze mois grégoriens, et ce motif reste invisible dans toute vue organisée par année ou par mois.',
 		chartTitle: 'Couverture par mois hégirien',
-		chartSubtitle: 'Volume d\u2019articles et centralité moyenne au fil de l\u2019année lunaire',
+		chartSubtitle: 'Volume d’articles et centralité moyenne au fil de l’année lunaire',
 		cycleLayout: 'Cycle',
 		coverageIndex: 'Indice de couverture',
 		calendarNote:
-			'Dates converties selon le calendrier islamique tabulaire (arithmétique), époque civile. Il diffère d\u2019un ou deux jours des dates d\u2019observance annoncées localement : suffisant pour des agrégats mensuels, mais pas pour dater une observance précise.',
-		undatedNote: '{count} articles exclus : date de publication incomplète.',
+			'Dates converties selon le calendrier islamique tabulaire (arithmétique), époque civile. Il peut différer d’un ou deux jours des dates annoncées localement, ce qui suffit pour des totaux mensuels mais non pour dater une observance précise.',
+		undatedNote: '{count} articles écartés : date de publication incomplète.',
 		months: {
 			muharram: 'Mouharram',
 			safar: 'Safar',
@@ -156,7 +166,7 @@ export const fr: Translations = {
 			shaban: 'Chaabane',
 			ramadan: 'Ramadan',
 			shawwal: 'Chawwal',
-			dhuAlQadah: 'Dhou al-Qi\u2019da',
+			dhuAlQadah: 'Dhou al-Qi’da',
 			dhuAlHijjah: 'Dhou al-Hijja'
 		}
 	},
@@ -165,38 +175,38 @@ export const fr: Translations = {
 	agreement: {
 		title: 'Accord',
 		subtitle:
-			'Comment les modèles se rapportent les uns aux autres : où ils convergent, où ils divergent, et si un désaccord relève d\u2019un décalage systématique ou d\u2019un conflit réel.',
-		dimensionSelector: 'Dimension d\u2019analyse',
+			'Comment les modèles se situent les uns par rapport aux autres : où ils convergent, où ils divergent, et si un désaccord relève d’un décalage systématique ou d’un conflit réel.',
+		dimensionSelector: 'Dimension d’analyse',
 		exactAgreement: 'Accord exact',
 		exactAgreementHelp:
-			'Proportion d\u2019articles pour lesquels les deux modèles ont choisi la même catégorie. Non corrigée de l\u2019accord attendu par hasard.',
+			'Proportion d’articles pour lesquels les deux modèles ont choisi la même catégorie. Cette valeur ne corrige pas l’accord que deux modèles atteindraient par simple hasard.',
 		adjacentAgreement: 'À un cran près',
-		adjacentDetail: 'Identique ou à une catégorie d\u2019écart',
+		adjacentDetail: 'Identique ou à une catégorie d’écart',
 		adjacentAgreementHelp:
-			'Proportion d\u2019articles dont les deux étiquettes sont identiques ou séparées d\u2019exactement une position sur l\u2019échelle ordinale.',
+			'Proportion d’articles dont les deux étiquettes sont identiques ou séparées d’exactement une position sur l’échelle.',
 		articlesCompared: 'articles comparés',
 		kappa: 'κ de Cohen',
 		kappaHelp:
-			'Accord corrigé du hasard. 0 signifie pas mieux que le hasard ; 1 signifie parfait. Tous les désaccords comptent également, si bien qu\u2019une échelle ordinale décalée d\u2019une catégorie obtient un score faible.',
+			'Accord corrigé du hasard. 0 signifie pas mieux que le hasard, 1 signifie parfait. Tous les désaccords y pèsent autant, si bien que deux modèles qui classent les articles de la même façon mais restent à une catégorie d’écart obtiennent malgré tout un score faible.',
 		weightedKappa: 'κ pondéré',
 		weightedKappaHelp:
-			'Kappa à pondération quadratique. Se tromper d\u2019une catégorie coûte bien moins que de s\u2019en écarter de quatre, ce qui convient aux échelles ordinales. Un score pondéré nettement supérieur au score non pondéré indique que les modèles classent de façon semblable mais se calibrent différemment.',
+			'Kappa à pondération quadratique. Se tromper d’une catégorie coûte bien moins que de s’en écarter de quatre, ce qui convient aux échelles dont les catégories se suivent dans un ordre. Un score pondéré nettement supérieur au score non pondéré indique que les modèles classent de façon semblable mais se calibrent différemment.',
 		fleissKappa: 'κ de Fleiss',
 		fleissHelp:
-			'Kappa de Fleiss sur les trois modèles simultanément, pour les articles analysés par tous.',
+			'Kappa de Fleiss sur les trois modèles à la fois, pour les articles que tous ont évalués.',
 		threeWayTitle: 'Les trois modèles',
 		threeWayLede:
-			"Accord entre les trois modèles de l'analyse sélectionnée simultanément, par dimension. Seuls les articles analysés par les trois sont comptabilisés.",
-		matrixTitle: 'Matrice d\u2019accord',
+			'L’accord entre les trois modèles à la fois, dimension par dimension. Seuls comptent les articles que les trois ont évalués.',
+		matrixTitle: 'Matrice d’accord',
 		rowsAre: 'Lignes :',
 		columnsAre: 'Colonnes :',
 		ofRow: 'De cette ligne',
 		calibrationTitle: 'Calibration des modèles',
-		calibrationSubtitle: 'La distribution propre à chaque modèle sur l\u2019échelle',
+		calibrationSubtitle: 'À quelle fréquence chaque modèle emploie chaque échelon',
 		systematicOffsetNote:
-			'L\u2019accord pondéré est ici nettement supérieur à l\u2019accord non pondéré. C\u2019est la signature d\u2019un décalage systématique plutôt que d\u2019un conflit réel : {modelA} et {modelB} classent les articles de manière semblable mais placent les frontières entre catégories à des endroits différents, de sorte que l\u2019essentiel de leur désaccord tient à un seul cran d\u2019écart.',
+			'L’accord pondéré dépasse ici nettement l’accord non pondéré. C’est la signature d’un décalage systématique plutôt que d’un conflit réel : {modelA} et {modelB} classent les articles de manière semblable mais tracent les frontières entre catégories à des endroits différents, de sorte que l’essentiel de leur désaccord tient à un seul cran d’écart.',
 		strength: {
-			poor: 'Nul',
+			poor: 'Médiocre',
 			slight: 'Faible',
 			fair: 'Passable',
 			moderate: 'Modéré',
@@ -210,7 +220,7 @@ export const fr: Translations = {
 		scopeTrio: 'Les trois',
 		consensusTitle: 'Où les trois modèles divergent',
 		consensusLede:
-			'Une vue par paire peut montrer que deux modèles diffèrent ; elle ne peut pas montrer que l’un se démarque des deux autres. Tout ce qui suit décompose chaque article sur les trois à la fois, de sorte que la calibration d’un modèle apparaisse comme une signature plutôt que comme du bruit.',
+			'Une vue par paire peut montrer que deux modèles diffèrent, mais non que l’un d’eux se démarque des deux autres. Tout ce qui suit décompose chaque article sur les trois à la fois : un modèle qui applique l’échelle autrement que ses pairs y apparaît alors comme un motif constant.',
 		unanimous: 'Unanimité',
 		unanimousHelp:
 			'Proportion d’articles pour lesquels les trois modèles ont choisi la même catégorie.',
@@ -219,22 +229,22 @@ export const fr: Translations = {
 			'Proportion d’articles pour lesquels deux modèles s’accordent et un se démarque. Les graphiques ci-dessous indiquent lequel.',
 		allDiffer: 'Les trois diffèrent',
 		allDifferHelp:
-			'Proportion d’articles pour lesquels aucun modèle ne rejoint un autre — il n’existe alors aucune majorité dont se démarquer.',
+			'Proportion d’articles pour lesquels aucun modèle n’en rejoint un autre, de sorte qu’il n’existe aucune majorité dont se démarquer.',
 		meanSpread: 'Écart moyen',
 		meanSpreadHelp:
-			'Moyenne de (maximum − minimum) entre les trois modèles, en positions d’échelle. Zéro correspond à l’unanimité ; le maximum correspond à toute la largeur de l’échelle.',
+			'Moyenne de (maximum − minimum) entre les trois modèles, comptée en crans sur l’échelle. Zéro correspond à l’unanimité, le maximum à toute la largeur de l’échelle.',
 		declinedToggle: 'Notations refusées',
 		declinedInclude: 'Incluses',
 		declinedExclude: 'Exclues',
 		declinedNote:
-			'{count} articles sont exclus parce qu’au moins un modèle a répondu « Non applicable ». Un refus de noter se situe sous le bas de l’échelle : le compter comme une notation fait passer un modèle qui s’abstient pour un modèle en désaccord — et cela pèse surtout sur les titres dont les articles ne portent que marginalement sur l’islam.',
+			'{count} articles sont écartés parce qu’au moins un modèle a répondu « Non applicable ». Un refus de noter se situe sous le bas de l’échelle : le compter comme une notation fait passer un modèle qui s’abstient pour un modèle en désaccord. L’effet se concentre sur les titres dont les articles ne portent que marginalement sur l’islam.',
 		declinedIncludedNote:
-			'Les notations refusées sont comptées au bas de l’échelle. Les titres qui en comptent beaucoup apparaîtront comme très discutés, mais ce sur quoi les modèles divergent alors est de savoir si l’article concerne l’islam — non pas s’il en parle favorablement.',
+			'Les notations refusées sont comptées au bas de l’échelle. Les titres qui en comptent beaucoup apparaîtront comme très discutés, mais le désaccord porte alors sur le fait même que l’article concerne l’islam, plutôt que sur le caractère favorable de sa couverture.',
 
 		disagreementTitle: 'Journaux classés par désaccord entre modèles',
 		disagreementSubtitle:
-			'Écart moyen à trois avec IC à 95 % · titres comptant au moins {min} articles notés',
-		disagreementAxis: 'Positions d’échelle entre le modèle le plus haut et le plus bas',
+			'Écart moyen à trois avec IC à 95 % · titres comptant au moins {min} articles évalués',
+		disagreementAxis: 'Crans d’échelle entre le modèle le plus haut et le plus bas',
 		disagreementNote:
 			'Le miroir de la vue Journaux : mêmes titres, même seuil, mais l’axe mesure l’écart entre les modèles plutôt que ce qu’ils disent. Un titre peut être banal quant au sentiment et atypique quant au désaccord.',
 		spread: 'Écart moyen',
@@ -242,15 +252,15 @@ export const fr: Translations = {
 		declinedShare: 'Notations refusées',
 		medianYear: 'Année médiane',
 		disagreementExcluded:
-			'{count} journaux omis : moins de {min} articles notés. Les petits titres paraissent plus discutés, si bien que les classer ici induirait en erreur.',
-		disagreementEmpty: 'Aucun journal n’atteint {min} articles notés avec les filtres actuels.',
+			'{count} journaux écartés : moins de {min} articles évalués. Les petits titres paraissent plus discutés, si bien que les classer ici induirait en erreur.',
+		disagreementEmpty: 'Aucun journal n’atteint {min} articles évalués avec les filtres actuels.',
 
 		dissentTitle: 'Qui se démarque',
-		dissentSubtitle: 'Chaque article décomposé en cinq issues mutuellement exclusives',
+		dissentSubtitle: 'Chaque article rangé dans l’une de cinq issues possibles',
 		dissentStacked: 'Par journal',
 		dissentTernary: 'Triangle',
 		dissentTernaryNote:
-			'Un point par journal, placé selon le modèle qui s’y démarque le plus souvent ; un point à un sommet signifie que ce modèle assume tout le désaccord, un point au centre que les trois se le partagent également. La taille indique le nombre d’articles. Les titres sans partage deux contre un n’ont pas de position et ne sont pas tracés.',
+			'Un point par journal, placé selon le modèle qui s’y démarque le plus souvent. Un point à un sommet signifie que ce modèle assume tout le désaccord, un point au centre que les trois se le partagent également. La taille indique le nombre d’articles. Les titres sans partage deux contre un n’ont pas de position et ne sont pas tracés.',
 		dissentsAlone: 'se démarque seul',
 		dissentShare: 'Part des partages',
 
@@ -260,13 +270,11 @@ export const fr: Translations = {
 		directionAbove: 'Note plus haut',
 		directionBelow: 'Note plus bas',
 		directionNote:
-			'C’est l’énoncé le plus net que ces données produisent sur la façon dont ces modèles diffèrent. Un modèle dont les barres se rangent presque entièrement d’un côté ne diverge pas au hasard : il applique l’échelle autrement.',
+			'C’est l’énoncé le plus net que ces données produisent sur la façon dont ces modèles diffèrent. Un modèle dont les barres se rangent presque entièrement d’un côté applique l’échelle autrement que les deux autres, de manière constante et dans un seul sens.',
 
 		flowTitle: 'Circulation des étiquettes entre les trois modèles',
-		flowSubtitle:
-			'Chaque ruban est un ensemble d’articles, suivi de l’étiquette d’un modèle à la suivante',
 		flowNote:
-			'La généralisation à trois de la matrice d’accord. Un décalage systématique apparaît comme une masse de rubans glissant d’un cran, et les trajets qu’une matrice par paire dissimule — les articles où le premier et le dernier modèle s’accordent en passant par un modèle intermédiaire divergent — deviennent visibles.',
+			'La matrice d’accord étendue à trois modèles. Un décalage systématique apparaît comme une masse de rubans glissant d’un cran, et les trajets qu’une matrice par paire dissimule — les articles où le premier et le dernier modèle s’accordent en passant par un modèle intermédiaire divergent — deviennent visibles.',
 		flowArticles: 'articles',
 
 		scatterTitle: 'Le désaccord porte-t-il sur les couvertures extrêmes ou ambiguës ?',
@@ -275,7 +283,7 @@ export const fr: Translations = {
 		scatterX: 'Moyenne du consensus (les trois modèles moyennés)',
 		scatterY: 'Écart moyen à trois',
 		scatterNote:
-			'Corrélation entre les deux axes : r = {r}. Une valeur proche de zéro signifierait que le désaccord est indépendant du caractère favorable de la couverture d’un titre ; une valeur forte, dans un sens ou dans l’autre, signifie que les modèles se disputent surtout un bout de l’échelle, et le classement ci-dessus doit alors se lire en conséquence. Ce n’est pas le même nombre selon la génération d’analyse ni selon la dimension.'
+			'Corrélation entre les deux axes : r = {r}. Une valeur proche de zéro signifierait que le désaccord ne dépend pas du caractère favorable de la couverture d’un titre. Une valeur forte, dans un sens ou dans l’autre, signifie que les modèles se disputent surtout un bout de l’échelle, et le classement ci-dessus doit alors se lire en conséquence. La valeur diffère selon la génération d’analyse et selon la dimension.'
 	},
 
 	// Données sous-jacentes des graphiques
@@ -293,15 +301,15 @@ export const fr: Translations = {
 		modelBLabel: 'Modèle B',
 		count: 'Effectif',
 		rowPercent: '% de la ligne',
-		seasonalityCaption: 'Volume d\u2019articles et centralité moyenne par mois hégirien',
+		seasonalityCaption: 'Volume d’articles et centralité moyenne par mois hégirien',
+		rankingCaption: 'Journaux classés par moyenne, avec intervalles de confiance',
+		matrixCaption: 'Tableau croisé des étiquettes des deux modèles',
 		spread: 'Écart moyen',
 		unanimity: 'Unanimité',
 		declined: 'Refusées',
 		medianYear: 'Année médiane',
 		disagreementCaption:
-			'Journaux classés par écart moyen à trois, avec intervalles de confiance, unanimité et part de notations refusées',
-		rankingCaption: 'Journaux classés par moyenne, avec intervalles de confiance',
-		matrixCaption: 'Tableau croisé des étiquettes des deux modèles'
+			'Journaux classés par écart moyen à trois, avec intervalles de confiance, unanimité et part de notations refusées'
 	},
 
 	// Chart titles and labels
@@ -310,11 +318,10 @@ export const fr: Translations = {
 		subjectivityDistribution: 'Distribution de la subjectivité',
 		sentimentTrends: 'Tendances des sentiments',
 		subjectivityTrends: 'Tendances de la subjectivité',
-		correlationDistribution: 'Distribution croisée',
 		volumeByCountry: "Volume d'articles par pays",
-		centralityHeatmap: 'Heatmap de centralité',
+		centralityHeatmap: 'Carte de chaleur de la centralité',
 		articlesAnalyzed: 'articles analysés',
-		globalDistribution: 'Distribution globale',
+		globalDistribution: 'Distribution d’ensemble',
 		byJournal: 'par journal',
 		byYear: 'par année',
 		stackedAreas: 'Aires empilées',
@@ -323,34 +330,33 @@ export const fr: Translations = {
 		countMode: 'Effectif',
 		shareMode: 'Part',
 		pie: 'Camembert',
-		polaritySubjectivityDistribution: 'Distribution Polarité × Subjectivité',
-		subtitle:
-			'Visualisez la distribution des sentiments selon les dimensions de polarité et de subjectivité.'
+		polaritySubjectivityDistribution: 'Distribution polarité × subjectivité',
+		subtitle: 'Comment le corpus se répartit sur les échelles de polarité et de subjectivité.'
 	},
 
 	// Trends view
 	trends: {
-		subtitle: "Suivez l'évolution des sentiments au fil du temps à travers les publications."
+		subtitle: 'Comment les notes évoluent au fil des années, pour le corpus et pour chaque journal.'
 	},
 
 	// Volume view
 	volume: {
-		subtitle: 'Analysez le volume de publications et les tendances temporelles dans le corpus.'
+		subtitle: 'Combien d’articles le corpus contient, année par année et pays par pays.'
 	},
 
 	// Heatmap view
 	heatmap: {
 		subtitle:
-			'Explorez les patterns de centralité par pays et thèmes avec une visualisation interactive.'
+			'La centralité de l’islam et des musulmans dans la couverture, pays par pays et année par année. Plus une case est sombre, plus le thème occupe le centre des articles publiés cette année-là.'
 	},
 
 	// Correlation/Distribution view
 	correlation: {
-		subtitle: 'Analysez la relation entre les dimensions de polarité et de subjectivité.',
+		subtitle: 'Comment les notes de polarité et de subjectivité se répondent.',
 		spearman: 'ρ de Spearman',
 		strengthLabel: 'Force',
 		rhoNote:
-			'Corrélation de rang entre polarité et subjectivité. Les deux échelles étant ordinales, on utilise les rangs plutôt que les valeurs codées. Les articles marqués « Non applicable » sont exclus.',
+			'Corrélation de rang entre polarité et subjectivité. Les deux échelles ordonnent des catégories sans les mesurer, si bien que le calcul porte sur les rangs plutôt que sur les valeurs codées. Les articles marqués « Non applicable » sont écartés.',
 		strength: {
 			negligible: 'Négligeable',
 			weak: 'Faible',
@@ -368,37 +374,32 @@ export const fr: Translations = {
 		polarity: 'Polarité',
 		subjectivity: 'Subjectivité',
 		centrality: 'Centralité',
-		actions: 'Actions',
-		viewDetails: 'Voir détails',
+		viewDetails: 'Voir les détails',
 		sortBy: 'Trier par',
 		itemsPerPage: 'Éléments par page',
 		showingItems: 'Affichage de',
-		noArticles: 'Aucun article disponible',
 		noFilteredArticles: 'Aucun article ne correspond aux filtres sélectionnés',
 		articleTitle: 'Titre',
 		subtitle:
-			'Parcourez et recherchez tous les articles avec leurs données de sentiment détaillées.'
+			'Parcourez chaque article, avec ses trois notes et la raison que le modèle a donnée pour chacune.'
 	},
 
 	// Article details
 	article: {
-		details: "Détails de l'article",
 		metadata: 'Métadonnées',
 		analysis: 'Analyse de sentiment',
-		polarityJustification: 'Justification de la polarité',
-		subjectivityJustification: 'Justification de la subjectivité',
-		centralityJustification: 'Justification de la centralité',
+		polarityJustification: 'Raison de la note de polarité',
+		subjectivityJustification: 'Raison de la note de subjectivité',
+		centralityJustification: 'Raison de la note de centralité',
 		close: 'Fermer',
 		titleNotAvailable: 'Titre non disponible',
 		publicationDate: 'Date de publication',
 		linkToFullArticle: "Lien vers l'article complet",
 		consultOriginalArticle: "Consulter l'article original →",
-		noAnalysisData:
-			"Les données d'analyse des sentiments ne sont pas disponibles pour cet article.",
+		noAnalysisData: 'Aucune note n’est disponible pour cet article.',
 		noArticleSelected: 'Aucun article sélectionné',
-		selectArticlePrompt:
-			"Sélectionnez un article dans le tableau pour voir ses détails d'analyse des sentiments.",
-		justification: 'Justification'
+		selectArticlePrompt: 'Sélectionnez un article dans le tableau pour voir ses notes.',
+		justification: 'Raison donnée'
 	},
 
 	// Analysis info. Voir en.ts : ce bloc ne contient que l'habillage de la
@@ -407,78 +408,75 @@ export const fr: Translations = {
 	analysis: {
 		title: "Méthodologie d'analyse",
 		methodologyIntro:
-			"Ce tableau de bord explore le potentiel de l'IA comme partenaire de recherche pour l'analyse de grands corpus. La prolifération de l'archivage numérique a produit de vastes collections qui dépassent souvent les capacités de traitement humain. Grâce à la « lecture distante » (",
+			'Ce tableau de bord demande ce que les grands modèles de langage savent faire, et ne savent pas faire, lorsqu’on les charge de lire un corpus de recherche. La numérisation a produit des collections bien plus vastes qu’un chercheur ne peut en parcourir article par article. Franco Moretti a nommé « lecture distante » (',
 		methodologyIntroCitation: 'Moretti 2000',
 		methodologyIntroEnd:
-			"), les techniques computationnelles peuvent parcourir des milliers d'articles et révéler des motifs que les méthodes traditionnelles manqueraient.",
+			') la démarche inverse : analyser des milliers de textes à la fois pour dégager des motifs qu’une lecture pièce à pièce a peu de chances de faire apparaître.',
 		methodologyCorpus:
-			"Cette expérience analyse comment l'islam et les musulmans sont représentés dans la presse ouest-africaine. Au lieu de coder manuellement des milliers d'articles—ce qui introduirait des incohérences—l'ensemble du corpus de",
+			'Il s’agit ici de la façon dont la presse ouest-africaine dépeint l’islam et les musulmans. Coder des milliers d’articles à la main prend du temps et se maintient mal dans la cohérence : l’ensemble du corpus de',
 		methodologyCorpusArticles: 'articles issus de la',
 		methodologyCorpusDeveloper:
-			', une base de données numérique collaborative et en libre accès développée par',
-		methodologyCorpusEnd: ", a été analysé à l'aide de trois LLMs :",
-		methodologyCorpusDimensions:
-			'Chaque article a été évalué selon trois dimensions complémentaires :',
-		methodologyAiModel: "Méthodologie et modèle d'IA",
-		modelUsed: 'Modèle utilisé',
-		technicalConfiguration: 'Configuration technique',
+			', une base de données numérique collaborative et en libre accès construite par',
+		methodologyCorpusEnd: ', est donc passé par trois grands modèles de langage :',
+		methodologyCorpusDimensions: 'Chaque modèle a évalué chaque article sur trois dimensions :',
+		methodologyAiModel: 'Méthode et modèles',
+		modelUsed: 'Modèles',
+		technicalConfiguration: 'Configuration de la campagne',
 		analysisPrompt: "Prompt d'analyse",
-		promptDescription: 'Le modèle reçoit un prompt spécialisé qui :',
+		promptDescription: 'Le modèle reçoit un jeu d’instructions écrites qui :',
 		viewFullPrompt: 'Voir le prompt complet',
-		limitationsTitle: 'Limites et précautions',
+		limitationsTitle: 'Limites',
 		limitationsDescription:
-			"Cette analyse automatisée constitue un outil d'aide à la recherche. Les résultats peuvent nécessiter une validation humaine pour les cas complexes ou ambigus. Les justifications fournies par l'IA permettent d'évaluer la pertinence de chaque classification.",
+			'Ces notes constituent une aide à la recherche, non un résultat achevé. Les articles ambigus ou complexes appellent toujours un lecteur humain, et les modèles se contredisent assez souvent pour qu’aucune note isolée ne puisse être tenue pour acquise. Chaque note s’accompagne de la raison que le modèle en a donnée, ce qui permet d’en juger la solidité.',
 		polaritySection: 'Polarité du sentiment',
 		subjectivitySection: 'Subjectivité',
-		centralitySection: "Centralité de l'islam/musulmans"
+		centralitySection: "Centralité de l'islam et des musulmans"
 	},
 
 	analysisV1: {
 		config: [
 			'Analyse du corpus : janvier-février 2026',
-			'Aucun paramètre de raisonnement — les modèles ont tourné sans, et thinking_level est postérieur à cette campagne',
+			'Effort de raisonnement : non défini — les modèles ont tourné sans, et le paramètre thinking_level est postérieur à cette campagne',
 			"Température : 0,2 pour Gemini 3 Flash preview et Ministral 14B ; GPT-5 mini a tourné à la valeur par défaut de l'API",
-			'Ministral 14B seul plafonnait la sortie à 512 tokens : ses justifications les plus longues ont pu être tronquées',
+			'Ministral 14B seul plafonnait sa sortie à 512 tokens : ses raisons les plus longues ont pu être tronquées',
 			'Format de sortie : JSON structuré validé par un schéma Pydantic',
-			'Système de cache pour éviter les analyses redondantes',
-			'Gestion automatique des erreurs avec tentatives multiples'
+			'Un cache, pour ne pas refaire une analyse déjà produite',
+			'Reprise automatique en cas d’échec d’un appel'
 		],
 		promptFeatures: [
-			"Définit le rôle d'expert en analyse de sentiments pour l'Afrique de l'Ouest francophone",
-			"Spécifie les critères d'évaluation pour chaque dimension (polarité, subjectivité, centralité)",
+			"Attribue au modèle le rôle d'expert en analyse de sentiments pour l'Afrique de l'Ouest francophone",
+			'Précise ce qu’il faut observer sur chaque dimension (polarité, subjectivité, centralité)',
 			'Demande au modèle de commencer par une checklist de 3 à 7 étapes conceptuelles',
-			'Demande une justification en français pour chaque classification',
-			'Impose un format de sortie JSON structuré pour garantir la cohérence'
+			'Demande une raison en français pour chaque note',
+			'Impose une sortie JSON structurée, pour que chaque réponse ait la même forme'
 		],
 		polarityDescription:
-			"Évalue le sentiment général exprimé dans l'article envers l'islam et/ou les musulmans, ou concernant leur représentation.",
-		polarityVeryPositive:
-			"Le portrait de l'islam/des musulmans est extrêmement favorable, enthousiaste, élogieux",
-		polarityPositive: "Le portrait de l'islam/des musulmans est favorable, optimiste",
+			"Le sentiment général que l'article exprime envers l'islam et les musulmans, ou envers la façon dont ils sont représentés.",
+		polarityVeryPositive: 'Un portrait extrêmement favorable, enthousiaste, élogieux',
+		polarityPositive: 'Un portrait favorable, optimiste',
 		polarityNeutral:
-			"Pas de sentiment clair envers l'islam/des musulmans ou équilibre entre aspects positifs et négatifs dans leur représentation ; ton factuel sans charge émotionnelle marquée à leur égard",
-		polarityNegative: "Le portrait de l'islam/des musulmans est défavorable, critique, pessimiste",
-		polarityVeryNegative:
-			"Le portrait de l'islam/des musulmans est extrêmement défavorable, alarmiste, très critique",
+			"Aucun sentiment net envers l'islam ou les musulmans, ou équilibre entre aspects favorables et défavorables ; ton factuel, sans charge émotionnelle marquée",
+		polarityNegative: 'Un portrait défavorable, critique, pessimiste',
+		polarityVeryNegative: 'Un portrait extrêmement défavorable, alarmiste, très critique',
 		polarityNotApplicable: "L'article ne traite pas de l'islam ou des musulmans",
 		subjectivityDescription:
-			"Évalue le degré d'objectivité/subjectivité de l'article dans sa manière de représenter l'islam et/ou les musulmans, sur une échelle de 1 (très objectif) à 5 (très subjectif).",
+			"Le degré d'objectivité ou de subjectivité de l'article dans sa manière de représenter l'islam et les musulmans, sur une échelle de 1 (très objectif) à 5 (très subjectif).",
 		subjectivity1:
-			"Rapporte des faits vérifiables sur l'islam/les musulmans sans exprimer d'opinions ou de sentiments personnels à leur sujet, style purement informatif sur ce thème",
+			"Rapporte des faits vérifiables sur l'islam et les musulmans sans exprimer d'opinion ni de sentiment personnel à leur sujet ; style purement informatif sur ce thème",
 		subjectivity2:
-			"Principalement factuel concernant l'islam/les musulmans, mais peut contenir des traces subtiles d'opinions ou des choix de mots suggérant une perspective limitée sur ce thème",
+			'Principalement factuel, mais peut porter des traces subtiles d’opinion, ou des choix de mots qui trahissent une perspective particulière sur ce thème',
 		subjectivity3:
-			"Contient un mélange équilibré de faits et d'opinions/sentiments personnels concernant l'islam/les musulmans, ou présente plusieurs points de vue sur ce thème",
+			'Un mélange équilibré de faits et d’opinions personnelles, ou plusieurs points de vue rapportés sur ce thème',
 		subjectivity4:
-			"Exprime clairement des opinions, des sentiments ou des jugements sur l'islam/les musulmans, même s'il s'appuie sur certains faits pour les étayer",
+			"Exprime clairement des opinions, des sentiments ou des jugements sur l'islam et les musulmans, même lorsque des faits viennent les étayer",
 		subjectivity5:
-			"Fortement biaisé dans sa représentation de l'islam/des musulmans, exprime des opinions et des émotions intenses à leur sujet, avec peu ou pas de présentation objective des faits, style éditorial ou billet d'humeur sur ce thème",
+			"Fortement biaisé dans sa représentation de l'islam et des musulmans, avec des opinions et des émotions intenses et peu ou pas de matière factuelle ; éditorial ou billet d'humeur sur ce thème",
 		centralityDescription:
-			"Évalue l'importance accordée aux thèmes liés à l'islam et aux musulmans dans l'article.",
-		centralityVeryCentral: "L'islam/musulmans constituent le sujet principal de l'article",
-		centralityCentral: "Thème important mais partagé avec d'autres sujets",
-		centralitySecondary: 'Mentionné de manière significative mais secondaire',
-		centralityMarginal: 'Évoqué brièvement ou de manière anecdotique',
+			"Le poids que l'article accorde aux thèmes liés à l'islam et aux musulmans.",
+		centralityVeryCentral: "L'islam ou les musulmans constituent le sujet principal de l'article",
+		centralityCentral: "Un thème important, mais partagé avec d'autres sujets",
+		centralitySecondary: 'Mentionné de manière significative, mais sans être le sujet principal',
+		centralityMarginal: 'Évoqué brièvement ou en passant',
 		centralityNotAddressed: "Aucune mention de l'islam ou des musulmans"
 	},
 
@@ -486,90 +484,87 @@ export const fr: Translations = {
 	// iwac-ai-pipelines/AI_sentiment_analysis/sentiment_prompt.md
 	analysisV2: {
 		config: [
-			'Analyse du corpus : 3-5 août 2026',
+			'Analyse du corpus : 3–5 août 2026',
 			"Effort de raisonnement : moyen pour GPT-5.6 Luna ; élevé pour Mistral Small 4 et DeepSeek v4 Flash, dont les API n'offrent aucun niveau intermédiaire",
 			'Température : non définie par le pipeline — chaque modèle tourne à la valeur par défaut de son fournisseur',
 			'Format de sortie : JSON structuré validé par un schéma Pydantic',
-			'Cache reprenable, un enregistrement par (article, modèle) ; seuls les appels réussis sont mis en cache',
-			'Gestion des erreurs : trois tentatives par appel avec temporisation, sous un délai maximal par modèle',
+			'Un cache reprenable, un enregistrement par article et par modèle ; seuls les appels réussis y sont conservés',
+			'Gestion des erreurs : jusqu’à trois tentatives par appel, avec une attente croissante entre elles et un délai maximal par modèle',
 			'Empreinte du prompt d14ace9ac192, enregistrée avec chaque résultat mis en cache'
 		],
 		promptFeatures: [
-			"Définit le rôle d'analyste expert des représentations de l'islam et des musulmans dans la presse ouest-africaine francophone",
-			'Définit chaque échelon des échelles et précise que les échelons intermédiaires sont des réponses à part entière, pas des solutions de repli',
-			'Ajoute des règles de démarcation pour les cas ambigus récurrents : acteur musulman dans un sujet séculier, coopération avec les pays arabes, groupes armés, propos rapportés',
-			'Exige une justification en français, en 1 à 2 phrases, citant un élément concret du texte',
+			"Attribue au modèle le rôle d'analyste expert des représentations de l'islam et des musulmans dans la presse ouest-africaine francophone",
+			'Définit chaque échelon des échelles et précise que les échelons intermédiaires sont des réponses à part entière, non des solutions de repli',
+			'Ajoute des règles de démarcation pour les cas ambigus récurrents : une figure musulmane dans un sujet séculier, la coopération avec les pays arabes, les groupes armés, les propos rapportés',
+			'Exige une raison en français, en une ou deux phrases, citant un élément concret du texte',
 			"Demande la subjectivité sous forme d'étiquette plutôt que de nombre, et impose une sortie JSON structurée",
-			"Ne comporte aucun exemple travaillé : un test A/B d'août 2026 a montré qu'ils tiraient la distribution des étiquettes vers celles des exemples"
+			'Ne comporte aucun exemple travaillé : un test A/B d’août 2026 a montré qu’ils tiraient les réponses des modèles vers ce que les exemples eux-mêmes employaient'
 		],
 		polarityDescription:
-			"Sentiment que l'article exprime envers l'islam ou les musulmans — sa mise en cadre, son lexique et son traitement des sources, et non les opinions des personnes qu'il cite.",
-		polarityVeryPositive: 'Portrait extrêmement favorable, élogieux, enthousiaste',
-		polarityPositive: 'Portrait favorable, bienveillant, optimiste',
+			"Le sentiment que l'article lui-même exprime envers l'islam ou les musulmans, jugé à sa mise en cadre, à son lexique et à son traitement des sources plutôt qu'aux opinions des personnes qu'il cite.",
+		polarityVeryPositive: 'Un portrait extrêmement favorable, élogieux, enthousiaste',
+		polarityPositive: 'Un portrait favorable, bienveillant, optimiste',
 		polarityNeutral:
 			'Aucun sentiment marqué, ou équilibre entre aspects favorables et défavorables ; ton factuel',
-		polarityNegative: 'Portrait défavorable, critique, pessimiste',
-		polarityVeryNegative: 'Portrait extrêmement défavorable, alarmiste, hostile',
+		polarityNegative: 'Un portrait défavorable, critique, pessimiste',
+		polarityVeryNegative: 'Un portrait extrêmement défavorable, alarmiste, hostile',
 		polarityNotApplicable: "L'article ne traite pas de l'islam ou des musulmans",
 		polarityNotes: [
 			"Le compte rendu neutre est le cas ordinaire de la presse d'information : un article qui rapporte des faits sans les commenter est neutre, même quand ces faits sont favorables ou défavorables en eux-mêmes.",
-			"Propos rapportés : un article qui rapporte des déclarations hostiles avec attribution, distance et contrepoint est neutre ; il devient négatif s'il reprend ce cadrage à son compte.",
-			"Faits négatifs ≠ polarité négative : le compte rendu factuel d'un attentat reste neutre, sauf si l'article étend la responsabilité aux musulmans en général."
+			'Propos rapportés : un article qui rapporte des déclarations hostiles avec attribution, distance et contrepoint reste neutre. Il devient négatif lorsqu’il reprend ce cadrage à son compte.',
+			"Des faits négatifs ne font pas une polarité négative : le compte rendu factuel d'un attentat reste neutre, sauf si l'article étend la responsabilité aux musulmans en général."
 		],
 		subjectivityDescription:
-			"Degré d'engagement énonciatif de l'article sur le thème de l'islam et des musulmans, indépendamment du caractère favorable ou défavorable du traitement. Cette génération demandait l'étiquette ; le rang 1-5 est conservé pour les statistiques ordinales.",
+			"Jusqu'où l'article s'engage sur le thème de l'islam et des musulmans, indépendamment du caractère favorable de son traitement. Cette génération demandait l'étiquette ; le rang de 1 à 5 est conservé pour les statistiques, qui exigent une échelle ordonnée.",
 		subjectivity1:
-			"Faits vérifiables, aucune opinion ni marque d'appréciation sur ce thème ; style informatif",
+			'Des faits vérifiables, aucune opinion ni marque d’appréciation sur ce thème ; style informatif',
 		subjectivity2:
-			"Essentiellement factuel, avec des traces subtiles d'appréciation (choix de mots, angle) sur ce thème",
+			'Essentiellement factuel, avec des traces subtiles d’appréciation sur ce thème dans le choix des mots ou dans l’angle',
 		subjectivity3:
-			"Mélange équilibré de faits et d'opinions, ou pluralité de points de vue rapportés sur ce thème",
+			'Un mélange équilibré de faits et d’opinions, ou plusieurs points de vue rapportés sur ce thème',
 		subjectivity4:
-			'Opinions, sentiments ou jugements explicites sur ce thème, même étayés par des faits',
+			'Des opinions, sentiments ou jugements explicites sur ce thème, même lorsque des faits viennent les étayer',
 		subjectivity5:
 			"Parti pris marqué, émotions ou jugements intenses, peu de matière factuelle ; éditorial, tribune ou billet d'humeur",
 		subjectivityNotes: [
-			"Les opinions citées et attribuées à un tiers ne rendent pas l'article subjectif : les rapporter relève du travail d'information. Ce qui le rend subjectif, c'est qu'il les prenne à son compte.",
+			"Les opinions citées et attribuées à un tiers ne rendent pas l'article subjectif, car les rapporter relève du travail d'information. Ce qui le rend subjectif, c'est qu'il les prenne à son compte.",
 			'Un article violemment hostile mais rédigé sur un ton factuel reste peu subjectif.'
 		],
-		centralityDescription:
-			"Importance que l'article accorde aux thèmes liés à l'islam et aux musulmans.",
+		centralityDescription: "Le poids que l'article accorde à l'islam et aux musulmans.",
 		centralityVeryCentral: "L'islam ou les musulmans constituent le sujet principal",
-		centralityCentral: "Thème important, partagé avec d'autres sujets",
+		centralityCentral: "Un thème important, partagé avec d'autres sujets",
 		centralitySecondary: 'Mentionné de manière significative, mais subordonné à un autre sujet',
 		centralityMarginal: 'Évoqué brièvement, de façon anecdotique ou incidente',
 		centralityNotAddressed: "Aucune mention de l'islam ou des musulmans",
 		centralityNotes: [
 			"L'appartenance religieuse d'une personne ne rend pas un article religieux : un ministre musulman qui présente un budget relève de « Non abordé », sauf si l'article exploite sa confession.",
-			'Les institutions et les pratiques comptent — mosquée, imam, medersa, association islamique, ramadan, hadj, tabaski, prêche — même si le mot « islam » est absent.',
-			'La coopération avec les pays arabes ou les organisations islamiques (Libye, Arabie saoudite, Koweït, Iran, OCI, ISESCO, Banque islamique de développement) est au moins « Marginal », même quand le sujet apparent est un prêt ou un hôpital.',
+			'Les institutions et les pratiques comptent — mosquée, imam, medersa, association islamique, ramadan, hadj, tabaski, prêche — même lorsque le mot « islam » n’apparaît jamais.',
+			'La coopération avec les pays arabes ou les organisations islamiques (Libye, Arabie saoudite, Koweït, Iran, OCI, ISESCO, Banque islamique de développement) est au moins marginale, même quand le sujet apparent est un prêt ou un hôpital.',
 			"Un groupe armé qui se réclame de l'islam relève de « Central », voire de « Très central » quand l'article porte sur le groupe lui-même. Une centralité élevée ne présume rien de la polarité."
 		]
 	},
 
 	// Loading and messages
 	messages: {
-		loading: 'Chargement...',
-		loadingData: 'Chargement des données du corpus IWAC...',
+		loading: 'Chargement…',
+		loadingData: 'Chargement du corpus IWAC…',
 		noData: 'Aucune donnée disponible',
 		error: "Une erreur s'est produite",
 		dataLoadError:
-			'Les données du corpus n’ont pas pu être chargées ou ne correspondent pas au schéma v1 attendu.',
-		retry: 'Réessayer',
-		shareUrl: 'Partager cette vue',
-		urlCopied: 'URL copiée dans le presse-papiers'
+			'Les données du corpus n’ont pas pu être chargées ou ne correspondent pas au format attendu.',
+		retry: 'Réessayer'
 	},
 
 	// Export
 	export: {
-		exportCSV: 'Exporter CSV',
+		exportCSV: 'Exporter en CSV',
 		downloadCSV: 'Télécharger les données au format CSV',
 		exporting: 'Export en cours',
 		noDataToExport: 'Aucune donnée à exporter',
 		exportError: "Erreur lors de l'export des données",
-		polarityJustification: 'Justification polarité',
-		subjectivityJustification: 'Justification subjectivité',
-		centralityJustification: 'Justification centralité',
+		polarityJustification: 'Raison de la note de polarité',
+		subjectivityJustification: 'Raison de la note de subjectivité',
+		centralityJustification: 'Raison de la note de centralité',
 		articleId: 'ID article'
 	},
 
@@ -578,10 +573,8 @@ export const fr: Translations = {
 		yes: 'Oui',
 		no: 'Non',
 		close: 'Fermer',
-		cancel: 'Annuler',
 		save: 'Enregistrer',
 		delete: 'Supprimer',
-		edit: 'Modifier',
 		view: 'Voir',
 		search: 'Rechercher',
 		filter: 'Filtrer',
@@ -614,7 +607,7 @@ export const fr: Translations = {
 		archivedLabel: 'Analyse archivée',
 		archivedTitle: "Vous consultez l'analyse archivée de 2026 (v1).",
 		archivedDescription:
-			'GPT-5 mini, Gemini 3 Flash preview et Ministral 14B, annotés avec le premier prompt. Conservée en ligne pour que les résultats publiés et les citations restent reproductibles.',
+			'GPT-5 mini, Gemini 3 Flash preview et Ministral 14B, évalués avec le premier prompt. Conservée en ligne pour que les résultats publiés et les citations restent reproductibles.',
 		backToCurrent: "Revenir à l'analyse actuelle",
 		archiveLinkLabel: "Consulter l'analyse archivée v1",
 		archiveLinkDescription:
@@ -626,50 +619,49 @@ export const fr: Translations = {
 		byDecade: 'Décennie',
 		disagreementBreakdown: 'Où les modèles divergent',
 		disagreementBreakdownNote:
-			'Écart moyen par article, réparti par décennie ou par pays. Les groupes comptant moins de 20 articles comparés sont omis : leurs moyennes varieraient au gré de quelques cas.',
+			'Écart moyen par article, regroupé par décennie ou par pays. Les groupes comptant moins de 20 articles comparés sont écartés, car leurs moyennes varieraient au gré de quelques cas.',
 		subtitle:
-			"Comparez les analyses de sentiment entre différents modèles d'IA et identifiez les divergences significatives.",
-		filterByDiscrepancy: 'Filtrer par divergence',
-		differenceRange: 'Plage de différence',
+			'Placez deux modèles côte à côte et lisez les articles qu’ils notent différemment. La note dit ce qu’un modèle a vu ; l’écart entre deux modèles dit à quel point cette lecture dépend du modèle.',
+		filterByDiscrepancy: 'Filtrer par écart',
+		differenceRange: 'Plage d’écart',
 		quickFilters: 'Filtres rapides',
-		pointDifference: 'point de différence',
-		pointsDifference: 'points de différence',
+		pointDifference: 'point d’écart',
+		pointsDifference: 'points d’écart',
 		compareDimensions: 'Comparer les dimensions',
 		polarity: 'Polarité',
 		subjectivity: 'Subjectivité',
 		centrality: 'Centralité',
-		totalDiscrepancy: 'Divergence totale',
-		totalDiscrepancies: 'Divergences totales',
-		articlesWithDifferences: 'Articles avec différences',
-		averageDiscrepancy: 'Divergence moyenne',
-		pointsPerArticle: 'Points par article',
+		totalDiscrepancy: 'Écart total',
+		totalDiscrepancies: 'Articles qui diffèrent',
+		articlesWithDifferences: 'Sur au moins une dimension',
+		averageDiscrepancy: 'Écart moyen',
+		pointsPerArticle: 'Crans d’échelle par article',
 		totalArticles: 'Total des articles',
-		articlesAnalyzed: 'Articles analysés',
-		highConflicts: 'Conflits élevés',
-		significantDifferences: 'Différences significatives',
+		articlesAnalyzed: 'Articles comparés',
+		highConflicts: 'Désaccords marqués',
+		significantDifferences: 'Au moins trois crans d’écart',
 		significantDifferencesExplanation:
-			"Articles où une dimension (polarité, subjectivité ou centralité) diffère de 3+ points entre les analyses ChatGPT et Gemini. Cela indique un désaccord substantiel entre les modèles d'IA.",
+			'Articles où les deux modèles s’écartent d’au moins 3 crans sur la polarité, la subjectivité ou la centralité. Sur des échelles aussi courtes, un tel écart signale deux lectures sans grand rapport.',
 		totalDiscrepanciesExplanation:
-			"Nombre d'articles où ChatGPT et Gemini fournissent des analyses différentes (toute différence > 0 points)",
+			'Nombre d’articles que les deux modèles ont notés différemment sur au moins une dimension, quel que soit l’écart.',
 		averageDiscrepancyExplanation:
-			'Moyenne des points de différence totale par article sur les trois dimensions (polarité + subjectivité + centralité)',
+			'L’écart moyen entre les deux modèles par article, cumulé sur les trois dimensions (polarité + subjectivité + centralité) et compté en crans d’échelle.',
 		breakdownByDimension: 'Répartition par dimension',
 		enableComparisonMode: 'Activer le mode comparaison',
 		enableComparisonDescription:
-			'Cliquez sur le bouton de comparaison dans le sélecteur de dataset pour comparer les analyses ChatGPT et Gemini.',
-		noDiscrepancies: 'Aucune divergence trouvée',
+			'Utilisez le sélecteur de modèles dans l’en-tête pour choisir les deux modèles à placer côte à côte.',
+		noDiscrepancies: 'Aucun écart trouvé',
 		adjustFilters:
-			"Essayez d'ajuster vos filtres pour voir les articles avec des différences entre les modèles.",
-		excludeNonApplicable: 'Exclure les articles "Non applicable"',
+			'Élargissez les filtres pour voir les articles que les deux modèles notent différemment.',
+		excludeNonApplicable: 'Exclure les articles « Non applicable »',
 		excludeNonApplicableDescription:
-			'Masquer les articles où un modèle a marqué la centralité comme "Non applicable", ce qui crée des divergences artificiellement élevées.',
-		dimensionsExplanation:
-			'Sélectionnez les dimensions à analyser pour les désaccords entre modèles :',
-		polarityExplanation: 'Différences de sentiment positif/négatif',
-		subjectivityExplanation: 'Différences objectivité vs. opinion (échelle 1-5)',
-		centralityExplanation: "Importance de l'Islam/Musulmans dans l'article",
+			'Masquer les articles dont un modèle a noté la centralité « Non applicable ». Ils produisent de très grands écarts, qui en disent plus sur la forme de l’échelle que sur les modèles.',
+		dimensionsExplanation: 'Choisissez les dimensions qui comptent dans le score d’écart :',
+		polarityExplanation: 'Écarts sur le caractère favorable de la couverture',
+		subjectivityExplanation: 'Écarts sur l’échelle d’objectivité de 1 à 5',
+		centralityExplanation: 'Écarts sur la place de l’islam et des musulmans dans l’article',
 		dimensionsNote:
-			'Astuce : Sélectionnez une seule dimension pour concentrer votre analyse sur des types spécifiques de désaccords. Les scores de divergence seront recalculés selon votre sélection.',
+			'Astuce : choisissez une seule dimension pour isoler un type de désaccord. Les scores d’écart sont recalculés à partir de votre sélection.',
 		// Model pair picker. Pair labels are built from the model names in the
 		// contract registry, so only the joining word is translated.
 		selectModelPair: 'Sélectionner les modèles à comparer',
@@ -680,105 +672,94 @@ export const fr: Translations = {
 
 	// Arbiter
 	arbiter: {
-		samplingFrame: 'Base de sondage',
-		coverageEvaluated: 'évalués',
+		samplingFrame: 'Ce que l’arbitre a examiné',
+		coverageEvaluated: 'examinés',
 		coverageCorpus: 'dans le corpus',
 		samplingFrameNote:
-			'L\u2019arbitre n\u2019a pas examiné l\u2019ensemble du corpus, mais des articles retenus parce que les deux modèles y divergeaient le plus fortement. Tous les pourcentages ci-dessous sont donc conditionnels à l\u2019existence d\u2019un désaccord : ils ne mesurent pas quel modèle est meilleur sur l\u2019ensemble du corpus.',
+			'L’arbitre n’a pas examiné tout le corpus. Il a examiné des articles retenus parce que les deux modèles y divergeaient le plus fortement : chaque pourcentage ci-dessous ne vaut donc que là où un désaccord existe déjà. Aucun ne mesure quel modèle est meilleur sur l’ensemble du corpus.',
 		title: "Verdict de l'arbitre",
-		subtitle: "Évaluation aveugle par un troisième modèle d'IA (identités des modèles masquées)",
+		subtitle: 'Examen à l’aveugle par un troisième modèle, à qui l’on ne dit pas qui a écrit quoi',
 		modelName: 'Gemini 3 Pro',
 		verdict: 'Verdict',
 		overallVerdict: 'Verdict général',
-		confidenceLevel: 'Niveau de confiance',
-		confidenceHigh: 'Élevé',
-		confidenceMedium: 'Moyen',
+		confidenceLevel: 'Confiance',
+		confidenceHigh: 'Élevée',
+		confidenceMedium: 'Moyenne',
 		confidenceLow: 'Faible',
-		evaluationsNoun: 'évaluations',
+		evaluationsNoun: 'examens',
 		verdictsNoun: 'verdicts',
-		preferredModel: 'Modèle préféré',
 		prefers: 'Préfère',
-		prefersChatGPT: 'ChatGPT est plus précis',
-		prefersGemini: 'Gemini est plus précis',
-		prefersBoth: 'Les deux sont également précis',
-		prefersNeither: "Aucun n'est précis",
-		arbiterScore: "Score de l'arbitre",
-		arbiterJustification: "Justification de l'arbitre",
-		verdictExplanation: 'Pourquoi cette préférence',
-		noArbiterData: "Pas de données d'arbitre",
+		prefersBoth: 'Les deux sont aussi proches',
+		prefersNeither: 'Aucun n’est proche',
+		arbiterScore: 'Note propre de l’arbitre',
+		arbiterJustification: "Raisonnement de l'arbitre",
+		verdictExplanation: 'Pourquoi ce verdict',
+		noArbiterData: 'Non examiné par l’arbitre',
 		noArbiterDataDescription:
-			"L'évaluation de l'arbitre n'est pas disponible pour cet article. Exécutez le script d'évaluation de l'arbitre pour générer les verdicts.",
+			'L’arbitre n’a pas examiné cet article. Il n’a lu que les articles sur lesquels les deux modèles divergeaient le plus fortement.',
 		polarityVerdict: 'Verdict de polarité',
 		subjectivityVerdict: 'Verdict de subjectivité',
 		centralityVerdict: 'Verdict de centralité',
-		showArbiterVerdict: "Afficher le verdict de l'arbitre",
-		hideArbiterVerdict: "Masquer le verdict de l'arbitre",
-		loadingArbiter: "Chargement des données de l'arbitre...",
-		arbiterNotAvailable: "Évaluation de l'arbitre non disponible",
-		runArbiterScript: 'Exécutez arbiter-evaluation.py pour générer les évaluations',
+		loadingArbiter: "Chargement des données de l'arbitre…",
+		runArbiterScript: 'Aucun verdict n’a été publié pour cet article.',
 		// Summary statistics
 		summaryTitle: "Résumé de l'arbitre",
-		articlesEvaluated: 'articles évalués',
-		chatgptPreferred: 'ChatGPT préféré',
-		geminiPreferred: 'Gemini préféré',
-		bothEqual: 'Égalité',
-		neitherAccurate: 'Aucun précis',
+		articlesEvaluated: 'articles examinés',
+		bothEqual: 'Aussi proches',
+		neitherAccurate: 'Aucun proche',
 		preferred: 'préféré',
-		blindEvaluationNote: "Évaluation aveugle : les modèles étaient anonymisés pendant l'évaluation",
+		blindEvaluationNote:
+			'Examen à l’aveugle : on n’a pas dit à l’arbitre quel modèle avait produit quelle analyse',
 		// Arbiter View page
-		viewTitle: "Analyse de l'arbitre",
-		viewSubtitle: "Explorez les désaccords entre modèles et les verdicts d'un tiers IA",
-		overallStats: 'Statistiques globales',
+		viewTitle: 'Arbitre',
+		viewSubtitle:
+			'Un troisième modèle lit les articles sur lesquels les deux annotateurs divergeaient le plus, et dit lequel s’en est approché',
 		verdictDistribution: 'Distribution des verdicts',
 		verdictsByDimension: 'Verdicts par dimension',
 		confidenceDistribution: 'Distribution de la confiance',
 		totalVerdicts: 'Total des verdicts',
-		modelPreference: 'Préférence de modèle',
-		agreementRate: "Taux d'accord",
 		dimension: 'Dimension',
 		polarity: 'Polarité',
 		subjectivity: 'Subjectivité',
 		centrality: 'Centralité',
 		allDimensions: 'Toutes les dimensions',
-		modelAWins: 'Victoires Modèle A',
-		modelBWins: 'Victoires Modèle B',
-		ties: 'Égalités',
 		selectModelPair: 'Sélectionner les modèles',
 		noDataForPair: "Pas de données d'arbitrage disponibles pour cette paire de modèles",
-		runScript: "Exécutez le script d'évaluation de l'arbitre pour générer les données",
+		runScript: 'Aucun verdict n’a été publié pour cette paire.',
 		filterByDimension: 'Filtrer par dimension',
-		filterByConfidence: 'Filtrer par confiance',
 		// Methodology section
-		methodologyTitle: "Méthodologie de l'arbitre",
-		methodologySubtitle: 'Comment le juge IA tiers évalue les désaccords entre modèles',
-		blindEvaluation: 'Évaluation aveugle',
+		methodologyTitle: 'Comment fonctionne l’arbitre',
+		methodologySubtitle:
+			'Un troisième modèle tranche les cas sur lesquels les deux annotateurs divergeaient',
+		blindEvaluation: 'Examen à l’aveugle',
 		blindEvaluationDesc:
-			"Les identités des modèles sont masquées. L'arbitre ne voit que « Modèle A » et « Modèle B ».",
-		highReasoning: 'Mode de raisonnement élevé',
-		highReasoningDesc: 'Gemini 3 Pro utilise la réflexion étendue pour une analyse approfondie.',
+			'On ne dit pas à l’arbitre quel modèle a produit quelle analyse. Il ne voit que « Modèle A » et « Modèle B ».',
+		highReasoning: 'Effort de raisonnement élevé',
+		highReasoningDesc:
+			'Gemini 3 Pro a tourné avec la réflexion étendue, de sorte qu’il travaille l’article avant de répondre.',
 		independentVerdict: 'Verdict indépendant',
-		independentVerdictDesc: "L'arbitre fournit sa propre évaluation avant de comparer les modèles.",
+		independentVerdictDesc:
+			"L'arbitre note lui-même l'article avant de regarder les deux analyses.",
 		howItWorks: 'Fonctionnement',
-		selectionProcess: 'Sélection des articles',
+		selectionProcess: 'Comment les articles ont été retenus',
 		selectionProcessDesc:
-			"Les articles présentant des désaccords significatifs (≥3 points de différence sur une dimension) entre les deux modèles sont sélectionnés pour l'arbitrage.",
-		blindAssignment: 'Attribution aveugle',
+			'Un article part à l’arbitrage lorsque les deux modèles s’écartent d’au moins 3 points sur l’une des trois dimensions.',
+		blindAssignment: 'Attribution à l’aveugle',
 		blindAssignmentDesc:
-			"Pour chaque paire de modèles, un modèle est assigné aléatoirement comme « Modèle A » et l'autre comme « Modèle B ». Cette attribution est cohérente pour tous les articles de la paire afin de garantir une évaluation impartiale.",
-		evaluationProcess: "Processus d'évaluation",
-		step1: "L'arbitre lit le texte complet de l'article",
-		step2:
-			'Il fournit ses propres scores indépendants pour la polarité, la subjectivité et la centralité',
-		step3: 'Il compare les analyses des deux modèles à sa propre évaluation',
-		step4: 'Il détermine quel modèle est le plus précis avec des justifications détaillées',
+			'Pour chaque paire, un modèle reçoit au hasard le nom « Modèle A » et l’autre « Modèle B ». L’attribution vaut pour tous les articles de la paire, si bien que l’ordre ne peut favoriser ni l’un ni l’autre.',
+		evaluationProcess: 'Ce que fait l’arbitre',
+		step1: "Il lit le texte intégral de l'article",
+		step2: 'Il note lui-même la polarité, la subjectivité et la centralité',
+		step3: 'Il compare les deux analyses à sa propre note',
+		step4: 'Il dit quel modèle s’en est le plus approché, et donne ses raisons',
 		arbiterModel: 'Modèle arbitre',
 		arbiterRole: 'Juge tiers',
 		geminiArbiterDesc:
-			'Gemini 3 Pro est utilisé comme arbitre avec le niveau de raisonnement élevé activé. Cela permet une réflexion approfondie et une analyse plus nuancée lors de la comparaison des sorties des modèles.',
-		evaluationScales: "Échelles d'évaluation",
+			'Gemini 3 Pro tient le rôle d’arbitre, avec son niveau de raisonnement réglé sur élevé pour qu’il travaille l’article avant de comparer les deux analyses.',
+		evaluationScales: 'Échelles de notation',
 		viewPrompt: 'Voir le prompt',
 		promptExplanation:
-			"L'arbitre utilise une instruction système soigneusement conçue et un modèle de prompt utilisateur pour garantir une évaluation cohérente et approfondie.",
+			'L’instruction système et le prompt utilisateur envoyés à l’arbitre. Ils sont les mêmes pour chaque article.',
 		viewFullPrompt: 'Voir le prompt complet',
 		arbiterPrompt: "Prompt de l'arbitre",
 		systemInstruction: 'Instruction système',
@@ -786,47 +767,46 @@ export const fr: Translations = {
 		// Scale descriptions
 		polarityVeryPositive: 'Portrait extrêmement favorable, enthousiaste',
 		polarityPositive: 'Portrait favorable, optimiste',
-		polarityNeutral: 'Pas de sentiment clair ou équilibre ; ton factuel',
+		polarityNeutral: 'Aucun sentiment net, ou équilibre ; ton factuel',
 		polarityNegative: 'Portrait défavorable, critique',
 		polarityVeryNegative: 'Portrait extrêmement défavorable, alarmiste',
 		subjectivity1: 'Très objectif – purement informatif',
 		subjectivity2: 'Plutôt objectif – principalement factuel',
-		subjectivity3: 'Mixte – équilibre entre faits et opinions',
-		subjectivity4: 'Plutôt subjectif – opinions claires',
+		subjectivity3: 'Mixte – faits et opinions à parts égales',
+		subjectivity4: 'Plutôt subjectif – opinions nettes',
 		subjectivity5: 'Très subjectif – fortement biaisé',
-		centralityVeryCentral: "Sujet principal de l'article",
-		centralityCentral: "Important mais partagé avec d'autres sujets",
-		centralitySecondary: 'Mentionné significativement mais secondaire',
-		centralityMarginal: 'Mentionné brièvement ou anecdotiquement',
+		centralityVeryCentral: "Le sujet principal de l'article",
+		centralityCentral: "Important, mais partagé avec d'autres sujets",
+		centralitySecondary: 'Mentionné de manière significative, sans être le sujet principal',
+		centralityMarginal: 'Évoqué brièvement ou en passant',
 		centralityNotAddressed: "Aucune mention de l'islam ou des musulmans",
 		// Head-to-head comparison
-		headToHead: 'Comparaison directe',
-		excludingTies: '(hors égalités et « aucun précis »)',
-		wins: 'victoires',
+		headToHead: 'Face à face',
+		excludingTies: '(hors égalités et « aucun proche »)',
+		wins: 'en sa faveur',
 		// Evaluated articles table
-		evaluatedArticles: 'Articles évalués',
-		evaluatedArticlesSubtitle: "Articles analysés par l'arbitre pour résoudre les désaccords",
+		evaluatedArticles: 'Articles examinés',
+		evaluatedArticlesSubtitle: 'Les articles que l’arbitre a lus, et ce qu’il a décidé pour chacun',
 		viewArticleDetails: "Voir les détails de l'article",
 		articleWithArbiter: "Article avec verdict de l'arbitre",
-		noEvaluatedArticles: 'Aucun article évalué disponible',
-		justification: 'Justification'
+		noEvaluatedArticles: 'Aucun article examiné à afficher',
+		justification: 'Raison donnée'
 	},
 
 	// Arbitre à trois voies (génération 2)
 	arbiterV2: {
 		viewTitle: 'Arbitre à trois voies',
 		viewSubtitle:
-			'Un verdict aveugle par article, comparant les trois analyses de la génération 2 en une seule fois',
+			'Un verdict à l’aveugle par article, comparant les trois analyses de la génération 2 en une seule fois',
 		modelName: 'Claude Opus 5',
 		arbiterRole: 'Juge tiers',
 		samplingFrameNote:
-			"L'arbitre n'a pas examiné tout le corpus. Il a examiné des articles sélectionnés parce que les trois modèles s'y opposaient le plus nettement : chaque pourcentage ci-dessous est donc conditionnel à l'existence d'un désaccord, et ne mesure pas quel modèle est le meilleur sur l'ensemble du corpus.",
-		articlesEvaluated: 'articles évalués',
-		eligibleArticles: 'éligibles',
+			'L’arbitre n’a pas examiné tout le corpus. Il a examiné des articles retenus parce que les trois modèles y divergeaient le plus nettement : chaque pourcentage ci-dessous ne vaut donc que là où un désaccord existe déjà. Aucun ne mesure quel modèle est meilleur sur l’ensemble du corpus.',
+		articlesEvaluated: 'articles examinés',
 		dimensionVerdicts: 'verdicts par dimension',
 		preferred: 'préféré',
-		multiple: 'Plusieurs équivalentes',
-		none: 'Aucune juste',
+		multiple: 'Plusieurs aussi proches',
+		none: 'Aucune proche',
 		overallVerdicts: 'Verdicts globaux',
 		overallVerdictsNote: 'Un verdict par article, toutes dimensions confondues',
 		byDimension: 'Verdicts par dimension',
@@ -835,47 +815,46 @@ export const fr: Translations = {
 		polarity: 'Polarité',
 		subjectivity: 'Subjectivité',
 		centrality: 'Centralité',
-		evaluatedArticles: 'Articles évalués',
+		evaluatedArticles: 'Articles examinés',
 		evaluatedArticlesSubtitle:
-			"Tous les articles examinés par l'arbitre, désaccord le plus large en premier. Ouvrez une ligne pour lire son raisonnement.",
+			'Tous les articles que l’arbitre a lus, désaccord le plus large en premier. Ouvrez une ligne pour lire son raisonnement.',
 		spread: 'Écart',
-		arbiterScore: "Score de l'arbitre",
+		arbiterScore: 'Note propre de l’arbitre',
 		verdict: 'Verdict',
 		confidence: 'Confiance',
 		showReasoning: 'Afficher le raisonnement',
 		hideReasoning: 'Masquer le raisonnement',
-		noData: "Pas encore de données d'arbitrage à trois voies",
+		noData: 'Pas encore de verdicts de l’arbitre à trois voies',
 		noDataDescription:
-			"L'arbitrage à trois voies est payant et se déclenche à la main. Lancez data-preprocess/arbiter-evaluation-v2.py --dry-run pour en estimer le coût, puis relancez avec --yes pour publier les verdicts ici.",
+			'Cette campagne est payante et se lance à la main : elle n’a pas encore été faite. D’ici là, cette vue n’a rien à montrer.',
 		loading: "Chargement des données de l'arbitre…",
 		// Méthodologie
-		methodologyTitle: "Méthodologie de l'arbitre à trois voies",
+		methodologyTitle: 'Comment fonctionne l’arbitre à trois voies',
 		methodologySubtitle:
-			'Comment un seul juge compare les trois analyses de la génération 2 en une fois',
-		blindEvaluation: 'Évaluation aveugle',
+			'Un seul juge compare les trois analyses de la génération 2 en une seule fois',
+		blindEvaluation: 'Examen à l’aveugle',
 		blindEvaluationDesc:
-			'Les trois analyses sont anonymisées en A, B et C par une permutation aléatoire unique, fixée pour toute la campagne.',
-		selectionProcess: 'Sélection des articles',
+			'Les trois analyses sont anonymisées en A, B et C par un seul tirage aléatoire, fixé pour toute la campagne.',
+		selectionProcess: 'Comment les articles ont été retenus',
 		selectionProcessDesc:
-			"Un article est retenu lorsque les trois modèles s'écartent d'au moins 3 points sur une dimension — le score le plus haut moins le plus bas, et non un écart deux à deux. Les articles où un modèle indique que la tâche ne s'applique pas sont exclus plutôt que comptés comme un désaccord maximal.",
-		fullText: 'Texte intégral non masqué',
+			'Un article est retenu lorsque les trois modèles s’écartent d’au moins 3 points sur une dimension : la note la plus haute moins la plus basse, et non l’écart entre deux modèles. Les articles où un modèle indique que la tâche ne s’applique pas sont écartés plutôt que comptés comme un désaccord maximal.',
+		fullText: 'Le texte intégral de l’article',
 		fullTextDesc:
-			"L'arbitre lit l'article depuis le miroir privé, où le texte est complet. L'arbitre v1 lisait la projection publique, qui masque le texte d'une part importante des lignes : certains verdicts v1 ont donc été formés sans l'article.",
+			'L’arbitre lit l’article depuis le miroir privé de la collection, où le texte est complet. L’arbitre v1 lisait la version publique, qui masque le texte d’une part importante des articles : certains verdicts v1 ont donc été rendus sans l’article sous les yeux du juge.',
 		independentVerdict: 'Verdict indépendant',
-		independentVerdictDesc:
-			"L'arbitre note lui-même l'article avant de comparer les trois analyses.",
+		independentVerdictDesc: "L'arbitre note lui-même l'article avant de comparer les trois.",
 		reasoningEffort: 'Effort de raisonnement',
 		reasoningEffortDesc:
-			"Claude Opus 5 raisonne de façon adaptative ; la campagne fixe un niveau d'effort plutôt qu'un budget de jetons, ce qui est aussi le levier de coût.",
+			'Claude Opus 5 raisonne de façon adaptative : la campagne fixe donc un niveau d’effort plutôt qu’un budget de jetons. Ce réglage détermine aussi le coût.',
 		howItWorks: 'Fonctionnement',
-		step1: "L'arbitre lit le texte intégral de l'article",
-		step2: 'Il attribue lui-même polarité, subjectivité et centralité',
-		step3: 'Il compare les trois analyses anonymisées à sa propre évaluation',
+		step1: "Il lit le texte intégral de l'article",
+		step2: 'Il note lui-même la polarité, la subjectivité et la centralité',
+		step3: 'Il compare les trois analyses anonymisées à sa propre note',
 		step4:
 			"Il désigne l'analyse la plus juste par dimension, ou indique que plusieurs se valent ou qu'aucune n'est juste",
 		arbiterModel: 'Modèle arbitre',
 		arbiterModelDesc:
-			'Claude Opus 5 juge les trois analyses en un seul appel : ses verdicts sont donc cohérents entre eux, ce que trois campagnes deux à deux ne peuvent pas garantir.',
+			'Claude Opus 5 juge les trois analyses en un seul appel : ses verdicts se tiennent donc entre eux, ce que trois campagnes deux à deux ne pourraient pas garantir.',
 		viewPrompt: 'Voir le prompt',
 		promptExplanation:
 			"L'instruction système et le prompt utilisateur exacts envoyés à l'arbitre, mot pour mot.",
@@ -887,39 +866,33 @@ export const fr: Translations = {
 
 	// Extreme Analysis
 	extremeAnalysis: {
-		title: 'Analyse des extrêmes lexicaux',
-		subtitle: 'Exploration des mots-clés associés aux sentiments extrêmes',
-		analysisControls: "Contrôles d'analyse",
-		keywordFrequency: 'Fréquence des mots-clés',
-		keywordsByFacet: 'Mots-clés par facette',
+		title: 'Les mots des extrêmes',
+		subtitle:
+			'Quels sujets et quels lieux reviennent dans les articles situés à chaque bout des trois échelles.',
+		analysisControls: 'Réglages',
 		topKeywords: 'Mots-clés les plus fréquents',
-		associatedArticles: 'Articles associés',
 		articleCount: "Nombre d'articles",
-		selectCategory: 'Sélectionner une catégorie',
+		selectCategory: 'Catégorie',
 		selectKeywordType: 'Type de mots-clés',
 		numberOfKeywords: 'Nombre de mots-clés',
-		subjectKeywords: 'Mots-clés sujet',
-		spatialKeywords: 'Mots-clés spatiaux',
-		byCountry: 'Par pays',
-		byNewspaper: 'Par journal',
-		showMore: 'Voir plus',
-		showLess: 'Voir moins',
+		subjectKeywords: 'Sujets',
+		spatialKeywords: 'Lieux',
 		noData: 'Aucune donnée disponible pour cette sélection',
 		categories: {
-			subjectivityHigh: 'Subjectivité élevée (4-5)',
-			subjectivityLow: 'Subjectivité faible (1-2)',
+			subjectivityHigh: 'Subjectivité élevée (4–5)',
+			subjectivityLow: 'Subjectivité faible (1–2)',
 			polarityNegative: 'Polarité très négative',
 			polarityPositive: 'Polarité très positive',
 			centralityHigh: 'Très central',
 			centralityLow: 'Pas central'
 		},
 		descriptions: {
-			subjectivityHigh: 'Articles avec opinions marquées et émotions fortes',
+			subjectivityHigh: 'Articles qui prennent nettement position',
 			subjectivityLow: 'Articles factuels et informatifs',
-			polarityNegative: 'Articles avec sentiment très négatif',
-			polarityPositive: 'Articles avec sentiment très positif',
-			centralityHigh: 'Islam/musulmans au cœur du sujet',
-			centralityLow: "Mention périphérique de l'islam/musulmans"
+			polarityNegative: 'Articles notés très négatifs',
+			polarityPositive: 'Articles notés très positifs',
+			centralityHigh: 'L’islam et les musulmans au cœur de l’article',
+			centralityLow: 'L’islam et les musulmans évoqués seulement en passant'
 		}
 	},
 
@@ -928,12 +901,12 @@ export const fr: Translations = {
 		siteTitle: 'Analyse de sentiments IWAC',
 		comparisonTitle: 'Comparaison de modèles IA',
 		comparisonDescription:
-			"Comparez les résultats d'analyse de sentiments entre les modèles GPT-5.6 Luna, Mistral Small 4 et DeepSeek v4 Flash sur la Collection Islam Afrique de l'Ouest. Analysez les différences d'interprétation IA.",
+			"Comparez la façon dont GPT-5.6 Luna, Mistral Small 4 et DeepSeek v4 Flash ont noté les mêmes articles de la Collection Islam Afrique de l'Ouest, et voyez où leurs lectures de la couverture de presse se séparent.",
 		comparisonKeywords:
 			'comparaison IA, GPT-5.6 Luna vs Mistral Small 4 vs DeepSeek, comparaison de modèles, analyse de sentiments, IWAC, évaluation IA',
 		viewDescriptionPrefix: 'Explorez ',
 		viewDescriptionSuffix:
-			" de l'analyse de sentiments de la Collection Islam Afrique de l'Ouest. Visualisation interactive de l'analyse de couverture médiatique utilisant des modèles IA avancés.",
+			" dans les annotations de sentiment produites par IA sur la Collection Islam Afrique de l'Ouest, un corpus de presse ouest-africaine francophone consacré à l'islam et aux musulmans.",
 		baseKeywords: "analyse de sentiments, IWAC, Islam Afrique de l'Ouest, visualisation de données",
 		ogImageAlt:
 			'Analyse de sentiments IWAC — distributions de polarité de GPT-5.6 Luna, Mistral Small 4 et DeepSeek v4 Flash sur 12 305 articles de presse ouest-africaine francophone',
@@ -945,44 +918,66 @@ export const fr: Translations = {
 					'graphiques, polarité, distribution des sentiments, graphiques en barres, camemberts'
 			},
 			trends: {
-				title: 'Tendances temporelles',
-				description: "l'évolution temporelle des tendances de sentiment",
+				title: 'Tendances dans le temps',
+				description: "l'évolution des notes de sentiment année après année",
 				keywords: 'tendances, analyse temporelle, séries chronologiques, évolution'
 			},
 			correlation: {
 				title: 'Distribution des sentiments',
-				description: "l'analyse de distribution croisée des sentiments",
+				description: 'la relation entre les échelles de polarité et de subjectivité',
 				keywords: 'corrélation, analyse croisée, distribution, relations'
 			},
 			volume: {
-				title: "Analyse du volume d'articles",
+				title: "Volume d'articles",
 				description: "le volume de publication d'articles et la distribution géographique",
 				keywords: 'volume, distribution géographique, tendances de publication'
 			},
 			heatmap: {
-				title: 'Carte de chaleur de centralité',
-				description: "la carte de chaleur de centralité de l'islam par pays et année",
+				title: 'Carte de chaleur de la centralité',
+				description: "la centralité de l'islam et des musulmans par pays et par année",
 				keywords: 'carte de chaleur, centralité, analyse géographique, visualisation'
 			},
 			table: {
 				title: "Explorateur d'articles",
-				description: "l'exploration détaillée d'articles avec capacités de filtrage",
+				description: 'tous les articles notés, avec recherche et filtres',
 				keywords: "tableau, explorateur d'articles, filtrage, recherche"
+			},
+			seasonality: {
+				title: 'Saisonnalité',
+				description: 'la couverture au fil des mois du calendrier lunaire islamique',
+				keywords: 'saisonnalité, calendrier hégirien, ramadan, année lunaire, fête religieuse'
+			},
+			ranking: {
+				title: 'Classement des journaux',
+				description: 'les journaux classés selon leur note moyenne, avec intervalles de confiance',
+				keywords:
+					'journaux, classement, intervalles de confiance, titres de presse, sentiment moyen'
+			},
+			map: {
+				title: 'Lieux mentionnés',
+				description: 'les lieux que les articles nomment, cartographiés et notés',
+				keywords: "carte, lieux, géographie, Afrique de l'Ouest, distribution spatiale"
+			},
+			agreement: {
+				title: 'Accord entre modèles',
+				description:
+					'à quel point les trois modèles IA s’accordent, et comment ils diffèrent lorsqu’ils divergent',
+				keywords: 'accord, kappa de Cohen, kappa de Fleiss, fiabilité inter-juges, calibration'
 			},
 			comparison: {
 				title: 'Comparaison de modèles',
-				description: "la comparaison de modèles IA et l'analyse des divergences",
+				description: 'les articles que deux modèles IA ont notés différemment, et de combien',
 				keywords: 'comparaison, modèles IA, divergences, évaluation'
 			},
 			extremes: {
-				title: 'Analyse des sentiments extrêmes',
+				title: 'Sentiments extrêmes',
 				description: 'les catégories de sentiments les plus extrêmes et leurs mots-clés récurrents',
 				keywords: 'extrêmes, mots-clés, valeurs aberrantes, catégories de sentiments'
 			},
 			arbiter: {
-				title: "Évaluation de l'arbitre",
+				title: "Verdicts de l'arbitre",
 				description:
-					"l'arbitrage en aveugle des désaccords entre modèles IA par un troisième modèle",
+					"l'arbitrage à l'aveugle des désaccords entre modèles IA par un troisième modèle",
 				keywords: 'arbitre, évaluation en aveugle, désaccord de modèles, verdicts'
 			},
 			default: {

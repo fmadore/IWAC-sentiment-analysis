@@ -21,6 +21,7 @@
 -->
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
+	import { pct } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
@@ -143,7 +144,7 @@
 								tooltipSeriesRow(
 									item.color,
 									item.seriesName,
-									`${Math.abs(item.value ?? 0).toFixed(1)}%`
+									$pct(Math.abs(item.value ?? 0) / 100, 1)
 								)
 							)
 							.join('')

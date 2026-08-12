@@ -8,7 +8,7 @@
 	import { articleState } from '$lib/stores';
 	import type { Article } from '$lib/types/data';
 	import { t, currentLanguage } from '$lib/i18n';
-	import { translateSentimentValue } from '$lib/i18n/utils';
+	import { dec, translateSentimentValue } from '$lib/i18n/utils';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
 	import { extractYear } from '$lib/utils/chartAggregators';
 
@@ -158,7 +158,7 @@
             <div style="font-weight:600;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid ${chartColors.border.light};">${country} - ${year}</div>
             <div style="display:flex;justify-content:space-between;padding:2px 0;">
               <span>${currentTranslations.filters.averageCentrality}:</span>
-              <strong>${value.toFixed(2)}</strong>
+              <strong>${$dec(value, 2)}</strong>
             </div>
             <div style="display:flex;justify-content:space-between;padding:2px 0;">
               <span>${currentTranslations.filters.level}:</span>

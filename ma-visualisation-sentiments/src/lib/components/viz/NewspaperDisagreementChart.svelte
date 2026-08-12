@@ -17,6 +17,7 @@
 -->
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
+	import { dec, num, pct } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
@@ -96,24 +97,21 @@
 					const rank = ranks[(params as { dataIndex?: number }).dataIndex ?? 0];
 					if (!rank) return '';
 
-					const low = (rank.mean - rank.confidence).toFixed(2);
-					const high = (rank.mean + rank.confidence).toFixed(2);
+					const low = $dec(rank.mean - rank.confidence, 2);
+					const high = $dec(rank.mean + rank.confidence, 2);
 
 					return tooltipPanel(
 						250,
 						tooltipHeader(rank.newspaper),
-						tooltipRow(currentT.agreement.spread, rank.mean.toFixed(3)),
+						tooltipRow(currentT.agreement.spread, $dec(rank.mean, 3)),
 						tooltipRow(currentT.ranking.confidenceInterval, `${low} – ${high}`),
-						tooltipRow(currentT.agreement.unanimityRate, `${(rank.unanimity * 100).toFixed(1)}%`),
-						tooltipRow(
-							currentT.agreement.declinedShare,
-							`${(rank.declinedShare * 100).toFixed(1)}%`
-						),
+						tooltipRow(currentT.agreement.unanimityRate, $pct(rank.unanimity, 1)),
+						tooltipRow(currentT.agreement.declinedShare, $pct(rank.declinedShare, 1)),
 						tooltipRow(
 							currentT.agreement.medianYear,
 							rank.medianYear === null ? '—' : String(rank.medianYear)
 						),
-						tooltipRow(currentT.common.articles, rank.n.toLocaleString())
+						tooltipRow(currentT.common.articles, $num(rank.n))
 					);
 				}
 			},
@@ -232,26 +230,26 @@
 
 	<ChartDataTable
 		columns={[
-			$t.chartData.newspaper,
-			$t.chartData.spread,
-			$t.chartData.ciLow,
-			$t.chartData.ciHigh,
-			$t.chartData.unanimity,
-			$t.chartData.declined,
-			$t.chartData.medianYear,
-			$t.chartData.articles
+			{ label: $t.chartData.newspaper },
+			{ label: $t.chartData.spread, format: 'decimal', digits: 3 },
+			{ label: $t.chartData.ciLow, format: 'decimal', digits: 3 },
+			{ label: $t.chartData.ciHigh, format: 'decimal', digits: 3 },
+			{ label: $t.chartData.unanimity, format: 'percent', digits: 1 },
+			{ label: $t.chartData.declined, format: 'percent', digits: 1 },
+			{ label: $t.chartData.medianYear },
+			{ label: $t.chartData.articles, format: 'integer' }
 		]}
 		rows={[...ranks]
 			.reverse()
 			.map((rank) => [
 				rank.newspaper,
-				rank.mean.toFixed(3),
-				(rank.mean - rank.confidence).toFixed(3),
-				(rank.mean + rank.confidence).toFixed(3),
-				`${(rank.unanimity * 100).toFixed(1)}%`,
-				`${(rank.declinedShare * 100).toFixed(1)}%`,
-				rank.medianYear === null ? '—' : String(rank.medianYear),
-				rank.n.toLocaleString()
+				rank.mean,
+				rank.mean - rank.confidence,
+				rank.mean + rank.confidence,
+				rank.unanimity,
+				rank.declinedShare,
+				rank.medianYear,
+				rank.n
 			])}
 		filenamePrefix="iwac-newspaper-disagreement"
 		caption={$t.chartData.disagreementCaption}

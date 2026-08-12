@@ -9,6 +9,7 @@
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { num } from '$lib/i18n/utils';
 	import {
 		arbiterV2Evaluations,
 		arbiterV2Statistics,
@@ -199,7 +200,7 @@
 										: 0}%"
 								></div>
 							</div>
-							<span class="dimension-count">{count.toLocaleString()}</span>
+							<span class="dimension-count">{$num(count)}</span>
 						</div>
 					{/each}
 				</div>

@@ -20,6 +20,7 @@
 -->
 <script lang="ts">
 	import { datasetState, articleState } from '$lib/stores';
+	import { dec, num, pct } from '$lib/i18n/utils';
 	import {
 		pairAgreement,
 		threeWayAgreement,
@@ -78,11 +79,11 @@
 	);
 
 	function formatKappa(value: number): string {
-		return Number.isNaN(value) ? '—' : value.toFixed(3);
+		return Number.isNaN(value) ? '—' : $dec(value, 3);
 	}
 
 	function formatPercent(value: number): string {
-		return `${(value * 100).toFixed(1)}%`;
+		return $pct(value, 1);
 	}
 
 	/** Landis & Koch band, translated; null when kappa is undefined. */
@@ -142,7 +143,7 @@
 			<StatCard
 				label={$t.agreement.exactAgreement}
 				value={formatPercent(active.matrix.exactAgreement)}
-				detail="{active.matrix.n.toLocaleString()} {$t.agreement.articlesCompared}"
+				detail="{$num(active.matrix.n)} {$t.agreement.articlesCompared}"
 				tooltip={$t.agreement.exactAgreementHelp}
 				accent="comparison"
 			>
@@ -165,6 +166,7 @@
 				detail={strengthLabel(active.kappa.kappa)}
 				tooltip={$t.agreement.kappaHelp}
 				accent="arbiter"
+				preserveLabelCase
 			>
 				{#snippet icon()}<ScaleIcon size={20} />{/snippet}
 			</StatCard>
@@ -175,6 +177,7 @@
 				detail={strengthLabel(active.weightedKappa.kappa)}
 				tooltip={$t.agreement.weightedKappaHelp}
 				accent="arbiter"
+				preserveLabelCase
 			>
 				{#snippet icon()}<ScaleIcon size={20} />{/snippet}
 			</StatCard>
@@ -218,7 +221,7 @@
 					<StatCard
 						label={dimensionLabels[dimension]}
 						value={formatKappa(result.kappa)}
-						detail="{$t.agreement.fleissKappa} · {result.n.toLocaleString()} {$t.common.articles}"
+						detail="{$t.agreement.fleissKappa} · {$num(result.n)} {$t.common.articles}"
 						tooltip={$t.agreement.fleissHelp}
 						accent="arbiter"
 						layout="inline"

@@ -17,6 +17,7 @@
 -->
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
+	import { dec, num } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
@@ -131,9 +132,9 @@
 					return tooltipPanel(
 						230,
 						tooltipHeader(`${item.data?.newspaper} · ${item.seriesName}`),
-						tooltipRow(currentT.agreement.scatterX, x.toFixed(2)),
-						tooltipRow(currentT.agreement.spread, y.toFixed(3)),
-						tooltipRow(currentT.common.articles, n.toLocaleString())
+						tooltipRow(currentT.agreement.scatterX, $dec(x, 2)),
+						tooltipRow(currentT.agreement.spread, $dec(y, 3)),
+						tooltipRow(currentT.common.articles, $num(n))
 					);
 				}
 			},
@@ -197,7 +198,7 @@
 	<p class="chart-note">
 		{$t.agreement.scatterNote.replace(
 			'{r}',
-			Number.isNaN(correlation) ? '—' : correlation.toFixed(3)
+			Number.isNaN(correlation) ? '—' : $dec(correlation, 3)
 		)}
 	</p>
 {:else}

@@ -11,6 +11,7 @@
 -->
 <script lang="ts">
 	import type { ArbiterV2Statistics } from '$lib/stores';
+	import { num, pct } from '$lib/i18n/utils';
 	import { datasetState } from '$lib/stores';
 	import { t } from '$lib/i18n';
 	import { base } from '$app/paths';
@@ -38,10 +39,10 @@
 			<BarChart3Icon size={20} />
 		</div>
 		<div class="stat-content">
-			<div class="stat-value">{stats.totalEvaluated.toLocaleString()}</div>
+			<div class="stat-value">{$num(stats.totalEvaluated)}</div>
 			<div class="stat-label">{$t.arbiterV2.articlesEvaluated}</div>
 			<div class="stat-note">
-				{stats.totalVerdicts.toLocaleString()}
+				{$num(stats.totalVerdicts)}
 				{$t.arbiterV2.dimensionVerdicts}
 			</div>
 		</div>
@@ -56,9 +57,9 @@
 				{/if}
 			</div>
 			<div class="stat-content">
-				<div class="stat-value">{model.dimensionWins.toLocaleString()}</div>
+				<div class="stat-value">{$num(model.dimensionWins)}</div>
 				<div class="stat-label">{model.name} {$t.arbiterV2.preferred}</div>
-				<div class="stat-percentage">{model.dimensionPercentage.toFixed(1)}%</div>
+				<div class="stat-percentage">{$pct(model.dimensionPercentage / 100, 1)}</div>
 				<div class="stat-note">{$t.arbiterV2.blindLabel} {model.label.toUpperCase()}</div>
 			</div>
 		</div>
@@ -69,9 +70,9 @@
 			<ScaleIcon size={20} />
 		</div>
 		<div class="stat-content">
-			<div class="stat-value">{stats.multiple.toLocaleString()}</div>
+			<div class="stat-value">{$num(stats.multiple)}</div>
 			<div class="stat-label">{$t.arbiterV2.multiple}</div>
-			<div class="stat-percentage">{stats.multiplePercentage.toFixed(1)}%</div>
+			<div class="stat-percentage">{$pct(stats.multiplePercentage / 100, 1)}</div>
 		</div>
 	</div>
 
@@ -80,9 +81,9 @@
 			<CircleSlashIcon size={20} />
 		</div>
 		<div class="stat-content">
-			<div class="stat-value">{stats.none.toLocaleString()}</div>
+			<div class="stat-value">{$num(stats.none)}</div>
 			<div class="stat-label">{$t.arbiterV2.none}</div>
-			<div class="stat-percentage">{stats.nonePercentage.toFixed(1)}%</div>
+			<div class="stat-percentage">{$pct(stats.nonePercentage / 100, 1)}</div>
 		</div>
 	</div>
 </div>
@@ -124,14 +125,14 @@
 						style="background: {dataset?.color ?? 'var(--sentiment-arbiter)'}"
 					></span>
 					<span class="legend-name">{model.name}</span>
-					<strong class="legend-value">{model.overallPercentage.toFixed(1)}%</strong>
+					<strong class="legend-value">{$pct(model.overallPercentage / 100, 1)}</strong>
 				</li>
 			{/each}
 			<li class="legend-item">
 				<span class="legend-swatch tie-swatch"></span>
 				<span class="legend-name">{$t.arbiterV2.multiple} / {$t.arbiterV2.none}</span>
 				<strong class="legend-value">
-					{(((stats.overallMultiple + stats.overallNone) / stats.totalEvaluated) * 100).toFixed(1)}%
+					{$pct((stats.overallMultiple + stats.overallNone) / stats.totalEvaluated, 1)}
 				</strong>
 			</li>
 		</ul>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { articleState } from '$lib/stores';
+	import { num } from '$lib/i18n/utils';
 	import { POLARITY_ORDER, CENTRALITY_ORDER, type Article } from '$lib/types/data';
 	import { getJournalName } from '$lib/utils/format';
 	import { formatDate } from '$lib/utils/format';
@@ -148,7 +149,9 @@
 			{#snippet resultsInfo()}
 				<span class="results-info">
 					{$t.table.showingItems}
-					{pagination.startIndex + 1} à {pagination.endIndex} sur {articles.length}
+					{$num(pagination.startIndex + 1)}–{$num(pagination.endIndex)}
+					{$t.common.of}
+					{$num(articles.length)}
 					{$t.common.articles}
 				</span>
 			{/snippet}

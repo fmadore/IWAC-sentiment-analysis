@@ -34,7 +34,13 @@
 		const locale = lang === 'en' ? 'en_US' : 'fr_FR';
 		const localeAlternate = lang === 'en' ? 'fr_FR' : 'en_US';
 
-		if (comparisonMode) {
+		const views = m.views as Record<string, ViewMeta>;
+
+		// Comparison mode is switched on for the arbiter view as well as the
+		// comparison one, because both work in terms of a model pair — so testing
+		// the flag alone gave every arbiter page the comparison view's title and
+		// description, and left `meta.views.arbiter` unreachable.
+		if (comparisonMode && view !== 'arbiter') {
 			return {
 				title: `${m.comparisonTitle} - ${m.siteTitle}`,
 				description: m.comparisonDescription,
@@ -45,7 +51,6 @@
 			};
 		}
 
-		const views = m.views as Record<string, ViewMeta>;
 		const viewMeta = views[view] ?? m.views.default;
 		return {
 			title: `${viewMeta.title} - ${m.siteTitle}`,

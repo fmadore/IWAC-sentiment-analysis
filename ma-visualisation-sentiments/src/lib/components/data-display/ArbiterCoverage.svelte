@@ -16,6 +16,7 @@
 -->
 <script lang="ts">
 	import { t } from '$lib/i18n';
+	import { num, pct } from '$lib/i18n/utils';
 	import InfoIcon from '@lucide/svelte/icons/info';
 
 	interface ArbiterCoverageProps {
@@ -47,21 +48,21 @@
 
 	<div class="coverage-figures">
 		<span class="coverage-figure">
-			<strong>{evaluated.toLocaleString()}</strong>
+			<strong>{$num(evaluated)}</strong>
 			<span class="coverage-key">{$t.arbiter.coverageEvaluated}</span>
 		</span>
 		<span class="coverage-of">/</span>
 		<span class="coverage-figure">
-			<strong>{corpusTotal.toLocaleString()}</strong>
+			<strong>{$num(corpusTotal)}</strong>
 			<span class="coverage-key">{$t.arbiter.coverageCorpus}</span>
 		</span>
-		<span class="coverage-percent">{percentage.toFixed(1)}%</span>
+		<span class="coverage-percent">{$pct(percentage / 100, 1)}</span>
 	</div>
 
 	<div
 		class="coverage-bar"
 		role="img"
-		aria-label="{percentage.toFixed(1)}% {$t.arbiter.samplingFrame}"
+		aria-label="{$pct(percentage / 100, 1)} {$t.arbiter.samplingFrame}"
 	>
 		<div class="coverage-fill" style="width: {barWidth}%"></div>
 	</div>

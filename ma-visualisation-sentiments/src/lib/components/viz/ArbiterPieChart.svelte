@@ -7,6 +7,7 @@
 -->
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
+	import { pct } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
@@ -47,7 +48,7 @@
 					return `
 						<div style="font-weight: 600; margin-bottom: 4px;">${p.name}</div>
 						<div style="color: ${chartColors.text.subtle};">
-							${p.value} ${countNoun} (${p.percent.toFixed(1)}%)
+							${p.value} ${countNoun} (${$pct(p.percent / 100, 1)})
 						</div>
 					`;
 				}
@@ -68,7 +69,7 @@
 						position: 'outside',
 						formatter: (params: unknown) => {
 							const p = params as { name: string; percent: number };
-							return `${p.name}\n${p.percent.toFixed(1)}%`;
+							return `${p.name}\n${$pct(p.percent / 100, 1)}`;
 						}
 					},
 					labelLine: {
