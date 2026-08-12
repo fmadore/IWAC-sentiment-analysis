@@ -18,6 +18,7 @@
 -->
 <script lang="ts">
 	import type { Article, ViewId } from '$lib/types/data';
+	import { num } from '$lib/i18n/utils';
 	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
 	import { t } from '$lib/i18n';
 	import { datasetState, articleState } from '$lib/stores';
@@ -85,7 +86,7 @@
 
 	function formatNum(n: number): string {
 		try {
-			return n.toLocaleString();
+			return $num(n);
 		} catch {
 			return String(n);
 		}
@@ -100,11 +101,13 @@
 		}
 		if (totalCount === 0) return null;
 		const parts: string[] = [];
-		parts.push(`Model · ${modelLabel}`);
+		parts.push(`${$t.viewMeta.model} · ${modelLabel}`);
 		if (filteredCount === totalCount) {
-			parts.push(`Sample · ${formatNum(totalCount)} articles`);
+			parts.push(`${$t.viewMeta.sample} · ${formatNum(totalCount)} ${$t.common.articles}`);
 		} else {
-			parts.push(`Sample · ${formatNum(filteredCount)} of ${formatNum(totalCount)} articles`);
+			parts.push(
+				`${$t.viewMeta.sample} · ${formatNum(filteredCount)} ${$t.common.of} ${formatNum(totalCount)} ${$t.common.articles}`
+			);
 		}
 		return parts.join('  ·  ');
 	});

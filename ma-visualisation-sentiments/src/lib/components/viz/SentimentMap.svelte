@@ -38,6 +38,7 @@
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { dec, num } from '$lib/i18n/utils';
 	import { base } from '$app/paths';
 	// Side effect only, and first on purpose: calls `setWorkerUrl()` with a
 	// Vite-built worker chunk. See the header comment — without it v6 renders a
@@ -152,7 +153,7 @@
 	const selectedStat = $derived(selected ? selected.stats[dimension] : null);
 
 	function formatMean(mean: number | null): string {
-		return mean === null ? '—' : mean.toFixed(2);
+		return mean === null ? '—' : $dec(mean, 2);
 	}
 </script>
 
@@ -223,14 +224,14 @@
 					<div class="place-popup">
 						<h3 class="popup-title">{selected.title}</h3>
 						<p class="popup-count">
-							{selected.count.toLocaleString()}
+							{$num(selected.count)}
 							{$t.map.articlesMentioning}
 						</p>
 						<dl class="popup-stats">
 							<dt>{$t.map.meanOf.replace('{dimension}', dimensionLabels[dimension])}</dt>
 							<dd>{formatMean(selectedStat?.mean ?? null)}</dd>
 							<dt>{$t.map.scoredArticles}</dt>
-							<dd>{(selectedStat?.scored ?? 0).toLocaleString()}</dd>
+							<dd>{$num(selectedStat?.scored ?? 0)}</dd>
 						</dl>
 					</div>
 				</Popup>

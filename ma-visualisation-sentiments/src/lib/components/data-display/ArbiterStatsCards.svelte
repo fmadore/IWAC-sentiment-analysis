@@ -6,6 +6,7 @@
 -->
 <script lang="ts">
 	import type { ArbiterStatistics } from '$lib/stores';
+	import { dec, num, pct } from '$lib/i18n/utils';
 	import { datasetState } from '$lib/stores';
 	import { t } from '$lib/i18n';
 	import { base } from '$app/paths';
@@ -41,7 +42,7 @@
 	);
 
 	const leadPercentage = $derived(
-		Math.abs(stats.modelAPercentage - stats.modelBPercentage).toFixed(1)
+		$dec(Math.abs(stats.modelAPercentage - stats.modelBPercentage), 1)
 	);
 </script>
 
@@ -52,7 +53,7 @@
 			<BarChart3Icon size={20} />
 		</div>
 		<div class="stat-content">
-			<div class="stat-value">{stats.totalEvaluated}</div>
+			<div class="stat-value">{$num(stats.totalEvaluated)}</div>
 			<div class="stat-label">{$t.arbiter.articlesEvaluated}</div>
 		</div>
 	</div>
@@ -65,9 +66,9 @@
 			{/if}
 		</div>
 		<div class="stat-content">
-			<div class="stat-value">{stats.modelAPreferred}</div>
+			<div class="stat-value">{$num(stats.modelAPreferred)}</div>
 			<div class="stat-label">{modelAName} {$t.arbiter.preferred}</div>
-			<div class="stat-percentage">{stats.modelAPercentage.toFixed(1)}%</div>
+			<div class="stat-percentage">{$pct(stats.modelAPercentage / 100, 1)}</div>
 		</div>
 	</div>
 
@@ -79,9 +80,9 @@
 			{/if}
 		</div>
 		<div class="stat-content">
-			<div class="stat-value">{stats.modelBPreferred}</div>
+			<div class="stat-value">{$num(stats.modelBPreferred)}</div>
 			<div class="stat-label">{modelBName} {$t.arbiter.preferred}</div>
-			<div class="stat-percentage">{stats.modelBPercentage.toFixed(1)}%</div>
+			<div class="stat-percentage">{$pct(stats.modelBPercentage / 100, 1)}</div>
 		</div>
 	</div>
 
@@ -91,9 +92,9 @@
 			<ScaleIcon size={20} />
 		</div>
 		<div class="stat-content">
-			<div class="stat-value">{stats.bothEqual}</div>
+			<div class="stat-value">{$num(stats.bothEqual)}</div>
 			<div class="stat-label">{$t.arbiter.bothEqual}</div>
-			<div class="stat-percentage">{stats.bothPercentage.toFixed(1)}%</div>
+			<div class="stat-percentage">{$pct(stats.bothPercentage / 100, 1)}</div>
 		</div>
 	</div>
 
@@ -103,9 +104,9 @@
 			<CheckCircle2Icon size={20} />
 		</div>
 		<div class="stat-content">
-			<div class="stat-value">{stats.neitherAccurate}</div>
+			<div class="stat-value">{$num(stats.neitherAccurate)}</div>
 			<div class="stat-label">{$t.arbiter.neitherAccurate}</div>
-			<div class="stat-percentage">{stats.neitherPercentage.toFixed(1)}%</div>
+			<div class="stat-percentage">{$pct(stats.neitherPercentage / 100, 1)}</div>
 		</div>
 	</div>
 </div>
@@ -140,10 +141,10 @@
 						<img src="{base}{modelALogo}" alt={modelAName} class="comparison-logo" />
 					{/if}
 					<span>{modelAName}</span>
-					<strong>{modelAPercent.toFixed(1)}%</strong>
+					<strong>{$pct(modelAPercent / 100, 1)}</strong>
 				</div>
 				<div class="model-label model-b-label">
-					<strong>{modelBPercent.toFixed(1)}%</strong>
+					<strong>{$pct(modelBPercent / 100, 1)}</strong>
 					<span>{modelBName}</span>
 					{#if modelBLogo}
 						<img src="{base}{modelBLogo}" alt={modelBName} class="comparison-logo" />
@@ -154,12 +155,12 @@
 				<div
 					class="bar-segment model-a-segment"
 					style="width: {modelAPercent}%"
-					title="{modelAName}: {stats.overallModelAWins} ({modelAPercent.toFixed(1)}%)"
+					title="{modelAName}: {stats.overallModelAWins} ({$pct(modelAPercent / 100, 1)})"
 				></div>
 				<div
 					class="bar-segment model-b-segment"
 					style="width: {modelBPercent}%"
-					title="{modelBName}: {stats.overallModelBWins} ({modelBPercent.toFixed(1)}%)"
+					title="{modelBName}: {stats.overallModelBWins} ({$pct(modelBPercent / 100, 1)})"
 				></div>
 			</div>
 			<div class="comparison-counts">

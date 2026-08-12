@@ -22,6 +22,7 @@
 -->
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
+	import { num, pct } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
@@ -102,7 +103,7 @@
 	/** Ranked by how often anyone breaks ranks, so the contested titles lead. */
 	let byDissent = $derived([...ranked].sort((a, b) => a.unanimity - b.unanimity));
 
-	const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
+	const percent = (value: number) => $pct(value, 1);
 
 	// --- Stacked form ---------------------------------------------------------
 
@@ -167,12 +168,10 @@
 
 					return tooltipPanel(
 						260,
-						tooltipHeader(
-							`${entry.newspaper} · ${entry.n.toLocaleString()} ${currentT.common.articles}`
-						),
+						tooltipHeader(`${entry.newspaper} · ${$num(entry.n)} ${currentT.common.articles}`),
 						list
 							.map((item) =>
-								tooltipSeriesRow(item.color, item.seriesName, `${(item.value ?? 0).toFixed(1)}%`)
+								tooltipSeriesRow(item.color, item.seriesName, $pct((item.value ?? 0) / 100, 1))
 							)
 							.join('')
 					);
@@ -293,7 +292,7 @@
 					return tooltipPanel(
 						250,
 						tooltipHeader(
-							`${point.entry.newspaper} · ${point.entry.n.toLocaleString()} ${currentT.common.articles}`
+							`${point.entry.newspaper} · ${$num(point.entry.n)} ${currentT.common.articles}`
 						),
 						point.entry.dissentShare
 							.map((share, index) => tooltipSeriesRow(colors[index], labels[index], percent(share)))

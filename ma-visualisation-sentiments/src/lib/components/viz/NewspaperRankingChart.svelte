@@ -15,6 +15,7 @@
 -->
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
+	import { dec, num } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
@@ -123,19 +124,19 @@
 					const rank = ranks[p.dataIndex ?? 0];
 					if (!rank) return '';
 
-					const low = (rank.mean - rank.confidence).toFixed(2);
-					const high = (rank.mean + rank.confidence).toFixed(2);
+					const low = $dec(rank.mean - rank.confidence, 2);
+					const high = $dec(rank.mean + rank.confidence, 2);
 
 					return `<div style="min-width:230px;">
 						<div style="font-weight:600;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid ${chartColors.border.light};">${rank.newspaper}</div>
 						<div style="display:flex;justify-content:space-between;padding:2px 0;">
-							<span>${measureLabel}:</span><strong>${rank.mean.toFixed(3)}</strong>
+							<span>${measureLabel}:</span><strong>${$dec(rank.mean, 3)}</strong>
 						</div>
 						<div style="display:flex;justify-content:space-between;padding:2px 0;">
 							<span>${currentT.ranking.confidenceInterval}:</span><strong>${low} – ${high}</strong>
 						</div>
 						<div style="display:flex;justify-content:space-between;padding:2px 0;">
-							<span>${currentT.common.articles}:</span><strong>${rank.n.toLocaleString()}</strong>
+							<span>${currentT.common.articles}:</span><strong>${$num(rank.n)}</strong>
 						</div>
 					</div>`;
 				}
@@ -278,20 +279,20 @@
 
 	<ChartDataTable
 		columns={[
-			$t.chartData.newspaper,
-			$t.chartData.mean,
-			$t.chartData.ciLow,
-			$t.chartData.ciHigh,
-			$t.chartData.articles
+			{ label: $t.chartData.newspaper },
+			{ label: $t.chartData.mean, format: 'decimal', digits: 3 },
+			{ label: $t.chartData.ciLow, format: 'decimal', digits: 3 },
+			{ label: $t.chartData.ciHigh, format: 'decimal', digits: 3 },
+			{ label: $t.chartData.articles, format: 'integer' }
 		]}
 		rows={[...ranks]
 			.reverse()
 			.map((rank) => [
 				rank.newspaper,
-				rank.mean.toFixed(3),
-				(rank.mean - rank.confidence).toFixed(3),
-				(rank.mean + rank.confidence).toFixed(3),
-				rank.n.toLocaleString()
+				rank.mean,
+				rank.mean - rank.confidence,
+				rank.mean + rank.confidence,
+				rank.n
 			])}
 		filenamePrefix="iwac-newspaper-ranking"
 		caption={$t.chartData.rankingCaption}

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { t, currentLanguage, type Language } from '$lib/i18n';
+	import { num } from '$lib/i18n/utils';
 	import { datasetState, articleState, uiState } from '$lib/stores';
 	import { updateURL } from '$lib/stores/url';
 	import { ARCHIVED_GENERATION, generationOf, type DatasetId } from '$lib/domain/sentimentContract';
@@ -65,16 +66,16 @@
 			badgeName: 'GPT-5 mini',
 			docsUrl: 'https://platform.openai.com/docs/models/gpt-5-mini',
 			cardDescription: {
-				en: "OpenAI's efficient model with a 400,000-token context window, released August 2025. Enhanced reasoning and cost-effectiveness.",
-				fr: "Modèle efficace d'OpenAI avec une fenêtre de contexte de 400 000 tokens, publié en août 2025. Raisonnement amélioré et coût optimisé."
+				en: 'A smaller, cheaper version of GPT-5 from OpenAI, released in August 2025, with a 400,000-token context window.',
+				fr: 'Une version plus petite et moins chère de GPT-5, publiée par OpenAI en août 2025, avec une fenêtre de contexte de 400 000 tokens.'
 			},
 			detail: {
-				en: "GPT-5 mini is a faster, more cost-efficient version of GPT-5. It's great for well-defined tasks and precise prompts.",
-				fr: 'GPT-5 mini est une version plus rapide et économique de GPT-5. Idéal pour des tâches bien définies et des invites précises.'
+				en: 'It is faster and cheaper to run than GPT-5, and is meant for narrowly defined tasks.',
+				fr: 'Il tourne plus vite et coûte moins cher que GPT-5, et vise des tâches étroitement définies.'
 			},
 			inlineDescription: {
-				en: ", OpenAI's efficient model with a 400,000-token context window and enhanced reasoning capabilities, released in August 2025.",
-				fr: ", le modèle efficace d'OpenAI avec une fenêtre de contexte de 400 000 tokens et des capacités de raisonnement améliorées, publié en août 2025."
+				en: ', OpenAI’s smaller GPT-5 variant, released in August 2025, with a 400,000-token context window.',
+				fr: ', la déclinaison réduite de GPT-5 chez OpenAI, publiée en août 2025, avec une fenêtre de contexte de 400 000 tokens.'
 			}
 		},
 		{
@@ -85,16 +86,16 @@
 			badgeName: 'Gemini 3 Flash',
 			docsUrl: 'https://ai.google.dev/gemini-api/docs/models#gemini-3-flash',
 			cardDescription: {
-				en: "Google's latest Flash model with advanced reasoning capabilities and a 1 million token context window, released December 2025.",
-				fr: 'Le dernier modèle Flash de Google avec des capacités de raisonnement avancées et une fenêtre de contexte de 1 million de tokens, publié en décembre 2025.'
+				en: 'Google’s speed-oriented model, released in December 2025, with a one-million-token context window.',
+				fr: 'Le modèle rapide de Google, publié en décembre 2025, avec une fenêtre de contexte d’un million de tokens.'
 			},
 			detail: {
-				en: 'Gemini 3 Flash is optimized for speed and efficiency while maintaining high-quality outputs for text analysis tasks.',
-				fr: "Gemini 3 Flash est optimisé pour la rapidité et l'efficacité tout en maintenant des sorties de haute qualité pour les tâches d'analyse textuelle."
+				en: 'It is the fast member of the Gemini 3 family, tuned for throughput rather than depth.',
+				fr: 'C’est le membre rapide de la famille Gemini 3, réglé pour le débit plutôt que pour la profondeur.'
 			},
 			inlineDescription: {
-				en: ", Google's latest Flash model with advanced reasoning capabilities and a 1 million token context window, released December 2025.",
-				fr: ', le dernier modèle Flash de Google avec des capacités de raisonnement avancées et une fenêtre de contexte de 1 million de tokens, publié en décembre 2025.'
+				en: ', Google’s speed-oriented model, released in December 2025, with a one-million-token context window.',
+				fr: ', le modèle rapide de Google, publié en décembre 2025, avec une fenêtre de contexte d’un million de tokens.'
 			}
 		},
 		{
@@ -105,16 +106,16 @@
 			badgeName: 'Ministral 3 14B',
 			docsUrl: 'https://docs.mistral.ai/models/ministral-3-14b-25-12',
 			cardDescription: {
-				en: "Mistral's largest model in the Ministral 3 family, offering state-of-the-art capabilities comparable to Mistral Small 3.2 24B, released December 2025.",
-				fr: 'Le plus grand modèle de Mistral dans la famille Ministral 3, offrant des capacités de pointe comparables à Mistral Small 3.2 24B, publié en décembre 2025.'
+				en: 'The largest model in Mistral’s Ministral 3 family, released in December 2025. Mistral rates it as comparable to its own Small 3.2 24B.',
+				fr: 'Le plus grand modèle de la famille Ministral 3 de Mistral, publié en décembre 2025. Mistral le juge comparable à son propre Small 3.2 24B.'
 			},
 			detail: {
-				en: 'Ministral 3 14B delivers high performance across diverse hardware and is optimized for efficient local deployment.',
-				fr: 'Ministral 3 14B offre des performances élevées sur divers matériels et est optimisé pour un déploiement local efficace.'
+				en: 'It is small enough to run on modest hardware, including locally.',
+				fr: 'Il est assez léger pour tourner sur un matériel modeste, y compris en local.'
 			},
 			inlineDescription: {
-				en: ", Mistral's largest model in the Ministral 3 family, offering state-of-the-art capabilities comparable to Mistral Small 3.2 24B, released December 2025.",
-				fr: ', le plus grand modèle de Mistral dans la famille Ministral 3, offrant des capacités de pointe comparables à Mistral Small 3.2 24B, publié en décembre 2025.'
+				en: ', the largest model in Mistral’s Ministral 3 family, released in December 2025 and rated by Mistral as comparable to its own Small 3.2 24B.',
+				fr: ', le plus grand modèle de la famille Ministral 3 de Mistral, publié en décembre 2025 et jugé par Mistral comparable à son propre Small 3.2 24B.'
 			}
 		},
 		{
@@ -125,15 +126,15 @@
 			badgeName: 'GPT-5.6 Luna',
 			docsUrl: 'https://developers.openai.com/api/docs/models/gpt-5.6-luna',
 			cardDescription: {
-				en: "OpenAI's reasoning model for the second campaign, run at medium reasoning effort — the panel's reference setting.",
-				fr: "Le modèle de raisonnement d'OpenAI pour la seconde campagne, exécuté avec un effort de raisonnement moyen — le réglage de référence du panel."
+				en: 'OpenAI’s reasoning model, run at medium reasoning effort, which is the reference setting for this panel.',
+				fr: "Le modèle de raisonnement d'OpenAI, exécuté avec un effort de raisonnement moyen, réglage qui sert de référence à ce panel."
 			},
 			cost: {
 				en: 'Full corpus pass: US$9.48',
 				fr: 'Passage sur le corpus complet : 9,48 $ US'
 			},
 			inlineDescription: {
-				en: ", OpenAI's reasoning model, run at medium reasoning effort for the second annotation campaign.",
+				en: ', OpenAI’s reasoning model, run at medium reasoning effort for the second annotation campaign.',
 				fr: ", le modèle de raisonnement d'OpenAI, exécuté avec un effort de raisonnement moyen pour la seconde campagne d'annotation."
 			}
 		},
@@ -145,15 +146,15 @@
 			badgeName: 'Mistral Small 4',
 			docsUrl: 'https://docs.mistral.ai/models/model-cards/mistral-small-4-0-26-03',
 			cardDescription: {
-				en: "Mistral's small reasoning model, open weights under Apache 2.0, run at high reasoning effort — its API rejects the lower levels.",
-				fr: 'Le petit modèle de raisonnement de Mistral, à poids ouverts sous licence Apache 2.0, exécuté avec un effort de raisonnement élevé — son API refuse les niveaux inférieurs.'
+				en: 'Mistral’s small reasoning model, with open weights under an Apache 2.0 licence. It ran at high reasoning effort because its API refuses the lower settings.',
+				fr: 'Le petit modèle de raisonnement de Mistral, à poids ouverts sous licence Apache 2.0. Il a tourné avec un effort de raisonnement élevé, son API refusant les réglages inférieurs.'
 			},
 			cost: {
 				en: 'Full corpus pass: €6.48',
 				fr: 'Passage sur le corpus complet : 6,48 €'
 			},
 			inlineDescription: {
-				en: ", Mistral's small reasoning model, run at high reasoning effort for the second annotation campaign.",
+				en: ', Mistral’s small reasoning model, run at high reasoning effort for the second annotation campaign.',
 				fr: ', le petit modèle de raisonnement de Mistral, exécuté avec un effort de raisonnement élevé pour la seconde campagne.'
 			}
 		},
@@ -165,16 +166,16 @@
 			badgeName: 'DeepSeek v4 Flash',
 			docsUrl: 'https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731',
 			cardDescription: {
-				en: 'An open-weights reasoning model under an MIT licence, served through OpenRouter rather than by its vendor, and run at high reasoning effort — it has no middle level.',
-				fr: "Un modèle de raisonnement à poids ouverts sous licence MIT, servi via OpenRouter plutôt que par son fournisseur, et exécuté avec un effort de raisonnement élevé — il n'a pas de niveau intermédiaire."
+				en: 'A reasoning model with open weights under an MIT licence, served through OpenRouter rather than by its maker. It ran at high reasoning effort because it offers no middle setting.',
+				fr: 'Un modèle de raisonnement à poids ouverts sous licence MIT, servi via OpenRouter plutôt que par son concepteur. Il a tourné avec un effort de raisonnement élevé, faute de réglage intermédiaire.'
 			},
 			cost: {
 				en: 'Full corpus pass: US$10.96',
 				fr: 'Passage sur le corpus complet : 10,96 $ US'
 			},
 			inlineDescription: {
-				en: ', an open-weights reasoning model, the only member of the panel not served by its vendor directly.',
-				fr: ", un modèle de raisonnement à poids ouverts, le seul membre du panel qui n'est pas servi directement par son fournisseur."
+				en: ', a reasoning model with open weights, and the only member of the panel served through a third party rather than by its maker.',
+				fr: ', un modèle de raisonnement à poids ouverts, et le seul membre du panel servi par un tiers plutôt que par son concepteur.'
 			}
 		}
 	];
@@ -336,7 +337,7 @@
 
 	<p class="info-description">
 		{$t.analysis.methodologyCorpus}
-		<strong class="article-count">{totalArticleCount.toLocaleString()}</strong>
+		<strong class="article-count">{$num(totalArticleCount)}</strong>
 		{$t.analysis.methodologyCorpusArticles}
 		<a href={collectionUrl} target="_blank" rel="noopener noreferrer" class="info-link">
 			{#if $currentLanguage === 'en'}
@@ -430,8 +431,8 @@
 					{#if datasetState.isComparisonMode}
 						<p class="section-text">
 							{$currentLanguage === 'en'
-								? 'The analysis uses three large language models (LLMs) to provide comparative insights:'
-								: "L'analyse utilise trois grands modèles de langage (LLM) pour fournir des insights comparatifs :"}
+								? 'Three large language models read the same articles, so their answers can be set side by side:'
+								: 'Trois grands modèles de langage ont lu les mêmes articles, ce qui permet de placer leurs réponses côte à côte :'}
 						</p>
 						<div class="model-grid">
 							{#each generationModels as model (model.id)}
@@ -458,14 +459,14 @@
 						</div>
 						<p class="section-note">
 							{$currentLanguage === 'en'
-								? 'Use the dataset picker in the header to switch between models or enable comparison mode to analyze differences in their outputs.'
-								: "Utilisez le sélecteur de jeu de données dans l'en-tête pour basculer entre les modèles ou activer le mode comparaison pour analyser les différences dans leurs sorties."}
+								? 'Use the model picker in the header to switch between models, or turn on comparison mode to see where they differ.'
+								: 'Utilisez le sélecteur de modèles dans l’en-tête pour passer d’un modèle à l’autre, ou activez le mode comparaison pour voir où ils diffèrent.'}
 						</p>
 					{:else}
 						<p class="section-text">
 							{$currentLanguage === 'en'
-								? 'The analysis was performed using '
-								: "L'analyse a été réalisée avec "}
+								? 'The ratings on screen come from '
+								: 'Les notes affichées viennent de '}
 
 							{#if selectedModel}
 								<a
@@ -510,13 +511,13 @@
 						{#if datasetState.isComparisonMode}
 							<li>
 								{$currentLanguage === 'en'
-									? 'Parallel processing: every model analyzes the same articles independently'
-									: 'Traitement parallèle : chaque modèle analyse les mêmes articles de manière indépendante'}
+									? 'Every model reads the same articles independently, with no sight of the others’ answers'
+									: 'Chaque modèle lit les mêmes articles de son côté, sans connaître les réponses des autres'}
 							</li>
 							<li>
 								{$currentLanguage === 'en'
-									? 'Discrepancy detection: Automatic identification of differences in sentiment analysis'
-									: "Détection des divergences : Identification automatique des différences dans l'analyse de sentiment"}
+									? 'Differences between the models are computed afterwards, dimension by dimension'
+									: 'Les écarts entre modèles sont calculés ensuite, dimension par dimension'}
 							</li>
 						{/if}
 					</ul>
@@ -528,7 +529,7 @@
 						{datasetState.isComparisonMode
 							? $currentLanguage === 'en'
 								? 'Every model receives the same prompt, so the comparison measures the models rather than their instructions:'
-								: 'Chaque modèle reçoit le même prompt : la comparaison mesure donc les modèles et non leurs instructions :'
+								: 'Chaque modèle reçoit le même prompt, de sorte que la comparaison mesure les modèles et non leurs instructions :'
 							: $t.analysis.promptDescription}
 					</p>
 					<ul class="config-list">
@@ -538,8 +539,8 @@
 						{#if datasetState.isComparisonMode}
 							<li>
 								{$currentLanguage === 'en'
-									? 'Identical prompt ensures fair comparison between models'
-									: 'Le prompt identique assure une comparaison équitable entre les modèles'}
+									? 'The prompt is identical for all three, so nothing in the instructions favours one of them'
+									: 'Le prompt est identique pour les trois, si bien que rien dans les instructions n’en favorise un'}
 							</li>
 						{/if}
 					</ul>
@@ -560,25 +561,23 @@
 			{#if datasetState.isComparisonMode}
 				<div class="comparison-notice">
 					<h4 class="section-title">
-						{$currentLanguage === 'en'
-							? 'Comparison Mode Considerations'
-							: 'Considérations du mode comparaison'}
+						{$currentLanguage === 'en' ? 'Reading the comparison' : 'Lire la comparaison'}
 					</h4>
 					<ul class="config-list">
 						<li>
 							{$currentLanguage === 'en'
-								? 'Model differences may reflect varying training data, architectures, and optimization objectives rather than inherent accuracy'
-								: "Les différences entre modèles peuvent refléter des données d'entraînement, des architectures et des objectifs d'optimisation variables plutôt qu'une précision inhérente"}
+								? 'Differences between models can come from their training data, their architecture and the way they were tuned, and need not mean that one is more accurate'
+								: 'Les écarts entre modèles peuvent tenir à leurs données d’entraînement, à leur architecture et à la façon dont ils ont été réglés, sans qu’aucun soit pour autant plus juste'}
 						</li>
 						<li>
 							{$currentLanguage === 'en'
-								? 'Neither model should be considered a ground truth; discrepancies highlight areas requiring human expert review'
-								: "Aucun modèle ne doit être considéré comme une vérité absolue ; les divergences soulignent les domaines nécessitant un examen d'expert humain"}
+								? 'No model is a ground truth. Where two of them disagree, the article is worth reading yourself'
+								: 'Aucun modèle ne fait référence. Là où deux d’entre eux divergent, l’article mérite d’être lu'}
 						</li>
 						<li>
 							{$currentLanguage === 'en'
-								? 'Comparison results are most valuable when used to identify patterns and trends rather than definitive judgments'
-								: 'Les résultats de comparaison sont plus utiles pour identifier des motifs et tendances que pour des jugements définitifs'}
+								? 'These comparisons are most useful for spotting patterns across the corpus, and least useful as a verdict on any single article'
+								: 'Ces comparaisons servent surtout à repérer des motifs à l’échelle du corpus, et fort peu à trancher sur un article isolé'}
 						</li>
 					</ul>
 				</div>
@@ -590,14 +589,14 @@
 <!-- Prompt Modal -->
 <PromptModal open={showPromptModal} onClose={() => (showPromptModal = false)}>
 	{#snippet title()}
-		{$currentLanguage === 'en' ? 'Complete Analysis Prompt' : "Prompt d'analyse complet"}
+		{$currentLanguage === 'en' ? 'The full analysis prompt' : 'Le prompt d’analyse complet'}
 	{/snippet}
 
 	{#if $currentLanguage === 'en'}
 		<div class="translation-notice">
 			<p>
-				<strong>Note:</strong> This is a translation of the original French prompt used for the analysis.
-				The AI model received instructions in French as the corpus consists of French-language articles.
+				<strong>Note:</strong> this is a translation of the prompt. The models were instructed in French,
+				because the corpus is in French.
 			</p>
 		</div>
 	{/if}

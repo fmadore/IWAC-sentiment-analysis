@@ -12,19 +12,42 @@
   Collapsed by default so it never competes with the chart (charts are the
   primary content), but it is a real <table> in the DOM the moment it opens,
   and the disclosure button is reachable by keyboard like any other.
+
+  Callers pass raw numbers and say how each column should read; this component
+  owns both renderings. That split is load-bearing: the table on screen follows
+  the reader's language (`0,359` in French) while the CSV stays machine-readable
+  (`0.359`, no thousands separators, no percent sign). Letting callers pass
+  pre-formatted strings, as they once did, meant the export silently inherited
+  whatever the interface happened to be displaying.
 -->
 <script lang="ts">
 	import { t } from '$lib/i18n';
+	import { num, dec, pct } from '$lib/i18n/utils';
 	import { escapeCSVField, downloadCSVFile } from '$lib/utils/csv';
 	import TableIcon from '@lucide/svelte/icons/table';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import DownloadIcon from '@lucide/svelte/icons/download';
 
+	export type ChartDataColumn = {
+		/** Header text, already translated. */
+		label: string;
+		/**
+		 * How this column's numbers read on screen. `percent` takes a fraction
+		 * between 0 and 1 and shows `58.1%` / `58,1 %`; the CSV gets `58.1`, the
+		 * same magnitude the header implies, without the sign. Omit for text.
+		 */
+		format?: 'integer' | 'decimal' | 'percent';
+		/** Decimal places for `decimal` and `percent`. */
+		digits?: number;
+	};
+
+	/** A missing value: an em dash on screen, an empty cell in the CSV. */
+	type Cell = string | number | null;
+
 	interface ChartDataTableProps {
-		/** Column headers, already translated. */
-		columns: string[];
-		/** Row cells, already formatted for display. */
-		rows: (string | number)[][];
+		columns: ChartDataColumn[];
+		/** Raw row values, in column order. Formatting happens here, not in the caller. */
+		rows: Cell[][];
 		/** Filename stem for the CSV export. */
 		filenamePrefix: string;
 		/** Accessible caption naming what the table contains. */
@@ -35,10 +58,40 @@
 
 	let open = $state(false);
 
+	function display(cell: Cell, column: ChartDataColumn | undefined): string {
+		if (cell === null || cell === undefined) return '—';
+		if (typeof cell !== 'number') return cell;
+		switch (column?.format) {
+			case 'integer':
+				return $num(cell);
+			case 'decimal':
+				return $dec(cell, column.digits ?? 2);
+			case 'percent':
+				return $pct(cell, column.digits ?? 1);
+			default:
+				return String(cell);
+		}
+	}
+
+	function exportValue(cell: Cell, column: ChartDataColumn | undefined): string {
+		if (cell === null || cell === undefined) return '';
+		if (typeof cell !== 'number') return cell;
+		switch (column?.format) {
+			case 'decimal':
+				return cell.toFixed(column.digits ?? 2);
+			case 'percent':
+				return (cell * 100).toFixed(column.digits ?? 1);
+			default:
+				return String(cell);
+		}
+	}
+
 	function exportCSV() {
 		const lines = [
-			columns.map(escapeCSVField).join(','),
-			...rows.map((row) => row.map((cell) => escapeCSVField(String(cell))).join(','))
+			columns.map((column) => escapeCSVField(column.label)).join(','),
+			...rows.map((row) =>
+				row.map((cell, i) => escapeCSVField(exportValue(cell, columns[i]))).join(',')
+			)
 		];
 
 		const now = new Date();
@@ -77,8 +130,8 @@
 					<caption class="sr-only">{caption}</caption>
 					<thead>
 						<tr>
-							{#each columns as column (column)}
-								<th scope="col">{column}</th>
+							{#each columns as column (column.label)}
+								<th scope="col">{column.label}</th>
 							{/each}
 						</tr>
 					</thead>
@@ -87,9 +140,9 @@
 							<tr>
 								{#each row as cell, j (j)}
 									{#if j === 0}
-										<th scope="row">{cell}</th>
+										<th scope="row">{display(cell, columns[j])}</th>
 									{:else}
-										<td>{cell}</td>
+										<td>{display(cell, columns[j])}</td>
 									{/if}
 								{/each}
 							</tr>

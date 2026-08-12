@@ -12,6 +12,7 @@
 -->
 <script lang="ts">
 	import { arbiterEvaluations, comparisonState, datasetState } from '$lib/stores';
+	import { num } from '$lib/i18n/utils';
 	import { getPairModelNames, type ArbiterAnalysis } from '$lib/types/data';
 	import { t } from '$lib/i18n';
 	import { getJournalName } from '$lib/utils/format';
@@ -217,9 +218,9 @@
 				<div class="flex items-center gap-4">
 					<div class="results-info">
 						{$t.table.showingItems}
-						<strong>{pagination.startIndex + 1}-{pagination.endIndex}</strong>
+						<strong>{$num(pagination.startIndex + 1)}–{$num(pagination.endIndex)}</strong>
 						{$t.common.of}
-						<strong>{sortedArticles.length}</strong>
+						<strong>{$num(sortedArticles.length)}</strong>
 					</div>
 					<div class="flex items-center gap-2">
 						<label for="arbiter-items-per-page" class="items-per-page-label"

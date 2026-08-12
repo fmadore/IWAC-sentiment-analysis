@@ -11,6 +11,7 @@
 -->
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
+	import { num, pct } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
@@ -82,7 +83,7 @@
 		return {
 			backgroundColor: 'transparent',
 			title: {
-				text: `${currentT.agreement.matrixTitle} (${matrix.n.toLocaleString()} ${currentT.common.articles})`,
+				text: `${currentT.agreement.matrixTitle} (${$num(matrix.n)} ${currentT.common.articles})`,
 				subtext: `${currentT.agreement.rowsAre} ${modelAName} · ${currentT.agreement.columnsAre} ${modelBName}`,
 				left: 'center',
 				top: '1%',
@@ -110,10 +111,10 @@
 							${modelAName}: ${rowLabel}<br/>${modelBName}: ${columnLabel}
 						</div>
 						<div style="display:flex;justify-content:space-between;padding:2px 0;">
-							<span>${currentT.common.articles}:</span><strong>${count.toLocaleString()}</strong>
+							<span>${currentT.common.articles}:</span><strong>${$num(count)}</strong>
 						</div>
 						<div style="display:flex;justify-content:space-between;padding:2px 0;">
-							<span>${currentT.agreement.ofRow}:</span><strong>${percent.toFixed(1)}%</strong>
+							<span>${currentT.agreement.ofRow}:</span><strong>${$pct(percent / 100, 1)}</strong>
 						</div>
 					</div>`;
 				}
@@ -254,18 +255,18 @@
 
 	<ChartDataTable
 		columns={[
-			`${modelAName} (${$t.chartData.modelALabel})`,
-			`${modelBName} (${$t.chartData.modelBLabel})`,
-			$t.chartData.count,
-			$t.chartData.rowPercent
+			{ label: `${modelAName} (${$t.chartData.modelALabel})` },
+			{ label: `${modelBName} (${$t.chartData.modelBLabel})` },
+			{ label: $t.chartData.count, format: 'integer' },
+			{ label: $t.chartData.rowPercent, format: 'percent', digits: 1 }
 		]}
 		rows={matrix.cells
 			.filter((cell) => cell.count > 0)
 			.map((cell) => [
 				axisLabels[cell.rowIndex],
 				axisLabels[cell.columnIndex],
-				cell.count.toLocaleString(),
-				`${cell.rowPercent.toFixed(1)}%`
+				cell.count,
+				cell.rowPercent / 100
 			])}
 		filenamePrefix="iwac-agreement-matrix"
 		caption={$t.chartData.matrixCaption}

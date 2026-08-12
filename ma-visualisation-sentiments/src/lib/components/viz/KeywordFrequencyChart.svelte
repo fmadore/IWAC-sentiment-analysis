@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
+	import { num } from '$lib/i18n/utils';
 	import { innerWidth } from 'svelte/reactivity/window';
 	import { uiState, extremeState } from '$lib/stores';
 	import { t } from '$lib/i18n';
@@ -212,7 +213,7 @@
 			<div class="statistics-row">
 				<div class="stat-item">
 					<span class="stat-label">{$t.common.total} {$t.common.articles}:</span>
-					<span class="stat-value extreme-stat-value">{data?.articles.length || 0}</span>
+					<span class="stat-value extreme-stat-value">{$num(data?.articles.length ?? 0)}</span>
 				</div>
 				<div class="stat-item">
 					<span class="stat-label">{$t.extremeAnalysis.topKeywords}:</span>

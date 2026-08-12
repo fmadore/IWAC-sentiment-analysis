@@ -87,6 +87,7 @@
 				axisPointer: getAxisPointerConfig(),
 				formatter: createTrendTooltipFormatter({
 					getTotalLabel: () => currentT.common.total,
+					lang: () => currentLang,
 					sort: true
 				})
 			},

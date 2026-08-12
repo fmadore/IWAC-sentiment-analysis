@@ -14,6 +14,7 @@
 -->
 <script lang="ts">
 	import { consensusRows, consensusModels } from '$lib/stores';
+	import { dec, num, pct } from '$lib/i18n/utils';
 	import type { AgreementDimension } from '$lib/stores/agreement.svelte';
 	import { profileDissent, usableValues } from '$lib/utils/consensus';
 	import { t } from '$lib/i18n';
@@ -74,7 +75,7 @@
 	const majorityCount = $derived(profile.dissent.reduce((sum, entry) => sum + entry.total, 0));
 
 	function share(count: number): string {
-		return profile.n > 0 ? `${((count / profile.n) * 100).toFixed(1)}%` : '—';
+		return profile.n > 0 ? $pct(count / profile.n, 1) : '—';
 	}
 </script>
 
@@ -94,7 +95,7 @@
 	{#if includeDeclined}
 		{$t.agreement.declinedIncludedNote}
 	{:else}
-		{$t.agreement.declinedNote.replace('{count}', profile.declinedExcluded.toLocaleString())}
+		{$t.agreement.declinedNote.replace('{count}', $num(profile.declinedExcluded))}
 	{/if}
 </p>
 
@@ -102,7 +103,7 @@
 	<StatCard
 		label={$t.agreement.unanimous}
 		value={share(profile.unanimous)}
-		detail="{profile.n.toLocaleString()} {$t.agreement.articlesCompared}"
+		detail="{$num(profile.n)} {$t.agreement.articlesCompared}"
 		tooltip={$t.agreement.unanimousHelp}
 		accent="positive"
 	>
@@ -129,7 +130,7 @@
 
 	<StatCard
 		label={$t.agreement.meanSpread}
-		value={Number.isNaN(meanSpread) ? '—' : meanSpread.toFixed(2)}
+		value={Number.isNaN(meanSpread) ? '—' : $dec(meanSpread, 2)}
 		tooltip={$t.agreement.meanSpreadHelp}
 		accent="arbiter"
 	>

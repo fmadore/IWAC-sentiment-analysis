@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { comparisonState, arbiterStatistics, datasetState } from '$lib/stores';
+	import { dec, num, pct } from '$lib/i18n/utils';
 	import { getPairModelNames } from '$lib/types/data';
 	import { t } from '$lib/i18n';
 	import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
@@ -21,8 +22,8 @@
 	const dynamicTooltips = $derived.by(() => {
 		const { modelAName, modelBName } = modelNames;
 		return {
-			totalDiscrepancies: `Number of articles where ${modelAName} and ${modelBName} provide different analyses (any difference > 0 points)`,
-			significantDifferences: `Articles where any dimension (polarity, subjectivity, or centrality) differs by 3+ points between ${modelAName} and ${modelBName} analyses`
+			totalDiscrepancies: `Articles that ${modelAName} and ${modelBName} rated differently on at least one dimension, by any margin.`,
+			significantDifferences: `Articles where ${modelAName} and ${modelBName} are at least 3 steps apart on polarity, subjectivity or centrality. On scales this short, a gap that wide means the two readings have little in common.`
 		};
 	});
 
@@ -38,7 +39,7 @@
 			</div>
 			<span class="stat-label">{$t.comparison.totalArticles}</span>
 		</div>
-		<div class="stat-value comparison-stat-value">{stats.totalArticles}</div>
+		<div class="stat-value comparison-stat-value">{$num(stats.totalArticles)}</div>
 		<div class="stat-detail">{$t.comparison.articlesAnalyzed}</div>
 	</div>
 
@@ -52,7 +53,7 @@
 				<InfoIcon size={14} />
 			</div>
 		</div>
-		<div class="stat-value discrepancy-stat-value">{stats.totalDiscrepancies}</div>
+		<div class="stat-value discrepancy-stat-value">{$num(stats.totalDiscrepancies)}</div>
 		<div class="stat-detail">
 			{$t.comparison.articlesWithDifferences}
 		</div>
@@ -68,7 +69,7 @@
 				<InfoIcon size={14} />
 			</div>
 		</div>
-		<div class="stat-value">{stats.averageDiscrepancy.toFixed(2)}</div>
+		<div class="stat-value">{$dec(stats.averageDiscrepancy, 2)}</div>
 		<div class="stat-detail">{$t.comparison.pointsPerArticle}</div>
 	</div>
 
@@ -82,7 +83,7 @@
 				<InfoIcon size={14} />
 			</div>
 		</div>
-		<div class="stat-value conflict-stat-value">{stats.highConflictArticles}</div>
+		<div class="stat-value conflict-stat-value">{$num(stats.highConflictArticles)}</div>
 		<div class="stat-detail">
 			{$t.comparison.significantDifferences}
 		</div>
@@ -106,9 +107,10 @@
 			<div class="breakdown-info">
 				<span class="breakdown-label">{$t.comparison.polarity}</span>
 				<span class="breakdown-value"
-					>{stats.polarityConflicts} ({(
-						(stats.polarityConflicts / stats.totalArticles) * 100 || 0
-					).toFixed(1)}%)</span
+					>{$num(stats.polarityConflicts)} ({$pct(
+						stats.polarityConflicts / stats.totalArticles || 0,
+						1
+					)})</span
 				>
 			</div>
 		</div>
@@ -123,9 +125,10 @@
 			<div class="breakdown-info">
 				<span class="breakdown-label">{$t.comparison.subjectivity}</span>
 				<span class="breakdown-value"
-					>{stats.subjectivityConflicts} ({(
-						(stats.subjectivityConflicts / stats.totalArticles) * 100 || 0
-					).toFixed(1)}%)</span
+					>{$num(stats.subjectivityConflicts)} ({$pct(
+						stats.subjectivityConflicts / stats.totalArticles || 0,
+						1
+					)})</span
 				>
 			</div>
 		</div>
@@ -140,9 +143,10 @@
 			<div class="breakdown-info">
 				<span class="breakdown-label">{$t.comparison.centrality}</span>
 				<span class="breakdown-value"
-					>{stats.centralityConflicts} ({(
-						(stats.centralityConflicts / stats.totalArticles) * 100 || 0
-					).toFixed(1)}%)</span
+					>{$num(stats.centralityConflicts)} ({$pct(
+						stats.centralityConflicts / stats.totalArticles || 0,
+						1
+					)})</span
 				>
 			</div>
 		</div>
@@ -163,7 +167,7 @@
 					{$t.arbiter.summaryTitle}
 				</h4>
 				<span class="badge badge-count"
-					>{arbiterStats.totalEvaluated}
+					>{$num(arbiterStats.totalEvaluated)}
 					{$t.arbiter.articlesEvaluated}</span
 				>
 			</div>
@@ -186,7 +190,10 @@
 								>{arbiterStats.modelAName} {$t.arbiter.preferred}</span
 							>
 							<span class="arbiter-stat-value"
-								>{arbiterStats.modelAPreferred} ({arbiterStats.modelAPercentage.toFixed(1)}%)</span
+								>{$num(arbiterStats.modelAPreferred)} ({$pct(
+									arbiterStats.modelAPercentage / 100,
+									1
+								)})</span
 							>
 						</div>
 					</div>
@@ -200,7 +207,10 @@
 								>{arbiterStats.modelBName} {$t.arbiter.preferred}</span
 							>
 							<span class="arbiter-stat-value"
-								>{arbiterStats.modelBPreferred} ({arbiterStats.modelBPercentage.toFixed(1)}%)</span
+								>{$num(arbiterStats.modelBPreferred)} ({$pct(
+									arbiterStats.modelBPercentage / 100,
+									1
+								)})</span
 							>
 						</div>
 					</div>
@@ -212,7 +222,7 @@
 						<div class="arbiter-stat-info">
 							<span class="arbiter-stat-label">{$t.arbiter.bothEqual}</span>
 							<span class="arbiter-stat-value"
-								>{arbiterStats.bothEqual} ({arbiterStats.bothPercentage.toFixed(1)}%)</span
+								>{$num(arbiterStats.bothEqual)} ({$pct(arbiterStats.bothPercentage / 100, 1)})</span
 							>
 						</div>
 					</div>
@@ -224,7 +234,10 @@
 						<div class="arbiter-stat-info">
 							<span class="arbiter-stat-label">{$t.arbiter.neitherAccurate}</span>
 							<span class="arbiter-stat-value"
-								>{arbiterStats.neitherAccurate} ({arbiterStats.neitherPercentage.toFixed(1)}%)</span
+								>{$num(arbiterStats.neitherAccurate)} ({$pct(
+									arbiterStats.neitherPercentage / 100,
+									1
+								)})</span
 							>
 						</div>
 					</div>

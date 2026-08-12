@@ -31,6 +31,14 @@
 		tooltip?: string;
 		accent?: StatCardAccent;
 		layout?: 'stacked' | 'inline';
+		/**
+		 * Leave the label's own capitalisation alone. Set it whenever the label
+		 * carries a mathematical symbol: the eyebrow is uppercased by default, and
+		 * `text-transform` turns κ into Κ and ρ into Ρ — a different letter, and one
+		 * that reads as a Latin P. CorrelationChart's ρ readout opts out of
+		 * uppercasing for the same reason.
+		 */
+		preserveLabelCase?: boolean;
 		/** Icon (or logo) rendered in the tile. */
 		icon?: Snippet;
 	}
@@ -42,6 +50,7 @@
 		tooltip,
 		accent = 'neutral',
 		layout = 'stacked',
+		preserveLabelCase = false,
 		icon
 	}: StatCardProps = $props();
 
@@ -85,7 +94,12 @@
 	</span>
 {/snippet}
 
-<div class="stat-card" data-layout={layout} data-accent={accent}>
+<div
+	class="stat-card"
+	data-layout={layout}
+	data-accent={accent}
+	data-label-case={preserveLabelCase ? 'preserve' : 'upper'}
+>
 	{#if layout === 'stacked'}
 		<div class="stat-header">
 			{#if icon}
@@ -178,6 +192,13 @@
 		letter-spacing: var(--tracking-wider);
 		text-transform: uppercase;
 		color: var(--text-muted);
+	}
+
+	/* Labels carrying a mathematical symbol keep their own case — see the
+	   `preserveLabelCase` prop. Everything else about the eyebrow (mono face,
+	   tracking, muted colour) still reads as an eyebrow without the uppercasing. */
+	.stat-card[data-label-case='preserve'] .stat-label {
+		text-transform: none;
 	}
 
 	.stat-value {

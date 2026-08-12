@@ -51,7 +51,7 @@
 	{#snippet footer()}
 		<div class="legend">
 			<div class="legend-item">
-				<span class="legend-badge" data-subjectivity="1">1-2</span>
+				<span class="legend-badge" data-subjectivity="1">1–2</span>
 				<span class="legend-text">{$t.filters.ratherObjective}</span>
 			</div>
 			<div class="legend-item">
@@ -59,7 +59,7 @@
 				<span class="legend-text">{$t.filters.mixedSubjectivity}</span>
 			</div>
 			<div class="legend-item">
-				<span class="legend-badge" data-subjectivity="5">4-5</span>
+				<span class="legend-badge" data-subjectivity="5">4–5</span>
 				<span class="legend-text">{$t.filters.ratherVerySubjective}</span>
 			</div>
 		</div>

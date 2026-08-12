@@ -1,7 +1,15 @@
 /**
  * Shared tooltip formatter factories for ECharts components.
  * Each factory returns a formatter function capturing reactive values via getters.
+ *
+ * Numbers go through `formatNumber` / `formatPercent` rather than being
+ * interpolated raw: a tooltip reading "12 305" and "58,1 %" in French but
+ * "12,305" and "58.1%" in English is the whole point of taking `lang` as a
+ * getter here. This module is not a component, so it cannot read the `$num`
+ * store — the caller supplies the language instead.
  */
+import type { Language } from '$lib/i18n';
+import { formatNumber, formatPercent } from '$lib/i18n/utils';
 
 /**
  * Subset of ECharts tooltip callback params we rely on.
@@ -123,20 +131,23 @@ export function tooltipPanel(minWidth: number, ...sections: string[]): string {
  */
 export function createPieTooltipFormatter(options: {
 	formatValue: (n: number) => string;
+	/** Active language, read at format time so a switch re-renders correctly. */
+	lang: () => Language;
 }): (params: unknown) => string {
 	return function (params: unknown) {
+		const lang = options.lang();
 		if (Array.isArray(params)) {
 			return (params as TooltipParam[])
 				.map(
 					(param) =>
-						`${swatch(param.color, param.seriesName, true)} ${param.seriesName}: ${param.value} (${param.percent}%)`
+						`${swatch(param.color, param.seriesName, true)} ${param.seriesName}: ${formatNumber(param.value, lang)} (${formatPercent((param.percent ?? 0) / 100, 1, lang)})`
 				)
 				.join('<br/>');
 		} else {
 			const p = params as TooltipParam;
 			return `<div style="font-weight:600;margin-bottom:8px;">${p.seriesName}</div>
 				${swatch(p.color, p.name, true)}
-				${p.name}: <strong>${options.formatValue(p.value)}</strong> (${p.percent}%)`;
+				${p.name}: <strong>${options.formatValue(p.value)}</strong> (${formatPercent((p.percent ?? 0) / 100, 1, lang)})`;
 		}
 	};
 }
@@ -147,6 +158,8 @@ export function createPieTooltipFormatter(options: {
  */
 export function createStackedBarTooltipFormatter(options: {
 	getTotalLabel: () => string;
+	/** Active language, read at format time so a switch re-renders correctly. */
+	lang: () => Language;
 	getIsMobile?: () => boolean;
 	sort?: boolean;
 	headerKey?: 'axisValueLabel' | 'name';
@@ -162,6 +175,7 @@ export function createStackedBarTooltipFormatter(options: {
 			return '';
 		}
 
+		const lang = options.lang();
 		const typed = params as TooltipParam[];
 		const items = sort ? typed.slice().sort((a, b) => b.value - a.value) : typed;
 
@@ -173,7 +187,7 @@ export function createStackedBarTooltipFormatter(options: {
 				listHtml += `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">
 					${swatch(param.color, param.seriesName)}
 					<span style="flex:1;">${param.seriesName}</span>
-					<strong>${param.value}</strong>
+					<strong>${formatNumber(param.value, lang)}</strong>
 				</div>`;
 			}
 			total += param.value;
@@ -187,7 +201,7 @@ export function createStackedBarTooltipFormatter(options: {
 		return `<div style="min-width:180px;">
 			<div style="font-weight:600;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.15);">${typed[0][headerKey]}</div>
 			${listWrapper}
-			<div style="padding-top:6px;${scrollable ? '' : 'margin-top:4px;'}border-top:1px solid rgba(255,255,255,0.15);font-weight:600;">${options.getTotalLabel()}: ${total}${options.totalSuffix ? ' ' + options.totalSuffix() : ''}</div>
+			<div style="padding-top:6px;${scrollable ? '' : 'margin-top:4px;'}border-top:1px solid rgba(255,255,255,0.15);font-weight:600;">${options.getTotalLabel()}: ${formatNumber(total, lang)}${options.totalSuffix ? ' ' + options.totalSuffix() : ''}</div>
 		</div>`;
 	};
 }
@@ -198,6 +212,8 @@ export function createStackedBarTooltipFormatter(options: {
  */
 export function createTrendTooltipFormatter(options: {
 	getTotalLabel: () => string;
+	/** Active language, read at format time so a switch re-renders correctly. */
+	lang: () => Language;
 	sort?: boolean;
 	/**
 	 * Share mode: series values are percentages and each datum carries its
@@ -213,6 +229,7 @@ export function createTrendTooltipFormatter(options: {
 			return '';
 		}
 
+		const lang = options.lang();
 		const isShare = options.share?.() ?? false;
 		const typed = params as TooltipParam[];
 		const items = sort ? typed.slice().sort((a, b) => b.value - a.value) : typed;
@@ -224,8 +241,8 @@ export function createTrendTooltipFormatter(options: {
 			const rawCount = getRawCount(param);
 			if (param.value > 0) {
 				const display = isShare
-					? `${param.value.toFixed(1)}%${rawCount === null ? '' : ` <span style="opacity:0.65;font-weight:400;">(${rawCount})</span>`}`
-					: `${param.value}`;
+					? `${formatPercent(param.value / 100, 1, lang)}${rawCount === null ? '' : ` <span style="opacity:0.65;font-weight:400;">(${formatNumber(rawCount, lang)})</span>`}`
+					: formatNumber(param.value, lang);
 				listHtml += `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">
 					${swatch(param.color, param.seriesName, true)}
 					<span style="flex:1;">${param.seriesName}</span>
@@ -238,7 +255,7 @@ export function createTrendTooltipFormatter(options: {
 		return `<div style="min-width:160px;">
 			<div style="font-weight:600;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.15);">${typed[0].axisValue}</div>
 			${listHtml}
-			${total > 0 ? `<div style="padding-top:6px;margin-top:4px;border-top:1px solid rgba(255,255,255,0.15);font-weight:600;">${options.getTotalLabel()}: ${total}</div>` : ''}
+			${total > 0 ? `<div style="padding-top:6px;margin-top:4px;border-top:1px solid rgba(255,255,255,0.15);font-weight:600;">${options.getTotalLabel()}: ${formatNumber(total, lang)}</div>` : ''}
 		</div>`;
 	};
 }

@@ -13,6 +13,7 @@
 -->
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
+	import { num, pct } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
@@ -118,8 +119,8 @@
 							(item) => `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">
 								<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${item.color};"></span>
 								<span style="flex:1;">${item.seriesName}</span>
-								<strong>${(item.data?.value ?? 0).toFixed(1)}%</strong>
-								<span style="opacity:0.65;">(${(item.data?.rawCount ?? 0).toLocaleString()})</span>
+								<strong>${$pct((item.data?.value ?? 0) / 100, 1)}</strong>
+								<span style="opacity:0.65;">(${$num(item.data?.rawCount ?? 0)})</span>
 							</div>`
 						)
 						.join('');

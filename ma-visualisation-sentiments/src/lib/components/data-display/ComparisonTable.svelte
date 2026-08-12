@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { comparisonState, datasetState } from '$lib/stores';
+	import { num } from '$lib/i18n/utils';
 	import { t } from '$lib/i18n';
 	import { getJournalName } from '$lib/utils/format';
 	import { formatDate, getModelDisplayName } from '$lib/utils/format';
@@ -112,9 +113,9 @@
 			<div class="flex items-center gap-4">
 				<div class="card-total-label">
 					{$t.table.showingItems}
-					{pagination.startIndex + 1}-{pagination.endIndex}
+					{$num(pagination.startIndex + 1)}–{$num(pagination.endIndex)}
 					{$t.common.of}
-					{sortedComparisons.length}
+					{$num(sortedComparisons.length)}
 				</div>
 				<div class="flex items-center gap-2">
 					<label for="items-per-page" class="control-label whitespace-nowrap"

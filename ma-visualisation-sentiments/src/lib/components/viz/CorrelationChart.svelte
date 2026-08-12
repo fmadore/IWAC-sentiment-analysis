@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Chart } from 'svelte-echarts';
+	import { dec, num } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
@@ -99,7 +100,9 @@
 	/** p-values below the float noise floor read better as an inequality. */
 	function formatP(p: number): string {
 		if (Number.isNaN(p)) return '—';
-		return p < 0.0001 ? '< 0.0001' : p.toFixed(4);
+		// The threshold goes through the formatter too, so the inequality reads
+		// "< 0,0001" in French rather than switching decimal separator mid-line.
+		return p < 0.0001 ? `< ${$dec(0.0001, 4)}` : $dec(p, 4);
 	}
 
 	let options = $derived.by(() => {
@@ -167,6 +170,7 @@
 				},
 				formatter: createStackedBarTooltipFormatter({
 					getTotalLabel: () => 'Total',
+					lang: () => $currentLanguage,
 					headerKey: 'name',
 					sort: false,
 					totalSuffix: () => $t.common.articles
@@ -234,7 +238,7 @@
 		<p class="correlation-readout">
 			<span class="stat">
 				<span class="stat-key">{$t.correlation.spearman}</span>
-				<span class="stat-value">{correlation.rho.toFixed(3)}</span>
+				<span class="stat-value">{$dec(correlation.rho, 3)}</span>
 			</span>
 			{#if rhoStrength}
 				<span class="stat">
@@ -248,7 +252,7 @@
 			</span>
 			<span class="stat">
 				<span class="stat-key">n</span>
-				<span class="stat-value">{correlation.n.toLocaleString()}</span>
+				<span class="stat-value">{$num(correlation.n)}</span>
 			</span>
 		</p>
 		<p class="correlation-note">{$t.correlation.rhoNote}</p>
