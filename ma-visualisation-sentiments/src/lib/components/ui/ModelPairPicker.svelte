@@ -6,6 +6,7 @@
 	import { base } from '$app/paths';
 	import { updateURL } from '$lib/stores/url';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
+	import { tick } from 'svelte';
 
 	// The pairs of the generation on screen. Offering both generations' pairs
 	// here would invite a comparison across a prompt rewrite, which is not a
@@ -28,6 +29,8 @@
 
 	let isOpen = $state(false);
 	let dropdownRef = $state<HTMLDivElement | null>(null);
+	let menuRef = $state<HTMLDivElement | null>(null);
+	let menuAlignment = $state<'start' | 'end'>('start');
 
 	// Get dataset info for a model ID using $derived
 	function getDatasetInfo(modelId: string, datasets: DatasetOption[]): DatasetOption | undefined {
@@ -58,10 +61,27 @@
 		}
 	}
 
+	function positionMenu() {
+		if (!dropdownRef || !menuRef) return;
+
+		const triggerBounds = dropdownRef.getBoundingClientRect();
+		const menuWidth = menuRef.offsetWidth;
+		const viewportWidth = document.documentElement.clientWidth;
+		const startWouldOverflow = triggerBounds.left + menuWidth > viewportWidth;
+		const endFits = triggerBounds.right - menuWidth >= 0;
+
+		menuAlignment = startWouldOverflow && endFits ? 'end' : 'start';
+	}
+
 	$effect(() => {
 		if (isOpen) {
+			void tick().then(positionMenu);
 			document.addEventListener('click', handleClickOutside);
-			return () => document.removeEventListener('click', handleClickOutside);
+			window.addEventListener('resize', positionMenu);
+			return () => {
+				document.removeEventListener('click', handleClickOutside);
+				window.removeEventListener('resize', positionMenu);
+			};
 		}
 	});
 </script>
@@ -69,7 +89,9 @@
 <div class="model-pair-picker" bind:this={dropdownRef}>
 	<button
 		class="picker-button"
+		type="button"
 		onclick={() => (isOpen = !isOpen)}
+		aria-label={$t.comparison.selectModelPair}
 		aria-expanded={isOpen}
 		aria-haspopup="listbox"
 	>
@@ -83,15 +105,17 @@
 				{/if}
 			{/each}
 		</div>
-		<ChevronDownIcon size={16} class="chevron {isOpen ? 'open' : ''}" />
+		<ChevronDownIcon size={16} class="chevron" data-state={isOpen ? 'open' : 'closed'} />
 	</button>
 
 	{#if isOpen}
-		<div class="dropdown-menu" role="listbox">
+		<div class="dropdown-menu" data-align={menuAlignment} role="listbox" bind:this={menuRef}>
 			{#each pairs as pairId (pairId)}
 				{@const [logoA, logoB] = getLogosForPair(pairId, datasetState.available)}
 				<button
-					class="dropdown-item {datasetState.pair === pairId ? 'selected' : ''}"
+					class="dropdown-item"
+					data-state={datasetState.pair === pairId ? 'selected' : 'idle'}
+					type="button"
 					role="option"
 					aria-selected={datasetState.pair === pairId}
 					onclick={() => selectPair(pairId)}
@@ -117,14 +141,19 @@
 
 <style>
 	.model-pair-picker {
+		--model-pair-menu-width-compact: calc(var(--space-16) * 3 + var(--space-2));
+		--model-pair-menu-width: calc(var(--space-16) * 5);
+
 		position: relative;
 		display: inline-block;
+		max-width: 100%;
 	}
 
 	.picker-button {
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
+		min-height: var(--size-control-lg);
 		padding: var(--space-2) var(--space-3);
 		background: var(--surface-muted);
 		border: 1px solid var(--border-default);
@@ -139,6 +168,12 @@
 	.picker-button:hover {
 		background: var(--surface-subtle);
 		border-color: var(--border-hover);
+	}
+
+	.picker-button:focus-visible,
+	.dropdown-item:focus-visible {
+		outline: 2px solid var(--color-primary-400);
+		outline-offset: 2px;
 	}
 
 	.selected-pair {
@@ -165,7 +200,8 @@
 		position: absolute;
 		top: calc(100% + var(--space-1));
 		left: 0;
-		min-width: 200px;
+		right: auto;
+		width: min(var(--model-pair-menu-width-compact), calc(100vw - var(--space-8)));
 		background: var(--surface-card-elevated);
 		border: 1px solid var(--border-default);
 		border-radius: var(--radius-hairline);
@@ -175,11 +211,17 @@
 		padding: var(--space-1);
 	}
 
+	.dropdown-menu[data-align='end'] {
+		right: 0;
+		left: auto;
+	}
+
 	.dropdown-item {
 		display: flex;
 		align-items: center;
 		gap: var(--space-3);
 		width: 100%;
+		min-height: var(--size-control-xl);
 		padding: var(--space-2-5) var(--space-3);
 		background: transparent;
 		border: none;
@@ -194,7 +236,7 @@
 		background: var(--surface-subtle);
 	}
 
-	.dropdown-item.selected {
+	.dropdown-item[data-state='selected'] {
 		background: var(--surface-hover);
 		box-shadow: inset 2px 0 0 var(--color-primary-400);
 	}
@@ -203,6 +245,7 @@
 		display: flex;
 		align-items: center;
 		gap: var(--space-1);
+		flex-shrink: 0;
 	}
 
 	.pair-logo-sm {
@@ -212,7 +255,16 @@
 	}
 
 	.pair-label {
+		min-width: 0;
 		font-size: var(--font-size-sm);
 		font-weight: var(--font-weight-medium);
+		line-height: var(--line-height-snug);
+		overflow-wrap: anywhere;
+	}
+
+	@media (min-width: 1024px) {
+		.dropdown-menu {
+			width: min(var(--model-pair-menu-width), calc(100vw - var(--space-8)));
+		}
 	}
 </style>
