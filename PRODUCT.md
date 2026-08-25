@@ -18,7 +18,7 @@ Success means that scholars can explore patterns, interrogate disagreements, und
 
 ## Positioning
 
-The product compares multiple models against the same curated Islam West Africa Collection corpus, using explicit sentiment dimensions and versioned annotation contracts. It exposes per-model distributions, pairwise and three-way agreement, article-level discrepancies, and blind third-party arbitration while preserving the earlier analysis generation instead of silently replacing it.
+The product compares multiple models against the same curated Islam West Africa Collection corpus, using explicit sentiment dimensions and versioned annotation contracts. It exposes per-model distributions, pairwise and whole-panel agreement, article-level discrepancies, and blind third-party arbitration while preserving the earlier analysis generation instead of silently replacing it.
 
 Its purpose is interpretive comparison, not automated truth assignment. Disagreement is treated as evidence about model-dependent readings and category boundaries, not automatically as error.
 
@@ -49,7 +49,7 @@ Its purpose is interpretive comparison, not automated truth assignment. Disagree
 - The product is an analytical interface to the **Islam West Africa Collection (IWAC)**, curated by Frédérick Madore and hosted by ZMO.
 - The voice is scholarly, precise, transparent about uncertainty, and careful not to turn an AI output into an authoritative reading.
 - French and English are equal product languages rather than a primary language plus a partial translation.
-- Existing identity and proof assets include `ma-visualisation-sentiments/static/social-preview.png`, the model logos under `ma-visualisation-sentiments/static/logos/`, `CITATION.cff`, and the Zenodo DOI `10.5281/zenodo.21806223`.
+- Existing identity and proof assets include `ma-visualisation-sentiments/static/social-preview.png`, the model logos under `ma-visualisation-sentiments/static/logo/`, `CITATION.cff`, and the Zenodo DOI `10.5281/zenodo.21806223`.
 
 ## Evidence on Hand
 
@@ -57,7 +57,7 @@ Its purpose is interpretive comparison, not automated truth assignment. Disagree
 - Shipped analytical payloads live under `ma-visualisation-sentiments/static/data/`, with per-generation manifests recording contract versions, immutable source revisions, file sizes, and SHA-256 hashes.
 - Annotation scales, model membership, pair membership, prompt generations, and data-file expectations are defined in `ma-visualisation-sentiments/src/lib/data/sentiment-v1.json` and `ma-visualisation-sentiments/src/lib/data/sentiment-v2.json`.
 - `data-preprocess/` contains the reproducible extraction, normalization, validation, extreme-analysis, place-export, and arbiter workflows used to create the frontend payloads.
-- `README.md`, `SENTIMENT-V2-MIGRATION.md`, and the in-product methodology explain the analytical contract and its interpretation limits.
+- `README.md`, `CLAUDE.md`, and the in-product methodology explain the analytical contract and its interpretation limits.
 - `CITATION.cff` and the Zenodo DOI provide the citation record. The repository does not contain testimonials, customer claims, or impact benchmarks; future work must not fabricate them.
 
 ## Product Principles

@@ -43,8 +43,8 @@ The v2 prompt is not the v1 prompt. Subjectivity is answered as a label (`Très 
 Three further caveats specific to v2:
 
 - The 51 articles that are neither French nor English are **skipped by design**. The prompt is French, and a French-prompted model returns confident but unusable output for them. They ship as all-null rows.
-- **Qwen3.8 27B is 200 articles short of the rest of the panel**, and permanently so: it declined them across a full pass and three further rounds of retries, after which they were retired. The gap is **not missing at random** — it falls disproportionately on articles where Islam is peripheral (6.2% of the articles the panel calls `Marginal`, against ~1% of every other centrality band). Anything computed on complete cases — Fleiss' κ, the consensus charts, the arbiter's selection frame — therefore leans towards material where Islam is central. Do not present the gap as repairable.
-- Subjectivity is declined more often than the other dimensions, so statistics involving it rest on a smaller sample: **DeepSeek v4 Flash on 489 of the articles it otherwise analysed** (11,809 usable), Gemma 4 31B on 243, Qwen3.8 27B on 287.
+- **Qwen3.8 27B is 200 articles short of the rest of the panel**, and permanently so: it declined them across a full pass and three further rounds of retries, after which they were retired. The gap is **not missing at random** — it falls disproportionately on articles where Islam is peripheral (6.2% of the articles the panel calls `Marginal`, against 0.7–2.6% of every other centrality band). Anything computed on complete cases — Fleiss' κ, the consensus charts, the arbiter's selection frame — therefore leans towards material where Islam is central. Do not present the gap as repairable.
+- **Every model declines subjectivity more often than the other two dimensions**, so any statistic involving it rests on a smaller sample than the polarity and centrality figures above. Declined over and above the rows the model skipped entirely: DeepSeek v4 Flash 489 (11,809 usable), GPT-5.6 Luna 290 (12,008), Qwen3.8 27B 287 (11,811), Mistral Small 4 254 (12,044), Gemma 4 31B 243 (12,055).
 
 > `chatgpt`/`gemini`/`mistral` are this repo's ids, not the dataset's column prefixes — the Hugging Face dataset renamed its sentiment columns from vendor slots to the model that actually produced each annotation. `iwac_preprocess.contract` holds the mapping and `sentiment_column()` is the only place a column name is assembled.
 
@@ -164,7 +164,7 @@ python data-preprocess/basemap-export.py
 Arbiter runs cost money and are gated behind a dry run and a confirmation:
 
 ```bash
-# v2, three-way: counts and a cost estimate, no API call
+# v2, whole panel: counts and a cost estimate, no API call
 python data-preprocess/arbiter-evaluation-v2.py --dry-run
 
 # ...then, to actually spend (needs ANTHROPIC_API_KEY and HF_TOKEN)
@@ -182,7 +182,7 @@ Validate before committing generated data:
 python -m pytest data-preprocess -q && python data-preprocess/validate_generated_data.py
 ```
 
-86 tests, plus a validator that checks category domains, article-id coverage, prose shard placement, arbiter eligibility and fingerprints, and manifest hashes — entirely offline, for both generations. Both Python and TypeScript read the same checked-in contracts, and shared fixtures assert identical discrepancy and label-mapping behaviour across the two languages.
+92 tests, plus a validator that checks category domains, article-id coverage, prose shard placement, arbiter eligibility and fingerprints, and manifest hashes — entirely offline, for both generations. Both Python and TypeScript read the same checked-in contracts, and shared fixtures assert identical discrepancy and label-mapping behaviour across the two languages.
 
 Environment variables live in a root `.env`: `HF_TOKEN` (private mirror), `ANTHROPIC_API_KEY` (v2 arbiter), `GOOGLE_API_KEY` (v1 arbiter).
 
@@ -225,7 +225,7 @@ Built with Svelte 5 (runes), SvelteKit 2 + `adapter-static`, TypeScript in stric
 
 ### Performance
 
-Initial JavaScript is measured at build time against a **300 KiB gzip budget** — currently 129 KiB. View-level code splitting keeps charts, map, tables, comparison, agreement, extremes and arbiter in lazy chunks; MapLibre alone is larger than the rest of the vendor bundle combined, so the map view sits behind a memoized dynamic import. The service worker keeps corpus files in a deploy-stable cache so a new release doesn't re-download them. The build intentionally emits no `.gz`/`.br` siblings — GitHub Pages negotiates transfer compression, and duplicating every asset only bloated the artifact.
+Initial JavaScript is measured at build time against a **300 KiB gzip budget** — currently 136 KiB. View-level code splitting keeps charts, map, tables, comparison, agreement, extremes and arbiter in lazy chunks; MapLibre alone is larger than the rest of the vendor bundle combined, so the map view sits behind a memoized dynamic import. The service worker keeps corpus files in a deploy-stable cache so a new release doesn't re-download them. The build intentionally emits no `.gz`/`.br` siblings — GitHub Pages negotiates transfer compression, and duplicating every asset only bloated the artifact.
 
 ---
 
@@ -243,13 +243,13 @@ Each release is archived on Zenodo. Machine-readable metadata lives in [`CITATIO
 
 Cite the concept DOI — `10.5281/zenodo.21806223` — unless you need to pin a specific version; it always resolves to the most recent release.
 
-> Madore, F. (2026). _IWAC Sentiment Analysis Visualization_ (Version 4.1.0) [Computer software]. University of Bayreuth. https://doi.org/10.5281/zenodo.21806223
+> Madore, F. (2026). _IWAC Sentiment Analysis Visualization_ (Version 5.0.0) [Computer software]. University of Bayreuth. https://doi.org/10.5281/zenodo.21806223
 
 ```bibtex
 @software{madore_iwac_sentiment_analysis,
   author    = {Madore, Frédérick},
   title     = {IWAC Sentiment Analysis Visualization},
-  version   = {4.1.0},
+  version   = {5.0.0},
   year      = {2026},
   publisher = {Zenodo},
   doi       = {10.5281/zenodo.21806223},

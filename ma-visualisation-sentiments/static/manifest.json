@@ -66,6 +66,30 @@
 					"sizes": "192x192"
 				}
 			]
+		},
+		{
+			"name": "Gemma 4 31B Analysis",
+			"short_name": "Gemma",
+			"description": "View the Gemma 4 31B sentiment analysis results",
+			"url": "./?dataset=gemma",
+			"icons": [
+				{
+					"src": "./icons/icon-192x192.png",
+					"sizes": "192x192"
+				}
+			]
+		},
+		{
+			"name": "Qwen3.8 27B Analysis",
+			"short_name": "Qwen",
+			"description": "View the Qwen3.8 27B sentiment analysis results",
+			"url": "./?dataset=qwen",
+			"icons": [
+				{
+					"src": "./icons/icon-192x192.png",
+					"sizes": "192x192"
+				}
+			]
 		}
 	]
 }

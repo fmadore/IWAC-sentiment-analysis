@@ -28,11 +28,13 @@ npm run build
 
 ## Pass criteria
 
-- **`npm run lint`** chains three things: `prettier --check .`, `eslint .`, and
-  `scripts/check-store-cycles.mjs`. A formatting failure is not a real defect —
-  run `npm run format` (or `npx prettier --write <files>`) and re-run. A
-  store-cycle failure is: a module inside `stores/` imported the `./index`
-  barrel.
+- **`npm run lint`** chains four things: `prettier --check .`, `eslint .`,
+  `scripts/check-store-cycles.mjs` and `scripts/check-design-tokens.mjs`. A
+  formatting failure is not a real defect — run `npm run format` (or
+  `npx prettier --write <files>`) and re-run. The other two are: a module inside
+  `stores/` imported the `./index` barrel, or a component shipped a raw hex, a
+  raw px/rem font-size, a Tailwind colour utility, an undefined token, a
+  `var()` fallback, or a watched class that nothing defines.
 - **`npm run check`** must end with a summary reading literally
   `0 ERRORS 0 WARNINGS`. Warnings count. svelte-check exits 0 in some warning
   cases, so read the summary line rather than trusting the exit code.
