@@ -1,6 +1,6 @@
 {
 	"name": "iwac-visualisation-sentiments",
-	"version": "4.1.0",
+	"version": "5.0.0",
 	"description": "Interactive SvelteKit application for visualizing sentiment analysis results on the Islam West Africa Collection (IWAC) corpus. Compares a panel of large language models per annotation campaign — currently GPT-5.6 Luna, Mistral Small 4, DeepSeek v4 Flash, Gemma 4 31B and Qwen3.8 27B, with the archived first campaign of three alongside — through agreement statistics, discrepancy analysis and blind third-party arbitration, with multilingual support (French/English) and comprehensive filtering and export capabilities.",
 	"author": {
 		"name": "Frédérick Madore",
