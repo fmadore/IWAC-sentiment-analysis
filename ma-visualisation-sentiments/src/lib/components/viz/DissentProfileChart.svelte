@@ -2,13 +2,22 @@
   DissentProfileChart Component
 
   The chart the pairwise architecture structurally cannot produce: every article
-  decomposed into five mutually exclusive outcomes — unanimous, one of the three
-  models standing alone, or no two agreeing at all.
+  decomposed into mutually exclusive outcomes — unanimous, one model standing
+  alone against all the rest, or the panel divided several ways. That is five
+  outcomes for the three-model archive and seven for the five-model panel; the
+  bands are built from `models`, so neither number appears here.
 
   Two forms of the same finding. The stacked bars are exact and readable per
   title; the triangle puts the whole press landscape's model-sensitivity on one
   panel, a title sitting at a corner when one model does all the dissenting there
   and at the centre when the three share it evenly.
+
+  **The triangle is offered only for a three-model generation.** Barycentric
+  coordinates need one corner per model, so five models have no honest ternary
+  form — four would want a tetrahedron and five a shape with no 2-D projection.
+  Rather than silently drawing a wrong triangle (`barycentric` returns null for
+  a five-share vector, so the panel would simply render empty), the mode is not
+  offered at all and the stacked bars carry the reading. The archive keeps it.
 
   ECharts has no ternary series, so the triangle is barycentric coordinates
   projected into pixel space by two `custom` series — one silent backdrop, one
@@ -79,6 +88,18 @@
 
 	let mode = $state<'stacked' | 'ternary'>('stacked');
 
+	/** One corner per model, or no triangle at all. See the header comment. */
+	let supportsTernary = $derived(models.length === TRIANGLE_CORNERS.length);
+
+	/**
+	 * What actually renders. Derived rather than an `$effect` that resets `mode`:
+	 * a reader who picked the triangle on the archive and then switched to the
+	 * five-model panel gets the bars, and gets the triangle back on returning.
+	 */
+	let activeMode = $derived(supportsTernary ? mode : 'stacked');
+
+	// Only rendered when both modes exist — a segmented toggle offering one
+	// choice reads as a broken control, so the whole toggle is hidden instead.
 	let modeOptions = $derived([
 		{ value: 'stacked', label: $t.agreement.dissentStacked, icon: BarChart3Icon },
 		{ value: 'ternary', label: $t.agreement.dissentTernary, icon: TriangleIcon }
@@ -425,7 +446,7 @@
 	});
 
 	let chartHeight = $derived(
-		mode === 'stacked'
+		activeMode === 'stacked'
 			? Math.max(360, byDissent.length * (isMobile ? 20 : 24) + 170)
 			: isMobile
 				? 420
@@ -436,30 +457,32 @@
 {#if ranked.length > 0}
 	<div class="chart-toolbar">
 		<span class="toolbar-label">{$t.agreement.dissentTitle}</span>
-		<ChartTypeToggle
-			options={modeOptions}
-			value={mode}
-			onChange={(value) => (mode = value as 'stacked' | 'ternary')}
-			ariaLabel={$t.agreement.dissentTitle}
-		/>
+		{#if supportsTernary}
+			<ChartTypeToggle
+				options={modeOptions}
+				value={activeMode}
+				onChange={(value) => (mode = value as 'stacked' | 'ternary')}
+				ariaLabel={$t.agreement.dissentTitle}
+			/>
+		{/if}
 	</div>
 
 	<!--
 		Keyed: the two modes are different series shapes on different coordinate
 		conventions, and setOption merges.
 	-->
-	{#key mode}
+	{#key activeMode}
 		<div
 			style="height: {chartHeight}px; position: relative;"
 			class="chart-container"
 			role="img"
 			aria-label={$t.agreement.dissentTitle}
 		>
-			<Chart {init} options={mode === 'stacked' ? stackedOptions : ternaryOptions} />
+			<Chart {init} options={activeMode === 'stacked' ? stackedOptions : ternaryOptions} />
 		</div>
 	{/key}
 
-	{#if mode === 'ternary'}
+	{#if activeMode === 'ternary'}
 		<p class="chart-note">{$t.agreement.dissentTernaryNote}</p>
 	{/if}
 {:else}

@@ -1,12 +1,16 @@
 <!--
   ConsensusSection Component
 
-  The "all three models at once" half of the agreement view.
+  The "whole panel at once" half of the agreement view.
 
   Split out rather than appended to AgreementView for the reason ArbiterView was
   split into ArbiterStatsCards / ArbiterCoverage / ArbiterArticleTable: the
   parent was already 310 lines of pair-scoped markup, and five more charts would
   have put it near 700 — the shape AnalysisInfo.svelte is a warning about.
+
+  Nothing here counts the models: every chart takes `models` or `models.length`,
+  so the section served a three-model panel and now serves a five-model one
+  unchanged.
 
   Owns the declined-ratings setting because every chart below has to answer to
   the same one; the dimension comes from the parent's selector, which governs

@@ -1,3 +1,16 @@
 {
-	"projectRoots": ["ma-visualisation-sentiments"]
+  "projectRoots": [
+    "ma-visualisation-sentiments"
+  ],
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "layout-transition",
+        "value": "transition: width var(--timing-normal) var(--easing-default);",
+        "createdAt": "2026-08-25T13:32:06.474Z"
+      }
+    ]
+  }
 }

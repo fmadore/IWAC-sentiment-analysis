@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "analysis_version": "v2",
   "model": "mistral-small",
   "shard": 4,
@@ -199,11 +199,6 @@
       "centralite_justification": "L'article mentionne l'AEEMB (association musulmane) et le centre médical Sakina, mais le sujet principal reste le don japonais pour la construction d'une maternité, reléguant l'aspect religieux à un contexte organisationnel.",
       "subjectivite_justification": "L'article rapporte principalement des faits et des déclarations (ambassadeur japonais, président de l'AEEMB) sans prendre explicitement parti, bien que certaines formulations comme 'le peuple nippon vole une fois de plus au secours' puissent être perçues comme légèrement subjectives.",
       "polarite_justification": "L'article met en avant les contributions positives de l'AEEMB et du Japon, avec des déclarations élogieuses des deux parties (ex. : 'immense contribution', 'renforcer le système de santé'), créant une image très favorable de l'islam et des musulmans."
-    },
-    "3524": {
-      "centralite_justification": "L'article traite exclusivement des groupes d'auto-défense 'koglwéogo' au Burkina Faso sans aucune mention de l'islam ou des musulmans.",
-      "subjectivite_justification": "L'article exprime de manière intense et engagée des opinions personnelles, des jugements et des émotions critiques envers les koglwéogo et l'État, sans distance ni neutralité.",
-      "polarite_justification": "Non applicable car le sujet de l'islam et des musulmans n'est pas abordé dans l'article."
     },
     "3556": {
       "centralite_justification": "L'article est entièrement consacré à la célébration du Mouloud, fête marquant la naissance du prophète Mohamed, avec des discours et des activités centrées sur l'islam et ses valeurs.",

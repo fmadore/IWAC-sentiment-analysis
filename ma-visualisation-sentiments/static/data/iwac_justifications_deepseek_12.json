@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "analysis_version": "v2",
   "model": "deepseek",
   "shard": 12,
@@ -209,11 +209,6 @@
       "centralite_justification": "L'article consacre la majeure partie de son développement à la rencontre du Premier ministre avec la FAIB et la communauté musulmane (cheiks, imams, douas), mais ce thème est partagé avec la visite à la FEME et la question plus large du soutien au gouvernement.",
       "subjectivite_justification": "L'article se limite à une narration factuelle de la visite et à la retranscription des déclarations de Christophe Dabiré et de Cheik Doukouré, sans que le journaliste ne prenne position ni n'utilise de marques d'appréciation sur l'islam ou les musulmans.",
       "polarite_justification": "Le texte rapporte des paroles de soutien et de bienveillance (soutien, remerciements, prières), mais celles-ci sont clairement attribuées aux intervenants ; l'article lui-même documente l'événement sans endosser ce point de vue ni recourir à un lexique dépréciatif ou valorisant hors citations."
-    },
-    "3564": {
-      "centralite_justification": "L'article est entièrement consacré au retour des pèlerins burkinabè ayant accompli le hadj, présenté comme « le cinquième pilier de l'Islam », avec témoignages et déclarations sur ce pèlerinage.",
-      "subjectivite_justification": "Le journaliste rapporte des faits et des paroles attribuées (ministre, pèlerins) sans commentaire personnel marqué, mais la formule « C'est avec joie » et la sélection de témoignages unanimes constituent une légère mise en valeur.",
-      "polarite_justification": "L'article met en avant la fierté du gouvernement, la joie des pèlerins et leurs prières pour la paix dans un contexte sécuritaire difficile, sans distance critique ni aspect défavorable, ce qui oriente la représentation dans un sens favorable."
     },
     "3596": {
       "centralite_justification": "L'article est un communiqué officiel de la FAIB consacré exclusivement à la bousculade de Mina, c'est-à-dire au pèlerinage musulman et à ses victimes burkinabè ; il ordonne des prières mortuaires dans toutes les mosquées et des prêches sur le statut du pèlerin mort en terre sainte de l'Islam.",
@@ -1409,11 +1404,6 @@
       "centralite_justification": "L'article est entièrement consacré à la polémique suscitée par le prêche d'un imam et à sa gestion par les autorités religieuses et le gouvernement : le sujet principal est bien l'islam et les musulmans.",
       "subjectivite_justification": "L'article se limite à relater les propos attribués aux personnes citées, sans commentaire ni marque d'appréciation du journaliste sur le fond de la polémique.",
       "polarite_justification": "Le journaliste rapporte les faits et les déclarations des acteurs (ministre, président de la FAIB) sans prendre position, avec un ton factuel et une mise en avant de la résolution de la polémique."
-    },
-    "67692": {
-      "centralite_justification": "Le thème principal est la prise en compte de la religion traditionnelle dans l’ONAFAR ; l’islam n’intervient que comme partenaire du dialogue interreligieux (FAIB, dialogue islamo-chrétien) et ne fait pas l’objet principal de l’article.",
-      "subjectivite_justification": "Le texte est une tribune-communiqué de l’ATR/DI qui prend nettement position : « pas de géant », « acte salutaire », liste de recommandations et adresse directe à l’État, sans distance journalistique sur les opinions exprimées.",
-      "polarite_justification": "L’article plaque un regard descriptif sur la place de l’islam dans le dialogue interreligieux : la FAIB et le dialogue islamo-chrétien sont mentionnés sans éloge ni charge contre l’islam en général ; les critiques, quand il y en a, visent surtout l’exclusion passée des religions traditionnelles et certains responsables chrétiens et musulmans dans leurs préjugés."
     },
     "67884": {
       "centralite_justification": "L'article entier est consacré à la critique du maraboutisme, une pratique directement liée à l'islam, à travers une lettre de lecteur qui en discute longuement.",

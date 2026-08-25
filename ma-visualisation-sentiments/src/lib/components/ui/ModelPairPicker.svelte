@@ -73,14 +73,25 @@
 		menuAlignment = startWouldOverflow && endFits ? 'end' : 'start';
 	}
 
+	// A resize event can fire before the new viewport's layout has settled, so
+	// positionMenu would read the trigger's *old* geometry and keep an alignment
+	// that strands the open menu off-screen. Recompute once more after reflow.
+	let repositionTimer: ReturnType<typeof setTimeout> | undefined;
+	function handleResize() {
+		positionMenu();
+		clearTimeout(repositionTimer);
+		repositionTimer = setTimeout(positionMenu, 100);
+	}
+
 	$effect(() => {
 		if (isOpen) {
 			void tick().then(positionMenu);
 			document.addEventListener('click', handleClickOutside);
-			window.addEventListener('resize', positionMenu);
+			window.addEventListener('resize', handleResize);
 			return () => {
 				document.removeEventListener('click', handleClickOutside);
-				window.removeEventListener('resize', positionMenu);
+				window.removeEventListener('resize', handleResize);
+				clearTimeout(repositionTimer);
 			};
 		}
 	});
@@ -143,6 +154,12 @@
 	.model-pair-picker {
 		--model-pair-menu-width-compact: calc(var(--space-16) * 3 + var(--space-2));
 		--model-pair-menu-width: calc(var(--space-16) * 5);
+		/* The v2 panel has ten pairs, so the menu is now taller than a short
+		   viewport: at 390x844 an unbounded list runs off the bottom of the page
+		   with no way to reach the last entries. Capped against the viewport
+		   rather than a fixed height, so it shrinks with the window instead of
+		   being right at one size. */
+		--model-pair-menu-max-height: min(60vh, calc(var(--size-control-xl) * 8));
 
 		position: relative;
 		display: inline-block;
@@ -207,7 +224,10 @@
 		border-radius: var(--radius-hairline);
 		box-shadow: var(--shadow-lg);
 		z-index: var(--z-dropdown);
-		overflow: hidden;
+		max-height: var(--model-pair-menu-max-height);
+		overflow-x: hidden;
+		overflow-y: auto;
+		overscroll-behavior: contain;
 		padding: var(--space-1);
 	}
 

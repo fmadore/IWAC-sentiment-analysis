@@ -1,42 +1,57 @@
 """
-Three-way arbiter evaluation for the generation-2 panel — Claude Opus 5 as judge.
+Panel arbiter evaluation for the generation-2 models — Claude Opus 5 as judge.
 
-The v1 arbiter judges one *pair* of models at a time. Generation 2 ships three
+The v1 arbiter judges one *pair* of models at a time. Generation 2 ships five
 models that were run on the same corpus with the same prompt, so a pairwise
-arbiter would ask three overlapping questions about the same article and give
-three verdicts that cannot be combined. This script asks the question once:
-the arbiter sees all three analyses at once, scores the article itself, and says
+arbiter would ask ten overlapping questions about the same article and give ten
+verdicts that cannot be combined. This script asks the question once: the
+arbiter sees all five analyses at once, scores the article itself, and says
 which of them (if any) it prefers per dimension.
 
 What differs from `arbiter-evaluation.py`, and why:
 
-* **Selection** is the three-way spread (max minus min across the three models,
-  per dimension) rather than a pairwise gap. `--limit N` keeps the N widest
+* **Selection** is the panel spread (max minus min across all five models, per
+  dimension) rather than a pairwise gap. `--limit N` keeps the N widest
   disagreements, tie-broken by article id so a capped run is reproducible.
 * **Article text comes from the private mirror.** This fixes a real v1 flaw:
   the public projection masks `OCR` per row via `OCR_is_public`, so a large
   share of v1-arbitrated articles were judged on an empty string. Only verdicts
   and justifications are published — no OCR is ever serialised here.
 * **Blind assignment is a permutation, not a coin flip.** One global random
-  permutation maps the three model ids onto the labels A/B/C; it is persisted in
+  permutation maps the five model ids onto the labels A-E; it is persisted in
   the output metadata and reused by every incremental run, so cached and new
   rows always mean the same thing.
 * **`--dry-run` prints the eligible/selected counts and a cost estimate and
   exits without making a single API call.** The paid run is deliberately gated.
 
-**Which disagreements are worth paying for.** On the current corpus the
-contract rule (any dimension >= 3) selects 1,449 of 12,356 articles, and 1,223
-of those are triggered by *subjectivity* alone — the dimension the models argue
-about most and the one where "who is right" is least well defined. Polarity, the
-dimension the research question actually turns on, triggers only 89. So
-`--dimensions` and `--threshold` narrow the rule; they can only ever tighten it,
-because the repo's validator recomputes eligibility from the contract.
+**Which disagreements are worth paying for.** Measured on the current corpus of
+12,349 articles with all five models: 11,402 rows are comparable (every model
+gave a comparable polarity and centrality) and 947 are excluded. 251 of those
+exclusions are Qwen's deliberate abstentions — its retired 153-article gap plus
+the 51 articles no model annotates — and they can never be arbitrated, because
+on those rows a five-way comparison does not exist.
+
+Of the comparable rows the contract rule (any dimension spread >= 3) selects
+2,102, and 1,762 of them (84%) are triggered by *subjectivity* alone — the
+panel's least reliable dimension and the one where "who is right" is least well
+defined. Polarity, the dimension the research question actually turns on,
+triggers 103 (85 at spread 3, and 18 full flips at spread 4). Polarity and
+centrality together trigger 340; raising the threshold to 4 on those two leaves
+the 18 flips. So `--dimensions` and `--threshold` narrow the rule; they can only
+ever tighten it, because the repo's validator recomputes eligibility from the
+contract.
+
+**Recommended run: `--dimensions polarity centrality`** — 340 articles, roughly
+US$33 at effort medium. It keeps every substantive disagreement about what the
+article says and drops the subjectivity noise. The figure is a note, not a
+quote: `--dry-run` measures the real prompts and is the authoritative estimate.
 
 Usage:
   python arbiter-evaluation-v2.py --dry-run            # counts + cost, no spend
-  python arbiter-evaluation-v2.py --dimensions polarity --dry-run
-  python arbiter-evaluation-v2.py --dimensions polarity --yes      # ~90 articles
-  python arbiter-evaluation-v2.py --threshold 4 --yes              # ~165 articles
+  python arbiter-evaluation-v2.py --dimensions polarity centrality --dry-run
+  python arbiter-evaluation-v2.py --dimensions polarity centrality --yes  # ~340
+  python arbiter-evaluation-v2.py --dimensions polarity --yes             # ~103
+  python arbiter-evaluation-v2.py --dimensions polarity centrality --threshold 4 --yes  # 18
   python arbiter-evaluation-v2.py --limit 200 --yes
   python arbiter-evaluation-v2.py --prune-cache-only   # reconcile, no spend
 
@@ -108,12 +123,15 @@ ESTIMATE_OUTPUT_TOKENS = {"low": 1800, "medium": 3000, "high": 4500, "xhigh": 65
 # Dataset columns the selection pass depends on.
 REQUIRED_BASE_COLUMNS = ["o:id", "title", "newspaper", "country", "pub_date"]
 
-# The anonymised labels the three models are presented under.
-BLIND_LABELS = ("a", "b", "c")
+# The anonymised labels the five panel models are presented under. One label per
+# contract model, in this order; `resolve_blind_permutation` refuses to run if
+# the two lengths ever disagree.
+BLIND_LABELS = ("a", "b", "c", "d", "e")
 PREFERENCE_VALUES = (*BLIND_LABELS, "multiple", "none")
 
 # Which dimensions may *trigger* selection, and where each one's spread lives.
-# All three by default, matching the contract rule the validator enforces.
+# All three dimensions by default, matching the contract rule the validator
+# enforces.
 SPREAD_KEYS = {
     "polarity": "polarity_spread",
     "subjectivity": "subjectivity_spread",
@@ -139,9 +157,9 @@ class DimensionVerdict(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     justification: str = Field(description="Raisonnement pour ce score")
-    preferred: Literal["a", "b", "c", "multiple", "none"] = Field(
-        description="Quelle analyse est la plus juste: 'a', 'b', 'c', 'multiple' "
-        "(plusieurs sont équivalentes) ou 'none' (aucune)"
+    preferred: Literal["a", "b", "c", "d", "e", "multiple", "none"] = Field(
+        description="Quelle analyse est la plus juste: 'a', 'b', 'c', 'd', 'e', "
+        "'multiple' (plusieurs sont équivalentes) ou 'none' (aucune)"
     )
     verdict_explanation: str = Field(description="Pourquoi cette analyse est préférée")
 
@@ -163,7 +181,7 @@ class CentralityVerdict(DimensionVerdict):
 
 
 class ArbiterResponseV2(BaseModel):
-    """Complete structured response from the three-way arbiter."""
+    """Complete structured response from the panel arbiter."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -172,7 +190,7 @@ class ArbiterResponseV2(BaseModel):
     centrality: CentralityVerdict = Field(
         description="Évaluation de la centralité de l'islam/des musulmans"
     )
-    overall_winner: Literal["a", "b", "c", "multiple", "none"] = Field(
+    overall_winner: Literal["a", "b", "c", "d", "e", "multiple", "none"] = Field(
         description="Quelle analyse est globalement la meilleure"
     )
     overall_explanation: str = Field(description="Explication détaillée du verdict global")
@@ -248,7 +266,7 @@ SYSTEM_INSTRUCTION = """Vous êtes un arbitre expert évaluant l'analyse de sent
 
 Votre rôle est de :
 1. Analyser l'article de manière indépendante et fournir votre propre évaluation
-2. Comparer les analyses de trois modèles d'IA (Analyse A, Analyse B et Analyse C)
+2. Comparer les analyses de cinq modèles d'IA (Analyse A, Analyse B, Analyse C, Analyse D et Analyse E)
 3. Déterminer laquelle est la plus précise, ou si plusieurs se valent, ou si aucune n'est juste
 4. Fournir des justifications claires et bien argumentées pour vos décisions
 
@@ -287,10 +305,10 @@ Votre rôle est de :
 - Tenez compte du contexte culturel et régional de l'Afrique de l'Ouest francophone
 - Fournissez des preuves textuelles spécifiques lorsque possible
 - Soyez honnête sur l'incertitude lorsque la réponse correcte est ambiguë
-- Les trois analyses sont anonymisées : jugez-les uniquement sur leur contenu
+- Les cinq analyses sont anonymisées : jugez-les uniquement sur leur contenu
 - Utilisez la terminologie française pour les scores (comme indiqué ci-dessus)
 - Répondez entièrement en français (justifications, explications et verdicts)
-- Pour `preferred` et `overall_winner`, utilisez strictement : "a", "b", "c", "multiple" (plusieurs analyses équivalentes) ou "none" (aucune n'est juste)"""
+- Pour `preferred` et `overall_winner`, utilisez strictement : "a", "b", "c", "d", "e", "multiple" (plusieurs analyses équivalentes) ou "none" (aucune n'est juste)"""
 
 
 def format_analysis(label: str, analysis: dict, contract: SentimentContract) -> str:
@@ -311,7 +329,7 @@ def format_analysis(label: str, analysis: dict, contract: SentimentContract) -> 
 def create_arbiter_prompt(
     article: dict, permutation: dict[str, str], contract: SentimentContract = CONTRACT
 ) -> str:
-    """Build the user prompt: the article, then the three analyses in label order.
+    """Build the user prompt: the article, then the five analyses in label order.
 
     The system instruction already carries the scales and the guidelines, so
     this prompt is only the case at hand.
@@ -322,7 +340,7 @@ def create_arbiter_prompt(
         for label in BLIND_LABELS
     )
     text = (article.get("OCR") or "")[:ARBITER_MAX_INPUT_CHARS]
-    return f"""Évaluez l'article suivant et les trois analyses de modèles.
+    return f"""Évaluez l'article suivant et les cinq analyses de modèles.
 
 ## Informations sur l'article
 **Titre :** {article.get("o:title") or "Sans titre"}
@@ -390,7 +408,7 @@ def find_three_way_conflicts(
     dimensions: Sequence[str] = DIMENSIONS,
     threshold: int | None = None,
 ) -> list[dict]:
-    """Select every article where the three models disagree significantly.
+    """Select every article where the panel disagrees significantly.
 
     Comparability is the contract's: one non-comparable polarity or centrality
     excludes the row, because the models are then disagreeing about whether the
@@ -404,7 +422,7 @@ def find_three_way_conflicts(
     threshold = resolve_threshold(threshold, contract)
     selected: list[dict] = []
 
-    for item in tqdm(records, total=len(records), desc="Finding three-way conflicts"):
+    for item in tqdm(records, total=len(records), desc="Finding panel conflicts"):
         analyses = {
             model_id: build_model_sentiment(item, model_id, contract) for model_id in model_ids
         }
@@ -430,7 +448,7 @@ def attach_full_text(articles: list[dict], texts: dict[str, str]) -> tuple[list[
     """Join the private mirror's unmasked OCR onto the selected articles.
 
     An article with no text even in the mirror is dropped rather than sent: the
-    arbiter would be judging three analyses of nothing.
+    arbiter would be judging five analyses of nothing.
     """
     kept: list[dict] = []
     missing: list[str] = []
@@ -468,9 +486,18 @@ def resolve_blind_permutation(
     """Reuse the stored label -> model mapping, or draw a new one once.
 
     Re-rolling on an incremental run would silently change what "Analyse A"
-    means between cached and new rows, which is the three-way analogue of v1's
+    means between cached and new rows, which is the panel analogue of v1's
     `model_a_is_first` bug.
     """
+    if len(model_ids) != len(BLIND_LABELS):
+        raise ValueError(
+            f"The blind permutation is a bijection: {len(BLIND_LABELS)} labels "
+            f"({', '.join(label.upper() for label in BLIND_LABELS)}) for "
+            f"{len(model_ids)} model(s) ({', '.join(model_ids)}). Growing or shrinking the "
+            "panel means editing BLIND_LABELS here, the browser's ARBITER_BLIND_LABELS, "
+            "and the prompt prose that enumerates the analyses."
+        )
+
     stored = (metadata or {}).get("blind_permutation")
     if (
         isinstance(stored, dict)
@@ -749,14 +776,15 @@ def confirm_api_calls(estimate: dict, effort: str, assume_yes: bool) -> bool:
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="IWAC three-way arbiter evaluation (generation 2)",
+        description="IWAC panel arbiter evaluation (generation 2)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   python arbiter-evaluation-v2.py --dry-run
-  python arbiter-evaluation-v2.py --dimensions polarity --dry-run
+  python arbiter-evaluation-v2.py --dimensions polarity centrality --dry-run
+  python arbiter-evaluation-v2.py --dimensions polarity centrality --yes
   python arbiter-evaluation-v2.py --dimensions polarity --yes
-  python arbiter-evaluation-v2.py --threshold 4 --yes
+  python arbiter-evaluation-v2.py --dimensions polarity centrality --threshold 4 --yes
   python arbiter-evaluation-v2.py --limit 200 --yes
   python arbiter-evaluation-v2.py --prune-cache-only
 """,
@@ -774,9 +802,9 @@ Examples:
         choices=DIMENSIONS,
         default=list(DIMENSIONS),
         metavar="DIM",
-        help="Which dimensions may trigger selection (default: all three). "
-        "Subjectivity disagreement dominates the corpus, so restricting to "
-        "polarity is the difference between ~1,450 articles and ~90.",
+        help="Which dimensions may trigger selection (default: all three dimensions). "
+        "Subjectivity disagreement dominates the corpus, so the recommended "
+        "'polarity centrality' is the difference between ~2,100 articles and ~340.",
     )
     parser.add_argument(
         "--threshold",
@@ -823,7 +851,7 @@ def main(argv: list[str] | None = None) -> int:
         logger.info("Loaded environment variables from %s", env_path)
 
     logger.info(
-        "IWAC three-way arbiter — %s (effort=%s), contract %s",
+        "IWAC panel arbiter — %s (effort=%s), contract %s",
         ARBITER_MODEL,
         args.effort,
         CONTRACT.analysis_version,
@@ -843,7 +871,7 @@ def main(argv: list[str] | None = None) -> int:
 
     eligible = find_three_way_conflicts(records, dimensions=args.dimensions, threshold=threshold)
     logger.info(
-        "%d of %d articles have a three-way spread >= %d on %s",
+        "%d of %d articles have a panel spread >= %d on %s",
         len(eligible),
         len(records),
         threshold,
@@ -976,7 +1004,7 @@ def main(argv: list[str] | None = None) -> int:
     fingerprint = build_fingerprint(source_revision, text_revision)
     successful = failed = 0
 
-    for article in tqdm(remaining, desc="Three-way arbiter"):
+    for article in tqdm(remaining, desc="Panel arbiter"):
         result = evaluate_with_arbiter(client, article, permutation, effort=args.effort)
         if result is None:
             failed += 1

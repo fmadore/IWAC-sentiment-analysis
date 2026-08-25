@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "analysis_version": "v2",
   "model": "deepseek",
   "shard": 4,
@@ -199,11 +199,6 @@
       "centralite_justification": "L'article relate un don du Japon à l'Association des élèves et étudiants musulmans au Burkina (AEEMB) pour une maternité, mais la dimension religieuse n'est présente qu'à travers le nom de l'association, sans être développée ni exploitée : le sujet est la coopération sanitaire, pas l'islam.",
       "subjectivite_justification": "Le texte est essentiellement factuel et rapporté (citations de l'ambassadeur et du président de l'AEEMB) sans prise de position sur l'islam ; seules de légères marques d'appréciation (« voler au secours », « bonnes grâces ») orientent le ton général, mais pas spécifiquement sur le thème religieux.",
       "polarite_justification": "Aucun sentiment exprimé envers l'islam ou les musulmans : l'article se limite à décrire un projet de santé et à rapporter des propos bienveillants sur la coopération, sans jugement ni valorisation de la dimension religieuse."
-    },
-    "3524": {
-      "centralite_justification": "L'article critique les Koglwéogo, mais la seule mention de l'islam concerne l'association Nachroul Islam de Pouytenga, dissoute alors qu'elle était légale, citée comme contre-exemple de l'attitude de l'État ; ce thème reste subordonné à la dénonciation principale des Koglwéogo.",
-      "subjectivite_justification": "Le texte est une tribune signée par un magistrat qui exprime son opinion personnelle ('je me suis permis de donner mon point de vue'), avec un jugement explicite ('on s'est empressé de prononcer sa dissolution'), ce qui relève d'un parti pris assumé.",
-      "polarite_justification": "L'auteur déplore le traitement réservé à l'association musulmane Nachroul Islam qu'il juge légale et utile, ce qui traduit une bienveillance envers les musulmans, sans critique ni hostilité à leur égard."
     },
     "3556": {
       "centralite_justification": "Tout l'article est consacré à la célébration du Mouloud, à la vie du prophète Mohamed et au message de paix et de tolérance porté par la communauté musulmane du Burkina Faso.",

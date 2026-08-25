@@ -109,7 +109,24 @@ CARD_LABELS = {
     "Gemini 3 Flash preview": "Gemini 3 Flash",
     "Mistral Small 4 2603": "Mistral Small 4",
     "DeepSeek v4 Flash 0731": "DeepSeek v4 Flash",
+    "Gemma 4 31B IT": "Gemma 4 31B",
 }
+
+# Spelled out for the subtitle, which reads as prose rather than as data. The
+# panel is three models on v1 and five on v2, and the card is rendered for both,
+# so the count cannot be written into the string.
+NUMBER_WORDS = {2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven"}
+
+# Vertical band the stacked bars occupy, between the rule under the header block
+# and the legend. The bars used to sit at a fixed 52px pitch from a fixed top,
+# which was fine while the panel was always three: five bars at that pitch ran
+# through the legend, through the footer rule and off the bottom of the card.
+# The pitch is now solved from the model count and the block is centred in the
+# band, so both generations render correctly and a sixth model would too.
+BARS_BAND_TOP, BARS_BAND_BOTTOM = 304, 500
+BAR_PITCH_MAX = 52
+LEGEND_Y = 516
+FOOTER_RULE_Y = 552
 
 
 def load_models(generation: str) -> list[tuple[str, str]]:
@@ -218,10 +235,13 @@ def stacked_bar(image, xy, size, counts, radius=6):
     """Paint one polarity stack, rounded at both ends via an alpha mask."""
     x, y = px(xy[0]), px(xy[1])
     w, h = px(size[0]), px(size[1])
-    # Denominator is the *annotated* rows, not every row in the file. Generation
-    # 2 carries 51 all-null articles by design (the prompt is French; those are
-    # neither French nor English), and counting them would leave each bar
-    # visibly short of its right edge with nothing to explain the gap.
+    # Denominator is each model's *own* annotated rows, not every row in the
+    # file. Generation 2 carries 51 all-null articles by design (the prompt is
+    # French; those are neither French nor English) and Qwen3.8 27B declines a
+    # further 200, so counting file rows would leave the bars visibly short of
+    # their right edge with nothing to explain the gap. Per-model normalisation
+    # is also what makes the bars comparable: each one is a distribution, and a
+    # model that rated fewer articles should not read as more neutral.
     total = sum(counts.get(key, 0) for key, _, _ in POLARITY) or 1
 
     layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
@@ -271,10 +291,11 @@ def render(models: list[tuple[str, str]]) -> Image.Image:
         font(SANS, 21),
         TEXT_MUTED,
     )
+    count = len(models)
     text(
         draw,
         (m, 198),
-        "three LLM annotations, compared and arbitrated.",
+        f"{NUMBER_WORDS.get(count, count)} LLM annotations, compared and arbitrated.",
         font(SANS, 21),
         TEXT_MUTED,
     )
@@ -310,9 +331,13 @@ def render(models: list[tuple[str, str]]) -> Image.Image:
 
     # One stacked polarity bar per model.
     label_font = font(SANS_BOLD, 17)
-    bar_x, bar_w, bar_h = m + 172, WIDTH - m - (m + 172), 30
+    bar_x, bar_w, bar_h = m + 172, WIDTH - m - (m + 172), 28
+    band = BARS_BAND_BOTTOM - BARS_BAND_TOP
+    pitch = min(BAR_PITCH_MAX, (band - bar_h) / (count - 1)) if count > 1 else 0
+    block = (count - 1) * pitch + bar_h
+    top = BARS_BAND_TOP + (band - block) / 2
     for i, (model_id, label) in enumerate(models):
-        y = 322 + i * 52
+        y = top + i * pitch
         text(draw, (m, y + bar_h / 2), label, label_font, TEXT_PRIMARY, anchor="lm")
         stacked_bar(image, (bar_x, y), (bar_w, bar_h), stats["stacks"][model_id])
 
@@ -320,11 +345,15 @@ def render(models: list[tuple[str, str]]) -> Image.Image:
     legend_font = font(SANS, 15)
     x = float(m)
     for _, label, colour in POLARITY:
-        draw.rounded_rectangle([px(x), px(508), px(x + 12), px(520)], px(3), fill=ok(*colour))
-        text(draw, (x + 20, 514), label, legend_font, TEXT_MUTED, anchor="lm")
+        draw.rounded_rectangle(
+            [px(x), px(LEGEND_Y), px(x + 12), px(LEGEND_Y + 12)], px(3), fill=ok(*colour)
+        )
+        text(draw, (x + 20, LEGEND_Y + 6), label, legend_font, TEXT_MUTED, anchor="lm")
         x += 20 + draw.textlength(label, font=legend_font) / SCALE + 26
 
-    draw.line([(px(m), px(556)), (px(WIDTH - m), px(556))], fill=RULE, width=SCALE)
+    draw.line(
+        [(px(m), px(FOOTER_RULE_Y)), (px(WIDTH - m), px(FOOTER_RULE_Y))], fill=RULE, width=SCALE
+    )
 
     text(draw, (m, 590), "iwac.frederickmadore.com/sentiment-analysis", font(SANS_BOLD, 18), ACCENT)
     text(

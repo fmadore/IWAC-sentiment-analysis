@@ -266,16 +266,23 @@ export interface ArbiterEvaluationData {
 }
 
 // ---------------------------------------------------------------------------
-// Generation-2 arbiter: one three-way verdict per article
+// Generation-2 arbiter: one panel-wide verdict per article
 //
-// v1 asks a pairwise question three times over; v2 asks it once, so the shapes
-// are deliberately separate rather than one union. `preferred` names an
-// anonymised analysis label — only `metadata.blind_permutation` resolves a
-// label back to a model, and nothing else in the payload may.
+// v1 asks a pairwise question once per pair; v2 asks it once for the whole
+// panel, so the shapes are deliberately separate rather than one union.
+// `preferred` names an anonymised analysis label — only
+// `metadata.blind_permutation` resolves a label back to a model, and nothing
+// else in the payload may.
 // ---------------------------------------------------------------------------
 
-/** The anonymised labels the three analyses are presented under. */
-export const ARBITER_BLIND_LABELS = ['a', 'b', 'c'] as const;
+/**
+ * The anonymised labels the panel's analyses are presented under, one per
+ * generation-2 model. `parseArbiterV2EvaluationData` asserts the permutation is
+ * a bijection onto the contract's models, so this list and the contract cannot
+ * silently drift apart: a mismatch fails the parse rather than mis-attributing
+ * verdicts.
+ */
+export const ARBITER_BLIND_LABELS = ['a', 'b', 'c', 'd', 'e'] as const;
 export type ArbiterBlindLabel = (typeof ARBITER_BLIND_LABELS)[number];
 
 /** A verdict names one analysis, several of them, or none. */
@@ -312,7 +319,15 @@ export interface ArbiterV2EvaluationData {
 	metadata: {
 		generated: string;
 		arbiter_model: string;
-		mode: 'three-way';
+		/**
+		 * Deliberately not narrowed to a literal. The run mode is the contract's
+		 * to declare (`arbiter.mode` in sentiment-v2.json) and it has already
+		 * changed once, from the three-model shape to the panel one; a literal
+		 * here would have to be edited in lockstep or the payload would stop
+		 * type-checking against a file it actually matches. The parser compares
+		 * this against the contract at runtime.
+		 */
+		mode: string;
 		/** Reasoning effort the run was made at — the cost/depth lever. */
 		effort?: string;
 		blind_evaluation: boolean;

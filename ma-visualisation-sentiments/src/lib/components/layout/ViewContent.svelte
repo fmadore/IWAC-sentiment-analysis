@@ -51,7 +51,7 @@
 	// Two arbiter views, selected by generation rather than branched inside one
 	// component: the v1 view is pairwise all the way down (pair picker,
 	// `model_a_is_first`, two-way percentages) and has to stay stable for the
-	// archive, while v2 asks one three-way question per article.
+	// archive, while v2 asks one panel-wide question per article.
 	const arbiterView = () => import('$lib/components/data-display/ArbiterView.svelte');
 	const arbiterV2View = () => import('$lib/components/data-display/ArbiterV2View.svelte');
 
@@ -81,8 +81,33 @@
 	// most load-bearing for an academic reader at a glance.
 	let modelLabel = $derived(getModelDisplayName(datasetState.selected, datasetState.available));
 	let totalCount = $derived((articleState.datasets[datasetState.selected] || []).length);
+	let visibleArticles = $derived(
+		articleState.filtered ?? articleState.datasets[datasetState.selected] ?? []
+	);
 	let filteredCount = $derived(articleState.filtered?.length ?? totalCount);
 	let comparisonMode = $derived(datasetState.isComparisonMode);
+
+	/**
+	 * How many of the articles on screen this model actually rated.
+	 *
+	 * Every model ships one row per article, so the sample count above says
+	 * nothing about coverage — and coverage stopped being uniform when the panel
+	 * grew: Qwen3.8 27B leaves 200 articles permanently unrated on top of the 51
+	 * that no model rates (they are neither French nor English). "Sample ·
+	 * 12,349 articles" on its own therefore reads as a claim the data does not
+	 * support.
+	 *
+	 * Counted over the same set the sample number describes, so the two halves
+	 * of the line agree under a filter, and rendered only when it differs — for
+	 * the four models with full coverage the eyebrow is unchanged.
+	 */
+	let ratedCount = $derived.by(() => {
+		let rated = 0;
+		for (const article of visibleArticles) {
+			if (article.sentiment_analysis?.polarite != null) rated++;
+		}
+		return rated;
+	});
 
 	function formatNum(n: number): string {
 		try {
@@ -108,6 +133,9 @@
 			parts.push(
 				`${$t.viewMeta.sample} · ${formatNum(filteredCount)} ${$t.common.of} ${formatNum(totalCount)} ${$t.common.articles}`
 			);
+		}
+		if (ratedCount < filteredCount) {
+			parts.push(`${$t.viewMeta.rated} · ${formatNum(ratedCount)}`);
 		}
 		return parts.join('  ·  ');
 	});

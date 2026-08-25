@@ -1,12 +1,12 @@
 <!--
   ArbiterV2Methodology
 
-  The methodology card for the generation-2 three-way arbiter.
+  The methodology card for the generation-2 panel arbiter.
 
   A sibling of ArbiterMethodology rather than a branch inside it, for the same
   reason ArbiterV2View is a sibling of ArbiterView: almost every claim differs.
   The v1 card describes a pairwise Gemini judge reading the public projection;
-  this one describes a three-way Claude Opus 5 judge reading the unmasked
+  this one describes a panel-wide Claude Opus 5 judge reading the unmasked
   mirror. Merging them would mean a conditional on every sentence.
 
   It says plainly that the v1 arbiter read partly-masked text. That is a real
@@ -182,7 +182,7 @@
 				<ul class="config-list">
 					<li><strong>Model:</strong> {arbiterModel}</li>
 					<li><strong>Mode:</strong> {SENTIMENT_CONTRACT_V2.arbiter.mode}</li>
-					<li><strong>Selection:</strong> three-way spread ≥ {spreadThreshold}</li>
+					<li><strong>Selection:</strong> spread across the panel ≥ {spreadThreshold}</li>
 					<li><strong>Output:</strong> structured JSON, schema-validated</li>
 				</ul>
 			</div>

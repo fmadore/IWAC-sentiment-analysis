@@ -48,9 +48,10 @@
 		 * What one full pass over the corpus cost, measured against the
 		 * provider's own billing rather than inferred from a rate card — the
 		 * rate cards in the pipeline's registry have been wrong by 5×. Per model
-		 * rather than in one line of the configuration list because the currency
-		 * differs: Mistral bills in euros, the other two in dollars. Recorded
-		 * only for the generation whose invoices were kept.
+		 * rather than in one line of the configuration list because the unit
+		 * differs: Mistral bills in euros, three others in dollars, and Qwen ran
+		 * on university GPU hours with no invoice at all. Recorded only for the
+		 * generation whose invoices were kept.
 		 */
 		cost?: LocalizedText;
 		/** Sentence following the badge link in the single-model view */
@@ -174,14 +175,63 @@
 				fr: 'Passage sur le corpus complet : 10,96 $ US'
 			},
 			inlineDescription: {
-				en: ', a reasoning model with open weights, and the only member of the panel served through a third party rather than by its maker.',
-				fr: ', un modèle de raisonnement à poids ouverts, et le seul membre du panel servi par un tiers plutôt que par son concepteur.'
+				en: ', a reasoning model with open weights, served through a third party rather than by its maker.',
+				fr: ', un modèle de raisonnement à poids ouverts, servi par un tiers plutôt que par son concepteur.'
+			}
+		},
+		{
+			id: 'gemma',
+			logo: '/logo/Gemma_logo.png',
+			logoAlt: 'Gemma logo',
+			cardName: 'Gemma 4 31B',
+			badgeName: 'Gemma 4 31B',
+			docsUrl: 'https://huggingface.co/google/gemma-4-31b-it',
+			cardDescription: {
+				en: 'Google’s open-weights model, served through OpenRouter rather than by Google’s own API, whose free tier may use submitted content to improve its products — which whole archival articles cannot go through.',
+				fr: 'Le modèle à poids ouverts de Google, servi via OpenRouter plutôt que par l’API de Google, dont l’offre gratuite peut exploiter les contenus soumis pour améliorer ses produits — ce à quoi des articles d’archives entiers ne peuvent être soumis.'
+			},
+			detail: {
+				en: 'Its OpenRouter route collapses the reasoning-effort ladder: medium and high are indistinguishable. It is also the slowest member of the panel, at roughly 72 seconds per call.',
+				fr: 'Sa route OpenRouter écrase l’échelle d’effort de raisonnement : moyen et élevé y sont indiscernables. C’est aussi le membre le plus lent du panel, à environ 72 secondes par appel.'
+			},
+			cost: {
+				en: 'Full corpus pass: US$9.51',
+				fr: 'Passage sur le corpus complet : 9,51 $ US'
+			},
+			inlineDescription: {
+				en: ', Google’s open-weights model, served through OpenRouter rather than by Google’s own API.',
+				fr: ', le modèle à poids ouverts de Google, servi via OpenRouter plutôt que par l’API de Google.'
+			}
+		},
+		{
+			id: 'qwen',
+			logo: '/logo/Qwen_logo.png',
+			logoAlt: 'Qwen logo',
+			cardName: 'Qwen3.8 27B',
+			badgeName: 'Qwen3.8 27B',
+			docsUrl: 'https://huggingface.co/Qwen/Qwen3.8-27B',
+			cardDescription: {
+				en: 'Alibaba’s open-weights model, and the only member of the panel run on hardware the project controls: self-hosted with vLLM on the University of Bayreuth’s Festus cluster.',
+				fr: 'Le modèle à poids ouverts d’Alibaba, et le seul membre du panel exécuté sur du matériel que le projet maîtrise : auto-hébergé avec vLLM sur le cluster Festus de l’université de Bayreuth.'
+			},
+			detail: {
+				en: 'It is also the only member with a verified reasoning-effort ladder, so it genuinely ran at medium. Its coverage is 200 articles short of the rest of the panel, and that gap is permanent — see the limitations.',
+				fr: 'C’est aussi le seul dont l’échelle d’effort de raisonnement a été vérifiée : il a réellement tourné à un niveau moyen. Sa couverture accuse 200 articles de moins que le reste du panel, et ce manque est définitif — voir les limites.'
+			},
+			cost: {
+				en: 'No API fee: run on University of Bayreuth GPU hours.',
+				fr: 'Aucun frais d’API : exécuté sur des heures GPU de l’université de Bayreuth.'
+			},
+			inlineDescription: {
+				en: ', Alibaba’s open-weights model, self-hosted with vLLM on the University of Bayreuth’s Festus cluster.',
+				fr: ', le modèle à poids ouverts d’Alibaba, auto-hébergé avec vLLM sur le cluster Festus de l’université de Bayreuth.'
 			}
 		}
 	];
 
 	// Only the generation on screen: the grid describes the panel being shown,
-	// and mixing six cards would imply the six were run under one protocol.
+	// and mixing both panels' cards would imply the eight were run under one
+	// protocol.
 	const generationModels = $derived(
 		MODELS.filter((model) => generationOf(model.id) === datasetState.generation)
 	);
@@ -431,8 +481,8 @@
 					{#if datasetState.isComparisonMode}
 						<p class="section-text">
 							{$currentLanguage === 'en'
-								? 'Three large language models read the same articles, so their answers can be set side by side:'
-								: 'Trois grands modèles de langage ont lu les mêmes articles, ce qui permet de placer leurs réponses côte à côte :'}
+								? 'Every model in the panel read the same articles, so their answers can be set side by side:'
+								: 'Chaque modèle du panel a lu les mêmes articles, ce qui permet de placer leurs réponses côte à côte :'}
 						</p>
 						<div class="model-grid">
 							{#each generationModels as model (model.id)}
@@ -503,7 +553,8 @@
 					<!-- The run configuration is a fact about one campaign, so it comes
 					     from the generation block rather than being assembled here. The
 					     two runs share no parameter: v1 sent no reasoning setting at all
-					     and pinned temperature on two of its three models. -->
+					     and pinned temperature on two of its three models, while v2 sets
+					     a reasoning effort per model across a five-model panel. -->
 					<ul class="config-list">
 						{#each copy.config as line (line)}
 							<li>{line}</li>
@@ -539,8 +590,8 @@
 						{#if datasetState.isComparisonMode}
 							<li>
 								{$currentLanguage === 'en'
-									? 'The prompt is identical for all three, so nothing in the instructions favours one of them'
-									: 'Le prompt est identique pour les trois, si bien que rien dans les instructions n’en favorise un'}
+									? 'The prompt is identical for every model, so nothing in the instructions favours one of them'
+									: 'Le prompt est identique pour tous les modèles, si bien que rien dans les instructions n’en favorise un'}
 							</li>
 						{/if}
 					</ul>
@@ -764,23 +815,15 @@
 	/* ==========================================================================
      MODEL CARDS
      ========================================================================== */
+	/* Auto-fit rather than a column count per breakpoint: the panel is three
+	   cards on the archive and five on the current generation, so a hardcoded
+	   `repeat(3, 1fr)` would strand two cards in a half-empty row on one of
+	   them. The floor token does the reflow; no media query restates it. */
 	.model-grid {
 		display: grid;
-		grid-template-columns: 1fr;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--width-model-card-min)), 1fr));
 		gap: var(--space-3-5);
 		margin-top: var(--space-2);
-	}
-
-	@media (min-width: 640px) {
-		.model-grid {
-			grid-template-columns: repeat(2, 1fr);
-		}
-	}
-
-	@media (min-width: 1024px) {
-		.model-grid {
-			grid-template-columns: repeat(3, 1fr);
-		}
 	}
 
 	.model-card {
@@ -923,6 +966,26 @@
 
 	.model-badge.deepseek:hover {
 		background: color-mix(in oklab, var(--brand-deepseek) 28%, transparent);
+	}
+
+	.model-badge.gemma {
+		background: color-mix(in oklab, var(--brand-gemma) 18%, transparent);
+		border: 1px solid color-mix(in oklab, var(--brand-gemma) 32%, transparent);
+		color: var(--brand-gemma-light);
+	}
+
+	.model-badge.gemma:hover {
+		background: color-mix(in oklab, var(--brand-gemma) 28%, transparent);
+	}
+
+	.model-badge.qwen {
+		background: color-mix(in oklab, var(--brand-qwen) 18%, transparent);
+		border: 1px solid color-mix(in oklab, var(--brand-qwen) 32%, transparent);
+		color: var(--brand-qwen-light);
+	}
+
+	.model-badge.qwen:hover {
+		background: color-mix(in oklab, var(--brand-qwen) 28%, transparent);
 	}
 
 	.model-detail {

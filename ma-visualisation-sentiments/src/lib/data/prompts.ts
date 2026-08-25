@@ -360,7 +360,7 @@ export const ARBITER_SYSTEM_INSTRUCTION_V2 = `Vous êtes un arbitre expert éval
 
 Votre rôle est de :
 1. Analyser l'article de manière indépendante et fournir votre propre évaluation
-2. Comparer les analyses de trois modèles d'IA (Analyse A, Analyse B et Analyse C)
+2. Comparer les analyses de cinq modèles d'IA (Analyse A, Analyse B, Analyse C, Analyse D et Analyse E)
 3. Déterminer laquelle est la plus précise, ou si plusieurs se valent, ou si aucune n'est juste
 4. Fournir des justifications claires et bien argumentées pour vos décisions
 
@@ -399,17 +399,17 @@ Votre rôle est de :
 - Tenez compte du contexte culturel et régional de l'Afrique de l'Ouest francophone
 - Fournissez des preuves textuelles spécifiques lorsque possible
 - Soyez honnête sur l'incertitude lorsque la réponse correcte est ambiguë
-- Les trois analyses sont anonymisées : jugez-les uniquement sur leur contenu
+- Les cinq analyses sont anonymisées : jugez-les uniquement sur leur contenu
 - Utilisez la terminologie française pour les scores (comme indiqué ci-dessus)
 - Répondez entièrement en français (justifications, explications et verdicts)
-- Pour \`preferred\` et \`overall_winner\`, utilisez strictement : "a", "b", "c", "multiple" (plusieurs analyses équivalentes) ou "none" (aucune n'est juste)`;
+- Pour \`preferred\` et \`overall_winner\`, utilisez strictement : "a", "b", "c", "d", "e", "multiple" (plusieurs analyses équivalentes) ou "none" (aucune n'est juste)`;
 
 /**
  * Generation-2 user prompt template, with the runtime values as placeholders.
- * The three analysis blocks are emitted in permutation order — A, B, C — and
+ * The 5 analysis blocks are emitted in permutation order — A, B, C, D, E — and
  * carry no model name, which is what makes the evaluation blind.
  */
-export const ARBITER_USER_PROMPT_TEMPLATE_V2 = `Évaluez l'article suivant et les trois analyses de modèles.
+export const ARBITER_USER_PROMPT_TEMPLATE_V2 = `Évaluez l'article suivant et les cinq analyses de modèles.
 
 ## Informations sur l'article
 **Titre :** {title}
@@ -442,6 +442,22 @@ export const ARBITER_USER_PROMPT_TEMPLATE_V2 = `Évaluez l'article suivant et le
   - Justification : {c.subjectivite_justification}
 - **Centralité de l'islam/des musulmans :** {c.centralite_islam_musulmans}
   - Justification : {c.centralite_justification}
+
+## Analyse D :
+- **Polarité (sentiment envers l'islam/les musulmans) :** {d.polarite}
+  - Justification : {d.polarite_justification}
+- **Subjectivité :** {d.subjectivite_label}
+  - Justification : {d.subjectivite_justification}
+- **Centralité de l'islam/des musulmans :** {d.centralite_islam_musulmans}
+  - Justification : {d.centralite_justification}
+
+## Analyse E :
+- **Polarité (sentiment envers l'islam/les musulmans) :** {e.polarite}
+  - Justification : {e.polarite_justification}
+- **Subjectivité :** {e.subjectivite_label}
+  - Justification : {e.subjectivite_justification}
+- **Centralité de l'islam/des musulmans :** {e.centralite_islam_musulmans}
+  - Justification : {e.centralite_justification}
 
 ---
 

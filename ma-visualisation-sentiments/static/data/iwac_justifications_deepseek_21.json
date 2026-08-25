@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "analysis_version": "v2",
   "model": "deepseek",
   "shard": 21,
@@ -204,11 +204,6 @@
       "centralite_justification": "L'article traite de l'installation de l'ONAFAR, un observatoire chargé de surveiller les contenus des messages religieux et les pratiques, et il mentionne explicitement la participation des Associations islamiques du Burkina parmi ses membres ; l'islam est donc un thème important partagé avec d'autres religions, sans être le sujet unique.",
       "subjectivite_justification": "Le texte rapporte factuellement les déclarations des participants et la chronologie de l'événement, mais emploie des termes évaluatifs comme « dérives » ou « trahissent les messages de paix » qui portent un jugement implicite sur les médias confessionnels.",
       "polarite_justification": "L'article décrit l'observatoire comme un organe de dialogue et de veille sans exprimer de sentiment particulier envers l'islam ; les musulmans sont cités comme partie prenante du dispositif, sans critique ni éloge spécifique, et le ton reste informatif."
-    },
-    "3541": {
-      "centralite_justification": "L'article est entièrement consacré à la rupture commune de jeûne organisée par la Fédération des associations islamiques du Burkina et au message des responsables musulmans sur les valeurs du Ramadan ; l'islam et les musulmans en sont clairement le sujet principal.",
-      "subjectivite_justification": "Le journaliste rend compte de l'événement et des prises de parole sans prendre position : les propos favorables à l'islam (« religion de paix et de tolérance ») sont attribués au Cheick Aboubacar Yugo et aux intervenants cités.",
-      "polarite_justification": "Le texte rapporte les faits et les déclarations sur le jeûne, la cohésion sociale et la lutte contre le terrorisme sans endorser ni commenter lui-même, donc sans orienter le traitement vers un jugement."
     },
     "3573": {
       "centralite_justification": "Le hadj n'apparaît qu'au premier paragraphe comme un exemple de moment où l'aéroport s'anime (« Le premier convoi de pèlerins pour le Hadj 2019 s'envolera dans quelques heures »), le reste de l'article portant sur le trafic aérien, les compagnies et le fret.",

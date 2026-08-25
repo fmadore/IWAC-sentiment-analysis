@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "analysis_version": "v2",
   "model": "mistral-small",
   "shard": 26,
@@ -1389,11 +1389,6 @@
       "centralite_justification": "L'article traite des tensions ethniques et politiques entre les Kotokoli et les Kabyè sans aucune mention de l'islam ou des musulmans.",
       "subjectivite_justification": "L'article est un texte engagé, marqué par des jugements forts ('Halte à la manipulation des consciences !', 'C'EST TRÈS RIDICULE !'), une prise de position claire contre les autorités et la presse officielle, et une absence totale de distance ou de neutralité.",
       "polarite_justification": "Le sujet principal de l'article est les tensions ethniques et politiques, sans aucune mention de l'islam ou des musulmans."
-    },
-    "67610": {
-      "centralite_justification": "L'article traite exclusivement de la Communauté musulmane du Burkina Faso (CMBF), de ses instances dirigeantes et de ses dirigeants, avec des références constantes à des institutions et pratiques islamiques (Fédération des associations islamiques, conseil national de la jeunesse musulmane, cheik, congrès).",
-      "subjectivite_justification": "L'article rapporte des faits et des déclarations de manière factuelle, en citant plusieurs sources (président sortant, conseil de la jeunesse musulmane, ministre) sans marquer d'opinion ou de jugement sur le thème de l'islam ou des musulmans.",
-      "polarite_justification": "Le traitement est équilibré : l'article expose les positions des différentes parties (président sortant, opposants, conseil de la jeunesse musulmane) sans adopter de ton favorable ou défavorable envers l'islam ou les musulmans."
     },
     "67834": {
       "centralite_justification": "L'article est entièrement consacré à la célébration de la Tabaski, fête religieuse musulmane, avec des détails sur les prières, les imams, les rituels et les discours religieux.",

@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "analysis_version": "v2",
   "model": "deepseek",
   "shard": 26,
@@ -1389,11 +1389,6 @@
       "centralite_justification": "Le texte traite exclusivement des tensions politiques et ethniques entre Kotokoli et Kabyè à Sokodé, autour d'une marche de soutien et d'un article de presse, sans aucune mention de l'islam, de pratiques religieuses ou d'institutions islamiques.",
       "subjectivite_justification": "Non applicable car le sujet n'est pas abordé.",
       "polarite_justification": "Non applicable car le sujet n'est pas abordé."
-    },
-    "67610": {
-      "centralite_justification": "L'article est entièrement consacré à la crise interne de la Communauté musulmane du Burkina Faso, à ses instances, à son président sortant et aux médiations visant à résoudre cette crise.",
-      "subjectivite_justification": "Le journaliste rapporte les déclarations de Rasmané Sana et du conseil de la jeunesse musulmane avec des citations attribuées, sans commentaire ni prise de position personnelle sur le thème de l'islam.",
-      "polarite_justification": "L'article se borne à relater les positions des deux camps dans une crise organisationnelle, sans formuler de jugement favorable ou défavorable envers l'islam ou les musulmans."
     },
     "67834": {
       "centralite_justification": "L'article est entièrement consacré à la célébration de la Tabaski (Aïd el-Kebir) en Côte d'Ivoire : prières, imams, bénédictions, sacrifice, mosquées et fidèles musulmans en sont le sujet principal.",

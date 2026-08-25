@@ -130,6 +130,8 @@ def test_v2_uses_exact_model_column_prefixes():
         "luna": "gpt_5_6_luna",
         "mistral-small": "mistral_small_2603",
         "deepseek": "deepseek_v4_flash_0731",
+        "gemma": "gemma_4_31b_it",
+        "qwen": "qwen3_8_27b",
     }
     assert CONTRACT_V2.sentiment_column("deepseek", "polarite") == "deepseek_v4_flash_0731_polarite"
     # No vendor aliases: a v2 id must never resolve through a v1 prefix.

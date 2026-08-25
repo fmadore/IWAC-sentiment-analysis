@@ -1,7 +1,7 @@
 {
-	"schemaVersion": "2.0.0",
+	"schemaVersion": "2.1.0",
 	"analysisVersion": "v2",
-	"description": "Generation-2 three-model IWAC sentiment-analysis contract. Polarity and centrality scales are identical to v1; subjectivity is stored upstream as an ordinal label and is mapped to the shared 1-5 rank at generation time.",
+	"description": "Generation-2 five-model IWAC sentiment-analysis contract. Polarity and centrality scales are identical to v1; subjectivity is stored upstream as an ordinal label and is mapped to the shared 1-5 rank at generation time. Qwen's coverage is deliberately 153 articles short of the eligible corpus (a retired gap, not a failed run), so its scores carry legitimate nulls on every dimension.",
 	"models": {
 		"luna": {
 			"displayName": "GPT-5.6 Luna",
@@ -17,12 +17,29 @@
 			"displayName": "DeepSeek v4 Flash",
 			"analysisModel": "DeepSeek v4 Flash 0731",
 			"hfPrefixes": ["deepseek_v4_flash_0731"]
+		},
+		"gemma": {
+			"displayName": "Gemma 4 31B",
+			"analysisModel": "Gemma 4 31B IT",
+			"hfPrefixes": ["gemma_4_31b_it"]
+		},
+		"qwen": {
+			"displayName": "Qwen3.8 27B",
+			"analysisModel": "Qwen3.8 27B",
+			"hfPrefixes": ["qwen3_8_27b"]
 		}
 	},
 	"pairs": [
 		{ "id": "luna-mistral-small", "models": ["luna", "mistral-small"] },
 		{ "id": "luna-deepseek", "models": ["luna", "deepseek"] },
-		{ "id": "mistral-small-deepseek", "models": ["mistral-small", "deepseek"] }
+		{ "id": "luna-gemma", "models": ["luna", "gemma"] },
+		{ "id": "luna-qwen", "models": ["luna", "qwen"] },
+		{ "id": "mistral-small-deepseek", "models": ["mistral-small", "deepseek"] },
+		{ "id": "mistral-small-gemma", "models": ["mistral-small", "gemma"] },
+		{ "id": "mistral-small-qwen", "models": ["mistral-small", "qwen"] },
+		{ "id": "deepseek-gemma", "models": ["deepseek", "gemma"] },
+		{ "id": "deepseek-qwen", "models": ["deepseek", "qwen"] },
+		{ "id": "gemma-qwen", "models": ["gemma", "qwen"] }
 	],
 	"fields": {
 		"scores": ["centralite_islam_musulmans", "subjectivite_score", "polarite"],
@@ -76,14 +93,14 @@
 		"nonComparableAnalysis": "exclude-row",
 		"threeWaySpread": {
 			"significantSpread": 3,
-			"rule": "Per dimension, spread is max minus min across all three models. A row is excluded when any model reports a non-comparable polarity or centrality. Subjectivity contributes a spread only when all three models scored it, otherwise 0."
+			"rule": "Per dimension, spread is max minus min across all models of the generation. A row is excluded when any model reports a non-comparable or missing polarity or centrality. Subjectivity contributes a spread only when every model scored it, otherwise 0."
 		}
 	},
 	"arbiter": {
-		"promptVersion": "v2.0.0",
+		"promptVersion": "v2.1.0",
 		"arbiterModel": "claude-opus-5",
 		"cacheSchemaVersion": 1,
-		"mode": "three-way"
+		"mode": "panel"
 	},
 	"delivery": {
 		"justificationShards": 32

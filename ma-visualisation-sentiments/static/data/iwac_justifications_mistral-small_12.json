@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "analysis_version": "v2",
   "model": "mistral-small",
   "shard": 12,
@@ -209,11 +209,6 @@
       "centralite_justification": "L'article consacre une large partie à la visite du Premier ministre à la Fédération des associations islamiques du Burkina (FAIB), avec des détails sur les rencontres, les déclarations et les actions des acteurs musulmans.",
       "subjectivite_justification": "L'article rapporte des faits et des déclarations de manière neutre, sans jugement ni appréciation de la part de l'auteur, en citant les propos des acteurs directement concernés.",
       "polarite_justification": "L'article met en avant un soutien mutuel entre le gouvernement et les communautés musulmanes, avec des déclarations valorisantes et bienveillantes envers l'islam et les musulmans, sans aucune critique ou nuance négative."
-    },
-    "3564": {
-      "centralite_justification": "L'article traite exclusivement du retour des pèlerins après avoir accompli le hadj, un pilier central de l'islam.",
-      "subjectivite_justification": "L'article se limite à rapporter les faits (horaires, nombres) et les déclarations des acteurs sans ajouter de commentaire ou d'opinion personnelle.",
-      "polarite_justification": "Le lexique utilisé (« fierté », « joie », « très bonnes conditions ») et les déclarations des personnes citées (ministre, pèlerins) expriment une vision positive de l'islam et du hadj."
     },
     "3596": {
       "centralite_justification": "L'islam et les musulmans sont au cœur du message, avec des références religieuses explicites (FAIB, prières, sourate, mosquées) et des actions menées par une fédération islamique en leur nom.",
@@ -1409,11 +1404,6 @@
       "centralite_justification": "L'article porte sur une rencontre officielle avec des représentants musulmans et un conflit lié à un prêche.",
       "subjectivite_justification": "Le texte présente des faits et des déclarations de manière neutre sans jugement de valeur.",
       "polarite_justification": "L'article relate un conflit et sa résolution sans prendre parti, avec un ton constructif."
-    },
-    "67692": {
-      "centralite_justification": "L'article traite principalement de la reconnaissance de la religion traditionnelle par l'État, avec une mention secondaire des leaders chrétiens et musulmans (comme la FAIB pour l'islam) dans le cadre de la promotion de la cohésion sociale.",
-      "subjectivite_justification": "L'article exprime clairement les opinions et les attentes de l'ATR/DI, avec des jugements de valeur ('pas de géant', 'acte salutaire') et des appels à l'action, tout en rapportant des faits.",
-      "polarite_justification": "L'article exprime un sentiment très favorable envers la décision du gouvernement de reconnaître la religion traditionnelle et envers la promotion de la cohésion sociale, avec un lexique élogieux ('pas de géant', 'acte salutaire') et des attentes positives."
     },
     "67884": {
       "centralite_justification": "Le texte mentionne le maraboutisme, une pratique souvent associée à l'islam en Afrique de l'Ouest, mais sans aborder explicitement l'islam ou les musulmans en tant que tels.",

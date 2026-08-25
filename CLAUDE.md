@@ -17,10 +17,16 @@ wrong. Structure, scripts and dependencies are discoverable from the repo.
 
 ## Two analysis generations
 
-v2 (`luna`, `mistral-small`, `deepseek`) is showcased; v1 (`chatgpt`, `gemini`,
-`mistral`) is a hidden archive whose data files are frozen so published figures
-stay reproducible. The contracts are `src/lib/data/sentiment-v{1,2}.json`, read
-by both languages.
+v2 (`luna`, `mistral-small`, `deepseek`, `gemma`, `qwen` — five models, ten
+pairs) is showcased; v1 (`chatgpt`, `gemini`, `mistral`) is a hidden archive
+whose data files are frozen so published figures stay reproducible. The
+contracts are `src/lib/data/sentiment-v{1,2}.json`, read by both languages.
+
+**The panel size is never a constant.** It grew from three to five on
+2026-08-25, and everything that survived the move reads `datasetIdsOf(gen)` or a
+`models.length` argument. Anything you write that hardcodes three is wrong for
+v2, and anything that hardcodes five is wrong for the archive — including UI
+copy, which is why the strings say "the panel" rather than a number.
 
 - **Generation is derived from the id, never stored.** `generationOf()` in
   `domain/sentimentContract.ts` does the work; there is no generation URL
@@ -29,13 +35,27 @@ by both languages.
 - **Never split a pair id on `-`.** A v2 model id contains a hyphen, so
   `mistral-small-deepseek` would split into a model that does not exist. Both
   languages read `pairs: [{id, models}]` from the contract
-- **Anything that pools models must be scoped to one generation.** A six-rater
-  kappa would measure the prompt rewrite as if it were disagreement between
-  models. Agreement, prefetch and `loadAllDatasets` are already scoped; new
-  cross-model features need the same treatment
+- **Anything that pools models must be scoped to one generation.** An
+  eight-rater kappa would measure the prompt rewrite as if it were disagreement
+  between models. Agreement, prefetch and `loadAllDatasets` are already scoped;
+  new cross-model features need the same treatment
+- **Qwen's coverage gap is deliberate, permanent and not missing at random.**
+  It carries 251 null polarity/centrality rows (the 51 no model annotates, plus
+  200 it declined across a full pass and three retry rounds) and 538 null
+  subjectivity. The missing rows concentrate on articles where Islam is
+  peripheral, so every complete-case statistic — Fleiss' κ, the consensus
+  charts, arbiter eligibility — skews towards high-centrality material. Say so
+  when reporting one; never present the gap as repairable
+- **The ternary triangle in `DissentProfileChart` is three-rater geometry.** A
+  simplex over n models needs n corners, so `barycentric()` returns null for
+  anything but three shares and the chart hides the mode unless the generation
+  has exactly three models. Same reason `classifyDissent`'s `split` bucket is
+  labelled "divided several ways" rather than "all three differ": at five
+  raters it also absorbs 3-2 splits
 - **The two arbiters are different shapes, not two versions of one thing.** v1 is
-  pairwise (Gemini 3 Pro, one file per pair); v2 is three-way (Claude Opus 5, one
-  file). They have separate stores, components and scripts on purpose —
+  pairwise (Gemini 3 Pro, one file per pair); v2 judges the whole panel at once
+  (Claude Opus 5, one file, blind labels a–e). They have separate stores,
+  components and scripts on purpose —
   `ArbiterView`'s A/B `model_a_is_first` logic is deeply pairwise and has to stay
   stable for the archive. `arbiter.svelte.ts` refuses to load for a non-v1 pair;
   without that guard it builds a filename nothing will ever publish and 404s on

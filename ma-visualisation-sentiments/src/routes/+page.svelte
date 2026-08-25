@@ -164,9 +164,9 @@
 				datasetState.isComparisonMode = true;
 			}
 		} else if (currentView === 'agreement') {
-			// Agreement compares every model against every other, so it needs all
-			// three datasets rather than just the selected one. Idempotent, and
-			// no other effect requests this.
+			// Agreement compares every model against every other, so it needs the
+			// generation's whole panel rather than just the selected one.
+			// Idempotent, and no other effect requests this.
 			loadAllDatasets(fetch).catch((error) => {
 				console.error('Failed to load datasets for agreement view:', error);
 			});

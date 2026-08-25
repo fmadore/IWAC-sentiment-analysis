@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "analysis_version": "v2",
   "model": "deepseek",
   "shard": 27,
@@ -1389,11 +1389,6 @@
       "centralite_justification": "Le texte est une tribune sur le code de la famille et l'adultère, appuyée sur des références bibliques (Exode 20/14, Lévitique 20/10), et il ne mentionne à aucun moment l'islam, les musulmans ou une institution islamique.",
       "subjectivite_justification": "Non applicable car le sujet n'est pas abordé.",
       "polarite_justification": "Non applicable car le sujet n'est pas abordé."
-    },
-    "67611": {
-      "centralite_justification": "L'article est entièrement consacré à un symposium organisé par des organisations islamiques sur le thème « L'Islam et les défis du dividende démographique », avec des intervenants comme Cheick Sidi Mohamed Koné (FAIB) et Cheick Omar Bony (URCB/SD). Le sujet principal est le rôle des leaders musulmans dans le développement.",
-      "subjectivite_justification": "L'article rapporte les propos des intervenants cités (Cheick Sidi Mohamed Koné, la ministre Madiara Sagnon) sans les commenter, mais adopte une tonalité favorable lorsque le journaliste écrit « Sachant le rôle primordial que joue la religion dans nos sociétés, les leaders musulmans ont organisé un symposium », ce qui suggère une adhésion subtile à la démarche.",
-      "polarite_justification": "L'article présente les musulmans comme des acteurs constructifs du développement, combat les préjugés (« beaucoup de préjugés ont été portés sur l'islam »), et met en avant la nécessité de leur accompagnement par l'État, avec des termes valorisants comme « rôle primordial » et « opportunité ». Le ton est bienveillant mais reste informatif."
     },
     "67835": {
       "centralite_justification": "L'article porte exclusivement sur l'AEEMCI, association des élèves et étudiants musulmans de Côte d'Ivoire, et sur ses objectifs de pratique religieuse, avec des mentions récurrentes de l'islam, du Coran et des prières du vendredi.",

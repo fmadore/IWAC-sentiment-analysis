@@ -10,7 +10,7 @@
 #
 # The two arbiter generations use different judges and therefore different
 # SDKs: google-genai drives the frozen v1 pairwise arbiter, anthropic the v2
-# three-way one. Neither is imported until a paid run actually starts.
+# panel one. Neither is imported until a paid run actually starts.
 
 datasets~=5.0.1
 tqdm~=4.70.0

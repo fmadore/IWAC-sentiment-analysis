@@ -17,14 +17,16 @@ beforeEach(() => {
 
 describe('datasetState.available', () => {
 	it('contains both generations', () => {
-		expect(datasetState.available).toHaveLength(6);
+		expect(datasetState.available).toHaveLength(8);
 		expect(datasetState.available.map((d) => d.id)).toEqual([
 			'chatgpt',
 			'gemini',
 			'mistral',
 			'luna',
 			'mistral-small',
-			'deepseek'
+			'deepseek',
+			'gemma',
+			'qwen'
 		]);
 	});
 
@@ -62,12 +64,21 @@ describe('datasetState.availableInGeneration', () => {
 		expect(datasetState.availableInGeneration.map((d) => d.id)).toEqual([
 			'luna',
 			'mistral-small',
-			'deepseek'
+			'deepseek',
+			'gemma',
+			'qwen'
 		]);
 		expect(datasetState.pairsInGeneration).toEqual([
 			'luna-mistral-small',
 			'luna-deepseek',
-			'mistral-small-deepseek'
+			'luna-gemma',
+			'luna-qwen',
+			'mistral-small-deepseek',
+			'mistral-small-gemma',
+			'mistral-small-qwen',
+			'deepseek-gemma',
+			'deepseek-qwen',
+			'gemma-qwen'
 		]);
 	});
 });
@@ -219,6 +230,16 @@ describe('datasetState.getById', () => {
 		const dataset = datasetState.getById('mistral');
 		expect(dataset?.name).toBe('Mistral');
 		expect(dataset?.color).toBe('#F54E42');
+	});
+
+	it('returns the models added to the v2 panel', () => {
+		// Their brand colours are duplicated from app.css because chart and logo
+		// code cannot read custom properties; pinning them here is what catches a
+		// half-finished edit that changed one copy.
+		expect(datasetState.getById('gemma')?.name).toBe('Gemma 4 31B');
+		expect(datasetState.getById('gemma')?.color).toBe('#338dff');
+		expect(datasetState.getById('qwen')?.name).toBe('Qwen3.8 27B');
+		expect(datasetState.getById('qwen')?.color).toBe('#615ced');
 	});
 
 	it('returns undefined for unknown id', () => {

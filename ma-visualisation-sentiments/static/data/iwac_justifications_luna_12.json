@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "analysis_version": "v2",
   "model": "luna",
   "shard": 12,
@@ -209,11 +209,6 @@
       "centralite_justification": "La rencontre avec la FAIB, les douas, ainsi que les rôles des cheiks, imams et ulémas occupent une place importante, même si l’article traite aussi des églises évangéliques.",
       "subjectivite_justification": "L’article rapporte principalement des faits et des déclarations attribuées au Premier ministre et au président de la FAIB, sans commentaire explicite de la rédaction.",
       "polarite_justification": "Le texte décrit factuellement le soutien et les prières de la communauté musulmane, sans exprimer lui-même de jugement marqué envers l’islam ou les musulmans."
-    },
-    "3564": {
-      "centralite_justification": "L’article porte entièrement sur le retour des pèlerins burkinabè après l’accomplissement du Hadj, présenté comme le cinquième pilier de l’Islam.",
-      "subjectivite_justification": "Le traitement est principalement factuel et s’appuie sur des déclarations attribuées, même si le lexique de la joie et de la fierté accompagne positivement le pèlerinage.",
-      "polarite_justification": "L’article valorise le Hadj et ses acteurs à travers des expressions comme « fierté », « joie », « honneur » et « très bonnes conditions », tout en rapportant les prières pour la paix du Burkina Faso."
     },
     "3596": {
       "centralite_justification": "Le texte porte directement sur la FAIB, les pèlerins musulmans victimes de la bousculade de Mina et les réponses religieuses, notamment les prières, prêches et l’accompagnement spirituel.",
@@ -1409,11 +1404,6 @@
       "centralite_justification": "L’article porte entièrement sur la polémique autour du prêche d’un imam, les excuses du ministre des Affaires religieuses et la réaction de la Fédération des associations islamiques du Burkina.",
       "subjectivite_justification": "Le texte rapporte principalement les déclarations attribuées du ministre et du président de la communauté musulmane, avec un cadrage globalement factuel malgré des termes comme « situation déplorable » et « issue heureuse ».",
       "polarite_justification": "L’article met en avant la reconnaissance de la faute, les excuses, l’esprit d’ouverture du Premier ministre et le règlement présenté comme heureux d’une mésentente concernant un imam."
-    },
-    "67692": {
-      "centralite_justification": "L’islam et les musulmans sont au cœur du débat sur le dialogue interreligieux et la représentation au sein de l’ONAFAR, aux côtés du christianisme et des religions traditionnelles.",
-      "subjectivite_justification": "Le texte adopte clairement la position de l’ATR/DI et emploie des jugements comme « pas de géant » et « acte salutaire », tout en s’appuyant sur des faits et des propositions concrètes.",
-      "polarite_justification": "La représentation des responsables musulmans est défavorable lorsqu’ils sont accusés, avec les responsables chrétiens, d’assimiler la religion traditionnelle à « celle du prince des ténèbres » et d’entretenir stigmatisation et préjugés."
     },
     "67884": {
       "centralite_justification": "Le maraboutisme et les marabouts constituent le sujet principal, annoncé dans le titre et développé dans l’intégralité de la lettre reproduite.",

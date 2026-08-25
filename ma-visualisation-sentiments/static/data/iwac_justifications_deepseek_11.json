@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "analysis_version": "v2",
   "model": "deepseek",
   "shard": 11,
@@ -1369,11 +1369,6 @@
       "centralite_justification": "Le texte est entièrement consacré à un séminaire de la Fédération des associations islamiques du Burkina (FAIB) pour plus de 700 imams et prédicateurs, sur le thème « Le discours islamique dans un contexte d’insécurité », faisant de l'islam et des acteurs religieux musulmans le sujet principal.",
       "subjectivite_justification": "L'article est essentiellement informatif et rapporte les propos attribués à El hadj Moussa Kouanda et au ministre Issaka Sourwema, sans que la rédaction ne prenne position ; les seules appréciations positives (« noble et difficile mission ») sont citées et attribuées aux intervenants.",
       "polarite_justification": "Le compte rendu se borne à décrire l'événement et les déclarations des responsables en faveur de la paix et de la cohésion sociale, sans orientation éditoriale ni lexique dépréciateur ou louangeur de la part du journaliste, ce qui relève du neutre."
-    },
-    "67691": {
-      "centralite_justification": "L'article porte intégralement sur la destruction de la mosquée de Pazani et la rencontre entre le Premier ministre et la Fédération des associations islamiques du Burkina (FAIB) : la mosquée, la communauté musulmane et la fédération en sont les acteurs centraux.",
-      "subjectivite_justification": "Le texte est purement informatif : il rapporte les faits (décision du Conseil des ministres, audience) et cite longuement le président de la FAIB, sans aucune marque d'appréciation de la part du journaliste sur le sujet.",
-      "polarite_justification": "L'article relate objectivement la destruction et la solution trouvée, sans lexique dépréciatif ni éloge : les propos positifs (« nous sommes très satisfaits ») sont attribués à Oumarou Zoungrana, pas au journaliste."
     },
     "67883": {
       "centralite_justification": "L'article est entièrement consacré au retour des pèlerins de La Mecque et à leurs témoignages sur le hadj, cinquième pilier de l'islam, ce qui en fait le sujet principal.",

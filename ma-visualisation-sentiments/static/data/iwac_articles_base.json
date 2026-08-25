@@ -12900,16 +12900,6 @@
     "hijri_day": 1
   },
   {
-    "o:id": 3524,
-    "o:title": "De la problématique des Koglwéogo : analyse de Aly Son, citoyen burkinabè",
-    "Newspaper": "Sidwaya",
-    "Country": "Burkina Faso",
-    "dcterms:date": "2019-01-17",
-    "hijri_year": 1440,
-    "hijri_month": 5,
-    "hijri_day": 11
-  },
-  {
     "o:id": 3525,
     "o:title": "Attentats, tueries, enlèvements au Sahel : tranche de vie dans le Soum…",
     "Newspaper": "Sidwaya",
@@ -13068,16 +13058,6 @@
     "hijri_year": 1440,
     "hijri_month": 9,
     "hijri_day": 8
-  },
-  {
-    "o:id": 3541,
-    "o:title": "Ramadan : les musulmans réaffirment leur attachement à la cohésion sociale",
-    "Newspaper": "Sidwaya",
-    "Country": "Burkina Faso",
-    "dcterms:date": "2019-05-28",
-    "hijri_year": 1440,
-    "hijri_month": 9,
-    "hijri_day": 23
   },
   {
     "o:id": 3542,
@@ -13298,16 +13278,6 @@
     "hijri_year": 1441,
     "hijri_month": 4,
     "hijri_day": 5
-  },
-  {
-    "o:id": 3564,
-    "o:title": "Hadj 2019 : 300 premiers pèlerins regagnent Ouagadougou",
-    "Newspaper": "Sidwaya",
-    "Country": "Burkina Faso",
-    "dcterms:date": "2019-08-19",
-    "hijri_year": 1440,
-    "hijri_month": 12,
-    "hijri_day": 18
   },
   {
     "o:id": 3565,
@@ -67684,8 +67654,7 @@
     "dcterms:date": "1991-08-28",
     "hijri_year": 1412,
     "hijri_month": 2,
-    "hijri_day": 18,
-    "iiif_manifest": "https://islam.zmo.de/iiif/3/31885/manifest"
+    "hijri_day": 18
   },
   {
     "o:id": 31899,
@@ -91926,26 +91895,6 @@
     "hijri_day": 8
   },
   {
-    "o:id": 67610,
-    "o:title": "Crise au sein de la communauté musulmane : des positions difficiles à concilier",
-    "Newspaper": "Sidwaya",
-    "Country": "Burkina Faso",
-    "dcterms:date": "2020-07-26",
-    "hijri_year": 1441,
-    "hijri_month": 12,
-    "hijri_day": 5
-  },
-  {
-    "o:id": 67611,
-    "o:title": "Capture du dividende démographie : les leaders musulmans, prêts à jouer leur partition",
-    "Newspaper": "Sidwaya",
-    "Country": "Burkina Faso",
-    "dcterms:date": "2020-01-31",
-    "hijri_year": 1441,
-    "hijri_month": 6,
-    "hijri_day": 6
-  },
-  {
     "o:id": 67612,
     "o:title": "Ramadan : les musulmans réaffirment leur attachement à la cohésion sociale",
     "Newspaper": "Sidwaya",
@@ -92314,26 +92263,6 @@
     "hijri_year": 1442,
     "hijri_month": 6,
     "hijri_day": 12
-  },
-  {
-    "o:id": 67691,
-    "o:title": "Retrait du terrain querellé à Pazani",
-    "Newspaper": "Sidwaya",
-    "Country": "Burkina Faso",
-    "dcterms:date": "2020-10-07",
-    "hijri_year": 1442,
-    "hijri_month": 2,
-    "hijri_day": 20
-  },
-  {
-    "o:id": 67692,
-    "o:title": "Prise en compte de la religion traditionnelle dans l’ONAFAR : chapeau bas au gouvernement mais…",
-    "Newspaper": "Sidwaya",
-    "Country": "Burkina Faso",
-    "dcterms:date": "2020-08-10",
-    "hijri_year": 1441,
-    "hijri_month": 12,
-    "hijri_day": 20
   },
   {
     "o:id": 67693,
@@ -120908,7 +120837,8 @@
     "dcterms:date": "2018-10-23",
     "hijri_year": 1440,
     "hijri_month": 2,
-    "hijri_day": 14
+    "hijri_day": 14,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75872/manifest"
   },
   {
     "o:id": 75873,
@@ -120928,7 +120858,8 @@
     "dcterms:date": "2019-08-12",
     "hijri_year": 1440,
     "hijri_month": 12,
-    "hijri_day": 11
+    "hijri_day": 11,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75874/manifest"
   },
   {
     "o:id": 75875,
@@ -120938,7 +120869,8 @@
     "dcterms:date": "2019-08-12",
     "hijri_year": 1440,
     "hijri_month": 12,
-    "hijri_day": 11
+    "hijri_day": 11,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75875/manifest"
   },
   {
     "o:id": 75876,
@@ -120958,7 +120890,8 @@
     "dcterms:date": "2019-08-12",
     "hijri_year": 1440,
     "hijri_month": 12,
-    "hijri_day": 11
+    "hijri_day": 11,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75877/manifest"
   },
   {
     "o:id": 75878,
@@ -120998,7 +120931,8 @@
     "dcterms:date": "2019-06-05",
     "hijri_year": 1440,
     "hijri_month": 10,
-    "hijri_day": 2
+    "hijri_day": 2,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75881/manifest"
   },
   {
     "o:id": 75882,
@@ -121048,7 +120982,8 @@
     "dcterms:date": "2019-05-07",
     "hijri_year": 1440,
     "hijri_month": 9,
-    "hijri_day": 2
+    "hijri_day": 2,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75886/manifest"
   },
   {
     "o:id": 75887,
@@ -121088,7 +121023,8 @@
     "dcterms:date": "2018-08-20",
     "hijri_year": 1439,
     "hijri_month": 12,
-    "hijri_day": 9
+    "hijri_day": 9,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75890/manifest"
   },
   {
     "o:id": 75891,
@@ -121118,7 +121054,8 @@
     "dcterms:date": "2018-06-17",
     "hijri_year": 1439,
     "hijri_month": 10,
-    "hijri_day": 3
+    "hijri_day": 3,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75893/manifest"
   },
   {
     "o:id": 75894,
@@ -121128,7 +121065,8 @@
     "dcterms:date": "2018-06-16",
     "hijri_year": 1439,
     "hijri_month": 10,
-    "hijri_day": 2
+    "hijri_day": 2,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75894/manifest"
   },
   {
     "o:id": 75895,
@@ -121138,7 +121076,8 @@
     "dcterms:date": "2018-06-16",
     "hijri_year": 1439,
     "hijri_month": 10,
-    "hijri_day": 2
+    "hijri_day": 2,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75895/manifest"
   },
   {
     "o:id": 75896,
@@ -121148,7 +121087,8 @@
     "dcterms:date": "2018-06-16",
     "hijri_year": 1439,
     "hijri_month": 10,
-    "hijri_day": 2
+    "hijri_day": 2,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75896/manifest"
   },
   {
     "o:id": 75897,
@@ -121158,7 +121098,8 @@
     "dcterms:date": "2018-06-15",
     "hijri_year": 1439,
     "hijri_month": 10,
-    "hijri_day": 1
+    "hijri_day": 1,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75897/manifest"
   },
   {
     "o:id": 75898,
@@ -121178,7 +121119,8 @@
     "dcterms:date": "2017-11-19",
     "hijri_year": 1439,
     "hijri_month": 3,
-    "hijri_day": 1
+    "hijri_day": 1,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75899/manifest"
   },
   {
     "o:id": 75900,
@@ -121188,7 +121130,8 @@
     "dcterms:date": "2018-06-11",
     "hijri_year": 1439,
     "hijri_month": 9,
-    "hijri_day": 27
+    "hijri_day": 27,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75900/manifest"
   },
   {
     "o:id": 75901,
@@ -121248,7 +121191,8 @@
     "dcterms:date": "2021-08-26",
     "hijri_year": 1443,
     "hijri_month": 1,
-    "hijri_day": 18
+    "hijri_day": 18,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75906/manifest"
   },
   {
     "o:id": 75907,
@@ -121258,7 +121202,8 @@
     "dcterms:date": "2021-07-21",
     "hijri_year": 1442,
     "hijri_month": 12,
-    "hijri_day": 11
+    "hijri_day": 11,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75907/manifest"
   },
   {
     "o:id": 75908,
@@ -121268,7 +121213,8 @@
     "dcterms:date": "2021-07-20",
     "hijri_year": 1442,
     "hijri_month": 12,
-    "hijri_day": 10
+    "hijri_day": 10,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75908/manifest"
   },
   {
     "o:id": 75909,
@@ -121278,7 +121224,8 @@
     "dcterms:date": "2021-07-21",
     "hijri_year": 1442,
     "hijri_month": 12,
-    "hijri_day": 11
+    "hijri_day": 11,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75909/manifest"
   },
   {
     "o:id": 75910,
@@ -121288,7 +121235,8 @@
     "dcterms:date": "2021-07-20",
     "hijri_year": 1442,
     "hijri_month": 12,
-    "hijri_day": 10
+    "hijri_day": 10,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75910/manifest"
   },
   {
     "o:id": 75911,
@@ -121298,7 +121246,8 @@
     "dcterms:date": "2021-07-20",
     "hijri_year": 1442,
     "hijri_month": 12,
-    "hijri_day": 10
+    "hijri_day": 10,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75911/manifest"
   },
   {
     "o:id": 75912,
@@ -121308,7 +121257,8 @@
     "dcterms:date": "2021-07-20",
     "hijri_year": 1442,
     "hijri_month": 12,
-    "hijri_day": 10
+    "hijri_day": 10,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75912/manifest"
   },
   {
     "o:id": 75913,
@@ -121318,7 +121268,8 @@
     "dcterms:date": "2021-07-14",
     "hijri_year": 1442,
     "hijri_month": 12,
-    "hijri_day": 4
+    "hijri_day": 4,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75913/manifest"
   },
   {
     "o:id": 75914,
@@ -121328,7 +121279,8 @@
     "dcterms:date": "2021-06-25",
     "hijri_year": 1442,
     "hijri_month": 11,
-    "hijri_day": 15
+    "hijri_day": 15,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75914/manifest"
   },
   {
     "o:id": 75915,
@@ -121338,7 +121290,8 @@
     "dcterms:date": "2021-05-14",
     "hijri_year": 1442,
     "hijri_month": 10,
-    "hijri_day": 2
+    "hijri_day": 2,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75915/manifest"
   },
   {
     "o:id": 75916,
@@ -121388,7 +121341,8 @@
     "dcterms:date": "2021-05-12",
     "hijri_year": 1442,
     "hijri_month": 9,
-    "hijri_day": 30
+    "hijri_day": 30,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75920/manifest"
   },
   {
     "o:id": 75921,
@@ -121448,7 +121402,8 @@
     "dcterms:date": "2021-02-22",
     "hijri_year": 1442,
     "hijri_month": 7,
-    "hijri_day": 10
+    "hijri_day": 10,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75926/manifest"
   },
   {
     "o:id": 75927,
@@ -121468,7 +121423,8 @@
     "dcterms:date": "2021-01-06",
     "hijri_year": 1442,
     "hijri_month": 5,
-    "hijri_day": 22
+    "hijri_day": 22,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75928/manifest"
   },
   {
     "o:id": 75929,
@@ -121478,7 +121434,8 @@
     "dcterms:date": "2020-12-23",
     "hijri_year": 1442,
     "hijri_month": 5,
-    "hijri_day": 8
+    "hijri_day": 8,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75929/manifest"
   },
   {
     "o:id": 75930,
@@ -121488,7 +121445,8 @@
     "dcterms:date": "2020-10-30",
     "hijri_year": 1442,
     "hijri_month": 3,
-    "hijri_day": 13
+    "hijri_day": 13,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75930/manifest"
   },
   {
     "o:id": 75931,
@@ -121508,7 +121466,8 @@
     "dcterms:date": "2020-09-14",
     "hijri_year": 1442,
     "hijri_month": 1,
-    "hijri_day": 26
+    "hijri_day": 26,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75932/manifest"
   },
   {
     "o:id": 75933,
@@ -121588,7 +121547,8 @@
     "dcterms:date": "2020-07-24",
     "hijri_year": 1441,
     "hijri_month": 12,
-    "hijri_day": 3
+    "hijri_day": 3,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75940/manifest"
   },
   {
     "o:id": 75941,
@@ -121598,7 +121558,8 @@
     "dcterms:date": "2020-06-22",
     "hijri_year": 1441,
     "hijri_month": 11,
-    "hijri_day": 1
+    "hijri_day": 1,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75941/manifest"
   },
   {
     "o:id": 75942,
@@ -121608,7 +121569,8 @@
     "dcterms:date": "2020-05-25",
     "hijri_year": 1441,
     "hijri_month": 10,
-    "hijri_day": 2
+    "hijri_day": 2,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75942/manifest"
   },
   {
     "o:id": 75943,
@@ -121648,7 +121610,8 @@
     "dcterms:date": "2020-04-25",
     "hijri_year": 1441,
     "hijri_month": 9,
-    "hijri_day": 2
+    "hijri_day": 2,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75946/manifest"
   },
   {
     "o:id": 75947,
@@ -121668,7 +121631,8 @@
     "dcterms:date": "2020-04-23",
     "hijri_year": 1441,
     "hijri_month": 8,
-    "hijri_day": 30
+    "hijri_day": 30,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75948/manifest"
   },
   {
     "o:id": 75949,
@@ -121678,7 +121642,8 @@
     "dcterms:date": "2020-03-27",
     "hijri_year": 1441,
     "hijri_month": 8,
-    "hijri_day": 3
+    "hijri_day": 3,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75949/manifest"
   },
   {
     "o:id": 75950,
@@ -121688,7 +121653,8 @@
     "dcterms:date": "2020-02-28",
     "hijri_year": 1441,
     "hijri_month": 7,
-    "hijri_day": 4
+    "hijri_day": 4,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75950/manifest"
   },
   {
     "o:id": 75951,
@@ -121698,7 +121664,8 @@
     "dcterms:date": "2019-11-25",
     "hijri_year": 1441,
     "hijri_month": 3,
-    "hijri_day": 28
+    "hijri_day": 28,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75951/manifest"
   },
   {
     "o:id": 75952,
@@ -121708,7 +121675,8 @@
     "dcterms:date": "2019-11-18",
     "hijri_year": 1441,
     "hijri_month": 3,
-    "hijri_day": 21
+    "hijri_day": 21,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75952/manifest"
   },
   {
     "o:id": 75953,
@@ -121718,7 +121686,8 @@
     "dcterms:date": "2019-10-24",
     "hijri_year": 1441,
     "hijri_month": 2,
-    "hijri_day": 25
+    "hijri_day": 25,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75953/manifest"
   },
   {
     "o:id": 75954,
@@ -121728,7 +121697,8 @@
     "dcterms:date": "2019-10-07",
     "hijri_year": 1441,
     "hijri_month": 2,
-    "hijri_day": 8
+    "hijri_day": 8,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75954/manifest"
   },
   {
     "o:id": 75955,
@@ -121738,7 +121708,8 @@
     "dcterms:date": "2019-09-13",
     "hijri_year": 1441,
     "hijri_month": 1,
-    "hijri_day": 14
+    "hijri_day": 14,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75955/manifest"
   },
   {
     "o:id": 75956,
@@ -121748,7 +121719,8 @@
     "dcterms:date": "2019-08-12",
     "hijri_year": 1440,
     "hijri_month": 12,
-    "hijri_day": 11
+    "hijri_day": 11,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75956/manifest"
   },
   {
     "o:id": 75957,
@@ -121758,7 +121730,8 @@
     "dcterms:date": "2019-08-12",
     "hijri_year": 1440,
     "hijri_month": 12,
-    "hijri_day": 11
+    "hijri_day": 11,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75957/manifest"
   },
   {
     "o:id": 75958,
@@ -121768,7 +121741,8 @@
     "dcterms:date": "2019-08-12",
     "hijri_year": 1440,
     "hijri_month": 12,
-    "hijri_day": 11
+    "hijri_day": 11,
+    "iiif_manifest": "https://islam.zmo.de/iiif/3/75958/manifest"
   },
   {
     "o:id": 75970,

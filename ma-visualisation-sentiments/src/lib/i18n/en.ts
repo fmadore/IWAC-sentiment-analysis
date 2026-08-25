@@ -37,11 +37,13 @@ export const en = {
 	},
 
 	/* The eyebrow rule under each view title: "Model · X · Sample · N articles".
-	   Assembled in ViewContent from these two words plus `common.of` and
-	   `common.articles`. */
+	   Assembled in ViewContent from these words plus `common.of` and
+	   `common.articles`. `rated` is appended only when the model left part of
+	   the sample unrated, so most models never show it. */
 	viewMeta: {
 		model: 'Model',
-		sample: 'Sample'
+		sample: 'Sample',
+		rated: 'Rated'
 	},
 
 	// Filters
@@ -189,10 +191,11 @@ export const en = {
 		weightedKappaHelp:
 			'Quadratic-weighted kappa. Being one category off costs far less than being four off, which suits scales whose categories run in order. A weighted score much higher than the unweighted one means the models mostly rank alike but calibrate differently.',
 		fleissKappa: 'Fleiss’ κ',
-		fleissHelp: 'Fleiss’ kappa across all three models at once, over articles every model rated.',
-		threeWayTitle: 'All three models',
-		threeWayLede:
-			'Agreement across all three models of the selected analysis at once, dimension by dimension. Only articles that all three rated are counted.',
+		fleissHelp:
+			'Fleiss’ kappa across every model of the panel at once, over articles every model rated.',
+		panelTitle: 'The whole panel',
+		panelLede:
+			'Agreement across every model of the selected analysis at once, dimension by dimension. Only articles that every model rated are counted, so a model with thinner coverage narrows the base for all of them.',
 		matrixTitle: 'Agreement matrix',
 		rowsAre: 'Rows:',
 		columnsAre: 'Columns:',
@@ -210,24 +213,24 @@ export const en = {
 			almostPerfect: 'Almost perfect'
 		},
 
-		// Three-way consensus section
+		// Panel-wide consensus section
 		scopeLabel: 'Comparison scope',
 		scopePair: 'Two models',
-		scopeTrio: 'All three',
-		consensusTitle: 'Where the three models disagree',
+		scopePanel: 'All models',
+		consensusTitle: 'Where the models disagree',
 		consensusLede:
-			'A pairwise view can show that two models differ; it cannot show that one of them stands apart from the other two. Everything below breaks each article down across all three at once, so a model that applies the scale differently from its peers shows up as a consistent pattern.',
+			'A pairwise view can show that two models differ; it cannot show that one of them stands apart from all the others. Everything below breaks each article down across the whole panel at once, so a model that applies the scale differently from its peers shows up as a consistent pattern.',
 		unanimous: 'Unanimous',
-		unanimousHelp: 'Share of articles where all three models chose the identical category.',
-		majoritySplit: 'Two against one',
+		unanimousHelp: 'Share of articles where every model chose the identical category.',
+		majoritySplit: 'One against the rest',
 		majoritySplitHelp:
-			'Share of articles where two models agreed and one stood apart. The charts below name which one.',
-		allDiffer: 'All three differ',
+			'Share of articles where every model but one chose the same category and one stood apart. The charts below name which one.',
+		allDiffer: 'Divided several ways',
 		allDifferHelp:
-			'Share of articles where no two models chose the same category, so there is no majority to dissent from.',
+			'Share of articles that are neither unanimous nor one model against the rest: the panel falls into several camps, so there is no lone dissenter to name. On a larger panel this outcome absorbs the near-splits a three-model panel could not produce.',
 		meanSpread: 'Mean spread',
 		meanSpreadHelp:
-			'Mean of (highest − lowest) across the three models, counted in steps on the scale. Zero is unanimity; the maximum is the full width of the scale.',
+			'Mean of (highest − lowest) across the models, counted in steps on the scale. Zero is unanimity; the maximum is the full width of the scale.',
 		declinedToggle: 'Declined ratings',
 		declinedInclude: 'Included',
 		declinedExclude: 'Excluded',
@@ -238,7 +241,7 @@ export const en = {
 
 		disagreementTitle: 'Newspapers ranked by model disagreement',
 		disagreementSubtitle:
-			'Mean three-way spread with 95% CI · titles with at least {min} rated articles',
+			'Mean spread across the panel with 95% CI · titles with at least {min} rated articles',
 		disagreementAxis: 'Steps on the scale between the highest and lowest model',
 		disagreementNote:
 			'The mirror of the Newspapers view: same titles, same threshold, but the axis measures how far apart the models are rather than what they say. A title can be unremarkable in sentiment and an outlier in disagreement.',
@@ -251,31 +254,32 @@ export const en = {
 		disagreementEmpty: 'No newspaper has at least {min} rated articles under the current filters.',
 
 		dissentTitle: 'Who breaks ranks',
-		dissentSubtitle: 'Every article sorted into one of five outcomes',
+		dissentSubtitle:
+			'Every article sorted into unanimity, one model against the rest, or a wider division',
 		dissentStacked: 'By newspaper',
 		dissentTernary: 'Triangle',
 		dissentTernaryNote:
-			'One point per newspaper, placed according to which model most often stands alone there. A point at a corner means that model does all the dissenting; a point at the centre means the three share it evenly. Size is the article count. Titles with no two-against-one splits have no position and are not drawn.',
+			'One point per newspaper, placed according to which model most often stands alone there. A point at a corner means that model does all the dissenting; a point at the centre means the three share it evenly. Size is the article count. Titles where no model ever stood alone have no position and are not drawn. A triangle has exactly three corners, so this view is offered only for the three-model archive; the five-model panel is read from the stacked bars instead.',
 		dissentsAlone: 'dissents alone',
 		dissentShare: 'Share of splits',
 
 		directionTitle: 'Which way each model leans',
 		directionSubtitle:
-			'When a model stands alone, does it grade above the other two or below? Bars above the axis are higher, below are lower.',
+			'When a model stands alone, does it grade above the rest of the panel or below? Bars above the axis are higher, below are lower.',
 		directionAbove: 'Grades higher',
 		directionBelow: 'Grades lower',
 		directionNote:
-			'This is the clearest single statement the data makes about how these models differ. A model whose bars sit almost entirely on one side is applying the scale differently from the other two, consistently and in one direction.',
+			'This is the clearest single statement the data makes about how these models differ. A model whose bars sit almost entirely on one side is applying the scale differently from its peers, consistently and in one direction.',
 
-		flowTitle: 'Label flow across the three models',
+		flowTitle: 'Label flow across the panel',
 		flowNote:
-			'The agreement matrix extended to three models. A systematic offset appears as a mass of ribbons sliding down one band, and the routes a pairwise matrix hides — articles where the first and last model agree by way of a disagreeing middle one — become visible.',
+			'The agreement matrix extended to the whole panel. A systematic offset appears as a mass of ribbons sliding down one band, and the routes a pairwise matrix hides — articles where the first and last model agree by way of a disagreeing middle one — become visible.',
 		flowArticles: 'articles',
 
 		scatterTitle: 'Is disagreement about extreme coverage or ambiguous coverage?',
 		scatterSubtitle: 'One bubble per newspaper · sized by article count, coloured by country',
-		scatterX: 'Consensus mean (the three models averaged)',
-		scatterY: 'Mean three-way spread',
+		scatterX: 'Consensus mean (the models averaged)',
+		scatterY: 'Mean spread across the panel',
 		scatterNote:
 			'Correlation between the two axes: r = {r}. A value near zero would mean disagreement is independent of how favourable a title’s coverage is; a strong value in either direction means the models argue hardest about one end of the scale, and the ranking above should be read with that in mind. The value differs between the two analysis generations and between the three dimensions.'
 	},
@@ -303,7 +307,7 @@ export const en = {
 		declined: 'Declined',
 		medianYear: 'Median year',
 		disagreementCaption:
-			'Newspapers ranked by mean three-way spread, with confidence intervals, unanimity and declined share'
+			'Newspapers ranked by mean spread across the panel, with confidence intervals, unanimity and declined share'
 	},
 
 	// Chart titles and labels
@@ -410,9 +414,12 @@ export const en = {
 			'The subject here is how the West African press portrays Islam and Muslims. Coding thousands of articles by hand is slow and hard to keep consistent, so the whole corpus of',
 		methodologyCorpusArticles: 'articles from the',
 		methodologyCorpusDeveloper: ', a collaborative, open-access digital database built by',
-		/* The three model names that follow are rendered as links from the
-		   contract registry, so the generation on screen names its own panel. */
-		methodologyCorpusEnd: ', was put through three large language models:',
+		/* The model names that follow are rendered as links from the contract
+		   registry, so the generation on screen names its own panel — three
+		   models in the archive, five in the current one. Do not restate the
+		   count here; it would be right for one generation and wrong for the
+		   other. */
+		methodologyCorpusEnd: ', was put through the following large language models:',
 		methodologyCorpusDimensions: 'Each model rated every article on three dimensions:',
 		methodologyAiModel: 'Method and models',
 		modelUsed: 'Models',
@@ -489,12 +496,15 @@ export const en = {
 	 */
 	analysisV2: {
 		config: [
-			'Corpus run: 3–5 August 2026',
-			'Reasoning effort: medium for GPT-5.6 Luna; high for Mistral Small 4 and DeepSeek v4 Flash, whose APIs offer no middle setting',
-			'Temperature: not set by the pipeline — each model runs at its vendor default',
+			'Corpus runs: 3–5 August 2026 for GPT-5.6 Luna, Mistral Small 4 and DeepSeek v4 Flash; 14–15 August for Gemma 4 31B; 17–24 August for Qwen3.8 27B',
+			'Reasoning effort: medium for GPT-5.6 Luna and Qwen3.8 27B, the only two whose setting could be verified; high for Mistral Small 4 and DeepSeek v4 Flash, whose APIs offer no middle setting; nominally medium for Gemma 4 31B, whose OpenRouter route makes medium and high indistinguishable',
+			'Where each model ran: at its maker’s own API, except Gemma 4 31B and DeepSeek v4 Flash, which were served through OpenRouter, and Qwen3.8 27B, self-hosted with vLLM on the University of Bayreuth’s Festus cluster',
+			'Temperature: not set by the pipeline — each model runs at its host’s default',
 			'Output format: structured JSON validated against a Pydantic schema',
 			'A resumable cache holding one record per article and model; only successful calls are kept',
 			'Error handling: up to three attempts per call, with a growing wait between them and a time limit per model',
+			'Coverage: 12,298 of the 12,349 articles carry annotations from every model. The 51 that are neither French nor English are skipped by design, because the prompt is French',
+			'Qwen3.8 27B stops 200 articles short of that, having declined them across a full pass and three further rounds of retries. That gap is permanent, and it is not missing at random: it falls disproportionately on articles where Islam is peripheral, so any figure computed only on articles every model rated leans towards material where Islam is central',
 			'Prompt fingerprint d14ace9ac192, recorded with every cached result'
 		],
 		promptFeatures: [
@@ -795,24 +805,24 @@ export const en = {
 		justification: 'Reason given'
 	},
 
-	// Three-way arbiter (generation 2). A separate block from `arbiter` because
-	// almost every string differs: three analyses instead of two, "multiple"
-	// and "none" instead of "both"/"neither", spread instead of pairwise gap.
+	// Panel arbiter (generation 2). A separate block from `arbiter` because
+	// almost every string differs: the whole panel instead of two models,
+	// "multiple" and "none" instead of "both"/"neither", spread instead of
+	// pairwise gap.
 	arbiterV2: {
-		viewTitle: 'Three-way arbiter',
-		viewSubtitle:
-			'One blind verdict per article, comparing all three generation-2 analyses at once',
+		viewTitle: 'Panel arbiter',
+		viewSubtitle: 'One blind verdict per article, comparing every generation-2 analysis at once',
 		modelName: 'Claude Opus 5',
 		arbiterRole: 'Third-party judge',
 		samplingFrameNote:
-			'The arbiter did not review the whole corpus. It reviewed articles chosen because the three models disagreed most sharply about them, so every percentage below holds only where a disagreement already exists. None of them measures which model is better across the corpus as a whole.',
+			'The arbiter did not review the whole corpus. It reviewed articles chosen because the panel disagreed most sharply about them, so every percentage below holds only where a disagreement already exists. None of them measures which model is better across the corpus as a whole.',
 		articlesEvaluated: 'articles reviewed',
 		dimensionVerdicts: 'dimension verdicts',
 		preferred: 'preferred',
 		multiple: 'Several equally close',
 		none: 'None close',
 		overallVerdicts: 'Overall verdicts',
-		overallVerdictsNote: 'One verdict per article, across all three dimensions',
+		overallVerdictsNote: 'One verdict per article, across all three dimensions at once',
 		byDimension: 'Verdicts by dimension',
 		confidenceDistribution: 'Confidence distribution',
 		blindLabel: 'Shown as',
@@ -828,41 +838,41 @@ export const en = {
 		confidence: 'Confidence',
 		showReasoning: 'Show reasoning',
 		hideReasoning: 'Hide reasoning',
-		noData: 'No three-way arbiter verdicts yet',
+		noData: 'No panel arbiter verdicts yet',
 		noDataDescription:
 			'This run costs money and is launched by hand, so it has not been made yet. Until it is, this view has nothing to show.',
 		loading: 'Loading arbiter data…',
 		// Methodology
-		methodologyTitle: 'How the three-way arbiter works',
-		methodologySubtitle: 'One judge compares all three generation-2 analyses at once',
+		methodologyTitle: 'How the panel arbiter works',
+		methodologySubtitle: 'One judge compares every generation-2 analysis at once',
 		blindEvaluation: 'Blind review',
 		blindEvaluationDesc:
-			'The three analyses are anonymised as A, B and C by a single random shuffle, fixed for the whole run.',
+			'The analyses are anonymised as A to E by a single random shuffle, fixed for the whole run.',
 		selectionProcess: 'How articles were chosen',
 		selectionProcessDesc:
-			'An article qualifies when the three models are at least 3 points apart on any dimension: the highest rating minus the lowest, not a gap between one pair. Articles where any model reports that the task does not apply are left out rather than counted as a maximal disagreement.',
+			'An article qualifies when the models are at least 3 points apart on any dimension: the highest rating minus the lowest across the whole panel, not a gap between one pair. Articles where any model reports that the task does not apply — or, for Qwen3.8 27B, never returned an answer at all — are left out rather than counted as a maximal disagreement.',
 		fullText: 'The full article text',
 		fullTextDesc:
 			'The arbiter reads the article from the private mirror of the collection, where the text is complete. The v1 arbiter read the public version, which masks the text of a large share of articles, so some v1 verdicts were reached without the article in front of the judge.',
 		independentVerdict: 'Independent verdict',
-		independentVerdictDesc: 'The arbiter rates the article itself before comparing the three.',
+		independentVerdictDesc: 'The arbiter rates the article itself before comparing the analyses.',
 		reasoningEffort: 'Reasoning effort',
 		reasoningEffortDesc:
 			'Claude Opus 5 thinks adaptively, so the run sets an effort level rather than a token budget. That setting is also what the run costs.',
 		howItWorks: 'How it works',
 		step1: 'It reads the full text of the article',
 		step2: 'It rates polarity, subjectivity and centrality on its own',
-		step3: 'It compares the three anonymised analyses against its own rating',
+		step3: 'It compares the anonymised analyses against its own rating',
 		step4:
 			'It names the most accurate analysis per dimension, or says that several tie or that none is right',
 		arbiterModel: 'Arbiter model',
 		arbiterModelDesc:
-			'Claude Opus 5 judges all three analyses in a single call, so its verdicts hold together in a way that three separate pairwise runs could not.',
+			'Claude Opus 5 judges every analysis of an article in a single call, so its verdicts hold together in a way that ten separate pairwise runs could not.',
 		viewPrompt: 'View the prompt',
 		promptExplanation:
 			'The French system instruction and user prompt sent to the arbiter, word for word.',
 		viewFullPrompt: 'View the full prompt',
-		arbiterPrompt: 'Three-way arbiter prompt',
+		arbiterPrompt: 'Panel arbiter prompt',
 		systemInstruction: 'System instruction',
 		userPromptTemplate: 'User prompt template'
 	},
@@ -904,15 +914,15 @@ export const en = {
 		siteTitle: 'IWAC Sentiment Analysis',
 		comparisonTitle: 'AI model comparison',
 		comparisonDescription:
-			'Compare how GPT-5.6 Luna, Mistral Small 4 and DeepSeek v4 Flash rated the same articles from the Islam West Africa Collection, and see where their readings of the press coverage part company.',
+			'Compare how GPT-5.6 Luna, Mistral Small 4, DeepSeek v4 Flash, Gemma 4 31B and Qwen3.8 27B rated the same articles from the Islam West Africa Collection, and see where their readings of the press coverage part company.',
 		comparisonKeywords:
-			'AI comparison, GPT-5.6 Luna vs Mistral Small 4 vs DeepSeek, model comparison, sentiment analysis, IWAC, AI evaluation',
+			'AI comparison, GPT-5.6 Luna vs Mistral Small 4 vs DeepSeek vs Gemma vs Qwen, model comparison, sentiment analysis, IWAC, AI evaluation',
 		viewDescriptionPrefix: 'Explore ',
 		viewDescriptionSuffix:
 			' in the AI sentiment annotations of the Islam West Africa Collection, a corpus of francophone West African press coverage of Islam and Muslims.',
 		baseKeywords: 'sentiment analysis, IWAC, Islam West Africa, data visualisation',
 		ogImageAlt:
-			'IWAC Sentiment Analysis — polarity distributions from GPT-5.6 Luna, Mistral Small 4 and DeepSeek v4 Flash across 12,305 francophone West African press articles',
+			'IWAC Sentiment Analysis — polarity distributions from GPT-5.6 Luna, Mistral Small 4, DeepSeek v4 Flash, Gemma 4 31B and Qwen3.8 27B across 12,298 francophone West African press articles',
 		views: {
 			charts: {
 				title: 'Charts and distributions',
@@ -961,7 +971,7 @@ export const en = {
 			},
 			agreement: {
 				title: 'Model agreement',
-				description: 'how far the three AI models agree, and how they differ when they do not',
+				description: 'how far the AI models agree, and how they differ when they do not',
 				keywords: "agreement, Cohen's kappa, Fleiss' kappa, inter-rater reliability, calibration"
 			},
 			comparison: {

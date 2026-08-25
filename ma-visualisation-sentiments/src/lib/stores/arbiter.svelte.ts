@@ -2,7 +2,7 @@
  * Arbiter State Module
  *
  * Manages the **generation-1** pairwise arbiter (Gemini 3 Pro) evaluation state.
- * Generation 2 arbitrates all three models at once and lives in `arbiterV2`.
+ * Generation 2 arbitrates its whole model panel at once and lives in `arbiterV2`.
  * Uses Svelte 5 runes for reactivity.
  */
 
@@ -294,8 +294,9 @@ export const loadArbiterEvaluations = async (
 
 	// Only generation 1 has a per-pair arbiter file. A v2 pair would build a
 	// filename that cannot exist (`iwac_arbiter_evaluations_luna-mistral-small.json`)
-	// and 404 on every comparison mount and every pair switch. The v2 arbiter is
-	// three-way and is loaded by `arbiterV2` from a single file.
+	// and 404 on every comparison mount and every pair switch — ten times over,
+	// now that the v2 panel has ten pairs. The v2 arbiter judges the whole panel
+	// at once and is loaded by `arbiterV2` from a single file.
 	if (generationOf(targetPair) !== 'v1') {
 		_arbiterEvaluations = null;
 		_currentArbiterPair = targetPair;

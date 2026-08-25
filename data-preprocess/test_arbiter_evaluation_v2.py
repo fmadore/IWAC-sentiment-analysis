@@ -1,4 +1,4 @@
-"""Contract tests for the three-way arbiter boundary, without API calls.
+"""Contract tests for the panel arbiter boundary, without API calls.
 
 Everything the paid run depends on is exercised here: which articles are
 selected, which ones a cap keeps, that the blind permutation survives an
@@ -31,7 +31,16 @@ def load_module():
 
 arbiter = load_module()
 MODEL_IDS = arbiter.MODEL_IDS
+# One label per contract model, in contract order. Every fixture below derives
+# its labels from this rather than spelling out a/b/c, so growing the panel is a
+# one-line change here instead of a rewrite.
 PERMUTATION = dict(zip(arbiter.BLIND_LABELS, MODEL_IDS, strict=True))
+
+
+def rotated_permutation(offset: int = 1) -> dict[str, str]:
+    """A permutation that is deliberately *not* the contract order."""
+    rotated = MODEL_IDS[offset:] + MODEL_IDS[:offset]
+    return dict(zip(arbiter.BLIND_LABELS, rotated, strict=True))
 
 
 # ---------------------------------------------------------------------------
@@ -77,23 +86,34 @@ def selected_ids(records: list[dict]) -> set[str]:
 # ---------------------------------------------------------------------------
 
 
+PANEL_AT_THRESHOLD = ["Positif", "Neutre", "Très négatif", "Neutre", "Négatif"]
+PANEL_BELOW_THRESHOLD = ["Neutre", "Négatif", "Très négatif", "Neutre", "Négatif"]
+PANEL_FULL_FLIP = ["Très positif", "Neutre", "Très négatif", "Neutre", "Positif"]
+
+
 def test_spread_at_the_threshold_is_selected_and_below_it_is_not():
     # Positif (4) .. Très négatif (1) is a spread of exactly 3.
-    at_threshold = record(1, spread_of(["Positif", "Neutre", "Très négatif"]))
+    at_threshold = record(1, spread_of(PANEL_AT_THRESHOLD))
     # Neutre (3) .. Très négatif (1) is 2.
-    below = record(2, spread_of(["Neutre", "Négatif", "Très négatif"]))
+    below = record(2, spread_of(PANEL_BELOW_THRESHOLD))
     assert selected_ids([at_threshold, below]) == {"1"}
 
 
 def test_a_non_comparable_verdict_excludes_the_row():
-    """`Non applicable` means the task does not apply, not a fifth polarity."""
-    analyses = spread_of(["Positif", "Neutre", "Très négatif"])
+    """`Non applicable` means the task does not apply, not a sixth polarity."""
+    analyses = spread_of(PANEL_AT_THRESHOLD)
     analyses[MODEL_IDS[0]] = ("Non applicable", "Mixte", "Central")
     assert selected_ids([record(1, analyses)]) == set()
 
-    analyses = spread_of(["Positif", "Neutre", "Très négatif"])
+    analyses = spread_of(PANEL_AT_THRESHOLD)
     analyses[MODEL_IDS[1]] = ("Positif", "Mixte", "Non abordé")
     assert selected_ids([record(2, analyses)]) == set()
+
+    # The rule is the whole panel's, not the first three models': a single
+    # abstention anywhere in it excludes the row.
+    analyses = spread_of(PANEL_AT_THRESHOLD)
+    analyses[MODEL_IDS[-1]] = ("Non applicable", "Mixte", "Central")
+    assert selected_ids([record(3, analyses)]) == set()
 
 
 def test_a_declined_subjectivity_never_reads_as_agreement():
@@ -102,6 +122,8 @@ def test_a_declined_subjectivity_never_reads_as_agreement():
         MODEL_IDS[0]: ("Neutre", "Très objectif", "Central"),
         MODEL_IDS[1]: ("Neutre", "Très subjectif", "Central"),
         MODEL_IDS[2]: ("Neutre", "", "Central"),  # declined upstream
+        MODEL_IDS[3]: ("Neutre", "Mixte", "Central"),
+        MODEL_IDS[4]: ("Neutre", "Mixte", "Central"),
     }
     # Without the declined model the subjectivity spread would be 4 and the row
     # would qualify; with it the dimension contributes nothing and nothing else
@@ -114,9 +136,7 @@ def test_a_declined_subjectivity_never_reads_as_agreement():
 
 
 def test_selection_carries_the_analyses_and_spread_the_fingerprint_hashes():
-    article = arbiter.find_three_way_conflicts(
-        [record(1, spread_of(["Positif", "Neutre", "Très négatif"]))]
-    )[0]
+    article = arbiter.find_three_way_conflicts([record(1, spread_of(PANEL_AT_THRESHOLD))])[0]
     assert set(article["analyses"]) == set(MODEL_IDS)
     assert article["spread"]["has_significant_spread"] is True
     # Subjectivity is stored as the shared 1-5 rank, not the upstream label.
@@ -137,12 +157,14 @@ def subjectivity_only_conflict(article_id: int) -> dict:
             MODEL_IDS[0]: ("Neutre", "Très objectif", "Central"),
             MODEL_IDS[1]: ("Neutre", "Très subjectif", "Central"),
             MODEL_IDS[2]: ("Neutre", "Mixte", "Central"),
+            MODEL_IDS[3]: ("Neutre", "Plutôt objectif", "Central"),
+            MODEL_IDS[4]: ("Neutre", "Mixte", "Central"),
         },
     )
 
 
 def polarity_conflict(article_id: int) -> dict:
-    return record(article_id, spread_of(["Positif", "Neutre", "Très négatif"]))
+    return record(article_id, spread_of(PANEL_AT_THRESHOLD))
 
 
 def test_dimensions_narrows_which_disagreements_are_worth_arbitrating():
@@ -225,21 +247,37 @@ def test_no_limit_and_a_limit_above_the_count_keep_everything_in_corpus_order():
 # ---------------------------------------------------------------------------
 
 
+def test_there_is_one_blind_label_per_panel_model():
+    assert len(arbiter.BLIND_LABELS) == len(MODEL_IDS)
+    assert arbiter.PREFERENCE_VALUES == (*arbiter.BLIND_LABELS, "multiple", "none")
+
+
 def test_a_stored_permutation_is_reused_verbatim():
-    stored = {"blind_permutation": {"a": MODEL_IDS[2], "b": MODEL_IDS[0], "c": MODEL_IDS[1]}}
+    stored = {"blind_permutation": rotated_permutation()}
     assert arbiter.resolve_blind_permutation(stored, MODEL_IDS) == stored["blind_permutation"]
 
 
 def test_a_malformed_or_stale_permutation_is_redrawn():
+    short = dict(list(PERMUTATION.items())[:-1])
+    duplicated = {**PERMUTATION, arbiter.BLIND_LABELS[-1]: MODEL_IDS[0]}
+    foreign = {**PERMUTATION, arbiter.BLIND_LABELS[-1]: "chatgpt"}
     for metadata in (
         {},
-        {"blind_permutation": {"a": MODEL_IDS[0], "b": MODEL_IDS[1]}},
-        {"blind_permutation": {"a": MODEL_IDS[0], "b": MODEL_IDS[0], "c": MODEL_IDS[1]}},
-        {"blind_permutation": {"a": MODEL_IDS[0], "b": MODEL_IDS[1], "c": "chatgpt"}},
+        {"blind_permutation": short},
+        {"blind_permutation": duplicated},
+        {"blind_permutation": foreign},
     ):
         drawn = arbiter.resolve_blind_permutation(metadata, MODEL_IDS)
         assert set(drawn) == set(arbiter.BLIND_LABELS)
         assert sorted(drawn.values()) == sorted(MODEL_IDS)
+
+
+def test_a_panel_that_does_not_fill_the_labels_is_refused_with_a_readable_error():
+    """`zip(..., strict=True)` fails here cryptically; the panel size is the bug."""
+    with pytest.raises(ValueError, match="bijection"):
+        arbiter.resolve_blind_permutation({}, MODEL_IDS[:-1])
+    with pytest.raises(ValueError, match="bijection"):
+        arbiter.resolve_blind_permutation({}, [*MODEL_IDS, "sixth-model"])
 
 
 # ---------------------------------------------------------------------------
@@ -272,15 +310,16 @@ def prompt_article(text: str = "Texte intégral.") -> dict:
 
 
 def test_prompt_presents_the_analyses_in_permutation_order():
-    permutation = {"a": MODEL_IDS[2], "b": MODEL_IDS[0], "c": MODEL_IDS[1]}
+    permutation = rotated_permutation(2)
     prompt = arbiter.create_arbiter_prompt(prompt_article(), permutation)
 
     positions = [
         prompt.index(f"pol-{MARKERS[permutation[label]]}") for label in arbiter.BLIND_LABELS
     ]
     assert positions == sorted(positions)
-    assert prompt.index("## Analyse A :") < prompt.index("## Analyse B :")
-    assert prompt.index("## Analyse B :") < prompt.index("## Analyse C :")
+    headings = [prompt.index(f"## Analyse {label.upper()} :") for label in arbiter.BLIND_LABELS]
+    assert headings == sorted(headings)
+    assert len(headings) == len(MODEL_IDS)
 
 
 def test_prompt_never_names_a_model():
@@ -346,6 +385,56 @@ def valid_response() -> arbiter.ArbiterResponseV2:
 
 def message(parsed, stop_reason="end_turn", **extra):
     return SimpleNamespace(parsed_output=parsed, stop_reason=stop_reason, **extra)
+
+
+def test_every_blind_label_is_an_accepted_preference():
+    """A verdict naming Analyse D or E must parse, or the panel is unusable."""
+    for label in arbiter.BLIND_LABELS:
+        verdict = {
+            "justification": "Justification",
+            "preferred": label,
+            "verdict_explanation": "Explication",
+        }
+        parsed = arbiter.ArbiterResponseV2.model_validate(
+            {
+                "polarity": {**verdict, "arbiter_score": "Positif"},
+                "subjectivity": {**verdict, "arbiter_score": "Mixte"},
+                "centrality": {**verdict, "arbiter_score": "Central"},
+                "overall_winner": label,
+                "overall_explanation": "Explication générale",
+                "confidence_level": "high",
+            }
+        )
+        assert parsed.overall_winner == label
+
+
+def test_response_schema_rejects_a_label_no_analysis_carries():
+    with pytest.raises(ValidationError):
+        arbiter.ArbiterResponseV2.model_validate(
+            {
+                "polarity": {
+                    "arbiter_score": "Positif",
+                    "justification": "j",
+                    "preferred": "f",
+                    "verdict_explanation": "e",
+                },
+                "subjectivity": {
+                    "arbiter_score": "Mixte",
+                    "justification": "j",
+                    "preferred": "a",
+                    "verdict_explanation": "e",
+                },
+                "centrality": {
+                    "arbiter_score": "Central",
+                    "justification": "j",
+                    "preferred": "a",
+                    "verdict_explanation": "e",
+                },
+                "overall_winner": "a",
+                "overall_explanation": "e",
+                "confidence_level": "high",
+            }
+        )
 
 
 def test_response_schema_rejects_an_out_of_contract_score():
@@ -435,9 +524,9 @@ def test_an_article_without_text_is_never_sent():
 @pytest.fixture
 def stub_pipeline(monkeypatch, tmp_path):
     records = [
-        record(1, spread_of(["Positif", "Neutre", "Très négatif"])),
-        record(2, spread_of(["Très positif", "Neutre", "Très négatif"])),
-        record(3, spread_of(["Neutre", "Neutre", "Neutre"])),  # not eligible
+        record(1, spread_of(PANEL_AT_THRESHOLD)),
+        record(2, spread_of(PANEL_FULL_FLIP)),
+        record(3, spread_of(["Neutre"] * len(MODEL_IDS))),  # not eligible
     ]
     monkeypatch.setattr(arbiter, "load_dataset_records", lambda *a, **k: records)
     monkeypatch.setattr(
@@ -487,9 +576,15 @@ def test_prune_cache_only_publishes_the_envelope_the_validator_expects(stub_pipe
     metadata = payload["metadata"]
     assert payload["evaluations"] == []
     assert metadata["successful_evaluations"] == 0
-    assert metadata["mode"] == "three-way"
+    # The mode is the contract's, not a literal the script owns: the browser
+    # reads the same key to pick its arbiter view.
+    assert metadata["mode"] == CONTRACT_V2.arbiter["mode"] == "panel"
     assert metadata["models"] == MODEL_IDS
+    assert len(metadata["models"]) == 5
     assert metadata["arbiter_model"] == arbiter.ARBITER_MODEL
+    # The five-model prompt is not the three-model one; a cached verdict from
+    # the older wording must not be adopted silently.
+    assert metadata["prompt_version"] == CONTRACT_V2.arbiter["promptVersion"] == "v2.1.0"
     assert metadata["contract_schema_version"] == CONTRACT_V2.schema_version
     assert metadata["analysis_version"] == "v2"
     assert sorted(metadata["blind_permutation"].values()) == sorted(MODEL_IDS)
@@ -568,9 +663,9 @@ def test_the_published_user_template_matches_the_prompt_the_script_assembles():
     template = read_ts_template("ARBITER_USER_PROMPT_TEMPLATE_V2")
     rendered = arbiter.create_arbiter_prompt(prompt_article(), PERMUTATION)
 
-    for label in ("A", "B", "C"):
-        assert f"## Analyse {label} :" in template
-        assert f"## Analyse {label} :" in rendered
+    for label in arbiter.BLIND_LABELS:
+        assert f"## Analyse {label.upper()} :" in template
+        assert f"## Analyse {label.upper()} :" in rendered
 
     for line in template.splitlines():
         stripped = line.strip()

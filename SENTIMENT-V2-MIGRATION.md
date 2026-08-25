@@ -9,6 +9,13 @@ run** — the script and the view are shipped, but nobody has spent yet, so
 `iwac_arbiter_evaluations_v2.json` does not exist and the v2 arbiter view shows
 its empty state by design.
 
+> **This document records the migration as it happened in August 2026 and is
+> deliberately not kept current.** Everything below describes a three-model v2
+> panel, because that is what v2 was at the time. The panel was extended to five
+> models on 2026-08-25 — see the [addendum](#addendum--2026-08-25-the-panel-grew-to-five)
+> at the foot of this file for what that changed. For the state of the code
+> today, read `README.md` and `CLAUDE.md`, not this.
+
 |               |                                                                                                                                                                                       |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Issue         | [#129](https://github.com/fmadore/IWAC-sentiment-analysis/issues/129)                                                                                                                 |
@@ -177,3 +184,50 @@ the research question actually turns on.
    byte-stability.
 4. Luna shares ChatGPT's logo and colour with the archived `chatgpt`. Acceptable
    because the two generations never render together.
+
+
+---
+
+## Addendum — 2026-08-25: the panel grew to five
+
+Two models were added to generation 2: **Gemma 4 31B** (`gemma`, Google's
+open-weights model served through OpenRouter, 14–15 August, US$9.51) and
+**Qwen3.8 27B** (`qwen`, Alibaba's open-weights model self-hosted with vLLM on
+the University of Bayreuth's Festus cluster, 17–24 August, no API fee). The
+prompt, the scales and the fingerprint `d14ace9ac192` are unchanged, so this is
+a wider panel of the same campaign rather than a third generation.
+
+What the figures above become:
+
+| Stated above                   | Now                                                              |
+| ------------------------------ | ---------------------------------------------------------------- |
+| v2 is three models, three pairs | five models, **ten** pairs                                       |
+| 12,305 of 12,356 articles       | **12,298 of 12,349** — seven articles were deleted upstream       |
+| arbiter selects 1,449 articles  | **2,102**, of which 1,762 on subjectivity alone and 103 on polarity |
+| blind labels A/B/C              | **A–E**, and `arbiter.mode` becomes `"panel"`                    |
+
+Three things this made true that were not true before:
+
+1. **Coverage is no longer uniform across the panel.** Qwen3.8 27B declined 200
+   articles across a full pass and three retry rounds, after which they were
+   retired; it ships 251 null polarity/centrality rows and 538 null subjectivity
+   rows against the other models' 51. The gap is **not missing at random** — it
+   concentrates on articles where Islam is peripheral — so every complete-case
+   figure leans towards high-centrality material. Open risk 1 above (DeepSeek's
+   489 declined subjectivity scores) is the same class of problem, one order of
+   magnitude smaller.
+2. **"Who breaks ranks" changed meaning.** `classifyDissent` names a dissenter
+   only when exactly one model stands against all the rest; at five raters a 3–2
+   split has no lone dissenter, so the outcome buckets were relabelled "one
+   against the rest" and "divided several ways". The ternary triangle is now
+   offered for the three-model archive only: a simplex over five models has no
+   honest two-dimensional projection, and `barycentric()` returns null rather
+   than drawing a wrong one.
+3. **The archive stopped being a special case and became the general one.** Any
+   copy or code that said "three" was right for v1 and wrong for v2, so the
+   strings now say "the panel" and the code reads `datasetIdsOf(generation)` or
+   a `models.length` argument. Neither number is written down anywhere it would
+   have to be maintained.
+
+Still open, unchanged by this: **the paid arbiter run has not been made.** The
+empty state remains correct, and the run is now against a wider frame.

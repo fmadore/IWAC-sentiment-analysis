@@ -78,7 +78,12 @@ def calculate_discrepancies(
 def calculate_three_way_spread(
     analyses: Sequence[dict], contract: SentimentContract = CONTRACT_V1
 ) -> dict | None:
-    """Measure how far apart three analyses of the same article sit.
+    """Measure how far apart a panel's analyses of the same article sit.
+
+    The name is historical: the panel was three models when the function was
+    written and is five now, and the contract key (``threeWaySpread``) is a
+    cross-language API. The calculation has always been over ``analyses``,
+    whatever its length.
 
     The comparability rules match the pairwise calculation: a single
     non-comparable polarity or centrality excludes the whole row, because the
