@@ -3,7 +3,7 @@
 
   Does disagreement track what a newspaper says, or is it independent of it?
 
-  x is the consensus — the three models averaged — and y is how far apart they
+  x is the consensus — the panel's models averaged — and y is how far apart they
   are. If the models mostly argued about the titles with the strongest views,
   the cloud would form a valley or a wedge.
 

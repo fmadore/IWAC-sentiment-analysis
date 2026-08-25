@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "analysis_version": "v2",
   "model": "luna",
   "shard": 27,
@@ -1389,11 +1389,6 @@
       "centralite_justification": "L'article cite la Bible, l'Exode et le Lévitique, mais ne mentionne ni l'islam ni les musulmans.",
       "subjectivite_justification": "Non applicable car le sujet n'est pas abordé.",
       "polarite_justification": "Non applicable car le sujet n'est pas abordé."
-    },
-    "67611": {
-      "centralite_justification": "L’article porte directement sur un symposium organisé par des associations islamiques, consacré au rôle de l’islam, des musulmans, des imams et des prêcheurs face aux défis démographiques.",
-      "subjectivite_justification": "Le traitement repose principalement sur des faits et des déclarations attribuées à des responsables religieux et politiques. Quelques formulations valorisantes, comme « rôle primordial » ou « éminents professeurs », introduisent toutefois une légère orientation.",
-      "polarite_justification": "L’article présente favorablement l’engagement des leaders musulmans dans le développement, la sensibilisation et l’amélioration de la santé et de l’éducation, en soulignant qu’ils « entendent jouer leur partition »."
     },
     "67835": {
       "centralite_justification": "L’article est entièrement consacré à l’AEEMCI, à ses objectifs religieux, à la pratique de l’islam et à l’organisation de la communauté musulmane ivoirienne.",

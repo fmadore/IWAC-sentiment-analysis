@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "analysis_version": "v2",
   "model": "mistral-small",
   "shard": 27,
@@ -1389,11 +1389,6 @@
       "centralite_justification": "L'article traite exclusivement de concepts chrétiens (Bible, Exode, Lévitique) et ne mentionne ni l'islam ni les musulmans.",
       "subjectivite_justification": "L'article est fortement engagé avec un ton moralisateur, des jugements explicites et un appel à l'action, notamment à travers des termes comme 'virus qui ronge la Nation' ou 'dépravation des mœurs'.",
       "polarite_justification": "Le sujet de l'islam ou des musulmans n'étant pas abordé dans l'article, la polarité n'est pas applicable."
-    },
-    "67611": {
-      "centralite_justification": "L'article traite principalement d'un symposium organisé par une fédération islamique sur un thème lié à l'islam et au dividende démographique, avec des leaders religieux musulmans comme intervenants principaux.",
-      "subjectivite_justification": "L'article se limite à rapporter les faits et les déclarations des intervenants sans ajouter de commentaires ou d'opinions personnelles.",
-      "polarite_justification": "L'article valorise le rôle des leaders musulmans et de l'islam dans la société, en soulignant leur contribution au développement et à la résolution de problèmes sociaux comme la santé et l'éducation."
     },
     "67835": {
       "centralite_justification": "L'article est entièrement consacré à une association d'étudiants musulmans (AEEMCI) et à ses activités religieuses, sans autre sujet principal.",

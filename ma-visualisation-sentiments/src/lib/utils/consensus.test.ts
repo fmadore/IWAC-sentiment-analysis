@@ -47,17 +47,45 @@ function article(
 	} as Article;
 }
 
+/**
+ * A three-model panel — the shape the archived generation still has, and the
+ * one the ternary projection is defined for. The current generation runs five
+ * models; `PANEL` below covers that, and both are exercised because
+ * `classifyDissent` genuinely means different things at the two sizes.
+ */
 const MODELS = ['luna', 'mistral-small', 'deepseek'];
 
-/** Three models' analyses of one article, as the datasets shape the store passes. */
-function trio(
+/** The five-model panel, in contract order. */
+const PANEL = ['luna', 'mistral-small', 'deepseek', 'gemma', 'qwen'];
+
+/** One article's analyses across a panel, as the datasets shape the store passes. */
+function panelRow(
+	models: string[],
 	id: number,
 	analyses: (Analysis | null)[],
 	extras: Partial<Article> = {}
 ): Record<string, Article[]> {
 	return Object.fromEntries(
-		MODELS.map((model, index) => [model, [article(id, analyses[index], extras, model)]])
+		models.map((model, index) => [model, [article(id, analyses[index], extras, model)]])
 	);
+}
+
+/** Three models' analyses of one article. */
+function trio(
+	id: number,
+	analyses: (Analysis | null)[],
+	extras: Partial<Article> = {}
+): Record<string, Article[]> {
+	return panelRow(MODELS, id, analyses, extras);
+}
+
+/** Five models' analyses of one article. */
+function quintet(
+	id: number,
+	analyses: (Analysis | null)[],
+	extras: Partial<Article> = {}
+): Record<string, Article[]> {
+	return panelRow(PANEL, id, analyses, extras);
 }
 
 function merge(...datasets: Record<string, Article[]>[]): Record<string, Article[]> {
@@ -412,6 +440,108 @@ describe('rankNewspaperDisagreement', () => {
 	});
 });
 
+describe('a five-model panel', () => {
+	// The generation-2 panel grew from three models to five. Nothing in this
+	// module counts raters, but "who broke ranks" changes meaning at five, and
+	// the ternary projection stops being defined at all.
+
+	it('keeps one ordinal per model, in panel order', () => {
+		const rows = buildConsensusRows(
+			quintet(1, [
+				{ polarite: 'Très positif' },
+				{ polarite: 'Positif' },
+				{ polarite: 'Neutre' },
+				{ polarite: 'Négatif' },
+				{ polarite: 'Très négatif' }
+			]),
+			PANEL
+		);
+
+		expect(rows[0].values.polarity).toEqual([5, 4, 3, 2, 1]);
+	});
+
+	it('names the lone dissenter in a four-against-one split', () => {
+		expect(classifyDissent([3, 3, 3, 3, 5])).toMatchObject({
+			kind: 'majority',
+			dissenter: 4,
+			direction: 1,
+			spread: 2
+		});
+	});
+
+	it('refuses to name a dissenter in a three-two split', () => {
+		// The bucket labelled "divided several ways" in the UI. Naming a
+		// dissenter here would be a fabrication: neither camp is alone.
+		expect(classifyDissent([2, 2, 2, 5, 5]).kind).toBe('split');
+	});
+
+	it('drops an article a single panel member never annotated', () => {
+		// Qwen's coverage gap is permanent and not missing at random, so every
+		// complete-case figure loses exactly these rows rather than guessing.
+		const datasets = quintet(1, [
+			{ polarite: 'Neutre' },
+			{ polarite: 'Neutre' },
+			{ polarite: 'Neutre' },
+			{ polarite: 'Neutre' },
+			{}
+		]);
+
+		const rows = buildConsensusRows(datasets, PANEL);
+		expect(rows).toHaveLength(1);
+		expect(rows[0].values.polarity).toBeNull();
+	});
+
+	it('profiles dissent across five models without counting them', () => {
+		const rows = buildConsensusRows(
+			merge(
+				quintet(
+					1,
+					Array.from({ length: 5 }, () => ({ polarite: 'Neutre' }))
+				),
+				quintet(2, [
+					{ polarite: 'Positif' },
+					{ polarite: 'Neutre' },
+					{ polarite: 'Neutre' },
+					{ polarite: 'Neutre' },
+					{ polarite: 'Neutre' }
+				]),
+				quintet(3, [
+					{ polarite: 'Positif' },
+					{ polarite: 'Positif' },
+					{ polarite: 'Neutre' },
+					{ polarite: 'Neutre' },
+					{ polarite: 'Neutre' }
+				])
+			),
+			PANEL
+		);
+
+		const profile = profileDissent(rows, 'polarity', PANEL.length, false);
+
+		expect(profile.n).toBe(3);
+		expect(profile.unanimous).toBe(1);
+		expect(profile.dissent).toHaveLength(5);
+		expect(profile.dissent[0]).toEqual({ up: 1, down: 0, total: 1 });
+		// The 3-2 article is a split, not a second dissent for model 0 or 1.
+		expect(profile.split).toBe(1);
+	});
+
+	it('links every consecutive pair of the five columns in the label flow', () => {
+		const rows = buildConsensusRows(
+			quintet(
+				1,
+				Array.from({ length: 5 }, () => ({ polarite: 'Neutre' }))
+			),
+			PANEL
+		);
+
+		const { nodes, links } = buildLabelFlow(rows, 'polarity', PANEL.length, false);
+
+		expect(nodes).toHaveLength(5);
+		expect(links).toHaveLength(4);
+	});
+});
+
 describe('barycentric', () => {
 	it('puts a title at a corner when one model does all the dissenting', () => {
 		expect(barycentric([1, 0, 0])).toEqual(TRIANGLE_CORNERS[0]);
@@ -427,6 +557,14 @@ describe('barycentric', () => {
 
 	it('has nowhere to put a title with no splits at all', () => {
 		expect(barycentric([0, 0, 0])).toBeNull();
+	});
+
+	it('refuses a panel that is not three models wide', () => {
+		// A simplex over n models needs n corners, so there is no honest
+		// five-model triangle. DissentProfileChart hides the mode rather than
+		// rendering the empty panel this null would produce.
+		expect(barycentric([0.2, 0.2, 0.2, 0.2, 0.2])).toBeNull();
+		expect(barycentric([0.5, 0.5])).toBeNull();
 	});
 });
 

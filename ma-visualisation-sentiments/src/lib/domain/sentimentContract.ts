@@ -35,7 +35,14 @@ export const MODEL_PAIR_IDS_V1 = ['chatgpt-gemini', 'chatgpt-mistral', 'gemini-m
 export const MODEL_PAIR_IDS_V2 = [
 	'luna-mistral-small',
 	'luna-deepseek',
-	'mistral-small-deepseek'
+	'luna-gemma',
+	'luna-qwen',
+	'mistral-small-deepseek',
+	'mistral-small-gemma',
+	'mistral-small-qwen',
+	'deepseek-gemma',
+	'deepseek-qwen',
+	'gemma-qwen'
 ] as const;
 export type ModelPairV1 = (typeof MODEL_PAIR_IDS_V1)[number];
 export type ModelPairV2 = (typeof MODEL_PAIR_IDS_V2)[number];

@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "analysis_version": "v2",
   "model": "luna",
   "shard": 26,
@@ -1389,11 +1389,6 @@
       "centralite_justification": "L'article traite des tensions entre les communautés Kotokoli et Kabyè, ainsi que du rôle de la presse et des autorités, sans mention de l'islam ou des musulmans.",
       "subjectivite_justification": "Non applicable car le sujet n'est pas abordé.",
       "polarite_justification": "Non applicable car le sujet n'est pas abordé."
-    },
-    "67610": {
-      "centralite_justification": "L’article porte entièrement sur la crise institutionnelle de la Communauté musulmane du Burkina Faso et les médiations entre ses dirigeants et organisations islamiques.",
-      "subjectivite_justification": "Le texte rapporte principalement les déclarations de Rasmané Sana et de ses soutiens en les attribuant, même si l’angle reprend largement leur version du conflit.",
-      "polarite_justification": "L’article décrit factuellement une crise et les positions des différents camps, sans exprimer lui-même de jugement favorable ou défavorable envers l’islam ou les musulmans."
     },
     "67834": {
       "centralite_justification": "L’article est entièrement consacré à la célébration musulmane de la Tabaski, aux prières, aux imams et aux pratiques rituelles dans plusieurs quartiers d’Abidjan.",

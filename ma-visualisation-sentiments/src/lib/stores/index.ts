@@ -32,7 +32,7 @@ export { extremeState } from './extreme-analysis.svelte';
 export { placeState, type PlaceAggregate } from './places.svelte';
 export {
 	pairAgreement,
-	threeWayAgreement,
+	panelAgreement,
 	modelMarginals,
 	consensusRows,
 	consensusModels,

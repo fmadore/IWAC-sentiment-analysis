@@ -1,7 +1,7 @@
 <!--
   LabelFlowChart Component
 
-  The three-way generalisation of AgreementMatrix: every article tracked from
+  The panel-wide generalisation of AgreementMatrix: every article tracked from
   one model's label to the next, as a Sankey.
 
   Two things a pairwise matrix cannot show. A systematic offset appears as a

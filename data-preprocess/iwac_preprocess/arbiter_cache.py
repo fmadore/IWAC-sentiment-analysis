@@ -1,9 +1,9 @@
 """Deterministic cache keys and reconciliation for paid arbiter evaluations.
 
 Two arbiter modes share this module. v1 judges a **pair** of models; v2 judges
-all three at once. Both hash exactly the inputs and versions that determine an
-evaluation, so a changed article, analysis, prompt or arbiter model invalidates
-the cached verdict instead of silently publishing a stale one.
+the whole panel at once. Both hash exactly the inputs and versions that
+determine an evaluation, so a changed article, analysis, prompt or arbiter model
+invalidates the cached verdict instead of silently publishing a stale one.
 
 The v1 payload shape is frozen — the published v1 files carry fingerprints
 computed from it, and `test_arbiter_cache.py` pins one against a literal digest
@@ -88,12 +88,16 @@ def three_way_cache_fingerprint(
     max_input_chars: int,
     contract: SentimentContract,
 ) -> str:
-    """Hash the inputs of one **three-way** (v2) arbiter evaluation.
+    """Hash the inputs of one **panel** (v2) arbiter evaluation.
 
     The analyses are keyed by canonical model id rather than by the anonymised
-    A/B/C label they are shown under, so the fingerprint is independent of the
+    A-E label they are shown under, so the fingerprint is independent of the
     blind permutation. Re-rolling the permutation would otherwise invalidate
     every paid evaluation at once.
+
+    The mode comes from the contract rather than a literal: it is what
+    distinguishes this hash from the pairwise one, and a panel that grows or is
+    renamed must invalidate cached verdicts rather than reuse them.
 
     Two revisions are recorded because the two halves of the input come from
     different repositories: the scores from the public projection, the article
@@ -103,7 +107,7 @@ def three_way_cache_fingerprint(
     return _digest(
         {
             **_contract_identity(contract),
-            "mode": "three-way",
+            "mode": contract.arbiter["mode"],
             "arbiter_model": arbiter_model,
             "source_revision": source_revision,
             "text_revision": text_revision,

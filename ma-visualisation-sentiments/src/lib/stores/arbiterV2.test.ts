@@ -2,15 +2,28 @@ import { describe, expect, it } from 'vitest';
 import { computeArbiterV2Statistics } from './arbiterV2.svelte';
 import { parseArbiterV2EvaluationData } from '$lib/data/validation';
 import { SENTIMENT_CONTRACT_V2, datasetIdsOf } from '$lib/domain/sentimentContract';
-import type { ArbiterV2EvaluationData, ArbiterV2Preference, DatasetId } from '$lib/types/data';
+import { ARBITER_BLIND_LABELS } from '$lib/types/data';
+import type {
+	ArbiterBlindLabel,
+	ArbiterV2EvaluationData,
+	ArbiterV2Preference,
+	DatasetId
+} from '$lib/types/data';
 
 const MODELS = datasetIdsOf('v2') as DatasetId[];
 
 /**
  * The permutation is deliberately *not* the identity: every test below would
  * still pass with a label→model mix-up if A always meant the first model.
+ *
+ * Built by rotating contract order rather than written out, so it stays a
+ * non-identity bijection whatever size the panel is — it went from three models
+ * to five once already, and a hand-written map would have had to be rewritten
+ * to keep the tests meaningful rather than merely passing.
  */
-const PERMUTATION = { a: MODELS[2], b: MODELS[0], c: MODELS[1] };
+const PERMUTATION = Object.fromEntries(
+	ARBITER_BLIND_LABELS.map((label, index) => [label, MODELS[(index + 2) % MODELS.length]])
+) as Record<ArbiterBlindLabel, DatasetId>;
 
 function verdict(preferred: ArbiterV2Preference) {
 	return {
@@ -56,7 +69,9 @@ function payload(evaluations: ReturnType<typeof evaluation>[]): ArbiterV2Evaluat
 		metadata: {
 			generated: '2026-08-10T00:00:00',
 			arbiter_model: SENTIMENT_CONTRACT_V2.arbiter.arbiterModel,
-			mode: 'three-way',
+			// From the contract, never a literal: the mode string is the contract's to
+			// change, and the parser compares the payload against it.
+			mode: SENTIMENT_CONTRACT_V2.arbiter.mode,
 			effort: 'medium',
 			blind_evaluation: true,
 			models: MODELS,
@@ -170,19 +185,34 @@ describe('parseArbiterV2EvaluationData', () => {
 		expect(parseArbiterV2EvaluationData(JSON.parse(JSON.stringify(data)))).toBeTruthy();
 	});
 
-	it('rejects a permutation that is not a bijection over the v2 models', () => {
+	/** A deep copy whose permutation has been tampered with in one place. */
+	function withPermutation(mutate: (permutation: Record<string, DatasetId>) => void) {
 		const data = JSON.parse(JSON.stringify(payload([]))) as ArbiterV2EvaluationData;
-		data.metadata.blind_permutation = { a: MODELS[0], b: MODELS[0], c: MODELS[1] };
+		mutate(data.metadata.blind_permutation as unknown as Record<string, DatasetId>);
+		return data;
+	}
+
+	it('rejects a permutation that is not a bijection over the v2 models', () => {
+		// One model shown under two labels, so another is never shown at all.
+		const data = withPermutation((permutation) => {
+			permutation[ARBITER_BLIND_LABELS[1]] = permutation[ARBITER_BLIND_LABELS[0]];
+		});
 		expect(() => parseArbiterV2EvaluationData(data)).toThrow(/bijection/);
 	});
 
 	it('rejects a permutation naming a model from the archived generation', () => {
-		const data = JSON.parse(JSON.stringify(payload([]))) as ArbiterV2EvaluationData;
-		data.metadata.blind_permutation = {
-			a: 'chatgpt' as DatasetId,
-			b: MODELS[1],
-			c: MODELS[2]
-		};
+		const data = withPermutation((permutation) => {
+			permutation[ARBITER_BLIND_LABELS[0]] = 'chatgpt' as DatasetId;
+		});
+		expect(() => parseArbiterV2EvaluationData(data)).toThrow(/bijection/);
+	});
+
+	it('rejects a permutation that leaves a label unassigned', () => {
+		// Every verdict is expressed in labels. A label with no model behind it
+		// would resolve to undefined and quietly drop that model's wins.
+		const data = withPermutation((permutation) => {
+			delete permutation[ARBITER_BLIND_LABELS[ARBITER_BLIND_LABELS.length - 1]];
+		});
 		expect(() => parseArbiterV2EvaluationData(data)).toThrow(/bijection/);
 	});
 

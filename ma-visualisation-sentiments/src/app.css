@@ -469,13 +469,17 @@
 	   Not design-system colours and deliberately not on the OKLCH ramps: they
 	   are other organisations' marks, and a model badge that isn't the model's
 	   own red stops being recognisable. Declared here so the literals appear
-	   once rather than being retyped at each of the four sites that draw them.
+	   once rather than being retyped at each of the sites that draw them.
 	   The TS-side registry in stores/datasets.svelte.ts carries the same values
 	   for chart and logo use, where CSS custom properties can't reach. --- */
 	--brand-mistral: #f54e42;
 	--brand-mistral-light: #f87a71;
 	--brand-deepseek: #4d6bfe;
 	--brand-deepseek-light: #7f95ff;
+	--brand-gemma: #338dff;
+	--brand-gemma-light: #6cb0ff;
+	--brand-qwen: #615ced;
+	--brand-qwen-light: #8d89f3;
 
 	/* --- Print — the one light-background context this app has. --- */
 	--print-surface: white;
@@ -622,6 +626,12 @@
 	   Feeds `repeat(auto-fit, minmax(var(--width-chart-min), 1fr))` — auto-fit
 	   already handles the reflow, so no media query should restate it. */
 	--width-chart-min: 25rem; /* 400px */
+
+	/* Narrowest a model card may be laid out in the methodology panel's grid.
+	   Same auto-fit contract as --width-chart-min: the panel holds three cards
+	   for the archived generation and five for the current one, and the count
+	   will change again, so the floor reflows it rather than a column count. */
+	--width-model-card-min: 15rem; /* 240px */
 
 	/* --- Z-Index Scale --- */
 	--z-base: 0;

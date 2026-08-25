@@ -1,11 +1,12 @@
 /**
- * Generation-2 arbiter state — one three-way verdict per article.
+ * Generation-2 arbiter state — one panel-wide verdict per article.
  *
  * Deliberately a separate module from `arbiter.svelte.ts` rather than a branch
  * inside it. The v1 store is pairwise all the way down (`model_a_is_first`,
  * "first model in the pair", two-way percentages) and has to stay byte-stable
- * for the archive; a three-model panel is a different question with a different
- * answer shape.
+ * for the archive; a whole panel is a different question with a different
+ * answer shape — and the panel has since grown from three models to five
+ * without any of this needing to know how many there are.
  *
  * One file, loaded once, missing file → null. There is no pair to switch, so
  * none of v1's per-pair cache machinery is needed here.
@@ -35,7 +36,7 @@ export type ArbiterV2Dimension = (typeof ARBITER_V2_DIMENSIONS)[number];
 
 let _evaluations = $state<ArbiterV2EvaluationData | null>(null);
 
-/** Three-way arbiter payload, or null when the run has not been published. */
+/** Panel arbiter payload, or null when the run has not been published. */
 export const arbiterV2Evaluations = {
 	get current() {
 		return _evaluations;
@@ -62,7 +63,7 @@ function getIndex(): Map<string, ArbiterV2Analysis> {
 	return _index;
 }
 
-/** The three-way verdict for one article, if it was arbitrated. */
+/** The panel-wide verdict for one article, if it was arbitrated. */
 export function getArbiterV2ForArticle(articleId: string | number): ArbiterV2Analysis | null {
 	return getIndex().get(String(articleId)) ?? null;
 }
@@ -76,7 +77,7 @@ export interface ArbiterV2ModelShare {
 	/** The anonymised label this model was shown under. */
 	label: ArbiterBlindLabel;
 	name: string;
-	/** Dimension-level verdicts naming this model (3 per evaluated article). */
+	/** Dimension-level verdicts naming this model, one per dimension. */
 	dimensionWins: number;
 	dimensionPercentage: number;
 	/** Overall verdicts naming this model (1 per evaluated article). */
@@ -95,7 +96,7 @@ export interface ArbiterV2DimensionBreakdown {
 export interface ArbiterV2Statistics {
 	hasData: boolean;
 	totalEvaluated: number;
-	/** Dimension-level verdicts in total — three per evaluated article. */
+	/** Dimension-level verdicts in total — one per dimension per evaluated article. */
 	totalVerdicts: number;
 	models: ArbiterV2ModelShare[];
 	multiple: number;
@@ -137,7 +138,7 @@ function share(count: number, total: number): number {
 }
 
 /**
- * Aggregate the three-way verdicts, resolving every anonymised label back to a
+ * Aggregate the panel verdicts, resolving every anonymised label back to a
  * model through the file's own permutation.
  *
  * Pure, and exported so tests exercise the exact function the view ships —
@@ -240,7 +241,7 @@ export function computeArbiterV2Statistics(
 	};
 }
 
-/** Three-way arbiter statistics for the loaded file. */
+/** Panel arbiter statistics for the loaded file. */
 export const arbiterV2Statistics = {
 	get current(): ArbiterV2Statistics {
 		return computeArbiterV2Statistics(_evaluations);
@@ -259,7 +260,7 @@ export const arbiterV2Statistics = {
 let attempted = false;
 let inFlight: Promise<void> | null = null;
 
-/** Load the three-way arbiter file. Idempotent; safe to call from any view. */
+/** Load the panel arbiter file. Idempotent; safe to call from any view. */
 export const loadArbiterV2Evaluations = async (fetchFunction: typeof fetch): Promise<void> => {
 	if (attempted) return;
 	if (inFlight) return inFlight;
@@ -276,7 +277,7 @@ const fetchArbiterV2 = async (fetchFunction: typeof fetch): Promise<void> => {
 	try {
 		const response = await fetchFunction(`${base}/data/iwac_arbiter_evaluations_v2.json`);
 		if (!response.ok) {
-			// Optional data: the three-way arbiter run is paid and user-gated.
+			// Optional data: the panel arbiter run is paid and user-gated.
 			attempted = true;
 			_evaluations = null;
 			return;

@@ -1,11 +1,11 @@
 <!--
-  ArbiterV2View — the generation-2 three-way arbiter
+  ArbiterV2View — the generation-2 panel arbiter
 
-  One judge (Claude Opus 5) sees all three anonymised analyses of an article at
-  once and returns a single set of verdicts, so there is no model pair to pick
-  here and no `model_a_is_first` to unwind. The sampling frame goes above the
+  One judge (Claude Opus 5) sees every anonymised analysis of an article at once
+  and returns a single set of verdicts, so there is no model pair to pick here
+  and no `model_a_is_first` to unwind. The sampling frame goes above the
   percentages for the same reason as in the v1 view: every share below is
-  conditional on the three models having already disagreed.
+  conditional on the panel having already disagreed.
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
@@ -42,8 +42,14 @@
 	/**
 	 * Corpus denominator. The arbiter metadata's `total_articles` counts what the
 	 * arbiter was *given*, so the corpus size comes from the loaded datasets, as
-	 * in the v1 view. All three v2 models cover the same base, so the smallest
-	 * loaded set is the honest floor.
+	 * in the v1 view. Every model ships one row per article, so the smallest
+	 * loaded set is simply the corpus.
+	 *
+	 * This counts rows, not annotations, and the two have come apart: Qwen3.8
+	 * 27B carries 200 rows whose scores are null, permanently. That is right
+	 * here — the frame being described is "of the whole corpus, this many were
+	 * arbitrated" — but it means this number must not be reused as a per-model
+	 * coverage denominator.
 	 */
 	const corpusTotal = $derived.by(() => {
 		const sizes = datasetState.availableInGeneration

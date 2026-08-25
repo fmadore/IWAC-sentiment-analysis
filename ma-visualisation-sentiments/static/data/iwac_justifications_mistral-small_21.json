@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "analysis_version": "v2",
   "model": "mistral-small",
   "shard": 21,
@@ -204,11 +204,6 @@
       "centralite_justification": "L'article mentionne explicitement la représentation des Associations islamiques du Burkina au sein de l'ONAFAR, un organe central de surveillance des faits religieux.",
       "subjectivite_justification": "L'article se limite à rapporter des faits (cérémonie d'installation, composition de l'ONAFAR, citations de responsables) sans exprimer d'opinion ou de jugement sur le thème religieux.",
       "polarite_justification": "L'article met en avant la promotion du dialogue interreligieux, la tolérance et la solidarité pacifique comme objectifs de l'ONAFAR, avec un ton constructif et optimiste."
-    },
-    "3541": {
-      "centralite_justification": "L'article est entièrement centré sur un événement organisé par une fédération islamique (FAIB) autour du Ramadan, avec des discours mettant en avant les valeurs de l'islam et son rôle dans la cohésion sociale.",
-      "subjectivite_justification": "L'article est un compte-rendu factuel d'un événement, avec des citations attribuées à des personnalités (Cheick Yugo, Sakandé, Diabré), sans jugement ou opinion exprimée par l'auteur.",
-      "polarite_justification": "L'article véhicule un message positif sur l'islam, en soulignant ses valeurs de paix, de tolérance et de cohésion sociale, et en montrant une image unie des musulmans avec les autres communautés."
     },
     "3573": {
       "centralite_justification": "Le Hadj est évoqué comme un événement ponctuel parmi d'autres activités de l'aéroport, sans en faire le cœur du sujet.",

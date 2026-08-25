@@ -1,13 +1,17 @@
 <!--
   ArbiterV2StatsCards
 
-  Win shares for the three generation-2 models, plus the two verdicts that name
-  no single model ("several are equivalent", "none is accurate").
+  Win shares for every generation-2 model, plus the two verdicts that name no
+  single model ("several are equivalent", "none is accurate").
 
   Logos and brand colours are looked up **by dataset id**, not by matching the
   display-name string the way the v1 cards do. Two v2 models share a logo with
   an archived v1 model, and a name-string match is one rename away from
   attaching the wrong brand to a verdict.
+
+  Nothing here counts the models: the grid auto-fits, the overall bar is one
+  segment per model, and the legend wraps. The panel grew from three to five
+  without this file changing, which is the property to preserve.
 -->
 <script lang="ts">
 	import type { ArbiterV2Statistics } from '$lib/stores';

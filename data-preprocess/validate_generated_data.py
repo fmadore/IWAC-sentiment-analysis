@@ -34,6 +34,14 @@ EXTREME_CATEGORIES = {
     "centrality_not_central",
 }
 ARBITER_V2_FILENAME = "iwac_arbiter_evaluations_v2.json"
+# Arbiter modes that judge the whole panel in one call and publish a single
+# file. "three-way" is the name the mode carried while the panel had three
+# models; it is still accepted so an older contract or file validates.
+PANEL_ARBITER_MODES = {"panel", "three-way"}
+# The canonical anonymised label sequence, shared with `arbiter-evaluation-v2.py`
+# (BLIND_LABELS) and the browser (ARBITER_BLIND_LABELS). A panel of N models is
+# presented as the first N labels.
+ARBITER_BLIND_LABELS = ("a", "b", "c", "d", "e")
 
 
 class ContractError(AssertionError):
@@ -229,7 +237,7 @@ def validate_arbiter(
 def validate_arbiter_three_way(
     contract: SentimentContract, base_ids: set[str], sentiments: dict[str, dict[str, dict | None]]
 ) -> None:
-    """Validate the v2 three-way arbiter file, which is optional until it runs."""
+    """Validate the v2 panel arbiter file, which is optional until it runs."""
     path = DATA_DIR / ARBITER_V2_FILENAME
     if not path.exists():
         return
@@ -251,33 +259,47 @@ def validate_arbiter_three_way(
     require(
         metadata.get("contract_schema_version") == contract.schema_version
         and metadata.get("analysis_version") == contract.analysis_version,
-        f"three-way arbiter is not bound to the {contract.analysis_version} contract",
+        f"panel arbiter is not bound to the {contract.analysis_version} contract",
     )
-    require(metadata.get("mode") == "three-way", "three-way arbiter metadata mode mismatch")
+    require(
+        metadata.get("mode") == contract.arbiter.get("mode"),
+        "panel arbiter metadata mode does not match the contract's",
+    )
     require(
         list(metadata.get("models", [])) == model_ids,
-        "three-way arbiter metadata does not list the contract's models",
+        "panel arbiter metadata does not list the contract's models",
     )
+    # One anonymised label per model, taken from the canonical sequence: the
+    # published verdicts name a label, and only this mapping resolves it.
+    require(
+        len(model_ids) <= len(ARBITER_BLIND_LABELS),
+        f"the {contract.analysis_version} panel has more models than there are blind labels",
+    )
+    expected_labels = set(ARBITER_BLIND_LABELS[: len(model_ids)])
     permutation = metadata.get("blind_permutation", {})
     require(
-        set(permutation) == {"a", "b", "c"} and sorted(permutation.values()) == sorted(model_ids),
-        "three-way arbiter blind permutation must be a bijection over the models",
+        set(permutation) == expected_labels,
+        f"panel arbiter blind permutation must use the labels {sorted(expected_labels)}",
+    )
+    require(
+        sorted(permutation.values()) == sorted(model_ids),
+        "panel arbiter blind permutation must be a bijection over the models",
     )
     require(
         len(evaluation_ids) == len(set(evaluation_ids)),
-        "three-way arbiter contains duplicate IDs",
+        "panel arbiter contains duplicate IDs",
     )
     require(
         set(evaluation_ids).issubset(eligible),
-        "three-way arbiter contains stale/non-eligible IDs",
+        "panel arbiter contains stale/non-eligible IDs",
     )
     require(
         metadata.get("successful_evaluations") == len(evaluations),
-        "three-way arbiter metadata count is stale",
+        "panel arbiter metadata count is stale",
     )
     require(
         all(row.get("cache_fingerprint") for row in evaluations),
-        "three-way arbiter row lacks a fingerprint",
+        "panel arbiter row lacks a fingerprint",
     )
 
 
@@ -308,7 +330,7 @@ def validate_manifest(contract: SentimentContract) -> None:
 def validate_generation(contract: SentimentContract, base_ids: set[str]) -> None:
     sentiments = validate_core(contract, base_ids)
     validate_extremes(contract, base_ids)
-    if contract.arbiter.get("mode") == "three-way":
+    if contract.arbiter.get("mode") in PANEL_ARBITER_MODES:
         validate_arbiter_three_way(contract, base_ids, sentiments)
     else:
         validate_arbiter(contract, base_ids, sentiments)

@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "analysis_version": "v2",
   "model": "mistral-small",
   "sentiments": {
@@ -6453,11 +6453,6 @@
       "subjectivite_score": 1,
       "polarite": "Positif"
     },
-    "3524": {
-      "centralite_islam_musulmans": "Non abordé",
-      "subjectivite_score": 5,
-      "polarite": "Non applicable"
-    },
     "3525": {
       "centralite_islam_musulmans": "Très central",
       "subjectivite_score": 2,
@@ -6537,11 +6532,6 @@
       "centralite_islam_musulmans": "Secondaire",
       "subjectivite_score": 1,
       "polarite": "Neutre"
-    },
-    "3541": {
-      "centralite_islam_musulmans": "Très central",
-      "subjectivite_score": 1,
-      "polarite": "Positif"
     },
     "3542": {
       "centralite_islam_musulmans": "Central",
@@ -6652,11 +6642,6 @@
       "centralite_islam_musulmans": "Secondaire",
       "subjectivite_score": 2,
       "polarite": "Neutre"
-    },
-    "3564": {
-      "centralite_islam_musulmans": "Très central",
-      "subjectivite_score": 1,
-      "polarite": "Positif"
     },
     "3565": {
       "centralite_islam_musulmans": "Très central",
@@ -43708,16 +43693,6 @@
       "subjectivite_score": 2,
       "polarite": "Très positif"
     },
-    "67610": {
-      "centralite_islam_musulmans": "Très central",
-      "subjectivite_score": 2,
-      "polarite": "Neutre"
-    },
-    "67611": {
-      "centralite_islam_musulmans": "Très central",
-      "subjectivite_score": 1,
-      "polarite": "Positif"
-    },
     "67612": {
       "centralite_islam_musulmans": "Très central",
       "subjectivite_score": 1,
@@ -43902,16 +43877,6 @@
       "centralite_islam_musulmans": "Secondaire",
       "subjectivite_score": 2,
       "polarite": "Neutre"
-    },
-    "67691": {
-      "centralite_islam_musulmans": "Central",
-      "subjectivite_score": 1,
-      "polarite": "Neutre"
-    },
-    "67692": {
-      "centralite_islam_musulmans": "Secondaire",
-      "subjectivite_score": 4,
-      "polarite": "Très positif"
     },
     "67693": {
       "centralite_islam_musulmans": "Très central",

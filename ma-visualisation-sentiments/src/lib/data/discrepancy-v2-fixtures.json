@@ -281,6 +281,82 @@
 				"total": 11,
 				"significant": true
 			}
+		},
+		{
+			"name": "a five-model panel is measured across all of its members",
+			"analyses": [
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Très négatif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"comparable": true,
+				"polarity": 3,
+				"subjectivity": 1,
+				"centrality": 0,
+				"total": 4,
+				"significant": true
+			}
+		},
+		{
+			"name": "one abstention in the panel excludes the row even when the rest agree",
+			"analyses": [
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Non applicable",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"comparable": false,
+				"polarity": 0,
+				"subjectivity": 0,
+				"centrality": 0,
+				"total": 0,
+				"significant": false
+			}
 		}
 	]
 }

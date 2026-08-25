@@ -1,7 +1,7 @@
 <!--
   NewspaperDisagreementChart Component
 
-  Newspapers ranked by how far apart the three models are, with 95% CIs.
+  Newspapers ranked by how far apart the generation's models are, with 95% CIs.
 
   Deliberately the mirror image of NewspaperRankingChart: same dot plot, same
   30-article threshold, same interval treatment, same "n titles omitted" note —

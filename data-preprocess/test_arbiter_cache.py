@@ -1,4 +1,5 @@
 from functools import partial
+from types import SimpleNamespace
 
 from iwac_preprocess import (
     CONTRACT_V2,
@@ -105,21 +106,34 @@ def test_v1_fingerprint_payload_is_frozen():
     )
 
 
-# --- v2 three-way ------------------------------------------------------------
+# --- v2 panel ----------------------------------------------------------------
+
+# One analysis per contract model: the fingerprint keys them by model id, so a
+# panel that grows has to change the digest rather than hash a subset of itself.
+PANEL_POLARITIES = ["Neutre", "Négatif", "Très négatif", "Positif", "Très positif"]
 
 
 def three_way_article(article_id: str, polarity: str = "Positif") -> dict:
+    """One selected article, with an analysis from every generation-2 model."""
+    model_ids = list(CONTRACT_V2.model_names)
+    analyses = {
+        model_id: {"polarite": PANEL_POLARITIES[index % len(PANEL_POLARITIES)]}
+        for index, model_id in enumerate(model_ids)
+    }
+    # The first model's verdict is the one the change-detection tests move.
+    analyses[model_ids[0]] = {"polarite": polarity}
     return {
         "o:id": article_id,
         "o:title": f"Article {article_id}",
         "OCR": "texte",
-        "analyses": {
-            "luna": {"polarite": polarity},
-            "mistral-small": {"polarite": "Neutre"},
-            "deepseek": {"polarite": "Négatif"},
-        },
+        "analyses": analyses,
         "spread": {"total_spread": 4},
     }
+
+
+def test_the_panel_fingerprint_covers_every_contract_model():
+    assert set(three_way_article("1")["analyses"]) == set(CONTRACT_V2.model_names)
+    assert len(CONTRACT_V2.model_names) == 5
 
 
 V2_OPTIONS = {
@@ -155,3 +169,17 @@ def test_three_way_fingerprint_changes_with_an_analysis():
     baseline = three_way_cache_fingerprint(three_way_article("1"), **V2_OPTIONS)
     changed = three_way_cache_fingerprint(three_way_article("1", "Très négatif"), **V2_OPTIONS)
     assert baseline != changed
+
+
+def test_the_panel_fingerprint_reads_its_mode_from_the_contract():
+    """The mode separates this digest from the pairwise one; it is not a literal."""
+    renamed = SimpleNamespace(
+        schema_version=CONTRACT_V2.schema_version,
+        analysis_version=CONTRACT_V2.analysis_version,
+        arbiter={**CONTRACT_V2.arbiter, "mode": "three-way"},
+    )
+    baseline = three_way_cache_fingerprint(three_way_article("1"), **V2_OPTIONS)
+    under_old_mode = three_way_cache_fingerprint(
+        three_way_article("1"), **{**V2_OPTIONS, "contract": renamed}
+    )
+    assert baseline != under_old_mode

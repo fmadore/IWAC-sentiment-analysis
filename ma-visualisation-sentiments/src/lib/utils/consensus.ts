@@ -1,6 +1,11 @@
 /**
- * Three-way consensus: where all the models of one generation disagree, and
- * about which newspapers.
+ * Panel consensus: where all the models of one generation disagree, and about
+ * which newspapers.
+ *
+ * Everything here takes the rater count from its arguments rather than assuming
+ * three, because the generation-2 panel grew from three models to five. The one
+ * genuine exception is the ternary projection at the foot of this file, which
+ * is three-corner geometry and says so.
  *
  * Every other model-vs-model surface in this app is pairwise-locked. A pairwise
  * view can show that A ≠ B; it can never show that B stands apart from the
@@ -203,12 +208,18 @@ export interface DissentOutcome {
 }
 
 /**
- * Classify one article's three (or more) ordinals.
+ * Classify one article's ordinals, for any number of raters.
  *
  * `majority` requires exactly one model to hold a value alone while all the
- * others share one — with three raters that is the familiar 2-1 split. With
- * more raters, anything else is `split`, which keeps the "who breaks ranks"
+ * others share one — with three raters that is the familiar 2-1 split, with
+ * five it is 4-1. Anything else is `split`, which keeps the "who breaks ranks"
  * reading honest instead of naming a dissenter that a 3-2 split does not have.
+ *
+ * That makes `split` mean different things at different panel sizes, and the UI
+ * copy has to follow: with three raters it is exactly "all three differ", while
+ * with five it also absorbs 3-2 and 2-2-1. Hence the labels are "one against
+ * the rest" and "divided several ways" rather than "two against one" and "all
+ * three differ" — the same two buckets, named for what they actually hold.
  */
 export function classifyDissent(values: number[]): DissentOutcome {
 	const spread = Math.max(...values) - Math.min(...values);
@@ -496,6 +507,14 @@ export function pearson(xs: number[], ys: number[]): number {
 /**
  * Barycentric projection of a title's dissent shares onto an equilateral
  * triangle whose corners are the models.
+ *
+ * **Three raters only, and not generalisable.** A simplex over n models needs
+ * n corners, so four would want a tetrahedron and five a shape with no honest
+ * 2-D projection at all. `barycentric` therefore returns null for any share
+ * vector that is not exactly `TRIANGLE_CORNERS.length` long, and the caller
+ * (`DissentProfileChart`) does not offer the mode unless the generation on
+ * screen has exactly three models. The five-model panel reads the same
+ * decomposition off the stacked bars, which have no such limit.
  *
  * A title sits at a corner when one model does all the breaking of ranks there,
  * and at the centre when the three share it evenly. Titles with no majority

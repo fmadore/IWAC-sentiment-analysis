@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "analysis_version": "v2",
   "model": "luna",
   "shard": 21,
@@ -204,11 +204,6 @@
       "centralite_justification": "L’article est consacré à l’Observatoire national des faits religieux et mentionne explicitement les Associations islamiques du Burkina parmi ses membres, ainsi que la régulation des messages religieux.",
       "subjectivite_justification": "Le traitement repose principalement sur des faits, des objectifs institutionnels et des déclarations attribuées à des responsables, même si le texte valorise le dialogue interreligieux et la paix.",
       "polarite_justification": "L’article décrit la participation des associations islamiques et les risques liés à certains messages religieux sans attribuer de jugement négatif aux musulmans ni exprimer d’éloge particulier à leur égard."
-    },
-    "3541": {
-      "centralite_justification": "L’article est entièrement consacré à une rupture collective du jeûne organisée par la FAIB autour du Ramadan, de l’islam et de la cohésion sociale.",
-      "subjectivite_justification": "Le texte rapporte principalement des faits et des déclarations attribuées à des responsables religieux et politiques, même si le cadrage reprend un vocabulaire valorisant comme « religion de paix et de tolérance ».",
-      "polarite_justification": "L’islam et le Ramadan sont présentés favorablement à travers les valeurs de partage, de paix, de tolérance et de cohésion sociale mises en avant dans l’article."
     },
     "3573": {
       "centralite_justification": "Le Hadj et le transport d’environ 2 100 pèlerins vers l’Arabie saoudite constituent un moment important de l’activité aéroportuaire, mais l’article porte principalement sur le trafic et le fret de l’aéroport.",

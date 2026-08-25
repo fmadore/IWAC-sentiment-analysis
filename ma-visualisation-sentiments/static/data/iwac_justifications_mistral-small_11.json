@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "analysis_version": "v2",
   "model": "mistral-small",
   "shard": 11,
@@ -1369,11 +1369,6 @@
       "centralite_justification": "L'article traite principalement de l'organisation d'un séminaire par une fédération islamique pour des imams et prédicateurs, avec des citations de responsables religieux musulmans.",
       "subjectivite_justification": "L'article se limite à rapporter les faits et les déclarations des intervenants sans ajouter de commentaire ou d'opinion personnelle.",
       "polarite_justification": "L'article présente les actions et discours des leaders religieux musulmans de manière factuelle, sans jugement de valeur ou prise de position."
-    },
-    "67691": {
-      "centralite_justification": "L'article traite principalement du conflit autour de la mosquée de Pazani et de la rencontre entre le Premier ministre et la Fédération des associations islamiques du Burkina (FAIB).",
-      "subjectivite_justification": "L'article rapporte des faits de manière neutre et factuelle, sans jugement ni opinion de la part de l'auteur, et cite les déclarations des acteurs sans les endosser.",
-      "polarite_justification": "L'article présente les événements et les déclarations des parties de manière équilibrée, sans exprimer de sentiment positif ou négatif envers l'islam ou les musulmans."
     },
     "67883": {
       "centralite_justification": "L'article est entièrement consacré au hadj et aux témoignages de pèlerins, avec des références constantes à l'islam (cinquième pilier, Kaaba, prophète Mahomet, El Hadj, Hadja, etc.).",

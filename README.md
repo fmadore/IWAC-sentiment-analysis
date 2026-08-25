@@ -6,9 +6,9 @@
 [![ORCID](https://img.shields.io/badge/ORCID-0000--0003--0959--2092-A6CE39?logo=orcid&logoColor=white)](https://orcid.org/0000-0003-0959-2092)
 [![Dataset](https://img.shields.io/badge/dataset-Hugging%20Face-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/datasets/fmadore/islam-west-africa-collection)
 
-![Social card for the IWAC Sentiment Analysis dashboard: per-model polarity distributions across 12,356 francophone West African press articles, 1961–2025](ma-visualisation-sentiments/static/social-preview.png)
+![Social card for the IWAC Sentiment Analysis dashboard: per-model polarity distributions across 12,349 francophone West African press articles, 1961–2025](ma-visualisation-sentiments/static/social-preview.png)
 
-A SvelteKit dashboard for exploring how three large language models annotated the same corpus — 12,356 francophone West African press articles from 57 newspapers in Benin, Burkina Faso, Côte d'Ivoire, Niger and Togo, published 1961–2025 — on three dimensions: **polarity**, **subjectivity**, and the **centrality** of Islam and Muslims to the article.
+A SvelteKit dashboard for exploring how large language models annotated the same corpus — 12,349 francophone West African press articles from 57 newspapers in Benin, Burkina Faso, Côte d'Ivoire, Niger and Togo, published 1961–2025 — on three dimensions: **polarity**, **subjectivity**, and the **centrality** of Islam and Muslims to the article. The current panel is five models; the archived one is three.
 
 The corpus is the [_Islam West Africa Collection_](https://islam.zmo.de/s/afrique_ouest/page/accueil) (IWAC). The dashboard reports each model's distributions, their agreement, where they diverge, and blind third-party arbiter verdicts on the sharpest disagreements.
 
@@ -22,14 +22,15 @@ Two top-level areas: `ma-visualisation-sentiments/` (the SvelteKit app) and `dat
 
 The corpus has been annotated twice, under two different prompts. **Both are published side by side.** Generation 2 is what the dashboard shows by default; generation 1 stays online, unchanged, so figures and URLs published from it keep resolving.
 
-|                    | **v2 — current**                                              | **v1 — archived**                                       |
-| ------------------ | ------------------------------------------------------------- | ------------------------------------------------------- |
-| Models             | GPT-5.6 Luna, Mistral Small 4 (2603), DeepSeek v4 Flash       | GPT-5 mini, Gemini 3 Flash preview, Ministral 14B 2512  |
-| Repo ids           | `luna`, `mistral-small`, `deepseek`                           | `chatgpt`, `gemini`, `mistral`                          |
-| Articles annotated | 12,305 of 12,356                                              | 12,286 of 12,356                                        |
-| Subjectivity       | ordinal label upstream, mapped to rank 1–5; declined → `null` | integer 1–5                                             |
-| Arbiter            | Claude Opus 5, **three-way** (one verdict per article)        | Gemini 3 Pro, **pairwise** (one verdict per model pair) |
-| Contract           | `src/lib/data/sentiment-v2.json`                              | `src/lib/data/sentiment-v1.json`                        |
+|                    | **v2 — current**                                                                  | **v1 — archived**                                       |
+| ------------------ | --------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Models             | GPT-5.6 Luna, Mistral Small 4 (2603), DeepSeek v4 Flash, Gemma 4 31B, Qwen3.8 27B | GPT-5 mini, Gemini 3 Flash preview, Ministral 14B 2512  |
+| Repo ids           | `luna`, `mistral-small`, `deepseek`, `gemma`, `qwen`                              | `chatgpt`, `gemini`, `mistral`                          |
+| Pairs              | 10                                                                                | 3                                                       |
+| Articles annotated | 12,298 of 12,349 — except Qwen3.8 27B, at 12,098                                  | 12,279 of 12,349                                        |
+| Subjectivity       | ordinal label upstream, mapped to rank 1–5; declined → `null`                     | integer 1–5                                             |
+| Arbiter            | Claude Opus 5, **whole panel** (one verdict per article)                          | Gemini 3 Pro, **pairwise** (one verdict per model pair) |
+| Contract           | `src/lib/data/sentiment-v2.json`                                                  | `src/lib/data/sentiment-v1.json`                        |
 
 **The generation is derived from the id, never stored.** There is no `generation` URL parameter: `generationOf()` in `src/lib/domain/sentimentContract.ts` reads it off the dataset or pair id, which is why the two generations' ids must never collide (an import-time invariant asserts this). `?dataset=chatgpt` and `?pair=chatgpt-gemini` therefore keep working exactly as before and land you in the archive.
 
@@ -39,10 +40,11 @@ The corpus has been annotated twice, under two different prompts. **Both are pub
 
 The v2 prompt is not the v1 prompt. Subjectivity is answered as a label (`Très objectif` … `Très subjectif`) rather than an integer, the self-checklist instruction is gone, and boundary rules were added for Muslim actors in secular stories, Arab-state cooperation, and armed groups. **A difference between the two generations confounds the model change with the prompt change** — say so when reporting one. The app never mixes them: agreement statistics, prefetching and comparison pairs are all scoped to the active generation, because a six-rater kappa would measure the prompt rewrite as if it were disagreement between models.
 
-Two further caveats specific to v2:
+Three further caveats specific to v2:
 
 - The 51 articles that are neither French nor English are **skipped by design**. The prompt is French, and a French-prompted model returns confident but unusable output for them. They ship as all-null rows.
-- **DeepSeek declined subjectivity on 489 articles** it otherwise analysed, so subjectivity statistics involving it rest on a slightly smaller sample (11,816 vs 12,305).
+- **Qwen3.8 27B is 200 articles short of the rest of the panel**, and permanently so: it declined them across a full pass and three further rounds of retries, after which they were retired. The gap is **not missing at random** — it falls disproportionately on articles where Islam is peripheral (6.2% of the articles the panel calls `Marginal`, against ~1% of every other centrality band). Anything computed on complete cases — Fleiss' κ, the consensus charts, the arbiter's selection frame — therefore leans towards material where Islam is central. Do not present the gap as repairable.
+- Subjectivity is declined more often than the other dimensions, so statistics involving it rest on a smaller sample: **DeepSeek v4 Flash on 489 of the articles it otherwise analysed** (11,809 usable), Gemma 4 31B on 243, Qwen3.8 27B on 287.
 
 > `chatgpt`/`gemini`/`mistral` are this repo's ids, not the dataset's column prefixes — the Hugging Face dataset renamed its sentiment columns from vendor slots to the model that actually produced each annotation. `iwac_preprocess.contract` holds the mapping and `sentiment_column()` is the only place a column name is assembled.
 
@@ -74,7 +76,8 @@ Thirteen views, all sharing one filter rail (country → newspaper → polarity 
 
 - **Seasonality exists because the Gregorian axis hides it.** The Hijri year drifts ~11 days a year, so lunar patterns are invisible in any year- or month-based view. Coverage nearly doubles during Ramadan and the hajj months. Conversions use the tabular (arithmetic) Islamic calendar, stated on the chart.
 - **The map counts mentions, not aboutness.** A bubble counts articles that _mention_ a place (`dcterms:spatial` is item-level tagging, ~3.8 places per article), never articles _about_ it. `Non applicable` is excluded from the mean but the article is still counted — it means "no stance expressed", so averaging it in would drag heavily-covered places toward the negative pole.
-- **Agreement offers only corpus-scope facets** (country, newspaper). Sentiment filters are deliberately absent: selecting by the label under comparison would make the statistics circular. A large gap between unweighted and quadratic-weighted κ signals a systematic offset rather than genuine conflict.
+- **Agreement offers only corpus-scope facets** (country, newspaper). Sentiment filters are deliberately absent: selecting by the label under comparison would make the statistics circular. A large gap between unweighted and quadratic-weighted κ signals a systematic offset rather than genuine conflict. Panel-scope statistics count only articles _every_ model rated, so on v2 they inherit Qwen's coverage gap.
+- **"Who breaks ranks" means something different at five models than at three.** The dissent profile names a model only when it stands alone against all the others; a 3–2 split has no lone dissenter and lands in "divided several ways". The ternary triangle is offered for the three-model archive only — a simplex over five models has no honest 2-D projection.
 - **Newspaper ranking omits titles under 30 rated articles**, and states how many it omitted.
 - **Discrepancies are not errors.** No model is ground truth, and disagreement often reflects a legitimate difference of reading. `Non applicable` and `Non abordé` are treated as non-comparable and exclude the row rather than counting as maximal disagreement; missing subjectivity skips only that dimension.
 - **Arbiter percentages are conditional.** The arbiter reviews only articles selected _because_ the models disagreed sharply, so its verdicts measure who is right given a disagreement — never which model is better across the corpus.
@@ -90,7 +93,8 @@ Thirteen views, all sharing one filter rail (country → newspaper → polarity 
 ?view=trends&lang=en&polarities=Positif
 
 # Comparison mode on a generation-2 pair, wide discrepancies only
-?view=comparison&compare=true&pair=luna-mistral-small&diffMin=2&diffMax=11
+# (the v2 panel has ten pairs; `pair` takes any of them)
+?view=comparison&compare=true&pair=deepseek-qwen&diffMin=2&diffMax=11
 
 # Heatmap restricted to high centrality
 ?view=heatmap&centralities=Central&centralities=Très%20central
@@ -114,7 +118,7 @@ Everything ships as static JSON under `ma-visualisation-sentiments/static/data/`
 | `iwac_justifications_{model}_{00..31}.json` | The ~90% prose portion, deterministically sharded by article id                               |
 | `iwac_extreme_analysis_{model}.json`        | Keyword analysis of extreme cases, normalised (index + per-category id lists)                 |
 | `iwac_arbiter_evaluations_{pair}.json`      | v1 pairwise arbiter verdicts (Gemini 3 Pro)                                                   |
-| `iwac_arbiter_evaluations_v2.json`          | v2 three-way arbiter verdicts (Claude Opus 5) — **see below**                                 |
+| `iwac_arbiter_evaluations_v2.json`          | v2 panel arbiter verdicts (Claude Opus 5) — **see below**                                     |
 | `iwac_places.json`                          | Geocoded `Lieux` authority records plus an article → place **edge list**                      |
 | `world-110m.geojson`                        | Natural Earth 1:110m basemap (public domain), minified on purpose                             |
 | `iwac_data_manifest.json` / `_v2.json`      | Per-generation contract version, immutable HF revision, byte sizes and SHA-256 for every file |
@@ -129,9 +133,9 @@ Places ship as edges rather than pre-computed averages so the map answers to the
 
 How the v2 arbiter differs from v1, and why:
 
-- **Selection is the three-way spread** (max minus min across the three models, per dimension) rather than a pairwise gap. The contract rule (any dimension ≥ 3) selects 1,449 articles, but 1,223 of those are triggered by _subjectivity_ alone — the dimension the models argue about most and where "who is right" is least well defined. Polarity triggers only 89. `--dimensions` and `--threshold` narrow the rule; they can only ever tighten it, because the validator recomputes eligibility from the contract.
+- **Selection is the spread across the whole panel** (max minus min across every model, per dimension) rather than a pairwise gap. On the five-model panel the contract rule (any dimension ≥ 3) selects 2,102 articles, but 1,762 of those are triggered by _subjectivity_ alone — the dimension the models argue about most and where "who is right" is least well defined. Polarity triggers 103 and centrality 239. Widening the panel widened the frame: three models selected 1,449. `--dimensions` and `--threshold` narrow the rule; they can only ever tighten it, because the validator recomputes eligibility from the contract.
 - **The arbiter reads unmasked article text.** This fixes a real v1 flaw: the public Hugging Face projection masks `OCR` per row, so a large share of v1-arbitrated articles were judged on an empty string. v2 reads the private mirror (needs `HF_TOKEN`) and records **both** revisions — public scores and private text — in the metadata and the cache fingerprint. Only verdicts and justifications are published; no OCR is ever serialised.
-- **Blind assignment is one global permutation** of the three ids onto labels A/B/C, persisted and reused by every incremental run, so cached and new rows always mean the same thing.
+- **Blind assignment is one global permutation** of the model ids onto labels A–E, persisted and reused by every incremental run, so cached and new rows always mean the same thing. `parseArbiterV2EvaluationData` rejects any file whose permutation is not a bijection over the contract's models, which is also what keeps the label list and the panel the same size.
 
 ### Regenerating the data
 
@@ -199,7 +203,7 @@ cd ma-visualisation-sentiments && npm install && npm run dev
 | `npm run preview`  | Serve the production build                                                  |
 | `npm run check`    | `svelte-check` — must report 0 errors, 0 warnings                           |
 | `npm run lint`     | Prettier, ESLint, store-cycle detection, design-token validation            |
-| `npm run test:run` | 437 Vitest unit and integration tests across 26 files                       |
+| `npm run test:run` | 492 Vitest unit and integration tests across 27 files                       |
 | `npm run test:e2e` | Playwright deep-link, failure-state and axe accessibility smoke tests       |
 
 Run the checks in [`.claude/skills/verify/SKILL.md`](.claude/skills/verify/SKILL.md) before committing anything that ships through CI — the ordering and pass criteria are not guessable. CSS and component rules are in [DESIGN.md](DESIGN.md), and `npm run lint` enforces most of them.

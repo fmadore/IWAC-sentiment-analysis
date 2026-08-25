@@ -2,7 +2,7 @@
  * Agreement State Module
  *
  * Derives inter-model agreement statistics (confusion matrices, Cohen's kappa,
- * Fleiss' kappa across all three models) from the loaded datasets.
+ * Fleiss' kappa across every model of a generation) from the loaded datasets.
  *
  * Everything here is a $derived read over `articleState.datasets` — no data of
  * its own to load, since the agreement view runs on exactly the same score
@@ -107,13 +107,13 @@ export const pairAgreement = {
 };
 
 /**
- * Fleiss' kappa across all three models of the active generation, per dimension.
+ * Fleiss' kappa across every model of the active generation, per dimension.
  *
  * Scoped to one generation: the two panels annotated the corpus under different
- * prompts, so a six-rater kappa would measure prompt change as if it were
- * disagreement between models.
+ * prompts, so pooling them into one eight-rater kappa would measure the prompt
+ * change as if it were disagreement between models.
  */
-export const threeWayAgreement = {
+export const panelAgreement = {
 	get current(): Record<AgreementDimension, FleissResult> | null {
 		const datasets = articleState.datasets;
 		const generationIds = datasetIdsOf(datasetState.generation);
@@ -137,16 +137,16 @@ export const threeWayAgreement = {
 };
 
 /**
- * Every article's ordinals from all three models of the active generation.
+ * Every article's ordinals from every model of the active generation.
  *
  * One join, shared by every consensus chart. The charts then run the pure
  * aggregations in `utils/consensus.ts` over these rows with their own local UI
  * state (dimension, declined-ratings toggle, threshold) — which is why this is
  * a parameter-free accessor rather than a family of them.
  *
- * Generation-scoped for the same reason `threeWayAgreement` is: a six-model
- * spread would measure the v2 prompt rewrite as if it were disagreement between
- * models.
+ * Generation-scoped for the same reason `panelAgreement` is: a spread taken
+ * over both panels at once would measure the v2 prompt rewrite as if it were
+ * disagreement between models.
  */
 export const consensusRows = {
 	get current(): ConsensusRow[] {
@@ -162,7 +162,9 @@ export const consensusRows = {
 	}
 };
 
-/** The active generation's model ids, in contract order — the consensus axis. */
+/** The active generation's model ids, in contract order — the consensus axis.
+ * Three for the archive, five for the current panel; every consumer reads the
+ * length from here rather than assuming one. */
 export const consensusModels = {
 	get current(): readonly DatasetId[] {
 		return datasetIdsOf(datasetState.generation);

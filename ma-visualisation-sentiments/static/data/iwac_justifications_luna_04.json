@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "analysis_version": "v2",
   "model": "luna",
   "shard": 4,
@@ -199,11 +199,6 @@
       "centralite_justification": "L’AEEMB est mentionnée comme bénéficiaire et porteuse du projet, mais son appartenance musulmane n’est pas exploitée dans le traitement, centré sur la santé et la coopération japonaise.",
       "subjectivite_justification": "Le texte rapporte principalement les faits, les montants et les déclarations attribuées aux responsables, avec quelques formulations valorisantes comme « immense contribution » et « voler au secours d’autrui ».",
       "polarite_justification": "L’article présente factuellement l’AEEMB dans son rôle social et sanitaire, sans développer de jugement général sur l’islam ou les musulmans."
-    },
-    "3524": {
-      "centralite_justification": "L’islam et les musulmans apparaissent dans la comparaison avec l’association Nachroul Islam, la sécurité des fidèles dans les mosquées et les cérémonies religieuses, mais ces éléments restent subordonnés à la critique des koglwéogo.",
-      "subjectivite_justification": "Les mentions de l’association islamique et des fidèles musulmans sont essentiellement factuelles, même si elles servent à étayer la critique de la gestion gouvernementale des koglwéogo.",
-      "polarite_justification": "Le texte ne porte pas de jugement marqué sur l’islam ou les musulmans ; il oppose surtout le traitement juridique de Nachroul Islam à celui des koglwéogo."
     },
     "3556": {
       "centralite_justification": "L’article est entièrement consacré à la célébration musulmane du Mouloud, à l’islam et aux enseignements du prophète Mohamed.",

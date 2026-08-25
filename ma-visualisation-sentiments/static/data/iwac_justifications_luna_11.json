@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.1.0",
   "analysis_version": "v2",
   "model": "luna",
   "shard": 11,
@@ -1369,11 +1369,6 @@
       "centralite_justification": "L’article porte entièrement sur un séminaire de la FAIB destiné à plus de 700 imams et prédicateurs, consacré au discours islamique en contexte d’insécurité.",
       "subjectivite_justification": "Le texte rapporte principalement des faits et des déclarations attribuées aux responsables religieux et au ministre, avec quelques formulations valorisantes comme « noble et difficile mission » et « messages d’amour, de paix, de tolérance ».",
       "polarite_justification": "L’article présente favorablement les responsables et institutions islamiques comme des acteurs de paix, de cohésion sociale, de réconciliation et d’apaisement dans un contexte d’insécurité."
-    },
-    "67691": {
-      "centralite_justification": "L’article porte directement sur la destruction d’une mosquée et sur les échanges entre le Premier ministre et la Fédération des associations islamiques du Burkina.",
-      "subjectivite_justification": "Le traitement est principalement factuel et s’appuie sur des déclarations attribuées, même si la satisfaction de la FAIB et ses appels à la retenue structurent le récit.",
-      "polarite_justification": "L’article rapporte la destruction de la mosquée et la résolution administrative du conflit sans généraliser ni porter de jugement sur l’islam ou les musulmans."
     },
     "67883": {
       "centralite_justification": "L’article est entièrement consacré au pèlerinage à La Mecque, présenté comme le cinquième pilier de l’islam et comme une expérience fondamentale pour les musulmans ivoiriens.",

@@ -7,6 +7,7 @@
  * ordinal scales the shared chart code reads from v1.
  */
 import { describe, expect, it } from 'vitest';
+import { ARBITER_BLIND_LABELS } from '$lib/types/data';
 import {
 	ARCHIVED_GENERATION,
 	CURRENT_GENERATION,
@@ -91,8 +92,32 @@ describe('shared scales', () => {
 		expect(prefixes).toEqual([
 			['gpt_5_6_luna'],
 			['mistral_small_2603'],
-			['deepseek_v4_flash_0731']
+			['deepseek_v4_flash_0731'],
+			['gemma_4_31b_it'],
+			['qwen3_8_27b']
 		]);
+	});
+});
+
+describe('panel completeness', () => {
+	it('declares every unordered pair of the v2 panel exactly once', () => {
+		// The pair list is hand-authored in two places (the tuple here, the JSON
+		// the pipeline reads) and grows quadratically: five models are ten pairs,
+		// and a missing one is invisible — the picker simply never offers that
+		// comparison, and nobody notices a conversation that was never had.
+		const models = datasetIdsOf('v2');
+		const expected = models.flatMap((a, index) => models.slice(index + 1).map((b) => `${a}-${b}`));
+
+		expect([...pairIdsOf('v2')].sort()).toEqual([...expected].sort());
+		expect(pairIdsOf('v2')).toHaveLength((models.length * (models.length - 1)) / 2);
+	});
+
+	it('gives the arbiter one blind label per v2 model', () => {
+		// The permutation is a bijection labels → models; too few labels would
+		// leave a model unnameable in a verdict, too many would name a model that
+		// does not exist. parseArbiterV2EvaluationData enforces this at load, but
+		// the run is not published yet, so nothing would exercise it until then.
+		expect(ARBITER_BLIND_LABELS).toHaveLength(datasetIdsOf('v2').length);
 	});
 });
 
@@ -100,8 +125,11 @@ describe('model naming', () => {
 	it('names every model from its own contract', () => {
 		expect(modelDisplayName('luna')).toBe('GPT-5.6 Luna');
 		expect(modelDisplayName('deepseek')).toBe('DeepSeek v4 Flash');
+		expect(modelDisplayName('gemma')).toBe('Gemma 4 31B');
+		expect(modelDisplayName('qwen')).toBe('Qwen3.8 27B');
 		expect(modelDisplayName('chatgpt')).toBe('ChatGPT');
 		expect(analysisModelName('mistral-small')).toBe('Mistral Small 4 2603');
+		expect(analysisModelName('gemma')).toBe('Gemma 4 31B IT');
 		expect(analysisModelName('mistral')).toBe('Ministral 14B 2512');
 	});
 });

@@ -14,7 +14,7 @@
 
   The view answers at two scopes, and the toggle is explicit rather than implied.
   It used to be pair-framed throughout — a ModelPairPicker in the header, every
-  panel below it pair-scoped — and the three-way section that has since grown
+  panel below it pair-scoped — and the panel-wide section that has since grown
   underneath would have left that picker visually governing charts it has no
   effect on. So the picker renders only in pair scope.
 -->
@@ -23,7 +23,7 @@
 	import { dec, num, pct } from '$lib/i18n/utils';
 	import {
 		pairAgreement,
-		threeWayAgreement,
+		panelAgreement,
 		modelMarginals,
 		AGREEMENT_DIMENSIONS,
 		DIMENSION_CATEGORIES,
@@ -49,15 +49,18 @@
 	import NetworkIcon from '@lucide/svelte/icons/network';
 
 	let selectedDimension = $state<AgreementDimension>('polarity');
-	let scope = $state<'pair' | 'trio'>('pair');
+	// 'panel', not 'trio': the current generation has five models, and a value
+	// named for three would be the same class of lie as a class name that stopped
+	// meaning what it looks like.
+	let scope = $state<'pair' | 'panel'>('pair');
 
 	const scopeOptions = $derived([
 		{ value: 'pair', label: $t.agreement.scopePair, icon: GitCompareIcon },
-		{ value: 'trio', label: $t.agreement.scopeTrio, icon: NetworkIcon }
+		{ value: 'panel', label: $t.agreement.scopePanel, icon: NetworkIcon }
 	]);
 
 	const agreement = $derived(pairAgreement.current);
-	const threeWay = $derived(threeWayAgreement.current);
+	const panel = $derived(panelAgreement.current);
 	const marginals = $derived(modelMarginals.current);
 	const modelNames = $derived(
 		getPairModelNames(datasetState.pair, datasetState.availableInGeneration)
@@ -114,7 +117,7 @@
 			<ChartTypeToggle
 				options={scopeOptions}
 				value={scope}
-				onChange={(value) => (scope = value as 'pair' | 'trio')}
+				onChange={(value) => (scope = value as 'pair' | 'panel')}
 				ariaLabel={$t.agreement.scopeLabel}
 			/>
 			<!--
@@ -208,16 +211,16 @@
 		</ChartCard>
 	{:else}
 		<!--
-			Trio scope. The Fleiss cards and the calibration chart were already
-			three-way, so they move here rather than being rebuilt — this is where
-			they always belonged.
+			Panel scope. The Fleiss cards and the calibration chart already read the
+			whole generation, so they move here rather than being rebuilt — this is
+			where they always belonged.
 		-->
-		{#if threeWay}
-			<SectionHead title={$t.agreement.threeWayTitle} lede={$t.agreement.threeWayLede} />
+		{#if panel}
+			<SectionHead title={$t.agreement.panelTitle} lede={$t.agreement.panelLede} />
 
 			<StatCardGrid class="mb-6">
 				{#each AGREEMENT_DIMENSIONS as dimension (dimension)}
-					{@const result = threeWay[dimension]}
+					{@const result = panel[dimension]}
 					<StatCard
 						label={dimensionLabels[dimension]}
 						value={formatKappa(result.kappa)}

@@ -253,20 +253,26 @@ export function parseArbiterEvaluationData(
 }
 
 /**
- * Parse the generation-2 three-way arbiter file.
+ * Parse the generation-2 panel arbiter file.
  *
  * The load-bearing check is the blind permutation: it must be a bijection from
- * the three labels onto the contract's three models. Every verdict in the file
+ * the anonymised labels onto the contract's models. Every verdict in the file
  * is expressed in labels, so a permutation that is missing a label, repeats a
  * model, or names a model from another generation would silently attribute
- * verdicts to the wrong model rather than fail.
+ * verdicts to the wrong model rather than fail. That check is also what keeps
+ * `ARBITER_BLIND_LABELS` and the contract's model list in step as the panel
+ * grows: too few labels for the models, or too many, is a failed bijection.
+ *
+ * The expected mode is read from the contract, never written as a literal —
+ * it has already changed once (three-model → panel), and a literal here would
+ * reject the very file the contract describes.
  */
 export function parseArbiterV2EvaluationData(data: unknown): ArbiterV2EvaluationData {
-	const root = requireRecord(data, 'Three-way arbiter file');
-	const metadata = requireRecord(root.metadata, 'Three-way arbiter metadata');
+	const root = requireRecord(data, 'Panel arbiter file');
+	const metadata = requireRecord(root.metadata, 'Panel arbiter metadata');
 
 	if (metadata.mode !== SENTIMENT_CONTRACT_V2.arbiter.mode) {
-		throw new Error(`Three-way arbiter file mode must be ${SENTIMENT_CONTRACT_V2.arbiter.mode}`);
+		throw new Error(`Panel arbiter file mode must be ${SENTIMENT_CONTRACT_V2.arbiter.mode}`);
 	}
 	if (
 		metadata.contract_schema_version !== SENTIMENT_CONTRACT_V2.schemaVersion ||
@@ -274,7 +280,7 @@ export function parseArbiterV2EvaluationData(data: unknown): ArbiterV2Evaluation
 		metadata.cache_schema_version !== SENTIMENT_CONTRACT_V2.arbiter.cacheSchemaVersion ||
 		metadata.prompt_version !== SENTIMENT_CONTRACT_V2.arbiter.promptVersion
 	) {
-		throw new Error('Three-way arbiter file must match the v2 sentiment contract');
+		throw new Error('Panel arbiter file must match the v2 sentiment contract');
 	}
 
 	const expectedModels = datasetIdsOf('v2');
@@ -284,42 +290,37 @@ export function parseArbiterV2EvaluationData(data: unknown): ArbiterV2Evaluation
 		models.length !== expectedModels.length ||
 		models.some((model, index) => model !== expectedModels[index])
 	) {
-		throw new Error('Three-way arbiter metadata does not list the v2 models in contract order');
+		throw new Error('Panel arbiter metadata does not list the v2 models in contract order');
 	}
 
-	const permutation = requireRecord(
-		metadata.blind_permutation,
-		'Three-way arbiter blind_permutation'
-	);
+	if (ARBITER_BLIND_LABELS.length !== expectedModels.length) {
+		throw new Error('The blind labels and the v2 model list are different lengths');
+	}
+
+	const permutation = requireRecord(metadata.blind_permutation, 'Panel arbiter blind_permutation');
 	const assigned = ARBITER_BLIND_LABELS.map((label: ArbiterBlindLabel) => permutation[label]);
 	if (
 		assigned.some((model) => !isDatasetId(model) || !expectedModels.includes(model)) ||
 		new Set(assigned).size !== expectedModels.length
 	) {
-		throw new Error('Three-way arbiter blind_permutation must be a bijection over the v2 models');
+		throw new Error('Panel arbiter blind_permutation must be a bijection over the v2 models');
 	}
 
 	if (!Array.isArray(root.evaluations)) {
-		throw new Error('Three-way arbiter evaluations must be an array');
+		throw new Error('Panel arbiter evaluations must be an array');
 	}
 	const ids = new Set<string>();
 	for (const [index, value] of root.evaluations.entries()) {
-		const evaluation = requireRecord(value, `Three-way arbiter evaluation ${index}`);
-		const id = requireString(
-			evaluation.article_id,
-			`Three-way arbiter evaluation ${index}.article_id`
-		);
-		if (ids.has(id)) throw new Error(`Duplicate three-way arbiter evaluation ${id}`);
+		const evaluation = requireRecord(value, `Panel arbiter evaluation ${index}`);
+		const id = requireString(evaluation.article_id, `Panel arbiter evaluation ${index}.article_id`);
+		if (ids.has(id)) throw new Error(`Duplicate panel arbiter evaluation ${id}`);
 		ids.add(id);
-		requireString(
-			evaluation.cache_fingerprint,
-			`Three-way arbiter evaluation ${id}.cache_fingerprint`
-		);
-		requireRecord(evaluation.arbiter, `Three-way arbiter evaluation ${id}.arbiter`);
-		requireRecord(evaluation.spread, `Three-way arbiter evaluation ${id}.spread`);
+		requireString(evaluation.cache_fingerprint, `Panel arbiter evaluation ${id}.cache_fingerprint`);
+		requireRecord(evaluation.arbiter, `Panel arbiter evaluation ${id}.arbiter`);
+		requireRecord(evaluation.spread, `Panel arbiter evaluation ${id}.spread`);
 	}
 	if (metadata.successful_evaluations !== root.evaluations.length) {
-		throw new Error('Three-way arbiter metadata successful_evaluations does not match the payload');
+		throw new Error('Panel arbiter metadata successful_evaluations does not match the payload');
 	}
 
 	return root as unknown as ArbiterV2EvaluationData;

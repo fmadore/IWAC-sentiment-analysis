@@ -38,11 +38,13 @@ export const fr: Translations = {
 	},
 
 	/* Le filet sous le titre de chaque vue : « Modèle · X · Échantillon · N
-	   articles ». Assemblé dans ViewContent à partir de ces deux mots et de
-	   `common.of` et `common.articles`. */
+	   articles ». Assemblé dans ViewContent à partir de ces mots et de
+	   `common.of` et `common.articles`. « Évalués » n'apparaît que si le modèle
+	   a laissé une partie de l'échantillon sans note. */
 	viewMeta: {
 		model: 'Modèle',
-		sample: 'Échantillon'
+		sample: 'Échantillon',
+		rated: 'Évalués'
 	},
 
 	// Filters
@@ -193,10 +195,10 @@ export const fr: Translations = {
 			'Kappa à pondération quadratique. Se tromper d’une catégorie coûte bien moins que de s’en écarter de quatre, ce qui convient aux échelles dont les catégories se suivent dans un ordre. Un score pondéré nettement supérieur au score non pondéré indique que les modèles classent de façon semblable mais se calibrent différemment.',
 		fleissKappa: 'κ de Fleiss',
 		fleissHelp:
-			'Kappa de Fleiss sur les trois modèles à la fois, pour les articles que tous ont évalués.',
-		threeWayTitle: 'Les trois modèles',
-		threeWayLede:
-			'L’accord entre les trois modèles à la fois, dimension par dimension. Seuls comptent les articles que les trois ont évalués.',
+			'Kappa de Fleiss sur tous les modèles du panel à la fois, pour les articles que tous ont évalués.',
+		panelTitle: 'L’ensemble du panel',
+		panelLede:
+			'L’accord entre tous les modèles de l’analyse retenue à la fois, dimension par dimension. Seuls comptent les articles que tous ont évalués : un modèle à la couverture plus étroite réduit donc la base de tous les autres.',
 		matrixTitle: 'Matrice d’accord',
 		rowsAre: 'Lignes :',
 		columnsAre: 'Colonnes :',
@@ -214,25 +216,25 @@ export const fr: Translations = {
 			almostPerfect: 'Presque parfait'
 		},
 
-		// Section consensus à trois
+		// Section consensus sur l'ensemble du panel
 		scopeLabel: 'Portée de la comparaison',
 		scopePair: 'Deux modèles',
-		scopeTrio: 'Les trois',
-		consensusTitle: 'Où les trois modèles divergent',
+		scopePanel: 'Tous les modèles',
+		consensusTitle: 'Où les modèles divergent',
 		consensusLede:
-			'Une vue par paire peut montrer que deux modèles diffèrent, mais non que l’un d’eux se démarque des deux autres. Tout ce qui suit décompose chaque article sur les trois à la fois : un modèle qui applique l’échelle autrement que ses pairs y apparaît alors comme un motif constant.',
+			'Une vue par paire peut montrer que deux modèles diffèrent, mais non que l’un d’eux se démarque de tous les autres. Tout ce qui suit décompose chaque article sur l’ensemble du panel à la fois : un modèle qui applique l’échelle autrement que ses pairs y apparaît alors comme un motif constant.',
 		unanimous: 'Unanimité',
 		unanimousHelp:
-			'Proportion d’articles pour lesquels les trois modèles ont choisi la même catégorie.',
-		majoritySplit: 'Deux contre un',
+			'Proportion d’articles pour lesquels tous les modèles ont choisi la même catégorie.',
+		majoritySplit: 'Un contre les autres',
 		majoritySplitHelp:
-			'Proportion d’articles pour lesquels deux modèles s’accordent et un se démarque. Les graphiques ci-dessous indiquent lequel.',
-		allDiffer: 'Les trois diffèrent',
+			'Proportion d’articles pour lesquels tous les modèles sauf un ont choisi la même catégorie, le dernier se démarquant. Les graphiques ci-dessous indiquent lequel.',
+		allDiffer: 'Divisés autrement',
 		allDifferHelp:
-			'Proportion d’articles pour lesquels aucun modèle n’en rejoint un autre, de sorte qu’il n’existe aucune majorité dont se démarquer.',
+			'Proportion d’articles qui ne sont ni unanimes ni « un contre les autres » : le panel se répartit en plusieurs camps, sans dissident isolé à désigner. Sur un panel élargi, cette issue absorbe les divisions serrées qu’un panel de trois modèles ne pouvait pas produire.',
 		meanSpread: 'Écart moyen',
 		meanSpreadHelp:
-			'Moyenne de (maximum − minimum) entre les trois modèles, comptée en crans sur l’échelle. Zéro correspond à l’unanimité, le maximum à toute la largeur de l’échelle.',
+			'Moyenne de (maximum − minimum) entre les modèles, comptée en crans sur l’échelle. Zéro correspond à l’unanimité, le maximum à toute la largeur de l’échelle.',
 		declinedToggle: 'Notations refusées',
 		declinedInclude: 'Incluses',
 		declinedExclude: 'Exclues',
@@ -243,7 +245,7 @@ export const fr: Translations = {
 
 		disagreementTitle: 'Journaux classés par désaccord entre modèles',
 		disagreementSubtitle:
-			'Écart moyen à trois avec IC à 95 % · titres comptant au moins {min} articles évalués',
+			'Écart moyen sur le panel avec IC à 95 % · titres comptant au moins {min} articles évalués',
 		disagreementAxis: 'Crans d’échelle entre le modèle le plus haut et le plus bas',
 		disagreementNote:
 			'Le miroir de la vue Journaux : mêmes titres, même seuil, mais l’axe mesure l’écart entre les modèles plutôt que ce qu’ils disent. Un titre peut être banal quant au sentiment et atypique quant au désaccord.',
@@ -256,32 +258,33 @@ export const fr: Translations = {
 		disagreementEmpty: 'Aucun journal n’atteint {min} articles évalués avec les filtres actuels.',
 
 		dissentTitle: 'Qui se démarque',
-		dissentSubtitle: 'Chaque article rangé dans l’une de cinq issues possibles',
+		dissentSubtitle:
+			'Chaque article rangé selon l’unanimité, un modèle contre les autres ou une division plus large',
 		dissentStacked: 'Par journal',
 		dissentTernary: 'Triangle',
 		dissentTernaryNote:
-			'Un point par journal, placé selon le modèle qui s’y démarque le plus souvent. Un point à un sommet signifie que ce modèle assume tout le désaccord, un point au centre que les trois se le partagent également. La taille indique le nombre d’articles. Les titres sans partage deux contre un n’ont pas de position et ne sont pas tracés.',
+			'Un point par journal, placé selon le modèle qui s’y démarque le plus souvent. Un point à un sommet signifie que ce modèle assume tout le désaccord, un point au centre que les trois se le partagent également. La taille indique le nombre d’articles. Les titres où aucun modèle ne s’est jamais démarqué seul n’ont pas de position et ne sont pas tracés. Un triangle n’ayant que trois sommets, cette vue n’est proposée que pour l’archive à trois modèles ; le panel à cinq modèles se lit sur les barres empilées.',
 		dissentsAlone: 'se démarque seul',
 		dissentShare: 'Part des partages',
 
 		directionTitle: 'Dans quel sens penche chaque modèle',
 		directionSubtitle:
-			'Lorsqu’un modèle se démarque, note-t-il au-dessus des deux autres ou en dessous ? Les barres au-dessus de l’axe notent plus haut, celles en dessous plus bas.',
+			'Lorsqu’un modèle se démarque, note-t-il au-dessus du reste du panel ou en dessous ? Les barres au-dessus de l’axe notent plus haut, celles en dessous plus bas.',
 		directionAbove: 'Note plus haut',
 		directionBelow: 'Note plus bas',
 		directionNote:
-			'C’est l’énoncé le plus net que ces données produisent sur la façon dont ces modèles diffèrent. Un modèle dont les barres se rangent presque entièrement d’un côté applique l’échelle autrement que les deux autres, de manière constante et dans un seul sens.',
+			'C’est l’énoncé le plus net que ces données produisent sur la façon dont ces modèles diffèrent. Un modèle dont les barres se rangent presque entièrement d’un côté applique l’échelle autrement que ses pairs, de manière constante et dans un seul sens.',
 
-		flowTitle: 'Circulation des étiquettes entre les trois modèles',
+		flowTitle: 'Circulation des étiquettes dans le panel',
 		flowNote:
-			'La matrice d’accord étendue à trois modèles. Un décalage systématique apparaît comme une masse de rubans glissant d’un cran, et les trajets qu’une matrice par paire dissimule — les articles où le premier et le dernier modèle s’accordent en passant par un modèle intermédiaire divergent — deviennent visibles.',
+			'La matrice d’accord étendue à l’ensemble du panel. Un décalage systématique apparaît comme une masse de rubans glissant d’un cran, et les trajets qu’une matrice par paire dissimule — les articles où le premier et le dernier modèle s’accordent en passant par un modèle intermédiaire divergent — deviennent visibles.',
 		flowArticles: 'articles',
 
 		scatterTitle: 'Le désaccord porte-t-il sur les couvertures extrêmes ou ambiguës ?',
 		scatterSubtitle:
 			'Une bulle par journal · taille selon le nombre d’articles, couleur selon le pays',
-		scatterX: 'Moyenne du consensus (les trois modèles moyennés)',
-		scatterY: 'Écart moyen à trois',
+		scatterX: 'Moyenne du consensus (les modèles moyennés)',
+		scatterY: 'Écart moyen sur le panel',
 		scatterNote:
 			'Corrélation entre les deux axes : r = {r}. Une valeur proche de zéro signifierait que le désaccord ne dépend pas du caractère favorable de la couverture d’un titre. Une valeur forte, dans un sens ou dans l’autre, signifie que les modèles se disputent surtout un bout de l’échelle, et le classement ci-dessus doit alors se lire en conséquence. La valeur diffère selon la génération d’analyse et selon la dimension.'
 	},
@@ -309,7 +312,7 @@ export const fr: Translations = {
 		declined: 'Refusées',
 		medianYear: 'Année médiane',
 		disagreementCaption:
-			'Journaux classés par écart moyen à trois, avec intervalles de confiance, unanimité et part de notations refusées'
+			'Journaux classés par écart moyen sur le panel, avec intervalles de confiance, unanimité et part de notations refusées'
 	},
 
 	// Chart titles and labels
@@ -417,7 +420,7 @@ export const fr: Translations = {
 		methodologyCorpusArticles: 'articles issus de la',
 		methodologyCorpusDeveloper:
 			', une base de données numérique collaborative et en libre accès construite par',
-		methodologyCorpusEnd: ', est donc passé par trois grands modèles de langage :',
+		methodologyCorpusEnd: ', est donc passé par les grands modèles de langage suivants :',
 		methodologyCorpusDimensions: 'Chaque modèle a évalué chaque article sur trois dimensions :',
 		methodologyAiModel: 'Méthode et modèles',
 		modelUsed: 'Modèles',
@@ -484,12 +487,15 @@ export const fr: Translations = {
 	// iwac-ai-pipelines/AI_sentiment_analysis/sentiment_prompt.md
 	analysisV2: {
 		config: [
-			'Analyse du corpus : 3–5 août 2026',
-			"Effort de raisonnement : moyen pour GPT-5.6 Luna ; élevé pour Mistral Small 4 et DeepSeek v4 Flash, dont les API n'offrent aucun niveau intermédiaire",
-			'Température : non définie par le pipeline — chaque modèle tourne à la valeur par défaut de son fournisseur',
+			'Analyse du corpus : 3–5 août 2026 pour GPT-5.6 Luna, Mistral Small 4 et DeepSeek v4 Flash ; 14–15 août pour Gemma 4 31B ; 17–24 août pour Qwen3.8 27B',
+			"Effort de raisonnement : moyen pour GPT-5.6 Luna et Qwen3.8 27B, les deux seuls dont le réglage a pu être vérifié ; élevé pour Mistral Small 4 et DeepSeek v4 Flash, dont les API n'offrent aucun niveau intermédiaire ; nominalement moyen pour Gemma 4 31B, dont la route OpenRouter rend le moyen et l'élevé indiscernables",
+			'Où chaque modèle a tourné : chez son concepteur, sauf Gemma 4 31B et DeepSeek v4 Flash, servis via OpenRouter, et Qwen3.8 27B, auto-hébergé avec vLLM sur le cluster Festus de l’université de Bayreuth',
+			'Température : non définie par le pipeline — chaque modèle tourne à la valeur par défaut de son hôte',
 			'Format de sortie : JSON structuré validé par un schéma Pydantic',
 			'Un cache reprenable, un enregistrement par article et par modèle ; seuls les appels réussis y sont conservés',
 			'Gestion des erreurs : jusqu’à trois tentatives par appel, avec une attente croissante entre elles et un délai maximal par modèle',
+			'Couverture : 12 298 des 12 349 articles portent les annotations de tous les modèles. Les 51 articles qui ne sont ni en français ni en anglais sont écartés à dessein, le prompt étant en français',
+			'Qwen3.8 27B s’arrête 200 articles plus tôt : il les a refusés au fil d’un passage complet et de trois séries de reprises. Ce manque est définitif, et il n’est pas aléatoire — il frappe surtout les articles où l’islam est périphérique, si bien que tout chiffre calculé sur les seuls articles évalués par tous penche vers une matière où l’islam est central',
 			'Empreinte du prompt d14ace9ac192, enregistrée avec chaque résultat mis en cache'
 		],
 		promptFeatures: [
@@ -793,22 +799,22 @@ export const fr: Translations = {
 		justification: 'Raison donnée'
 	},
 
-	// Arbitre à trois voies (génération 2)
+	// Arbitre du panel (génération 2)
 	arbiterV2: {
-		viewTitle: 'Arbitre à trois voies',
+		viewTitle: 'Arbitre du panel',
 		viewSubtitle:
-			'Un verdict à l’aveugle par article, comparant les trois analyses de la génération 2 en une seule fois',
+			'Un verdict à l’aveugle par article, comparant toutes les analyses de la génération 2 en une seule fois',
 		modelName: 'Claude Opus 5',
 		arbiterRole: 'Juge tiers',
 		samplingFrameNote:
-			'L’arbitre n’a pas examiné tout le corpus. Il a examiné des articles retenus parce que les trois modèles y divergeaient le plus nettement : chaque pourcentage ci-dessous ne vaut donc que là où un désaccord existe déjà. Aucun ne mesure quel modèle est meilleur sur l’ensemble du corpus.',
+			'L’arbitre n’a pas examiné tout le corpus. Il a examiné des articles retenus parce que le panel y divergeait le plus nettement : chaque pourcentage ci-dessous ne vaut donc que là où un désaccord existe déjà. Aucun ne mesure quel modèle est meilleur sur l’ensemble du corpus.',
 		articlesEvaluated: 'articles examinés',
 		dimensionVerdicts: 'verdicts par dimension',
 		preferred: 'préféré',
 		multiple: 'Plusieurs aussi proches',
 		none: 'Aucune proche',
 		overallVerdicts: 'Verdicts globaux',
-		overallVerdictsNote: 'Un verdict par article, toutes dimensions confondues',
+		overallVerdictsNote: 'Un verdict par article, sur les trois dimensions à la fois',
 		byDimension: 'Verdicts par dimension',
 		confidenceDistribution: 'Répartition de la confiance',
 		blindLabel: 'Présentée comme',
@@ -824,42 +830,42 @@ export const fr: Translations = {
 		confidence: 'Confiance',
 		showReasoning: 'Afficher le raisonnement',
 		hideReasoning: 'Masquer le raisonnement',
-		noData: 'Pas encore de verdicts de l’arbitre à trois voies',
+		noData: 'Pas encore de verdicts de l’arbitre du panel',
 		noDataDescription:
 			'Cette campagne est payante et se lance à la main : elle n’a pas encore été faite. D’ici là, cette vue n’a rien à montrer.',
 		loading: "Chargement des données de l'arbitre…",
 		// Méthodologie
-		methodologyTitle: 'Comment fonctionne l’arbitre à trois voies',
+		methodologyTitle: 'Comment fonctionne l’arbitre du panel',
 		methodologySubtitle:
-			'Un seul juge compare les trois analyses de la génération 2 en une seule fois',
+			'Un seul juge compare toutes les analyses de la génération 2 en une seule fois',
 		blindEvaluation: 'Examen à l’aveugle',
 		blindEvaluationDesc:
-			'Les trois analyses sont anonymisées en A, B et C par un seul tirage aléatoire, fixé pour toute la campagne.',
+			'Les analyses sont anonymisées de A à E par un seul tirage aléatoire, fixé pour toute la campagne.',
 		selectionProcess: 'Comment les articles ont été retenus',
 		selectionProcessDesc:
-			'Un article est retenu lorsque les trois modèles s’écartent d’au moins 3 points sur une dimension : la note la plus haute moins la plus basse, et non l’écart entre deux modèles. Les articles où un modèle indique que la tâche ne s’applique pas sont écartés plutôt que comptés comme un désaccord maximal.',
+			'Un article est retenu lorsque les modèles s’écartent d’au moins 3 points sur une dimension : la note la plus haute moins la plus basse sur l’ensemble du panel, et non l’écart entre deux modèles. Les articles où un modèle indique que la tâche ne s’applique pas — ou, pour Qwen3.8 27B, n’a jamais rendu de réponse — sont écartés plutôt que comptés comme un désaccord maximal.',
 		fullText: 'Le texte intégral de l’article',
 		fullTextDesc:
 			'L’arbitre lit l’article depuis le miroir privé de la collection, où le texte est complet. L’arbitre v1 lisait la version publique, qui masque le texte d’une part importante des articles : certains verdicts v1 ont donc été rendus sans l’article sous les yeux du juge.',
 		independentVerdict: 'Verdict indépendant',
-		independentVerdictDesc: "L'arbitre note lui-même l'article avant de comparer les trois.",
+		independentVerdictDesc: "L'arbitre note lui-même l'article avant de comparer les analyses.",
 		reasoningEffort: 'Effort de raisonnement',
 		reasoningEffortDesc:
 			'Claude Opus 5 raisonne de façon adaptative : la campagne fixe donc un niveau d’effort plutôt qu’un budget de jetons. Ce réglage détermine aussi le coût.',
 		howItWorks: 'Fonctionnement',
 		step1: "Il lit le texte intégral de l'article",
 		step2: 'Il note lui-même la polarité, la subjectivité et la centralité',
-		step3: 'Il compare les trois analyses anonymisées à sa propre note',
+		step3: 'Il compare les analyses anonymisées à sa propre note',
 		step4:
 			"Il désigne l'analyse la plus juste par dimension, ou indique que plusieurs se valent ou qu'aucune n'est juste",
 		arbiterModel: 'Modèle arbitre',
 		arbiterModelDesc:
-			'Claude Opus 5 juge les trois analyses en un seul appel : ses verdicts se tiennent donc entre eux, ce que trois campagnes deux à deux ne pourraient pas garantir.',
+			'Claude Opus 5 juge toutes les analyses d’un article en un seul appel : ses verdicts se tiennent donc entre eux, ce que dix campagnes deux à deux ne pourraient pas garantir.',
 		viewPrompt: 'Voir le prompt',
 		promptExplanation:
 			"L'instruction système et le prompt utilisateur exacts envoyés à l'arbitre, mot pour mot.",
 		viewFullPrompt: 'Voir le prompt complet',
-		arbiterPrompt: "Prompt de l'arbitre à trois voies",
+		arbiterPrompt: "Prompt de l'arbitre du panel",
 		systemInstruction: 'Instruction système',
 		userPromptTemplate: 'Modèle de prompt utilisateur'
 	},
@@ -901,15 +907,15 @@ export const fr: Translations = {
 		siteTitle: 'Analyse de sentiments IWAC',
 		comparisonTitle: 'Comparaison de modèles IA',
 		comparisonDescription:
-			"Comparez la façon dont GPT-5.6 Luna, Mistral Small 4 et DeepSeek v4 Flash ont noté les mêmes articles de la Collection Islam Afrique de l'Ouest, et voyez où leurs lectures de la couverture de presse se séparent.",
+			"Comparez la façon dont GPT-5.6 Luna, Mistral Small 4, DeepSeek v4 Flash, Gemma 4 31B et Qwen3.8 27B ont noté les mêmes articles de la Collection Islam Afrique de l'Ouest, et voyez où leurs lectures de la couverture de presse se séparent.",
 		comparisonKeywords:
-			'comparaison IA, GPT-5.6 Luna vs Mistral Small 4 vs DeepSeek, comparaison de modèles, analyse de sentiments, IWAC, évaluation IA',
+			'comparaison IA, GPT-5.6 Luna vs Mistral Small 4 vs DeepSeek vs Gemma vs Qwen, comparaison de modèles, analyse de sentiments, IWAC, évaluation IA',
 		viewDescriptionPrefix: 'Explorez ',
 		viewDescriptionSuffix:
 			" dans les annotations de sentiment produites par IA sur la Collection Islam Afrique de l'Ouest, un corpus de presse ouest-africaine francophone consacré à l'islam et aux musulmans.",
 		baseKeywords: "analyse de sentiments, IWAC, Islam Afrique de l'Ouest, visualisation de données",
 		ogImageAlt:
-			'Analyse de sentiments IWAC — distributions de polarité de GPT-5.6 Luna, Mistral Small 4 et DeepSeek v4 Flash sur 12 305 articles de presse ouest-africaine francophone',
+			'Analyse de sentiments IWAC — distributions de polarité de GPT-5.6 Luna, Mistral Small 4, DeepSeek v4 Flash, Gemma 4 31B et Qwen3.8 27B sur 12 298 articles de presse ouest-africaine francophone',
 		views: {
 			charts: {
 				title: 'Graphiques et distributions',
@@ -961,7 +967,7 @@ export const fr: Translations = {
 			agreement: {
 				title: 'Accord entre modèles',
 				description:
-					'à quel point les trois modèles IA s’accordent, et comment ils diffèrent lorsqu’ils divergent',
+					'à quel point les modèles IA s’accordent, et comment ils diffèrent lorsqu’ils divergent',
 				keywords: 'accord, kappa de Cohen, kappa de Fleiss, fiabilité inter-juges, calibration'
 			},
 			comparison: {

@@ -77,6 +77,22 @@ const DATASETS: DatasetOption[] = [
 		file: '/data/iwac_sentiment_deepseek.json',
 		logo: '/logo/DeepSeek_logo.svg',
 		color: '#4d6bfe'
+	},
+	{
+		id: 'gemma',
+		generation: 'v2',
+		name: 'Gemma 4 31B',
+		file: '/data/iwac_sentiment_gemma.json',
+		logo: '/logo/Gemma_logo.png',
+		color: '#338dff'
+	},
+	{
+		id: 'qwen',
+		generation: 'v2',
+		name: 'Qwen3.8 27B',
+		file: '/data/iwac_sentiment_qwen.json',
+		logo: '/logo/Qwen_logo.png',
+		color: '#615ced'
 	}
 ];
 
