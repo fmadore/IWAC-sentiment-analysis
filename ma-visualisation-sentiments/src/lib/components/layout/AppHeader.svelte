@@ -18,6 +18,23 @@
   items; the brand recovers to its full size and gains a mono context line
   naming the model and the current view, which the old header never showed.
 
+  The brand is centred here, as a masthead over its dateline. Left-aligned, it
+  butted against the nav toggle and left the bar visibly lopsided — a two-line
+  text block crammed against one 40px box with another floating alone at the
+  far edge. Centring is also the newspaper idiom the rest of the design already
+  speaks: the serif name on top, the mono model·view line reading as the
+  dateline beneath it.
+
+  Both presentations therefore share one `1fr auto 1fr` grid, and that is the
+  only structure that actually centres the brand: the two flanking controls are
+  different widths (the filters trigger gains a text label at 640px, and
+  disappears entirely on views with no filter rail), so anything that let the
+  brand's position depend on its neighbours' content would drift off-centre
+  view by view. Equal fr tracks fix the centre line regardless of what sits in
+  them. The brand keeps `text-align` rather than `align-items` for the same
+  reason it keeps `min-width: 0` — a centred flex item is sized to its content
+  and would overflow the bar instead of ellipsing inside it.
+
   Three rules hold across both:
     • One control height. Everything in the bar is --size-control-lg (40px).
       The previous design shrank targets to 32px on the smallest screens, which
@@ -105,28 +122,26 @@
 
 <header class="app-header sticky top-0">
 	<div class="header-toolbar">
-		<div class="header-lead">
-			<button
-				class="icon-button nav-toggle"
-				onclick={() => (uiState.mobileMenuOpen = !uiState.mobileMenuOpen)}
-				aria-label={uiState.mobileMenuOpen ? 'Close navigation' : 'Open navigation'}
-				aria-expanded={uiState.mobileMenuOpen}
-			>
-				{#if uiState.mobileMenuOpen}
-					<XIcon size={22} />
-				{:else}
-					<MenuIcon size={22} />
-				{/if}
-			</button>
+		<button
+			class="icon-button nav-toggle"
+			onclick={() => (uiState.mobileMenuOpen = !uiState.mobileMenuOpen)}
+			aria-label={uiState.mobileMenuOpen ? 'Close navigation' : 'Open navigation'}
+			aria-expanded={uiState.mobileMenuOpen}
+		>
+			{#if uiState.mobileMenuOpen}
+				<XIcon size={22} />
+			{:else}
+				<MenuIcon size={22} />
+			{/if}
+		</button>
 
-			<div class="brand-text">
-				<span class="brand-title">{$t.appTitle}</span>
-				<!-- Below 1024px the subtitle gives way to a context line: which
-				     model produced the numbers on screen, and which view you are in.
-				     Both facts were previously invisible once the drawer was shut. -->
-				<span class="brand-subtitle">{$t.appSubtitle}</span>
-				<span class="brand-context">{currentModelName} · {currentViewName}</span>
-			</div>
+		<div class="brand-text">
+			<span class="brand-title">{$t.appTitle}</span>
+			<!-- Below 1024px the subtitle gives way to a context line: which
+			     model produced the numbers on screen, and which view you are in.
+			     Both facts were previously invisible once the drawer was shut. -->
+			<span class="brand-subtitle">{$t.appSubtitle}</span>
+			<span class="brand-context">{currentModelName} · {currentViewName}</span>
 		</div>
 
 		{#if desktop.current}
@@ -183,22 +198,28 @@
 		position: sticky;
 	}
 
+	/* One grid at every width: nav toggle | brand | trailing controls.
+	   The flanking tracks are equal `1fr`, so the brand's centre line is fixed
+	   by the bar rather than by whatever happens to sit beside it — the filters
+	   trigger is icon-only below 640px, icon-plus-label above it, and absent on
+	   views with no filter rail. Above 1024px the toggle leaves the flow
+	   (`display: none`), the DatasetPicker takes the centre track, and the same
+	   three columns become the desktop masthead with the brand at the left. */
 	.header-toolbar {
-		display: flex;
-		justify-content: space-between;
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
 		align-items: center;
-		gap: var(--space-3);
+		/* Narrower than the 640px gutter on purpose: the centre track is the
+		   title's whole allowance, so 4px of gap is 4px off the app's own name. */
+		gap: var(--space-2);
 		padding: var(--space-2-5) var(--space-3);
 		max-width: 1400px;
 		margin: 0 auto;
 		position: relative;
 	}
 
-	.header-lead {
-		display: flex;
-		align-items: center;
-		gap: var(--space-2-5);
-		min-width: 0;
+	.nav-toggle {
+		justify-self: start;
 	}
 
 	.header-headline {
@@ -294,17 +315,31 @@
 
 	/* ---- Brand --------------------------------------------------------------
 	   Source Serif 4 for the project name (reads as "research artefact" rather
-	   than "product name"); JetBrains Mono for the wire-service caption below. */
+	   than "product name"); JetBrains Mono for the wire-service caption below.
+
+	   Centred with `text-align`, deliberately not with `align-items`: a centred
+	   flex item takes its cross size from its own content, so the title would
+	   size to the full run of "Analyse de sentiments CIAO" and overflow the bar
+	   on a narrow phone instead of ellipsing inside it. Stretched items plus
+	   `text-align` centre the same glyphs and keep the ellipsis working. */
 	.brand-text {
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-0-5);
 		min-width: 0;
+		text-align: center;
 	}
 
+	/* The masthead steps once per breakpoint: 17 / 20 / 26. It is the largest and
+	   heaviest thing in the bar at every one of them, and comfortably above the
+	   15px body — this is not the old 13px squeeze, which put the app's name
+	   below its own prose. Centred between two 40px controls, 20px could not
+	   hold "Analyse de sentiments CIAO" (248px of glyphs against 236px of track
+	   on a 360px phone) and clipped the collection's acronym off the end. A
+	   whole name one stop down reads better than a cropped one at full size. */
 	.brand-title {
 		font-family: var(--font-display);
-		font-size: var(--font-size-xl);
+		font-size: var(--font-size-lg);
 		font-weight: var(--font-weight-bold);
 		color: var(--text-primary);
 		line-height: var(--line-height-tight);
@@ -350,6 +385,10 @@
 		.filters-trigger-label {
 			display: inline;
 		}
+
+		.brand-title {
+			font-size: var(--font-size-xl);
+		}
 	}
 
 	/* ---- 1024px: the full desktop masthead ---------------------------------- */
@@ -372,10 +411,15 @@
 			   (--rail-top). Declaring it here rather than measuring it is what
 			   keeps the two in step when the brand size or padding changes. */
 			min-height: var(--header-height);
-			display: grid;
-			grid-template-columns: 1fr auto 1fr;
 			padding: var(--space-3-5) var(--space-8);
 			gap: var(--space-6);
+		}
+
+		/* The masthead is a left-hand byline here, not a centred nameplate: the
+		   centre track belongs to the DatasetPicker, and the brand shares its
+		   track with nothing. */
+		.brand-text {
+			text-align: start;
 		}
 
 		.brand-title {
