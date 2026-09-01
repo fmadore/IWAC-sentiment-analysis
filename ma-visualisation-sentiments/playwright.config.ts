@@ -8,7 +8,13 @@ export default defineConfig({
 	fullyParallel: true,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
-	workers: process.env.CI ? 2 : undefined,
+	// Pinned rather than left to default locally, so a local run matches CI. The
+	// default is half the machine's cores -- 11 on a 22-core box -- all driving
+	// the one `npm run preview` server. That is harmless on an idle machine and
+	// breaks down on a busy one: with a vitest run in parallel, 11 workers failed
+	// 2 of 4 suite runs while 2 workers failed 0 of 4. Busy is the normal case,
+	// since e2e runs last in the verify sequence, right after a build.
+	workers: 2,
 	reporter: process.env.CI ? 'github' : 'list',
 	use: {
 		baseURL: `${previewOrigin}/sentiment-analysis/`,

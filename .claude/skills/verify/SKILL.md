@@ -95,3 +95,25 @@ Automated browsers never composite, so canvas and WebGL surfaces (every ECharts
 view, the MapLibre map) look broken there regardless of correctness. Judge
 "does it render" in a real browser, and use the pane for errors, request status
 and DOM structure.
+
+### The e2e suite fails under load, not under parallelism
+
+`npm run test:e2e` drives the whole `e2e/` suite against a single
+`npm run preview` server, and `playwright.config.ts` pins `workers: 2` to match
+CI. **Don't raise it locally.** The reason is narrower than "too much
+parallelism", and the difference matters when you are reading a failure:
+
+- Idle machine: no failures at 1, 2, 4 or 11 workers (24 suite runs).
+- With a `vitest` run alongside: **11 workers failed 2 of 4 runs; 2 workers
+  failed 0 of 4.**
+
+So worker count only bites when the machine is already busy — which is the
+normal case here, because e2e runs last, right after a build. The symptom does
+not read as contention: `keeps the model-pair menu inside the page` fails its
+390px-viewport geometry assertion, and `keeps comparison table cells in their
+columns` fails on cell positions. Both look exactly like a mobile layout
+regression, and after a dependency bump they look like one that bump caused.
+
+Before bisecting a geometry failure, re-run the single spec on a quiet machine
+(`npx playwright test -g "<title>"`). Local `retries` stays 0 on purpose, so
+nothing is silently papered over — but a single red run is not yet evidence.
