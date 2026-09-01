@@ -33,29 +33,29 @@
 	},
 	"type": "module",
 	"devDependencies": {
-		"@axe-core/playwright": "^4.12.1",
+		"@axe-core/playwright": "^4.13.0",
 		"@eslint/compat": "^2.1.0",
 		"@eslint/js": "^10.0.1",
 		"@playwright/test": "^1.62.1",
-		"@sveltejs/adapter-static": "^3.0.9",
-		"@sveltejs/vite-plugin-svelte": "^7.2.0",
+		"@sveltejs/adapter-static": "^3.0.10",
+		"@sveltejs/vite-plugin-svelte": "^7.3.0",
 		"@tailwindcss/vite": "^4.3.3",
-		"@testing-library/svelte": "^5.4.1",
-		"@types/node": "^26.1.2",
-		"eslint": "^10.8.0",
-		"eslint-config-prettier": "^10.0.1",
-		"eslint-plugin-svelte": "^3.22.0",
-		"globals": "^17.9.0",
+		"@testing-library/svelte": "^5.4.2",
+		"@types/node": "^26.4.0",
+		"eslint": "^10.9.1",
+		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-svelte": "^3.23.0",
+		"globals": "^17.11.0",
 		"jsdom": "^30.0.1",
 		"prettier": "^3.9.6",
 		"prettier-plugin-svelte": "^4.1.1",
-		"svelte": "^5.56.8",
-		"svelte-check": "^4.7.4",
-		"tailwindcss": "^4.1.18",
+		"svelte": "^5.57.0",
+		"svelte-check": "^4.7.6",
+		"tailwindcss": "^4.3.3",
 		"typescript": "^6.0.3",
-		"typescript-eslint": "^8.66.0",
-		"vite": "^8.2.0",
-		"vitest": "^4.1.10"
+		"typescript-eslint": "^8.69.0",
+		"vite": "^8.2.2",
+		"vitest": "^4.1.11"
 	},
 	"license": "MIT",
 	"keywords": [
@@ -82,13 +82,13 @@
 		}
 	},
 	"dependencies": {
-		"@lucide/svelte": "^1.28.0",
-		"@sveltejs/kit": "^2.70.2",
+		"@lucide/svelte": "^1.38.0",
+		"@sveltejs/kit": "^2.70.3",
 		"echarts": "^6.1.0",
 		"esm-env": "^1.2.2",
-		"maplibre-gl": "^6.3.0",
-		"openseadragon": "^6.0.2",
+		"maplibre-gl": "^6.6.0",
+		"openseadragon": "^6.1.0",
 		"svelte-echarts": "^1.0.0",
-		"svelte-maplibre-gl": "^2.2.0"
+		"svelte-maplibre-gl": "^2.2.1"
 	}
 }
