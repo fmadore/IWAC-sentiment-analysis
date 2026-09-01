@@ -17,6 +17,15 @@ updates:
           - "*"
 
   # npm dependencies (SvelteKit frontend)
+  #
+  # The two groups partition package.json by dependency-type instead of naming
+  # themes. Thematic patterns leave silent gaps: anything no pattern names
+  # (@lucide/svelte, maplibre-gl, openseadragon, esm-env, globals) opens its own
+  # pull request, and a dependency added later just quietly starts arriving
+  # alone. production/development is a total partition, so nothing escapes it.
+  #
+  # `update-types` deliberately holds majors out of both groups so each one
+  # arrives on its own, reviewable branch rather than buried in a batch.
   - package-ecosystem: npm
     directory: /ma-visualisation-sentiments
     schedule:
@@ -26,58 +35,15 @@ updates:
       - javascript
     commit-message:
       prefix: "deps"
-    open-pull-requests-limit: 15
+    open-pull-requests-limit: 10
     groups:
-      svelte-ecosystem:
-        patterns:
-          - "svelte"
-          - "svelte-*"
-          - "@sveltejs/*"
+      npm-production:
+        dependency-type: production
         update-types:
           - minor
           - patch
-      testing:
-        patterns:
-          - "vitest"
-          - "@testing-library/*"
-          - "@playwright/*"
-          - "@axe-core/*"
-          - "jsdom"
-        update-types:
-          - minor
-          - patch
-      linting-and-formatting:
-        patterns:
-          - "eslint"
-          - "eslint-*"
-          - "@eslint/*"
-          - "prettier"
-          - "prettier-*"
-          - "typescript-eslint"
-        update-types:
-          - minor
-          - patch
-      build-tools:
-        patterns:
-          - "vite"
-          - "vite-*"
-          - "@tailwindcss/*"
-          - "tailwindcss"
-          - "publint"
-        update-types:
-          - minor
-          - patch
-      typescript:
-        patterns:
-          - "typescript"
-          - "@types/*"
-        update-types:
-          - minor
-          - patch
-      charts:
-        patterns:
-          - "echarts"
-          - "svelte-echarts"
+      npm-development:
+        dependency-type: development
         update-types:
           - minor
           - patch
@@ -97,6 +63,17 @@ updates:
         update-types: ["version-update:semver-major"]
 
   # Python dependencies (data preprocessing)
+  #
+  # Runtime and dev are split because the split is meaningful here: a runtime
+  # bump can move the published figures and wants a pipeline re-run (see the
+  # header of requirements.txt), a dev-tool bump only touches CI.
+  #
+  # Neither group carries an `update-types` filter. The previous config did, and
+  # every pip update still arrived as its own pull request even though all of
+  # them were minor or patch — these are requirements.txt constraint bumps with
+  # no lockfile, and the filter did not match them. Majors therefore land inside
+  # a group; the requirements.txt header is what flags them for a deliberate
+  # re-run.
   - package-ecosystem: pip
     directory: /data-preprocess
     schedule:
@@ -108,9 +85,15 @@ updates:
       prefix: "deps"
     open-pull-requests-limit: 5
     groups:
-      python-deps:
+      python-runtime:
         patterns:
           - "*"
-        update-types:
-          - minor
-          - patch
+        exclude-patterns:
+          - "pytest"
+          - "ruff"
+          - "pip-audit"
+      python-dev:
+        patterns:
+          - "pytest"
+          - "ruff"
+          - "pip-audit"

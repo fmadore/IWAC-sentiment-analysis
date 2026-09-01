@@ -2,5 +2,5 @@
 
 # Development/CI only. Runtime generation does not need these packages.
 pytest~=9.1.1
-ruff~=0.16.2
+ruff~=0.16.5
 pip-audit~=2.10.1
