@@ -86,7 +86,7 @@
 		"@sveltejs/kit": "^2.70.2",
 		"echarts": "^6.1.0",
 		"esm-env": "^1.2.2",
-		"maplibre-gl": "^6.3.0",
+		"maplibre-gl": "^6.6.0",
 		"openseadragon": "^6.0.2",
 		"svelte-echarts": "^1.0.0",
 		"svelte-maplibre-gl": "^2.2.0"
