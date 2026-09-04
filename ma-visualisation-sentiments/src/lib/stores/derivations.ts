@@ -22,6 +22,7 @@ import {
 	CENTRALITY_ORDER,
 	POLARITY_NON_COMPARABLE,
 	POLARITY_ORDER,
+	POLARITY_VALENCE_BANDS,
 	SIGNIFICANT_CONFLICT_THRESHOLD,
 	SIGNIFICANT_SPREAD_THRESHOLD
 } from '$lib/domain/sentimentContract';
@@ -246,6 +247,48 @@ export function calculateThreeWaySpread(
 		hasSignificantSpread: spreads.some((spread) => spread >= SIGNIFICANT_SPREAD_THRESHOLD),
 		isComparable: true
 	};
+}
+
+/**
+ * Whether the panel disagrees about the *sign* of the polarity — at least one
+ * model positive and at least one negative on the same article.
+ *
+ * Not the amplitude question restated. On the 1-5 scale a spread of 3 already
+ * implies a flip, so the spread rule catches the widest reversals for free; what
+ * it structurally cannot reach is `Positif` against `Négatif`, which spans only
+ * two ranks. Returns false on a row the panel cannot be compared on, so callers
+ * combine it with the spread rule without a three-valued dance.
+ *
+ * The Python half is `has_polarity_valence_flip`; `discrepancy-v2-fixtures.json`
+ * holds both implementations to the same answers.
+ */
+export function hasPolarityValenceFlip(
+	analyses: (SentimentAnalysis | null | undefined)[]
+): boolean {
+	const spread = calculateThreeWaySpread(analyses);
+	if (!spread.isComparable) return false;
+
+	const ranks = (analyses as SentimentAnalysis[]).map(
+		(analysis) => polarityScores[analysis.polarite || 'Non applicable'] || 0
+	);
+	return (
+		ranks.some((rank) => rank >= POLARITY_VALENCE_BANDS.positiveMinimum) &&
+		ranks.some((rank) => rank <= POLARITY_VALENCE_BANDS.negativeMaximum)
+	);
+}
+
+/**
+ * Whether an article is inside the contract's arbiter frame: a significant
+ * spread on any dimension, or a polarity valence flip.
+ *
+ * Deliberately *not* `hasSignificantSpread` — that one drives the discrepancy
+ * views, and widening what was paid to arbitrate must not move what a reader is
+ * told is a significant disagreement.
+ */
+export function isArbiterEligible(analyses: (SentimentAnalysis | null | undefined)[]): boolean {
+	const spread = calculateThreeWaySpread(analyses);
+	if (!spread.isComparable) return false;
+	return spread.hasSignificantSpread || hasPolarityValenceFlip(analyses);
 }
 
 /** Build the per-article comparison rows for the active model pair. */

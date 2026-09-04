@@ -17,8 +17,8 @@ from iwac_preprocess import (
     CONTRACTS,
     SentimentContract,
     calculate_discrepancies,
-    calculate_three_way_spread,
     get_models_from_pair,
+    is_arbiter_eligible,
     manifest_filename,
 )
 
@@ -243,13 +243,17 @@ def validate_arbiter_three_way(
         return
 
     model_ids = list(contract.model_names)
-    eligible: set[str] = set()
-    for article_id in base_ids:
-        spread = calculate_three_way_spread(
+    # The frame is the contract's *arbiter* eligibility, not the dashboard's
+    # significant-spread rule: a valence flip two ranks wide is worth paying to
+    # arbitrate without being worth flagging as a significant discrepancy. A run
+    # may narrow this with --rule/--dimensions; nothing may widen it.
+    eligible = {
+        article_id
+        for article_id in base_ids
+        if is_arbiter_eligible(
             [sentiments[model_id].get(article_id) or {} for model_id in model_ids], contract
         )
-        if spread and spread["has_significant_spread"]:
-            eligible.add(article_id)
+    }
 
     payload = read_json(ARBITER_V2_FILENAME)
     metadata = payload.get("metadata", {})

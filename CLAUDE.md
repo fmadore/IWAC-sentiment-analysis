@@ -62,6 +62,25 @@ copy, which is why the strings say "the panel" rather than a number.
   every comparison mount
 - **The v2 arbiter run is paid and has not been made.** `iwac_arbiter_evaluations_v2.json`
   does not exist, so that view shows an empty state by design — not a bug
+- **Two different rules answer "do these models disagree", and they are not
+  interchangeable.** `discrepancy.threeWaySpread` (spread ≥ 3 on any dimension)
+  is what the dashboard flags to a _reader_; `arbiter.eligibility` — the spread
+  rule **or** a polarity valence flip — is what was judged worth _paying_ to
+  settle. The frames differ by 168 rows — 2,102 against 2,270 — all of them
+  articles where one model says `Positif` and another `Négatif`, two ranks apart
+  and reachable by no spread threshold. Widening the arbiter frame must never move
+  the discrepancy views, which is why the keys are separate; use
+  `is_arbiter_eligible` / `isArbiterEligible` for the arbiter and
+  `has_significant_spread` for everything else
+- **A spread of 3 on polarity already _implies_ a valence flip** — ranks 1-5 with
+  `Neutre` at 3 leave no other arrangement — so `--dimensions polarity` selects
+  exactly the widest reversals and structurally cannot reach the two-rank ones.
+  `--threshold` can only be raised, so no spread setting will ever find them
+- **The blind labels are fixed for the run; the presentation order is not.**
+  `display_order()` reshuffles the five blocks per article, seeded on the article
+  id. Without it one model would sit first on every prompt and the judge's
+  position bias would be indistinguishable from a preference for that model.
+  A test asserts the order varies across articles and is stable within one
 - A v1↔v2 difference **confounds model change with prompt change** (v2 asks for
   subjectivity as a label, drops the self-checklist, adds boundary rules). Say so
   when reporting one

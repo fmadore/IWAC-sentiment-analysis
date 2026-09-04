@@ -19,6 +19,8 @@ from iwac_preprocess import (
     calculate_discrepancies,
     calculate_three_way_spread,
     get_models_from_pair,
+    has_polarity_valence_flip,
+    is_arbiter_eligible,
     normalize_sentiment_columns,
     save_json,
 )
@@ -81,6 +83,51 @@ def test_shared_three_way_spread_fixtures():
         max(fixture["expected"]["total"] for fixture in fixtures)
         == CONTRACT_V2.total_discrepancy_maximum
     )
+
+
+def test_shared_valence_flip_fixtures():
+    """The arbiter frame is a cross-language contract like the spread is."""
+    fixtures = json.loads(FIXTURES_V2.read_text(encoding="utf-8"))["valenceFlip"]
+    for fixture in fixtures:
+        analyses, expected = fixture["analyses"], fixture["expected"]
+        spread = calculate_three_way_spread(analyses, CONTRACT_V2)
+        assert has_polarity_valence_flip(analyses, CONTRACT_V2) is expected["flip"], fixture["name"]
+        assert is_arbiter_eligible(analyses, CONTRACT_V2) is expected["arbiterEligible"], fixture[
+            "name"
+        ]
+        assert (bool(spread["has_significant_spread"]) if spread else False) is expected[
+            "significantSpread"
+        ], fixture["name"]
+        assert (spread["polarity_spread"] if spread else None) == expected["polarity"], fixture[
+            "name"
+        ]
+
+
+def test_the_arbiter_frame_contains_the_dashboard_rule_but_is_not_it():
+    """Widening what we pay to arbitrate must not move what a reader is shown.
+
+    A `Positif`/`Négatif` panel is two ranks apart: eligible for arbitration,
+    and deliberately still not a significant discrepancy in the dashboard.
+    """
+    flip_only = [
+        {"polarite": polarite, "subjectivite_score": 3, "centralite_islam_musulmans": "Central"}
+        for polarite in ("Positif", "Négatif", "Neutre", "Neutre", "Neutre")
+    ]
+    spread = calculate_three_way_spread(flip_only, CONTRACT_V2)
+    assert spread is not None
+    assert spread["has_significant_spread"] is False
+    assert is_arbiter_eligible(flip_only, CONTRACT_V2) is True
+
+
+def test_v1_declares_no_valence_rule_so_the_archive_frame_is_unchanged():
+    """The frozen generation must keep selecting exactly what it always did."""
+    assert CONTRACT_V1.polarity_valence_bands is None
+    flip = [
+        {"polarite": polarite, "subjectivite_score": 3, "centralite_islam_musulmans": "Central"}
+        for polarite in ("Positif", "Négatif", "Neutre")
+    ]
+    assert has_polarity_valence_flip(flip, CONTRACT_V1) is False
+    assert is_arbiter_eligible(flip, CONTRACT_V1) is False
 
 
 def test_subjectivity_labels_map_onto_the_shared_rank():

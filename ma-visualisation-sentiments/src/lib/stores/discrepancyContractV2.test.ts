@@ -9,7 +9,12 @@ import { describe, expect, it } from 'vitest';
 import fixtures from '$lib/data/discrepancy-v2-fixtures.json';
 import subjectivityFixtures from '$lib/data/subjectivity-labels-v2-fixtures.json';
 import type { SentimentAnalysis } from '$lib/types/data';
-import { calculateDiscrepancies, calculateThreeWaySpread } from './derivations';
+import {
+	calculateDiscrepancies,
+	calculateThreeWaySpread,
+	hasPolarityValenceFlip,
+	isArbiterEligible
+} from './derivations';
 import {
 	SUBJECTIVITY_LABELS_V2,
 	TOTAL_DISCREPANCY_MAXIMUM,
@@ -79,6 +84,34 @@ describe('shared three-way spread contract', () => {
 
 	it('excludes a row when a model is missing entirely', () => {
 		expect(calculateThreeWaySpread([null, null, null]).isComparable).toBe(false);
+	});
+});
+
+describe('shared arbiter eligibility contract', () => {
+	for (const fixture of fixtures.valenceFlip) {
+		it(fixture.name, () => {
+			const analyses = fixture.analyses.map(fullAnalysis);
+			expect(hasPolarityValenceFlip(analyses)).toBe(fixture.expected.flip);
+			expect(isArbiterEligible(analyses)).toBe(fixture.expected.arbiterEligible);
+			expect(calculateThreeWaySpread(analyses).hasSignificantSpread).toBe(
+				fixture.expected.significantSpread
+			);
+		});
+	}
+
+	it('contains the dashboard rule without being it', () => {
+		// Positif against Négatif is two ranks: worth arbitrating, and still not
+		// a significant discrepancy. Widening one must never move the other.
+		const flipOnly = ['Positif', 'Négatif', 'Neutre', 'Neutre', 'Neutre'].map((polarite) =>
+			fullAnalysis({ polarite, centralite_islam_musulmans: 'Central', subjectivite_score: 3 })
+		);
+		expect(calculateThreeWaySpread(flipOnly).hasSignificantSpread).toBe(false);
+		expect(isArbiterEligible(flipOnly)).toBe(true);
+	});
+
+	it('excludes a row the panel cannot be compared on', () => {
+		expect(hasPolarityValenceFlip([null, null, null])).toBe(false);
+		expect(isArbiterEligible([null, null, null])).toBe(false);
 	});
 });
 

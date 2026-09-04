@@ -129,3 +129,57 @@ def calculate_three_way_spread(
         "total_spread": sum(spreads),
         "has_significant_spread": any(spread >= threshold for spread in spreads),
     }
+
+
+def has_polarity_valence_flip(
+    analyses: Sequence[dict], contract: SentimentContract = CONTRACT_V1
+) -> bool:
+    """Whether the panel disagrees about the *sign* of the polarity.
+
+    A flip is at least one model at or above ``positiveMinimum`` and at least
+    one at or below ``negativeMaximum`` on the same article: one reads the
+    coverage as favourable, another as hostile.
+
+    This is not the amplitude question restated. On the 1-5 scale a spread of 3
+    already *implies* a flip — the arithmetic leaves no other arrangement — so
+    the spread rule catches the widest reversals for free. What it can never
+    reach is the commonest flip of all, ``Positif`` against ``Négatif``, which
+    spans only 2 ranks; no threshold at or above the contract's significant
+    spread can select it, which is why this rule exists separately.
+
+    Returns ``False`` rather than ``None`` on a row the panel cannot be compared
+    on, so callers can combine it with the spread rule without a three-valued
+    dance. The comparability gate is `calculate_three_way_spread`'s own, called
+    here rather than reimplemented so the two rules cannot drift apart.
+    """
+    if contract.polarity_valence_bands is None:
+        return False
+    if calculate_three_way_spread(analyses, contract) is None:
+        return False
+
+    positive_minimum, negative_maximum = contract.polarity_valence_bands
+    ranks = [contract.polarity_scores[analysis.get("polarite")] for analysis in analyses]
+    return any(rank >= positive_minimum for rank in ranks) and any(
+        rank <= negative_maximum for rank in ranks
+    )
+
+
+def is_arbiter_eligible(
+    analyses: Sequence[dict], contract: SentimentContract = CONTRACT_V1
+) -> bool:
+    """Whether an article may appear in the panel arbiter's published output.
+
+    The union of the contract's two arbiter rules: a significant spread on any
+    dimension, or a polarity valence flip. Deliberately *not* the same predicate
+    as ``has_significant_spread`` — that one is what the dashboard flags to a
+    reader, and widening what we chose to pay for must not move it.
+
+    ``validate_arbiter_three_way`` computes the frame with this function and
+    requires the published ids to be a subset of it. A run may narrow the rule
+    with ``--rule`` or ``--dimensions``; nothing may widen it past this without
+    a contract change.
+    """
+    spread = calculate_three_way_spread(analyses, contract)
+    if spread is None:
+        return False
+    return bool(spread["has_significant_spread"]) or has_polarity_valence_flip(analyses, contract)

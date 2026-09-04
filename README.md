@@ -168,7 +168,7 @@ Arbiter runs cost money and are gated behind a dry run and a confirmation:
 python data-preprocess/arbiter-evaluation-v2.py --dry-run
 
 # ...then, to actually spend (needs ANTHROPIC_API_KEY and HF_TOKEN)
-python data-preprocess/arbiter-evaluation-v2.py --dimensions polarity --yes
+python data-preprocess/arbiter-evaluation-v2.py --rule valence --yes
 
 # v1, pairwise (needs GOOGLE_API_KEY); frozen — reconcile only
 python data-preprocess/arbiter-evaluation.py --prune-cache-only
@@ -182,9 +182,9 @@ Validate before committing generated data:
 python -m pytest data-preprocess -q && python data-preprocess/validate_generated_data.py
 ```
 
-92 tests, plus a validator that checks category domains, article-id coverage, prose shard placement, arbiter eligibility and fingerprints, and manifest hashes — entirely offline, for both generations. Both Python and TypeScript read the same checked-in contracts, and shared fixtures assert identical discrepancy and label-mapping behaviour across the two languages.
+107 tests, plus a validator that checks category domains, article-id coverage, prose shard placement, arbiter eligibility and fingerprints, and manifest hashes — entirely offline, for both generations. Both Python and TypeScript read the same checked-in contracts, and shared fixtures assert identical discrepancy and label-mapping behaviour across the two languages.
 
-Environment variables live in a root `.env`: `HF_TOKEN` (private mirror), `ANTHROPIC_API_KEY` (v2 arbiter), `GOOGLE_API_KEY` (v1 arbiter).
+Environment variables live in a root `.env` — copy [`.env.example`](.env.example): `ANTHROPIC_API_KEY` (v2 arbiter), `HF_TOKEN` (private mirror), `GOOGLE_API_KEY` (v1 arbiter). Only the arbiter scripts load that file.
 
 ---
 

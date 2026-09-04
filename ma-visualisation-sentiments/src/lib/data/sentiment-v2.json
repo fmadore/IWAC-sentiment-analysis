@@ -97,10 +97,19 @@
 		}
 	},
 	"arbiter": {
-		"promptVersion": "v2.1.0",
+		"promptVersion": "v2.2.0",
 		"arbiterModel": "claude-opus-5",
 		"cacheSchemaVersion": 1,
-		"mode": "panel"
+		"mode": "panel",
+		"eligibility": {
+			"rule": "spread-or-valence-flip",
+			"description": "What is worth paying to arbitrate, deliberately separate from `discrepancy.threeWaySpread`, which is what the dashboard flags to a reader. A spread of 3 on the 1-5 polarity scale already implies one model is positive and another negative, so the spread rule catches only the widest reversals; `valenceFlip` adds the rest, where one model answers Positif and another Négatif two ranks apart. Both rules read the same comparable rows: one non-comparable polarity or centrality still excludes the article.",
+			"valenceFlip": {
+				"dimension": "polarity",
+				"positiveMinimum": 4,
+				"negativeMaximum": 2
+			}
+		}
 	},
 	"delivery": {
 		"justificationShards": 32
