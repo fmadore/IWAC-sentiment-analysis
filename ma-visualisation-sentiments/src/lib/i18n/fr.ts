@@ -807,7 +807,7 @@ export const fr: Translations = {
 		modelName: 'Claude Opus 5',
 		arbiterRole: 'Juge tiers',
 		samplingFrameNote:
-			'L’arbitre n’a pas examiné tout le corpus. Il a examiné des articles retenus parce que le panel y divergeait le plus nettement : chaque pourcentage ci-dessous ne vaut donc que là où un désaccord existe déjà. Aucun ne mesure quel modèle est meilleur sur l’ensemble du corpus.',
+			'L’arbitre n’a pas examiné tout le corpus. Il a examiné les articles sur lesquels le panel se contredit quant au caractère favorable ou hostile de la couverture : chaque pourcentage ci-dessous ne vaut donc que là où un tel désaccord existe déjà. Aucun ne mesure quel modèle est meilleur sur l’ensemble du corpus.',
 		articlesEvaluated: 'articles examinés',
 		dimensionVerdicts: 'verdicts par dimension',
 		preferred: 'préféré',
@@ -815,6 +815,8 @@ export const fr: Translations = {
 		none: 'Aucune proche',
 		overallVerdicts: 'Verdicts globaux',
 		overallVerdictsNote: 'Un verdict par article, sur les trois dimensions à la fois',
+		dimensionTieNote:
+			'Le chiffre principal est le verdict global — un par article, toutes dimensions pesées ensemble. C’est lui qu’il faut lire, plutôt que le décompte par dimension affiché à côté : sur un panel de cinq, quand trois ou quatre analyses rejoignent la note propre de l’arbitre, « plusieurs se valent » est la réponse juste, si bien que les décomptes par dimension restent bas pour tous les modèles et ne permettent pas de les départager.',
 		byDimension: 'Verdicts par dimension',
 		confidenceDistribution: 'Répartition de la confiance',
 		blindLabel: 'Présentée comme',
@@ -843,7 +845,16 @@ export const fr: Translations = {
 			'Les analyses sont anonymisées de A à E par un seul tirage aléatoire, fixé pour toute la campagne.',
 		selectionProcess: 'Comment les articles ont été retenus',
 		selectionProcessDesc:
-			'Un article est retenu lorsque les modèles s’écartent d’au moins 3 points sur une dimension : la note la plus haute moins la plus basse sur l’ensemble du panel, et non l’écart entre deux modèles. Les articles où un modèle indique que la tâche ne s’applique pas — ou, pour Qwen3.8 27B, n’a jamais rendu de réponse — sont écartés plutôt que comptés comme un désaccord maximal.',
+			'Un article est retenu lorsqu’au moins un modèle lit la couverture comme positive et un autre comme négative : un désaccord sur le sens de la couverture, non sur son intensité. Ce critère va délibérément plus loin que le seuil du tableau de bord pour signaler une discordance : le renversement le plus fréquent de tous, un modèle répondant Positif là où un autre répond Négatif, ne représente que deux rangs d’écart, et aucun seuil assez élevé pour avoir du sens ne peut le retenir. Les articles où un modèle indique que la tâche ne s’applique pas — ou, pour Qwen3.8 27B, n’a jamais rendu de réponse — sont écartés plutôt que comptés comme un désaccord maximal.',
+		whyPolarity: 'Pourquoi la polarité, et pas la centralité',
+		whyPolarityDesc:
+			'Le panel s’accorde bien davantage sur la centralité que sur la polarité : les cinq modèles donnent la même note de centralité sur 63,7 % des articles, contre 33,0 % pour la polarité. Payer un juge pour trancher la centralité reviendrait surtout à acheter des verdicts sur des questions que le panel règle déjà seul et de façon constante. C’est aussi la dimension où Mistral Small 4 s’écarte le plus des quatre autres : une sélection menée sur la centralité se remplit d’articles où un seul modèle tient tête au reste du panel. Choisir sur la polarité retient à la fois la dimension sur laquelle porte la question de recherche et celle que le panel trouve la plus difficile.',
+		randomOrder: 'L’ordre est retiré au sort à chaque article',
+		randomOrderDesc:
+			'Les analyses sont anonymisées de A à E par un tirage unique, fixé pour toute la campagne, si bien qu’une lettre désigne toujours le même modèle. L’ordre dans lequel les blocs sont présentés est ensuite retiré au sort pour chaque article. Sans ce second tirage, un modèle occuperait la première position sur tous les articles, et la tendance d’un juge à privilégier ce qu’il lit en premier serait impossible à distinguer d’une véritable préférence pour ce modèle.',
+		noiseCaveat: 'Une part du désaccord est du bruit',
+		noiseCaveatDesc:
+			'Ce sont des annotations uniques, et les modèles ne se reproduisent pas complètement eux-mêmes : relancé sur le même article, un modèle rend la même polarité 70 à 80 % du temps. Une part de tout désaccord relève donc d’un tirage différent plutôt que d’une lecture différente, et aucun arbitre ne peut distinguer les deux. C’est la raison pour laquelle la sélection porte sur les renversements de sens, qu’un nouveau tirage produira rarement, plutôt que sur les écarts d’un seul rang.',
 		fullText: 'Le texte intégral de l’article',
 		fullTextDesc:
 			'L’arbitre lit l’article depuis le miroir privé de la collection, où le texte est complet. L’arbitre v1 lisait la version publique, qui masque le texte d’une part importante des articles : certains verdicts v1 ont donc été rendus sans l’article sous les yeux du juge.',

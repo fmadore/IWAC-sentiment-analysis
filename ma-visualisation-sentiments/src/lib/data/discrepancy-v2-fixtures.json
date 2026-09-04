@@ -358,5 +358,295 @@
 				"significant": false
 			}
 		}
+	],
+	"valenceFlip": [
+		{
+			"name": "Positif against Négatif is a flip the spread rule cannot reach",
+			"analyses": [
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Négatif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"flip": true,
+				"arbiterEligible": true,
+				"significantSpread": false,
+				"polarity": 2
+			}
+		},
+		{
+			"name": "a spread of 3 implies a flip, so both rules agree",
+			"analyses": [
+				{
+					"polarite": "Très positif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Négatif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"flip": true,
+				"arbiterEligible": true,
+				"significantSpread": true,
+				"polarity": 3
+			}
+		},
+		{
+			"name": "the widest reversal is a flip",
+			"analyses": [
+				{
+					"polarite": "Très positif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Très négatif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"flip": true,
+				"arbiterEligible": true,
+				"significantSpread": true,
+				"polarity": 4
+			}
+		},
+		{
+			"name": "two ranks on the same side of neutral is not a flip",
+			"analyses": [
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Très positif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"flip": false,
+				"arbiterEligible": false,
+				"significantSpread": false,
+				"polarity": 2
+			}
+		},
+		{
+			"name": "Neutre is neither pole, so it never makes a flip on its own",
+			"analyses": [
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"flip": false,
+				"arbiterEligible": false,
+				"significantSpread": false,
+				"polarity": 0
+			}
+		},
+		{
+			"name": "one non-comparable polarity excludes the row from both rules",
+			"analyses": [
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Négatif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Non applicable",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"flip": false,
+				"arbiterEligible": false,
+				"significantSpread": false,
+				"polarity": null
+			}
+		},
+		{
+			"name": "one non-comparable centrality excludes the row from both rules",
+			"analyses": [
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Négatif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Non abordé"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"flip": false,
+				"arbiterEligible": false,
+				"significantSpread": false,
+				"polarity": null
+			}
+		},
+		{
+			"name": "a subjectivity-only spread is eligible without being a flip",
+			"analyses": [
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 1,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 5,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"flip": false,
+				"arbiterEligible": true,
+				"significantSpread": true,
+				"polarity": 0
+			}
+		}
 	]
 }

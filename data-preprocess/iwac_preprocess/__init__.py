@@ -33,7 +33,12 @@ from .contract import (
     normalize_sentiment_columns,
     sentiment_column,
 )
-from .discrepancy import calculate_discrepancies, calculate_three_way_spread
+from .discrepancy import (
+    calculate_discrepancies,
+    calculate_three_way_spread,
+    has_polarity_valence_flip,
+    is_arbiter_eligible,
+)
 from .serialization import (
     MANIFEST_FILENAMES,
     manifest_filename,
@@ -104,6 +109,8 @@ __all__ = [
     "cache_fingerprint",
     "calculate_discrepancies",
     "calculate_three_way_spread",
+    "has_polarity_valence_flip",
+    "is_arbiter_eligible",
     "extract_model_analysis",
     "get_article_text",
     "get_contract",

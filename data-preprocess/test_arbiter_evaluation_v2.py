@@ -168,17 +168,60 @@ def polarity_conflict(article_id: int) -> dict:
 
 
 def test_dimensions_narrows_which_disagreements_are_worth_arbitrating():
-    """Subjectivity dominates the corpus; polarity is the substantive question."""
-    records = [subjectivity_only_conflict(1), polarity_conflict(2)]
+    """Subjectivity dominates the corpus; polarity is the substantive question.
 
-    everything = arbiter.find_three_way_conflicts(records)
+    `--dimensions` narrows the *spread* rule only, so the assertions pin
+    `--rule spread`. Under the contract's default union a polarity flip is
+    selected whatever dimensions are named, which is the next test.
+    """
+    records = [subjectivity_only_conflict(1), polarity_conflict(2)]
+    spread = {"rule": arbiter.RULE_SPREAD}
+
+    everything = arbiter.find_three_way_conflicts(records, **spread)
     assert {str(a["o:id"]) for a in everything} == {"1", "2"}
 
-    polarity_only = arbiter.find_three_way_conflicts(records, dimensions=["polarity"])
+    polarity_only = arbiter.find_three_way_conflicts(records, dimensions=["polarity"], **spread)
     assert {str(a["o:id"]) for a in polarity_only} == {"2"}
 
-    subjectivity_only = arbiter.find_three_way_conflicts(records, dimensions=["subjectivity"])
+    subjectivity_only = arbiter.find_three_way_conflicts(
+        records, dimensions=["subjectivity"], **spread
+    )
     assert {str(a["o:id"]) for a in subjectivity_only} == {"1"}
+
+
+def test_the_valence_rule_ignores_the_dimension_and_threshold_narrowing():
+    """A flip is a flip: neither --dimensions nor --threshold can reach it.
+
+    This is the recommended run's rule, so its independence from the spread
+    knobs is the property that has to hold.
+    """
+    records = [subjectivity_only_conflict(1), polarity_conflict(2)]
+
+    for kwargs in ({}, {"dimensions": ["subjectivity"]}, {"threshold": 4}):
+        selected = arbiter.find_three_way_conflicts(records, rule=arbiter.RULE_VALENCE, **kwargs)
+        assert {str(a["o:id"]) for a in selected} == {"2"}, kwargs
+        assert all(article["valence_flip"] for article in selected)
+
+
+def test_the_union_rule_adds_flips_the_spread_rule_cannot_reach():
+    """`Positif` against `Négatif` spans two ranks: eligible, never significant."""
+    flip_only = record(
+        3,
+        {
+            MODEL_IDS[0]: ("Positif", "Mixte", "Central"),
+            MODEL_IDS[1]: ("Négatif", "Mixte", "Central"),
+            MODEL_IDS[2]: ("Neutre", "Mixte", "Central"),
+            MODEL_IDS[3]: ("Neutre", "Mixte", "Central"),
+            MODEL_IDS[4]: ("Neutre", "Mixte", "Central"),
+        },
+    )
+    assert arbiter.find_three_way_conflicts([flip_only], rule=arbiter.RULE_SPREAD) == []
+
+    selected = arbiter.find_three_way_conflicts([flip_only], rule=arbiter.RULE_UNION)
+    assert len(selected) == 1
+    assert selected[0]["valence_flip"] is True
+    # The dashboard's own rule must be untouched by the wider arbiter frame.
+    assert selected[0]["spread"]["has_significant_spread"] is False
 
 
 def test_a_narrowed_rule_does_not_change_the_stored_spread():
@@ -203,8 +246,9 @@ def test_threshold_can_be_raised():
     # Positif (4) .. Très négatif (1) is a spread of exactly 3, so a threshold
     # of 4 must drop it.
     records = [polarity_conflict(1)]
-    assert len(arbiter.find_three_way_conflicts(records, threshold=3)) == 1
-    assert arbiter.find_three_way_conflicts(records, threshold=4) == []
+    spread = {"rule": arbiter.RULE_SPREAD}
+    assert len(arbiter.find_three_way_conflicts(records, threshold=3, **spread)) == 1
+    assert arbiter.find_three_way_conflicts(records, threshold=4, **spread) == []
 
 
 def test_threshold_cannot_be_lowered_below_the_contract():
@@ -220,8 +264,20 @@ def test_threshold_cannot_be_lowered_below_the_contract():
 # ---------------------------------------------------------------------------
 
 
-def articles_with_spread(pairs: list[tuple[str, int]]) -> list[dict]:
-    return [{"o:id": article_id, "spread": {"total_spread": total}} for article_id, total in pairs]
+def articles_with_spread(pairs: list[tuple[str, int]], dimension: str = "polarity") -> list[dict]:
+    """Articles carrying their whole disagreement on one dimension."""
+    spreads = dict.fromkeys(arbiter.SPREAD_KEYS.values(), 0)
+    return [
+        {
+            "o:id": article_id,
+            "spread": {
+                **spreads,
+                arbiter.SPREAD_KEYS[dimension]: total,
+                "total_spread": total,
+            },
+        }
+        for article_id, total in pairs
+    ]
 
 
 def test_limit_keeps_the_widest_disagreements():
@@ -234,6 +290,22 @@ def test_limit_breaks_ties_by_article_id_so_a_capped_run_is_reproducible():
     reversed_order = list(reversed(forward))
     assert [a["o:id"] for a in arbiter.apply_limit(forward, 2)] == ["10", "20"]
     assert [a["o:id"] for a in arbiter.apply_limit(reversed_order, 2)] == ["10", "20"]
+
+
+def test_limit_ranks_on_the_selected_dimensions_not_the_total():
+    """Otherwise a capped, narrowed run spends its budget on subjectivity.
+
+    `total_spread` sums all three dimensions, so ranking by it under
+    `--dimensions polarity` front-loads the articles whose disagreement is
+    almost entirely subjectivity — the panel's least reliable dimension, and
+    precisely what the narrowed run excluded.
+    """
+    loud_subjectivity = articles_with_spread([("noisy", 4)], dimension="subjectivity")
+    real_polarity = articles_with_spread([("real", 3)], dimension="polarity")
+    articles = loud_subjectivity + real_polarity
+
+    assert [a["o:id"] for a in arbiter.apply_limit(articles, 1, ["polarity"])] == ["real"]
+    assert [a["o:id"] for a in arbiter.apply_limit(articles, 1, ["subjectivity"])] == ["noisy"]
 
 
 def test_no_limit_and_a_limit_above_the_count_keep_everything_in_corpus_order():
@@ -309,17 +381,52 @@ def prompt_article(text: str = "Texte intégral.") -> dict:
     }
 
 
-def test_prompt_presents_the_analyses_in_permutation_order():
+def test_prompt_binds_each_label_to_its_permuted_analysis():
+    """The label is what gets published, so the binding is what must hold.
+
+    The blocks are laid out in `display_order`, not alphabetically, so this
+    checks the pairing rather than the sequence: every label appears exactly
+    once, carrying the justification of the model the permutation assigned it.
+    """
     permutation = rotated_permutation(2)
     prompt = arbiter.create_arbiter_prompt(prompt_article(), permutation)
 
-    positions = [
-        prompt.index(f"pol-{MARKERS[permutation[label]]}") for label in arbiter.BLIND_LABELS
-    ]
-    assert positions == sorted(positions)
-    headings = [prompt.index(f"## Analyse {label.upper()} :") for label in arbiter.BLIND_LABELS]
-    assert headings == sorted(headings)
-    assert len(headings) == len(MODEL_IDS)
+    for label in arbiter.BLIND_LABELS:
+        heading = f"## Analyse {label.upper()} :"
+        assert prompt.count(heading) == 1
+        block = prompt.split(heading, 1)[1].split("## Analyse", 1)[0]
+        assert f"pol-{MARKERS[permutation[label]]}" in block
+
+
+def test_prompt_order_varies_by_article_so_position_bias_is_not_a_model_effect():
+    """A fixed layout would confound the judge's position bias with identity.
+
+    The label -> model map is stable for the whole run, so if the presentation
+    order were stable too, one model would hold the first slot on every article
+    and no comparison could ever separate the two effects.
+    """
+    orders = {
+        article_id: arbiter.display_order(article_id) for article_id in ("1", "2", "3", "4", "5")
+    }
+    assert any(order != list(arbiter.BLIND_LABELS) for order in orders.values())
+    assert len({tuple(order) for order in orders.values()}) > 1
+    for order in orders.values():
+        assert sorted(order) == sorted(arbiter.BLIND_LABELS)
+
+
+def test_prompt_order_is_stable_for_one_article_so_a_rerun_reproduces_it():
+    assert arbiter.display_order("2231") == arbiter.display_order("2231")
+
+
+def test_prompt_says_so_when_the_article_text_is_cut():
+    """A silently truncated article is an arbiter scoring an absent conclusion."""
+    short = arbiter.create_arbiter_prompt(prompt_article("court"), PERMUTATION)
+    assert "Texte tronqué" not in short
+
+    long = arbiter.create_arbiter_prompt(
+        prompt_article("a" * (arbiter.ARBITER_MAX_INPUT_CHARS + 1)), PERMUTATION
+    )
+    assert "Texte tronqué" in long
 
 
 def test_prompt_never_names_a_model():
@@ -487,6 +594,92 @@ def test_the_request_carries_no_sampling_parameters_and_no_thinking_block():
     assert sent["output_format"] is arbiter.ArbiterResponseV2
 
 
+def test_the_system_prefix_is_sent_as_one_cached_block():
+    """It is identical on every call and above Opus 5's 512-token minimum.
+
+    Sent as a bare string it would be re-billed in full 301 times; the marker is
+    what turns it into one write and 300 reads at a tenth of the price.
+    """
+    client = StubClient(message(valid_response()))
+    arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION)
+    (sent,) = client.calls
+    assert sent["system"] == [
+        {
+            "type": "text",
+            "text": arbiter.SYSTEM_INSTRUCTION,
+            "cache_control": {"type": "ephemeral"},
+        }
+    ]
+
+
+def test_the_estimate_prices_the_cached_prefix_once():
+    """A run that ignored the cache would quote a third more input than it costs."""
+    articles = [prompt_article() for _ in range(10)]
+    estimate = arbiter.estimate_cost(articles, PERMUTATION, "medium")
+
+    assert estimate["billable_input_tokens"] < estimate["input_tokens"]
+    assert estimate["cache_saving_usd"] > 0
+    # One write plus nine reads, never ten full copies. The prefix is the
+    # measured one — schema included — not just the system instruction, which is
+    # what the run's `cache_read_input_tokens` showed it to be.
+    prefix = arbiter.CACHED_PREFIX_TOKENS
+    assert prefix > len(arbiter.SYSTEM_INSTRUCTION) / arbiter.ESTIMATE_CHARS_PER_TOKEN
+    saved = estimate["input_tokens"] - estimate["billable_input_tokens"]
+    assert saved == pytest.approx(
+        10 * prefix
+        - prefix * arbiter.CACHE_WRITE_MULTIPLIER
+        - 9 * prefix * arbiter.CACHE_READ_MULTIPLIER,
+        rel=0.01,
+    )
+
+
+def test_the_estimate_handles_an_empty_selection():
+    assert arbiter.estimate_cost([], {}, "medium")["usd"] == 0
+
+
+def test_usage_is_recorded_so_the_estimate_can_be_checked_against_reality():
+    """Thinking tokens leave no trace in the published verdicts.
+
+    Without `response.usage` the file records what the model *said* and nothing
+    about what it cost, so the dry-run assumption could never be falsified.
+    """
+    usage = SimpleNamespace(
+        input_tokens=100,
+        output_tokens=2000,
+        cache_creation_input_tokens=1463,
+        cache_read_input_tokens=0,
+    )
+    client = StubClient(message(valid_response(), usage=usage))
+    totals = arbiter.UsageTotals()
+    arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION, usage=totals)
+
+    assert totals.calls == 1
+    assert totals.output_tokens == 2000
+    assert totals.cache_creation_input_tokens == 1463
+    assert totals.as_metadata()["output_tokens_per_call"] == 2000
+
+
+def test_a_failed_call_is_still_billed_and_still_counted():
+    """A refusal costs money; accounting that skipped it would understate the run."""
+    usage = SimpleNamespace(
+        input_tokens=100,
+        output_tokens=50,
+        cache_creation_input_tokens=0,
+        cache_read_input_tokens=1463,
+    )
+    client = StubClient(message(valid_response(), stop_reason="refusal", usage=usage))
+    totals = arbiter.UsageTotals()
+    assert (
+        arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION, usage=totals) is None
+    )
+    assert totals.calls == 1
+    assert totals.cache_read_input_tokens == 1463
+
+
+def test_usage_metadata_is_empty_when_nothing_was_spent():
+    assert arbiter.UsageTotals().as_metadata() == {}
+
+
 def test_a_schema_violation_is_not_retried():
     try:
         arbiter.ArbiterResponseV2.model_validate({})
@@ -559,9 +752,13 @@ def test_dry_run_honours_the_limit(stub_pipeline, caplog):
 
 
 def test_dry_run_honours_the_dimension_filter(stub_pipeline, caplog):
-    """Both stub articles disagree on polarity only, so subjectivity selects none."""
+    """Both stub articles disagree on polarity only, so subjectivity selects none.
+
+    Pinned to `--rule spread`: the dimension filter narrows that rule alone, and
+    a polarity flip stays eligible under the contract's default union.
+    """
     with caplog.at_level("INFO"):
-        assert arbiter.main(["--dry-run", "--dimensions", "subjectivity"]) == 0
+        assert arbiter.main(["--dry-run", "--rule", "spread", "--dimensions", "subjectivity"]) == 0
     assert "0 selected" in caplog.text
 
 
@@ -582,9 +779,11 @@ def test_prune_cache_only_publishes_the_envelope_the_validator_expects(stub_pipe
     assert metadata["models"] == MODEL_IDS
     assert len(metadata["models"]) == 5
     assert metadata["arbiter_model"] == arbiter.ARBITER_MODEL
-    # The five-model prompt is not the three-model one; a cached verdict from
-    # the older wording must not be adopted silently.
-    assert metadata["prompt_version"] == CONTRACT_V2.arbiter["promptVersion"] == "v2.1.0"
+    # The five-model prompt is not the three-model one, and v2.2.0 is not
+    # v2.1.0: the analyses are now laid out in a per-article order and the
+    # instruction says so. A cached verdict from older wording must not be
+    # adopted silently, which is what makes this literal worth spelling out.
+    assert metadata["prompt_version"] == CONTRACT_V2.arbiter["promptVersion"] == "v2.2.0"
     assert metadata["contract_schema_version"] == CONTRACT_V2.schema_version
     assert metadata["analysis_version"] == "v2"
     assert sorted(metadata["blind_permutation"].values()) == sorted(MODEL_IDS)

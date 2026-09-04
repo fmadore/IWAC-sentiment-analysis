@@ -89,6 +89,20 @@ class SentimentContract:
         )
 
         self.arbiter = dict(contract["arbiter"])
+        # What is worth *paying* to arbitrate, which is not what the dashboard
+        # calls a significant disagreement. Keeping the two apart is the whole
+        # point of the separate key: widening the arbiter's frame must not move
+        # the discrepancy views a reader sees. `None` on a contract that
+        # declares no rule, which is v1.
+        eligibility = contract["arbiter"].get("eligibility") or {}
+        self.arbiter_eligibility_rule = eligibility.get("rule")
+        valence_flip = eligibility.get("valenceFlip")
+        self.polarity_valence_bands = (
+            (int(valence_flip["positiveMinimum"]), int(valence_flip["negativeMaximum"]))
+            if valence_flip
+            else None
+        )
+
         self.justification_shards = int(contract["delivery"]["justificationShards"])
 
         self.sentiment_columns = [

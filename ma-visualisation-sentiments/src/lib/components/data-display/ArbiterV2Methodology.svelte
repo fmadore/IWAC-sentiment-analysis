@@ -37,6 +37,14 @@
 	const arbiterModel = SENTIMENT_CONTRACT_V2.arbiter.arbiterModel;
 	const spreadThreshold = SENTIMENT_CONTRACT_V2.discrepancy.threeWaySpread.significantSpread;
 
+	/**
+	 * The arbiter's frame is `arbiter.eligibility`, not the dashboard's
+	 * significant-spread rule, and the card has to say which one it means. A
+	 * valence flip is two ranks wide, so it is worth paying to settle without
+	 * being worth flagging to a reader as a significant discrepancy.
+	 */
+	const selectionRule = `polarity valence flip, or spread across the panel ≥ ${spreadThreshold}`;
+
 	const polarityItems: ScaleItem[] = $derived([
 		{
 			variant: 'polarity-very-positive',
@@ -146,8 +154,20 @@
 					<p class="section-text">{$t.arbiterV2.selectionProcessDesc}</p>
 				</div>
 				<div class="methodology-section">
+					<h4 class="section-title">{$t.arbiterV2.whyPolarity}</h4>
+					<p class="section-text">{$t.arbiterV2.whyPolarityDesc}</p>
+				</div>
+				<div class="methodology-section">
 					<h4 class="section-title">{$t.arbiterV2.blindEvaluation}</h4>
 					<p class="section-text">{$t.arbiterV2.blindEvaluationDesc}</p>
+				</div>
+				<div class="methodology-section">
+					<h4 class="section-title">{$t.arbiterV2.randomOrder}</h4>
+					<p class="section-text">{$t.arbiterV2.randomOrderDesc}</p>
+				</div>
+				<div class="methodology-section">
+					<h4 class="section-title">{$t.arbiterV2.noiseCaveat}</h4>
+					<p class="section-text">{$t.arbiterV2.noiseCaveatDesc}</p>
 				</div>
 				<div class="methodology-section">
 					<h4 class="section-title">{$t.arbiterV2.reasoningEffort}</h4>
@@ -182,7 +202,7 @@
 				<ul class="config-list">
 					<li><strong>Model:</strong> {arbiterModel}</li>
 					<li><strong>Mode:</strong> {SENTIMENT_CONTRACT_V2.arbiter.mode}</li>
-					<li><strong>Selection:</strong> spread across the panel ≥ {spreadThreshold}</li>
+					<li><strong>Selection:</strong> {selectionRule}</li>
 					<li><strong>Output:</strong> structured JSON, schema-validated</li>
 				</ul>
 			</div>

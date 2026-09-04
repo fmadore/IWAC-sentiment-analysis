@@ -61,10 +61,14 @@
 				{/if}
 			</div>
 			<div class="stat-content">
-				<div class="stat-value">{$num(model.dimensionWins)}</div>
+				<div class="stat-value">{$num(model.overallWins)}</div>
 				<div class="stat-label">{model.name} {$t.arbiterV2.preferred}</div>
-				<div class="stat-percentage">{$pct(model.dimensionPercentage / 100, 1)}</div>
-				<div class="stat-note">{$t.arbiterV2.blindLabel} {model.label.toUpperCase()}</div>
+				<div class="stat-percentage">{$pct(model.overallPercentage / 100, 1)}</div>
+				<div class="stat-note">
+					{$t.arbiterV2.blindLabel}
+					{model.label.toUpperCase()} · {$num(model.dimensionWins)}
+					{$t.arbiterV2.dimensionVerdicts}
+				</div>
 			</div>
 		</div>
 	{/each}
@@ -91,6 +95,8 @@
 		</div>
 	</div>
 </div>
+
+<p class="tie-note">{$t.arbiterV2.dimensionTieNote}</p>
 
 {#if decisive > 0}
 	<div class="overall-section mt-4">
@@ -148,6 +154,17 @@
 		display: grid;
 		grid-template-columns: repeat(2, 1fr);
 		gap: var(--space-4);
+	}
+
+	/* Why the headline number is the overall verdict and not the per-dimension
+	   one. Without it a reader compares two counts that do not mean the same
+	   thing, and reads the smaller per-dimension tally as a weaker model. */
+	.tie-note {
+		margin-top: var(--space-3);
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
+		line-height: var(--line-height-relaxed);
+		max-width: var(--prose-width);
 	}
 
 	.stat-card {

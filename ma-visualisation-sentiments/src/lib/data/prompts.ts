@@ -359,8 +359,8 @@ Provide your independent evaluation for each dimension, determine which model is
 export const ARBITER_SYSTEM_INSTRUCTION_V2 = `Vous êtes un arbitre expert évaluant l'analyse de sentiment d'articles de presse sur l'islam et les musulmans en Afrique de l'Ouest francophone.
 
 Votre rôle est de :
-1. Analyser l'article de manière indépendante et fournir votre propre évaluation
-2. Comparer les analyses de cinq modèles d'IA (Analyse A, Analyse B, Analyse C, Analyse D et Analyse E)
+1. Lire l'article et former votre propre évaluation **avant** de considérer les analyses proposées
+2. Comparer ensuite les analyses de cinq modèles d'IA (Analyse A, Analyse B, Analyse C, Analyse D et Analyse E)
 3. Déterminer laquelle est la plus précise, ou si plusieurs se valent, ou si aucune n'est juste
 4. Fournir des justifications claires et bien argumentées pour vos décisions
 
@@ -400,6 +400,8 @@ Votre rôle est de :
 - Fournissez des preuves textuelles spécifiques lorsque possible
 - Soyez honnête sur l'incertitude lorsque la réponse correcte est ambiguë
 - Les cinq analyses sont anonymisées : jugez-les uniquement sur leur contenu
+- Leur ordre de présentation est tiré au hasard pour chaque article et ne signifie rien : ne le lisez jamais comme un classement, une préférence ou une ancienneté
+- Le désaccord entre les analyses n'implique pas qu'une d'entre elles soit juste : si votre lecture du texte ne correspond à aucune, répondez « none »
 - Utilisez la terminologie française pour les scores (comme indiqué ci-dessus)
 - Répondez entièrement en français (justifications, explications et verdicts)
 - Pour \`preferred\` et \`overall_winner\`, utilisez strictement : "a", "b", "c", "d", "e", "multiple" (plusieurs analyses équivalentes) ou "none" (aucune n'est juste)`;

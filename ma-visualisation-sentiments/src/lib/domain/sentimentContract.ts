@@ -101,6 +101,21 @@ export const SUBJECTIVITY_LABELS_V2 = Object.freeze(
 export const SIGNIFICANT_CONFLICT_THRESHOLD = contractV1.discrepancy.significantDimensionGap;
 export const TOTAL_DISCREPANCY_MAXIMUM = contractV1.discrepancy.maximumTotal;
 export const SIGNIFICANT_SPREAD_THRESHOLD = contractV2.discrepancy.threeWaySpread.significantSpread;
+
+/**
+ * The polarity ranks that count as "positive" and "negative" for the arbiter's
+ * valence-flip rule.
+ *
+ * Deliberately separate from `SIGNIFICANT_SPREAD_THRESHOLD`: that one is what
+ * the dashboard flags to a reader as a significant discrepancy, this one is what
+ * was judged worth paying an arbiter to settle. On the 1-5 scale a spread of 3
+ * already implies a flip, so the two rules only diverge below that — which is
+ * exactly where the commonest flip of all lives, `Positif` against `Négatif`.
+ */
+export const POLARITY_VALENCE_BANDS = Object.freeze({
+	positiveMinimum: contractV2.arbiter.eligibility.valenceFlip.positiveMinimum,
+	negativeMaximum: contractV2.arbiter.eligibility.valenceFlip.negativeMaximum
+});
 export const JUSTIFICATION_SHARD_COUNT = contractV1.delivery.justificationShards;
 
 export function justificationShard(articleId: string | number): number {

@@ -815,7 +815,7 @@ export const en = {
 		modelName: 'Claude Opus 5',
 		arbiterRole: 'Third-party judge',
 		samplingFrameNote:
-			'The arbiter did not review the whole corpus. It reviewed articles chosen because the panel disagreed most sharply about them, so every percentage below holds only where a disagreement already exists. None of them measures which model is better across the corpus as a whole.',
+			'The arbiter did not review the whole corpus. It reviewed the articles where the panel contradicts itself about whether the coverage is favourable or hostile, so every percentage below holds only where such a disagreement already exists. None of them measures which model is better across the corpus as a whole.',
 		articlesEvaluated: 'articles reviewed',
 		dimensionVerdicts: 'dimension verdicts',
 		preferred: 'preferred',
@@ -823,6 +823,8 @@ export const en = {
 		none: 'None close',
 		overallVerdicts: 'Overall verdicts',
 		overallVerdictsNote: 'One verdict per article, across all three dimensions at once',
+		dimensionTieNote:
+			'The headline figure is the overall verdict — one per article, weighing all three dimensions together. Read it rather than the per-dimension tally beside it: on a five-model panel, when three or four analyses match the arbiter’s own rating, “several are equally close” is the accurate answer, so the per-dimension counts stay low for every model and cannot separate them.',
 		byDimension: 'Verdicts by dimension',
 		confidenceDistribution: 'Confidence distribution',
 		blindLabel: 'Shown as',
@@ -850,7 +852,16 @@ export const en = {
 			'The analyses are anonymised as A to E by a single random shuffle, fixed for the whole run.',
 		selectionProcess: 'How articles were chosen',
 		selectionProcessDesc:
-			'An article qualifies when the models are at least 3 points apart on any dimension: the highest rating minus the lowest across the whole panel, not a gap between one pair. Articles where any model reports that the task does not apply — or, for Qwen3.8 27B, never returned an answer at all — are left out rather than counted as a maximal disagreement.',
+			'An article qualifies when at least one model reads the coverage as positive and another reads it as negative — a disagreement about the direction of the coverage, not its degree. This deliberately reaches further than the dashboard’s own threshold for a significant discrepancy: the commonest reversal of all, one model answering Positif where another answers Négatif, sits only two ranks apart, and no threshold high enough to be meaningful can select it. Articles where any model reports that the task does not apply — or, for Qwen3.8 27B, never returned an answer at all — are left out rather than counted as a maximal disagreement.',
+		whyPolarity: 'Why polarity, and not centrality',
+		whyPolarityDesc:
+			'The panel agrees far more about centrality than about polarity: all five models give the same centrality rating on 63.7% of articles, against 33.0% for polarity. Paying a judge to settle centrality would mostly buy verdicts on questions the panel already answers consistently on its own. It is also the dimension where Mistral Small 4 diverges most from the other four, so a centrality-led selection fills up with one model standing alone against the rest. Choosing on polarity keeps both the dimension the research question turns on and the one the panel finds hardest.',
+		randomOrder: 'The order is shuffled per article',
+		randomOrderDesc:
+			'The analyses are anonymised as A to E by a single shuffle fixed for the whole run, so a label always means the same model. The order the blocks are laid out in is then shuffled again for each article. Without that second shuffle one model would hold the first position on every article, and a judge’s tendency to favour what it reads first would be impossible to tell apart from a genuine preference for that model.',
+		noiseCaveat: 'Some of the disagreement is noise',
+		noiseCaveatDesc:
+			'These are single annotations, and the models do not fully reproduce themselves: run again on the same article, a model returns the same polarity 70–80% of the time. Part of any disagreement is therefore a different draw rather than a different reading, and no arbiter can tell the two apart. That is the reason for selecting on reversals of direction, which a re-draw is unlikely to produce, instead of one-step differences.',
 		fullText: 'The full article text',
 		fullTextDesc:
 			'The arbiter reads the article from the private mirror of the collection, where the text is complete. The v1 arbiter read the public version, which masks the text of a large share of articles, so some v1 verdicts were reached without the article in front of the judge.',
