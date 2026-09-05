@@ -55,6 +55,8 @@ export const fr: Translations = {
 		polarity: 'Polarité',
 		subjectivity: 'Subjectivité',
 		centrality: 'Centralité',
+		notAnnotatedNote:
+			'« Non applicable » est un verdict : le modèle a lu l’article et n’y a trouvé aucune prise de position. « Non annoté » signifie qu’il n’y a aucune note — les articles qu’un modèle a refusé de noter, ou n’a jamais vus.',
 		clearAll: 'Tout effacer',
 		clearAllFilters: 'Effacer tous les filtres',
 		searchJournals: 'Rechercher un journal…',
@@ -86,7 +88,8 @@ export const fr: Translations = {
 		neutral: 'Neutre',
 		negative: 'Négatif',
 		veryNegative: 'Très négatif',
-		notApplicable: 'Non applicable'
+		notApplicable: 'Non applicable',
+		notAnnotated: 'Non annoté'
 	},
 
 	// Subjectivity labels
@@ -95,8 +98,7 @@ export const fr: Translations = {
 		ratherFactual: 'Plutôt objectif',
 		mixed: 'Mixte',
 		ratherSubjective: 'Plutôt subjectif',
-		subjective: 'Très subjectif',
-		notApplicable: 'Non applicable'
+		subjective: 'Très subjectif'
 	},
 
 	// Centrality labels
@@ -825,7 +827,33 @@ export const fr: Translations = {
 		centrality: 'Centralité',
 		evaluatedArticles: 'Articles examinés',
 		evaluatedArticlesSubtitle:
-			'Tous les articles que l’arbitre a lus, désaccord le plus large en premier. Ouvrez une ligne pour lire son raisonnement.',
+			'Tous les articles que l’arbitre a lus, désaccord le plus large en premier. Ouvrez une ligne pour voir l’article, les cinq notes du panel et le raisonnement de l’arbitre.',
+		viewArticleDetails: 'Voir l’article et le verdict',
+		articleWithVerdict: 'Article avec le verdict du panel',
+		noEvaluatedArticles: 'Aucun article examiné à afficher',
+		severalOrNone: 'Plusieurs / aucune',
+		panelLegend: 'Quelle analyse était laquelle',
+		panelLegendNote:
+			'Dans son raisonnement, l’arbitre désigne les analyses par ces lettres. Les lettres ont été attribuées une fois pour toute la campagne ; l’ordre de présentation des analyses a été retiré au sort pour chaque article.',
+		panelRatings: 'Les notes du panel',
+		matchesArbiter: 'Même note que l’arbitre',
+		preferredAnalysis: 'Préférée par l’arbitre',
+		notRated: 'Non notée',
+		panelLoading: 'Chargement du reste du panel…',
+		showModelsReasoning: 'Afficher le raisonnement des modèles',
+		hideModelsReasoning: 'Masquer le raisonnement des modèles',
+		modelsReasoningLoading: 'Chargement du raisonnement des modèles…',
+		comparisonNote:
+			'L’arbitre du panel a pesé les cinq analyses de cet article à la fois, et non seulement les deux comparées ici.',
+		notArbitrated: 'L’arbitre du panel n’a pas examiné cet article.',
+		whyReviewed: 'Pourquoi cet article a été examiné',
+		whyReviewedNote:
+			'Écart entre les cinq notes du panel sur chaque échelle, en échelons. Un renversement de sens sur la polarité — un modèle lisant la couverture comme favorable, un autre comme hostile — est ce qui a placé l’article devant l’arbitre.',
+		valenceFlipTag: 'Positif contre négatif',
+		samplingFrameNoteSpread:
+			'L’arbitre n’a pas examiné tout le corpus. Il a examiné les articles où les notes du panel étaient les plus éloignées sur au moins une dimension : chaque pourcentage ci-dessous ne vaut donc que là où un tel désaccord existe déjà. Aucun ne mesure quel modèle est meilleur sur l’ensemble du corpus.',
+		samplingFrameNoteUnion:
+			'L’arbitre n’a pas examiné tout le corpus. Il a examiné les articles où les notes du panel étaient les plus éloignées sur au moins une dimension, ou sur lesquels le panel se contredit quant au caractère favorable ou hostile de la couverture : chaque pourcentage ci-dessous ne vaut donc que là où un tel désaccord existe déjà. Aucun ne mesure quel modèle est meilleur sur l’ensemble du corpus.',
 		spread: 'Écart',
 		arbiterScore: 'Note propre de l’arbitre',
 		verdict: 'Verdict',
@@ -834,7 +862,7 @@ export const fr: Translations = {
 		hideReasoning: 'Masquer le raisonnement',
 		noData: 'Pas encore de verdicts de l’arbitre du panel',
 		noDataDescription:
-			'Cette campagne est payante et se lance à la main : elle n’a pas encore été faite. D’ici là, cette vue n’a rien à montrer.',
+			'Ce déploiement n’inclut pas le fichier de l’arbitre du panel. La campagne est payante et se lance à la main — voir le README pour la produire.',
 		loading: "Chargement des données de l'arbitre…",
 		// Méthodologie
 		methodologyTitle: 'Comment fonctionne l’arbitre du panel',
@@ -851,7 +879,10 @@ export const fr: Translations = {
 			'Le panel s’accorde bien davantage sur la centralité que sur la polarité : les cinq modèles donnent la même note de centralité sur 63,7 % des articles, contre 33,0 % pour la polarité. Payer un juge pour trancher la centralité reviendrait surtout à acheter des verdicts sur des questions que le panel règle déjà seul et de façon constante. C’est aussi la dimension où Mistral Small 4 s’écarte le plus des quatre autres : une sélection menée sur la centralité se remplit d’articles où un seul modèle tient tête au reste du panel. Choisir sur la polarité retient à la fois la dimension sur laquelle porte la question de recherche et celle que le panel trouve la plus difficile.',
 		randomOrder: 'L’ordre est retiré au sort à chaque article',
 		randomOrderDesc:
-			'Les analyses sont anonymisées de A à E par un tirage unique, fixé pour toute la campagne, si bien qu’une lettre désigne toujours le même modèle. L’ordre dans lequel les blocs sont présentés est ensuite retiré au sort pour chaque article. Sans ce second tirage, un modèle occuperait la première position sur tous les articles, et la tendance d’un juge à privilégier ce qu’il lit en premier serait impossible à distinguer d’une véritable préférence pour ce modèle.',
+			'Les analyses sont anonymisées de A à E par un tirage unique, fixé pour toute la campagne, si bien qu’une lettre désigne toujours le même modèle. L’ordre dans lequel les blocs sont présentés est ensuite retiré au sort pour chaque article. Sans ce second tirage, un modèle occuperait la première position sur tous les articles, et la tendance d’un juge à privilégier ce qu’il lit en premier serait impossible à distinguer d’une véritable préférence pour ce modèle. Vérifié après la campagne : la position à laquelle l’analyse retenue avait été présentée ne se distingue pas du hasard une fois le placement pris en compte (χ² de 5,3 à 4 degrés de liberté, sur les 231 verdicts désignant un seul modèle).',
+		frameCaveat: 'Ce que contient surtout l’échantillon',
+		frameCaveatDesc:
+			'Retenir les renversements de sens ne rend pas l’échantillon équilibré entre les modèles. Dans 189 des 301 articles, Mistral Small 4 se tient seul d’un côté de la ligne neutre tandis que les quatre autres se tiennent de l’autre — dans 162 d’entre eux, c’est lui qui lit la couverture comme négative. Un partage strict à un contre quatre, où les quatre portent exactement la même étiquette, est plus rare : 56 articles. La note de polarité propre de l’arbitre coïncide avec celle de Mistral Small 4 dans 37 articles, contre 190 à 205 pour chacun des quatre autres. Une bonne part de ce que documentent les verdicts est donc le calibrage d’un seul modèle sur la polarité, et les parts en face-à-face se lisent en gardant cela à l’esprit.',
 		noiseCaveat: 'Une part du désaccord est du bruit',
 		noiseCaveatDesc:
 			'Ce sont des annotations uniques, et les modèles ne se reproduisent pas complètement eux-mêmes : relancé sur le même article, un modèle rend la même polarité 70 à 80 % du temps. Une part de tout désaccord relève donc d’un tirage différent plutôt que d’une lecture différente, et aucun arbitre ne peut distinguer les deux. C’est la raison pour laquelle la sélection porte sur les renversements de sens, qu’un nouveau tirage produira rarement, plutôt que sur les écarts d’un seul rang.',

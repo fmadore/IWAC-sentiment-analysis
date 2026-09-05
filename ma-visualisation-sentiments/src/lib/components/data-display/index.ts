@@ -18,5 +18,6 @@ export { default as ArbiterStatsCards } from './ArbiterStatsCards.svelte';
 export { default as ArbiterMethodology } from './ArbiterMethodology.svelte';
 export { default as ArbiterArticleTable } from './ArbiterArticleTable.svelte';
 export { default as ArbiterV2View } from './ArbiterV2View.svelte';
+export { default as ArbiterV2ArticleTable } from './ArbiterV2ArticleTable.svelte';
 export { default as ArbiterV2StatsCards } from './ArbiterV2StatsCards.svelte';
 export { default as ArbiterV2Methodology } from './ArbiterV2Methodology.svelte';

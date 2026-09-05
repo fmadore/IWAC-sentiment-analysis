@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { comparisonState, datasetState } from '$lib/stores';
-	import { num } from '$lib/i18n/utils';
+	import { num, fmtDate } from '$lib/i18n/utils';
 	import { t } from '$lib/i18n';
 	import { getJournalName } from '$lib/utils/format';
-	import { formatDate, getModelDisplayName } from '$lib/utils/format';
+	import { getModelDisplayName } from '$lib/utils/format';
 	import { discrepancyAttributes, formatDiff } from '$lib/utils/discrepancy';
 	import type { ComparisonData } from '$lib/types/data';
 	import ArrowUpDownIcon from '@lucide/svelte/icons/arrow-up-down';
@@ -244,7 +244,7 @@
 								<div class="flex flex-col gap-1">
 									<span class="row-title line-clamp-2">{comparison.article['o:title']}</span>
 									<span class="row-meta"
-										>{getJournalName(comparison.article)} • {formatDate(
+										>{getJournalName(comparison.article)} • {$fmtDate(
 											comparison.article.publication_date
 										)}</span
 									>
@@ -320,9 +320,7 @@
 							{comparison.article['o:title']}
 						</h3>
 						<p class="row-meta">
-							{getJournalName(comparison.article)} • {formatDate(
-								comparison.article.publication_date
-							)}
+							{getJournalName(comparison.article)} • {$fmtDate(comparison.article.publication_date)}
 						</p>
 					</div>
 

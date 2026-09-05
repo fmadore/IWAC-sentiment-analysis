@@ -1,29 +1,41 @@
 <!--
   SubjectivityFilter Component
   
-  Filter for subjectivity scores (1-5) using reusable FilterCard and FilterChip components.
+  Filter for subjectivity scores (1-5) using reusable FilterCard and FilterChip
+  components, plus the "not annotated" bucket for a score the model never gave.
 -->
 <script lang="ts">
 	import { filterState } from '$lib/stores';
-	import { t } from '$lib/i18n';
+	import { t, currentLanguage } from '$lib/i18n';
+	import { translateSentimentValue } from '$lib/i18n/utils';
+	import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
 	import { FilterCard, FilterChip } from '$lib/components/common';
 
-	// Scores with corresponding FilterChip variants
+	// Filter values (the score as a string, as the store and URL carry it)
+	// with corresponding FilterChip variants
 	const scores = [
-		{ value: 1, variant: 'subjectivity-1' as const },
-		{ value: 2, variant: 'subjectivity-2' as const },
-		{ value: 3, variant: 'subjectivity-3' as const },
-		{ value: 4, variant: 'subjectivity-4' as const },
-		{ value: 5, variant: 'subjectivity-5' as const }
+		{ value: '1', variant: 'subjectivity-1' as const },
+		{ value: '2', variant: 'subjectivity-2' as const },
+		{ value: '3', variant: 'subjectivity-3' as const },
+		{ value: '4', variant: 'subjectivity-4' as const },
+		{ value: '5', variant: 'subjectivity-5' as const }
 	];
 
 	let selectedScores = $derived(filterState.subjectivities);
 
-	function toggleScore(score: number) {
-		const scoreStr = score.toString();
-		const updated = selectedScores.includes(scoreStr)
-			? selectedScores.filter((s) => s !== scoreStr)
-			: [...selectedScores, scoreStr];
+	const options = $derived([
+		...scores.map((score) => ({ ...score, label: score.value })),
+		{
+			value: NOT_ANNOTATED,
+			variant: 'subjectivity-not-annotated' as const,
+			label: translateSentimentValue(NOT_ANNOTATED, $currentLanguage)
+		}
+	]);
+
+	function toggleScore(value: string) {
+		const updated = selectedScores.includes(value)
+			? selectedScores.filter((s) => s !== value)
+			: [...selectedScores, value];
 		filterState.subjectivities = updated;
 	}
 
@@ -38,12 +50,12 @@
 	onClear={clearSelection}
 >
 	{#snippet chips()}
-		{#each scores as score (score.value)}
+		{#each options as option (option.value)}
 			<FilterChip
-				label={score.value.toString()}
-				selected={selectedScores.includes(score.value.toString())}
-				variant={score.variant}
-				onclick={() => toggleScore(score.value)}
+				label={option.label}
+				selected={selectedScores.includes(option.value)}
+				variant={option.variant}
+				onclick={() => toggleScore(option.value)}
 			/>
 		{/each}
 	{/snippet}

@@ -7,6 +7,7 @@
 		loadComparisonDatasets,
 		loadCurrentExtremeAnalysis,
 		loadArbiterEvaluations,
+		loadArbiterV2Evaluations,
 		uiState,
 		datasetState,
 		articleState,
@@ -86,6 +87,14 @@
 			loadArbiterEvaluations(fetch).catch((error) =>
 				console.error('Failed to load arbiter evaluations:', error)
 			);
+
+			// The pairwise loader above refuses a generation-2 pair by design; the
+			// panel's verdicts live in one file that the comparison detail reads.
+			if (datasetState.generation === 'v2') {
+				loadArbiterV2Evaluations(fetch).catch((error) =>
+					console.error('Failed to load panel arbiter evaluations:', error)
+				);
+			}
 		}
 	});
 

@@ -49,11 +49,16 @@ exactly the 103 widest sign reversals — and structurally cannot reach the 198
 articles where one model says `Positif` and another `Négatif`, a gap of only 2.
 Hence the contract's second arbiter rule, `valenceFlip`, and `--rule valence`.
 
-**Recommended run: `--rule valence`** — 301 articles, roughly US$29 at effort
-medium. Every one of them is a disagreement about the *sign* of the coverage,
-and only 19% are Mistral alone against the panel, against 49% in the old
-polarity+centrality block. The figure is a note, not a quote: `--dry-run`
-measures the real prompts and is the authoritative estimate.
+**Published run: `--rule valence`** — 301 articles, US$17.61 at effort medium
+over 281 paid calls (recorded in the file's `metadata.usage`; the dry run had
+estimated roughly US$29). Every one of them is a disagreement about the *sign*
+of the coverage. Mind what the frame is, though: only 19% (56) are the strict
+four-against-one exact-label split, against 49% in the old polarity+centrality
+block, but Mistral Small is the sole model across the valence line in 189 of
+the 301 (162 as the only negative reader), so the per-model verdict tallies
+measure how often the panel's dissenter was upheld, not the models' general
+quality. Cost figures are notes, not quotes: `--dry-run` measures the real
+prompts and is the authoritative estimate.
 
 `--rule`, `--dimensions` and `--threshold` can only ever tighten the contract's
 arbiter frame, because `validate_arbiter_three_way` recomputes eligibility from
@@ -63,7 +68,7 @@ subset of it.
 Usage:
   python arbiter-evaluation-v2.py --dry-run                      # counts + cost, no spend
   python arbiter-evaluation-v2.py --rule valence --dry-run
-  python arbiter-evaluation-v2.py --rule valence --yes                    # ~301, recommended
+  python arbiter-evaluation-v2.py --rule valence --yes                    # 301, the published run
   python arbiter-evaluation-v2.py --rule spread --dimensions polarity --yes   # ~103
   python arbiter-evaluation-v2.py --rule spread --dimensions polarity --threshold 4 --yes  # 18
   python arbiter-evaluation-v2.py --rule valence --limit 20 --yes         # pilot

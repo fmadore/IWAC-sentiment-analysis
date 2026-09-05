@@ -15,6 +15,7 @@ import type {
 	PolarityValue,
 	SubjectivityScore
 } from '$lib/types/data';
+import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
 import {
 	filterArticles,
 	computeAvailableJournals,
@@ -75,47 +76,50 @@ describe('filterArticles', () => {
 		).toEqual([2]);
 	});
 
-	it('treats missing polarity as "Non applicable"', () => {
-		const articles = [article(1, { sentiment_analysis: null })];
-		expect(filterArticles(articles, { ...noFilters, polarities: ['Non applicable'] })).toHaveLength(
-			1
-		);
-		expect(filterArticles(articles, { ...noFilters, polarities: ['Positif'] })).toHaveLength(0);
-	});
-
-	it('excludes articles with null subjectivity when a subjectivity filter is set', () => {
-		const withScore = article(1, {
+	// A missing rating is a fourth thing. "Non applicable" and "Non abordé" are
+	// verdicts a model returned; null is a rating it never produced (Qwen's
+	// declined rows, the articles no model annotates). The chips must keep them
+	// apart, or the table disagrees with the charts, which skip nulls.
+	describe('the "not annotated" bucket', () => {
+		const ids = (articles: Article[]) => articles.map((a) => a['o:id']);
+		const unrated = article(1, { sentiment_analysis: null });
+		const noStance = article(2, {
 			sentiment_analysis: {
-				centralite_islam_musulmans: 'Central',
-				centralite_justification: null,
-				subjectivite_score: 4,
-				subjectivite_justification: null,
-				polarite: 'Neutre',
-				polarite_justification: null
-			}
-		});
-		const withoutScore = article(2, {
-			sentiment_analysis: {
-				centralite_islam_musulmans: 'Central',
+				centralite_islam_musulmans: 'Non abordé',
 				centralite_justification: null,
 				subjectivite_score: null,
 				subjectivite_justification: null,
-				polarite: 'Neutre',
+				polarite: 'Non applicable',
 				polarite_justification: null
 			}
 		});
-		const result = filterArticles([withScore, withoutScore], {
-			...noFilters,
-			subjectivities: ['4']
-		});
-		expect(result.map((a) => a['o:id'])).toEqual([1]);
-	});
+		const rated = article(3);
+		const all = [unrated, noStance, rated];
 
-	it('treats missing centrality as "Non abordé"', () => {
-		const articles = [article(1, { sentiment_analysis: null })];
-		expect(filterArticles(articles, { ...noFilters, centralities: ['Non abordé'] })).toHaveLength(
-			1
-		);
+		it('keeps a missing polarity apart from "Non applicable"', () => {
+			expect(ids(filterArticles(all, { ...noFilters, polarities: [NOT_ANNOTATED] }))).toEqual([1]);
+			expect(ids(filterArticles(all, { ...noFilters, polarities: ['Non applicable'] }))).toEqual([
+				2
+			]);
+			expect(filterArticles(all, { ...noFilters, polarities: ['Positif'] })).toHaveLength(0);
+		});
+
+		it('keeps a missing centrality apart from "Non abordé"', () => {
+			expect(ids(filterArticles(all, { ...noFilters, centralities: [NOT_ANNOTATED] }))).toEqual([
+				1
+			]);
+			expect(ids(filterArticles(all, { ...noFilters, centralities: ['Non abordé'] }))).toEqual([2]);
+		});
+
+		it('selects a null subjectivity only through the bucket', () => {
+			expect(ids(filterArticles(all, { ...noFilters, subjectivities: ['3'] }))).toEqual([3]);
+			expect(ids(filterArticles(all, { ...noFilters, subjectivities: [NOT_ANNOTATED] }))).toEqual([
+				1, 2
+			]);
+			expect(
+				ids(filterArticles(all, { ...noFilters, subjectivities: ['3', NOT_ANNOTATED] }))
+			).toEqual([1, 2, 3]);
+		});
 	});
 });
 

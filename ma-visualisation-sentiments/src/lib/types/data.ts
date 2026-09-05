@@ -288,6 +288,14 @@ export type ArbiterBlindLabel = (typeof ARBITER_BLIND_LABELS)[number];
 /** A verdict names one analysis, several of them, or none. */
 export type ArbiterV2Preference = ArbiterBlindLabel | 'multiple' | 'none';
 
+/**
+ * The selection rules `arbiter-evaluation-v2.py` accepts. `spread` is the
+ * dashboard's significant-spread rule narrowed by `--dimensions`/`--threshold`;
+ * `valence` is the polarity sign disagreement; `spread-or-valence` is the
+ * contract's whole arbiter frame.
+ */
+export type ArbiterV2SelectionRule = 'spread' | 'valence' | 'spread-or-valence';
+
 export interface ArbiterV2DimensionScore {
 	/** The arbiter's own score (subjectivity is serialized as "1"-"5"). */
 	score: string;
@@ -337,11 +345,37 @@ export interface ArbiterV2EvaluationData {
 		/** Label → model id. The only place a verdict can be de-anonymised. */
 		blind_permutation: Record<ArbiterBlindLabel, DatasetId>;
 		selection: {
+			/** The contract's spread rule, quoted verbatim. */
 			rule: string;
+			/**
+			 * Which of the contract's arbiter rules this run selected on:
+			 * `spread`, `valence` or `spread-or-valence`. Absent from files written
+			 * before the valence rule existed, which selected on spread alone.
+			 */
+			arbiter_rule?: ArbiterV2SelectionRule;
+			contract_arbiter_rule?: string;
+			dimensions?: string[];
 			threshold: number;
+			contract_threshold?: number;
 			limit: number | null;
 			eligible_articles: number;
 			selected_articles: number;
+			valence_flips_selected?: number;
+		};
+		/**
+		 * What the run actually cost, accumulated over its paid calls. Empty on a
+		 * file republished without spending; absent from files written before it
+		 * was recorded.
+		 */
+		usage?: {
+			calls: number;
+			input_tokens: number;
+			output_tokens: number;
+			cache_creation_input_tokens: number;
+			cache_read_input_tokens: number;
+			output_tokens_per_call: number;
+			input_tokens_per_call: number;
+			usd: number;
 		};
 		total_articles: number;
 		successful_evaluations: number;
@@ -361,10 +395,13 @@ export interface ArbiterV2EvaluationData {
 			text: { repository: string; revision: string | null };
 		};
 	};
-	evaluations: Array<{
-		article_id: string;
-		cache_fingerprint: string;
-		spread: ArbiterV2Spread;
-		arbiter: ArbiterV2Analysis;
-	}>;
+	evaluations: ArbiterV2Evaluation[];
+}
+
+/** One arbitrated article: the panel's spread and the judge's verdict. */
+export interface ArbiterV2Evaluation {
+	article_id: string;
+	cache_fingerprint: string;
+	spread: ArbiterV2Spread;
+	arbiter: ArbiterV2Analysis;
 }

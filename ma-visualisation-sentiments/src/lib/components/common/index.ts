@@ -10,6 +10,7 @@ export { default as ArticleDetailModal } from './ArticleDetailModal.svelte';
 export { default as ComparisonDetailModal } from './ComparisonDetailModal.svelte';
 export { default as FullScreenModal } from './FullScreenModal.svelte';
 export { default as ArbiterArticleDetailModal } from './ArbiterArticleDetailModal.svelte';
+export { default as ArbiterV2ArticleDetailModal } from './ArbiterV2ArticleDetailModal.svelte';
 
 // Layout & Containers
 export { default as ArchiveNotice } from './ArchiveNotice.svelte';
@@ -28,6 +29,7 @@ export { default as SearchInput } from './SearchInput.svelte';
 export { default as SentimentBadge } from './SentimentBadge.svelte';
 export { default as ComparisonPanel } from './ComparisonPanel.svelte';
 export { default as ArbiterSection } from './ArbiterSection.svelte';
+export { default as ArbiterV2VerdictPanel } from './ArbiterV2VerdictPanel.svelte';
 export { default as StatCard } from './StatCard.svelte';
 export { default as ChartDataTable } from './ChartDataTable.svelte';
 

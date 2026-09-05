@@ -20,6 +20,7 @@ import { getJournalName } from '$lib/utils/format';
 import {
 	CENTRALITY_NON_COMPARABLE,
 	CENTRALITY_ORDER,
+	NOT_ANNOTATED,
 	POLARITY_NON_COMPARABLE,
 	POLARITY_ORDER,
 	POLARITY_VALENCE_BANDS,
@@ -46,6 +47,17 @@ export interface ArticleFilterCriteria {
 	centralities: string[];
 }
 
+/**
+ * The chip an article answers to on one dimension: its stored value, or the
+ * `Non annoté` bucket when there is none. A missing rating used to fall into
+ * `Non applicable` (polarity) and `Non abordé` (centrality) — a model that
+ * declined looked like a model that found no stance, and the table's counts
+ * under those chips disagreed with the charts, which skip nulls.
+ */
+function filterBucket(value: string | number | null | undefined): string {
+	return value === null || value === undefined ? NOT_ANNOTATED : String(value);
+}
+
 /** Apply the active filters to a list of articles. */
 export function filterArticles(
 	articles: Article[],
@@ -63,26 +75,22 @@ export function filterArticles(
 			}
 		}
 
+		const analysis = article.sentiment_analysis;
+
+		if (polarities.length > 0 && !polarities.includes(filterBucket(analysis?.polarite))) {
+			return false;
+		}
+
 		if (
-			polarities.length > 0 &&
-			!polarities.includes(article.sentiment_analysis?.polarite || 'Non applicable')
+			subjectivities.length > 0 &&
+			!subjectivities.includes(filterBucket(analysis?.subjectivite_score))
 		) {
 			return false;
 		}
 
-		if (subjectivities.length > 0) {
-			const score = article.sentiment_analysis?.subjectivite_score;
-			if (score === null || score === undefined) {
-				return false;
-			}
-			if (!subjectivities.includes(score.toString())) {
-				return false;
-			}
-		}
-
 		if (
 			centralities.length > 0 &&
-			!centralities.includes(article.sentiment_analysis?.centralite_islam_musulmans || 'Non abordé')
+			!centralities.includes(filterBucket(analysis?.centralite_islam_musulmans))
 		) {
 			return false;
 		}

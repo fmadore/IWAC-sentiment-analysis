@@ -19,6 +19,17 @@
  * Values are stored in French, exactly as the models emit them.
  */
 
+import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
+
+/**
+ * The slug for a rating that was never produced, in every family: a null
+ * score, or the filter rail's `Non annoté` chip. One palette entry shared by
+ * the three families, since "no rating" looks the same whichever scale it is
+ * missing from.
+ */
+export const NOT_ANNOTATED_SLUG = 'not-annotated';
+export type NotAnnotatedSlug = typeof NOT_ANNOTATED_SLUG;
+
 /** Polarity value (as stored) → the slug used in `data-polarity`. */
 export const POLARITY_SLUGS = {
 	'Très positif': 'very-positive',
@@ -38,10 +49,11 @@ export const CENTRALITY_SLUGS = {
 	'Non abordé': 'not-addressed'
 } as const;
 
-export type PolaritySlug = (typeof POLARITY_SLUGS)[keyof typeof POLARITY_SLUGS];
-export type CentralitySlug = (typeof CENTRALITY_SLUGS)[keyof typeof CENTRALITY_SLUGS];
+export type PolaritySlug = (typeof POLARITY_SLUGS)[keyof typeof POLARITY_SLUGS] | NotAnnotatedSlug;
+export type CentralitySlug =
+	(typeof CENTRALITY_SLUGS)[keyof typeof CENTRALITY_SLUGS] | NotAnnotatedSlug;
 /** Subjectivity is already a 1–5 score; its slug is the score as a string. */
-export type SubjectivitySlug = '1' | '2' | '3' | '4' | '5';
+export type SubjectivitySlug = '1' | '2' | '3' | '4' | '5' | NotAnnotatedSlug;
 
 export const SENTIMENT_FAMILIES = ['polarity', 'subjectivity', 'centrality'] as const;
 
@@ -56,11 +68,13 @@ export type SentimentVariant =
 	`polarity-${PolaritySlug}` | `subjectivity-${SubjectivitySlug}` | `centrality-${CentralitySlug}`;
 
 /**
- * Where each family lands when the value is missing or unrecognised. Polarity
- * and centrality have an explicit "no signal" step; subjectivity does not, so
- * it falls back to the midpoint.
+ * Where an off-scale label lands. Polarity and centrality have an explicit
+ * "no signal" step; subjectivity does not, so it falls back to the midpoint.
+ * A model emitting a label the scale lacks must not blank out the UI, but it
+ * is not "not annotated" either — that slug is reserved for a rating that
+ * does not exist.
  */
-const FALLBACK_VARIANTS = {
+const UNRECOGNISED_VARIANTS = {
 	polarity: 'polarity-na',
 	subjectivity: 'subjectivity-3',
 	centrality: 'centrality-not-addressed'
@@ -72,39 +86,40 @@ const FALLBACK_VARIANTS = {
  * Accepts `string | number | null | undefined` because callers hand over raw
  * article fields: subjectivity arrives as a number from the JSON but as a
  * string from URL state, and any field may be absent for an article a model
- * declined to score.
+ * declined to score. A missing value and the `Non annoté` filter chip resolve
+ * to the same variant, so the chip looks like the badges it selects.
  */
 export function sentimentVariant(
 	family: SentimentFamily,
 	value: string | number | null | undefined
 ): SentimentVariant {
-	if (value === null || value === undefined || value === '') {
-		return FALLBACK_VARIANTS[family];
+	if (value === null || value === undefined || value === '' || value === NOT_ANNOTATED) {
+		return `${family}-${NOT_ANNOTATED_SLUG}`;
 	}
 
 	switch (family) {
 		case 'polarity': {
 			const slug = POLARITY_SLUGS[String(value) as keyof typeof POLARITY_SLUGS];
-			return slug ? `polarity-${slug}` : FALLBACK_VARIANTS.polarity;
+			return slug ? `polarity-${slug}` : UNRECOGNISED_VARIANTS.polarity;
 		}
 		case 'centrality': {
 			const slug = CENTRALITY_SLUGS[String(value) as keyof typeof CENTRALITY_SLUGS];
-			return slug ? `centrality-${slug}` : FALLBACK_VARIANTS.centrality;
+			return slug ? `centrality-${slug}` : UNRECOGNISED_VARIANTS.centrality;
 		}
 		case 'subjectivity': {
 			const score = typeof value === 'number' ? value : parseInt(String(value), 10);
 			return score >= 1 && score <= 5
 				? (`subjectivity-${score}` as SentimentVariant)
-				: FALLBACK_VARIANTS.subjectivity;
+				: UNRECOGNISED_VARIANTS.subjectivity;
 		}
 	}
 }
 
 /**
- * Whether a string names one of the 16 sentiment variants, as opposed to a
- * component's own non-sentiment variant (FilterChip's `default` / `warning` /
- * `comparison`). Family prefixes are the discriminator, so this stays correct
- * as scale values are added.
+ * Whether a string names a sentiment variant, as opposed to a component's own
+ * non-sentiment variant (FilterChip's `default` / `warning` / `comparison`).
+ * Family prefixes are the discriminator, so this stays correct as scale
+ * values are added.
  */
 export function isSentimentVariant(value: string): value is SentimentVariant {
 	return SENTIMENT_FAMILIES.some((family) => value.startsWith(`${family}-`));

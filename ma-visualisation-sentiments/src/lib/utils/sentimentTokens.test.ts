@@ -1,8 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, it, expect } from 'vitest';
+import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
 import {
 	CENTRALITY_SLUGS,
+	NOT_ANNOTATED_SLUG,
 	POLARITY_SLUGS,
 	isSentimentVariant,
 	sentimentAttributes,
@@ -60,11 +62,17 @@ describe('sentimentVariant', () => {
 	});
 
 	describe('missing values', () => {
-		it.each([null, undefined, ''] as const)('falls back for %o', (value) => {
-			expect(sentimentVariant('polarity', value)).toBe('polarity-na');
-			expect(sentimentVariant('centrality', value)).toBe('centrality-not-addressed');
-			expect(sentimentVariant('subjectivity', value)).toBe('subjectivity-3');
-		});
+		// A rating that does not exist is not "Non applicable" (a verdict) and
+		// not the midpoint: it gets its own slug, the same one the filter rail's
+		// bucket chip carries, so chip and badge look alike.
+		it.each([null, undefined, '', NOT_ANNOTATED] as const)(
+			'resolves %o to not-annotated',
+			(value) => {
+				expect(sentimentVariant('polarity', value)).toBe('polarity-not-annotated');
+				expect(sentimentVariant('centrality', value)).toBe('centrality-not-annotated');
+				expect(sentimentVariant('subjectivity', value)).toBe('subjectivity-not-annotated');
+			}
+		);
 	});
 
 	it('falls back for an unrecognised value rather than throwing', () => {
@@ -122,7 +130,10 @@ describe('the app.css palette contract', () => {
 	const ALL_VARIANTS: SentimentVariant[] = [
 		...Object.values(POLARITY_SLUGS).map((slug) => `polarity-${slug}` as SentimentVariant),
 		...Object.values(CENTRALITY_SLUGS).map((slug) => `centrality-${slug}` as SentimentVariant),
-		...([1, 2, 3, 4, 5] as const).map((n) => `subjectivity-${n}` as SentimentVariant)
+		...([1, 2, 3, 4, 5] as const).map((n) => `subjectivity-${n}` as SentimentVariant),
+		...(['polarity', 'subjectivity', 'centrality'] as const).map(
+			(family) => `${family}-${NOT_ANNOTATED_SLUG}` as SentimentVariant
+		)
 	];
 
 	it.each(ALL_VARIANTS)('app.css defines a palette for %s', (variant) => {
@@ -148,9 +159,9 @@ describe('sentimentAttributes', () => {
 		});
 	});
 
-	it('carries the fallback through for a missing value', () => {
+	it('carries the not-annotated slug through for a missing value', () => {
 		expect(sentimentAttributes('centrality', null)).toEqual({
-			'data-centrality': 'not-addressed'
+			'data-centrality': 'not-annotated'
 		});
 	});
 });

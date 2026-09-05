@@ -87,6 +87,20 @@ export const CENTRALITY_NON_COMPARABLE = new Set<CentralityValue>(
 );
 
 /**
+ * The filter rail's bucket for a rating that was never produced: Qwen's 200
+ * declined rows, the 51 articles no model annotates, and every null
+ * subjectivity. A filter value, not a scale value — no model emits it and no
+ * file stores it, which is what keeps it from ever colliding with the data.
+ *
+ * `Non applicable` is a verdict: the model read the article and found no
+ * stance. This is the absence of a verdict. Folding the two together made the
+ * "Not applicable" chip select both, and the table disagree with the charts,
+ * which skip nulls. Follows the French-key convention so it can sit in
+ * `polarities=` beside the real values.
+ */
+export const NOT_ANNOTATED = 'Non annoté';
+
+/**
  * v2 stores subjectivity as an ordinal label upstream; the pipeline maps it to
  * the shared 1-5 rank so every numeric code path (kappa weighting, correlation,
  * map scales, filters) keeps working. Only the *display* text differs, and this

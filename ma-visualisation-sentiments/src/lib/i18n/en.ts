@@ -54,6 +54,8 @@ export const en = {
 		polarity: 'Polarity',
 		subjectivity: 'Subjectivity',
 		centrality: 'Centrality',
+		notAnnotatedNote:
+			'“Not applicable” is a verdict: the model read the article and found no stance. “Not annotated” means there is no rating at all — the articles a model declined to score, or never saw.',
 		clearAll: 'Clear all',
 		clearAllFilters: 'Clear all filters',
 		searchJournals: 'Search newspapers…',
@@ -85,7 +87,8 @@ export const en = {
 		neutral: 'Neutral',
 		negative: 'Negative',
 		veryNegative: 'Very negative',
-		notApplicable: 'Not applicable'
+		notApplicable: 'Not applicable',
+		notAnnotated: 'Not annotated'
 	},
 
 	// Subjectivity labels
@@ -94,8 +97,7 @@ export const en = {
 		ratherFactual: 'Rather objective',
 		mixed: 'Mixed',
 		ratherSubjective: 'Rather subjective',
-		subjective: 'Very subjective',
-		notApplicable: 'Not applicable'
+		subjective: 'Very subjective'
 	},
 
 	// Centrality labels
@@ -833,7 +835,33 @@ export const en = {
 		centrality: 'Centrality',
 		evaluatedArticles: 'Articles reviewed',
 		evaluatedArticlesSubtitle:
-			'Every article the arbiter read, widest disagreement first. Open a row for its reasoning.',
+			'Every article the arbiter read, widest disagreement first. Open a row to see the article, the panel’s five ratings and the arbiter’s reasoning.',
+		viewArticleDetails: 'View the article and the verdict',
+		articleWithVerdict: 'Article with panel verdict',
+		noEvaluatedArticles: 'No reviewed articles to show',
+		severalOrNone: 'Several / none',
+		panelLegend: 'Which analysis was which',
+		panelLegendNote:
+			'The arbiter names the analyses by these letters in its reasoning. The letters were assigned once for the whole run; the order the analyses were shown in was shuffled for each article.',
+		panelRatings: 'The panel’s ratings',
+		matchesArbiter: 'Same rating as the arbiter',
+		preferredAnalysis: 'Preferred by the arbiter',
+		notRated: 'Not rated',
+		panelLoading: 'Loading the rest of the panel…',
+		showModelsReasoning: 'Show the models’ reasoning',
+		hideModelsReasoning: 'Hide the models’ reasoning',
+		modelsReasoningLoading: 'Loading the models’ reasoning…',
+		comparisonNote:
+			'The panel arbiter weighed all five analyses of this article at once, not only the two compared here.',
+		notArbitrated: 'The panel arbiter did not review this article.',
+		whyReviewed: 'Why this article was reviewed',
+		whyReviewedNote:
+			'How far apart the panel’s five ratings sit on each scale, in steps. A reversal of direction on polarity — one model reading the coverage as favourable, another as hostile — is what put the article in front of the arbiter.',
+		valenceFlipTag: 'Positive against negative',
+		samplingFrameNoteSpread:
+			'The arbiter did not review the whole corpus. It reviewed the articles where the panel’s ratings were furthest apart on at least one dimension, so every percentage below holds only where such a disagreement already exists. None of them measures which model is better across the corpus as a whole.',
+		samplingFrameNoteUnion:
+			'The arbiter did not review the whole corpus. It reviewed the articles where the panel’s ratings were furthest apart on at least one dimension, or where the panel contradicts itself about whether the coverage is favourable or hostile, so every percentage below holds only where such a disagreement already exists. None of them measures which model is better across the corpus as a whole.',
 		spread: 'Spread',
 		arbiterScore: 'Arbiter’s own rating',
 		verdict: 'Verdict',
@@ -842,7 +870,7 @@ export const en = {
 		hideReasoning: 'Hide reasoning',
 		noData: 'No panel arbiter verdicts yet',
 		noDataDescription:
-			'This run costs money and is launched by hand, so it has not been made yet. Until it is, this view has nothing to show.',
+			'This build does not include the panel arbiter file. The run is paid and launched by hand — see the README for how to produce it.',
 		loading: 'Loading arbiter data…',
 		// Methodology
 		methodologyTitle: 'How the panel arbiter works',
@@ -858,7 +886,10 @@ export const en = {
 			'The panel agrees far more about centrality than about polarity: all five models give the same centrality rating on 63.7% of articles, against 33.0% for polarity. Paying a judge to settle centrality would mostly buy verdicts on questions the panel already answers consistently on its own. It is also the dimension where Mistral Small 4 diverges most from the other four, so a centrality-led selection fills up with one model standing alone against the rest. Choosing on polarity keeps both the dimension the research question turns on and the one the panel finds hardest.',
 		randomOrder: 'The order is shuffled per article',
 		randomOrderDesc:
-			'The analyses are anonymised as A to E by a single shuffle fixed for the whole run, so a label always means the same model. The order the blocks are laid out in is then shuffled again for each article. Without that second shuffle one model would hold the first position on every article, and a judge’s tendency to favour what it reads first would be impossible to tell apart from a genuine preference for that model.',
+			'The analyses are anonymised as A to E by a single shuffle fixed for the whole run, so a label always means the same model. The order the blocks are laid out in is then shuffled again for each article. Without that second shuffle one model would hold the first position on every article, and a judge’s tendency to favour what it reads first would be impossible to tell apart from a genuine preference for that model. Checked after the run: the position in which the winning analysis had been shown is indistinguishable from chance once the seating is accounted for (χ² of 5.3 on 4 degrees of freedom, over the 231 verdicts that named a single model).',
+		frameCaveat: 'What the sample mostly contains',
+		frameCaveatDesc:
+			'Selecting on reversals of direction does not make the sample balanced across models. In 189 of the 301 articles, Mistral Small 4 stands alone on one side of the neutral line while the four others stand on the other — in 162 of them it is the one reading the coverage as negative. A strict one-against-four split, where the four carry exactly the same label, is rarer: 56 articles. The arbiter’s own polarity rating coincides with Mistral Small 4’s in 37 articles, against 190 to 205 for each of the other four. Much of what the verdicts document is therefore one model’s calibration on polarity, and the head-to-head shares should be read with that in mind.',
 		noiseCaveat: 'Some of the disagreement is noise',
 		noiseCaveatDesc:
 			'These are single annotations, and the models do not fully reproduce themselves: run again on the same article, a model returns the same polarity 70–80% of the time. Part of any disagreement is therefore a different draw rather than a different reading, and no arbiter can tell the two apart. That is the reason for selecting on reversals of direction, which a re-draw is unlikely to produce, instead of one-step differences.',

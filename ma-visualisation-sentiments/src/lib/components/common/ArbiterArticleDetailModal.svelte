@@ -11,8 +11,9 @@
 	import { comparisonState, datasetState, loadJustifications } from '$lib/stores';
 	import { getPairModelNames } from '$lib/types/data';
 	import { t } from '$lib/i18n';
+	import { fmtDate } from '$lib/i18n/utils';
 	import { getJournalName } from '$lib/utils/format';
-	import { formatDate, getArticleUrl } from '$lib/utils/format';
+	import { getArticleUrl } from '$lib/utils/format';
 	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
 	import { ComparisonPanel, ArbiterSection } from '$lib/components/common';
 	import FullScreenModal from './FullScreenModal.svelte';
@@ -55,7 +56,7 @@
 	const modalTitle = $derived(comparison?.article['o:title'] || $t.arbiter.articleWithArbiter);
 	const modalSubtitle = $derived(
 		comparison
-			? `${getJournalName(comparison.article)} • ${formatDate(comparison.article.publication_date)}`
+			? `${getJournalName(comparison.article)} • ${$fmtDate(comparison.article.publication_date)}`
 			: ''
 	);
 </script>
@@ -82,7 +83,7 @@
 					</div>
 					<div class="meta-card card preset-glass p-4">
 						<span class="meta-label">{$t.article.publicationDate}</span>
-						<p class="meta-value">{formatDate(comparison.article.publication_date)}</p>
+						<p class="meta-value">{$fmtDate(comparison.article.publication_date)}</p>
 					</div>
 				</div>
 

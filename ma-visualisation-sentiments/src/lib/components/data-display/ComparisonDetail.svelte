@@ -18,12 +18,21 @@
 	import EmptyState from '$lib/components/common/EmptyState.svelte';
 	import type { ComparisonData } from '$lib/types/data';
 	import { ComparisonPanel, ArbiterSection } from '$lib/components/common';
+	import ArbiterV2VerdictPanel from '$lib/components/common/ArbiterV2VerdictPanel.svelte';
+	import { generationOf } from '$lib/domain/sentimentContract';
 	import { getJournalName } from '$lib/utils/format';
-	import { formatDate, getArticleUrl, getModelDisplayName } from '$lib/utils/format';
+	import { getArticleUrl, getModelDisplayName } from '$lib/utils/format';
 	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
 	import { discrepancyAttributes } from '$lib/utils/discrepancy';
 	import { t } from '$lib/i18n';
-	import { datasetState, getArbiterForArticle, loadJustifications } from '$lib/stores';
+	import { fmtDate } from '$lib/i18n/utils';
+	import {
+		datasetState,
+		getArbiterForArticle,
+		getArbiterV2RowForArticle,
+		loadArbiterV2Panel,
+		loadJustifications
+	} from '$lib/stores';
 
 	// Props: Accept comparison data as a prop
 	let { comparison }: { comparison: ComparisonData | null } = $props();
@@ -47,6 +56,27 @@
 		comparison ? getArbiterForArticle(comparison.article['o:id']) !== null : false
 	);
 
+	/**
+	 * A generation-2 pair has no pairwise arbiter; its verdict, when there is
+	 * one, is the panel's, and covers all five analyses rather than the two on
+	 * screen. The panel component says so in its note. The other three
+	 * models' ratings arrive in the background — comparison mode loads only
+	 * the pair — and the chips read "loading" until they do.
+	 */
+	const panelRow = $derived(
+		comparison && generationOf(comparison.modelAId) === 'v2'
+			? getArbiterV2RowForArticle(comparison.article['o:id'])
+			: null
+	);
+
+	$effect(() => {
+		if (panelRow) {
+			loadArbiterV2Panel(fetch).catch((error) =>
+				console.error('Failed to load the panel datasets for the verdict:', error)
+			);
+		}
+	});
+
 	const modelAName = $derived(
 		comparison ? getModelDisplayName(comparison.modelAId, datasetState.available) : 'Model A'
 	);
@@ -69,7 +99,7 @@
 			</div>
 			<div class="comparison-metadata-card">
 				<span class="meta-label">{$t.article.publicationDate}</span>
-				<p class="meta-value">{formatDate(comparison.article.publication_date)}</p>
+				<p class="meta-value">{$fmtDate(comparison.article.publication_date)}</p>
 			</div>
 		</div>
 
@@ -210,6 +240,11 @@
 		<!-- Arbiter (Gemini 3 Pro) Verdict Section - Only shown when arbiter data exists -->
 		{#if hasArbiterData}
 			<ArbiterSection articleId={comparison.article['o:id']} />
+		{/if}
+
+		<!-- The panel arbiter's verdict, for a generation-2 pair whose article it read -->
+		{#if panelRow}
+			<ArbiterV2VerdictPanel row={panelRow} note={$t.arbiterV2.comparisonNote} />
 		{/if}
 	</div>
 {:else}

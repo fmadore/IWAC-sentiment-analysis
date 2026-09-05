@@ -158,6 +158,10 @@
 					<p class="section-text">{$t.arbiterV2.whyPolarityDesc}</p>
 				</div>
 				<div class="methodology-section">
+					<h4 class="section-title">{$t.arbiterV2.frameCaveat}</h4>
+					<p class="section-text">{$t.arbiterV2.frameCaveatDesc}</p>
+				</div>
+				<div class="methodology-section">
 					<h4 class="section-title">{$t.arbiterV2.blindEvaluation}</h4>
 					<p class="section-text">{$t.arbiterV2.blindEvaluationDesc}</p>
 				</div>

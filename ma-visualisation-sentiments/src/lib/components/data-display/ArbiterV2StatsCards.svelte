@@ -12,6 +12,14 @@
   Nothing here counts the models: the grid auto-fits, the overall bar is one
   segment per model, and the legend wraps. The panel grew from three to five
   without this file changing, which is the property to preserve.
+
+  Every headline figure in the grid is an *overall* verdict, one per article,
+  so the cards share a denominator and sum to the articles reviewed. The
+  per-dimension tallies — three verdicts per article, and where "several are
+  equally close" is the usual answer — sit in each card's note line. The two
+  tie cards used to carry the per-dimension counts as their headline, which
+  put 814 of 903 beside 118 of 301 with nothing saying the two were not the
+  same kind of number.
 -->
 <script lang="ts">
 	import type { ArbiterV2Statistics } from '$lib/stores';
@@ -78,9 +86,15 @@
 			<ScaleIcon size={20} />
 		</div>
 		<div class="stat-content">
-			<div class="stat-value">{$num(stats.multiple)}</div>
+			<div class="stat-value">{$num(stats.overallMultiple)}</div>
 			<div class="stat-label">{$t.arbiterV2.multiple}</div>
-			<div class="stat-percentage">{$pct(stats.multiplePercentage / 100, 1)}</div>
+			<div class="stat-percentage">
+				{$pct(stats.totalEvaluated > 0 ? stats.overallMultiple / stats.totalEvaluated : 0, 1)}
+			</div>
+			<div class="stat-note">
+				{$num(stats.multiple)}
+				{$t.arbiterV2.dimensionVerdicts}
+			</div>
 		</div>
 	</div>
 
@@ -89,9 +103,15 @@
 			<CircleSlashIcon size={20} />
 		</div>
 		<div class="stat-content">
-			<div class="stat-value">{$num(stats.none)}</div>
+			<div class="stat-value">{$num(stats.overallNone)}</div>
 			<div class="stat-label">{$t.arbiterV2.none}</div>
-			<div class="stat-percentage">{$pct(stats.nonePercentage / 100, 1)}</div>
+			<div class="stat-percentage">
+				{$pct(stats.totalEvaluated > 0 ? stats.overallNone / stats.totalEvaluated : 0, 1)}
+			</div>
+			<div class="stat-note">
+				{$num(stats.none)}
+				{$t.arbiterV2.dimensionVerdicts}
+			</div>
 		</div>
 	</div>
 </div>
@@ -248,9 +268,11 @@
 		margin-top: var(--space-2);
 	}
 
+	/* Text sits at --text-muted, the floor DESIGN.md sets; --text-subtle is
+	   for rules and icon strokes and reads at ~4.3:1 here, below AA. */
 	.stat-percentage {
 		font-size: var(--font-size-xs);
-		color: var(--text-subtle);
+		color: var(--text-muted);
 		margin-top: var(--space-1);
 	}
 
@@ -258,7 +280,7 @@
 		font-family: var(--font-mono);
 		font-size: var(--font-size-eyebrow);
 		letter-spacing: var(--tracking-wide);
-		color: var(--text-subtle);
+		color: var(--text-muted);
 		margin-top: var(--space-1);
 	}
 
@@ -284,7 +306,7 @@
 
 	.overall-subtitle {
 		font-size: var(--font-size-xs);
-		color: var(--text-subtle);
+		color: var(--text-muted);
 	}
 
 	.overall-bar {

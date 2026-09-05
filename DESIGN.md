@@ -180,6 +180,10 @@ The heart of the system, built as perceptually-uniform OKLCH ramps in
 
 - **Polarity** (diverging): red ↔ green through a low-chroma blue neutral,
   plus a grey `Non applicable`.
+- **Not annotated** (all three families): one achromatic grey for a rating that
+  was never produced — the filter rail's bucket chip and the badge for a null
+  score. `Non applicable` is a verdict and keeps polarity's blue cast; this is
+  the absence of one.
 - **Subjectivity** (sequential, scores 1–5): cool/calm objective →
   warm/loud subjective.
 - **Centrality** (sequential): single-hue amber, more central = brighter.

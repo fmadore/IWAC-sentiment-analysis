@@ -161,8 +161,8 @@ it — the skip list at the bottom is deliberate.
 5. **`clarify`** — scoped: error/empty/loading state copy and methodology caveat
    phrasing only. A full copy-edit + number-localisation pass just landed (PR #143);
    don't redo it. All copy goes through the i18n catalogs (en is the type source).
-6. **`harden`** — edge cases as design: the v2 arbiter's *intentional* empty state
-   (unpaid run — it must read as "not yet", never as an error), minimum-sample rules,
+6. **`harden`** — edge cases as design: the v2 arbiter's empty state in a build that
+   omits the paid run's file (it must read as "not yet", never as an error), minimum-sample rules,
    long place/newspaper names, offline (there's a service worker), slow-data loading.
 7. **`onboard`** — first-run orientation for a dense research instrument: does a
    first-time scholar know what the thirteen views are and where to start? Lightweight

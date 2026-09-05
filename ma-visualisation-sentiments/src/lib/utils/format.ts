@@ -5,36 +5,10 @@
  */
 
 import type { Article } from '$lib/types/data';
-import { currentLanguage, t } from '$lib/i18n';
-import { localeOf } from '$lib/i18n/utils';
-import { get } from 'svelte/store';
 
-/**
- * Format a date string for display using the current language locale.
- * Used by ArticleTable, ArticleDetail, ComparisonDetail, ComparisonTable,
- * ArbiterArticleDetailModal.
- */
-export function formatDate(dateStr: string | null | undefined): string {
-	const translations = get(t);
-	if (!dateStr) return translations.messages?.noData || 'N/A';
-
-	try {
-		const date = new Date(dateStr);
-		if (isNaN(date.getTime())) {
-			return dateStr;
-		}
-
-		// en-GB, not en-US: the UI is British English, so dates read
-		// "19 October 2011" rather than "October 19, 2011".
-		return date.toLocaleDateString(localeOf(get(currentLanguage)), {
-			day: 'numeric',
-			month: 'long',
-			year: 'numeric'
-		});
-	} catch {
-		return dateStr || '';
-	}
-}
+// Dates are formatted by the `fmtDate` store in `$lib/i18n/utils`, beside the
+// number formatters: a plain function here read the language with a one-shot
+// `get()`, which no template re-runs on a language switch.
 
 /**
  * Build the IWAC article URL from an article ID.

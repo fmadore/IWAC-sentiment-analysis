@@ -13,6 +13,7 @@
 <script lang="ts">
 	import { currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
+	import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
 	import { sentimentAttributes, type SentimentFamily } from '$lib/utils/sentimentTokens';
 
 	type BadgeSize = 'sm' | 'md' | 'lg';
@@ -40,8 +41,10 @@
 
 	// Get the display text
 	function getDisplayText(): string {
+		// A null score is "not annotated", never "N/A": the latter reads as the
+		// scale's own "Non applicable", which is a verdict this article lacks.
 		if (value === null || value === undefined) {
-			return type === 'subjectivity' ? '-' : 'N/A';
+			return translateSentimentValue(NOT_ANNOTATED, $currentLanguage);
 		}
 
 		if (!translate) {

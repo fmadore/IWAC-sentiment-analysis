@@ -12,11 +12,10 @@
 -->
 <script lang="ts">
 	import { arbiterEvaluations, comparisonState, datasetState } from '$lib/stores';
-	import { num } from '$lib/i18n/utils';
+	import { num, fmtDate } from '$lib/i18n/utils';
 	import { getPairModelNames, type ArbiterAnalysis } from '$lib/types/data';
 	import { t } from '$lib/i18n';
 	import { getJournalName } from '$lib/utils/format';
-	import { formatDate } from '$lib/utils/format';
 	import { createPagination } from '$lib/utils/pagination.svelte';
 	import {
 		VERDICT_ORDER,
@@ -309,7 +308,7 @@
 									<span class="row-title line-clamp-2">{article.title}</span>
 								</td>
 								<td class="row-meta">{article.journal}</td>
-								<td class="row-meta">{formatDate(article.date)}</td>
+								<td class="row-meta">{$fmtDate(article.date)}</td>
 								<td class="text-center">
 									<span
 										class="badge badge-sm {getVerdictBadgeClass(article.arbiter.overall_winner)}"
@@ -359,7 +358,7 @@
 						<div class="mb-3">
 							<h3 class="row-title line-clamp-2 mb-1">{article.title}</h3>
 							<p class="row-submeta">
-								{article.journal} • {formatDate(article.date)}
+								{article.journal} • {$fmtDate(article.date)}
 							</p>
 						</div>
 
