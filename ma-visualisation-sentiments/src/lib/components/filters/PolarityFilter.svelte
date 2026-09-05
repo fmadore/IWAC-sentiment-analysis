@@ -1,67 +1,48 @@
 <!--
   PolarityFilter Component
-  
-  Filter for sentiment polarity values using reusable FilterCard and FilterChip components.
+
+  Filter for sentiment polarity values using reusable FilterCard and FilterChip
+  components. The last chip is the "not annotated" bucket: a rating the model
+  never produced, kept apart from "Non applicable", which is a rating.
 -->
 <script lang="ts">
 	import { filterState } from '$lib/stores';
 	import { t, currentLanguage } from '$lib/i18n';
-	import { getSentimentLabels, getFrenchSentimentValue } from '$lib/i18n/utils';
+	import { translateSentimentValue } from '$lib/i18n/utils';
+	import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
 	import { FilterCard, FilterChip } from '$lib/components/common';
 
-	// French values for data storage with corresponding CSS class names (used for FilterChip variant)
-	const frenchPolarityOptions = [
+	// French values (stored in data) with their FilterChip variants
+	const polarityOptions = [
 		{ value: 'Très positif', variant: 'polarity-very-positive' as const },
 		{ value: 'Positif', variant: 'polarity-positive' as const },
 		{ value: 'Neutre', variant: 'polarity-neutral' as const },
 		{ value: 'Négatif', variant: 'polarity-negative' as const },
 		{ value: 'Très négatif', variant: 'polarity-very-negative' as const },
-		{ value: 'Non applicable', variant: 'polarity-na' as const }
+		{ value: 'Non applicable', variant: 'polarity-na' as const },
+		{ value: NOT_ANNOTATED, variant: 'polarity-not-annotated' as const }
 	];
 
-	// Get translated labels
-	let polarityLabels = $derived(getSentimentLabels('polarity', $currentLanguage));
+	let selectedPolarities = $derived(filterState.polarities);
 
-	// Create options with translated labels
-	let polarityOptions = $derived(
-		frenchPolarityOptions.map((option, index) => ({
-			...option,
-			label: polarityLabels[index]
+	// Get translated labels for display
+	const translatedOptions = $derived(
+		polarityOptions.map((option) => ({
+			value: option.value, // Keep French value for data operations
+			label: translateSentimentValue(option.value, $currentLanguage),
+			variant: option.variant
 		}))
 	);
 
-	let selectedPolarities = $state<string[]>([]);
-
-	// Sync local state with store values when language or store changes
-	$effect(() => {
-		// Convert French store values to translated labels for UI
-		const storeValues = filterState.polarities;
-		selectedPolarities = storeValues.map((frenchValue) => {
-			// Find the index of the French value
-			const index = frenchPolarityOptions.findIndex((option) => option.value === frenchValue);
-			// Return the corresponding translated label
-			return index >= 0 ? polarityLabels[index] : frenchValue;
-		});
-	});
-
-	function updateSelection() {
-		// Convert translated values back to French for data filtering
-		const frenchValues = selectedPolarities.map((label) => getFrenchSentimentValue(label));
-		filterState.polarities = frenchValues;
-	}
-
-	function togglePolarity(translatedLabel: string) {
-		if (selectedPolarities.includes(translatedLabel)) {
-			selectedPolarities = selectedPolarities.filter((p) => p !== translatedLabel);
-		} else {
-			selectedPolarities = [...selectedPolarities, translatedLabel];
-		}
-		updateSelection();
+	function togglePolarity(polarity: string) {
+		const updated = selectedPolarities.includes(polarity)
+			? selectedPolarities.filter((p) => p !== polarity)
+			: [...selectedPolarities, polarity];
+		filterState.polarities = updated;
 	}
 
 	function clearSelection() {
-		selectedPolarities = [];
-		updateSelection();
+		filterState.polarities = [];
 	}
 </script>
 
@@ -71,13 +52,33 @@
 	onClear={clearSelection}
 >
 	{#snippet chips()}
-		{#each polarityOptions as option (option.value)}
+		{#each translatedOptions as option (option.value)}
 			<FilterChip
 				label={option.label}
-				selected={selectedPolarities.includes(option.label)}
+				selected={selectedPolarities.includes(option.value)}
 				variant={option.variant}
-				onclick={() => togglePolarity(option.label)}
+				onclick={() => togglePolarity(option.value)}
 			/>
 		{/each}
 	{/snippet}
+
+	{#snippet footer()}
+		<p class="bucket-note">{$t.filters.notAnnotatedNote}</p>
+	{/snippet}
 </FilterCard>
+
+<style>
+	.bucket-note {
+		font-size: var(--font-size-xs);
+		line-height: var(--line-height-relaxed);
+		color: var(--text-muted);
+		margin: 0;
+	}
+
+	/* Keyed on the rail's width, not the viewport's. */
+	@container filter-rail (max-width: 300px) {
+		.bucket-note {
+			font-size: var(--font-size-eyebrow);
+		}
+	}
+</style>

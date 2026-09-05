@@ -1,6 +1,7 @@
 import { derived } from 'svelte/store';
 import type { Language } from './index.js';
 import { currentLanguage, translate } from './index.js';
+import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
 
 // Mapping of French sentiment values to translation keys
 export const SENTIMENT_VALUE_MAP = {
@@ -17,7 +18,10 @@ export const SENTIMENT_VALUE_MAP = {
 	Central: 'centrality.central',
 	Secondaire: 'centrality.secondary',
 	Marginal: 'centrality.marginal',
-	'Non abordé': 'centrality.notAddressed'
+	'Non abordé': 'centrality.notAddressed',
+
+	// The filter rail's bucket for a rating that does not exist (not a stored value)
+	[NOT_ANNOTATED]: 'sentiment.notAnnotated'
 } as const;
 
 // Mapping for numeric subjectivity scores to translation keys
@@ -54,7 +58,7 @@ export function translateSubjectivityScore(
 	score: number | null | undefined,
 	lang?: Language
 ): string {
-	if (score === null || score === undefined) return translate('sentiment.notApplicable', lang);
+	if (score === null || score === undefined) return translate('sentiment.notAnnotated', lang);
 
 	const translationKey = SUBJECTIVITY_SCORE_MAP[score as keyof typeof SUBJECTIVITY_SCORE_MAP];
 	if (translationKey) {
@@ -89,7 +93,9 @@ export function getSentimentLabels(
 				translate('subjectivity.mixed', lang),
 				translate('subjectivity.ratherSubjective', lang),
 				translate('subjectivity.subjective', lang),
-				translate('subjectivity.notApplicable', lang)
+				// The sixth bucket is a null score: no model emits "Non applicable" for
+				// subjectivity, both generations store a 1-5 rank or nothing.
+				translate('sentiment.notAnnotated', lang)
 			];
 		case 'centrality':
 			return [

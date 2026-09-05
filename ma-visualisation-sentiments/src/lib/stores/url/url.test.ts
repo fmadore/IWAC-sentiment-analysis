@@ -7,6 +7,7 @@
  * - parseURLState correctly parses URL parameters
  */
 import { describe, it, expect } from 'vitest';
+import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
 import { buildURLSearchParams } from '$lib/stores/url/builder.svelte';
 import { parseURLState } from '$lib/stores/url/parser.svelte';
 import type { URLState } from '$lib/stores/url/types';
@@ -254,6 +255,17 @@ describe('build/parse round-trip', () => {
 			polarities: ['Positif'],
 			subjectivities: ['3'],
 			centralities: ['Central']
+		};
+		expect(roundTrip(state)).toMatchObject(state);
+	});
+
+	it('carries the "not annotated" bucket like any other value', () => {
+		const state: URLState = {
+			view: 'table',
+			dataset: 'qwen',
+			polarities: [NOT_ANNOTATED],
+			subjectivities: ['4', NOT_ANNOTATED],
+			centralities: ['Marginal', NOT_ANNOTATED]
 		};
 		expect(roundTrip(state)).toMatchObject(state);
 	});

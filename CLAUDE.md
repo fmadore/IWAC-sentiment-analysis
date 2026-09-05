@@ -119,6 +119,16 @@ as **non-comparable** and exclude the row; missing subjectivity skips only that
 dimension. These rules live in the contracts, and cross-language fixtures ensure
 Python and TypeScript cannot drift.
 
+**A missing rating is not `Non applicable`.** `Non applicable` and `Non abordé`
+are verdicts a model returned; `null` is a rating it never produced — Qwen's
+declined rows, the 51 articles no model annotates, every missing subjectivity.
+The filter rail selects those through the `Non annoté` bucket (`NOT_ANNOTATED`
+in `sentimentContract.ts`), a filter value no file ever stores, and the badges
+and chips render it with the shared `not-annotated` slug. `filterArticles` used
+to fold `null` into the `Non applicable` / `Non abordé` chips, so a model that
+declined looked like one that found no stance and the table disagreed with the
+charts, which skip nulls. Keep the bucket separate.
+
 **Model ids are this repo's, not the dataset's column prefixes.** The Hugging
 Face dataset names its columns after the model that produced each annotation
 (`gpt_5_mini_`, `gpt_5_6_luna_`, …), while the ids remain the `dataset` and

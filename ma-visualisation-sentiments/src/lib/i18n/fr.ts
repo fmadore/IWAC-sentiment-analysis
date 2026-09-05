@@ -55,6 +55,8 @@ export const fr: Translations = {
 		polarity: 'Polarité',
 		subjectivity: 'Subjectivité',
 		centrality: 'Centralité',
+		notAnnotatedNote:
+			'« Non applicable » est un verdict : le modèle a lu l’article et n’y a trouvé aucune prise de position. « Non annoté » signifie qu’il n’y a aucune note — les articles qu’un modèle a refusé de noter, ou n’a jamais vus.',
 		clearAll: 'Tout effacer',
 		clearAllFilters: 'Effacer tous les filtres',
 		searchJournals: 'Rechercher un journal…',
@@ -86,7 +88,8 @@ export const fr: Translations = {
 		neutral: 'Neutre',
 		negative: 'Négatif',
 		veryNegative: 'Très négatif',
-		notApplicable: 'Non applicable'
+		notApplicable: 'Non applicable',
+		notAnnotated: 'Non annoté'
 	},
 
 	// Subjectivity labels
@@ -95,8 +98,7 @@ export const fr: Translations = {
 		ratherFactual: 'Plutôt objectif',
 		mixed: 'Mixte',
 		ratherSubjective: 'Plutôt subjectif',
-		subjective: 'Très subjectif',
-		notApplicable: 'Non applicable'
+		subjective: 'Très subjectif'
 	},
 
 	// Centrality labels

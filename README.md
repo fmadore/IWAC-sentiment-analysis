@@ -80,6 +80,7 @@ Thirteen views, all sharing one filter rail (country → newspaper → polarity 
 - **"Who breaks ranks" means something different at five models than at three.** The dissent profile names a model only when it stands alone against all the others; a 3–2 split has no lone dissenter and lands in "divided several ways". The ternary triangle is offered for the three-model archive only — a simplex over five models has no honest 2-D projection.
 - **Newspaper ranking omits titles under 30 rated articles**, and states how many it omitted.
 - **Discrepancies are not errors.** No model is ground truth, and disagreement often reflects a legitimate difference of reading. `Non applicable` and `Non abordé` are treated as non-comparable and exclude the row rather than counting as maximal disagreement; missing subjectivity skips only that dimension.
+- **A missing rating is not `Non applicable`.** `Non applicable` is a verdict: the model read the article and found no stance. A null rating is one the model never produced — Qwen's declined rows, the 51 articles no model annotates. The filter rail keeps them apart with a separate "Not annotated" chip on each dimension, so the table's counts under "Not applicable" match the charts, which skip nulls.
 - **Arbiter percentages are conditional.** The arbiter reviews only articles selected _because_ the models disagreed sharply, so its verdicts measure who is right given a disagreement — never which model is better across the corpus.
 - **Sentiment is not encoded by hue alone.** The polarity ramp is equal-lightness at the poles, so tooltip swatches also carry a shape.
 
@@ -208,7 +209,7 @@ cd ma-visualisation-sentiments && npm install && npm run dev
 | `npm run preview`  | Serve the production build                                                  |
 | `npm run check`    | `svelte-check` — must report 0 errors, 0 warnings                           |
 | `npm run lint`     | Prettier, ESLint, store-cycle detection, design-token validation            |
-| `npm run test:run` | 518 Vitest unit and integration tests across 29 files                       |
+| `npm run test:run` | 525 Vitest unit and integration tests across 29 files                       |
 | `npm run test:e2e` | Playwright deep-link, failure-state and axe accessibility smoke tests       |
 
 Run the checks in [`.claude/skills/verify/SKILL.md`](.claude/skills/verify/SKILL.md) before committing anything that ships through CI — the ordering and pass criteria are not guessable. CSS and component rules are in [DESIGN.md](DESIGN.md), and `npm run lint` enforces most of them.

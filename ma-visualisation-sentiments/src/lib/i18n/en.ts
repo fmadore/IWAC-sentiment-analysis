@@ -54,6 +54,8 @@ export const en = {
 		polarity: 'Polarity',
 		subjectivity: 'Subjectivity',
 		centrality: 'Centrality',
+		notAnnotatedNote:
+			'“Not applicable” is a verdict: the model read the article and found no stance. “Not annotated” means there is no rating at all — the articles a model declined to score, or never saw.',
 		clearAll: 'Clear all',
 		clearAllFilters: 'Clear all filters',
 		searchJournals: 'Search newspapers…',
@@ -85,7 +87,8 @@ export const en = {
 		neutral: 'Neutral',
 		negative: 'Negative',
 		veryNegative: 'Very negative',
-		notApplicable: 'Not applicable'
+		notApplicable: 'Not applicable',
+		notAnnotated: 'Not annotated'
 	},
 
 	// Subjectivity labels
@@ -94,8 +97,7 @@ export const en = {
 		ratherFactual: 'Rather objective',
 		mixed: 'Mixed',
 		ratherSubjective: 'Rather subjective',
-		subjective: 'Very subjective',
-		notApplicable: 'Not applicable'
+		subjective: 'Very subjective'
 	},
 
 	// Centrality labels

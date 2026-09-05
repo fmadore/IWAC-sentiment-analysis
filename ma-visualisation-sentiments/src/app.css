@@ -140,6 +140,22 @@
 		transparent
 	);
 
+	/* A rating that was never produced — the filter rail's "Not annotated"
+	   chip and the badge for a null score, in all three families. Achromatic,
+	   where `na` keeps polarity's blue cast: `na` is a verdict (no stance),
+	   this is the absence of one. */
+	--sentiment-not-annotated: oklch(0.66 0 0);
+	--sentiment-not-annotated-bg: color-mix(
+		in oklab,
+		var(--sentiment-not-annotated) 10%,
+		transparent
+	);
+	--sentiment-not-annotated-border: color-mix(
+		in oklab,
+		var(--sentiment-not-annotated) 30%,
+		transparent
+	);
+
 	/* --- Subjectivity (Score 1→5, sequential cool→warm by lightness) --- */
 	--sentiment-subjectivity-1: oklch(0.72 0.06 220); /* objective: cool, calm */
 	--sentiment-subjectivity-2: oklch(0.7 0.085 200);
@@ -1126,6 +1142,15 @@ h3 {
 	--sentiment-fg: var(--sentiment-polarity-na);
 	--sentiment-bg: var(--sentiment-polarity-na-bg);
 	--sentiment-border: var(--sentiment-polarity-na-border);
+}
+
+/* --- Not annotated: one entry, every family --- */
+[data-polarity='not-annotated'],
+[data-subjectivity='not-annotated'],
+[data-centrality='not-annotated'] {
+	--sentiment-fg: var(--sentiment-not-annotated);
+	--sentiment-bg: var(--sentiment-not-annotated-bg);
+	--sentiment-border: var(--sentiment-not-annotated-border);
 }
 
 /* --- Subjectivity (score 1-5) --- */

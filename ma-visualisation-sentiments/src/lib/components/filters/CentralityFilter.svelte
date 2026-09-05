@@ -7,6 +7,7 @@
 	import { filterState } from '$lib/stores';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue } from '$lib/i18n/utils';
+	import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
 	import { FilterCard, FilterChip } from '$lib/components/common';
 
 	// French values (stored in data) with their FilterChip variants
@@ -15,7 +16,9 @@
 		{ value: 'Central', variant: 'centrality-central' as const },
 		{ value: 'Secondaire', variant: 'centrality-secondary' as const },
 		{ value: 'Marginal', variant: 'centrality-marginal' as const },
-		{ value: 'Non abordé', variant: 'centrality-not-addressed' as const }
+		{ value: 'Non abordé', variant: 'centrality-not-addressed' as const },
+		// A rating the model never produced, apart from "Non abordé", which is one
+		{ value: NOT_ANNOTATED, variant: 'centrality-not-annotated' as const }
 	];
 
 	let selectedCentralities = $derived(filterState.centralities);

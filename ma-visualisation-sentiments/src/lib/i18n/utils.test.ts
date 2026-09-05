@@ -1,7 +1,27 @@
 import { describe, expect, it } from 'vitest';
 import { get } from 'svelte/store';
+import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
 import { currentLanguage } from './index';
-import { fmtDate, formatDate } from './utils';
+import {
+	fmtDate,
+	formatDate,
+	getSentimentLabels,
+	translateSentimentValue,
+	translateSubjectivityScore
+} from './utils';
+
+describe('the "not annotated" bucket', () => {
+	it('translates the filter value like a stored one', () => {
+		expect(translateSentimentValue(NOT_ANNOTATED, 'en')).toBe('Not annotated');
+		expect(translateSentimentValue(NOT_ANNOTATED, 'fr')).toBe('Non annoté');
+	});
+
+	it('names a null subjectivity as not annotated, never as not applicable', () => {
+		expect(translateSubjectivityScore(null, 'en')).toBe('Not annotated');
+		expect(getSentimentLabels('subjectivity', 'en').at(-1)).toBe('Not annotated');
+		expect(translateSubjectivityScore(3, 'en')).toBe('Mixed');
+	});
+});
 
 describe('formatDate', () => {
 	it('spells the month out in the requested language', () => {
