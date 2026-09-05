@@ -18,14 +18,20 @@ export { comparisonState } from './comparison.svelte';
 export { type ArbiterStatistics } from './arbiter.svelte';
 export {
 	arbiterV2Evaluations,
+	arbiterV2Legend,
+	arbiterV2Rows,
 	arbiterV2Statistics,
 	computeArbiterV2Statistics,
 	getArbiterV2ForArticle,
+	getArbiterV2RowForArticle,
 	loadArbiterV2Evaluations,
+	loadArbiterV2Panel,
 	ARBITER_V2_DIMENSIONS,
 	type ArbiterV2Dimension,
 	type ArbiterV2DimensionBreakdown,
+	type ArbiterV2LegendEntry,
 	type ArbiterV2ModelShare,
+	type ArbiterV2Row,
 	type ArbiterV2Statistics
 } from './arbiterV2.svelte';
 export { extremeState } from './extreme-analysis.svelte';

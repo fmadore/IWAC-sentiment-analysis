@@ -49,6 +49,7 @@ export default ts.config(
 		// not SvelteKit routes, so resolve() is not applicable.
 		files: [
 			'**/components/common/ArbiterArticleDetailModal.svelte',
+			'**/components/common/ArbiterV2ArticleDetailModal.svelte',
 			'**/components/data-display/AnalysisInfo.svelte',
 			'**/components/data-display/ArticleDetail.svelte',
 			'**/components/data-display/ComparisonDetail.svelte',

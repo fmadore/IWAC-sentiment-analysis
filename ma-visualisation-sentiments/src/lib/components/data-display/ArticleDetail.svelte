@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { Article } from '$lib/types/data';
 	import { getJournalName } from '$lib/utils/format';
-	import { formatDate, getArticleUrl } from '$lib/utils/format';
+	import { getArticleUrl } from '$lib/utils/format';
 	import { t } from '$lib/i18n';
+	import { fmtDate } from '$lib/i18n/utils';
 	import { SentimentBadge } from '$lib/components/common';
 	import EmptyState from '$lib/components/common/EmptyState.svelte';
 	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
@@ -36,7 +37,7 @@
 			</div>
 			<div class="article-meta-card">
 				<span class="meta-label">{$t.article.publicationDate}</span>
-				<p class="meta-value">{formatDate(article.publication_date)}</p>
+				<p class="meta-value">{$fmtDate(article.publication_date)}</p>
 			</div>
 		</div>
 

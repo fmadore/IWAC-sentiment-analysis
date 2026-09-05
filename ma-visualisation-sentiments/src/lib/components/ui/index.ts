@@ -18,3 +18,4 @@ export { default as ChartCard } from './ChartCard.svelte';
 export { default as CSVExportButton } from './CSVExportButton.svelte';
 export { default as ComparisonCSVExportButton } from './ComparisonCSVExportButton.svelte';
 export { default as ArbiterCSVExportButton } from './ArbiterCSVExportButton.svelte';
+export { default as ArbiterV2CSVExportButton } from './ArbiterV2CSVExportButton.svelte';

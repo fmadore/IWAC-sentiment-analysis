@@ -6,38 +6,48 @@
   and no `model_a_is_first` to unwind. The sampling frame goes above the
   percentages for the same reason as in the v1 view: every share below is
   conditional on the panel having already disagreed.
+
+  The article list at the foot is joined to the corpus, so a verdict can be
+  read against the article it judges: title and newspaper in the row, and the
+  page, the five ratings and the reasoning behind a click. The arbiter file
+  carries ids only, so the join needs every panel model's scores — the view
+  is entered in comparison mode with two loaded, and asks for the rest in the
+  background.
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { num } from '$lib/i18n/utils';
 	import {
 		arbiterV2Evaluations,
+		arbiterV2Legend,
+		arbiterV2Rows,
 		arbiterV2Statistics,
 		loadArbiterV2Evaluations,
+		loadArbiterV2Panel,
 		uiState,
 		articleState,
 		datasetState,
-		ARBITER_V2_DIMENSIONS,
-		type ArbiterV2Dimension
+		type ArbiterV2Dimension,
+		type ArbiterV2Row
 	} from '$lib/stores';
-	import { SUBJECTIVITY_LABELS_V2, type SubjectivityScore } from '$lib/domain/sentimentContract';
 	import type { ArbiterV2Preference } from '$lib/types/data';
 	import { t } from '$lib/i18n';
 	import { ChartCard } from '$lib/components/ui';
 	import Spinner from '$lib/components/common/Spinner.svelte';
-	import PaginationControls from '$lib/components/common/PaginationControls.svelte';
-	import { createPagination } from '$lib/utils/pagination.svelte';
-	import { getConfidenceBadgeClass, getConfidenceLabel } from '$lib/utils/arbiter';
+	import ArbiterV2ArticleDetailModal from '$lib/components/common/ArbiterV2ArticleDetailModal.svelte';
+	import { getConfidenceLabel } from '$lib/utils/arbiter';
 	import ArbiterCoverage from './ArbiterCoverage.svelte';
 	import ArbiterV2StatsCards from './ArbiterV2StatsCards.svelte';
+	import ArbiterV2ArticleTable from './ArbiterV2ArticleTable.svelte';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import TableIcon from '@lucide/svelte/icons/table';
 	import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
-	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 
 	const stats = $derived(arbiterV2Statistics.current);
 	const data = $derived(arbiterV2Evaluations.current);
 	const hasData = $derived(stats.hasData);
+	const rows = $derived(arbiterV2Rows.current);
+	const legend = $derived(arbiterV2Legend.current);
 
 	/**
 	 * Corpus denominator. The arbiter metadata's `total_articles` counts what the
@@ -58,32 +68,24 @@
 		return sizes.length > 0 ? Math.min(...sizes) : 0;
 	});
 
-	/** Widest disagreement first — the same order the run itself prioritised. */
-	const rows = $derived(
-		[...(data?.evaluations ?? [])].sort((a, b) => b.spread.total_spread - a.spread.total_spread)
-	);
-
-	const pagination = createPagination({
-		totalItems: () => rows.length,
-		initialItemsPerPage: 25,
-		itemsPerPageOptions: [25, 50, 100]
+	/**
+	 * The conditionality note names the rule the run selected on, read from the
+	 * file rather than assumed: a future run under a different rule must not
+	 * ship a sentence describing this one. Files from before the rule was
+	 * recorded selected on spread alone.
+	 */
+	const samplingFrameNote = $derived.by(() => {
+		switch (data?.metadata.selection.arbiter_rule ?? 'spread') {
+			case 'valence':
+				return $t.arbiterV2.samplingFrameNote;
+			case 'spread-or-valence':
+				return $t.arbiterV2.samplingFrameNoteUnion;
+			default:
+				return $t.arbiterV2.samplingFrameNoteSpread;
+		}
 	});
 
-	const pageRows = $derived(rows.slice(pagination.startIndex, pagination.endIndex));
-
-	let expanded = $state<string | null>(null);
-
-	function toggle(articleId: string) {
-		expanded = expanded === articleId ? null : articleId;
-	}
-
-	/** The display name behind an anonymised verdict label. */
-	function verdictLabel(preference: ArbiterV2Preference): string {
-		if (preference === 'multiple') return $t.arbiterV2.multiple;
-		if (preference === 'none') return $t.arbiterV2.none;
-		const modelId = data?.metadata.blind_permutation[preference];
-		return stats.models.find((model) => model.modelId === modelId)?.name ?? preference;
-	}
+	let selected = $state<ArbiterV2Row | null>(null);
 
 	function verdictColor(preference: ArbiterV2Preference): string {
 		if (preference === 'multiple' || preference === 'none') return 'var(--text-muted)';
@@ -94,23 +96,15 @@
 		);
 	}
 
-	/**
-	 * Subjectivity is stored as the shared 1-5 rank so every numeric code path
-	 * keeps working; the arbiter answered in the v2 label wording, so that is
-	 * what gets rendered back.
-	 */
-	function displayScore(dimension: ArbiterV2Dimension, score: string): string {
-		if (dimension !== 'subjectivity') return score;
-		const rank = Number(score);
-		return SUBJECTIVITY_LABELS_V2[rank as SubjectivityScore] ?? score;
-	}
-
 	function dimensionName(dimension: ArbiterV2Dimension): string {
 		return $t.arbiterV2[dimension];
 	}
 
 	onMount(() => {
 		loadArbiterV2Evaluations(fetch);
+		loadArbiterV2Panel(fetch).catch((error) =>
+			console.error('Failed to load the panel datasets for the arbiter view:', error)
+		);
 	});
 </script>
 
@@ -138,11 +132,7 @@
 	{:else if hasData}
 		<!-- Sampling frame first: the shares below are conditional on it. -->
 		<div class="mb-6">
-			<ArbiterCoverage
-				evaluated={stats.totalEvaluated}
-				{corpusTotal}
-				note={$t.arbiterV2.samplingFrameNote}
-			/>
+			<ArbiterCoverage evaluated={stats.totalEvaluated} {corpusTotal} note={samplingFrameNote} />
 		</div>
 
 		<div class="mb-6">
@@ -222,66 +212,7 @@
 				<p class="section-lede">{$t.arbiterV2.evaluatedArticlesSubtitle}</p>
 			</div>
 
-			<ChartCard variant="table">
-				<ul class="verdict-list">
-					{#each pageRows as row (row.article_id)}
-						{@const open = expanded === row.article_id}
-						<li class="verdict-row" data-open={open}>
-							<button class="verdict-summary" onclick={() => toggle(row.article_id)}>
-								<span class="verdict-id">#{row.article_id}</span>
-								<span class="verdict-spread">
-									{$t.arbiterV2.spread}
-									<strong>{row.spread.total_spread}</strong>
-								</span>
-								<span
-									class="verdict-winner"
-									style="color: {verdictColor(row.arbiter.overall_winner)}"
-								>
-									{verdictLabel(row.arbiter.overall_winner)}
-								</span>
-								<span class="badge {getConfidenceBadgeClass(row.arbiter.confidence_level)}">
-									{getConfidenceLabel(row.arbiter.confidence_level, $t)}
-								</span>
-								<span class="verdict-chevron" data-open={open}>
-									<ChevronDownIcon size={16} aria-hidden="true" />
-								</span>
-								<span class="sr-only">
-									{open ? $t.arbiterV2.hideReasoning : $t.arbiterV2.showReasoning}
-								</span>
-							</button>
-
-							{#if open}
-								<div class="verdict-detail">
-									<p class="verdict-overall">{row.arbiter.overall_explanation}</p>
-									{#each ARBITER_V2_DIMENSIONS as dimension (dimension)}
-										{@const verdict = row.arbiter[dimension]}
-										<div class="verdict-dimension">
-											<div class="verdict-dimension-head">
-												<span class="verdict-dimension-name">{dimensionName(dimension)}</span>
-												<span class="verdict-dimension-score">
-													{$t.arbiterV2.arbiterScore}: {displayScore(dimension, verdict.score)}
-												</span>
-												<span
-													class="verdict-dimension-pref"
-													style="color: {verdictColor(verdict.preferred)}"
-												>
-													{verdictLabel(verdict.preferred)}
-												</span>
-											</div>
-											<p class="verdict-text">{verdict.justification}</p>
-											<p class="verdict-text muted">{verdict.verdict_explanation}</p>
-										</div>
-									{/each}
-								</div>
-							{/if}
-						</li>
-					{/each}
-				</ul>
-
-				{#if rows.length > pagination.itemsPerPage}
-					<PaginationControls {pagination} showItemsPerPage />
-				{/if}
-			</ChartCard>
+			<ArbiterV2ArticleTable {rows} {legend} onSelect={(row) => (selected = row)} />
 		</section>
 	{:else}
 		<ChartCard>
@@ -293,6 +224,8 @@
 		</ChartCard>
 	{/if}
 </div>
+
+<ArbiterV2ArticleDetailModal row={selected} onClose={() => (selected = null)} />
 
 <style>
 	.arbiter-view {
@@ -436,131 +369,6 @@
 		margin: 0;
 	}
 
-	.verdict-list {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-	}
-
-	.verdict-row {
-		border-bottom: 1px solid var(--border-subtle);
-	}
-
-	.verdict-summary {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: var(--space-3);
-		width: 100%;
-		padding: var(--space-3) var(--space-2);
-		background: transparent;
-		border: 0;
-		text-align: left;
-		cursor: pointer;
-		color: var(--text-secondary);
-		transition: background-color var(--timing-fast) var(--easing-default);
-	}
-
-	.verdict-summary:hover {
-		background: var(--surface-hover);
-	}
-
-	.verdict-id {
-		font-family: var(--font-mono);
-		font-size: var(--font-size-xs);
-		font-variant-numeric: tabular-nums;
-		color: var(--text-muted);
-	}
-
-	.verdict-spread {
-		font-family: var(--font-mono);
-		font-size: var(--font-size-eyebrow);
-		letter-spacing: var(--tracking-wider);
-		text-transform: uppercase;
-		color: var(--text-subtle);
-	}
-
-	.verdict-spread strong {
-		color: var(--text-primary);
-		font-variant-numeric: tabular-nums;
-	}
-
-	.verdict-winner {
-		font-size: var(--font-size-sm);
-		font-weight: var(--font-weight-semibold);
-	}
-
-	.verdict-chevron {
-		margin-left: auto;
-		display: inline-flex;
-		color: var(--text-muted);
-		transition: transform var(--timing-fast) var(--easing-default);
-	}
-
-	.verdict-chevron[data-open='true'] {
-		transform: rotate(180deg);
-	}
-
-	.verdict-detail {
-		padding: var(--space-2) var(--space-2) var(--space-5);
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-4);
-	}
-
-	.verdict-overall {
-		font-size: var(--font-size-sm);
-		line-height: var(--line-height-relaxed);
-		color: var(--text-secondary);
-		max-width: var(--prose-width);
-		margin: 0;
-	}
-
-	.verdict-dimension {
-		padding: var(--space-3);
-		background: var(--surface-nested);
-		border-left: 2px solid var(--sentiment-arbiter-border);
-	}
-
-	.verdict-dimension-head {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: baseline;
-		gap: var(--space-3);
-		margin-bottom: var(--space-2);
-	}
-
-	.verdict-dimension-name {
-		font-family: var(--font-mono);
-		font-size: var(--font-size-eyebrow);
-		letter-spacing: var(--tracking-wider);
-		text-transform: uppercase;
-		color: var(--sentiment-arbiter-light);
-	}
-
-	.verdict-dimension-score,
-	.verdict-dimension-pref {
-		font-size: var(--font-size-xs);
-		color: var(--text-muted);
-	}
-
-	.verdict-dimension-pref {
-		font-weight: var(--font-weight-semibold);
-	}
-
-	.verdict-text {
-		font-size: var(--font-size-sm);
-		line-height: var(--line-height-relaxed);
-		color: var(--text-secondary);
-		max-width: var(--prose-width);
-		margin: 0;
-	}
-
-	.verdict-text.muted {
-		color: var(--text-muted);
-		margin-top: var(--space-2);
-	}
-
 	.loading-note {
 		color: var(--text-secondary);
 	}
@@ -581,13 +389,6 @@
 		.dimension-row {
 			grid-template-columns: 10rem 1fr auto;
 			gap: var(--space-4);
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.verdict-chevron,
-		.verdict-summary {
-			transition: none;
 		}
 	}
 </style>

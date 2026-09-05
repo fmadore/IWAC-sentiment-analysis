@@ -60,8 +60,17 @@ copy, which is why the strings say "the panel" rather than a number.
   stable for the archive. `arbiter.svelte.ts` refuses to load for a non-v1 pair;
   without that guard it builds a filename nothing will ever publish and 404s on
   every comparison mount
-- **The v2 arbiter run is paid and has not been made.** `iwac_arbiter_evaluations_v2.json`
-  does not exist, so that view shows an empty state by design — not a bug
+- **The v2 arbiter run is published, and its frame is the dissenter's frame.**
+  `iwac_arbiter_evaluations_v2.json` is the `--rule valence` run: 301 articles,
+  US$17.61 recorded in `metadata.usage`. The view's empty state only appears in
+  a build that omits the file. Its coverage note keys on
+  `metadata.selection.arbiter_rule`, so a re-run under another rule changes the
+  copy without a code change. Mistral Small is the only model across the
+  valence line in 189 of the 301 articles (162 as the sole negative reader), and
+  the arbiter's polarity coincides with Mistral's in 37 of them against 190–205
+  for each other model — so the per-model verdict tallies measure how often the
+  panel's dissenter was upheld where it dissented, not the models' general
+  quality. Say so when reporting one
 - **Two different rules answer "do these models disagree", and they are not
   interchangeable.** `discrepancy.threeWaySpread` (spread ≥ 3 on any dimension)
   is what the dashboard flags to a _reader_; `arbiter.eligibility` — the spread

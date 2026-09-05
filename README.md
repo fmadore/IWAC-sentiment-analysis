@@ -123,17 +123,22 @@ Everything ships as static JSON under `ma-visualisation-sentiments/static/data/`
 | `world-110m.geojson`                        | Natural Earth 1:110m basemap (public domain), minified on purpose                             |
 | `iwac_data_manifest.json` / `_v2.json`      | Per-generation contract version, immutable HF revision, byte sizes and SHA-256 for every file |
 
-The frontend validates each JSON boundary at runtime, joins base metadata to the selected model's score map by article id, and exposes a retryable error state on failure. Only the selected model's scores load at startup; prose loads when an article detail opens (one shard) or a CSV is exported (all shards, in bounded batches); other models load when comparison mode activates; the map, arbiter and extremes data load with their views.
+The frontend validates each JSON boundary at runtime, joins base metadata to the selected model's score map by article id, and exposes a retryable error state on failure. Only the selected model's scores load at startup; prose loads when an article detail opens (one shard) or a CSV is exported (all shards, in bounded batches); other models load when comparison mode activates or the panel arbiter view opens; the map, arbiter and extremes data load with their views.
 
 Places ship as edges rather than pre-computed averages so the map answers to the same filter rail as every other view; aggregation happens in the browser.
 
-### The generation-2 arbiter run has not been published
+### The generation-2 panel arbiter
 
-`data-preprocess/arbiter-evaluation-v2.py` and the dashboard view are both in place, but the run is paid and hand-triggered, so `iwac_arbiter_evaluations_v2.json` is not in the repo yet. Until it is, the arbiter view under v2 shows an honest empty state telling you how to produce it. The v1 pairwise arbiter data is complete and unaffected.
+`iwac_arbiter_evaluations_v2.json` is the published `--rule valence` run of `data-preprocess/arbiter-evaluation-v2.py`: every article where one model reads the coverage as positive and another as negative — 301 articles, judged in 281 paid calls for US$17.61 at effort `medium`, as recorded in the file's `metadata.usage`. The arbiter reads the full article text and the five analyses under blind labels, rates each dimension itself, names the analysis it prefers per dimension and overall, and explains why. The arbiter view under v2 lists the articles with their verdicts; opening one shows the article itself (IIIF viewer where a manifest exists), why it was selected, and every model's rating against the arbiter's, with the models' own reasoning on demand. A build that omits the file shows an empty state pointing here. The v1 pairwise arbiter data is complete and unaffected.
+
+Two things to keep in mind when reading the verdicts:
+
+- **The frame is the panel's dissenter's frame.** Mistral Small 4 is the only model across the valence line in 189 of the 301 articles (162 as the sole negative reader); the strict four-against-one exact-label split is 56. The arbiter's polarity coincides with Mistral's in 37 articles, against 190–205 for each of the other four. Per-model tallies therefore measure how often the dissenter was upheld on the articles where it dissented, not the models' general quality.
+- **Position bias was checked.** The five blocks are reshuffled per article, seeded on the article id, and the position of the winning analysis is indistinguishable from chance (χ² = 5.3 on 4 df over the 231 single-winner verdicts).
 
 How the v2 arbiter differs from v1, and why:
 
-- **Selection is the spread across the whole panel** (max minus min across every model, per dimension) rather than a pairwise gap. On the five-model panel the contract rule (any dimension ≥ 3) selects 2,102 articles, but 1,762 of those are triggered by _subjectivity_ alone — the dimension the models argue about most and where "who is right" is least well defined. Polarity triggers 103 and centrality 239. Widening the panel widened the frame: three models selected 1,449. `--dimensions` and `--threshold` narrow the rule; they can only ever tighten it, because the validator recomputes eligibility from the contract.
+- **Selection is the spread across the whole panel** (max minus min across every model, per dimension) rather than a pairwise gap. On the five-model panel the contract's spread rule (any dimension ≥ 3) selects 2,102 articles, but 1,762 of those are triggered by _subjectivity_ alone — the dimension the models argue about most and where "who is right" is least well defined. Polarity triggers 103 and centrality 239. Widening the panel widened the frame: three models selected 1,449. A polarity spread of 3 already implies a sign reversal, so selecting on spread finds only the 103 widest reversals and structurally cannot reach the two-rank `Positif`/`Négatif` ones; the contract's second rule, `valenceFlip` (`--rule valence`), is what selects all 301. `--rule`, `--dimensions` and `--threshold` narrow the frame; they can only ever tighten it, because the validator recomputes eligibility from the contract.
 - **The arbiter reads unmasked article text.** This fixes a real v1 flaw: the public Hugging Face projection masks `OCR` per row, so a large share of v1-arbitrated articles were judged on an empty string. v2 reads the private mirror (needs `HF_TOKEN`) and records **both** revisions — public scores and private text — in the metadata and the cache fingerprint. Only verdicts and justifications are published; no OCR is ever serialised.
 - **Blind assignment is one global permutation** of the model ids onto labels A–E, persisted and reused by every incremental run, so cached and new rows always mean the same thing. `parseArbiterV2EvaluationData` rejects any file whose permutation is not a bijection over the contract's models, which is also what keeps the label list and the panel the same size.
 
@@ -203,7 +208,7 @@ cd ma-visualisation-sentiments && npm install && npm run dev
 | `npm run preview`  | Serve the production build                                                  |
 | `npm run check`    | `svelte-check` — must report 0 errors, 0 warnings                           |
 | `npm run lint`     | Prettier, ESLint, store-cycle detection, design-token validation            |
-| `npm run test:run` | 492 Vitest unit and integration tests across 27 files                       |
+| `npm run test:run` | 518 Vitest unit and integration tests across 29 files                       |
 | `npm run test:e2e` | Playwright deep-link, failure-state and axe accessibility smoke tests       |
 
 Run the checks in [`.claude/skills/verify/SKILL.md`](.claude/skills/verify/SKILL.md) before committing anything that ships through CI — the ordering and pass criteria are not guessable. CSS and component rules are in [DESIGN.md](DESIGN.md), and `npm run lint` enforces most of them.

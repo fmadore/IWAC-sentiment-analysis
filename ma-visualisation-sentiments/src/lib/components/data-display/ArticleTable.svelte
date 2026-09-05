@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { articleState } from '$lib/stores';
-	import { num } from '$lib/i18n/utils';
+	import { num, fmtDate } from '$lib/i18n/utils';
 	import { POLARITY_ORDER, CENTRALITY_ORDER, type Article } from '$lib/types/data';
 	import { getJournalName } from '$lib/utils/format';
-	import { formatDate } from '$lib/utils/format';
 	import { t } from '$lib/i18n';
 	import { DatasetBadge } from '$lib/components/ui';
 	import { SentimentBadge } from '$lib/components/common';
@@ -206,7 +205,7 @@
 						<div class="card-meta flex items-center gap-2">
 							<span>{getJournalName(article)}</span>
 							<span>•</span>
-							<span>{formatDate(article.publication_date)}</span>
+							<span>{$fmtDate(article.publication_date)}</span>
 						</div>
 					</div>
 
@@ -292,7 +291,7 @@
 						>
 							<td class="article-title">{article['o:title']}</td>
 							<td>{getJournalName(article)}</td>
-							<td>{formatDate(article.publication_date)}</td>
+							<td>{$fmtDate(article.publication_date)}</td>
 							<td>
 								<SentimentBadge
 									type="centrality"

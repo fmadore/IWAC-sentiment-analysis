@@ -14,7 +14,7 @@
 
 import { base } from '$app/paths';
 import { parseArbiterV2EvaluationData } from '$lib/data/validation';
-import { modelDisplayName } from '$lib/domain/sentimentContract';
+import { datasetIdsOf, modelDisplayName } from '$lib/domain/sentimentContract';
 import { ARBITER_BLIND_LABELS } from '$lib/types/data';
 import type {
 	ArbiterBlindLabel,
@@ -23,12 +23,25 @@ import type {
 	ArbiterV2Preference,
 	DatasetId
 } from '$lib/types/data';
-// Leaf store imported directly — going through './index' would be a cycle.
+import {
+	ARBITER_V2_DIMENSIONS,
+	blindLegend,
+	buildArbiterV2Rows,
+	resolvePreference,
+	type ArbiterV2Dimension,
+	type ArbiterV2LegendEntry,
+	type ArbiterV2Row
+} from '$lib/utils/arbiterV2';
+// Leaf stores imported directly — going through './index' would be a cycle.
+import { articleState, loadSpecificDataset } from './articles.svelte';
 import { uiState } from './ui.svelte';
 
-/** The three dimensions every evaluation scores, in display order. */
-export const ARBITER_V2_DIMENSIONS = ['polarity', 'subjectivity', 'centrality'] as const;
-export type ArbiterV2Dimension = (typeof ARBITER_V2_DIMENSIONS)[number];
+export {
+	ARBITER_V2_DIMENSIONS,
+	type ArbiterV2Dimension,
+	type ArbiterV2LegendEntry,
+	type ArbiterV2Row
+};
 
 // ============================================
 // State
@@ -177,8 +190,7 @@ export function computeArbiterV2Statistics(
 	let overallMultiple = 0;
 	let overallNone = 0;
 
-	const resolve = (preference: ArbiterV2Preference): DatasetId | null =>
-		preference === 'multiple' || preference === 'none' ? null : permutation[preference];
+	const resolve = (preference: ArbiterV2Preference) => resolvePreference(data, preference);
 
 	for (const evaluation of evaluations) {
 		const arbiter = evaluation.arbiter;
@@ -246,6 +258,60 @@ export const arbiterV2Statistics = {
 	get current(): ArbiterV2Statistics {
 		return computeArbiterV2Statistics(_evaluations);
 	}
+};
+
+// ============================================
+// Articles behind the verdicts
+// ============================================
+
+/**
+ * Every verdict joined to its article and to the panel's ratings.
+ *
+ * Recomputed only when the arbiter file or a dataset lands: `articleState.datasets`
+ * is replaced wholesale on each load, and the join reads nothing finer than
+ * that. The rows hold the store's own `sentiment_analysis` objects, so the
+ * justification prose appears in place once `loadJustifications` merges it —
+ * the same property the comparison detail relies on.
+ */
+const _rows = $derived.by(() =>
+	buildArbiterV2Rows(_evaluations, articleState.datasets, datasetIdsOf('v2'))
+);
+
+/** The arbitrated articles, in file order (widest disagreement first). */
+export const arbiterV2Rows = {
+	get current(): ArbiterV2Row[] {
+		return _rows;
+	}
+};
+
+/** The joined row for one article, if it was arbitrated. */
+export function getArbiterV2RowForArticle(articleId: string | number): ArbiterV2Row | null {
+	const id = String(articleId);
+	return _rows.find((row) => row.articleId === id) ?? null;
+}
+
+/** Label → model, in label order, for the loaded file. */
+export const arbiterV2Legend = {
+	get current(): ArbiterV2LegendEntry[] {
+		return blindLegend(_evaluations);
+	}
+};
+
+/**
+ * Make sure every panel model's scores are in the store.
+ *
+ * The arbiter view is entered in comparison mode, which loads only the pair's
+ * two datasets; a verdict on five analyses needs all five. Background loads,
+ * so the view keeps rendering the metadata it already has while the rest of
+ * the panel arrives — the page-level spinner would otherwise replace the
+ * whole view mid-read. Idempotent: `loadSpecificDataset` dedups in flight.
+ */
+export const loadArbiterV2Panel = async (fetchFunction: typeof fetch): Promise<void> => {
+	await Promise.all(
+		datasetIdsOf('v2').map((modelId) =>
+			loadSpecificDataset(modelId, fetchFunction, { showLoading: false })
+		)
+	);
 };
 
 // ============================================
