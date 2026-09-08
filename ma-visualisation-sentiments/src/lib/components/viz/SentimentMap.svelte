@@ -37,9 +37,9 @@
   chart-facing comes from `chartTheme.ts`, which holds the sRGB translations.
 -->
 <script lang="ts">
+	import { dataUrl } from '$lib/data/release';
 	import { onMount } from 'svelte';
 	import { dec, num } from '$lib/i18n/utils';
-	import { base } from '$app/paths';
 	// Side effect only, and first on purpose: calls `setWorkerUrl()` with a
 	// Vite-built worker chunk. See the header comment — without it v6 renders a
 	// blank canvas and reports nothing.
@@ -69,6 +69,7 @@
 	import { t } from '$lib/i18n';
 	import LoadingState from '$lib/components/common/LoadingState.svelte';
 	import EmptyState from '$lib/components/common/EmptyState.svelte';
+	import ChartDataTable from '$lib/components/common/ChartDataTable.svelte';
 	import MapLegend from './MapLegend.svelte';
 
 	const PLACE_SOURCE = 'iwac-places';
@@ -94,7 +95,7 @@
 
 	onMount(() => {
 		loadPlaces();
-		fetch(`${base}/data/world-110m.geojson`)
+		fetch(dataUrl(`/data/world-110m.geojson`))
 			.then((response) => (response.ok ? response.json() : null))
 			.then((data) => (world = data))
 			.catch(() => (world = null));
@@ -243,6 +244,28 @@
 		<p class="map-caveat">{$t.map.caveat}</p>
 	{/if}
 </div>
+
+{#if modelReady}
+	<ChartDataTable
+		columns={[
+			{ label: $t.audit.place },
+			{ label: $t.audit.count, format: 'integer' },
+			{
+				label: $t.map.meanOf.replace('{dimension}', dimensionLabels[dimension]),
+				format: 'decimal'
+			},
+			{ label: $t.map.scoredArticles, format: 'integer' }
+		]}
+		rows={aggregates.map((p) => [
+			p.title,
+			p.count,
+			p.stats[dimension].mean,
+			p.stats[dimension].scored
+		])}
+		caption={$t.nav.map}
+		filenamePrefix={`places-${dimension}`}
+	/>
+{/if}
 
 <style>
 	.map-shell {

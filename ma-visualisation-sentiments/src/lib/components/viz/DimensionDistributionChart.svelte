@@ -18,7 +18,7 @@
 	import { aggregateByJournalAndDimension } from '$lib/utils/chartAggregators';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { formatNumber } from '$lib/i18n/utils';
-	import DatasetBadge from '../ui/DatasetBadge.svelte';
+	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import ChartTypeToggle from './ChartTypeToggle.svelte';
 	import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
 	import PieChartIcon from '@lucide/svelte/icons/pie-chart';
@@ -30,7 +30,6 @@
 	// Import centralized chart theme
 	import {
 		seriesColorPalette,
-		getTitleStyle,
 		getTooltipConfig,
 		getLegendConfig,
 		getAxisLineStyle,
@@ -77,20 +76,98 @@
 	// Reactive window width for responsive behavior
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
 	let chartType = $state<'bar' | 'pie'>('bar');
+	let grouping = $state<'global' | 'journal'>('global');
+	const aggregate = $derived(
+		aggregateByJournalAndDimension(articleState.filtered, frenchLabels, getKey)
+	);
+	const totals = $derived(
+		frenchLabels.map((label) =>
+			aggregate.newspaperList.reduce(
+				(sum, journal) => sum + (aggregate.newspaperCounts[journal]?.[label] ?? 0),
+				0
+			)
+		)
+	);
+	const tableColumns = $derived(
+		grouping === 'global'
+			? [
+					{ label: seriesName },
+					{ label: $t.audit.count, format: 'integer' as const },
+					{ label: $t.audit.share, format: 'percent' as const, digits: 1 }
+				]
+			: [
+					{ label: $t.audit.journal },
+					...translatedLabels.map((label) => ({ label, format: 'integer' as const }))
+				]
+	);
+	const tableRows = $derived(
+		grouping === 'global'
+			? totals.map((count, i) => [
+					translatedLabels[i],
+					count,
+					aggregate.articlesAnalyzed ? count / aggregate.articlesAnalyzed : null
+				])
+			: aggregate.newspaperList.map((journal) => [
+					journal,
+					...frenchLabels.map((label) => aggregate.newspaperCounts[journal][label] ?? 0)
+				])
+	);
 
 	// Use $derived for proper reactivity in Svelte 5
 	let options = $derived.by(() => {
-		const articles = articleState.filtered; // Direct reactive dependency
 		const currentT = $t; // Capture current translations for reactive updates
 		const currentLang = $currentLanguage; // Capture current language for reactive updates
 
-		const { newspaperCounts, newspaperList, articlesAnalyzed } = aggregateByJournalAndDimension(
-			articles,
-			frenchLabels,
-			getKey
+		const ranked = [...aggregate.newspaperList].sort(
+			(a, b) =>
+				Object.values(aggregate.newspaperCounts[b]).reduce((x, y) => x + y, 0) -
+					Object.values(aggregate.newspaperCounts[a]).reduce((x, y) => x + y, 0) ||
+				a.localeCompare(b)
 		);
+		const newspaperList = ranked.slice(0, 6);
+		const newspaperCounts = { ...aggregate.newspaperCounts };
+		if (ranked.length > 6) {
+			newspaperList.push(currentT.audit.other);
+			newspaperCounts[currentT.audit.other] = Object.fromEntries(
+				frenchLabels.map((label) => [
+					label,
+					ranked.slice(6).reduce((sum, j) => sum + (aggregate.newspaperCounts[j][label] ?? 0), 0)
+				])
+			);
+		}
+		if (grouping === 'global' && chartType === 'bar') {
+			return {
+				backgroundColor: 'transparent',
+				grid: { left: isMobile ? 112 : 150, right: 55, top: 20, bottom: 40 },
+				tooltip: { ...getTooltipConfig(isMobile), trigger: 'item' },
+				xAxis: getCountYAxis(isMobile),
+				yAxis: {
+					type: 'category',
+					data: translatedLabels,
+					inverse: true,
+					axisLine: getAxisLineStyle(),
+					axisLabel: getAxisLabelStyle(isMobile)
+				},
+				series: [
+					{
+						type: 'bar',
+						name: seriesName,
+						data: totals.map((value, i) => ({
+							value,
+							itemStyle: { color: getColor(frenchLabels[i]) }
+						})),
+						label: {
+							show: true,
+							position: 'right',
+							color: chartColors.text.primary,
+							formatter: (p: { value: unknown }) => formatNumber(Number(p.value), currentLang)
+						}
+					}
+				]
+			} as EChartsOption;
+		}
 
-		if (chartType === 'pie') {
+		if (grouping === 'global' && chartType === 'pie') {
 			// Pie chart: global aggregation by dimension label
 			const totalByLabel: Record<string, number> = {};
 			frenchLabels.forEach((frenchLabel, index) => {
@@ -102,26 +179,18 @@
 			});
 
 			const pieData = translatedLabels
-				.filter((label) => totalByLabel[label] > 0)
 				.map((label, index) => ({
 					name: label,
 					value: totalByLabel[label],
-					itemStyle: {
-						color: getColor(frenchLabels[index])
-					}
-				}));
+					itemStyle: { color: getColor(frenchLabels[index]) }
+				}))
+				.filter((item) => item.value > 0);
 
 			const pieStyle = getPieSeriesStyle(isMobile);
 			const tooltipConfig = getTooltipConfig(isMobile);
 
 			return {
 				backgroundColor: 'transparent',
-				title: {
-					text: `${currentT.charts.globalDistribution} ${title.toLowerCase()} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.common.articles})`,
-					left: 'center',
-					top: '2%',
-					textStyle: getTitleStyle(isMobile)
-				},
 				tooltip: {
 					...tooltipConfig,
 					trigger: 'item',
@@ -169,17 +238,6 @@
 
 			return {
 				backgroundColor: 'transparent',
-				title: {
-					text: isMobile
-						? `${title} ${currentT.charts.byJournal}\n(${formatNumber(articlesAnalyzed, currentLang)} ${currentT.charts.articlesAnalyzed})`
-						: `${title} ${currentT.charts.byJournal} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.charts.articlesAnalyzed})`,
-					left: 'center',
-					top: '1%',
-					textStyle: {
-						...getTitleStyle(isMobile),
-						lineHeight: isMobile ? 16 : 20
-					}
-				},
 				tooltip: {
 					...tooltipConfig,
 					trigger: 'axis',
@@ -237,30 +295,64 @@
 {#if articleState.filtered.length > 0}
 	<!-- Dataset badge + chart-type toggle -->
 	<div class="chart-toolbar">
-		<DatasetBadge size="sm" />
-
 		<ChartTypeToggle
 			options={[
-				{ value: 'bar', label: $t.charts.bars, icon: BarChart3Icon },
-				{ value: 'pie', label: $t.charts.pie, icon: PieChartIcon }
+				{ value: 'global', label: $t.audit.globalAll },
+				{ value: 'journal', label: $t.audit.byJournal }
 			]}
-			value={chartType}
-			onChange={(value) => (chartType = value as 'bar' | 'pie')}
-			ariaLabel={title}
+			value={grouping}
+			onChange={(value) => (grouping = value as 'global' | 'journal')}
+			ariaLabel={$t.audit.scope}
 		/>
-	</div>
 
+		{#if grouping === 'global'}
+			<ChartTypeToggle
+				options={[
+					{ value: 'bar', label: $t.charts.bars, icon: BarChart3Icon },
+					{ value: 'pie', label: $t.charts.pie, icon: PieChartIcon }
+				]}
+				value={chartType}
+				onChange={(value) => (chartType = value as 'bar' | 'pie')}
+				ariaLabel={title}
+			/>
+		{/if}
+	</div>
+	<h2 class="chart-heading">{title}</h2>
+	{#if grouping === 'journal'}<p class="chart-note">{$t.audit.topJournals}</p>{/if}
 	<div
 		style="height: {isMobile ? '350px' : '450px'}; position: relative;"
 		class="chart-container"
 		role="img"
 		aria-label={ariaLabel}
 	>
-		<Chart {init} {options} />
+		{#key `${grouping}-${chartType}`}<Chart {init} {options} />{/key}
 	</div>
+	<p class="chart-note">
+		{$t.audit.included}: {formatNumber(aggregate.articlesAnalyzed, $currentLanguage)} · {$t.audit
+			.excluded}: {formatNumber(
+			articleState.filtered.length - aggregate.articlesAnalyzed,
+			$currentLanguage
+		)}
+	</p>
+	<ChartDataTable
+		columns={tableColumns}
+		rows={tableRows}
+		caption={title}
+		filenamePrefix={seriesIdPrefix}
+	/>
 {:else}
 	<p class="chart-empty">{$t.table.noFilteredArticles}</p>
 {/if}
 
 <style>
+	.chart-heading {
+		font-family: var(--font-display);
+		font-size: var(--font-size-lg);
+		margin-block: var(--space-4);
+	}
+	.chart-note {
+		color: var(--text-secondary);
+		font-size: var(--font-size-sm);
+		margin-block: var(--space-3);
+	}
 </style>

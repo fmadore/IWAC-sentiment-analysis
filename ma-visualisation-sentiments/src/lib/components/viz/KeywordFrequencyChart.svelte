@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import { Chart } from 'svelte-echarts';
 	import { num } from '$lib/i18n/utils';
 	import { innerWidth } from 'svelte/reactivity/window';
@@ -42,14 +43,19 @@
 		return extremeState.filtered.analysis[selectedCategory];
 	});
 
+	const topKeywords = $derived(
+		categoryData
+			? getTopKeywords(
+					selectedKeywordType === 'subject' ? categoryData.subject : categoryData.spatial,
+					showTopN
+				)
+			: []
+	);
 	// Chart options
 	let options = $derived.by(() => {
 		const data = categoryData;
 		if (!data) return null;
 
-		const keywords = selectedKeywordType === 'subject' ? data.subject : data.spatial;
-
-		const topKeywords = getTopKeywords(keywords, showTopN);
 		const categoryConfig = getExtremeCategoryConfig(selectedCategory);
 
 		// Reverse for horizontal display (highest at top)
@@ -225,6 +231,16 @@
 {:else}
 	<p class="chart-empty">{$t.messages.noData}</p>
 {/if}
+
+<ChartDataTable
+	columns={[
+		{ label: $t.extremeAnalysis.topKeywords },
+		{ label: $t.audit.count, format: 'integer' }
+	]}
+	rows={topKeywords.map((k) => [k.keyword, k.count])}
+	caption={$t.extremeAnalysis.topKeywords}
+	filenamePrefix="KeywordFrequencyChart"
+/>
 
 <style>
 	.loading-container {

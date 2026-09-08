@@ -1,4 +1,5 @@
 <script lang="ts">
+	import InfoIcon from '@lucide/svelte/icons/info';
 	import { comparisonState, arbiterStatistics, datasetState } from '$lib/stores';
 	import { dec, num, pct } from '$lib/i18n/utils';
 	import { getPairModelNames } from '$lib/types/data';
@@ -7,7 +8,7 @@
 	import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
 	import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
 	import GitCompareArrowsIcon from '@lucide/svelte/icons/git-compare-arrows';
-	import InfoIcon from '@lucide/svelte/icons/info';
+	import InfoTooltip from '../common/InfoTooltip.svelte';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import ChevronUpIcon from '@lucide/svelte/icons/chevron-up';
@@ -22,8 +23,12 @@
 	const dynamicTooltips = $derived.by(() => {
 		const { modelAName, modelBName } = modelNames;
 		return {
-			totalDiscrepancies: `Articles that ${modelAName} and ${modelBName} rated differently on at least one dimension, by any margin.`,
-			significantDifferences: `Articles where ${modelAName} and ${modelBName} are at least 3 steps apart on polarity, subjectivity or centrality. On scales this short, a gap that wide means the two readings have little in common.`
+			totalDiscrepancies: $t.audit.differentHelp
+				.replace('{a}', modelAName)
+				.replace('{b}', modelBName),
+			significantDifferences: $t.audit.significantHelp
+				.replace('{a}', modelAName)
+				.replace('{b}', modelBName)
 		};
 	});
 
@@ -49,9 +54,9 @@
 				<AlertCircleIcon size={24} />
 			</div>
 			<span class="stat-label">{$t.comparison.totalDiscrepancies}</span>
-			<div class="info-tooltip" title={dynamicTooltips.totalDiscrepancies}>
-				<InfoIcon size={14} />
-			</div>
+			<InfoTooltip ariaLabel={dynamicTooltips.totalDiscrepancies}
+				><p>{dynamicTooltips.totalDiscrepancies}</p></InfoTooltip
+			>
 		</div>
 		<div class="stat-value discrepancy-stat-value">{$num(stats.totalDiscrepancies)}</div>
 		<div class="stat-detail">
@@ -65,9 +70,9 @@
 				<TrendingUpIcon size={24} />
 			</div>
 			<span class="stat-label">{$t.comparison.averageDiscrepancy}</span>
-			<div class="info-tooltip" title={$t.comparison.averageDiscrepancyExplanation}>
-				<InfoIcon size={14} />
-			</div>
+			<InfoTooltip ariaLabel={$t.comparison.averageDiscrepancyExplanation}
+				><p>{$t.comparison.averageDiscrepancyExplanation}</p></InfoTooltip
+			>
 		</div>
 		<div class="stat-value">{$dec(stats.averageDiscrepancy, 2)}</div>
 		<div class="stat-detail">{$t.comparison.pointsPerArticle}</div>
@@ -79,9 +84,9 @@
 				<BarChart3Icon size={24} />
 			</div>
 			<span class="stat-label">{$t.comparison.highConflicts}</span>
-			<div class="info-tooltip" title={dynamicTooltips.significantDifferences}>
-				<InfoIcon size={14} />
-			</div>
+			<InfoTooltip ariaLabel={dynamicTooltips.significantDifferences}
+				><p>{dynamicTooltips.significantDifferences}</p></InfoTooltip
+			>
 		</div>
 		<div class="stat-value conflict-stat-value">{$num(stats.highConflictArticles)}</div>
 		<div class="stat-detail">
@@ -318,19 +323,6 @@
 		align-items: center;
 		gap: var(--space-3);
 		margin-bottom: var(--space-3);
-	}
-
-	.info-tooltip {
-		margin-left: auto;
-		display: flex;
-		align-items: center;
-		color: var(--text-subtle);
-		cursor: help;
-		transition: color var(--timing-fast) var(--easing-default);
-	}
-
-	.info-tooltip:hover {
-		color: var(--text-secondary);
 	}
 
 	.stat-label {

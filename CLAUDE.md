@@ -182,7 +182,7 @@ forces runes mode on `node_modules`: a Dependabot bump shipping a legacy
 `export let` component breaks the build and the Pages deploy dies quietly.
 
 - **Tailwind v4 has no `tailwind.config.js`** — configuration lives in the
-  `@theme` block at the top of `app.css`, which also _removes_ the `md` and `2xl`
+  `@theme` block in `src/lib/styles/tokens.css`, which also _removes_ the `md` and `2xl`
   breakpoints, so this app has three: 640 / 1024 / 1280
 - **Unlayered CSS beats Tailwind utilities.** Tailwind v4 utilities sit in a
   layer, so plain `app.css` rules win ties
@@ -231,7 +231,7 @@ forces runes mode on `node_modules`: a Dependabot bump shipping a legacy
   values that look like they should come from tokens. Each hex carries the
   `// oklch(...)` it was converted from, and `chartTheme.palette.test.ts` fails
   the build if a hex stops matching its annotation or if that colour is no longer
-  defined in `app.css`. Don't strip those comments — they are the test's input.
+  defined in `src/lib/styles/tokens.css`. Don't strip those comments — they are the test's input.
   Anything else chart-facing needing a literal colour must be listed, with a
   reason, in `scripts/check-design-tokens.mjs`
 - **Sentiment is not encoded by hue alone.** The polarity ramp is equal-lightness

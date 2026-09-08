@@ -10,6 +10,45 @@ import type { Translations } from './types.js';
  * cadratins avec parcimonie.
  */
 export const fr: Translations = {
+	audit: {
+		place: 'Lieu',
+		flowFrom: 'Modèle et catégorie de départ',
+		flowTo: 'Modèle et catégorie d’arrivée',
+		expandViewer: 'Agrandir ou réduire la vue',
+		newTab: 'Ouvrir dans un nouvel onglet',
+		search: 'Rechercher…',
+		globalAll: 'Vue d’ensemble',
+		byJournal: 'Par journal',
+		other: 'Autres journaux',
+		topJournals:
+			'Les six journaux les plus représentés ; les autres sont regroupés. Le tableau inclut chaque journal.',
+		count: 'Articles',
+		share: 'Part (%)',
+		year: 'Année',
+		category: 'Catégorie',
+		journal: 'Journal',
+		included: 'Inclus',
+		excluded: 'Exclus (note manquante)',
+		reload: 'Recharger cette vue',
+		viewLoadError: 'Cette vue n’a pas pu être chargée. Rechargez-la pour réessayer.',
+		mainNav: 'Navigation principale',
+		openNav: 'Ouvrir la navigation',
+		closeNav: 'Fermer la navigation',
+		collapseNav: 'Réduire la navigation',
+		expandNav: 'Développer la navigation',
+		closeModal: 'Fermer la fenêtre',
+		clearSearch: 'Effacer la recherche',
+		changeLanguage: 'Changer de langue',
+		comparisonDetails: 'Voir la comparaison pour {title}',
+		articleDetails: 'Voir les détails pour {title}',
+		excludeNA: 'Exclure les articles non applicables',
+		differentHelp:
+			'Articles que {a} et {b} ont notés différemment sur au moins une dimension, quel que soit l’écart.',
+		significantHelp:
+			'Articles pour lesquels {a} et {b} diffèrent d’au moins trois crans sur une dimension.',
+		scope: 'Regroupement',
+		context: 'Télécharger le contexte d’analyse'
+	},
 	// App header and branding
 	appTitle: 'Analyse de sentiments CIAO',
 	appSubtitle: "Collection Islam Afrique de l'Ouest – visualisation et exploration des données",

@@ -162,7 +162,7 @@
 							class="viewer-btn"
 							onclick={() => goToPage(currentPage - 1)}
 							disabled={currentPage === 0}
-							aria-label="Previous page"
+							aria-label={$t.common.previous}
 						>
 							<ChevronLeftIcon size={16} />
 						</button>
@@ -171,14 +171,14 @@
 							class="viewer-btn"
 							onclick={() => goToPage(currentPage + 1)}
 							disabled={currentPage === totalPages - 1}
-							aria-label="Next page"
+							aria-label={$t.common.next}
 						>
 							<ChevronRightIcon size={16} />
 						</button>
 					</div>
 				{/if}
 				<div class="toolbar-actions">
-					<button class="viewer-btn" onclick={toggleExpanded} aria-label="Toggle expanded view">
+					<button class="viewer-btn" onclick={toggleExpanded} aria-label={$t.audit.expandViewer}>
 						{#if expanded}
 							<MinimizeIcon size={16} />
 						{:else}
@@ -191,7 +191,7 @@
 							target="_blank"
 							rel="noopener noreferrer"
 							class="viewer-btn"
-							aria-label="Open in new tab"
+							aria-label={$t.audit.newTab}
 						>
 							<ExternalLinkIcon size={16} />
 						</a>

@@ -14,6 +14,7 @@
   values; ribbons inherit a translucent blend of their endpoints.
 -->
 <script lang="ts">
+	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import { Chart } from 'svelte-echarts';
 	import { num } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
@@ -78,6 +79,11 @@
 			: translateSentimentValue(category, $currentLanguage);
 	}
 
+	const nodeLabels = $derived(
+		Object.fromEntries(
+			flow.nodes.map((n) => [n.name, `${modelNames[n.depth]} · ${displayCategory(n.category)}`])
+		)
+	);
 	let options = $derived.by(() => {
 		const currentT = $t;
 		const total = flow.links
@@ -191,6 +197,17 @@
 {:else}
 	<p class="chart-empty">{$t.table.noFilteredArticles}</p>
 {/if}
+
+<ChartDataTable
+	columns={[
+		{ label: $t.audit.flowFrom },
+		{ label: $t.audit.flowTo },
+		{ label: $t.audit.count, format: 'integer' }
+	]}
+	rows={flow.links.map((l) => [nodeLabels[l.source], nodeLabels[l.target], l.value])}
+	caption={$t.agreement.flowTitle}
+	filenamePrefix="LabelFlowChart"
+/>
 
 <style>
 	/*

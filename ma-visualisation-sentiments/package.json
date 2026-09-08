@@ -20,8 +20,8 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
-		"postbuild": "node scripts/nest-build.mjs && node scripts/stamp-sw.mjs && node scripts/check-build-artifact.mjs",
-		"preview": "vite preview",
+		"postbuild": "node scripts/nest-build.mjs && node scripts/publish-data-release.mjs && node scripts/stamp-sw.mjs && node scripts/check-build-artifact.mjs",
+		"preview": "node scripts/preview-build.mjs",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",

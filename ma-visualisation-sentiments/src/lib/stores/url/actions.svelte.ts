@@ -4,6 +4,17 @@
  * Functions for manipulating URL state and syncing with stores.
  */
 
+import { tick } from 'svelte';
+import { analysisState, ANALYSIS_DIMENSIONS } from '../analysis.svelte';
+import { uiState } from '../ui.svelte';
+import {
+	CURRENT_GENERATION,
+	defaultDatasetOf,
+	defaultPairOf,
+	generationOf,
+	getPairModels,
+	TOTAL_DISCREPANCY_MAXIMUM
+} from '$lib/domain/sentimentContract';
 import { browser } from '$app/environment';
 import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
@@ -18,7 +29,7 @@ import { datasetState } from '../datasets.svelte';
 import { articleState } from '../articles.svelte';
 import { comparisonState } from '../comparison.svelte';
 
-import { VALID_PAIRS, type ValidView } from './constants';
+import { type ValidView } from './constants';
 import type { URLState } from './types';
 import { parseURLState } from './parser.svelte';
 import { buildURLSearchParams } from './builder.svelte';
@@ -32,49 +43,35 @@ import {
  * Apply URL state to application stores
  */
 export function applyURLState(state: URLState): ValidView | undefined {
+	// Restore a complete snapshot, not a patch: absent fields mean defaults.
+	filterState.countries = state.countries ?? [];
+	filterState.journals = state.journals ?? [];
+	filterState.polarities = state.polarities ?? [];
+	filterState.subjectivities = state.subjectivities ?? [];
+	filterState.centralities = state.centralities ?? [];
+	datasetState.isComparisonMode = false;
+	datasetState.selected =
+		state.dataset ??
+		(state.pair ? getPairModels(state.pair)[0] : defaultDatasetOf(CURRENT_GENERATION));
+	datasetState.pair = state.pair ?? defaultPairOf(generationOf(datasetState.selected));
+	datasetState.isComparisonMode =
+		state.view === 'comparison' || state.view === 'arbiter' || state.compare === true;
+	filterState.discrepancy = {
+		minDifference: state.diffMin ?? 0,
+		maxDifference: state.diffMax ?? TOTAL_DISCREPANCY_MAXIMUM,
+		dimensions: state.dimensions ?? [...ANALYSIS_DIMENSIONS],
+		excludeNonApplicable: state.excludeNA ?? true
+	};
+	analysisState.scope = state.scope ?? 'pair';
+	analysisState.dimension = state.dimension ?? 'polarity';
+	analysisState.includeDeclined = state.declined ?? false;
+	articleState.selected = null;
+	comparisonState.selected = null;
+	pendingArticleState.clear();
+	pendingComparisonArticleState.clear();
+	uiState.activeView = state.view ?? 'charts';
 	// Initialize language first (this handles URL lang, localStorage, and browser detection)
 	initializeLanguage(state.lang);
-
-	if (state.countries) {
-		filterState.countries = state.countries;
-	}
-
-	if (state.journals) {
-		filterState.journals = state.journals;
-	}
-
-	if (state.polarities) {
-		filterState.polarities = state.polarities;
-	}
-
-	if (state.subjectivities) {
-		filterState.subjectivities = state.subjectivities;
-	}
-
-	if (state.centralities) {
-		filterState.centralities = state.centralities;
-	}
-
-	if (state.dataset) {
-		datasetState.selected = state.dataset;
-	}
-
-	if (state.compare === true) {
-		datasetState.isComparisonMode = true;
-	}
-
-	if (state.pair && (VALID_PAIRS as readonly string[]).includes(state.pair)) {
-		datasetState.pair = state.pair;
-	}
-
-	if (state.diffMin !== undefined || state.diffMax !== undefined) {
-		const currentFilters = filterState.discrepancy;
-		filterState.discrepancy = {
-			...currentFilters,
-			minDifference: state.diffMin ?? currentFilters.minDifference,
-			maxDifference: state.diffMax ?? currentFilters.maxDifference
-		};
-	}
 
 	// Handle article selection from URL
 	if (state.articleId !== undefined) {
@@ -154,23 +151,43 @@ export function applyURLState(state: URLState): ValidView | undefined {
 /**
  * Update URL with current application state
  */
-export function updateURL(currentView?: ValidView, replaceState = false): void {
-	if (!browser) return;
+let restoring = false;
+let scheduled = false;
+let replacePending = true;
 
-	const currentState = getCurrentState();
-	if (currentView) {
-		currentState.view = currentView;
+/** Popstate restoration suppresses effects writing the old URL back. */
+export async function restoreURLState(params: URLSearchParams): Promise<void> {
+	restoring = true;
+	try {
+		applyURLState(parseURLState(params));
+		await tick();
+	} finally {
+		restoring = false;
 	}
+}
 
-	const params = buildURLSearchParams(currentState);
-	const queryString = params.toString() ? `?${params.toString()}` : '';
-
-	// Stay on the current route; we're only updating query params.
-	// eslint-disable-next-line svelte/no-navigation-without-resolve
-	goto(`${resolve('/')}${queryString}`, {
-		replaceState,
-		keepFocus: true,
-		noScroll: true
+export function updateURL(currentView?: ValidView, replaceState = false): void {
+	if (!browser || restoring) return;
+	// Read dependencies synchronously, even when a write is already scheduled.
+	const state = getCurrentState();
+	if (currentView) state.view = currentView;
+	void buildURLSearchParams(state);
+	replacePending = replacePending && replaceState;
+	if (scheduled) return;
+	scheduled = true;
+	queueMicrotask(() => {
+		scheduled = false;
+		const replace = replacePending;
+		replacePending = true;
+		if (restoring) return;
+		const query = buildURLSearchParams(getCurrentState()).toString();
+		if (window.location.search.slice(1) === query) return;
+		// eslint-disable-next-line svelte/no-navigation-without-resolve
+		void goto(`${resolve('/')}?${query}`, {
+			replaceState: replace,
+			keepFocus: true,
+			noScroll: true
+		});
 	});
 }
 

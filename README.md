@@ -151,6 +151,10 @@ Python 3.12+, from the repo root:
 pip install -r data-preprocess/requirements-dev.txt
 ```
 
+Source reads resolve a single immutable Hugging Face commit per repository before loading. Set `IWAC_HF_REVISION` for the public dataset and `IWAC_HF_FULL_REVISION` for the private OCR mirror to reproduce a prior run; both the parquet and datasets fallback paths use the resolved commit.
+
+Exports are staged and validated before publication. A writer lock prevents concurrent exports; a recovery journal restores the previous complete generation after an interrupted promotion. Run the same export command again to recover. Builds refuse a pending journal. Production builds bind the frontend to content-addressed `data/releases/<release>/` URLs; the service worker never substitutes files from a different release. The source `static/data/` layout and frozen v1 files remain unchanged.
+
 **`--generation` is required and deliberately has no default.** An unflagged re-run would rewrite the frozen v1 files from whatever revision is current. A v2 run does not write `iwac_articles_base.json` at all — it asserts the live article id set still matches the frozen base and fails loudly on drift.
 
 ```bash
@@ -188,7 +192,7 @@ Validate before committing generated data:
 python -m pytest data-preprocess -q && python data-preprocess/validate_generated_data.py
 ```
 
-107 tests, plus a validator that checks category domains, article-id coverage, prose shard placement, arbiter eligibility and fingerprints, and manifest hashes — entirely offline, for both generations. Both Python and TypeScript read the same checked-in contracts, and shared fixtures assert identical discrepancy and label-mapping behaviour across the two languages.
+An offline test suite, plus a validator that checks category domains, article-id coverage, prose shard placement, arbiter eligibility and fingerprints, and manifest hashes — entirely offline, for both generations. Both Python and TypeScript read the same checked-in contracts, and shared fixtures assert identical discrepancy and label-mapping behaviour across the two languages.
 
 Environment variables live in a root `.env` — copy [`.env.example`](.env.example): `ANTHROPIC_API_KEY` (v2 arbiter), `HF_TOKEN` (private mirror), `GOOGLE_API_KEY` (v1 arbiter). Only the arbiter scripts load that file.
 
@@ -206,10 +210,10 @@ cd ma-visualisation-sentiments && npm install && npm run dev
 | ------------------ | --------------------------------------------------------------------------- |
 | `npm run dev`      | Dev server at `localhost:5173`                                              |
 | `npm run build`    | Production build, then nesting, service-worker stamping and artifact checks |
-| `npm run preview`  | Serve the production build                                                  |
+| `npm run preview`  | Serve the final Pages artifact (including postbuild releases)               |
 | `npm run check`    | `svelte-check` — must report 0 errors, 0 warnings                           |
 | `npm run lint`     | Prettier, ESLint, store-cycle detection, design-token validation            |
-| `npm run test:run` | 525 Vitest unit and integration tests across 29 files                       |
+| `npm run test:run` | Vitest unit and integration tests                                           |
 | `npm run test:e2e` | Playwright deep-link, failure-state and axe accessibility smoke tests       |
 
 Run the checks in [`.claude/skills/verify/SKILL.md`](.claude/skills/verify/SKILL.md) before committing anything that ships through CI — the ordering and pass criteria are not guessable. CSS and component rules are in [DESIGN.md](DESIGN.md), and `npm run lint` enforces most of them.
@@ -225,13 +229,15 @@ Two repo-level helpers run against the root `.venv`:
 - **`src/lib/stores/`** — Svelte 5 runes accessor objects, one per domain (`filters`, `articles`, `datasets`, `comparison`, `arbiter`, `arbiterV2`, `extreme-analysis`, `ui`), plus `url/` for filter-state ↔ URL synchronisation. Leaf stores import from no other store; modules inside `stores/` must never import the barrel.
 - **`src/lib/utils/`** — pure helpers, including the statistics modules: `agreement.ts` (Cohen's/Fleiss' κ), `correlation.ts` (Spearman's ρ), `newspaperRanking.ts`, `hijri.ts`, `placeAggregation.ts`.
 - **`src/lib/domain/sentimentContract.ts`** — the dual-generation registry, with import-time invariants for id collisions, pair membership, shared scales and shard counts.
-- **`data-preprocess/iwac_preprocess/`** — importable package split into the per-generation contract, source normalisation, discrepancy rules, atomic serialisation and arbiter-cache reconciliation. `shared.py` remains a compatibility facade for the command-line scripts.
+- **`data-preprocess/iwac_preprocess/`** — importable package split into the per-generation contract, revision-pinned source loading, discrepancy rules, recoverable generation publication, panel candidate selection and prompt construction, atomic serialisation and arbiter-cache reconciliation. `shared.py` remains a compatibility facade for the command-line scripts.
 
 Built with Svelte 5 (runes), SvelteKit 2 + `adapter-static`, TypeScript in strict mode, Tailwind CSS v4, ECharts 6, MapLibre GL v6, and Vite 8 (Rolldown). The design system is repository-owned: CSS tokens plus reusable Svelte controls, with automated token and class checks.
 
 ### Performance
 
-Initial JavaScript is measured at build time against a **300 KiB gzip budget** — currently 136 KiB. View-level code splitting keeps charts, map, tables, comparison, agreement, extremes and arbiter in lazy chunks; MapLibre alone is larger than the rest of the vendor bundle combined, so the map view sits behind a memoized dynamic import. The service worker keeps corpus files in a deploy-stable cache so a new release doesn't re-download them. The build intentionally emits no `.gz`/`.br` siblings — GitHub Pages negotiates transfer compression, and duplicating every asset only bloated the artifact.
+HTML-referenced JavaScript is measured at build time against a **300 KiB gzip budget** — currently 139 KiB. The production browser tests additionally count actual transitive and dynamic imports: default charts, direct table and map links have budgets of **450, 180 and 600 KiB gzip**, respectively. Data transfer is reported separately, including all five background score prefetches. The tests verify chart/map isolation using the generated chunk manifest. These measurements are build-size budgets, not claims about latency on every device.
+
+Views load their modules on demand and offer a localized reload action when a chunk fails. Data URLs include a content-derived release identifier; unchanged data keeps its cache across code-only deployments, while a changed dataset gets a new namespace. Offline requests never substitute another release's files. The build intentionally emits no `.gz`/`.br` siblings — GitHub Pages negotiates transfer compression. `npm run preview` serves the final static artifact so browser tests exercise the same release paths and stamped service worker that Pages receives.
 
 ---
 

@@ -20,6 +20,7 @@
   dimensions are three stacks side by side.
 -->
 <script lang="ts">
+	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import { Chart } from 'svelte-echarts';
 	import { pct } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
@@ -30,8 +31,7 @@
 	import { getModelDisplayNames } from '$lib/utils/format';
 	import { tooltipHeader, tooltipPanel, tooltipSeriesRow } from '$lib/utils/chartFormatters';
 	import { datasetState } from '$lib/stores';
-	import { AGREEMENT_DIMENSIONS } from '$lib/utils/agreementData';
-	import { profileDissent, type ConsensusRow } from '$lib/utils/consensus';
+	import { profileDissent } from '$lib/utils/consensus';
 	import {
 		seriesColorPalette,
 		chartColors,
@@ -45,22 +45,15 @@
 	} from '$lib/utils/chartTheme';
 
 	interface DirectionalDissentChartProps {
-		rows: ConsensusRow[];
+		profiles: ReturnType<typeof profileDissent>[];
 		models: readonly string[];
-		includeDeclined: boolean;
 	}
 
-	let { rows, models, includeDeclined }: DirectionalDissentChartProps = $props();
+	let { profiles, models }: DirectionalDissentChartProps = $props();
 
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
 
 	let modelNames = $derived(getModelDisplayNames(models, datasetState.availableInGeneration));
-
-	let profiles = $derived(
-		AGREEMENT_DIMENSIONS.map((dimension) =>
-			profileDissent(rows, dimension, models.length, includeDeclined)
-		)
-	);
 
 	let dimensionLabels = $derived<Record<string, string>>({
 		polarity: $t.filters.polarity,
@@ -191,7 +184,7 @@
 	});
 </script>
 
-{#if rows.length > 0}
+{#if profiles.some((profile) => profile.n > 0)}
 	<div
 		style="height: {isMobile ? '460px' : '520px'}; position: relative;"
 		class="chart-container"
@@ -205,3 +198,27 @@
 {:else}
 	<p class="chart-empty">{$t.table.noFilteredArticles}</p>
 {/if}
+<ChartDataTable
+	columns={[
+		{ label: $t.audit.category },
+		{ label: $t.viewMeta.model },
+		{ label: $t.agreement.directionAbove, format: 'integer' },
+		{ label: $t.agreement.directionBelow, format: 'integer' },
+		{ label: $t.audit.count, format: 'integer' },
+		{ label: $t.agreement.directionAbove + ' (%)', format: 'percent' },
+		{ label: $t.agreement.directionBelow + ' (%)', format: 'percent' }
+	]}
+	rows={profiles.flatMap((p) =>
+		p.dissent.map((d, i) => [
+			dimensionLabels[p.dimension],
+			modelNames[i],
+			d.up,
+			d.down,
+			p.n,
+			p.n ? d.up / p.n : 0,
+			p.n ? d.down / p.n : 0
+		])
+	)}
+	caption={$t.agreement.directionTitle}
+	filenamePrefix="DirectionalDissentChart"
+/>

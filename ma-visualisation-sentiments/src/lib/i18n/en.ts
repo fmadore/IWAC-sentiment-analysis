@@ -9,6 +9,44 @@
  * ranges (1–5), em dashes used sparingly.
  */
 export const en = {
+	audit: {
+		place: 'Place',
+		flowFrom: 'From model and label',
+		flowTo: 'To model and label',
+		expandViewer: 'Toggle expanded view',
+		newTab: 'Open in new tab',
+		search: 'Search…',
+		globalAll: 'Overall distribution',
+		byJournal: 'By newspaper',
+		other: 'Other newspapers',
+		topJournals:
+			'Six largest newspapers; the rest are grouped as Other. The table includes every newspaper.',
+		count: 'Articles',
+		share: 'Share (%)',
+		year: 'Year',
+		category: 'Category',
+		journal: 'Newspaper',
+		included: 'Included',
+		excluded: 'Excluded (missing rating)',
+		reload: 'Reload this view',
+		viewLoadError: 'This view could not be loaded. Reload to try again.',
+		mainNav: 'Main navigation',
+		openNav: 'Open navigation',
+		closeNav: 'Close navigation',
+		collapseNav: 'Collapse sidebar',
+		expandNav: 'Expand sidebar',
+		closeModal: 'Close modal',
+		clearSearch: 'Clear search',
+		changeLanguage: 'Change language',
+		comparisonDetails: 'View comparison details for {title}',
+		articleDetails: 'View article details for {title}',
+		excludeNA: 'Exclude non-applicable articles',
+		differentHelp:
+			'Articles that {a} and {b} rated differently on at least one dimension, by any margin.',
+		significantHelp: 'Articles where {a} and {b} are at least three steps apart on a dimension.',
+		scope: 'Grouping',
+		context: 'Download analysis context'
+	},
 	// App header and branding
 	appTitle: 'IWAC Sentiment Analysis',
 	appSubtitle: 'Islam West Africa Collection – data visualisation and exploration',

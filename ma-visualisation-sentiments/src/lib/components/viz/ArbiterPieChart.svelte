@@ -6,6 +6,8 @@
   translated count noun used in tooltips.
 -->
 <script lang="ts">
+	import { t } from '$lib/i18n';
+	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import { Chart } from 'svelte-echarts';
 	import { pct } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
@@ -86,6 +88,21 @@
 <div class="chart-container" role="img" aria-label={ariaLabel}>
 	<Chart {options} {init} />
 </div>
+
+<ChartDataTable
+	columns={[
+		{ label: $t.audit.category },
+		{ label: countNoun, format: 'integer' },
+		{ label: $t.audit.share, format: 'percent' }
+	]}
+	rows={data.map((d) => [
+		d.name,
+		d.value,
+		data.reduce((n, v) => n + v.value, 0) > 0 ? d.value / data.reduce((n, v) => n + v.value, 0) : 0
+	])}
+	caption={ariaLabel}
+	filenamePrefix="ArbiterPieChart"
+/>
 
 <style>
 	.chart-container {

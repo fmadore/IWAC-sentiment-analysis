@@ -12,7 +12,7 @@
 	import { articleState } from '$lib/stores';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { formatNumber } from '$lib/i18n/utils';
-	import DatasetBadge from '../ui/DatasetBadge.svelte';
+	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import ChartTypeToggle from './ChartTypeToggle.svelte';
 	import AreaChartIcon from '@lucide/svelte/icons/area-chart';
 	import LineChartIcon from '@lucide/svelte/icons/line-chart';
@@ -40,13 +40,12 @@
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
 	let chartType = $state<'area' | 'line'>('area');
 
+	const aggregate = $derived(aggregateByCountryAndYear(articleState.filtered));
 	let options = $derived.by(() => {
-		const articles = articleState.filtered;
 		const currentT = $t; // Capture current translations for reactive updates
 		const currentLang = $currentLanguage; // Capture current language for reactive updates
 
-		const { countryYearCounts, countries, years, articlesAnalyzed } =
-			aggregateByCountryAndYear(articles);
+		const { countryYearCounts, countries, years, articlesAnalyzed } = aggregate;
 
 		const series = countries.map((country, index) => {
 			const color = seriesColorPalette[index % seriesColorPalette.length];
@@ -116,8 +115,6 @@
 
 {#if articleState.filtered.length > 0}
 	<div class="chart-toolbar">
-		<DatasetBadge size="sm" />
-
 		<ChartTypeToggle
 			options={[
 				{ value: 'area', label: $t.charts.stackedAreas, icon: AreaChartIcon },
@@ -137,6 +134,18 @@
 	>
 		<Chart {init} {options} />
 	</div>
+	<ChartDataTable
+		columns={[
+			{ label: $t.audit.year },
+			...aggregate.countries.map((label) => ({ label, format: 'integer' as const }))
+		]}
+		rows={aggregate.years.map((year) => [
+			year,
+			...aggregate.countries.map((country) => aggregate.countryYearCounts[country][year] ?? 0)
+		])}
+		caption={$t.charts.volumeByCountry}
+		filenamePrefix="volume"
+	/>
 {:else}
 	<p class="chart-empty">{$t.table.noFilteredArticles}</p>
 {/if}

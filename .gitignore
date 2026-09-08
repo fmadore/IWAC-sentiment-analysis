@@ -9,6 +9,7 @@ node_modules/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.iwac-generation.lock
 
 # Claude Code local settings (settings.local.json, launch.json, lockfiles).
 #

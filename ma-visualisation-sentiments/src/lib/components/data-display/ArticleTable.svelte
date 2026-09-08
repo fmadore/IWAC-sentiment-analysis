@@ -116,7 +116,9 @@
 	function scrollToTop() {
 		if (tableContainerRef) {
 			tableContainerRef.scrollIntoView({
-				behavior: 'smooth',
+				behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+					? 'instant'
+					: 'smooth',
 				block: 'start'
 			});
 		}
@@ -235,38 +237,80 @@
 			<table class="table">
 				<thead>
 					<tr class="bg-surface-800">
-						<th class="sortable-header">
-							<button class="sort-button" type="button" onclick={() => sortBy('titre')}>
+						<th
+							class="sortable-header"
+							scope="col"
+							aria-sort={sortColumn === 'titre'
+								? sortDirection === 'asc'
+									? 'ascending'
+									: 'descending'
+								: 'none'}
+							><button class="sort-button" type="button" onclick={() => sortBy('titre')}>
 								{$t.table.articleTitle}
 								{sortColumn === 'titre' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
 							</button>
 						</th>
-						<th class="sortable-header">
-							<button class="sort-button" type="button" onclick={() => sortBy('journal')}>
+						<th
+							class="sortable-header"
+							scope="col"
+							aria-sort={sortColumn === 'journal'
+								? sortDirection === 'asc'
+									? 'ascending'
+									: 'descending'
+								: 'none'}
+							><button class="sort-button" type="button" onclick={() => sortBy('journal')}>
 								{$t.filters.journal}
 								{sortColumn === 'journal' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
 							</button>
 						</th>
-						<th class="sortable-header">
-							<button class="sort-button" type="button" onclick={() => sortBy('date')}>
+						<th
+							class="sortable-header"
+							scope="col"
+							aria-sort={sortColumn === 'date'
+								? sortDirection === 'asc'
+									? 'ascending'
+									: 'descending'
+								: 'none'}
+							><button class="sort-button" type="button" onclick={() => sortBy('date')}>
 								{$t.table.date}
 								{sortColumn === 'date' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
 							</button>
 						</th>
-						<th class="sortable-header">
-							<button class="sort-button" type="button" onclick={() => sortBy('centralite')}>
+						<th
+							class="sortable-header"
+							scope="col"
+							aria-sort={sortColumn === 'centralite'
+								? sortDirection === 'asc'
+									? 'ascending'
+									: 'descending'
+								: 'none'}
+							><button class="sort-button" type="button" onclick={() => sortBy('centralite')}>
 								{$t.table.centrality}
 								{sortColumn === 'centralite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
 							</button>
 						</th>
-						<th class="sortable-header">
-							<button class="sort-button" type="button" onclick={() => sortBy('polarite')}>
+						<th
+							class="sortable-header"
+							scope="col"
+							aria-sort={sortColumn === 'polarite'
+								? sortDirection === 'asc'
+									? 'ascending'
+									: 'descending'
+								: 'none'}
+							><button class="sort-button" type="button" onclick={() => sortBy('polarite')}>
 								{$t.table.polarity}
 								{sortColumn === 'polarite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
 							</button>
 						</th>
-						<th class="sortable-header">
-							<button class="sort-button" type="button" onclick={() => sortBy('subjectivite')}>
+						<th
+							class="sortable-header"
+							scope="col"
+							aria-sort={sortColumn === 'subjectivite'
+								? sortDirection === 'asc'
+									? 'ascending'
+									: 'descending'
+								: 'none'}
+							><button class="sort-button" type="button" onclick={() => sortBy('subjectivite')}>
 								{$t.table.subjectivity}
 								{sortColumn === 'subjectivite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
 							</button>
@@ -275,21 +319,16 @@
 				</thead>
 				<tbody>
 					{#each paginatedArticles as article (article['o:id'])}
-						<tr
-							class="article-row"
-							title={$t.table.viewDetails}
-							onclick={(event) => selectArticle(article, event)}
-							onkeydown={(event) => {
-								if (event.key === 'Enter' || event.key === ' ') {
-									event.preventDefault();
-									selectArticle(article);
-								}
-							}}
-							role="button"
-							tabindex="0"
-							aria-label="{$t.table.viewDetails}: {article['o:title']}"
-						>
-							<td class="article-title">{article['o:title']}</td>
+						<tr class="article-row"
+							><td class="article-title"
+								><button
+									type="button"
+									class="row-detail-action"
+									onclick={() => selectArticle(article)}
+									aria-label={$t.audit.articleDetails.replace('{title}', article['o:title'] ?? '')}
+									>{article['o:title']}</button
+								></td
+							>
 							<td>{getJournalName(article)}</td>
 							<td>{$fmtDate(article.publication_date)}</td>
 							<td>
@@ -327,6 +366,21 @@
 {/if}
 
 <style>
+	.row-detail-action {
+		background: transparent;
+		color: inherit;
+		border: 0;
+		padding: 0;
+		text-align: start;
+		font: inherit;
+		cursor: pointer;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+	.row-detail-action:focus-visible {
+		outline: 2px solid currentColor;
+		outline-offset: 2px;
+	}
 	/* ==============================================
      Table Container - Glass morphism wrapper
      ============================================== */

@@ -125,7 +125,9 @@ describe('the app.css palette contract', () => {
 	// the consolidation is meant to make impossible. So assert the join.
 	// Resolved from the Vitest root (the package dir) rather than import.meta.url,
 	// which Vitest rewrites to a non-file scheme.
-	const css = readFileSync(resolve('src/app.css'), 'utf8');
+	const css = ['tokens', 'foundation', 'components']
+		.map((name) => readFileSync(resolve(`src/lib/styles/${name}.css`), 'utf8'))
+		.join('\n');
 
 	const ALL_VARIANTS: SentimentVariant[] = [
 		...Object.values(POLARITY_SLUGS).map((slug) => `polarity-${slug}` as SentimentVariant),

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import { Chart } from 'svelte-echarts';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
@@ -53,7 +54,7 @@
 	// Reactive window width for responsive behavior
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
 
-	let options = $derived.by(() => {
+	const aggregate = $derived.by(() => {
 		const articles = articleState.filtered;
 		const countryYearCentrality: Record<
 			string,
@@ -62,7 +63,6 @@
 		let articlesAnalyzed = 0;
 
 		// Get current translations to use in tooltip
-		const currentTranslations = $t;
 
 		articles.forEach((article: Article) => {
 			const year = extractYear(article);
@@ -122,6 +122,19 @@
 			});
 		});
 
+		return {
+			countries,
+			years,
+			heatmapData,
+			articlesAnalyzed,
+			countryYearCentrality,
+			maxValue,
+			minValue
+		};
+	});
+	let options = $derived.by(() => {
+		const { countries, years, heatmapData, articlesAnalyzed } = aggregate;
+		const currentTranslations = $t;
 		const tooltipConfig = getTooltipConfig(isMobile);
 
 		return {
@@ -251,6 +264,22 @@
 	>
 		<Chart {init} {options} />
 	</div>
+	<ChartDataTable
+		columns={[
+			{ label: $t.filters.country },
+			{ label: $t.audit.year },
+			{ label: $t.filters.centrality, format: 'decimal', digits: 2 },
+			{ label: $t.audit.count, format: 'integer' }
+		]}
+		rows={aggregate.heatmapData.map(([x, y, value]) => [
+			aggregate.countries[y],
+			aggregate.years[x],
+			value,
+			aggregate.countryYearCentrality[aggregate.countries[y]][aggregate.years[x]].count
+		])}
+		caption={$t.filters.centrality}
+		filenamePrefix="centrality-by-country-year"
+	/>
 {:else}
 	<p class="chart-empty">{$t.table.noFilteredArticles}</p>
 {/if}

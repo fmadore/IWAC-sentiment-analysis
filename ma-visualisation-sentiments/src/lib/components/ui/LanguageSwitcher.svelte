@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from '$lib/i18n';
 	import { currentLanguage, switchLanguage, getAvailableLanguages } from '$lib/i18n';
 	import { DropdownMenu } from '$lib/components/common';
 	import GlobeIcon from '@lucide/svelte/icons/globe';
@@ -27,7 +28,7 @@
 	menuMinWidth="120px"
 	buttonMinWidth="120px"
 	zIndex={1000}
-	ariaLabel="Change language"
+	ariaLabel={$t.audit.changeLanguage}
 >
 	{#snippet trigger()}
 		<GlobeIcon size={18} />

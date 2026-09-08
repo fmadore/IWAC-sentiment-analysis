@@ -26,7 +26,7 @@
 		/** Optional icon rendered before the title (styled by the parent) */
 		icon?: Snippet;
 		/** Visual variant of the card */
-		variant?: 'default' | 'arbiter';
+		variant?: 'default' | 'arbiter' | 'compact';
 		/** Body content rendered when the card is open */
 		children: Snippet;
 	}
@@ -89,6 +89,25 @@
 		padding: 0;
 		border-top: 2px solid var(--sentiment-arbiter);
 		overflow: hidden;
+	}
+
+	.info-card[data-variant='compact'] {
+		padding: var(--space-2) var(--space-4);
+		margin-bottom: var(--space-3);
+		background: transparent;
+		border: 0;
+		border-bottom: 1px solid var(--border-subtle);
+	}
+	[data-variant='compact'] .info-header-btn {
+		min-height: 44px;
+	}
+	[data-variant='compact'] .info-title {
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-medium);
+		color: var(--text-secondary);
+	}
+	[data-variant='compact'] .header-icon {
+		background: transparent;
 	}
 
 	/* ==========================================================================

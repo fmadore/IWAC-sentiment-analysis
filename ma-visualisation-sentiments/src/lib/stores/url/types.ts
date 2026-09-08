@@ -13,6 +13,11 @@ import type { ValidView, ValidDataset } from './constants';
  */
 export interface URLState {
 	view?: ValidView;
+	dimensions?: import('../analysis.svelte').AnalysisDimension[];
+	excludeNA?: boolean;
+	scope?: 'pair' | 'panel';
+	dimension?: import('../analysis.svelte').AnalysisDimension;
+	declined?: boolean;
 	countries?: string[];
 	journals?: string[];
 	polarities?: string[];

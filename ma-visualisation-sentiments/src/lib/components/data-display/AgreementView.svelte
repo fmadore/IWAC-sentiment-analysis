@@ -19,6 +19,10 @@
   effect on. So the picker renders only in pair scope.
 -->
 <script lang="ts">
+	import { datasetReadiness } from '$lib/utils/datasetReadiness';
+	import { getPairModels } from '$lib/domain/sentimentContract';
+	import DatasetLoadError from '../common/DatasetLoadError.svelte';
+	import { analysisState } from '$lib/stores/analysis.svelte';
 	import { datasetState, articleState } from '$lib/stores';
 	import { dec, num, pct } from '$lib/i18n/utils';
 	import {
@@ -48,11 +52,9 @@
 	import GitCompareIcon from '@lucide/svelte/icons/git-compare';
 	import NetworkIcon from '@lucide/svelte/icons/network';
 
-	let selectedDimension = $state<AgreementDimension>('polarity');
 	// 'panel', not 'trio': the current generation has five models, and a value
 	// named for three would be the same class of lie as a class name that stopped
 	// meaning what it looks like.
-	let scope = $state<'pair' | 'panel'>('pair');
 
 	const scopeOptions = $derived([
 		{ value: 'pair', label: $t.agreement.scopePair, icon: GitCompareIcon },
@@ -66,7 +68,7 @@
 		getPairModelNames(datasetState.pair, datasetState.availableInGeneration)
 	);
 
-	const active = $derived(agreement?.[selectedDimension] ?? null);
+	const active = $derived(agreement?.[analysisState.dimension] ?? null);
 
 	const dimensionLabels = $derived<Record<AgreementDimension, string>>({
 		polarity: $t.filters.polarity,
@@ -74,12 +76,13 @@
 		centrality: $t.filters.centrality
 	});
 
-	/** Every model of the active generation present? One alone says nothing. */
-	const ready = $derived(
-		datasetIdsOf(datasetState.generation).every(
-			(id) => (articleState.datasets[id]?.length ?? 0) > 0
-		) && agreement !== null
+	const requiredIds = $derived(
+		analysisState.scope === 'panel'
+			? datasetIdsOf(datasetState.generation)
+			: getPairModels(datasetState.pair)
 	);
+	const loadStatus = $derived(datasetReadiness(requiredIds, articleState.loadStates));
+	const ready = $derived(loadStatus.ready && agreement !== null);
 
 	function formatKappa(value: number): string {
 		return Number.isNaN(value) ? '—' : $dec(value, 3);
@@ -96,35 +99,58 @@
 	}
 </script>
 
-{#if !ready}
+{#if loadStatus.failed.length > 0}
+	<DatasetLoadError ids={loadStatus.failed} />
+{:else if !ready}
 	<LoadingState />
 {:else if active}
 	<!-- Dimension selector -->
-	<div class="dimension-tabs" role="tablist" aria-label={$t.agreement.dimensionSelector}>
-		{#each AGREEMENT_DIMENSIONS as dimension (dimension)}
-			<button
-				role="tab"
-				class="dimension-tab"
-				data-active={selectedDimension === dimension}
-				aria-selected={selectedDimension === dimension}
-				onclick={() => (selectedDimension = dimension)}
-			>
-				{dimensionLabels[dimension]}
-			</button>
-		{/each}
+	<div class="agreement-controls">
+		<div class="dimension-tabs" role="tablist" aria-label={$t.agreement.dimensionSelector}>
+			{#each AGREEMENT_DIMENSIONS as dimension (dimension)}
+				<button
+					role="tab"
+					class="dimension-tab"
+					data-active={analysisState.dimension === dimension}
+					aria-selected={analysisState.dimension === dimension}
+					tabindex={analysisState.dimension === dimension ? 0 : -1}
+					onkeydown={(event) => {
+						const i = AGREEMENT_DIMENSIONS.indexOf(dimension);
+						const next =
+							event.key === 'ArrowRight'
+								? (i + 1) % 3
+								: event.key === 'ArrowLeft'
+									? (i + 2) % 3
+									: event.key === 'Home'
+										? 0
+										: event.key === 'End'
+											? 2
+											: null;
+						if (next !== null) {
+							event.preventDefault();
+							analysisState.dimension = AGREEMENT_DIMENSIONS[next];
+							(event.currentTarget.parentElement?.children[next] as HTMLElement)?.focus();
+						}
+					}}
+					onclick={() => (analysisState.dimension = dimension)}
+				>
+					{dimensionLabels[dimension]}
+				</button>
+			{/each}
+		</div>
 
 		<div class="scope-controls">
 			<ChartTypeToggle
 				options={scopeOptions}
-				value={scope}
-				onChange={(value) => (scope = value as 'pair' | 'panel')}
+				value={analysisState.scope}
+				onChange={(value) => (analysisState.scope = value as 'pair' | 'panel')}
 				ariaLabel={$t.agreement.scopeLabel}
 			/>
 			<!--
 				Only in pair scope: a picker sitting above charts it cannot affect
 				reads as a control that is broken.
 			-->
-			{#if scope === 'pair'}
+			{#if analysisState.scope === 'pair'}
 				<ModelPairPicker />
 			{/if}
 		</div>
@@ -140,7 +166,7 @@
 		<JournalFilter />
 	</div>
 
-	{#if scope === 'pair'}
+	{#if analysisState.scope === 'pair'}
 		<!-- Headline statistics for the active dimension -->
 		<StatCardGrid>
 			<StatCard
@@ -204,7 +230,7 @@
 		<ChartCard variant="comparison">
 			<AgreementMatrix
 				matrix={active.matrix}
-				dimension={selectedDimension}
+				dimension={analysisState.dimension}
 				modelAName={modelNames.modelAName}
 				modelBName={modelNames.modelBName}
 			/>
@@ -238,19 +264,19 @@
 		{#if marginals}
 			<ChartCard variant="comparison" class="mb-6">
 				<ModelCalibrationChart
-					marginals={marginals[selectedDimension]}
-					dimension={selectedDimension}
-					categories={DIMENSION_CATEGORIES[selectedDimension]}
+					marginals={marginals[analysisState.dimension]}
+					dimension={analysisState.dimension}
+					categories={DIMENSION_CATEGORIES[analysisState.dimension]}
 				/>
 			</ChartCard>
 		{/if}
 
-		<ConsensusSection dimension={selectedDimension} />
+		<ConsensusSection dimension={analysisState.dimension} />
 	{/if}
 {/if}
 
 <style>
-	.dimension-tabs {
+	.agreement-controls {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
@@ -258,6 +284,11 @@
 		margin-bottom: var(--space-5);
 		padding-bottom: var(--space-4);
 		border-bottom: 1px solid var(--border-subtle);
+	}
+	.dimension-tabs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
 	}
 
 	.dimension-tab {

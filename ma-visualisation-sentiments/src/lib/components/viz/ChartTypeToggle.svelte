@@ -13,7 +13,7 @@
 		/** Translated button label */
 		label: string;
 		/** Lucide icon component rendered before the label */
-		icon: Component<{ size?: number | string }>;
+		icon?: Component<{ size?: number | string }>;
 	}
 
 	interface ChartTypeToggleProps {
@@ -36,7 +36,7 @@
 			onclick={() => onChange(option.value)}
 			aria-pressed={value === option.value}
 		>
-			<option.icon size={14} />
+			{#if option.icon}<option.icon size={14} />{/if}
 			<span>{option.label}</span>
 		</button>
 	{/each}

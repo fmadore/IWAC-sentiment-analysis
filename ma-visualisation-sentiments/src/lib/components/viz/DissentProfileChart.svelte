@@ -30,6 +30,7 @@
   — `setOption` merges by default and would otherwise leave the old series behind.
 -->
 <script lang="ts">
+	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import { Chart } from 'svelte-echarts';
 	import { num, pct } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
@@ -490,3 +491,15 @@
 		{$t.agreement.disagreementEmpty.replace('{min}', String(minArticles))}
 	</p>
 {/if}
+<ChartDataTable
+	columns={[
+		{ label: $t.audit.journal },
+		{ label: $t.audit.count, format: 'integer' },
+		{ label: $t.agreement.unanimous, format: 'percent' },
+		...modelNames.map((name) => ({ label: name, format: 'percent' as const })),
+		{ label: $t.agreement.allDiffer, format: 'percent' }
+	]}
+	rows={byDissent.map((r) => [r.newspaper, r.n, r.unanimity, ...r.dissentShare, r.splitShare])}
+	caption={$t.agreement.dissentTitle}
+	filenamePrefix="DissentProfileChart"
+/>

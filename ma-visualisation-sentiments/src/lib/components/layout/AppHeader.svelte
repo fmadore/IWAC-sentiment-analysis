@@ -125,7 +125,7 @@
 		<button
 			class="icon-button nav-toggle"
 			onclick={() => (uiState.mobileMenuOpen = !uiState.mobileMenuOpen)}
-			aria-label={uiState.mobileMenuOpen ? 'Close navigation' : 'Open navigation'}
+			aria-label={uiState.mobileMenuOpen ? $t.audit.closeNav : $t.audit.openNav}
 			aria-expanded={uiState.mobileMenuOpen}
 		>
 			{#if uiState.mobileMenuOpen}

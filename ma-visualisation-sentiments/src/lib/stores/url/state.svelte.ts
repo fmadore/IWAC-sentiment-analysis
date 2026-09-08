@@ -6,6 +6,8 @@
 
 import { currentLanguage } from '$lib/i18n';
 import { get } from 'svelte/store';
+import { analysisState } from '../analysis.svelte';
+import { uiState } from '../ui.svelte';
 import type { URLState, PendingArticleSelection } from './types';
 
 // Import directly from individual store modules to avoid circular dependencies
@@ -76,6 +78,13 @@ export function getCurrentState(): URLState {
 	const currentArticle = articleState.selected;
 
 	const state: URLState = {
+		view: uiState.activeView,
+		dimensions: filters.dimensions,
+		excludeNA: filters.excludeNonApplicable,
+		scope: analysisState.scope,
+		dimension: analysisState.dimension,
+		declined: analysisState.includeDeclined,
+		pair: datasetState.pair,
 		countries: filterState.countries,
 		journals: filterState.journals,
 		polarities: filterState.polarities,
