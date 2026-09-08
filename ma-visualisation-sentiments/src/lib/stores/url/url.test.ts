@@ -12,6 +12,46 @@ import { buildURLSearchParams } from '$lib/stores/url/builder.svelte';
 import { parseURLState } from '$lib/stores/url/parser.svelte';
 import type { URLState } from '$lib/stores/url/types';
 
+describe('reproducible analysis settings', () => {
+	it.each([{ dimensions: ['polarity'] }, { dimensions: [] }] as {
+		dimensions: URLState['dimensions'];
+	}[])('round trips selected discrepancy dimensions %j', ({ dimensions }) => {
+		const state: URLState = {
+			view: 'comparison',
+			compare: true,
+			pair: 'luna-mistral-small',
+			dimensions,
+			excludeNA: false,
+			diffMin: 2,
+			diffMax: 5
+		};
+		expect(parseURLState(buildURLSearchParams(state))).toMatchObject(state);
+	});
+	it('round trips panel scope, dimension and declined ratings independently of comparison mode', () => {
+		const state: URLState = {
+			view: 'agreement',
+			dataset: 'luna',
+			pair: 'luna-gemma',
+			scope: 'panel',
+			dimension: 'centrality',
+			declined: true
+		};
+		expect(parseURLState(buildURLSearchParams(state))).toMatchObject(state);
+	});
+	it('rejects invalid analytical flags and normalizes reversed bounds', () => {
+		const state = parseURLState(
+			new URLSearchParams(
+				'scope=invalid&dimension=bad&declined=yes&excludeNA=1&diffMin=8&diffMax=2'
+			)
+		);
+		expect(state).toMatchObject({ diffMin: 2, diffMax: 8 });
+		expect(state.scope).toBeUndefined();
+		expect(state.dimension).toBeUndefined();
+		expect(state.declined).toBeUndefined();
+		expect(state.excludeNA).toBeUndefined();
+	});
+});
+
 // ============================================
 // buildURLSearchParams Tests
 // ============================================

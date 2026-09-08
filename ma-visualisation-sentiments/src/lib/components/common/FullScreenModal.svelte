@@ -22,6 +22,7 @@
   </FullScreenModal>
 -->
 <script lang="ts">
+	import { t } from '$lib/i18n';
 	import type { Snippet } from 'svelte';
 	import XIcon from '@lucide/svelte/icons/x';
 	import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
@@ -56,29 +57,54 @@
 		accentVariant = 'primary'
 	}: FullScreenModalProps = $props();
 
-	// Handle keyboard events
-	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape') {
-			e.preventDefault();
-			onClose();
+	let dialog = $state<HTMLDialogElement>();
+	const titleId = $props.id();
+	function containFocus(event: KeyboardEvent) {
+		if (event.key !== 'Tab' || !dialog) return;
+		const controls = Array.from(
+			dialog.querySelectorAll<HTMLElement>(
+				'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+			)
+		).filter((el) => el.getClientRects().length > 0);
+		const first = controls[0],
+			last = controls.at(-1);
+		if (event.shiftKey && document.activeElement === first) {
+			event.preventDefault();
+			last?.focus();
+		} else if (!event.shiftKey && document.activeElement === last) {
+			event.preventDefault();
+			first?.focus();
 		}
 	}
-
-	// Prevent scroll on body when modal is open
+	// Native modality traps focus and makes the background inert. Return focus
+	// explicitly because the conditional parent may remove the dialog on close.
 	$effect(() => {
-		if (open && typeof document !== 'undefined') {
+		if (open && dialog) {
+			const opener = document.activeElement;
+			const activeDialog = dialog;
+			const previousOverflow = document.body.style.overflow;
+			activeDialog.showModal();
 			document.body.style.overflow = 'hidden';
 			return () => {
-				document.body.style.overflow = '';
+				activeDialog.close();
+				document.body.style.overflow = previousOverflow;
+				if (opener instanceof HTMLElement && opener.isConnected) opener.focus();
 			};
 		}
 	});
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
-
 {#if open}
-	<div class="fullscreen-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+	<dialog
+		bind:this={dialog}
+		onkeydown={containFocus}
+		class="fullscreen-modal"
+		aria-labelledby={titleId}
+		oncancel={(event) => {
+			event.preventDefault();
+			onClose();
+		}}
+	>
 		<!-- Glass backdrop -->
 		<div class="fs-modal-backdrop" aria-hidden="true"></div>
 
@@ -89,7 +115,12 @@
 				<div class="header-content">
 					<!-- Back button and title -->
 					<div class="header-left">
-						<button class="back-button" onclick={onClose} title="Close" aria-label="Close modal">
+						<button
+							class="back-button"
+							onclick={onClose}
+							title={$t.audit.closeModal}
+							aria-label={$t.audit.closeModal}
+						>
 							<ArrowLeftIcon size={20} />
 							<span class="back-text">Back</span>
 						</button>
@@ -101,7 +132,7 @@
 								</div>
 							{/if}
 							<div class="header-text">
-								<h1 id="modal-title" class="fs-modal-title">{title}</h1>
+								<h1 id={titleId} class="fs-modal-title">{title}</h1>
 								{#if subtitle}
 									<p class="fs-modal-subtitle">{subtitle}</p>
 								{/if}
@@ -116,7 +147,12 @@
 								{@render headerActions()}
 							</div>
 						{/if}
-						<button class="close-button" onclick={onClose} title="Close" aria-label="Close modal">
+						<button
+							class="close-button"
+							onclick={onClose}
+							title={$t.audit.closeModal}
+							aria-label={$t.audit.closeModal}
+						>
 							<XIcon size={24} />
 						</button>
 					</div>
@@ -130,11 +166,19 @@
 				</div>
 			</main>
 		</div>
-	</div>
+	</dialog>
 {/if}
 
 <style>
 	.fullscreen-modal {
+		margin: 0;
+		padding: 0;
+		border: 0;
+		width: 100%;
+		height: 100%;
+		max-width: none;
+		max-height: none;
+		color: var(--text-primary);
 		position: fixed;
 		inset: 0;
 		z-index: var(--z-modal);

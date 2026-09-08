@@ -1,3 +1,4 @@
+import { dataUrl } from '$lib/data/release';
 /**
  * Places State Module
  *
@@ -16,7 +17,6 @@
  * "articles mentioning X". Anything stronger is unsupported by the data.
  */
 
-import { base } from '$app/paths';
 import type { Place, PlacesPayload } from '$lib/types/data';
 import { aggregatePlaces, type PlaceAggregate } from '$lib/utils/placeAggregation';
 import { parsePlacesPayload } from '$lib/data/validation';
@@ -43,7 +43,7 @@ export async function loadPlaces(fetchFunction: typeof fetch = fetch): Promise<v
 	if (!payloadPromise) {
 		_loading = true;
 		_error = null;
-		payloadPromise = fetchFunction(`${base}/data/iwac_places.json`)
+		payloadPromise = fetchFunction(dataUrl(`/data/iwac_places.json`))
 			.then((response) => {
 				if (!response.ok) {
 					throw new Error(`Failed to fetch place data: ${response.statusText}`);

@@ -1,9 +1,9 @@
+import { dataUrl } from '$lib/data/release';
 /**
  * Utility functions for extreme analysis data management
  */
 
 import type { DatasetId } from '$lib/types/data';
-import { base } from '$app/paths';
 import { polarityColors, subjectivityColors, centralityColors } from './chartTheme';
 import type {
 	ExtremeAnalysisData,
@@ -101,7 +101,7 @@ export async function loadExtremeAnalysisData(
 	fetchFunction: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
 ): Promise<ExtremeAnalysisData> {
 	const filePath = `/data/iwac_extreme_analysis_${model}.json`;
-	const resolvedPath = filePath.startsWith('http') ? filePath : `${base}${filePath}`;
+	const resolvedPath = dataUrl(filePath);
 	const response = await fetchFunction(resolvedPath);
 	if (!response.ok) {
 		throw new Error(`Failed to load extreme analysis data for ${model}: ${response.statusText}`);

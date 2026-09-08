@@ -54,7 +54,7 @@
 	open={uiState.mobileMenuOpen}
 	onClose={() => (uiState.mobileMenuOpen = false)}
 	enabled={!desktop.current}
-	label="Main navigation"
+	label={$t.audit.mainNav}
 	element="nav"
 	width="var(--sidebar-width-mobile-drawer)"
 	class="sidebar"
@@ -64,7 +64,7 @@
 	<button
 		class="toggle-btn"
 		onclick={toggleSidebar}
-		aria-label={uiState.sidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
+		aria-label={uiState.sidebarExpanded ? $t.audit.collapseNav : $t.audit.expandNav}
 		aria-expanded={uiState.sidebarExpanded}
 	>
 		{#if uiState.sidebarExpanded}

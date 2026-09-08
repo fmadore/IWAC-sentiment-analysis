@@ -150,7 +150,15 @@
 					<!-- Row backgrounds live on the cells, not the rows: a `tr` fill sits
 					     behind the sticky cells and scrolls away from under them. -->
 					<tr>
-						<th class="sortable-header">
+						<th
+							class="sortable-header"
+							scope="col"
+							aria-sort={sortBy === 'title'
+								? sortDirection === 'asc'
+									? 'ascending'
+									: 'descending'
+								: 'none'}
+						>
 							<button
 								class="sort-button"
 								type="button"
@@ -168,7 +176,15 @@
 						<th class="text-center" colspan="2">{$t.comparison.polarity}</th>
 						<th class="text-center" colspan="2">{$t.comparison.subjectivity}</th>
 						<th class="text-center" colspan="2">{$t.comparison.centrality}</th>
-						<th class="sortable-header text-center">
+						<th
+							class="sortable-header text-center"
+							scope="col"
+							aria-sort={sortBy === 'discrepancy'
+								? sortDirection === 'asc'
+									? 'ascending'
+									: 'descending'
+								: 'none'}
+						>
 							<button
 								class="sort-button"
 								type="button"
@@ -227,22 +243,18 @@
 						     class here turns the row into a column flex container, so every
 						     `<td>` stacks inside column 1 — valid markup, valid CSS, wrong
 						     everywhere except on screen. It shipped that way once already. -->
-						<tr
-							class="cursor-pointer"
-							onclick={() => selectComparison(comparison)}
-							onkeydown={(event) => {
-								if (event.key === 'Enter' || event.key === ' ') {
-									event.preventDefault();
-									selectComparison(comparison);
-								}
-							}}
-							role="button"
-							tabindex="0"
-							aria-label="View comparison details for {comparison.article['o:title']}"
-						>
+						<tr>
 							<td class="max-w-xs">
 								<div class="flex flex-col gap-1">
-									<span class="row-title line-clamp-2">{comparison.article['o:title']}</span>
+									<button
+										type="button"
+										class="row-detail-action row-title"
+										onclick={() => selectComparison(comparison)}
+										aria-label={$t.audit.comparisonDetails.replace(
+											'{title}',
+											comparison.article['o:title'] ?? ''
+										)}>{comparison.article['o:title']}</button
+									>
 									<span class="row-meta"
 										>{getJournalName(comparison.article)} • {$fmtDate(
 											comparison.article.publication_date
@@ -312,7 +324,10 @@
 					}}
 					role="button"
 					tabindex="0"
-					aria-label="View comparison details for {comparison.article['o:title']}"
+					aria-label={$t.audit.comparisonDetails.replace(
+						'{title}',
+						comparison.article['o:title'] ?? ''
+					)}
 				>
 					<!-- Header -->
 					<div class="mb-3">
@@ -435,6 +450,24 @@
 </div>
 
 <style>
+	.row-detail-action {
+		background: transparent;
+		color: inherit;
+		border: 0;
+		padding: 0;
+		text-align: start;
+		font: inherit;
+		cursor: pointer;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+	.row-detail-action:hover {
+		color: var(--text-primary);
+	}
+	.row-detail-action:focus-visible {
+		outline: 2px solid currentColor;
+		outline-offset: 2px;
+	}
 	.comparison-table-title {
 		font-family: var(--font-display);
 		font-size: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);

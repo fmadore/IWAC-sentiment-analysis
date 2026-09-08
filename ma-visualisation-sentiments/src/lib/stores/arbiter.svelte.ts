@@ -1,3 +1,4 @@
+import { dataUrl } from '$lib/data/release';
 /**
  * Arbiter State Module
  *
@@ -10,7 +11,6 @@ import type { ArbiterEvaluationData, ArbiterAnalysis, ModelPair } from '$lib/typ
 import { getPairModelNames } from '$lib/types/data';
 import { parseArbiterEvaluationData } from '$lib/data/validation';
 import { generationOf } from '$lib/domain/sentimentContract';
-import { base } from '$app/paths';
 // Import the leaf stores directly — importing from './index' would create a
 // cycle (the barrel re-exports this module). Same convention as url/*.
 import { datasetState } from './datasets.svelte';
@@ -328,7 +328,7 @@ const fetchArbiterEvaluations = async (
 	uiState.isLoadingArbiter = true;
 
 	try {
-		const pairSpecificPath = `${base}/data/iwac_arbiter_evaluations_${targetPair}.json`;
+		const pairSpecificPath = dataUrl(`/data/iwac_arbiter_evaluations_${targetPair}.json`);
 		const response = await fetchFunction(pairSpecificPath);
 
 		if (!response.ok) {

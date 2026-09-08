@@ -1,0 +1,154 @@
+/* -----------------------------------------------------------------------------
+   Base Styles — flat editorial dark surface, opaque, no ambient brand glow.
+   Tabular numerals enabled globally so columns of stats line up by default.
+   ----------------------------------------------------------------------------- */
+html {
+	scroll-behavior: smooth;
+}
+
+/* Every component guards its transitions behind prefers-reduced-motion; the
+   smooth scroll above was the one place that did not, and it is the most
+   disorienting of the lot for anyone who asked for less motion — a table
+   paginating jumps the whole viewport. */
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+}
+
+body {
+	font-family: var(--font-sans);
+	font-feature-settings: 'ss01' 1; /* Public Sans stylistic set 1: alt 'a' / 'g' */
+	font-variant-numeric: tabular-nums;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	color: var(--text-secondary);
+	background: var(--app-bg);
+	min-height: 100vh;
+}
+
+/* Display headings inherit the serif by default. Components can opt out via
+   font-family override when a sans heading is intentional. */
+h1,
+h2,
+h3 {
+	font-family: var(--font-display);
+}
+
+/* Enhanced focus styles for accessibility */
+:focus-visible {
+	outline: none;
+	box-shadow: var(--ring-focus);
+	border-radius: var(--radius-hairline);
+}
+
+::selection {
+	background: color-mix(in oklab, var(--accent) 35%, transparent);
+	color: var(--text-primary);
+}
+
+/* -----------------------------------------------------------------------------
+   Surface Presets
+   Canonical card/panel backgrounds — use these instead of redefining in components.
+   ----------------------------------------------------------------------------- */
+/* Editorial surfaces — opaque panels, no backdrop-filter. The legacy
+   `.preset-glass-*` and `.glass-*` aliases now resolve to flat surfaces too,
+   so any component still using them gets the new look automatically. */
+.preset-surface-card,
+.preset-glass,
+.variant-glass {
+	background: var(--surface-card);
+	border: 1px solid var(--border-subtle);
+	border-radius: var(--radius-panel);
+	box-shadow: var(--elevation-card);
+}
+
+/* -----------------------------------------------------------------------------
+   Card Enhancements
+   ----------------------------------------------------------------------------- */
+.card {
+	border-radius: var(--radius-panel);
+	transition:
+		border-color var(--timing-fast) var(--easing-default),
+		box-shadow var(--timing-normal) var(--easing-default),
+		transform var(--timing-normal) var(--easing-default);
+	border: 1px solid var(--border-subtle);
+}
+
+/* -----------------------------------------------------------------------------
+   Buttons
+   There is no global `.btn`. The one that used to live here set a font-weight
+   and four transitions and nothing else — the box (inline-flex, padding, gap,
+   radius) came from Skeleton, and when that went the three markup sites still
+   saying `class="btn btn-sm …"` were left asking for a rule that no longer
+   exists. A <button> with an icon and a label then falls back to `display:
+   inline` and stacks them. Every control in this project carries its own
+   layout; `scripts/check-design-tokens.mjs` fails the build if a retired
+   vendor class name reappears in markup.
+   ----------------------------------------------------------------------------- */
+
+/* -----------------------------------------------------------------------------
+   Filter Chip System
+   Chip styles are component-scoped, not global. FilterChip.svelte owns the
+   default + sentiment variants; DiscrepancyFilter.svelte owns the comparison +
+   warning variants. Each carries a self-sufficient base, so no global
+   `.filter-chip` rule lives here — a duplicate one only invited drift
+   (the old global selected-state had already diverged from the components).
+   ----------------------------------------------------------------------------- */
+
+/* -----------------------------------------------------------------------------
+   Form Elements
+   ----------------------------------------------------------------------------- */
+.select {
+	border-radius: var(--radius-panel);
+	padding: var(--space-2) var(--space-3);
+	font-size: var(--font-size-base);
+	transition:
+		background-color var(--timing-fast) var(--easing-default),
+		border-color var(--timing-fast) var(--easing-default),
+		box-shadow var(--timing-fast) var(--easing-default);
+	background: var(--surface-muted);
+	border: 1px solid var(--border-default);
+	color: var(--text-primary);
+}
+
+.select:hover {
+	border-color: var(--border-hover);
+	background: var(--surface-subtle);
+}
+
+.select:focus {
+	outline: none;
+	border-color: var(--color-primary-500);
+	box-shadow: var(--ring-focus);
+}
+
+/* The compact select, for toolbars. Global because three components ask for it
+   and two of them used to answer for themselves: the local copies had drifted
+   to different corner radii, and PaginationControls — which defined neither —
+   rendered a full-size control between two compact ones. */
+.select-sm {
+	padding: var(--space-1) var(--space-2);
+	font-size: var(--font-size-base);
+	border-radius: var(--radius-panel);
+}
+
+/* -----------------------------------------------------------------------------
+   Alert/Notification System
+   ----------------------------------------------------------------------------- */
+/* Alerts: tinted fill + 1px hairline border. No 3px side stripe. Callers
+   should compose with a leading Lucide icon at 16-18px in the alert color
+   for an unambiguous status cue. */
+.alert {
+	border-radius: var(--radius-panel);
+	padding: var(--space-3) var(--space-4);
+	position: relative;
+	font-size: var(--font-size-base);
+	line-height: var(--line-height-normal);
+}
+
+.alert-error {
+	background: color-mix(in oklab, var(--color-error-500) 12%, transparent);
+	border: 1px solid color-mix(in oklab, var(--color-error-500) 28%, transparent);
+	color: var(--color-error-200);
+}

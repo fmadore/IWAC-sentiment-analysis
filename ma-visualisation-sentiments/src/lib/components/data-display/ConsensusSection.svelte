@@ -17,9 +17,11 @@
   both scopes.
 -->
 <script lang="ts">
+	import { analysisState } from '$lib/stores/analysis.svelte';
 	import { consensusRows, consensusModels } from '$lib/stores';
 	import { dec, num, pct } from '$lib/i18n/utils';
 	import type { AgreementDimension } from '$lib/stores/agreement.svelte';
+	import { AGREEMENT_DIMENSIONS } from '$lib/stores/agreement.svelte';
 	import { profileDissent, usableValues } from '$lib/utils/consensus';
 	import { t } from '$lib/i18n';
 	import { StatCard, StatCardGrid, SectionHead } from '$lib/components/common';
@@ -52,7 +54,7 @@
 	 * titles whose articles are only marginally about Islam, which is a different
 	 * finding wearing this one's clothes.
 	 */
-	let includeDeclined = $state(false);
+	let includeDeclined = $derived(analysisState.includeDeclined);
 
 	let declinedOptions = $derived([
 		{ value: 'exclude', label: $t.agreement.declinedExclude, icon: EyeOffIcon },
@@ -62,7 +64,10 @@
 	const rows = $derived(consensusRows.current);
 	const models = $derived(consensusModels.current);
 
-	const profile = $derived(profileDissent(rows, dimension, models.length, includeDeclined));
+	const profiles = $derived(
+		AGREEMENT_DIMENSIONS.map((d) => profileDissent(rows, d, models.length, includeDeclined))
+	);
+	const profile = $derived(profiles[AGREEMENT_DIMENSIONS.indexOf(dimension)]);
 
 	/** Mean of (max − min) over the rows the current setting keeps. */
 	const meanSpread = $derived.by(() => {
@@ -90,7 +95,7 @@
 	<ChartTypeToggle
 		options={declinedOptions}
 		value={includeDeclined ? 'include' : 'exclude'}
-		onChange={(value) => (includeDeclined = value === 'include')}
+		onChange={(value) => (analysisState.includeDeclined = value === 'include')}
 		ariaLabel={$t.agreement.declinedToggle}
 	/>
 </div>
@@ -143,7 +148,7 @@
 </StatCardGrid>
 
 <ChartCard variant="comparison" class="mb-6">
-	<DirectionalDissentChart {rows} {models} {includeDeclined} />
+	<DirectionalDissentChart {profiles} {models} />
 </ChartCard>
 
 <ChartCard variant="comparison" class="mb-6">

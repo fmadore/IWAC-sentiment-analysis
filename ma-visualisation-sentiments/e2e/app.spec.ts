@@ -62,7 +62,7 @@ test('keeps the model-pair menu inside the page', async ({ page }) => {
 });
 
 test('shows a retryable error instead of pretending a failed corpus is empty', async ({ page }) => {
-	await page.route('**/data/iwac_articles_base.json', (route) => route.abort());
+	await page.route('**/iwac_articles_base.json', (route) => route.abort());
 	await page.goto('?view=charts&lang=en');
 	const alert = page.getByRole('alert');
 	await expect(alert).toContainText('could not be loaded');

@@ -197,7 +197,7 @@
 						excludeNonApplicable = value;
 						updateFilters();
 					}}
-					ariaLabel="Toggle exclude non-applicable articles"
+					ariaLabel={$t.audit.excludeNA}
 				/>
 			</div>
 			<p class="helper-text">
@@ -306,7 +306,7 @@
 
 	.helper-text {
 		font-size: var(--font-size-xs);
-		color: var(--text-subtle);
+		color: var(--text-secondary);
 		margin: var(--space-1) 0 0 0;
 	}
 

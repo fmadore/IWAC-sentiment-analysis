@@ -82,30 +82,40 @@ import argparse
 import json
 import os
 import random
-from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from functools import partial
 from pathlib import Path
 from typing import Any, Literal, get_args
 
+from iwac_preprocess.arbiter_prompt import (
+    ARBITER_MAX_INPUT_CHARS,
+    BLIND_LABELS,
+    SYSTEM_INSTRUCTION,
+    create_arbiter_prompt,
+)
+from iwac_preprocess.arbiter_prompt import (
+    display_order as display_order,
+)
+from iwac_preprocess.arbiter_selection import (
+    apply_limit,
+    attach_full_text,
+    find_three_way_conflicts,
+    resolve_threshold,
+)
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from shared import (
     CONTRACT_V2,
     HF_FULL_REPO_ID,
     HF_REPO_ID,
     SentimentContract,
-    build_model_sentiment,
-    calculate_three_way_spread,
     get_logger,
     get_source_revision,
     get_webapp_data_dir,
-    has_polarity_valence_flip,
     load_iwac_dataset,
     load_iwac_full_text,
     reconcile_cached_evaluations,
     safe_save_json,
-    safe_str,
     three_way_cache_fingerprint,
     validate_columns,
 )
@@ -119,7 +129,6 @@ logger = get_logger(__name__)
 
 CONTRACT = CONTRACT_V2
 ARBITER_MODEL = CONTRACT.arbiter["arbiterModel"]
-ARBITER_MAX_INPUT_CHARS = 15000  # article text is truncated to this length
 # Thinking is on by default on Claude Opus 5, so max_tokens has to cover the
 # reasoning as well as the JSON. A truncated response is a wasted paid call.
 ARBITER_MAX_OUTPUT_TOKENS = 16000
@@ -167,7 +176,6 @@ REQUIRED_BASE_COLUMNS = ["o:id", "title", "newspaper", "country", "pub_date"]
 # The anonymised labels the five panel models are presented under. One label per
 # contract model, in this order; `resolve_blind_permutation` refuses to run if
 # the two lengths ever disagree.
-BLIND_LABELS = ("a", "b", "c", "d", "e")
 PREFERENCE_VALUES = (*BLIND_LABELS, "multiple", "none")
 
 # Which dimensions may *trigger* selection, and where each one's spread lives.
@@ -364,153 +372,9 @@ class ArbiterAnalysisV2:
 # Prompt
 # ============================================================================
 
-SYSTEM_INSTRUCTION = """Vous êtes un arbitre expert évaluant l'analyse de sentiment d'articles de presse sur l'islam et les musulmans en Afrique de l'Ouest francophone.
-
-Votre rôle est de :
-1. Lire l'article et former votre propre évaluation **avant** de considérer les analyses proposées
-2. Comparer ensuite les analyses de cinq modèles d'IA (Analyse A, Analyse B, Analyse C, Analyse D et Analyse E)
-3. Déterminer laquelle est la plus précise, ou si plusieurs se valent, ou si aucune n'est juste
-4. Fournir des justifications claires et bien argumentées pour vos décisions
-
-## Référence des échelles d'évaluation :
-
-### Polarité (Sentiment envers l'islam/les musulmans) :
-- **Très positif** : Portrait extrêmement favorable, enthousiaste, élogieux
-- **Positif** : Portrait favorable, optimiste
-- **Neutre** : Pas de sentiment clair ou équilibre entre positif/négatif ; ton factuel
-- **Négatif** : Portrait défavorable, critique, pessimiste
-- **Très négatif** : Portrait extrêmement défavorable, alarmiste, très critique
-- **Non applicable** : L'article ne traite pas de l'islam ou des musulmans
-
-### Subjectivité :
-- **Très objectif** : Rapporte des faits vérifiables sans opinions personnelles, purement informatif
-- **Plutôt objectif** : Principalement factuel, peut contenir de subtiles traces d'opinions
-- **Mixte** : Mélange équilibré de faits et d'opinions, ou présente plusieurs points de vue
-- **Plutôt subjectif** : Exprime clairement des opinions et des jugements
-- **Très subjectif** : Fortement biaisé, opinions intenses avec peu de présentation factuelle
-
-### Centralité :
-- **Très central** : L'islam/les musulmans sont le sujet principal de l'article
-- **Central** : Thème important mais partagé avec d'autres sujets
-- **Secondaire** : Mentionné significativement mais de façon secondaire
-- **Marginal** : Mentionné brièvement ou anecdotiquement
-- **Non abordé** : Aucune mention de l'islam ou des musulmans
-
-## Règles de démarcation :
-- « Non applicable » et « Non abordé » signifient que la tâche ne s'applique pas à l'article, et non qu'elle s'y applique faiblement. N'utilisez ces valeurs que si l'islam et les musulmans sont réellement absents du texte.
-- Une simple mention nominative (un nom propre, une date du calendrier islamique) relève de « Marginal », pas de « Secondaire ».
-- La subjectivité mesure le ton de l'article envers l'islam et les musulmans, pas la subjectivité générale de la prose.
-- La polarité porte sur la représentation de l'islam et des musulmans, pas sur le caractère heureux ou malheureux des faits rapportés.
-
-## Directives :
-- Soyez rigoureux et analytique dans votre évaluation
-- Tenez compte du contexte culturel et régional de l'Afrique de l'Ouest francophone
-- Fournissez des preuves textuelles spécifiques lorsque possible
-- Soyez honnête sur l'incertitude lorsque la réponse correcte est ambiguë
-- Les cinq analyses sont anonymisées : jugez-les uniquement sur leur contenu
-- Leur ordre de présentation est tiré au hasard pour chaque article et ne signifie rien : ne le lisez jamais comme un classement, une préférence ou une ancienneté
-- Le désaccord entre les analyses n'implique pas qu'une d'entre elles soit juste : si votre lecture du texte ne correspond à aucune, répondez « none »
-- Utilisez la terminologie française pour les scores (comme indiqué ci-dessus)
-- Répondez entièrement en français (justifications, explications et verdicts)
-- Pour `preferred` et `overall_winner`, utilisez strictement : "a", "b", "c", "d", "e", "multiple" (plusieurs analyses équivalentes) ou "none" (aucune n'est juste)"""
-
-
-def format_analysis(label: str, analysis: dict, contract: SentimentContract) -> str:
-    """Render one anonymised analysis block for the user prompt."""
-    rank = analysis.get("subjectivite_score")
-    subjectivity = (
-        SUBJECTIVITY_LABELS.get(rank, "Non renseigné") if rank is not None else "Non renseigné"
-    )
-    return f"""## Analyse {label.upper()} :
-- **Polarité (sentiment envers l'islam/les musulmans) :** {analysis.get("polarite") or "N/A"}
-  - Justification : {analysis.get("polarite_justification") or "N/A"}
-- **Subjectivité :** {subjectivity}
-  - Justification : {analysis.get("subjectivite_justification") or "N/A"}
-- **Centralité de l'islam/des musulmans :** {analysis.get("centralite_islam_musulmans") or "N/A"}
-  - Justification : {analysis.get("centralite_justification") or "N/A"}"""
-
-
-def display_order(article_id: str, labels: Sequence[str] = BLIND_LABELS) -> list[str]:
-    """The order the blind labels are *presented* in, shuffled per article.
-
-    The label -> model map is fixed for the whole run so that "Analyse C" means
-    the same model in every published verdict. Presenting the labels in that
-    same fixed order on every prompt would additionally hand one model the first
-    position on every single article, and an LLM judge's position bias would
-    then be perfectly confounded with model identity — unrecoverable after the
-    fact, because no article would carry a different arrangement to compare
-    against. Shuffling the presentation while holding the labels fixed separates
-    the two: each model meets each position across the corpus, and the published
-    labels still mean what they always meant.
-
-    Seeded on the article id, so a run is reproducible and re-evaluating one
-    article reproduces its first pass rather than a fresh arrangement.
-    """
-    order = list(labels)
-    random.Random(str(article_id)).shuffle(order)
-    return order
-
-
-def create_arbiter_prompt(
-    article: dict, permutation: dict[str, str], contract: SentimentContract = CONTRACT
-) -> str:
-    """Build the user prompt: the article, then the five analyses.
-
-    The system instruction already carries the scales and the guidelines, so
-    this prompt is only the case at hand. The analyses are laid out in
-    `display_order`, not alphabetically — see there for why.
-    """
-    analyses = article.get("analyses") or {}
-    blocks = "\n\n".join(
-        format_analysis(label, analyses.get(permutation[label]) or {}, contract)
-        for label in display_order(str(article.get("o:id")))
-    )
-    full_text = article.get("OCR") or ""
-    text = full_text[:ARBITER_MAX_INPUT_CHARS]
-    # Say so when the text is cut. An arbiter judging a truncated article
-    # silently is an arbiter that may be scoring an absent conclusion.
-    if len(full_text) > ARBITER_MAX_INPUT_CHARS:
-        text += "\n\n[Texte tronqué : seuls les premiers caractères de l'article sont fournis.]"
-    return f"""Évaluez l'article suivant et les cinq analyses de modèles.
-
-## Informations sur l'article
-**Titre :** {article.get("o:title") or "Sans titre"}
-
-**Texte intégral :**
-{text}
-
----
-
-{blocks}
-
----
-
-Fournissez votre évaluation indépendante pour chaque dimension, déterminez quelle analyse est la plus précise et expliquez votre raisonnement."""
-
-
 # ============================================================================
 # Selection
 # ============================================================================
-
-
-def resolve_threshold(threshold: int | None, contract: SentimentContract = CONTRACT) -> int:
-    """Validate a threshold override, defaulting to the contract's.
-
-    A *lower* threshold is rejected rather than clamped. `validate_arbiter_three_way`
-    recomputes eligibility from the contract rule and requires the published ids
-    to be a subset of it, so a looser run would write a file the repo's own
-    validator rejects — days after the money was spent.
-    """
-    floor = contract.significant_spread_threshold
-    if threshold is None:
-        return floor
-    if threshold < floor:
-        raise SystemExit(
-            f"--threshold {threshold} is looser than the {contract.analysis_version} contract's "
-            f"significant spread ({floor}). The published file would fail validate_generated_data. "
-            "Selection can only be tightened here; loosening it is a contract change."
-        )
-    return threshold
 
 
 def load_dataset_records(contract: SentimentContract = CONTRACT) -> list[dict]:
@@ -519,133 +383,6 @@ def load_dataset_records(contract: SentimentContract = CONTRACT) -> list[dict]:
     validate_columns(df, REQUIRED_BASE_COLUMNS)
     logger.info("Loaded %d articles from %s", len(df), HF_REPO_ID)
     return df.to_dict("records")
-
-
-def qualifies(
-    spread: dict,
-    dimensions: Sequence[str],
-    threshold: int,
-    *,
-    rule: str = DEFAULT_RULE,
-    valence_flip: bool = False,
-) -> bool:
-    """Whether one article trips the configured selection rule.
-
-    Separate from `calculate_three_way_spread` on purpose: the stored `spread`
-    dict — and therefore the cache fingerprint — is the same whatever rule
-    selected the row, so narrowing the rule prunes articles instead of
-    invalidating the ones that survive.
-
-    `--dimensions` and `--threshold` narrow the *spread* half only. Under
-    `--rule valence` they are inert by construction, which is why the CLI says
-    so rather than silently ignoring them.
-    """
-    by_spread = any(spread[SPREAD_KEYS[dimension]] >= threshold for dimension in dimensions)
-    if rule == RULE_SPREAD:
-        return by_spread
-    if rule == RULE_VALENCE:
-        return valence_flip
-    return by_spread or valence_flip
-
-
-def find_three_way_conflicts(
-    records: list[dict],
-    contract: SentimentContract = CONTRACT,
-    *,
-    dimensions: Sequence[str] = DIMENSIONS,
-    threshold: int | None = None,
-    rule: str = DEFAULT_RULE,
-) -> list[dict]:
-    """Select every article the configured rule says is worth arbitrating.
-
-    Comparability is the contract's: one non-comparable polarity or centrality
-    excludes the row, because the models are then disagreeing about whether the
-    task applies rather than about the answer.
-
-    `rule`, `dimensions` and `threshold` narrow *which* disagreements are worth
-    paying to arbitrate. They can only ever tighten the contract's arbiter
-    frame — see `resolve_threshold` and `is_arbiter_eligible`.
-
-    `valence_flip` is stored beside `spread` rather than inside it: the spread
-    dict is hashed into the cache fingerprint, and a row's identity must not
-    depend on which rule happened to select it.
-    """
-    model_ids = list(contract.model_names)
-    threshold = resolve_threshold(threshold, contract)
-    selected: list[dict] = []
-
-    for item in tqdm(records, total=len(records), desc="Finding panel conflicts"):
-        analyses = {
-            model_id: build_model_sentiment(item, model_id, contract) for model_id in model_ids
-        }
-        ordered = [analyses[model_id] for model_id in model_ids]
-        spread = calculate_three_way_spread(ordered, contract)
-        if not spread:
-            continue
-        valence_flip = has_polarity_valence_flip(ordered, contract)
-        if not qualifies(spread, dimensions, threshold, rule=rule, valence_flip=valence_flip):
-            continue
-        selected.append(
-            {
-                "o:id": item.get("o:id"),
-                "o:title": safe_str(item.get("title")),
-                "newspaper": safe_str(item.get("newspaper")),
-                "country": safe_str(item.get("country")),
-                "pub_date": safe_str(item.get("pub_date")),
-                "analyses": analyses,
-                "spread": spread,
-                "valence_flip": valence_flip,
-            }
-        )
-
-    return selected
-
-
-def attach_full_text(articles: list[dict], texts: dict[str, str]) -> tuple[list[dict], list[str]]:
-    """Join the private mirror's unmasked OCR onto the selected articles.
-
-    An article with no text even in the mirror is dropped rather than sent: the
-    arbiter would be judging five analyses of nothing.
-    """
-    kept: list[dict] = []
-    missing: list[str] = []
-    for article in articles:
-        text = texts.get(str(article.get("o:id")))
-        if not text:
-            missing.append(str(article.get("o:id")))
-            continue
-        kept.append({**article, "OCR": text})
-    return kept, missing
-
-
-def selection_magnitude(article: dict, dimensions: Sequence[str]) -> int:
-    """How wide this article's disagreement is *on the dimensions in play*.
-
-    `total_spread` sums all three dimensions, so ranking by it under
-    `--dimensions polarity` puts the articles with the largest **subjectivity**
-    disagreement at the front — the noisiest dimension in the panel, and the one
-    the narrowed run had just excluded. A cap would then spend the budget on
-    exactly what the rule was written to avoid.
-    """
-    return sum(article["spread"][SPREAD_KEYS[dimension]] for dimension in dimensions)
-
-
-def apply_limit(
-    articles: list[dict], limit: int | None, dimensions: Sequence[str] = DIMENSIONS
-) -> list[dict]:
-    """Keep the ``limit`` widest disagreements, deterministically.
-
-    Width is measured on the selected dimensions only (see
-    `selection_magnitude`). Ties are broken by article id so that two runs with
-    the same corpus and the same cap select the same articles.
-    """
-    if limit is None or limit >= len(articles):
-        return articles
-    ordered = sorted(
-        articles,
-        key=lambda article: (-selection_magnitude(article, dimensions), str(article["o:id"])),
-    )
-    return ordered[:limit]
 
 
 # ============================================================================

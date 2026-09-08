@@ -12,6 +12,7 @@
   puts its mass*, and the corpus size is identical across models anyway.
 -->
 <script lang="ts">
+	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import { Chart } from 'svelte-echarts';
 	import { num, pct } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
@@ -174,3 +175,21 @@
 {:else}
 	<p class="chart-empty">{$t.table.noFilteredArticles}</p>
 {/if}
+<ChartDataTable
+	columns={[
+		{ label: $t.viewMeta.model },
+		{ label: $t.audit.category },
+		{ label: $t.audit.count, format: 'integer' },
+		{ label: $t.audit.share, format: 'percent' }
+	]}
+	rows={marginals.flatMap((m) =>
+		categories.map((_, i) => [
+			getModelDisplayName(m.modelId, datasetState.available),
+			categoryLabels[i],
+			m.counts[i],
+			m.percentages[i] / 100
+		])
+	)}
+	caption={$t.agreement.calibrationTitle}
+	filenamePrefix="ModelCalibrationChart"
+/>

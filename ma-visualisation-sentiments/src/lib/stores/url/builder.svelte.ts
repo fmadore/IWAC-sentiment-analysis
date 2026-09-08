@@ -89,5 +89,17 @@ export function buildURLSearchParams(state: URLState): SvelteURLSearchParams {
 		}
 	}
 
+	if (state.view === 'comparison') {
+		if (state.dimensions) {
+			params.set('dimensions', state.dimensions.join(','));
+		}
+		if (state.excludeNA !== undefined) params.set('excludeNA', String(state.excludeNA));
+	}
+	if (state.view === 'agreement') {
+		if (state.pair) params.set(URL_PARAMS.pair, state.pair);
+		if (state.scope) params.set('scope', state.scope);
+		if (state.dimension) params.set('dimension', state.dimension);
+		if (state.declined !== undefined) params.set('declined', String(state.declined));
+	}
 	return params;
 }

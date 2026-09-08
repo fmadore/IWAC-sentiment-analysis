@@ -14,7 +14,7 @@ import { getModelsFromPair } from '$lib/types/data';
 import { datasetIdsOf } from '$lib/domain/sentimentContract';
 import {
 	buildConfusionMatrix,
-	cohensKappa,
+	kappaFromMatrix,
 	fleissKappa,
 	type ConfusionMatrix,
 	type FleissResult,
@@ -58,6 +58,16 @@ function applyCorpusFilters(articles: Article[]): Article[] {
 	});
 }
 
+const filteredDatasets = $derived.by(
+	() =>
+		Object.fromEntries(
+			datasetIdsOf(datasetState.generation).map((id) => [
+				id,
+				applyCorpusFilters(articleState.datasets[id] ?? [])
+			])
+		) as Record<DatasetId, Article[]>
+);
+
 export interface DimensionAgreement {
 	dimension: AgreementDimension;
 	categories: string[];
@@ -83,22 +93,23 @@ export const pairAgreement = {
 		const articlesB = articleState.datasets[modelBId];
 		if (!articlesA?.length || !articlesB?.length) return null;
 
-		const filteredA = applyCorpusFilters(articlesA);
-		const filteredB = applyCorpusFilters(articlesB);
+		const filteredA = filteredDatasets[modelAId];
+		const filteredB = filteredDatasets[modelBId];
 
 		return Object.fromEntries(
 			AGREEMENT_DIMENSIONS.map((dimension) => {
 				const categories = DIMENSION_CATEGORIES[dimension];
 				const pairs = buildLabelPairs(filteredA, filteredB, dimension);
+				const matrix = buildConfusionMatrix(pairs, categories);
 
 				return [
 					dimension,
 					{
 						dimension,
 						categories,
-						matrix: buildConfusionMatrix(pairs, categories),
-						kappa: cohensKappa(pairs, categories, 'none'),
-						weightedKappa: cohensKappa(pairs, categories, 'quadratic')
+						matrix,
+						kappa: kappaFromMatrix(matrix, 'none'),
+						weightedKappa: kappaFromMatrix(matrix, 'quadratic')
 					} satisfies DimensionAgreement
 				];
 			})
@@ -121,7 +132,7 @@ export const panelAgreement = {
 		if (!allLoaded) return null;
 
 		const filtered = Object.fromEntries(
-			generationIds.map((id) => [id, applyCorpusFilters(datasets[id])])
+			generationIds.map((id) => [id, filteredDatasets[id]])
 		) as Record<string, Article[]>;
 
 		return Object.fromEntries(
@@ -155,7 +166,7 @@ export const consensusRows = {
 		if (!generationIds.every((id: DatasetId) => datasets[id]?.length)) return [];
 
 		const filtered = Object.fromEntries(
-			generationIds.map((id) => [id, applyCorpusFilters(datasets[id])])
+			generationIds.map((id) => [id, filteredDatasets[id]])
 		) as Record<string, Article[]>;
 
 		return buildConsensusRows(filtered, generationIds);
@@ -183,7 +194,7 @@ export const modelMarginals = {
 		return Object.fromEntries(
 			AGREEMENT_DIMENSIONS.map((dimension) => [
 				dimension,
-				loadedIds.map((id) => computeMarginals(applyCorpusFilters(datasets[id]), dimension, id))
+				loadedIds.map((id) => computeMarginals(filteredDatasets[id], dimension, id))
 			])
 		) as Record<AgreementDimension, ModelMarginals[]>;
 	}

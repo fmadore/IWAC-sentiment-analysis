@@ -1,3 +1,4 @@
+import { dataUrl } from '$lib/data/release';
 /**
  * Generation-2 arbiter state — one panel-wide verdict per article.
  *
@@ -12,7 +13,6 @@
  * none of v1's per-pair cache machinery is needed here.
  */
 
-import { base } from '$app/paths';
 import { parseArbiterV2EvaluationData } from '$lib/data/validation';
 import { datasetIdsOf, modelDisplayName } from '$lib/domain/sentimentContract';
 import { ARBITER_BLIND_LABELS } from '$lib/types/data';
@@ -341,7 +341,7 @@ export const loadArbiterV2Evaluations = async (fetchFunction: typeof fetch): Pro
 const fetchArbiterV2 = async (fetchFunction: typeof fetch): Promise<void> => {
 	uiState.isLoadingArbiter = true;
 	try {
-		const response = await fetchFunction(`${base}/data/iwac_arbiter_evaluations_v2.json`);
+		const response = await fetchFunction(dataUrl(`/data/iwac_arbiter_evaluations_v2.json`));
 		if (!response.ok) {
 			// Optional data: the panel arbiter run is paid and user-gated.
 			attempted = true;

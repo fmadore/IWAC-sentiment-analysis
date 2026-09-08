@@ -1,141 +1,92 @@
-<!--
-  InfoTooltip Component
-
-  An info "?" trigger with a rich tooltip panel. The trigger is a focusable
-  button (aria-label + aria-describedby) and the tooltip is shown on both
-  hover and keyboard focus.
-
-  Usage:
-  <InfoTooltip ariaLabel="More information">
-    <p>Tooltip content...</p>
-  </InfoTooltip>
--->
 <script lang="ts">
-	import type { Snippet } from 'svelte';
-
-	interface InfoTooltipProps {
-		/** Accessible label for the trigger button */
-		ariaLabel: string;
-		/** Tooltip content */
-		children: Snippet;
-		/** Additional CSS class */
-		class?: string;
-	}
-
-	let { ariaLabel, children, class: className = '' }: InfoTooltipProps = $props();
-
+	import { tick, type Snippet } from 'svelte';
+	import InfoIcon from '@lucide/svelte/icons/info';
+	let {
+		ariaLabel,
+		children,
+		class: className = ''
+	}: { ariaLabel: string; children: Snippet; class?: string } = $props();
 	const uid = $props.id();
-	const tooltipId = `${uid}-tooltip`;
+	let trigger: HTMLButtonElement;
+	let panel: HTMLDivElement;
+	let open = $state(false);
+	let left = $state(0);
+	let top = $state(0);
+	async function place(event: ToggleEvent) {
+		open = event.newState === 'open';
+		if (!open) return;
+		await tick();
+		const anchor = trigger.getBoundingClientRect();
+		const box = panel.getBoundingClientRect();
+		left = Math.max(16, Math.min(anchor.left, window.innerWidth - box.width - 16));
+		top = Math.max(16, Math.min(anchor.bottom + 8, window.innerHeight - box.height - 16));
+	}
+	function close() {
+		if (open) panel.hidePopover();
+	}
 </script>
 
-<div class="info-tooltip {className}">
-	<button type="button" class="info-icon" aria-label={ariaLabel} aria-describedby={tooltipId}>
-		ⓘ
-	</button>
-	<div class="tooltip-content" id={tooltipId} role="tooltip">
+<svelte:window onresize={close} onscroll={close} />
+<span class="info-tooltip {className}">
+	<button
+		bind:this={trigger}
+		type="button"
+		class="info-icon"
+		popovertarget={uid}
+		aria-label={ariaLabel}
+		aria-expanded={open}
+		aria-controls={uid}><InfoIcon size={16} /></button
+	>
+	<div
+		bind:this={panel}
+		id={uid}
+		popover="auto"
+		ontoggle={place}
+		class="tooltip-content"
+		style:left={`${left}px`}
+		style:top={`${top}px`}
+	>
 		{@render children()}
 	</div>
-</div>
+</span>
 
 <style>
 	.info-tooltip {
-		/* Component API — override on any ancestor to retint the bubble. */
-		--tooltip-bg: var(--surface-card-elevated);
-
-		position: relative;
-		display: inline-block;
+		display: inline-flex;
+		vertical-align: middle;
 	}
-
 	.info-icon {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: var(--size-icon-sm);
-		height: var(--size-icon-sm);
-		padding: 0;
-		background: var(--surface-active);
+		min-width: 44px;
+		min-height: 44px;
+		padding: var(--space-2);
+		border: 0;
+		background: transparent;
 		color: var(--text-secondary);
-		border: none;
-		border-radius: var(--radius-circle);
-		font-size: var(--font-size-eyebrow);
-		font-weight: var(--font-weight-bold);
-		cursor: help;
-		transition:
-			background-color var(--timing-fast) var(--easing-default),
-			color var(--timing-fast) var(--easing-default);
+		cursor: pointer;
 	}
-
 	.info-icon:hover {
-		background: var(--border-strong);
+		background: var(--surface-active);
 		color: var(--text-primary);
 	}
-
 	.info-icon:focus-visible {
-		outline: none;
-		box-shadow: var(--ring-focus);
+		outline: 2px solid var(--text-primary);
+		outline-offset: 2px;
 	}
-
 	.tooltip-content {
-		position: absolute;
-		top: calc(var(--space-2-5) * -1);
-		left: 0;
-		transform: translateY(-100%);
-		background: var(--tooltip-bg);
+		position: fixed;
+		inset: auto;
+		margin: 0;
+		width: min(24rem, calc(100vw - 2rem));
+		max-height: calc(100dvh - 2rem);
+		overflow: auto;
+		padding: var(--space-4);
+		background: var(--surface-card-elevated);
+		color: var(--text-primary);
 		border: 1px solid var(--border-strong);
-		border-radius: var(--radius-hairline);
-		padding: var(--space-3);
-		min-width: 320px;
-		max-width: 400px;
-		opacity: 0;
-		visibility: hidden;
-		transition:
-			opacity var(--timing-normal) var(--easing-default),
-			visibility var(--timing-normal) var(--easing-default),
-			transform var(--timing-normal) var(--easing-default);
-		z-index: var(--z-modal);
+		border-radius: var(--radius-panel);
 		box-shadow: var(--shadow-xl);
-	}
-
-	.info-tooltip:hover .tooltip-content,
-	.info-icon:focus-visible + .tooltip-content {
-		opacity: 1;
-		visibility: visible;
-		transform: translateY(-100%) translateY(-8px);
-	}
-
-	.tooltip-content::after {
-		content: '';
-		position: absolute;
-		top: 100%;
-		left: 24px;
-		transform: none;
-		border: 6px solid transparent;
-		border-top-color: var(--tooltip-bg);
-	}
-
-	/* Responsive tooltip */
-	@media (min-width: 640px) {
-		.tooltip-content {
-			left: 50%;
-			transform: translateX(-50%) translateY(-100%);
-		}
-
-		.info-tooltip:hover .tooltip-content,
-		.info-icon:focus-visible + .tooltip-content {
-			transform: translateX(-50%) translateY(-100%) translateY(-8px);
-		}
-
-		.tooltip-content::after {
-			left: 50%;
-			transform: translateX(-50%);
-		}
-	}
-
-	/* Reduced motion */
-	@media (prefers-reduced-motion: reduce) {
-		.info-icon,
-		.tooltip-content {
-			transition: none;
-		}
 	}
 </style>

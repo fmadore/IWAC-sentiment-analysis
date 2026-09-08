@@ -1,0 +1,715 @@
+/* =============================================================================
+   IWAC SENTIMENT ANALYSIS — DESIGN SYSTEM
+   Investigative-data-journalism aesthetic. Dark only. Editorial type, restrained
+   chrome, opaque surfaces, perceptually-uniform sentiment palettes in OKLCH.
+
+   The rules a component author actually has to follow are in DESIGN.md.
+   ============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   BREAKPOINTS — three thresholds, one direction
+
+   This app has exactly three: 640 (phone → small tablet), 1024 (the filter rail
+   and sidebar become permanent) and 1280 (the sidebar defaults to expanded).
+   Every media query in the codebase is `min-width` and mobile-first, so a
+   stylesheet reads top to bottom as "smallest first, add as you go" instead of
+   needing five overlapping ranges resolved by source order.
+
+   Retired: 420, 480, 768 and 900. Two of those appeared exactly once, and the
+   480/768 pair was mostly components inside the 320px filter rail asking the
+   *viewport* how much room they had — those are container queries now
+   (`@container filter-rail`), which is a question they can answer correctly.
+
+   Tailwind's own scale is redefined here to the same three, so the two dialects
+   cannot disagree: `md:` and `2xl:` are removed rather than left to shadow
+   thresholds that no longer exist in the CSS.
+   ----------------------------------------------------------------------------- */
+@theme {
+	--breakpoint-md: initial;
+	--breakpoint-2xl: initial;
+}
+
+/* -----------------------------------------------------------------------------
+   CSS Custom Properties
+   ----------------------------------------------------------------------------- */
+:root {
+	/* ==========================================================================
+	   TYPOGRAPHY — editorial pairing
+	   - Source Serif 4: display headings, brand title, view titles
+	   - Public Sans:    body, UI, paragraph
+	   - JetBrains Mono: eyebrows, tabular numerals when emphasized, methodology
+	   ========================================================================== */
+	--font-display: 'Source Serif 4', 'Source Serif Pro', Georgia, 'Times New Roman', Times, serif;
+	--font-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	--font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+	/* Legacy alias kept for anything reading --base-font-family. */
+	--base-font-family: var(--font-sans);
+	--heading-font-family: var(--font-display);
+
+	/* ==========================================================================
+	   MOTION
+	   ========================================================================== */
+	--timing-instant: 80ms;
+	--timing-fast: 150ms;
+	--timing-normal: 220ms;
+	--timing-slow: 320ms;
+	--easing-default: cubic-bezier(0.32, 0.72, 0, 1); /* out-expo */
+	--easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
+	--easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+	/* ==========================================================================
+	   SENTIMENT PALETTES — perceptually-uniform OKLCH ramps
+	   Construction principles:
+	   - Polarity: diverging red ↔ green through low-chroma blue (neutral)
+	     Equal lightness at the poles so a 'Très négatif' bar reads no
+	     brighter than a 'Très positif' bar at equal area.
+	   - Subjectivity: single-hue lightness ramp from cool desaturated to warm.
+	     Score 1 (objective) is cool/calm; score 5 (subjective) is warm/loud.
+	   - Centrality: single-hue amber ramp by lightness/chroma.
+	   ========================================================================== */
+
+	/* --- Polarity (diverging) --- */
+	--sentiment-polarity-very-negative: oklch(0.62 0.2 25);
+	--sentiment-polarity-very-negative-bg: color-mix(
+		in oklab,
+		var(--sentiment-polarity-very-negative) 18%,
+		transparent
+	);
+	--sentiment-polarity-very-negative-border: color-mix(
+		in oklab,
+		var(--sentiment-polarity-very-negative) 36%,
+		transparent
+	);
+
+	--sentiment-polarity-negative: oklch(0.7 0.14 25);
+	--sentiment-polarity-negative-bg: color-mix(
+		in oklab,
+		var(--sentiment-polarity-negative) 16%,
+		transparent
+	);
+	--sentiment-polarity-negative-border: color-mix(
+		in oklab,
+		var(--sentiment-polarity-negative) 32%,
+		transparent
+	);
+
+	--sentiment-polarity-neutral: oklch(0.66 0.045 250);
+	--sentiment-polarity-neutral-bg: color-mix(
+		in oklab,
+		var(--sentiment-polarity-neutral) 16%,
+		transparent
+	);
+	--sentiment-polarity-neutral-border: color-mix(
+		in oklab,
+		var(--sentiment-polarity-neutral) 32%,
+		transparent
+	);
+
+	--sentiment-polarity-positive: oklch(0.7 0.13 150);
+	--sentiment-polarity-positive-bg: color-mix(
+		in oklab,
+		var(--sentiment-polarity-positive) 16%,
+		transparent
+	);
+	--sentiment-polarity-positive-border: color-mix(
+		in oklab,
+		var(--sentiment-polarity-positive) 32%,
+		transparent
+	);
+
+	--sentiment-polarity-very-positive: oklch(0.62 0.18 150);
+	--sentiment-polarity-very-positive-bg: color-mix(
+		in oklab,
+		var(--sentiment-polarity-very-positive) 18%,
+		transparent
+	);
+	--sentiment-polarity-very-positive-border: color-mix(
+		in oklab,
+		var(--sentiment-polarity-very-positive) 36%,
+		transparent
+	);
+
+	--sentiment-polarity-na: oklch(0.55 0.01 260);
+	--sentiment-polarity-na-bg: color-mix(in oklab, var(--sentiment-polarity-na) 14%, transparent);
+	--sentiment-polarity-na-border: color-mix(
+		in oklab,
+		var(--sentiment-polarity-na) 28%,
+		transparent
+	);
+
+	/* A rating that was never produced — the filter rail's "Not annotated"
+	   chip and the badge for a null score, in all three families. Achromatic,
+	   where `na` keeps polarity's blue cast: `na` is a verdict (no stance),
+	   this is the absence of one. */
+	--sentiment-not-annotated: oklch(0.66 0 0);
+	--sentiment-not-annotated-bg: color-mix(
+		in oklab,
+		var(--sentiment-not-annotated) 10%,
+		transparent
+	);
+	--sentiment-not-annotated-border: color-mix(
+		in oklab,
+		var(--sentiment-not-annotated) 30%,
+		transparent
+	);
+
+	/* --- Subjectivity (Score 1→5, sequential cool→warm by lightness) --- */
+	--sentiment-subjectivity-1: oklch(0.72 0.06 220); /* objective: cool, calm */
+	--sentiment-subjectivity-2: oklch(0.7 0.085 200);
+	--sentiment-subjectivity-3: oklch(0.68 0.09 130); /* mixed: muted green-yellow */
+	--sentiment-subjectivity-4: oklch(0.68 0.13 60);
+	--sentiment-subjectivity-5: oklch(0.7 0.17 35); /* subjective: warm, loud; AA on badge bg */
+
+	--sentiment-subjectivity-1-bg: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-1) 16%,
+		transparent
+	);
+	--sentiment-subjectivity-1-border: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-1) 32%,
+		transparent
+	);
+	--sentiment-subjectivity-2-bg: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-2) 16%,
+		transparent
+	);
+	--sentiment-subjectivity-2-border: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-2) 32%,
+		transparent
+	);
+	--sentiment-subjectivity-3-bg: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-3) 16%,
+		transparent
+	);
+	--sentiment-subjectivity-3-border: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-3) 32%,
+		transparent
+	);
+	--sentiment-subjectivity-4-bg: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-4) 16%,
+		transparent
+	);
+	--sentiment-subjectivity-4-border: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-4) 32%,
+		transparent
+	);
+	--sentiment-subjectivity-5-bg: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-5) 16%,
+		transparent
+	);
+	--sentiment-subjectivity-5-border: color-mix(
+		in oklab,
+		var(--sentiment-subjectivity-5) 32%,
+		transparent
+	);
+
+	/* --- Centrality (sequential single-hue amber, more = brighter) --- */
+	--sentiment-centrality-not-addressed: oklch(0.42 0.005 80);
+	--sentiment-centrality-marginal: oklch(0.52 0.04 80);
+	--sentiment-centrality-secondary: oklch(0.62 0.075 80);
+	--sentiment-centrality-central: oklch(0.72 0.115 80);
+	--sentiment-centrality-very-central: oklch(0.82 0.14 80);
+
+	--sentiment-centrality-not-addressed-bg: color-mix(
+		in oklab,
+		var(--sentiment-centrality-not-addressed) 18%,
+		transparent
+	);
+	--sentiment-centrality-not-addressed-border: color-mix(
+		in oklab,
+		var(--sentiment-centrality-not-addressed) 36%,
+		transparent
+	);
+	--sentiment-centrality-marginal-bg: color-mix(
+		in oklab,
+		var(--sentiment-centrality-marginal) 16%,
+		transparent
+	);
+	--sentiment-centrality-marginal-border: color-mix(
+		in oklab,
+		var(--sentiment-centrality-marginal) 32%,
+		transparent
+	);
+	--sentiment-centrality-secondary-bg: color-mix(
+		in oklab,
+		var(--sentiment-centrality-secondary) 16%,
+		transparent
+	);
+	--sentiment-centrality-secondary-border: color-mix(
+		in oklab,
+		var(--sentiment-centrality-secondary) 32%,
+		transparent
+	);
+	--sentiment-centrality-central-bg: color-mix(
+		in oklab,
+		var(--sentiment-centrality-central) 16%,
+		transparent
+	);
+	--sentiment-centrality-central-border: color-mix(
+		in oklab,
+		var(--sentiment-centrality-central) 32%,
+		transparent
+	);
+	--sentiment-centrality-very-central-bg: color-mix(
+		in oklab,
+		var(--sentiment-centrality-very-central) 18%,
+		transparent
+	);
+	--sentiment-centrality-very-central-border: color-mix(
+		in oklab,
+		var(--sentiment-centrality-very-central) 36%,
+		transparent
+	);
+
+	/* --- Arbiter (verdicts/judge): warm amber, kept distinct from centrality
+	   by being more saturated. Used only in the arbiter view. --- */
+	--sentiment-arbiter: oklch(0.74 0.16 75);
+	--sentiment-arbiter-light: oklch(0.82 0.14 80);
+	--sentiment-arbiter-bg: color-mix(in oklab, var(--sentiment-arbiter) 14%, transparent);
+	--sentiment-arbiter-border: color-mix(in oklab, var(--sentiment-arbiter) 30%, transparent);
+
+	/* --- Arbiter verdict & confidence badge hues ---
+	   Provenance: these preserve the Tailwind palette classes they replaced
+	   (text = *-400, bg = *-500 at 20%, border = *-500 at 30%):
+	   win = emerald, loss = purple, both = blue, neither = gray;
+	   confidence high/medium/low = green/yellow/red. Values are Tailwind v4's
+	   own oklch definitions (node_modules/tailwindcss/theme.css), kept verbatim
+	   so the rendered colors are unchanged. Skeleton's --color-success/warning
+	   ramps were considered but do NOT visually match (Cerberus success is
+	   teal oklch(0.85 0.13 175), warning is amber oklch(0.85 0.12 78)). --- */
+	--verdict-win: oklch(76.5% 0.177 163.223); /* tailwind emerald-400 */
+	--verdict-win-strong: oklch(69.6% 0.17 162.48); /* tailwind emerald-500 */
+	--verdict-win-bg: color-mix(in oklab, var(--verdict-win-strong) 20%, transparent);
+	--verdict-win-border: color-mix(in oklab, var(--verdict-win-strong) 30%, transparent);
+	--verdict-loss: oklch(71.4% 0.203 305.504); /* tailwind purple-400 */
+	--verdict-loss-strong: oklch(62.7% 0.265 303.9); /* tailwind purple-500 */
+	--verdict-loss-bg: color-mix(in oklab, var(--verdict-loss-strong) 20%, transparent);
+	--verdict-loss-border: color-mix(in oklab, var(--verdict-loss-strong) 30%, transparent);
+	--verdict-both: oklch(70.7% 0.165 254.624); /* tailwind blue-400 */
+	--verdict-both-strong: oklch(62.3% 0.214 259.815); /* tailwind blue-500 */
+	--verdict-both-bg: color-mix(in oklab, var(--verdict-both-strong) 20%, transparent);
+	--verdict-both-border: color-mix(in oklab, var(--verdict-both-strong) 30%, transparent);
+	--verdict-neither: oklch(70.7% 0.022 261.325); /* tailwind gray-400 */
+	--verdict-neither-strong: oklch(55.1% 0.027 264.364); /* tailwind gray-500 */
+	--verdict-neither-bg: color-mix(in oklab, var(--verdict-neither-strong) 20%, transparent);
+	--verdict-neither-border: color-mix(in oklab, var(--verdict-neither-strong) 30%, transparent);
+	--confidence-high: oklch(79.2% 0.209 151.711); /* tailwind green-400 */
+	--confidence-high-strong: oklch(72.3% 0.219 149.579); /* tailwind green-500 */
+	--confidence-high-bg: color-mix(in oklab, var(--confidence-high-strong) 20%, transparent);
+	--confidence-high-border: color-mix(in oklab, var(--confidence-high-strong) 30%, transparent);
+	--confidence-medium: oklch(85.2% 0.199 91.936); /* tailwind yellow-400 */
+	--confidence-medium-strong: oklch(79.5% 0.184 86.047); /* tailwind yellow-500 */
+	--confidence-medium-bg: color-mix(in oklab, var(--confidence-medium-strong) 20%, transparent);
+	--confidence-medium-border: color-mix(in oklab, var(--confidence-medium-strong) 30%, transparent);
+	--confidence-low: oklch(70.4% 0.191 22.216); /* tailwind red-400 */
+	--confidence-low-strong: oklch(63.7% 0.237 25.331); /* tailwind red-500 */
+	--confidence-low-bg: color-mix(in oklab, var(--confidence-low-strong) 20%, transparent);
+	--confidence-low-border: color-mix(in oklab, var(--confidence-low-strong) 30%, transparent);
+
+	/* --- Comparison: muted steel-blue, pairs the two-model comparison views --- */
+	--sentiment-comparison: oklch(0.7 0.08 240);
+	--sentiment-comparison-light: oklch(0.78 0.06 240);
+	--sentiment-comparison-accent: oklch(0.74 0.12 320);
+	--sentiment-comparison-secondary: oklch(0.72 0.07 215);
+	--sentiment-comparison-bg: color-mix(in oklab, var(--sentiment-comparison) 14%, transparent);
+	--sentiment-comparison-border: color-mix(in oklab, var(--sentiment-comparison) 30%, transparent);
+
+	/* --- Discrepancy: reuses polarity-very-negative so disagreement reads as
+	   "negative signal", not as a new color category --- */
+	--sentiment-discrepancy: var(--sentiment-polarity-very-negative);
+	--sentiment-discrepancy-light: var(--sentiment-polarity-negative);
+	--sentiment-discrepancy-bg: var(--sentiment-polarity-very-negative-bg);
+	--sentiment-discrepancy-border: var(--sentiment-polarity-very-negative-border);
+
+	/* --- Extreme: reuses subjectivity-5 (warm/loud) so 'extreme' reads as
+	   intensity, not a separate brand --- */
+	--sentiment-extreme: var(--sentiment-subjectivity-5);
+	--sentiment-extreme-light: var(--sentiment-subjectivity-4);
+	--sentiment-extreme-accent: var(--sentiment-subjectivity-3);
+	--sentiment-extreme-bg: var(--sentiment-subjectivity-5-bg);
+	--sentiment-extreme-border: var(--sentiment-subjectivity-5-border);
+
+	/* ==========================================================================
+     PAGE BACKDROP — flat, slightly-cool dark grey. No radial brand glows.
+     ========================================================================== */
+	--app-bg: oklch(0.16 0.012 260);
+	--app-bg-elevated: oklch(0.19 0.014 260);
+
+	/* ==========================================================================
+     DESIGN SYSTEM TOKENS
+     ========================================================================== */
+
+	/* --- Tonal control surfaces (used inside cards, on top of --app-bg) --- */
+	--surface-muted: color-mix(in oklab, var(--color-surface-50) 4%, transparent);
+	--surface-subtle: color-mix(in oklab, var(--color-surface-50) 6%, transparent);
+	--surface-hover: color-mix(in oklab, var(--color-surface-50) 10%, transparent);
+	--surface-active: color-mix(in oklab, var(--color-surface-50) 14%, transparent);
+	--surface-elevated: color-mix(in oklab, var(--color-surface-50) 18%, transparent);
+
+	/* --- Card Surfaces — OPAQUE editorial panels.
+	   Investigative dashboards earn gravitas from solid matte surfaces.
+	   No backdrop-filter: cards are flat. --- */
+	--surface-card: oklch(0.205 0.012 260);
+	--surface-card-hover: oklch(0.225 0.014 260);
+	--surface-card-elevated: oklch(0.235 0.015 260);
+	/* Nested panel inside a card */
+	--surface-nested: oklch(0.175 0.011 260);
+	--surface-nested-hover: oklch(0.195 0.012 260);
+
+	/* --- Border States --- */
+	--border-subtle: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
+	--border-default: color-mix(in oklab, var(--color-surface-50) 13%, transparent);
+	--border-hover: color-mix(in oklab, var(--color-surface-50) 20%, transparent);
+	--border-active: color-mix(in oklab, var(--color-surface-50) 28%, transparent);
+	--border-strong: color-mix(in oklab, var(--color-surface-50) 36%, transparent);
+
+	/* --- Text Colors ---
+	   The ramp is an opacity ladder over --text-primary against --app-bg, so
+	   contrast falls off the further down you go. The bottom two steps do not
+	   clear WCAG AA for text and are constrained accordingly — this is the one
+	   place the reasoning was missing from an otherwise well-documented system.
+	   ---------------------------------------------------------------------- */
+	--text-on-light: oklch(0.18 0.014 260); /* For text on light/bright backgrounds */
+	--text-primary: oklch(0.97 0.005 260);
+	--text-secondary: color-mix(in oklab, var(--text-primary) 84%, transparent);
+	--text-muted: color-mix(in oklab, var(--text-primary) 64%, transparent); /* AA floor for body */
+	/* ~3:1 — decorative rules, dividers, icon strokes beside a real label.
+	   NOT for text a reader has to make out on its own. */
+	--text-subtle: color-mix(in oklab, var(--text-primary) 46%, transparent);
+	/* ~2:1 — the disabled state of a control, and nothing else. Never a label. */
+	--text-disabled: color-mix(in oklab, var(--text-primary) 30%, transparent);
+	/* Decorative marks that must recede almost completely — the pull-quote
+	   glyph, empty-state iconography. Never text. Opaque rather than alpha so
+	   the chart ramp below can mirror it.
+	   This token was *referenced* by ComparisonPanel, EmptyState and
+	   ArticleDetail long before it was defined: with no var() fallback the
+	   declaration was simply invalid, so those marks inherited their parent's
+	   colour and rendered far too bright. Same failure as --elevation-overlay. */
+	--text-faint: oklch(0.42 0.005 260);
+
+	/* --- Chart text ramp — the opaque twin of the ladder above.
+	   ECharts cannot parse alpha-composited color-mix(), so chartTheme.ts needs
+	   flat values. They are declared here, rather than living only as literals
+	   in that file, so the duplication has a source of truth to mirror.
+	   chartTheme.palette.test.ts fails the build if the two drift apart. --- */
+	--chart-text-secondary: oklch(0.88 0.005 260);
+	--chart-text-muted: oklch(0.74 0.005 260);
+	--chart-text-subtle: oklch(0.62 0.005 260);
+	--chart-tooltip-bg: oklch(0.2 0.012 260);
+
+	/* --- Editorial accent — replaces Skeleton Cerberus's purple primary.
+	   A muted ochre/amber that reads as "investigative wire" rather than
+	   "brand". Used for the single primary action, focus rings, and the
+	   left-rail active rule on nav items. Never used for chart fills. --- */
+	--accent: oklch(0.78 0.13 80);
+	--accent-strong: oklch(0.72 0.15 78);
+	--accent-soft: color-mix(in oklab, var(--accent) 14%, transparent);
+	--accent-border: color-mix(in oklab, var(--accent) 32%, transparent);
+
+	/* The primary/secondary ramps. These used to override Cerberus's; with the
+	   dependency gone they are simply the definitions. Primary is the editorial
+	   accent above; secondary is the cool blue the comparison views lean on. */
+	--color-primary-200: oklch(0.9 0.07 80);
+	--color-primary-300: oklch(0.86 0.1 80);
+	--color-primary-400: oklch(0.82 0.12 80);
+	--color-primary-500: var(--accent);
+	--color-primary-600: var(--accent-strong);
+	--color-primary-700: oklch(0.66 0.15 76);
+	--color-secondary-300: oklch(0.8 0.06 240);
+	--color-secondary-400: oklch(0.74 0.07 240);
+	--color-secondary-500: oklch(0.66 0.08 240);
+	--color-secondary-600: oklch(0.58 0.08 240);
+
+	/* ==========================================================================
+	   THE `--color-*` RAMPS — ours, not a vendor theme's.
+
+	   These names came from Skeleton's Cerberus theme, which this project no
+	   longer depends on. Cerberus was imported, then its primary and secondary
+	   were overridden here, its success and warning ramps were explicitly
+	   rejected in a comment, and .card/.btn/.badge/.select/.alert/.table were
+	   all re-styled from scratch below — leaving roughly eight values and one
+	   `.h4` class behind a whole dependency, a third naming convention, and a
+	   runes-mode compatibility risk on every Dependabot bump. It also hard-coded
+	   Tailwind's `md` breakpoint, which is not a threshold this app has.
+
+	   The names are kept because ~100 call sites use them and they read fine;
+	   the values are now declared here. The semantic ones point at the --status-*
+	   ramp below so there is one source of truth for "what colour is an error".
+	   ========================================================================== */
+
+	/* Neutral ramp. surface-50 is the near-white the tonal surfaces and borders
+	   are mixed from; the dark steps back a handful of controls. */
+	--color-surface-50: oklch(0.99 0 0);
+	--color-surface-700: oklch(0.39 0 0);
+	--color-surface-800: oklch(0.32 0 0);
+	--color-surface-900: oklch(0.25 0 0);
+	--color-surface-950: oklch(0.18 0 0);
+
+	/* --- Status ramp — error / warning / caution / success / info.
+	   Defined natively in the same OKLCH vocabulary as the sentiment palettes
+	   rather than borrowed from a vendor theme, so status colour is ours and
+	   sits at the same lightness band as everything else on this surface.
+	   Hues are shared with the polarity ramp on purpose: a "severe" indicator
+	   and a "très négatif" badge should not be two different reds. --- */
+	--status-error: oklch(0.7 0.14 25);
+	--status-caution: oklch(0.74 0.145 55); /* between error and warning */
+	--status-warning: oklch(0.8 0.13 85);
+	--status-success: oklch(0.7 0.13 150);
+	--status-info: oklch(0.72 0.09 240);
+
+	/* Semantic ramps. The 500 step IS the status token — one source of truth for
+	   "what colour is an error" — and the lighter steps climb in lightness on
+	   the same hue rather than being a separately hand-picked ladder. Written
+	   out rather than derived with relative-colour syntax so the values are
+	   greppable and the file has no browser-support cliff. */
+	--color-error-200: oklch(0.79 0.11 25);
+	--color-error-300: oklch(0.76 0.12 25);
+	--color-error-400: oklch(0.73 0.13 25);
+	--color-error-500: var(--status-error);
+	--color-warning-300: oklch(0.86 0.1 85);
+	--color-warning-500: var(--status-warning);
+	--color-success-500: var(--status-success);
+
+	/* --- Third-party brand identity.
+	   Not design-system colours and deliberately not on the OKLCH ramps: they
+	   are other organisations' marks, and a model badge that isn't the model's
+	   own red stops being recognisable. Declared here so the literals appear
+	   once rather than being retyped at each of the sites that draw them.
+	   The TS-side registry in stores/datasets.svelte.ts carries the same values
+	   for chart and logo use, where CSS custom properties can't reach. --- */
+	--brand-mistral: #f54e42;
+	--brand-mistral-light: #f87a71;
+	--brand-deepseek: #4d6bfe;
+	--brand-deepseek-light: #7f95ff;
+	--brand-gemma: #338dff;
+	--brand-gemma-light: #6cb0ff;
+	--brand-qwen: #615ced;
+	--brand-qwen-light: #8d89f3;
+
+	/* --- Print — the one light-background context this app has. --- */
+	--print-surface: white;
+	--print-border: #ccc;
+
+	/* --- Prose width — caps body paragraphs at a comfortable read --- */
+	--prose-width: 65ch;
+
+	/* The BACK-COMPAT SHIMS block that used to sit here is gone: its last
+	   callers (--sentiment-{arbiter,comparison}-icon-bg in ArbiterMethodology
+	   and ComparisonStats, --color-tertiary-500 in DatasetBadge) now use the
+	   canonical tokens directly. Don't reintroduce pre-refactor token names —
+	   migrate the caller instead. */
+
+	/* --- Layout constants --- */
+	/* Sidebar rail widths — consumed by SidebarNav (the rail itself) AND
+	   +layout.svelte (the content margin that clears it). Keep in sync via
+	   these tokens only. */
+	--sidebar-width-collapsed: 4.5rem;
+	--sidebar-width-expanded: 14rem;
+	--sidebar-width-mobile-drawer: 16rem;
+	/* Desktop header height. Declared, not measured: AppHeader sets this as its
+	   own min-height and the sticky filter rail clears it by reading the same
+	   token, so the two cannot drift. It used to be a hand-measured "~96px"
+	   frozen into --rail-top, which silently misaligned the rail whenever the
+	   brand size, padding or font changed. */
+	--header-height: 6rem; /* 96px */
+	/* Sticky filter-rail clearance below the AppHeader, plus breathing room. */
+	--rail-top: calc(var(--header-height) + var(--space-2));
+
+	/* --- Spacing Scale (4px base) --- */
+	--space-0: 0;
+	--space-px: 1px;
+	--space-0-5: 0.125rem; /* 2px */
+	--space-1: 0.25rem; /* 4px */
+	--space-1-5: 0.375rem; /* 6px */
+	--space-2: 0.5rem; /* 8px */
+	--space-2-5: 0.625rem; /* 10px */
+	--space-3: 0.75rem; /* 12px */
+	--space-3-5: 0.875rem; /* 14px */
+	--space-4: 1rem; /* 16px */
+	--space-5: 1.25rem; /* 20px */
+	--space-6: 1.5rem; /* 24px */
+	--space-7: 1.75rem; /* 28px */
+	--space-8: 2rem; /* 32px */
+	--space-10: 2.5rem; /* 40px */
+	--space-12: 3rem; /* 48px */
+	--space-16: 4rem; /* 64px */
+
+	/* --- Semantic spacing — the layer components are supposed to reach for.
+	   The 16-step primitive scale above has no rhythm of its own, so card
+	   padding drifted onto four different values on a single screen (space-4 in
+	   FilterCard, space-5 in ChartCard, space-6 in ChartCard's large variant,
+	   space-3-5 in FilterCard under 768px). Components use THESE; the numbered
+	   primitives are for one-off nudges and for defining these. --- */
+	--pad-card: var(--space-5); /* 20px - default card/panel padding */
+	--pad-card-compact: var(--space-4); /* 16px - dense contexts (rail, drawer) */
+	--gap-stack: var(--space-4); /* 16px - between stacked blocks */
+	--gap-inline: var(--space-2); /* 8px  - between inline siblings */
+
+	/* --- Border Radius ---
+	   Editorial direction: surfaces are square, so this is not a t-shirt scale.
+	   It used to be — md/lg/xl/2xl/3xl all resolved to the same 2px, and
+	   components picked between them as if the choice meant something, which
+	   taught everyone the scale was live when it was decorative.
+	   Four tokens, each with a distinct value and a job:
+	     none     — deliberately square (inputs, table cells, flush edges)
+	     hairline — the barely-there step for 1px-bordered chips
+	     panel    — cards, panels, buttons, badges: the default surface corner
+	     circle   — true circles ONLY (avatars, dot indicators, spinner rings).
+	                Not pills: a pill wants `panel`. --- */
+	--radius-none: 0;
+	--radius-hairline: 1px;
+	--radius-panel: 2px;
+	--radius-circle: 9999px;
+
+	/* --- Font Size Scale — wider distance between display steps to give
+	   real hierarchy, not a flat ramp. Editorial type wants ~1.33× steps
+	   between display sizes; UI sizes stay tight. --- */
+	/* 11px. Named for its job, not its position: this is the mono eyebrow that
+	   the design language leans on constantly — section labels, table `th`,
+	   badges, chip captions. It was previously --font-size-eyebrow and carried an
+	   "avoid in new code" note, which was simply wrong: 20 components and the
+	   global .table th rule depend on it. Because it read as discouraged,
+	   another 15 sites wrote 0.6875rem by hand instead. It is not legacy, and
+	   11px is the floor — nothing in this UI goes smaller. */
+	--font-size-eyebrow: 0.6875rem;
+	--font-size-xs: 0.75rem; /* 12px - captions, small mono labels */
+	--font-size-sm: 0.8125rem; /* 13px - secondary text, chips */
+	--font-size-base: 0.9375rem; /* 15px - body, controls */
+	--font-size-lg: 1.0625rem; /* 17px - emphasized body, lede */
+	--font-size-xl: 1.25rem; /* 20px - chart card title */
+	--font-size-2xl: 1.625rem; /* 26px - section title */
+	--font-size-3xl: 2.125rem; /* 34px - view title */
+	--font-size-4xl: 2.875rem; /* 46px - hero numeric */
+
+	/* Decorative open-quote glyph drawn as ::before content on pull-quotes. An
+	   ornament rather than a type-scale member, but tokenised so the two
+	   components that draw it stop drifting (they were 36px and 40px). */
+	--size-quote-glyph: 2.5rem; /* 40px */
+
+	/* --- Font Weight Scale --- */
+	--font-weight-regular: 400;
+	--font-weight-medium: 500;
+	--font-weight-semibold: 600;
+	--font-weight-bold: 700;
+	--font-weight-black: 800;
+
+	/* --- Line Heights --- */
+	--line-height-tight: 1.15;
+	--line-height-snug: 1.35;
+	--line-height-normal: 1.55;
+	--line-height-relaxed: 1.7;
+
+	/* --- Letter Spacing — only display sizes get tight tracking.
+	   Body text reads better at 0; eyebrows/labels get wide. --- */
+	--tracking-tight: -0.018em; /* display ≥26px */
+	--tracking-snug: -0.008em; /* large UI 20–22px */
+	--tracking-normal: 0; /* body, chips, small UI */
+	--tracking-wide: 0.04em; /* labels */
+	--tracking-wider: 0.08em; /* eyebrows, small uppercase */
+	--tracking-widest: 0.14em; /* masthead eyebrows — the loosest step there is */
+
+	/* --- Icon Size Scale --- */
+	--size-icon-xs: 0.875rem; /* 14px */
+	--size-icon-sm: 1rem; /* 16px */
+	--size-icon-md: 1.25rem; /* 20px */
+	--size-icon-lg: 1.5rem; /* 24px */
+	--size-icon-xl: 2rem; /* 32px */
+
+	/* --- Control/Touch Target Sizes --- */
+	--size-control-sm: 2rem; /* 32px - compact */
+	--size-control-md: 2.25rem; /* 36px - default */
+	--size-control-lg: 2.5rem; /* 40px - touch-friendly */
+	--size-control-xl: 2.75rem; /* 44px - full touch target */
+
+	/* --- Chart/View Heights --- */
+	--height-chart-sm: 22rem; /* 352px */
+	--height-chart-md: 28rem; /* 448px */
+	--height-chart-lg: 34rem; /* 544px */
+	--height-chart-xl: 42rem; /* 672px */
+
+	/* Narrowest a chart may be laid out before its grid drops to one column.
+	   Feeds `repeat(auto-fit, minmax(var(--width-chart-min), 1fr))` — auto-fit
+	   already handles the reflow, so no media query should restate it. */
+	--width-chart-min: 25rem; /* 400px */
+
+	/* Narrowest a model card may be laid out in the methodology panel's grid.
+	   Same auto-fit contract as --width-chart-min: the panel holds three cards
+	   for the archived generation and five for the current one, and the count
+	   will change again, so the floor reflows it rather than a column count. */
+	--width-model-card-min: 15rem; /* 240px */
+
+	/* --- Z-Index Scale --- */
+	--z-base: 0;
+	--z-raised: 1;
+	--z-dropdown: 100;
+	--z-sticky: 200;
+	--z-header: 300;
+	--z-sidebar: 400;
+	--z-overlay: 500;
+	--z-modal: 600;
+	--z-popover: 700;
+	--z-toast: 800;
+	--z-tooltip: 900;
+
+	/* --- Shadow/Elevation Scale (refined, more natural) --- */
+	--shadow-xs: 0 1px 2px color-mix(in oklab, black 18%, transparent);
+	--shadow-sm:
+		0 1px 2px color-mix(in oklab, black 12%, transparent),
+		0 2px 6px color-mix(in oklab, black 10%, transparent);
+	--shadow-md:
+		0 2px 4px color-mix(in oklab, black 12%, transparent),
+		0 8px 20px color-mix(in oklab, black 18%, transparent);
+	--shadow-lg:
+		0 4px 8px color-mix(in oklab, black 14%, transparent),
+		0 16px 40px color-mix(in oklab, black 22%, transparent);
+	--shadow-xl:
+		0 8px 16px color-mix(in oklab, black 18%, transparent),
+		0 32px 64px color-mix(in oklab, black 28%, transparent);
+
+	/* Semantic elevation. No inset highlight — that was a glassmorphism cue
+	   and panels are opaque now. Shadows are quieter on dark editorial UIs;
+	   the card differentiates by lightness step, not by drop shadow. */
+	--elevation-card: 0 1px 2px color-mix(in oklab, black 35%, transparent);
+	--elevation-card-hover:
+		0 1px 2px color-mix(in oklab, black 35%, transparent),
+		0 8px 24px color-mix(in oklab, black 22%, transparent);
+	--elevation-sticky:
+		0 1px 2px color-mix(in oklab, black 30%, transparent),
+		0 4px 14px color-mix(in oklab, black 22%, transparent);
+	--elevation-modal:
+		0 8px 16px color-mix(in oklab, black 36%, transparent),
+		0 32px 64px color-mix(in oklab, black 44%, transparent);
+	/* Off-canvas drawers (nav + filters). Both drawers read these, so they
+	   cannot drift apart: the hairline is the panel edge, the wide blur is the
+	   lift off the scrim. Never inline a var() fallback for either — a fallback
+	   turns a missing token into silence, which is exactly how the filters
+	   drawer shipped with no elevation at all while its sibling had one.
+
+	   The two are mirror images and nothing but the sign of the x-offset
+	   differs. A shadow has to fall onto the page the panel covers, so a drawer
+	   entering from the right casts left; sharing one token would aim both at
+	   the same edge and the right-hand drawer would throw its shadow off the
+	   side of the screen. Edit them together. */
+	--elevation-drawer:
+		1px 0 0 color-mix(in oklab, black 30%, transparent),
+		8px 0 32px color-mix(in oklab, black 30%, transparent);
+	--elevation-drawer-mirrored:
+		-1px 0 0 color-mix(in oklab, black 30%, transparent),
+		-8px 0 32px color-mix(in oklab, black 30%, transparent);
+
+	/* Focus ring — uses the editorial accent (warm amber) */
+	--ring-focus: 0 0 0 3px color-mix(in oklab, var(--accent) 38%, transparent);
+	--ring-focus-error: 0 0 0 3px color-mix(in oklab, var(--color-error-500) 35%, transparent);
+
+	/* Force dark scheme for this app */
+	color-scheme: dark;
+}

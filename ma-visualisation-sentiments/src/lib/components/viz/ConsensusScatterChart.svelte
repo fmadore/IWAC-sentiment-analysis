@@ -16,6 +16,7 @@
   declined-ratings toggle and the corpus facets like everything else here.
 -->
 <script lang="ts">
+	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import { Chart } from 'svelte-echarts';
 	import { dec, num } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
@@ -206,3 +207,15 @@
 		{$t.agreement.disagreementEmpty.replace('{min}', String(minArticles))}
 	</p>
 {/if}
+<ChartDataTable
+	columns={[
+		{ label: $t.audit.journal },
+		{ label: $t.filters.country },
+		{ label: $t.agreement.scatterX, format: 'decimal' },
+		{ label: $t.agreement.scatterY, format: 'decimal' },
+		{ label: $t.audit.count, format: 'integer' }
+	]}
+	rows={ranked.map((r) => [r.newspaper, r.country, r.consensusMean, r.mean, r.n])}
+	caption={$t.agreement.scatterTitle}
+	filenamePrefix="ConsensusScatterChart"
+/>

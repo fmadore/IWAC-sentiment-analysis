@@ -205,6 +205,12 @@ self.addEventListener('fetch', (event) => {
 		return;
 	}
 
+	// Content-addressed releases never fall back to a different release's data.
+	// Cache-first is safe here and avoids re-downloading immutable prose on revisits.
+	if (url.pathname.includes('/data/releases/')) {
+		event.respondWith(cacheFirstStrategy(request, DATA_CACHE_NAME, event));
+		return;
+	}
 	// 2) Data files → network-first (fresh data when online, cached fallback
 	//    offline), stored in the deploy-stable DATA_CACHE_NAME so a new release
 	//    doesn't force a re-download of the whole corpus.

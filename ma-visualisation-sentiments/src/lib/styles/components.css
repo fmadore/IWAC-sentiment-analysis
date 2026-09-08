@@ -1,0 +1,556 @@
+/* -----------------------------------------------------------------------------
+   Chart Chrome
+   Single source for the shell every viz component wraps its canvas in. These
+   three rules were byte-identical copies inside VolumeChart,
+   DimensionDistributionChart and TrendsChart; the empty state was a fourth
+   variant hand-rolled with Tailwind utilities in the remaining charts.
+   ----------------------------------------------------------------------------- */
+.chart-toolbar {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-3);
+	margin-bottom: var(--space-4);
+}
+
+@media (min-width: 640px) {
+	.chart-toolbar {
+		flex-direction: row;
+	}
+}
+
+.chart-container {
+	background: transparent;
+	padding: var(--space-2);
+}
+
+@media (min-width: 640px) {
+	.chart-container {
+		padding: var(--space-4);
+	}
+}
+
+/* Shown in place of the canvas when filters exclude everything. */
+.chart-empty {
+	text-align: center;
+	padding: var(--space-8) 0;
+	color: var(--text-muted);
+	font-size: var(--font-size-sm);
+}
+
+/* Eyebrow naming what a .chart-toolbar's controls act on. */
+.toolbar-label {
+	font-family: var(--font-mono);
+	font-size: var(--font-size-eyebrow);
+	font-weight: var(--font-weight-semibold);
+	letter-spacing: var(--tracking-wider);
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+
+/* Caveat under a chart: what a threshold hid, what a measure does not mean.
+   Was .threshold-note / .breakdown-note / .chart-note in seven components,
+   byte-identical in all of them — the same drift the three rules above fixed. */
+.chart-note {
+	font-family: var(--font-mono);
+	font-size: var(--font-size-eyebrow);
+	line-height: var(--line-height-relaxed);
+	color: var(--text-muted);
+	max-width: var(--prose-width);
+	margin: var(--space-3) auto 0;
+	padding-top: var(--space-3);
+	border-top: 1px dashed var(--border-subtle);
+}
+
+/* -----------------------------------------------------------------------------
+   Table Styling
+   ----------------------------------------------------------------------------- */
+.table-container {
+	border-radius: var(--radius-panel);
+	/* `auto`, not `hidden`: when the content column is narrow (e.g. beside the
+	   filter rail) a wide multi-column table must scroll horizontally rather than
+	   clip. Rounded corners still clip the scrolled content. Component rules add
+	   `max-height` + `overflow-y: auto` for vertical scroll. */
+	overflow: auto;
+	background: var(--surface-card);
+	border: 1px solid var(--border-subtle);
+
+	/* Scroll affordance. These tables scroll sideways on narrow screens and
+	   previously gave no visual cue that they did — the reader simply saw a
+	   truncated table. The two `linear-gradient`s are the shadow pair; the two
+	   `radial-gradient`s are opaque covers pinned to the scroll extremes, so the
+	   shadow on a given edge fades out exactly when there is nothing more that
+	   way. Attaching the covers to `local` and the shadows to `scroll` is what
+	   makes that self-adjusting with no JS. */
+	background-image:
+		linear-gradient(to right, var(--surface-card), transparent),
+		linear-gradient(to left, var(--surface-card), transparent),
+		radial-gradient(
+			farthest-side at 0 50%,
+			color-mix(in oklab, black 28%, transparent),
+			transparent
+		),
+		radial-gradient(
+			farthest-side at 100% 50%,
+			color-mix(in oklab, black 28%, transparent),
+			transparent
+		);
+	background-position:
+		0 0,
+		100% 0,
+		0 0,
+		100% 0;
+	background-repeat: no-repeat;
+	background-size:
+		2.5rem 100%,
+		2.5rem 100%,
+		0.875rem 100%,
+		0.875rem 100%;
+	background-attachment: local, local, scroll, scroll;
+}
+
+.table {
+	width: 100%;
+	border-collapse: separate;
+	border-spacing: 0;
+	font-size: var(--font-size-base);
+}
+
+.table th {
+	padding: var(--space-3) var(--space-4);
+	text-align: left;
+	/* Monospace eyebrow column headers — wire-service table idiom. Single source
+	   of truth for every `.table` (ArticleTable, ComparisonTable, ArbiterArticleTable);
+	   components only add sticky positioning, never re-declare header typography. */
+	font-family: var(--font-mono);
+	font-size: var(--font-size-eyebrow);
+	font-weight: var(--font-weight-semibold);
+	text-transform: uppercase;
+	letter-spacing: var(--tracking-wider);
+	/* MUST stay opaque. Every `.table` header is `position: sticky`, so rows
+	   scroll underneath it — a translucent fill (this was `--surface-muted`,
+	   i.e. 4% white over `transparent`) lets the body text read straight through
+	   the header. This shorthand also ties on specificity with the components'
+	   scoped `th` rules and wins on source order, so it is the only place the
+	   header background can be set. */
+	background: var(--surface-card-elevated);
+	color: var(--text-muted);
+	border-bottom: 1px solid var(--border-subtle);
+}
+
+.table th.sortable {
+	cursor: pointer;
+	user-select: none;
+	transition:
+		background-color var(--timing-fast) var(--easing-default),
+		color var(--timing-fast) var(--easing-default);
+}
+
+.table th.sortable:hover {
+	/* Mixed INTO the opaque header colour, not over `transparent` — see above. */
+	background: color-mix(in oklab, var(--color-surface-50) 10%, var(--surface-card-elevated));
+	color: var(--text-primary);
+}
+
+.table td {
+	padding: var(--space-3) var(--space-4);
+	color: var(--text-secondary);
+	border-bottom: 1px solid var(--border-subtle);
+}
+
+.table tbody tr {
+	transition: background-color var(--timing-fast) var(--easing-default);
+}
+
+.table tbody tr:hover {
+	background: var(--surface-muted);
+}
+
+.table tbody tr:last-child td {
+	border-bottom: none;
+}
+
+/* -----------------------------------------------------------------------------
+   Chart Card styles are defined in ChartCard.svelte.
+   The base class name is kept only as a semantic marker here.
+   ----------------------------------------------------------------------------- */
+
+/* -----------------------------------------------------------------------------
+   Accordion Enhancements
+   ----------------------------------------------------------------------------- */
+.accordion-trigger {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	padding: var(--space-4);
+	text-align: left;
+	font-weight: var(--font-weight-medium);
+	font-size: var(--font-size-base);
+	transition:
+		background-color var(--timing-fast) var(--easing-default),
+		color var(--timing-fast) var(--easing-default);
+	background: var(--surface-muted);
+	color: var(--text-secondary);
+}
+
+.accordion-trigger:hover {
+	background: var(--surface-hover);
+	color: var(--text-primary);
+}
+
+.accordion-trigger[data-state='open'] {
+	background: var(--surface-hover);
+	color: var(--text-primary);
+	border-bottom: 1px solid var(--border-subtle);
+}
+
+/* -----------------------------------------------------------------------------
+   Badge/Status Indicators
+   ----------------------------------------------------------------------------- */
+.badge {
+	display: inline-flex;
+	align-items: center;
+	padding: var(--space-0-5) var(--space-2-5);
+	border-radius: var(--radius-hairline);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-medium);
+}
+
+/* -----------------------------------------------------------------------------
+   Sentiment Palette Resolver - Polarity, Subjectivity, Centrality
+
+   The one place that maps a sentiment value to its colour tokens. These rules
+   deliberately set NOTHING but custom properties: they answer "what colour is
+   `Très positif`?", not "what does a badge look like?". Each component that
+   displays a sentiment value then needs a single rule reading the three
+   variables below, and stays free to apply them on its own terms — a badge
+   fills always, a filter chip only once selected, a scale chip is a circle.
+
+   Elements opt in via the data attributes emitted by
+   `utils/sentimentTokens.ts` (`variantAttributes`), never by class name, so
+   the value stays legible in the DOM and there is no 16-way class list to keep
+   in sync across components.
+   ----------------------------------------------------------------------------- */
+
+/* --- Polarity --- */
+[data-polarity='very-positive'] {
+	--sentiment-fg: var(--sentiment-polarity-very-positive);
+	--sentiment-bg: var(--sentiment-polarity-very-positive-bg);
+	--sentiment-border: var(--sentiment-polarity-very-positive-border);
+}
+
+[data-polarity='positive'] {
+	--sentiment-fg: var(--sentiment-polarity-positive);
+	--sentiment-bg: var(--sentiment-polarity-positive-bg);
+	--sentiment-border: var(--sentiment-polarity-positive-border);
+}
+
+[data-polarity='neutral'] {
+	--sentiment-fg: var(--sentiment-polarity-neutral);
+	--sentiment-bg: var(--sentiment-polarity-neutral-bg);
+	--sentiment-border: var(--sentiment-polarity-neutral-border);
+}
+
+[data-polarity='negative'] {
+	--sentiment-fg: var(--sentiment-polarity-negative);
+	--sentiment-bg: var(--sentiment-polarity-negative-bg);
+	--sentiment-border: var(--sentiment-polarity-negative-border);
+}
+
+[data-polarity='very-negative'] {
+	--sentiment-fg: var(--sentiment-polarity-very-negative);
+	--sentiment-bg: var(--sentiment-polarity-very-negative-bg);
+	--sentiment-border: var(--sentiment-polarity-very-negative-border);
+}
+
+[data-polarity='na'] {
+	--sentiment-fg: var(--sentiment-polarity-na);
+	--sentiment-bg: var(--sentiment-polarity-na-bg);
+	--sentiment-border: var(--sentiment-polarity-na-border);
+}
+
+/* --- Not annotated: one entry, every family --- */
+[data-polarity='not-annotated'],
+[data-subjectivity='not-annotated'],
+[data-centrality='not-annotated'] {
+	--sentiment-fg: var(--sentiment-not-annotated);
+	--sentiment-bg: var(--sentiment-not-annotated-bg);
+	--sentiment-border: var(--sentiment-not-annotated-border);
+}
+
+/* --- Subjectivity (score 1-5) --- */
+[data-subjectivity='1'] {
+	--sentiment-fg: var(--sentiment-subjectivity-1);
+	--sentiment-bg: var(--sentiment-subjectivity-1-bg);
+	--sentiment-border: var(--sentiment-subjectivity-1-border);
+}
+
+[data-subjectivity='2'] {
+	--sentiment-fg: var(--sentiment-subjectivity-2);
+	--sentiment-bg: var(--sentiment-subjectivity-2-bg);
+	--sentiment-border: var(--sentiment-subjectivity-2-border);
+}
+
+[data-subjectivity='3'] {
+	--sentiment-fg: var(--sentiment-subjectivity-3);
+	--sentiment-bg: var(--sentiment-subjectivity-3-bg);
+	--sentiment-border: var(--sentiment-subjectivity-3-border);
+}
+
+[data-subjectivity='4'] {
+	--sentiment-fg: var(--sentiment-subjectivity-4);
+	--sentiment-bg: var(--sentiment-subjectivity-4-bg);
+	--sentiment-border: var(--sentiment-subjectivity-4-border);
+}
+
+[data-subjectivity='5'] {
+	--sentiment-fg: var(--sentiment-subjectivity-5);
+	--sentiment-bg: var(--sentiment-subjectivity-5-bg);
+	--sentiment-border: var(--sentiment-subjectivity-5-border);
+}
+
+/* --- Centrality --- */
+[data-centrality='very-central'] {
+	--sentiment-fg: var(--sentiment-centrality-very-central);
+	--sentiment-bg: var(--sentiment-centrality-very-central-bg);
+	--sentiment-border: var(--sentiment-centrality-very-central-border);
+}
+
+[data-centrality='central'] {
+	--sentiment-fg: var(--sentiment-centrality-central);
+	--sentiment-bg: var(--sentiment-centrality-central-bg);
+	--sentiment-border: var(--sentiment-centrality-central-border);
+}
+
+[data-centrality='secondary'] {
+	--sentiment-fg: var(--sentiment-centrality-secondary);
+	--sentiment-bg: var(--sentiment-centrality-secondary-bg);
+	--sentiment-border: var(--sentiment-centrality-secondary-border);
+}
+
+[data-centrality='marginal'] {
+	--sentiment-fg: var(--sentiment-centrality-marginal);
+	--sentiment-bg: var(--sentiment-centrality-marginal-bg);
+	--sentiment-border: var(--sentiment-centrality-marginal-border);
+}
+
+[data-centrality='not-addressed'] {
+	--sentiment-fg: var(--sentiment-centrality-not-addressed);
+	--sentiment-bg: var(--sentiment-centrality-not-addressed-bg);
+	--sentiment-border: var(--sentiment-centrality-not-addressed-border);
+}
+
+/* --- Discrepancy severity ---
+   Same contract as the sentiment resolver above and the same rule: a component
+   never maps a magnitude to a colour, it emits `data-discrepancy` from
+   utils/discrepancy.ts and reads these three properties.
+
+   The ramp climbs in chroma and drops in hue angle from amber to red as the two
+   models drift further apart, so severity is legible as heat. `none` is
+   deliberately de-emphasised rather than green: agreement is the baseline, not
+   an achievement. */
+[data-discrepancy] {
+	--discrepancy-fg: var(--text-subtle);
+	--discrepancy-bg: transparent;
+	--discrepancy-border: var(--border-subtle);
+}
+
+[data-discrepancy='minor'] {
+	--discrepancy-fg: var(--status-warning);
+	--discrepancy-bg: color-mix(in oklab, var(--status-warning) 15%, transparent);
+	--discrepancy-border: color-mix(in oklab, var(--status-warning) 30%, transparent);
+}
+
+[data-discrepancy='moderate'] {
+	--discrepancy-fg: var(--status-caution);
+	--discrepancy-bg: color-mix(in oklab, var(--status-caution) 16%, transparent);
+	--discrepancy-border: color-mix(in oklab, var(--status-caution) 32%, transparent);
+}
+
+[data-discrepancy='severe'] {
+	--discrepancy-fg: var(--status-error);
+	--discrepancy-bg: color-mix(in oklab, var(--status-error) 18%, transparent);
+	--discrepancy-border: color-mix(in oklab, var(--status-error) 36%, transparent);
+}
+
+/* --- Arbiter Verdict & Confidence Badges ---
+   Semantic classes for the arbiter's preferred-model verdict and confidence
+   level, used by ArbiterSection and ArbiterArticleTable (via utils/arbiter.ts).
+   Backed by the --verdict- and --confidence- tokens above.
+
+   Note the spelled-out prefixes. Writing them as wildcards put a star
+   immediately before a slash, which closed this comment early and swept the
+   trailing prose into the next selector — leaving `.badge-verdict-win`
+   unmatchable, and so unstyled, in every browser. */
+.badge-verdict-win {
+	background: var(--verdict-win-bg);
+	border: 1px solid var(--verdict-win-border);
+	color: var(--verdict-win);
+}
+
+.badge-verdict-loss {
+	background: var(--verdict-loss-bg);
+	border: 1px solid var(--verdict-loss-border);
+	color: var(--verdict-loss);
+}
+
+.badge-verdict-both {
+	background: var(--verdict-both-bg);
+	border: 1px solid var(--verdict-both-border);
+	color: var(--verdict-both);
+}
+
+.badge-verdict-neither {
+	background: var(--verdict-neither-bg);
+	border: 1px solid var(--verdict-neither-border);
+	color: var(--verdict-neither);
+}
+
+.badge-confidence-high {
+	background: var(--confidence-high-bg);
+	border: 1px solid var(--confidence-high-border);
+	color: var(--confidence-high);
+}
+
+.badge-confidence-medium {
+	background: var(--confidence-medium-bg);
+	border: 1px solid var(--confidence-medium-border);
+	color: var(--confidence-medium);
+}
+
+.badge-confidence-low {
+	background: var(--confidence-low-bg);
+	border: 1px solid var(--confidence-low-border);
+	color: var(--confidence-low);
+}
+
+/* Selected filter-chip sentiment variants live in FilterChip.svelte (scoped).
+   They were duplicated here and had drifted (this copy set border-color to the
+   full sentiment color; the component uses the dedicated `-border` token), so
+   the global copy is removed to keep a single source of truth. */
+
+/* -----------------------------------------------------------------------------
+   Pagination
+   ----------------------------------------------------------------------------- */
+.pagination-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: var(--size-control-lg);
+	height: var(--size-control-lg);
+	padding: 0 var(--space-3);
+	border-radius: var(--radius-panel);
+	font-size: var(--font-size-base);
+	font-weight: var(--font-weight-medium);
+	transition:
+		background-color var(--timing-fast) var(--easing-default),
+		border-color var(--timing-fast) var(--easing-default),
+		color var(--timing-fast) var(--easing-default);
+	background: var(--surface-subtle);
+	border: 1px solid var(--border-default);
+	color: var(--text-secondary);
+}
+
+.pagination-btn:hover:not(:disabled):not([data-active='true']) {
+	background: var(--surface-hover);
+	border-color: var(--border-hover);
+	color: var(--text-primary);
+}
+
+.pagination-btn[data-active='true'] {
+	background: var(--accent-soft);
+	border-color: var(--accent-border);
+	color: var(--accent);
+}
+
+.pagination-btn:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+/* -----------------------------------------------------------------------------
+   Loading States
+   ----------------------------------------------------------------------------- */
+.loading-spinner {
+	width: var(--size-icon-xl);
+	height: var(--size-icon-xl);
+	border-radius: var(--radius-circle);
+	border: 2px solid var(--surface-active);
+	border-top-color: var(--color-primary-500);
+	animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* -----------------------------------------------------------------------------
+   Scrollbar Styling
+   ----------------------------------------------------------------------------- */
+.custom-scrollbar {
+	scrollbar-width: thin;
+	scrollbar-color: var(--border-hover) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+	background: var(--border-hover);
+	border-radius: var(--radius-circle);
+	border: 2px solid transparent;
+	background-clip: padding-box;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+	background: var(--border-active);
+	background-clip: padding-box;
+}
+
+/* -----------------------------------------------------------------------------
+   Utility Classes
+   ----------------------------------------------------------------------------- */
+/* Hover-lift / hover-glow utilities removed — investigative dashboards
+   don't float UI under the cursor. Replace callers with a border-color shift
+   if a hover affordance is needed. */
+
+/* Section heading with eyebrow + title */
+.section-title {
+	font-size: var(--font-size-xl);
+	font-weight: var(--font-weight-semibold);
+	color: var(--text-primary);
+	letter-spacing: var(--tracking-snug);
+	line-height: var(--line-height-snug);
+	margin: 0;
+}
+
+/* -----------------------------------------------------------------------------
+   Print Styles
+   ----------------------------------------------------------------------------- */
+@media print {
+	.no-print {
+		display: none !important;
+	}
+
+	body {
+		background: white;
+	}
+
+	.card,
+	.preset-glass,
+	.preset-surface-card {
+		background: var(--print-surface);
+		border: 1px solid var(--print-border);
+		box-shadow: none;
+	}
+}

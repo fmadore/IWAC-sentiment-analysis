@@ -14,6 +14,7 @@
   would swing on a handful of articles.
 -->
 <script lang="ts">
+	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import { Chart } from 'svelte-echarts';
 	import { dec, num, pct } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
@@ -188,3 +189,14 @@
 {:else}
 	<p class="chart-empty">{$t.table.noFilteredArticles}</p>
 {/if}
+<ChartDataTable
+	columns={[
+		{ label: groupBy === 'country' ? $t.filters.country : $t.comparison.byDecade },
+		{ label: $t.comparison.totalDiscrepancy, format: 'decimal' },
+		{ label: $t.comparison.significantDifferences, format: 'percent' },
+		{ label: $t.audit.count, format: 'integer' }
+	]}
+	rows={buckets.map((b) => [b.key, b.meanTotal, b.conflictRate / 100, b.n])}
+	caption={$t.comparison.disagreementBreakdown}
+	filenamePrefix="DisagreementBreakdownChart"
+/>

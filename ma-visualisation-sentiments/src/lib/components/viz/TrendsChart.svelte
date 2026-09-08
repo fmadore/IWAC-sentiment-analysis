@@ -15,7 +15,7 @@
 	import type { Article } from '$lib/types/data';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { formatNumber } from '$lib/i18n/utils';
-	import DatasetBadge from '../ui/DatasetBadge.svelte';
+	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import ChartTypeToggle from './ChartTypeToggle.svelte';
 	import { createTrendTooltipFormatter } from '$lib/utils/chartFormatters';
 	import { aggregateByYearAndDimension, computeDimensionShares } from '$lib/utils/chartAggregators';
@@ -84,20 +84,21 @@
 	]);
 
 	// Use $derived for proper reactivity in Svelte 5
+	const aggregate = $derived(
+		aggregateByYearAndDimension(articleState.filtered, frenchLabels, getKey)
+	);
+	const shareData = $derived(
+		computeDimensionShares(aggregate.yearlyCounts, aggregate.years, frenchLabels)
+	);
 	let options = $derived.by(() => {
-		const articles = articleState.filtered; // Direct reactive dependency
 		const currentT = $t; // Capture current translations for reactive updates
 		const currentLang = $currentLanguage; // Capture current language for reactive updates
 
-		const { yearlyCounts, years, articlesAnalyzed } = aggregateByYearAndDimension(
-			articles,
-			frenchLabels,
-			getKey
-		);
+		const { yearlyCounts, years, articlesAnalyzed } = aggregate;
 
 		// Percentage shares are only needed in share mode; each datum carries its
 		// raw count so the tooltip can read "34.2% (58)".
-		const shares = isShare ? computeDimensionShares(yearlyCounts, years, frenchLabels) : null;
+		const shares = isShare ? shareData : null;
 
 		const series = frenchLabels.map((frenchLabel, index) => {
 			const color = getColor(frenchLabel, index);
@@ -172,7 +173,6 @@
 
 {#if articleState.filtered.length > 0}
 	<div class="chart-toolbar mb-4">
-		<DatasetBadge size="sm" />
 		<ChartTypeToggle
 			options={displayModeOptions}
 			value={displayMode}
@@ -189,6 +189,23 @@
 	>
 		<Chart {init} {options} />
 	</div>
+	<ChartDataTable
+		columns={[
+			{ label: $t.audit.year },
+			...seriesLabels.map((label) => ({
+				label,
+				format: isShare ? ('percent' as const) : ('integer' as const)
+			}))
+		]}
+		rows={aggregate.years.map((year) => [
+			year,
+			...frenchLabels.map((label) =>
+				isShare ? shareData[year][label].value / 100 : (aggregate.yearlyCounts[year][label] ?? 0)
+			)
+		])}
+		caption={`${title} — ${isShare ? $t.charts.shareMode : $t.charts.countMode}`}
+		filenamePrefix={`trends-${displayMode}`}
+	/>
 {:else}
 	<p class="chart-empty">{$t.table.noFilteredArticles}</p>
 {/if}

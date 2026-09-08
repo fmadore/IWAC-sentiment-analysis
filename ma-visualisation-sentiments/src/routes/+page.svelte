@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
+	import { afterNavigate } from '$app/navigation';
+	import { restoreURLState } from '$lib/stores/url/actions.svelte';
+	import { analysisState } from '$lib/stores/analysis.svelte';
 	import { browser } from '$app/environment';
 	import {
 		loadCurrentDataset,
@@ -39,6 +42,9 @@
 		handlePendingArticleSelection
 	} from '$lib/stores/url';
 
+	afterNavigate(({ type, to }) => {
+		if (type === 'popstate' && to) void restoreURLState(to.url.searchParams);
+	});
 	// Application state
 	let detailedArticle: Article | null = $state(null);
 	let showDetailsSidebar = $state(false);
@@ -70,7 +76,7 @@
 	// used to request it as well, which doubled every load attempt.
 	$effect(() => {
 		if (currentView === 'extremes' && currentDatasetId && browser && isInitialized) {
-			loadCurrentExtremeAnalysis(fetch).catch((error) =>
+			untrack(() => loadCurrentExtremeAnalysis(fetch)).catch((error) =>
 				console.error('Failed to load extreme analysis data:', error)
 			);
 		}
@@ -80,11 +86,12 @@
 	// request site for these two.
 	$effect(() => {
 		if (isComparisonMode && browser && isInitialized) {
-			loadComparisonDatasets(fetch).catch((error) =>
+			void datasetState.pair;
+			untrack(() => loadComparisonDatasets(fetch)).catch((error) =>
 				console.error('Failed to load comparison datasets:', error)
 			);
 
-			loadArbiterEvaluations(fetch).catch((error) =>
+			untrack(() => loadArbiterEvaluations(fetch)).catch((error) =>
 				console.error('Failed to load arbiter evaluations:', error)
 			);
 
@@ -110,6 +117,10 @@
 	// React to filter changes and update URL
 	$effect(() => {
 		// Access filter state to track changes
+		void filterState.discrepancy;
+		void analysisState.scope;
+		void analysisState.dimension;
+		void analysisState.includeDeclined;
 		void filterState.countries;
 		void filterState.journals;
 		void filterState.polarities;
@@ -124,10 +135,8 @@
 
 	// React to selectedArticle changes and show details if article is selected
 	$effect(() => {
-		if (currentSelectedArticle && !detailedArticle) {
-			detailedArticle = currentSelectedArticle;
-			showDetailsSidebar = true;
-		}
+		detailedArticle = currentSelectedArticle;
+		showDetailsSidebar = currentSelectedArticle !== null;
 	});
 
 	// Drain any pending article selection (from a shared URL) as soon as its
@@ -145,11 +154,11 @@
 		if (!browser || !isInitialized) return;
 
 		void currentDatasetId;
-		loadCurrentDataset(fetch).catch((error) => {
+		untrack(() => loadCurrentDataset(fetch)).catch((error) => {
 			console.error('Failed to load dataset:', error);
 		});
 
-		updateURL(currentView);
+		untrack(() => updateURL(currentView));
 	});
 
 	/**
@@ -173,10 +182,11 @@
 				datasetState.isComparisonMode = true;
 			}
 		} else if (currentView === 'agreement') {
+			void datasetState.generation;
 			// Agreement compares every model against every other, so it needs the
 			// generation's whole panel rather than just the selected one.
 			// Idempotent, and no other effect requests this.
-			loadAllDatasets(fetch).catch((error) => {
+			untrack(() => loadAllDatasets(fetch)).catch((error) => {
 				console.error('Failed to load datasets for agreement view:', error);
 			});
 		} else if (isComparisonMode) {
@@ -222,7 +232,9 @@
 	}
 
 	function retryDataset() {
-		loadCurrentDataset(fetch).catch((error) => console.error('Failed to retry dataset:', error));
+		untrack(() => loadCurrentDataset(fetch)).catch((error) =>
+			console.error('Failed to retry dataset:', error)
+		);
 	}
 
 	// Handlers for extreme analysis controls

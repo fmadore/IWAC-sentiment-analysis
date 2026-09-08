@@ -64,57 +64,28 @@ export function cohensKappa(
 	categories: string[],
 	weighting: KappaWeighting = 'none'
 ): KappaResult {
-	const index = new Map(categories.map((category, i) => [category, i]));
+	return kappaFromMatrix(buildConfusionMatrix(pairs, categories), weighting);
+}
+
+/** Derive weighted and unweighted agreement from the same contingency counts. */
+export function kappaFromMatrix(
+	matrix: ConfusionMatrix,
+	weighting: KappaWeighting = 'none'
+): KappaResult {
+	const { n, categories, cells, rowTotals, columnTotals } = matrix;
+	if (!n) return { kappa: NaN, observedAgreement: 0, expectedAgreement: 0, n: 0 };
 	const k = categories.length;
-
-	const observedCounts = new Map<string, number>();
-	const marginalsA = new Array<number>(k).fill(0);
-	const marginalsB = new Array<number>(k).fill(0);
-	let n = 0;
-
-	for (const { a, b } of pairs) {
-		const i = index.get(a);
-		const j = index.get(b);
-		if (i === undefined || j === undefined) continue;
-
-		observedCounts.set(`${i}:${j}`, (observedCounts.get(`${i}:${j}`) ?? 0) + 1);
-		marginalsA[i]++;
-		marginalsB[j]++;
-		n++;
+	let observed = 0;
+	let expected = 0;
+	for (const { rowIndex: i, columnIndex: j, count } of cells) {
+		const weight = disagreementWeight(i, j, k, weighting);
+		observed += (weight * count) / n;
+		expected += (weight * rowTotals[i] * columnTotals[j]) / (n * n);
 	}
-
-	if (n === 0) {
-		return { kappa: NaN, observedAgreement: 0, expectedAgreement: 0, n: 0 };
-	}
-
-	// Both sums are expressed as *disagreement*, then converted back, so the
-	// weighted and unweighted paths share one formula.
-	let observedDisagreement = 0;
-	for (const [key, count] of observedCounts) {
-		const [i, j] = key.split(':').map(Number);
-		observedDisagreement += disagreementWeight(i, j, k, weighting) * count;
-	}
-	observedDisagreement /= n;
-
-	let expectedDisagreement = 0;
-	for (let i = 0; i < k; i++) {
-		if (marginalsA[i] === 0) continue;
-		for (let j = 0; j < k; j++) {
-			if (marginalsB[j] === 0) continue;
-			expectedDisagreement +=
-				disagreementWeight(i, j, k, weighting) * ((marginalsA[i] * marginalsB[j]) / (n * n));
-		}
-	}
-
-	const observedAgreement = 1 - observedDisagreement;
-	const expectedAgreement = 1 - expectedDisagreement;
-
 	return {
-		// Expected disagreement of 0 means the marginals leave no room for chance
-		// agreement to be corrected against — kappa is undefined, not 0 or 1.
-		kappa: expectedDisagreement === 0 ? NaN : 1 - observedDisagreement / expectedDisagreement,
-		observedAgreement,
-		expectedAgreement,
+		kappa: expected === 0 ? NaN : 1 - observed / expected,
+		observedAgreement: 1 - observed,
+		expectedAgreement: 1 - expected,
 		n
 	};
 }

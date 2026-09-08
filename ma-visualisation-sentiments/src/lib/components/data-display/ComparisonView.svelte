@@ -1,8 +1,11 @@
 <script lang="ts">
+	import { articleState } from '$lib/stores/articles.svelte';
+	import { datasetReadiness } from '$lib/utils/datasetReadiness';
+	import { getPairModels } from '$lib/domain/sentimentContract';
+	import DatasetLoadError from '../common/DatasetLoadError.svelte';
 	import {
 		comparisonState,
 		datasetState,
-		uiState,
 		setupArbiterPairReactivity,
 		loadArbiterEvaluations
 	} from '$lib/stores';
@@ -22,6 +25,9 @@
 	} from '$lib/stores/url';
 	import { onMount } from 'svelte';
 
+	const loadStatus = $derived(
+		datasetReadiness(getPairModels(datasetState.pair), articleState.loadStates)
+	);
 	const hasData = $derived(comparisonState.filtered.length > 0);
 	const showDetailModal = $derived(comparisonState.selected !== null);
 
@@ -93,7 +99,9 @@
 				{$t.comparison.enableComparisonDescription}
 			</p>
 		</div>
-	{:else if uiState.isLoadingComparison}
+	{:else if loadStatus.failed.length > 0}
+		<DatasetLoadError ids={loadStatus.failed} />
+	{:else if !loadStatus.ready}
 		<!-- Loading state for comparison data -->
 		<div class="loading-section mb-6">
 			<div class="comparison-loading-card p-8 text-center">

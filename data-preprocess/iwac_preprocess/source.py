@@ -7,11 +7,14 @@ import os
 import re
 import sys
 from collections.abc import Sequence
+from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
-from huggingface_hub import hf_hub_download
+from huggingface_hub import HfApi, hf_hub_download
+from huggingface_hub.errors import HfHubHTTPError
 
 from .contract import CONTRACT_V1, CONTRACTS, SentimentContract
 
@@ -79,34 +82,68 @@ def validate_columns(df: pd.DataFrame, required: list[str]) -> None:
         )
 
 
+@dataclass(frozen=True)
+class SourceResult:
+    data: pd.DataFrame
+    repository: str
+    revision: str
+
+
+@lru_cache(maxsize=16)
+def resolve_source_revision(repo_id: str, requested: str | None) -> str:
+    # Resolve once per repository/request for a coherent multi-subset run.
+    revision = HfApi().dataset_info(repo_id, revision=requested).sha
+    if not revision:
+        raise ValueError(f"No immutable revision returned for {repo_id}")
+    return revision
+
+
+def load_source(
+    config: str,
+    direct_filename: str,
+    repo_id: str = HF_REPO_ID,
+    token: str | None = None,
+    revision: str | None = None,
+) -> SourceResult:
+    requested = revision or os.getenv(
+        "IWAC_HF_FULL_REVISION" if repo_id == HF_FULL_REPO_ID else "IWAC_HF_REVISION"
+    )
+    resolved = resolve_source_revision(repo_id, requested)
+    try:
+        path = hf_hub_download(
+            repo_id=repo_id,
+            filename=direct_filename,
+            repo_type="dataset",
+            token=token,
+            revision=resolved,
+        )
+    except HfHubHTTPError as direct_error:
+        _logger.warning(
+            "Direct %s download failed: %s; using pinned datasets fallback", config, direct_error
+        )
+        from datasets import load_dataset
+
+        dataset = load_dataset(repo_id, name=config, revision=resolved, token=token)
+        data = pd.DataFrame(dataset["train"])
+    else:
+        # Parsing failures are data errors, not an excuse to switch sources.
+        data = pd.read_parquet(path)
+    return SourceResult(data=data, repository=repo_id, revision=resolved)
+
+
 def _load_subset(
     config: str,
     direct_filename: str,
     repo_id: str = HF_REPO_ID,
     token: str | None = None,
 ) -> pd.DataFrame:
+    # Compatibility facade for existing CLI consumers; new callers can retain
+    # SourceResult directly instead of consulting last-load provenance.
     global _last_source_revision
-    try:
-        path = hf_hub_download(
-            repo_id=repo_id, filename=direct_filename, repo_type="dataset", token=token
-        )
-        parts = Path(path).parts
-        if "snapshots" in parts:
-            snapshot_index = parts.index("snapshots")
-            if snapshot_index + 1 < len(parts):
-                _last_source_revision = parts[snapshot_index + 1]
-                _revisions_by_repo[repo_id] = parts[snapshot_index + 1]
-        return pd.read_parquet(path)
-    except Exception as direct_error:
-        _logger.warning(
-            "Direct %s download failed: %s; using datasets fallback", config, direct_error
-        )
-        from datasets import load_dataset
-
-        dataset = load_dataset(repo_id, name=config, verification_mode="no_checks", token=token)
-        _last_source_revision = os.getenv("IWAC_HF_REVISION")
-        _revisions_by_repo[repo_id] = _last_source_revision
-        return pd.DataFrame(dataset["train"])
+    result = load_source(config, direct_filename, repo_id, token)
+    _last_source_revision = result.revision
+    _revisions_by_repo[result.repository] = result.revision
+    return result.data
 
 
 def load_iwac_dataset(contract: SentimentContract = CONTRACT_V1) -> pd.DataFrame:

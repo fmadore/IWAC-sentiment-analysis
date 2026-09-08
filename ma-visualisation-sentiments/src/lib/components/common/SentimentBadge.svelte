@@ -85,7 +85,8 @@
 		   attribute above. A badge is always filled. */
 		background: var(--sentiment-bg);
 		border: 1px solid var(--sentiment-border);
-		color: var(--sentiment-fg);
+		/* Chart ramps remain unchanged; small badge text needs a lighter tint. */
+		color: color-mix(in oklab, var(--sentiment-fg) 60%, var(--text-primary));
 	}
 
 	/* Size variants */

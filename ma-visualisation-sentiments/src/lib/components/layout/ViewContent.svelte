@@ -17,6 +17,7 @@
   />
 -->
 <script lang="ts">
+	import ViewLoadError from '../common/ViewLoadError.svelte';
 	import type { Article, ViewId } from '$lib/types/data';
 	import { num } from '$lib/i18n/utils';
 	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
@@ -39,11 +40,20 @@
 		null;
 
 	function loadMapModule() {
-		mapModulePromise ??= import('$lib/components/viz/SentimentMap.svelte');
+		mapModulePromise ??= import('$lib/components/viz/SentimentMap.svelte').catch((error) => {
+			mapModulePromise = null;
+			throw error;
+		});
 		return mapModulePromise;
 	}
 
-	const chartViews = import('$lib/components/views/ChartViews.svelte');
+	let chartModulePromise: Promise<typeof import('$lib/components/views/ChartViews.svelte')> | null =
+		null;
+	const chartViews = () =>
+		(chartModulePromise ??= import('$lib/components/views/ChartViews.svelte').catch((error) => {
+			chartModulePromise = null;
+			throw error;
+		}));
 	const tableView = () => import('$lib/components/data-display/ArticleTable.svelte');
 	const comparisonView = () => import('$lib/components/data-display/ComparisonView.svelte');
 	const agreementView = () => import('$lib/components/data-display/AgreementView.svelte');
@@ -216,7 +226,6 @@
 	{@const meta = viewMeta[view]}
 	<header class="view-header">
 		<div class="view-header-text">
-			<p class="view-eyebrow">{meta.eyebrow}</p>
 			<h1 class="view-title">{meta.title}</h1>
 			<p class="view-lede">{meta.lede}</p>
 			{#if methodologyLine}
@@ -232,51 +241,51 @@
 {#if activeView === 'charts'}
 	<div class="view mb-6">
 		{@render header('charts')}
-		{#await chartViews}<LoadingState />{:then module}
+		{#await chartViews()}<LoadingState />{:then module}
 			{@const ChartViews = module.default}<ChartViews view="charts" />
-		{/await}
+		{:catch}<ViewLoadError />{/await}
 	</div>
 {:else if activeView === 'trends'}
 	<div class="view mb-6">
 		{@render header('trends')}
-		{#await chartViews}<LoadingState />{:then module}
+		{#await chartViews()}<LoadingState />{:then module}
 			{@const ChartViews = module.default}<ChartViews view="trends" />
-		{/await}
+		{:catch}<ViewLoadError />{/await}
 	</div>
 {:else if activeView === 'correlation'}
 	<div class="view mb-6">
 		{@render header('correlation')}
-		{#await chartViews}<LoadingState />{:then module}
+		{#await chartViews()}<LoadingState />{:then module}
 			{@const ChartViews = module.default}<ChartViews view="correlation" />
-		{/await}
+		{:catch}<ViewLoadError />{/await}
 	</div>
 {:else if activeView === 'volume'}
 	<div class="view mb-6">
 		{@render header('volume')}
-		{#await chartViews}<LoadingState />{:then module}
+		{#await chartViews()}<LoadingState />{:then module}
 			{@const ChartViews = module.default}<ChartViews view="volume" />
-		{/await}
+		{:catch}<ViewLoadError />{/await}
 	</div>
 {:else if activeView === 'seasonality'}
 	<div class="view mb-6">
 		{@render header('seasonality')}
-		{#await chartViews}<LoadingState />{:then module}
+		{#await chartViews()}<LoadingState />{:then module}
 			{@const ChartViews = module.default}<ChartViews view="seasonality" />
-		{/await}
+		{:catch}<ViewLoadError />{/await}
 	</div>
 {:else if activeView === 'heatmap'}
 	<div class="view mb-6">
 		{@render header('heatmap')}
-		{#await chartViews}<LoadingState />{:then module}
+		{#await chartViews()}<LoadingState />{:then module}
 			{@const ChartViews = module.default}<ChartViews view="heatmap" />
-		{/await}
+		{:catch}<ViewLoadError />{/await}
 	</div>
 {:else if activeView === 'ranking'}
 	<div class="view mb-6">
 		{@render header('ranking')}
-		{#await chartViews}<LoadingState />{:then module}
+		{#await chartViews()}<LoadingState />{:then module}
 			{@const ChartViews = module.default}<ChartViews view="ranking" />
-		{/await}
+		{:catch}<ViewLoadError />{/await}
 	</div>
 {:else if activeView === 'map'}
 	<div class="view mb-6">
@@ -286,7 +295,7 @@
 		{:then module}
 			{@const SentimentMap = module.default}
 			<SentimentMap />
-		{/await}
+		{:catch}<ViewLoadError />{/await}
 	</div>
 {:else if activeView === 'table'}
 	<div class="view mb-6">
@@ -297,21 +306,21 @@
 		{#await tableView()}<LoadingState />{:then module}
 			{@const ArticleTable = module.default}
 			<ChartCard variant="table"><ArticleTable {onShowDetails} /></ChartCard>
-		{/await}
+		{:catch}<ViewLoadError />{/await}
 	</div>
 {:else if activeView === 'comparison'}
 	<div class="view comparison-view mb-6">
 		{@render header('comparison')}
 		{#await comparisonView()}<LoadingState />{:then module}
 			{@const ComparisonView = module.default}<ComparisonView />
-		{/await}
+		{:catch}<ViewLoadError />{/await}
 	</div>
 {:else if activeView === 'agreement'}
 	<div class="view agreement-view mb-6">
 		{@render header('agreement')}
 		{#await agreementView()}<LoadingState />{:then module}
 			{@const AgreementView = module.default}<AgreementView />
-		{/await}
+		{:catch}<ViewLoadError />{/await}
 	</div>
 {:else if activeView === 'extremes'}
 	<div class="view extreme-view mb-6">
@@ -319,17 +328,17 @@
 		{#await extremeView()}<LoadingState />{:then module}
 			{@const ExtremeView = module.default}
 			<ExtremeView {selectedCategory} {selectedKeywordType} {showTopN} />
-		{/await}
+		{:catch}<ViewLoadError />{/await}
 	</div>
 {:else if activeView === 'arbiter'}
 	{#if datasetState.generation === 'v2'}
 		{#await arbiterV2View()}<LoadingState />{:then module}
 			{@const ArbiterV2View = module.default}<ArbiterV2View />
-		{/await}
+		{:catch}<ViewLoadError />{/await}
 	{:else}
 		{#await arbiterView()}<LoadingState />{:then module}
 			{@const ArbiterView = module.default}<ArbiterView />
-		{/await}
+		{:catch}<ViewLoadError />{/await}
 	{/if}
 {/if}
 
@@ -355,16 +364,6 @@
 	.view-header-text {
 		min-width: 0;
 		flex: 1;
-	}
-
-	.view-eyebrow {
-		font-family: var(--font-mono);
-		font-size: var(--font-size-xs);
-		font-weight: 500;
-		text-transform: uppercase;
-		letter-spacing: var(--tracking-wider);
-		color: var(--text-muted);
-		margin: 0 0 var(--space-2);
 	}
 
 	.view-title {

@@ -291,21 +291,15 @@
 					</thead>
 					<tbody>
 						{#each paginatedArticles as article (article.articleId)}
-							<tr
-								class="article-row cursor-pointer"
-								onclick={() => handleRowClick(article)}
-								onkeydown={(event) => {
-									if (event.key === 'Enter' || event.key === ' ') {
-										event.preventDefault();
-										handleRowClick(article);
-									}
-								}}
-								role="button"
-								tabindex="0"
-								aria-label="{$t.arbiter.viewArticleDetails}: {article.title}"
-							>
+							<tr class="article-row">
 								<td class="max-w-xs">
-									<span class="row-title line-clamp-2">{article.title}</span>
+									<button
+										type="button"
+										class="row-title line-clamp-2"
+										onclick={() => handleRowClick(article)}
+										aria-label={`${$t.arbiter.viewArticleDetails}: ${article.title}`}
+										>{article.title}</button
+									>
 								</td>
 								<td class="row-meta">{article.journal}</td>
 								<td class="row-meta">{$fmtDate(article.date)}</td>

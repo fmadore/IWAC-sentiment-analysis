@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from '$lib/i18n';
 	import XIcon from '@lucide/svelte/icons/x';
 	import SearchIcon from '@lucide/svelte/icons/search';
 
@@ -21,7 +22,7 @@
 
 	let {
 		value = $bindable(''),
-		placeholder = 'Search...',
+		placeholder,
 		onchange,
 		onclear,
 		showSearchIcon = false,
@@ -54,7 +55,8 @@
 	{/if}
 	<input
 		type="text"
-		{placeholder}
+		placeholder={placeholder ?? $t.audit.search}
+		aria-label={placeholder ?? $t.audit.search}
 		{value}
 		oninput={handleInput}
 		onkeydown={handleKeydown}
@@ -63,7 +65,12 @@
 		class:has-clear={value}
 	/>
 	{#if value}
-		<button onclick={handleClear} class="search-clear" aria-label="Clear search" type="button">
+		<button
+			onclick={handleClear}
+			class="search-clear"
+			aria-label={$t.audit.clearSearch}
+			type="button"
+		>
 			<XIcon size={size === 'sm' ? 12 : 14} />
 		</button>
 	{/if}

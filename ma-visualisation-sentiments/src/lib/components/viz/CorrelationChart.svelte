@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import { Chart } from 'svelte-echarts';
 	import { dec, num } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
@@ -105,7 +106,7 @@
 		return p < 0.0001 ? `< ${$dec(0.0001, 4)}` : $dec(p, 4);
 	}
 
-	let options = $derived.by(() => {
+	const aggregate = $derived.by(() => {
 		const articles = articleState.filtered;
 
 		// Structure: polarité -> subjectivité -> count
@@ -137,6 +138,10 @@
 		});
 
 		// Créer les séries pour chaque score de subjectivité
+		return { data, articlesAnalyzed };
+	});
+	let options = $derived.by(() => {
+		const { data, articlesAnalyzed } = aggregate;
 		const series = subjectivityOrder.map((subjScore) => ({
 			name: subjectivityLabels[subjScore as keyof typeof subjectivityLabels],
 			type: 'bar' as const,
@@ -257,6 +262,21 @@
 		</p>
 		<p class="correlation-note">{$t.correlation.rhoNote}</p>
 	{/if}
+	<ChartDataTable
+		columns={[
+			{ label: $t.filters.polarity },
+			...subjectivityOrder.map((score) => ({
+				label: subjectivityLabels[score as keyof typeof subjectivityLabels],
+				format: 'integer' as const
+			}))
+		]}
+		rows={polarityOrder.map((label, i) => [
+			translatedPolarityLabels[i],
+			...subjectivityOrder.map((score) => aggregate.data[label][score])
+		])}
+		caption={$t.charts.polarityDistribution}
+		filenamePrefix="polarity-subjectivity"
+	/>
 {:else}
 	<p class="chart-empty">{$t.table.noFilteredArticles}</p>
 {/if}

@@ -27,7 +27,7 @@ const readSource = (relativePath: string) =>
 	readFileSync(fileURLToPath(new URL(relativePath, import.meta.url)), 'utf8');
 
 const chartThemeSource = readSource('./chartTheme.ts');
-const appCssSource = readSource('../../app.css');
+const appCssSource = readSource('../styles/tokens.css');
 
 /** A hex literal in chartTheme.ts annotated with the OKLCH it came from. */
 interface AnnotatedColor {

@@ -4,6 +4,7 @@
  * Parses URL search parameters into application state.
  */
 
+import { SvelteSet } from 'svelte/reactivity';
 import { LANGUAGES, type Language } from '$lib/i18n';
 import type { ModelPair } from '$lib/types/data';
 import { TOTAL_DISCREPANCY_MAXIMUM } from '$lib/domain/sentimentContract';
@@ -15,6 +16,7 @@ import {
 	type ValidView,
 	type ValidDataset
 } from './constants';
+import { ANALYSIS_DIMENSIONS, type AnalysisDimension } from '../analysis.svelte';
 import type { URLState } from './types';
 
 /**
@@ -119,5 +121,22 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
 		if (values.length > 0) state[stateKey] = values;
 	}
 
+	if (searchParams.has('dimensions')) {
+		state.dimensions = [
+			...new SvelteSet(searchParams.getAll('dimensions').flatMap((v) => v.split(',')))
+		].filter((v): v is AnalysisDimension => ANALYSIS_DIMENSIONS.includes(v as AnalysisDimension));
+	}
+	for (const key of ['excludeNA', 'declined'] as const) {
+		const value = searchParams.get(key);
+		if (value === 'true' || value === 'false') state[key] = value === 'true';
+	}
+	const scope = searchParams.get('scope');
+	if (scope === 'pair' || scope === 'panel') state.scope = scope;
+	const dimension = searchParams.get('dimension');
+	if (ANALYSIS_DIMENSIONS.includes(dimension as AnalysisDimension))
+		state.dimension = dimension as AnalysisDimension;
+	if (state.diffMin !== undefined && state.diffMax !== undefined && state.diffMin > state.diffMax) {
+		[state.diffMin, state.diffMax] = [state.diffMax, state.diffMin];
+	}
 	return state;
 }

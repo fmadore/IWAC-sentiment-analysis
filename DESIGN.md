@@ -176,7 +176,7 @@ ramps — the real palette — for the data.
 ### Data palettes
 
 The heart of the system, built as perceptually-uniform OKLCH ramps in
-`app.css` (the construction reasoning lives there, next to the values):
+`src/lib/styles/tokens.css` (the construction reasoning lives there, next to the values):
 
 - **Polarity** (diverging): red ↔ green through a low-chroma blue neutral,
   plus a grey `Non applicable`.
@@ -294,7 +294,7 @@ a t-shirt scale: **none** (0 — inputs, table cells, flush edges), **hairline**
 surface corner), **circle** (9999px — true circles only: dots, spinner rings;
 a pill wants `panel`, not `circle`). Borders are 1px hairlines from the
 white-mix ladder; the one thicker mark in the system is the 3px Wire Amber
-rail on the active nav item. Chart caveats sit above a 1px *dashed* hairline —
+rail on the active nav item. Chart caveats sit above a 1px _dashed_ hairline —
 the footnote rule of the system.
 
 ## Components
@@ -357,7 +357,7 @@ engaged. There is no global `.btn` — every control declares its own box
 
 ### Signature: the sentiment resolver
 
-One rule set in `app.css` maps `data-polarity` / `data-subjectivity` /
+One rule set in `src/lib/styles/components.css` maps `data-polarity` / `data-subjectivity` /
 `data-centrality` attributes to `--sentiment-fg/-bg/-border`; components emit
 attributes via `utils/sentimentTokens.ts` and read the three variables. Chips,
 badges, table cells and tooltips all draw from it, and tooltip swatches add a
@@ -412,7 +412,7 @@ A rule nobody can violate does not need to be remembered.
 
 The reasoning behind the palettes — why the polarity ramp is equal-lightness at
 the poles, why surfaces are opaque, why the type scale steps the way it does —
-lives in `src/app.css` next to the values. This file is the contract; that file
+lives in `src/lib/styles/tokens.css` next to the values. This file is the contract; that file
 is the argument.
 
 ### 1. Tailwind sets layout. Nothing else.
@@ -432,7 +432,7 @@ it and the newest views drifted furthest.
 
 No raw hex, `rgb()`, `hsl()`, no raw `rem`/`px` font sizes, no raw `em`
 letter-spacing, no raw millisecond durations. The one legitimate place for a
-colour literal is the right-hand side of a token definition in `app.css` — that
+colour literal is the right-hand side of a token definition in `src/lib/styles/tokens.css` — that
 _is_ the token layer.
 
 Exceptions exist and are listed, with reasons, in the check script: ECharts and
@@ -456,8 +456,8 @@ component's root selector and reference it plainly:
 
 ```css
 .spinner {
-	--spinner-accent: var(--color-primary-500); /* component API */
-	border-top-color: var(--spinner-accent);
+  --spinner-accent: var(--color-primary-500); /* component API */
+  border-top-color: var(--spinner-accent);
 }
 ```
 
@@ -489,7 +489,7 @@ stylesheet, and it composes with the sentiment resolver below.
 
 **Sentiment colour has exactly one resolver.** Never map a value to a token in a
 component. Emit the data attribute from `utils/sentimentTokens.ts` and read
-`--sentiment-fg` / `-bg` / `-border`; `app.css` resolves them. The same shape
+`--sentiment-fg` / `-bg` / `-border`; `src/lib/styles/components.css` resolves them. The same shape
 applies to discrepancy severity (`utils/discrepancy.ts` → `--discrepancy-*`).
 This is the strongest rule in the codebase and the model for the rest.
 
@@ -506,9 +506,9 @@ inline` and stacks one on top of the other. The class names are valid strings,
 the markup is valid HTML, and the compiler, `svelte-check`, `eslint` and the
 tests all pass. Only a person looking at the screen can see it — which is why
 `check-design-tokens.mjs` now fails on a watched class name that neither
-`app.css` nor the component itself defines.
+the shared styles nor the component itself defines.
 
-Shared component classes are legitimate, but they live in `app.css` and are
+Shared component classes are legitimate, but they live in `src/lib/styles/components.css` and are
 defined once: `.select-sm` had been copied into two components with two different
 corner radii, and a third component used it without defining it at all.
 
@@ -528,3 +528,5 @@ corner radii, and a third component used it without defining it at all.
   equal-lightness at the poles by design, so red and green differ only in hue —
   chart swatches therefore also carry a shape, and every tooltip names the value
   in words.
+
+The global stylesheet entry point remains `src/app.css`. It imports Tailwind, tokens, foundation rules, and shared component rules in that order. Keep the order: unlayered shared selectors intentionally override the utility layer. Chart ramps retain their data colours; small sentiment-badge text uses a lighter tint for contrast on dark surfaces.
