@@ -159,6 +159,15 @@ def validate_extremes(contract: SentimentContract, base_ids: set[str]) -> None:
         require(
             set(index).issubset(base_ids), f"extreme {model_id} index contains unknown articles"
         )
+        # The corpus keeps growing but a panel run is a discrete event, so a
+        # denominator counting rows the panel never scored would silently
+        # deflate every published percentage.
+        require(
+            payload.get("statistics", {}).get("total_articles") == len(base_ids),
+            f"extreme {model_id} counts {payload.get('statistics', {}).get('total_articles')} "
+            f"articles against a base of {len(base_ids)}: the run was not scoped to the "
+            "articles the panel processed",
+        )
         analysis = payload.get("analysis", {})
         require(
             set(analysis) == EXTREME_CATEGORIES, f"extreme {model_id} category set is incomplete"
