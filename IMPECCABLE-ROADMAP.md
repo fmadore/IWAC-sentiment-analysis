@@ -19,7 +19,10 @@ button shows the shared `Spinner` with `aria-busy` instead of a bouncing icon.
   and should be reviewed at the same time. The hook remains disabled.
 - Review first-use orientation and narrow tablet layouts when concrete usability
   evidence warrants another design pass. The completed browser checks cover
-  desktop and 390px mobile layouts; they do not establish every intermediate width.
+  desktop and 390px mobile layouts, plus a geometry walk of all thirteen views at
+  768px and 1024px on 2026-09-09 that found no horizontal overflow (at 1024px the
+  permanent rail and collapsed sidebar leave 545px chart cards, above the 400px
+  floor). What remains unestablished is usability, not layout.
 
 Keep `PRODUCT.md` and `DESIGN.md` as the product and design contracts. Future
 changes should preserve bilingual copy, semantic data colours, dense research
