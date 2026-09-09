@@ -1,29 +1,28 @@
 # Design follow-ups
 
-Updated 2026-09-08. The repository audit's fifteen findings are implemented; see
+Updated 2026-09-09. The repository audit's fifteen findings are implemented; see
 [the implementation record](REFACTORING-IMPLEMENTATION-2026-09-08.md) for changes
-and validation. This replaces the August Impeccable phase plan and removes its
-completed setup, design-contract work and superseded audit instructions.
+and validation. The September motion cleanup is also done: no layout-driving
+property (`width`, `height`, `margin`) is transitioned anywhere in `src/` — the
+sidebar rail and page content snap, the rail's labels fade in, the toggle
+chevron rotates by transform, `ComparisonStats`' fills animate with
+`transform: scaleX`, the stacked arbiter bars set instantly, and the CSV export
+button shows the shared `Spinner` with `aria-busy` instead of a bouncing icon.
+`.impeccable/design.json` was refreshed on the same date and the detector's two
+`layout-transition` ignore entries were retired with the transitions.
 
-## Remaining code cleanup
+## Open decisions (owner's call, not blocked on evidence)
 
-- Remove unnecessary width transitions or replace them with transform-based motion
-  in `ArbiterStatsCards.svelte`, `ArbiterV2StatsCards.svelte`,
-  `ComparisonStats.svelte` and `SidebarNav.svelte`; also review the shell's motion.
-- Replace the CSV export button's bouncing icon with restrained progress feedback,
-  preserving reduced-motion support.
-
-These patterns remain in the source; they are not claimed as completed by the
-September audit implementation.
-
-## Optional design maintenance
-
-- Refresh `.impeccable/design.json` to reflect the current tokens and components.
-- Consider enabling Impeccable's edit-time detector, ignoring the Roboto system-font
-  fallback false positive. The hook remains disabled.
+- Enable Impeccable's edit-time detector for this project. It would need one
+  ignore for the Roboto system-font fallback false positive; the
+  `design-system-font-size: 1.75rem` ignore is still in `.impeccable/config.json`
+  and should be reviewed at the same time. The hook remains disabled.
 - Review first-use orientation and narrow tablet layouts when concrete usability
   evidence warrants another design pass. The completed browser checks cover
-  desktop and 390px mobile layouts; they do not establish every intermediate width.
+  desktop and 390px mobile layouts, plus a geometry walk of all thirteen views at
+  768px and 1024px on 2026-09-09 that found no horizontal overflow (at 1024px the
+  permanent rail and collapsed sidebar leave 545px chart cards, above the 400px
+  floor). What remains unestablished is usability, not layout.
 
 Keep `PRODUCT.md` and `DESIGN.md` as the product and design contracts. Future
 changes should preserve bilingual copy, semantic data colours, dense research

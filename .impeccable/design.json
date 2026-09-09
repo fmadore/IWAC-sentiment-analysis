@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 2,
-	"generatedAt": "2026-08-17T12:00:00Z",
+	"generatedAt": "2026-09-09T00:00:00Z",
 	"title": "Design System: IWAC Sentiment Analysis",
 	"extensions": {
 		"colorMeta": {
@@ -9,33 +9,35 @@
 				"displayName": "Wire Amber",
 				"canonical": "oklch(0.78 0.13 80)",
 				"tonalRamp": [
-					"oklch(0.2 0.06 80)",
-					"oklch(0.31 0.08 80)",
-					"oklch(0.42 0.1 80)",
-					"oklch(0.53 0.12 80)",
 					"oklch(0.66 0.15 76)",
+					"oklch(0.72 0.15 78)",
 					"oklch(0.78 0.13 80)",
+					"oklch(0.82 0.12 80)",
 					"oklch(0.86 0.1 80)",
-					"oklch(0.94 0.05 80)"
+					"oklch(0.9 0.07 80)"
 				]
 			},
-			"wire-amber-strong": { "role": "primary", "displayName": "Wire Amber (strong)", "canonical": "oklch(0.72 0.15 78)" },
+			"wire-amber-strong": {
+				"role": "primary",
+				"displayName": "Wire Amber (strong)",
+				"canonical": "oklch(0.72 0.15 78)"
+			},
 			"comparison-steel": {
 				"role": "secondary",
 				"displayName": "Comparison Steel",
 				"canonical": "oklch(0.7 0.08 240)",
 				"tonalRamp": [
-					"oklch(0.2 0.04 240)",
-					"oklch(0.31 0.05 240)",
-					"oklch(0.42 0.06 240)",
-					"oklch(0.53 0.07 240)",
-					"oklch(0.62 0.08 240)",
-					"oklch(0.7 0.08 240)",
-					"oklch(0.8 0.06 240)",
-					"oklch(0.92 0.03 240)"
+					"oklch(0.58 0.08 240)",
+					"oklch(0.66 0.08 240)",
+					"oklch(0.74 0.07 240)",
+					"oklch(0.8 0.06 240)"
 				]
 			},
-			"arbiter-amber": { "role": "tertiary", "displayName": "Arbiter Amber", "canonical": "oklch(0.74 0.16 75)" },
+			"arbiter-amber": {
+				"role": "tertiary",
+				"displayName": "Arbiter Amber",
+				"canonical": "oklch(0.74 0.16 75)"
+			},
 			"ink-slate": {
 				"role": "neutral",
 				"displayName": "Ink Slate",
@@ -51,44 +53,239 @@
 					"oklch(0.97 0.005 260)"
 				]
 			},
-			"ink-slate-elevated": { "role": "neutral", "displayName": "Ink Slate (elevated)", "canonical": "oklch(0.19 0.014 260)" },
-			"surface-card": { "role": "neutral", "displayName": "Card Surface", "canonical": "oklch(0.205 0.012 260)" },
-			"surface-nested": { "role": "neutral", "displayName": "Nested Panel", "canonical": "oklch(0.175 0.011 260)" },
-			"text-primary": { "role": "neutral", "displayName": "Primary Text", "canonical": "oklch(0.97 0.005 260)" },
-			"text-faint": { "role": "neutral", "displayName": "Faint Mark", "canonical": "oklch(0.42 0.005 260)" },
-			"polarity-very-negative": { "role": "data", "displayName": "Très négatif", "canonical": "oklch(0.62 0.2 25)" },
-			"polarity-negative": { "role": "data", "displayName": "Négatif", "canonical": "oklch(0.7 0.14 25)" },
-			"polarity-neutral": { "role": "data", "displayName": "Neutre", "canonical": "oklch(0.66 0.045 250)" },
-			"polarity-positive": { "role": "data", "displayName": "Positif", "canonical": "oklch(0.7 0.13 150)" },
-			"polarity-very-positive": { "role": "data", "displayName": "Très positif", "canonical": "oklch(0.62 0.18 150)" },
-			"polarity-na": { "role": "data", "displayName": "Non applicable", "canonical": "oklch(0.55 0.01 260)" },
-			"subjectivity-1": { "role": "data", "displayName": "Très objectif (1)", "canonical": "oklch(0.72 0.06 220)" },
-			"subjectivity-5": { "role": "data", "displayName": "Très subjectif (5)", "canonical": "oklch(0.7 0.17 35)" },
-			"centrality-very-central": { "role": "data", "displayName": "Très central", "canonical": "oklch(0.82 0.14 80)" }
+			"ink-slate-elevated": {
+				"role": "neutral",
+				"displayName": "Ink Slate (elevated)",
+				"canonical": "oklch(0.19 0.014 260)"
+			},
+			"surface-card": {
+				"role": "neutral",
+				"displayName": "Card Surface",
+				"canonical": "oklch(0.205 0.012 260)"
+			},
+			"surface-card-hover": {
+				"role": "neutral",
+				"displayName": "Card Surface (hover)",
+				"canonical": "oklch(0.225 0.014 260)"
+			},
+			"surface-card-elevated": {
+				"role": "neutral",
+				"displayName": "Card Surface (elevated)",
+				"canonical": "oklch(0.235 0.015 260)"
+			},
+			"surface-nested": {
+				"role": "neutral",
+				"displayName": "Nested Panel",
+				"canonical": "oklch(0.175 0.011 260)"
+			},
+			"text-primary": {
+				"role": "neutral",
+				"displayName": "Primary Text",
+				"canonical": "oklch(0.97 0.005 260)"
+			},
+			"text-faint": {
+				"role": "neutral",
+				"displayName": "Faint Mark",
+				"canonical": "oklch(0.42 0.005 260)"
+			},
+			"text-on-light": {
+				"role": "neutral",
+				"displayName": "Ink on Light",
+				"canonical": "oklch(0.18 0.014 260)"
+			},
+			"polarity-very-negative": {
+				"role": "data",
+				"displayName": "Très négatif",
+				"canonical": "oklch(0.62 0.2 25)"
+			},
+			"polarity-negative": {
+				"role": "data",
+				"displayName": "Négatif",
+				"canonical": "oklch(0.7 0.14 25)"
+			},
+			"polarity-neutral": {
+				"role": "data",
+				"displayName": "Neutre",
+				"canonical": "oklch(0.66 0.045 250)"
+			},
+			"polarity-positive": {
+				"role": "data",
+				"displayName": "Positif",
+				"canonical": "oklch(0.7 0.13 150)"
+			},
+			"polarity-very-positive": {
+				"role": "data",
+				"displayName": "Très positif",
+				"canonical": "oklch(0.62 0.18 150)"
+			},
+			"polarity-na": {
+				"role": "data",
+				"displayName": "Non applicable",
+				"canonical": "oklch(0.55 0.01 260)"
+			},
+			"subjectivity-1": {
+				"role": "data",
+				"displayName": "Très objectif (1)",
+				"canonical": "oklch(0.72 0.06 220)"
+			},
+			"subjectivity-2": {
+				"role": "data",
+				"displayName": "Objectif (2)",
+				"canonical": "oklch(0.7 0.085 200)"
+			},
+			"subjectivity-3": {
+				"role": "data",
+				"displayName": "Mixte (3)",
+				"canonical": "oklch(0.68 0.09 130)"
+			},
+			"subjectivity-4": {
+				"role": "data",
+				"displayName": "Subjectif (4)",
+				"canonical": "oklch(0.68 0.13 60)"
+			},
+			"subjectivity-5": {
+				"role": "data",
+				"displayName": "Très subjectif (5)",
+				"canonical": "oklch(0.7 0.17 35)"
+			},
+			"centrality-not-addressed": {
+				"role": "data",
+				"displayName": "Non abordé",
+				"canonical": "oklch(0.42 0.005 80)"
+			},
+			"centrality-marginal": {
+				"role": "data",
+				"displayName": "Marginal",
+				"canonical": "oklch(0.52 0.04 80)"
+			},
+			"centrality-secondary": {
+				"role": "data",
+				"displayName": "Secondaire",
+				"canonical": "oklch(0.62 0.075 80)"
+			},
+			"centrality-central": {
+				"role": "data",
+				"displayName": "Central",
+				"canonical": "oklch(0.72 0.115 80)"
+			},
+			"centrality-very-central": {
+				"role": "data",
+				"displayName": "Très central",
+				"canonical": "oklch(0.82 0.14 80)",
+				"tonalRamp": [
+					"oklch(0.42 0.005 80)",
+					"oklch(0.52 0.04 80)",
+					"oklch(0.62 0.075 80)",
+					"oklch(0.72 0.115 80)",
+					"oklch(0.82 0.14 80)"
+				]
+			},
+			"status-error": {
+				"role": "data",
+				"displayName": "Error",
+				"canonical": "oklch(0.7 0.14 25)"
+			},
+			"status-caution": {
+				"role": "data",
+				"displayName": "Caution",
+				"canonical": "oklch(0.74 0.145 55)"
+			},
+			"status-warning": {
+				"role": "data",
+				"displayName": "Warning",
+				"canonical": "oklch(0.8 0.13 85)"
+			},
+			"status-success": {
+				"role": "data",
+				"displayName": "Success",
+				"canonical": "oklch(0.7 0.13 150)"
+			},
+			"status-info": {
+				"role": "data",
+				"displayName": "Info",
+				"canonical": "oklch(0.72 0.09 240)"
+			}
 		},
 		"typographyMeta": {
-			"display": { "displayName": "View Title", "purpose": "One serif display title per view; 26px, bold, tight tracking." },
-			"title": { "displayName": "Panel Title", "purpose": "Serif chart-card and section titles; steps 17px to 20px at 640px." },
-			"body": { "displayName": "Body", "purpose": "Public Sans working prose and controls; tabular numerals globally; 65ch prose cap." },
-			"label": { "displayName": "Eyebrow", "purpose": "The mono uppercase wire-ticker voice: section labels, table headers, badges, chart notes. 11px is the floor of the whole type system." }
+			"display": {
+				"displayName": "View Title",
+				"purpose": "One serif display title per view; 26px, bold, tight tracking."
+			},
+			"title": {
+				"displayName": "Panel Title",
+				"purpose": "Serif chart-card and section titles; steps 17px to 20px at 640px."
+			},
+			"body": {
+				"displayName": "Body",
+				"purpose": "Public Sans working prose and controls; tabular numerals globally; 65ch prose cap."
+			},
+			"label": {
+				"displayName": "Eyebrow",
+				"purpose": "The mono uppercase wire-ticker voice: section labels, table headers, badges, chart notes. 11px is the floor of the whole type system."
+			}
 		},
 		"shadows": [
-			{ "name": "elevation-card", "value": "0 1px 2px color-mix(in oklab, black 35%, transparent)", "purpose": "Resting cards; a hairline, not a lift." },
-			{ "name": "elevation-card-hover", "value": "0 1px 2px color-mix(in oklab, black 35%, transparent), 0 8px 24px color-mix(in oklab, black 22%, transparent)", "purpose": "Hovered cards; the one soft lift in the system." },
-			{ "name": "elevation-sticky", "value": "0 1px 2px color-mix(in oklab, black 30%, transparent), 0 4px 14px color-mix(in oklab, black 22%, transparent)", "purpose": "Sticky headers and the filter rail." },
-			{ "name": "elevation-modal", "value": "0 8px 16px color-mix(in oklab, black 36%, transparent), 0 32px 64px color-mix(in oklab, black 44%, transparent)", "purpose": "Dialogs." },
-			{ "name": "elevation-drawer", "value": "1px 0 0 color-mix(in oklab, black 30%, transparent), 8px 0 32px color-mix(in oklab, black 30%, transparent)", "purpose": "Left-edge drawer; shadow falls right onto the covered page." },
-			{ "name": "elevation-drawer-mirrored", "value": "-1px 0 0 color-mix(in oklab, black 30%, transparent), -8px 0 32px color-mix(in oklab, black 30%, transparent)", "purpose": "Right-edge drawer; mirror of the above — edit them together." },
-			{ "name": "ring-focus", "value": "0 0 0 3px color-mix(in oklab, oklch(0.78 0.13 80) 38%, transparent)", "purpose": "Wire Amber focus ring on every focusable control." }
+			{
+				"name": "elevation-card",
+				"value": "0 1px 2px color-mix(in oklab, black 35%, transparent)",
+				"purpose": "Resting cards; a hairline, not a lift."
+			},
+			{
+				"name": "elevation-card-hover",
+				"value": "0 1px 2px color-mix(in oklab, black 35%, transparent), 0 8px 24px color-mix(in oklab, black 22%, transparent)",
+				"purpose": "Hovered cards; the one soft lift in the system."
+			},
+			{
+				"name": "elevation-sticky",
+				"value": "0 1px 2px color-mix(in oklab, black 30%, transparent), 0 4px 14px color-mix(in oklab, black 22%, transparent)",
+				"purpose": "Sticky table headers and the filter rail."
+			},
+			{
+				"name": "elevation-modal",
+				"value": "0 8px 16px color-mix(in oklab, black 36%, transparent), 0 32px 64px color-mix(in oklab, black 44%, transparent)",
+				"purpose": "Dialogs."
+			},
+			{
+				"name": "elevation-drawer",
+				"value": "1px 0 0 color-mix(in oklab, black 30%, transparent), 8px 0 32px color-mix(in oklab, black 30%, transparent)",
+				"purpose": "Left-edge drawer; the hairline is the panel edge, the wide blur is the lift off the scrim."
+			},
+			{
+				"name": "elevation-drawer-mirrored",
+				"value": "-1px 0 0 color-mix(in oklab, black 30%, transparent), -8px 0 32px color-mix(in oklab, black 30%, transparent)",
+				"purpose": "Right-edge drawer; the mirror of the above, differing only in the sign of the x-offset — edit them together."
+			},
+			{
+				"name": "ring-focus",
+				"value": "0 0 0 3px color-mix(in oklab, oklch(0.78 0.13 80) 38%, transparent)",
+				"purpose": "The 3px Wire Amber focus ring on every focusable control."
+			},
+			{
+				"name": "ring-focus-error",
+				"value": "0 0 0 3px color-mix(in oklab, oklch(0.7 0.14 25) 35%, transparent)",
+				"purpose": "The error variant of the focus ring, for invalid controls."
+			}
 		],
 		"motion": [
 			{ "name": "timing-instant", "value": "80ms", "purpose": "Immediate feedback." },
 			{ "name": "timing-fast", "value": "150ms", "purpose": "Default control-state transitions." },
 			{ "name": "timing-normal", "value": "220ms", "purpose": "Card and surface transitions." },
 			{ "name": "timing-slow", "value": "320ms", "purpose": "Drawers and large moves." },
-			{ "name": "ease-default", "value": "cubic-bezier(0.32, 0.72, 0, 1)", "purpose": "Out-expo; the house easing for state changes." },
-			{ "name": "ease-emphasized", "value": "cubic-bezier(0.2, 0, 0, 1)", "purpose": "Emphasized entrances (drawers)." },
-			{ "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Neutral fallback easing." }
+			{
+				"name": "easing-default",
+				"value": "cubic-bezier(0.32, 0.72, 0, 1)",
+				"purpose": "Out-expo; the house easing for state changes. Only paint-level properties transition — background-color, border-color, color, opacity, box-shadow, transform. Layout-driving properties (width, height, margin) are never transitioned: the sidebar rail snaps and only its labels fade, bar fills animate with transform: scaleX, and in-progress feedback is the shared Spinner ring rather than a moving box. Every transition is guarded by prefers-reduced-motion."
+			},
+			{
+				"name": "easing-emphasized",
+				"value": "cubic-bezier(0.2, 0, 0, 1)",
+				"purpose": "Emphasized entrances (drawers)."
+			},
+			{
+				"name": "easing-standard",
+				"value": "cubic-bezier(0.4, 0, 0.2, 1)",
+				"purpose": "Neutral fallback easing."
+			}
 		],
 		"breakpoints": [
 			{ "name": "sm", "value": "640px" },
@@ -109,53 +306,68 @@
 			"name": "Select",
 			"kind": "input",
 			"refersTo": "select",
-			"description": "The standard dropdown: quiet tonal fill, square-ish corner, Wire Amber focus ring.",
+			"description": "The standard dropdown: quiet tonal fill, panel corner, Wire Amber focus ring. `.select-sm` is the same box at toolbar density (4px/8px padding).",
 			"html": "<select class=\"ds-select\"><option>Tous les pays</option><option>Bénin</option><option>Burkina Faso</option></select>",
-			"css": ".ds-select { font-family: 'Public Sans', sans-serif; font-size: 0.9375rem; color: oklch(0.97 0.005 260); background: color-mix(in oklab, oklch(0.99 0 0) 4%, transparent); border: 1px solid color-mix(in oklab, oklch(0.99 0 0) 13%, transparent); border-radius: 2px; padding: 8px 12px; transition: border-color 150ms cubic-bezier(0.32, 0.72, 0, 1), background-color 150ms cubic-bezier(0.32, 0.72, 0, 1); } .ds-select:hover { border-color: color-mix(in oklab, oklch(0.99 0 0) 20%, transparent); background: color-mix(in oklab, oklch(0.99 0 0) 6%, transparent); } .ds-select:focus-visible { outline: none; border-color: oklch(0.78 0.13 80); box-shadow: 0 0 0 3px color-mix(in oklab, oklch(0.78 0.13 80) 38%, transparent); }"
+			"css": ".ds-select { font-family: 'Public Sans', sans-serif; font-size: 0.9375rem; color: oklch(0.97 0.005 260); background: color-mix(in oklab, oklch(0.99 0 0) 4%, transparent); border: 1px solid color-mix(in oklab, oklch(0.99 0 0) 13%, transparent); border-radius: 2px; padding: 8px 12px; transition: background-color 150ms cubic-bezier(0.32, 0.72, 0, 1), border-color 150ms cubic-bezier(0.32, 0.72, 0, 1), box-shadow 150ms cubic-bezier(0.32, 0.72, 0, 1); } .ds-select:hover { border-color: color-mix(in oklab, oklch(0.99 0 0) 20%, transparent); background: color-mix(in oklab, oklch(0.99 0 0) 6%, transparent); } .ds-select:focus, .ds-select:focus-visible { outline: none; border-color: oklch(0.78 0.13 80); box-shadow: 0 0 0 3px color-mix(in oklab, oklch(0.78 0.13 80) 38%, transparent); }"
 		},
 		{
 			"name": "Filter Chips",
 			"kind": "chip",
 			"refersTo": "filter-chip",
-			"description": "Hairline-radius filter chips; a selected chip is painted entirely by its sentiment value's fg/bg/border triple.",
-			"html": "<div class=\"ds-chip-row\"><button class=\"ds-chip\">Neutre</button><button class=\"ds-chip\" data-tone=\"positive\">Positif</button><button class=\"ds-chip\" data-tone=\"very-negative\">Très négatif</button></div>",
-			"css": ".ds-chip-row { display: flex; gap: 8px; } .ds-chip { display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; font-family: 'Public Sans', sans-serif; font-size: 0.8125rem; font-weight: 500; line-height: 1.35; border-radius: 1px; cursor: pointer; white-space: nowrap; background: color-mix(in oklab, oklch(0.99 0 0) 6%, transparent); border: 1px solid color-mix(in oklab, oklch(0.99 0 0) 13%, transparent); color: color-mix(in oklab, oklch(0.97 0.005 260) 84%, transparent); transition: background-color 150ms cubic-bezier(0.32, 0.72, 0, 1), border-color 150ms cubic-bezier(0.32, 0.72, 0, 1), color 150ms cubic-bezier(0.32, 0.72, 0, 1); } .ds-chip:hover:not([data-tone]) { background: color-mix(in oklab, oklch(0.99 0 0) 10%, transparent); color: oklch(0.97 0.005 260); } .ds-chip[data-tone='positive'] { color: oklch(0.7 0.13 150); background: color-mix(in oklab, oklch(0.7 0.13 150) 16%, transparent); border-color: color-mix(in oklab, oklch(0.7 0.13 150) 32%, transparent); } .ds-chip[data-tone='very-negative'] { color: oklch(0.62 0.2 25); background: color-mix(in oklab, oklch(0.62 0.2 25) 18%, transparent); border-color: color-mix(in oklab, oklch(0.62 0.2 25) 36%, transparent); }"
+			"description": "Hairline-radius filter chips. Unselected chips are neutral tonal fills; a selected chip is painted entirely by the resolver triple (--sentiment-fg/-bg/-border) that its data-polarity attribute sets — one rule, no per-value classes.",
+			"html": "<div class=\"ds-chip-row\"><button class=\"ds-chip\" data-polarity=\"neutral\">Neutre</button><button class=\"ds-chip\" data-polarity=\"positive\" data-selected=\"true\">Positif</button><button class=\"ds-chip\" data-polarity=\"very-negative\" data-selected=\"true\">Très négatif</button></div>",
+			"css": ".ds-chip-row { display: flex; gap: 8px; } .ds-chip { display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; font-family: 'Public Sans', sans-serif; font-size: 0.8125rem; font-weight: 500; line-height: 1.35; border-radius: 1px; cursor: pointer; white-space: nowrap; background: color-mix(in oklab, oklch(0.99 0 0) 6%, transparent); border: 1px solid color-mix(in oklab, oklch(0.99 0 0) 13%, transparent); color: color-mix(in oklab, oklch(0.97 0.005 260) 84%, transparent); transition: background-color 150ms cubic-bezier(0.32, 0.72, 0, 1), border-color 150ms cubic-bezier(0.32, 0.72, 0, 1), color 150ms cubic-bezier(0.32, 0.72, 0, 1); } .ds-chip:hover:not([data-selected='true']) { background: color-mix(in oklab, oklch(0.99 0 0) 10%, transparent); border-color: color-mix(in oklab, oklch(0.99 0 0) 20%, transparent); color: oklch(0.97 0.005 260); } .ds-chip:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, oklch(0.78 0.13 80) 38%, transparent); } .ds-chip[data-polarity='positive'] { --sentiment-fg: oklch(0.7 0.13 150); --sentiment-bg: color-mix(in oklab, oklch(0.7 0.13 150) 16%, transparent); --sentiment-border: color-mix(in oklab, oklch(0.7 0.13 150) 32%, transparent); } .ds-chip[data-polarity='very-negative'] { --sentiment-fg: oklch(0.62 0.2 25); --sentiment-bg: color-mix(in oklab, oklch(0.62 0.2 25) 18%, transparent); --sentiment-border: color-mix(in oklab, oklch(0.62 0.2 25) 36%, transparent); } .ds-chip[data-selected='true'] { background: var(--sentiment-bg); border-color: var(--sentiment-border); color: var(--sentiment-fg); }"
 		},
 		{
 			"name": "Nav Item",
 			"kind": "nav",
 			"refersTo": "nav-item",
-			"description": "Sidebar navigation entry; the active state is a 14% Wire Amber tonal fill with the 3px accent rail.",
+			"description": "Sidebar navigation entry; state rides data-state. The active state is a 14% Wire Amber tonal fill plus the 3px accent rail inset 20% top and bottom.",
 			"html": "<nav class=\"ds-nav\"><button class=\"ds-nav-item\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M3 3v18h18\"/><path d=\"M7 15l4-6 3 3 5-8\"/></svg><span>Tendances</span></button><button class=\"ds-nav-item\" data-state=\"active\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M4 20V10\"/><path d=\"M10 20V4\"/><path d=\"M16 20v-7\"/><path d=\"M22 20H2\"/></svg><span>Répartitions</span></button></nav>",
-			"css": ".ds-nav { display: flex; flex-direction: column; gap: 4px; width: 220px; } .ds-nav-item { position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 2px; background: transparent; border: 1px solid transparent; color: color-mix(in oklab, oklch(0.97 0.005 260) 64%, transparent); font-family: 'Public Sans', sans-serif; font-weight: 500; font-size: 0.9375rem; text-align: left; cursor: pointer; transition: background-color 150ms cubic-bezier(0.32, 0.72, 0, 1), color 150ms cubic-bezier(0.32, 0.72, 0, 1); } .ds-nav-item:hover { background: color-mix(in oklab, oklch(0.99 0 0) 10%, transparent); color: oklch(0.97 0.005 260); } .ds-nav-item[data-state='active'] { background: color-mix(in oklab, oklch(0.78 0.13 80) 14%, transparent); color: oklch(0.97 0.005 260); } .ds-nav-item[data-state='active']::before { content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 3px; border-radius: 9999px; background: oklch(0.82 0.12 80); } .ds-nav-item[data-state='active'] svg { color: oklch(0.86 0.1 80); }"
+			"css": ".ds-nav { display: flex; flex-direction: column; gap: 4px; width: 220px; padding: 8px 12px; } .ds-nav-item { position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 2px; background: transparent; border: 1px solid transparent; color: color-mix(in oklab, oklch(0.97 0.005 260) 64%, transparent); font-family: 'Public Sans', sans-serif; font-weight: 500; font-size: 0.9375rem; text-align: left; white-space: nowrap; cursor: pointer; transition: background-color 150ms cubic-bezier(0.32, 0.72, 0, 1), color 150ms cubic-bezier(0.32, 0.72, 0, 1); } .ds-nav-item:hover { background: color-mix(in oklab, oklch(0.99 0 0) 10%, transparent); color: oklch(0.97 0.005 260); } .ds-nav-item:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, oklch(0.78 0.13 80) 38%, transparent); } .ds-nav-item[data-state='active'] { background: color-mix(in oklab, oklch(0.78 0.13 80) 14%, transparent); color: oklch(0.97 0.005 260); } .ds-nav-item[data-state='active']::before { content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 3px; border-radius: 9999px; background: oklch(0.82 0.12 80); } .ds-nav-item[data-state='active'] svg { color: oklch(0.86 0.1 80); }"
 		},
 		{
 			"name": "Chart Card",
 			"kind": "card",
 			"refersTo": "card",
-			"description": "The opaque editorial panel every chart lives in: eyebrow + serif title header over a hairline, dashed-rule methodology note underneath.",
+			"description": "The opaque editorial panel every chart lives in: eyebrow + serif title header over a hairline, dashed-rule methodology note underneath. Hover brightens the border, not the shadow.",
 			"html": "<article class=\"ds-card\"><header class=\"ds-card-header\"><div><div class=\"ds-card-eyebrow\">Polarité</div><h3 class=\"ds-card-title\">Répartition des sentiments</h3></div></header><div class=\"ds-card-body\">Zone de graphique</div><p class=\"ds-card-note\">Les valeurs « Non applicable » sont exclues de la moyenne mais comptées dans le total.</p></article>",
-			"css": ".ds-card { width: 360px; background: oklch(0.205 0.012 260); border: 1px solid color-mix(in oklab, oklch(0.99 0 0) 8%, transparent); border-radius: 2px; box-shadow: 0 1px 2px color-mix(in oklab, black 35%, transparent); overflow: hidden; transition: border-color 150ms cubic-bezier(0.32, 0.72, 0, 1); } .ds-card:hover { border-color: color-mix(in oklab, oklch(0.99 0 0) 20%, transparent); } .ds-card-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; border-bottom: 1px solid color-mix(in oklab, oklch(0.99 0 0) 8%, transparent); } .ds-card-eyebrow { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: color-mix(in oklab, oklch(0.97 0.005 260) 64%, transparent); margin-bottom: 4px; } .ds-card-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 1.25rem; font-weight: 600; line-height: 1.15; letter-spacing: -0.008em; color: oklch(0.97 0.005 260); margin: 0; } .ds-card-body { padding: 40px 20px; font-family: 'Public Sans', sans-serif; font-size: 0.8125rem; color: color-mix(in oklab, oklch(0.97 0.005 260) 46%, transparent); text-align: center; } .ds-card-note { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.6875rem; line-height: 1.7; color: color-mix(in oklab, oklch(0.97 0.005 260) 64%, transparent); margin: 0 20px 16px; padding-top: 12px; border-top: 1px dashed color-mix(in oklab, oklch(0.99 0 0) 8%, transparent); }"
+			"css": ".ds-card { width: 360px; background: oklch(0.205 0.012 260); border: 1px solid color-mix(in oklab, oklch(0.99 0 0) 8%, transparent); border-radius: 2px; box-shadow: 0 1px 2px color-mix(in oklab, black 35%, transparent); overflow: hidden; transition: border-color 150ms cubic-bezier(0.32, 0.72, 0, 1), box-shadow 220ms cubic-bezier(0.32, 0.72, 0, 1); } .ds-card:hover { border-color: color-mix(in oklab, oklch(0.99 0 0) 20%, transparent); box-shadow: 0 1px 2px color-mix(in oklab, black 35%, transparent), 0 8px 24px color-mix(in oklab, black 22%, transparent); } .ds-card-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; border-bottom: 1px solid color-mix(in oklab, oklch(0.99 0 0) 8%, transparent); } .ds-card-eyebrow { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: color-mix(in oklab, oklch(0.97 0.005 260) 64%, transparent); margin-bottom: 4px; } .ds-card-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 1.25rem; font-weight: 600; line-height: 1.15; letter-spacing: -0.008em; color: oklch(0.97 0.005 260); margin: 0; } .ds-card-body { padding: 40px 20px; font-family: 'Public Sans', sans-serif; font-size: 0.8125rem; color: color-mix(in oklab, oklch(0.97 0.005 260) 46%, transparent); text-align: center; } .ds-card-note { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.6875rem; line-height: 1.7; color: color-mix(in oklab, oklch(0.97 0.005 260) 64%, transparent); margin: 0 20px 16px; padding-top: 12px; border-top: 1px dashed color-mix(in oklab, oklch(0.99 0 0) 8%, transparent); }"
 		},
 		{
 			"name": "Data Table",
 			"kind": "custom",
-			"description": "The wire-service table idiom: sticky mono uppercase headers on an opaque elevated fill, hairline row separators, tabular numerals.",
-			"html": "<table class=\"ds-table\"><thead><tr><th>Journal</th><th>Articles</th><th>Polarité moy.</th></tr></thead><tbody><tr><td>Fraternité Matin</td><td>1 482</td><td>+0.34</td></tr><tr><td>Le Pays</td><td>967</td><td>−0.12</td></tr></tbody></table>",
-			"css": ".ds-table { width: 100%; max-width: 420px; border-collapse: separate; border-spacing: 0; font-family: 'Public Sans', sans-serif; font-size: 0.9375rem; font-variant-numeric: tabular-nums; background: oklch(0.205 0.012 260); border: 1px solid color-mix(in oklab, oklch(0.99 0 0) 8%, transparent); border-radius: 2px; } .ds-table th { padding: 12px 16px; text-align: left; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; background: oklch(0.235 0.015 260); color: color-mix(in oklab, oklch(0.97 0.005 260) 64%, transparent); border-bottom: 1px solid color-mix(in oklab, oklch(0.99 0 0) 8%, transparent); } .ds-table td { padding: 12px 16px; color: color-mix(in oklab, oklch(0.97 0.005 260) 84%, transparent); border-bottom: 1px solid color-mix(in oklab, oklch(0.99 0 0) 8%, transparent); } .ds-table tbody tr:last-child td { border-bottom: none; } .ds-table tbody tr:hover td { background: color-mix(in oklab, oklch(0.99 0 0) 4%, transparent); }"
+			"description": "The wire-service table idiom: sticky mono uppercase 11px headers on an opaque elevated fill (translucency would let rows read through), hairline row separators, tabular numerals.",
+			"html": "<table class=\"ds-table\"><thead><tr><th>Journal</th><th>Articles</th><th>Polarité moy.</th></tr></thead><tbody><tr><td>Fraternité Matin</td><td>1 482</td><td>+0,34</td></tr><tr><td>Le Pays</td><td>967</td><td>−0,12</td></tr></tbody></table>",
+			"css": ".ds-table { width: 100%; max-width: 420px; border-collapse: separate; border-spacing: 0; font-family: 'Public Sans', sans-serif; font-size: 0.9375rem; font-variant-numeric: tabular-nums; background: oklch(0.205 0.012 260); border: 1px solid color-mix(in oklab, oklch(0.99 0 0) 8%, transparent); border-radius: 2px; } .ds-table th { padding: 12px 16px; text-align: left; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; background: oklch(0.235 0.015 260); color: color-mix(in oklab, oklch(0.97 0.005 260) 64%, transparent); border-bottom: 1px solid color-mix(in oklab, oklch(0.99 0 0) 8%, transparent); cursor: pointer; transition: background-color 150ms cubic-bezier(0.32, 0.72, 0, 1), color 150ms cubic-bezier(0.32, 0.72, 0, 1); } .ds-table th:hover { background: color-mix(in oklab, oklch(0.99 0 0) 10%, oklch(0.235 0.015 260)); color: oklch(0.97 0.005 260); } .ds-table td { padding: 12px 16px; color: color-mix(in oklab, oklch(0.97 0.005 260) 84%, transparent); border-bottom: 1px solid color-mix(in oklab, oklch(0.99 0 0) 8%, transparent); } .ds-table tbody tr { transition: background-color 150ms cubic-bezier(0.32, 0.72, 0, 1); } .ds-table tbody tr:last-child td { border-bottom: none; } .ds-table tbody tr:hover { background: color-mix(in oklab, oklch(0.99 0 0) 4%, transparent); }"
 		},
 		{
 			"name": "Segmented Toggle",
 			"kind": "button",
 			"refersTo": "toggle-btn",
-			"description": "Chart-type switcher: a nested track holding mono uppercase buttons; the active one speaks Wire Amber.",
+			"description": "Chart-type switcher: a nested-surface track with 2px padding holding mono uppercase 12px buttons; the active one speaks Wire Amber on a 14% tonal fill.",
 			"html": "<div class=\"ds-toggle\"><button class=\"ds-toggle-btn\" data-active=\"true\">Barres</button><button class=\"ds-toggle-btn\">Radar</button></div>",
-			"css": ".ds-toggle { display: inline-flex; gap: 1px; padding: 2px; background: oklch(0.175 0.011 260); border: 1px solid color-mix(in oklab, oklch(0.99 0 0) 8%, transparent); border-radius: 2px; } .ds-toggle-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: color-mix(in oklab, oklch(0.97 0.005 260) 64%, transparent); background: transparent; border: none; border-radius: 1px; cursor: pointer; transition: background-color 150ms cubic-bezier(0.32, 0.72, 0, 1), color 150ms cubic-bezier(0.32, 0.72, 0, 1); } .ds-toggle-btn:hover:not([data-active='true']) { color: oklch(0.97 0.005 260); background: color-mix(in oklab, oklch(0.99 0 0) 10%, transparent); } .ds-toggle-btn[data-active='true'] { color: oklch(0.78 0.13 80); background: color-mix(in oklab, oklch(0.78 0.13 80) 14%, transparent); }"
+			"css": ".ds-toggle { display: inline-flex; gap: 1px; padding: 2px; background: oklch(0.175 0.011 260); border: 1px solid color-mix(in oklab, oklch(0.99 0 0) 8%, transparent); border-radius: 2px; } .ds-toggle-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: color-mix(in oklab, oklch(0.97 0.005 260) 64%, transparent); background: transparent; border: none; border-radius: 1px; cursor: pointer; transition: background-color 150ms cubic-bezier(0.32, 0.72, 0, 1), color 150ms cubic-bezier(0.32, 0.72, 0, 1); } .ds-toggle-btn:hover:not([data-active='true']) { color: oklch(0.97 0.005 260); background: color-mix(in oklab, oklch(0.99 0 0) 10%, transparent); } .ds-toggle-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, oklch(0.78 0.13 80) 38%, transparent); } .ds-toggle-btn[data-active='true'] { color: oklch(0.78 0.13 80); background: color-mix(in oklab, oklch(0.78 0.13 80) 14%, transparent); }"
+		},
+		{
+			"name": "CSV Export Button",
+			"kind": "button",
+			"description": "The one export control, and the model for the no-global-.btn rule: it declares its own box. Mono uppercase 12px, square corners (radius 0), tinted in the colour of the data it exports — the articles variant carries the very-positive green.",
+			"html": "<button class=\"ds-csv-btn\" data-variant=\"articles\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><path d=\"M7 10l5 5 5-5\"/><path d=\"M12 15V3\"/></svg><span>Exporter CSV</span></button>",
+			"css": ".ds-csv-btn { display: flex; align-items: center; gap: 8px; padding: 8px 12px; white-space: nowrap; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 0; cursor: pointer; background: color-mix(in oklab, oklch(0.62 0.18 150) 12%, transparent); border: 1px solid color-mix(in oklab, oklch(0.62 0.18 150) 32%, transparent); color: oklch(0.62 0.18 150); transition: background-color 150ms cubic-bezier(0.32, 0.72, 0, 1), border-color 150ms cubic-bezier(0.32, 0.72, 0, 1), color 150ms cubic-bezier(0.32, 0.72, 0, 1); } .ds-csv-btn svg { flex-shrink: 0; } .ds-csv-btn:hover:not(:disabled) { background: color-mix(in oklab, oklch(0.62 0.18 150) 22%, transparent); border-color: color-mix(in oklab, oklch(0.62 0.18 150) 50%, transparent); color: oklch(0.97 0.005 260); } .ds-csv-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, oklch(0.78 0.13 80) 38%, transparent); } .ds-csv-btn:disabled { opacity: 0.5; cursor: not-allowed; }"
+		},
+		{
+			"name": "Badge & Alert",
+			"kind": "custom",
+			"refersTo": "badge",
+			"description": "Badges are hairline-radius 12px tints drawn from the value's ramp through the resolver; alerts are a tinted fill plus a 1px hairline with a leading 16-18px icon in the alert colour — no side stripe.",
+			"html": "<div class=\"ds-status\"><span class=\"ds-badge\" data-polarity=\"very-positive\">Très positif</span><span class=\"ds-badge\" data-polarity=\"not-annotated\">Non annoté</span><div class=\"ds-alert\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 8v5\"/><path d=\"M12 16h.01\"/></svg><span>Le jeu de données n'a pas pu être chargé.</span></div></div>",
+			"css": ".ds-status { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; font-family: 'Public Sans', sans-serif; } .ds-badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 1px; font-size: 0.75rem; font-weight: 500; background: var(--sentiment-bg); border: 1px solid var(--sentiment-border); color: var(--sentiment-fg); } .ds-badge[data-polarity='very-positive'] { --sentiment-fg: oklch(0.62 0.18 150); --sentiment-bg: color-mix(in oklab, oklch(0.62 0.18 150) 18%, transparent); --sentiment-border: color-mix(in oklab, oklch(0.62 0.18 150) 36%, transparent); } .ds-badge[data-polarity='not-annotated'] { --sentiment-fg: oklch(0.66 0 0); --sentiment-bg: color-mix(in oklab, oklch(0.66 0 0) 10%, transparent); --sentiment-border: color-mix(in oklab, oklch(0.66 0 0) 30%, transparent); } .ds-alert { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-radius: 2px; font-size: 0.9375rem; line-height: 1.55; background: color-mix(in oklab, oklch(0.7 0.14 25) 12%, transparent); border: 1px solid color-mix(in oklab, oklch(0.7 0.14 25) 28%, transparent); color: oklch(0.7 0.14 25); } .ds-alert svg { flex-shrink: 0; }"
 		}
 	],
 	"narrative": {
 		"northStar": "The Overnight Wire Desk",
-		"overview": "A wire service's overnight desk: matte dark surfaces under low light, dispatches arriving as data, everything read against everything else before morning. The interface is investigative · rigorous · contemporary — a piece of data journalism that happens to be interactive, never a SaaS product, never a museum exhibit. Charts are the primary content; every piece of chrome earns its weight against the chart it surrounds. The desk's materials are matte and opaque: solid ink-dark panels, square corners, hairline borders, no glass and no glow. Its voice is typographic — a serif byline face for titles, a working sans for prose, and the monospace eyebrow that runs through the whole interface like a ticker. Colour belongs to the data; the interface itself speaks in one warm amber, sparingly.",
+		"overview": "A wire service's overnight desk: matte dark surfaces under low light, dispatches arriving as data, everything read against everything else before morning. The interface is investigative · rigorous · contemporary — a piece of data journalism that happens to be interactive, never a SaaS product, never a museum exhibit. Charts are the primary content; every piece of chrome earns its weight against the chart it surrounds. The reference language is Reuters Graphics, FT Visual Journalism, Bellingcat, Bloomberg's editorial graphics — density as respect for a scholarly audience that works here for hours at a time, in French and English as equals.\n\nThe desk's materials are matte and opaque: solid ink-dark panels, square corners, hairline borders, no glass and no glow. Its voice is typographic — a serif byline face for titles, a working sans for prose, and the monospace eyebrow that runs through the whole interface like a ticker: section labels, table headers, captions, methodology notes. Colour belongs to the data; the interface itself speaks in one warm amber, sparingly.",
 		"keyCharacteristics": [
 			"Dark only, dense, editorial; charts foregrounded, chrome restrained",
 			"Opaque matte surfaces, square corners, hairline borders — no glassmorphism",
@@ -165,14 +377,46 @@
 			"Methodology visible, uncertainty named in words"
 		],
 		"rules": [
-			{ "name": "The Two Inks Rule", "body": "Wire Amber is the interface's ink; the sentiment ramps are the data's ink. The accent never fills a chart, and a data colour never decorates chrome. If amber appears inside a plot, something is wrong.", "section": "colors" },
-			{ "name": "The Equal-Lightness Rule", "body": "The polarity poles sit at equal OKLCH lightness so a 'Très négatif' bar reads no brighter than a 'Très positif' bar at equal area. Red and green therefore differ only in hue — which is why sentiment is never carried by hue alone.", "section": "colors" },
-			{ "name": "The Chart Hex Rule", "body": "ECharts and MapLibre cannot parse oklch(), color-mix() or CSS variables. Chart-facing colour is duplicated as hex in chartTheme.ts, each value annotated with the oklch() it mirrors, and chartTheme.palette.test.ts fails the build if the copies drift.", "section": "colors" },
-			{ "name": "The Eyebrow Rule", "body": "The 11px mono uppercase eyebrow is the smallest type in the app and the floor — nothing goes below it. If content does not fit, the control needs less content, not smaller text.", "section": "typography" },
-			{ "name": "The Tabular Rule", "body": "Numerals are tabular everywhere data appears, and numbers are localised per language. A proportional numeral in a stat column is a defect.", "section": "typography" },
-			{ "name": "The Container Rule", "body": "A component inside the 320px filter rail never branches on viewport width — it asks its container (@container filter-rail). In JavaScript, MediaQuery from svelte/reactivity, never a one-shot window.innerWidth read.", "section": "layout" },
-			{ "name": "The Mirrored Drawer Rule", "body": "A drawer's shadow falls onto the page it covers, so a right-edge drawer casts left. The two drawer tokens are mirror images differing only in the sign of the x-offset — edit them together.", "section": "elevation" },
-			{ "name": "The One Resolver Rule", "body": "No component maps a sentiment value to a colour itself — ever. Emit the data attribute; read --sentiment-fg/-bg/-border.", "section": "components" }
+			{
+				"name": "The Two Inks Rule",
+				"body": "Wire Amber is the interface's ink; the sentiment ramps are the data's ink. The accent never fills a chart, and a data colour never decorates chrome. If amber appears inside a plot, something is wrong.",
+				"section": "colors"
+			},
+			{
+				"name": "The Equal-Lightness Rule",
+				"body": "The polarity poles sit at equal OKLCH lightness so a `Très négatif` bar reads no brighter than a `Très positif` bar at equal area. Red and green therefore differ only in hue — which is why sentiment is never carried by hue alone (glyphs and words always accompany it).",
+				"section": "colors"
+			},
+			{
+				"name": "The Chart Hex Rule",
+				"body": "ECharts and MapLibre cannot parse `oklch()`, `color-mix()` or CSS variables. Chart-facing colour is duplicated as hex in `chartTheme.ts`, each value annotated with the `// oklch(...)` it mirrors, and `chartTheme.palette.test.ts` fails the build if the copies drift.",
+				"section": "colors"
+			},
+			{
+				"name": "The Eyebrow Rule",
+				"body": "The 11px mono uppercase eyebrow is the smallest type in the app and the floor — nothing goes below it. If content does not fit, the control needs less content, not smaller text.",
+				"section": "typography"
+			},
+			{
+				"name": "The Tabular Rule",
+				"body": "Numerals are tabular everywhere data appears, and numbers are localised per language. A proportional numeral in a stat column is a defect.",
+				"section": "typography"
+			},
+			{
+				"name": "The Container Rule",
+				"body": "A component inside the 320px filter rail never branches on viewport width — it asks its container (`@container filter-rail (max-width: …)`). In JavaScript, `MediaQuery` from `svelte/reactivity`, never a one-shot `window.innerWidth` read.",
+				"section": "layout"
+			},
+			{
+				"name": "The Mirrored Drawer Rule",
+				"body": "A drawer's shadow falls onto the page it covers, so a right-edge drawer casts left. The two drawer tokens are mirror images differing only in the sign of the x-offset — edit them together, and never reach for one token to serve both edges.",
+				"section": "elevation"
+			},
+			{
+				"name": "The One Resolver Rule",
+				"body": "No component maps a sentiment value to a colour itself — ever. Emit the data attribute; read the three variables.",
+				"section": "components"
+			}
 		],
 		"dos": [
 			"Do reach for semantic tokens first (--pad-card, --gap-stack, --font-size-eyebrow); numbered primitives are for one-off nudges.",

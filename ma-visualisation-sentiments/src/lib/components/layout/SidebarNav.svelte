@@ -6,7 +6,6 @@
 	import Drawer from '$lib/components/common/Drawer.svelte';
 	import { NAV_ITEMS } from './navItems';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
-	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import { hasSingleModelPicker, type ViewId } from '$lib/types/data';
 
 	// Default expanded on wider desktops where the labels fit and where the
@@ -66,12 +65,13 @@
 		onclick={toggleSidebar}
 		aria-label={uiState.sidebarExpanded ? $t.audit.collapseNav : $t.audit.expandNav}
 		aria-expanded={uiState.sidebarExpanded}
+		data-expanded={uiState.sidebarExpanded}
 	>
-		{#if uiState.sidebarExpanded}
+		<!-- One glyph, rotated: the rail's width snaps, so the toggle's own
+		     transform is the motion that explains the state change. -->
+		<span class="toggle-icon">
 			<ChevronLeftIcon size={18} />
-		{:else}
-			<ChevronRightIcon size={18} />
-		{/if}
+		</span>
 	</button>
 
 	<!-- Mobile only: the model picker, above the views it modifies. -->
@@ -127,7 +127,11 @@
 	     about width, shadow or keyboard behaviour the way they used to.
 	   • >= 1024px — a permanent fixed rail that the page content margins around
 	     (see +layout.svelte). That is what the :global rules below describe;
-	     they target the element Drawer renders, which is why they are global. */
+	     they target the element Drawer renders, which is why they are global.
+	     The width snaps: toggling the rail is a user-initiated mode switch, and
+	     animating it reflowed the whole main column — and re-measured every
+	     ECharts instance under it — on every frame for 220ms. What animates
+	     instead is the toggle's own glyph and the labels fading in. */
 	@media (min-width: 1024px) {
 		:global(.sidebar) {
 			display: flex;
@@ -142,7 +146,6 @@
 			background: var(--app-bg-elevated);
 			border-right: 1px solid var(--border-subtle);
 			transform: translateX(0);
-			transition: width var(--timing-normal) var(--easing-default);
 		}
 
 		:global(.sidebar[data-expanded='true']) {
@@ -209,6 +212,20 @@
 		background: var(--color-surface-700);
 		color: var(--text-primary);
 		border-color: var(--border-hover);
+	}
+
+	/* The chevron is one glyph pointing at where the rail is going. Rotating a
+	   wrapper (inline-flex, so the box hugs the glyph and the rotation centres
+	   on it) keeps the feedback on the compositor — a Lucide `class` prop would
+	   be a prop, not a scoped class, so the span has to be a real element. */
+	.toggle-icon {
+		display: inline-flex;
+		transform: rotate(180deg);
+		transition: transform var(--timing-fast) var(--easing-default);
+	}
+
+	.toggle-btn[data-expanded='true'] .toggle-icon {
+		transform: rotate(0deg);
 	}
 
 	@media (min-width: 1024px) {
@@ -288,14 +305,15 @@
 
 	/* ===== Label =====
 	   Always visible in the mobile drawer, which is wide enough for it; on the
-	   desktop rail it collapses with the rail. */
+	   desktop rail it collapses with the rail. Only the opacity animates:
+	   `width: 0 -> auto` is not interpolable, so that half of the transition
+	   never ran, and now that the rail's width snaps the label has nothing to
+	   follow. Expanding therefore fades the labels in; collapsing is instant. */
 	.nav-label {
 		opacity: 1;
 		width: auto;
 		overflow: hidden;
-		transition:
-			opacity var(--timing-normal) var(--easing-default),
-			width var(--timing-normal) var(--easing-default);
+		transition: opacity var(--timing-normal) var(--easing-default);
 	}
 
 	@media (min-width: 1024px) {
@@ -314,6 +332,7 @@
 	@media (prefers-reduced-motion: reduce) {
 		.nav-item,
 		.toggle-btn,
+		.toggle-icon,
 		.nav-label {
 			transition: none;
 		}

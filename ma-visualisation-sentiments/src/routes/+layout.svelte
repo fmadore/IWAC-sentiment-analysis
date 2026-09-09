@@ -43,10 +43,13 @@
 <PWAManager />
 
 <style>
-	/* Main content wrapper - accounts for sidebar on desktop */
+	/* Main content wrapper — accounts for sidebar on desktop.
+	   The margin snaps with the rail rather than animating: toggling the rail is
+	   a user-initiated mode switch, and easing a layout property reflowed this
+	   whole column — re-measuring every ECharts instance inside it — on every
+	   frame. The rail's own toggle carries the state change (SidebarNav). */
 	.app-content {
 		min-height: 100dvh;
-		transition: margin-left var(--timing-normal) var(--easing-default);
 		display: flex;
 		flex-direction: column;
 	}
@@ -58,12 +61,6 @@
 
 		.app-content[data-sidebar='expanded'] {
 			margin-left: var(--sidebar-width-expanded);
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.app-content {
-			transition: none;
 		}
 	}
 </style>
