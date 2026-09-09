@@ -8,6 +8,8 @@
   Variants:
   - "default": plain card (AnalysisInfo)
   - "arbiter": amber-accented card with header padding (ArbiterMethodology)
+  - "compact": a surfaceless disclosure line above the rail and the view, with
+    the chevron beside the title (AnalysisInfo)
 
   Usage:
   <CollapsibleMethodologyCard title="Methodology">
@@ -91,23 +93,33 @@
 		overflow: hidden;
 	}
 
+	/* Compact: a disclosure line, not a card. It sits above the rail and the
+	   view, so it carries no surface of its own — only the hairline that
+	   separates it from the page. The title keeps the serif title voice at the
+	   same tier the default card uses on mobile; a 13px serif read as a
+	   shrunken heading, and secondary grey made the one methodology control on
+	   the page look like a footnote. The chevron sits beside the title the way
+	   a <summary> marker does, instead of at the far edge of a bar the title
+	   never fills. */
 	.info-card[data-variant='compact'] {
-		padding: var(--space-2) var(--space-4);
+		padding: var(--space-2) 0;
 		margin-bottom: var(--space-3);
 		background: transparent;
 		border: 0;
 		border-bottom: 1px solid var(--border-subtle);
 	}
 	[data-variant='compact'] .info-header-btn {
-		min-height: 44px;
+		display: inline-flex;
+		width: auto;
+		gap: var(--space-2);
+		min-height: var(--size-control-lg);
 	}
 	[data-variant='compact'] .info-title {
-		font-size: var(--font-size-sm);
-		font-weight: var(--font-weight-medium);
-		color: var(--text-secondary);
+		font-size: var(--font-size-lg);
+		transition: color var(--timing-fast) var(--easing-default);
 	}
-	[data-variant='compact'] .header-icon {
-		background: transparent;
+	[data-variant='compact'] .info-header-btn:hover .info-title {
+		color: var(--color-primary-300);
 	}
 
 	/* ==========================================================================
