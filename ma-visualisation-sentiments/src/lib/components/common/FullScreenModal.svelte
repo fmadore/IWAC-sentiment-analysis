@@ -22,6 +22,7 @@
   </FullScreenModal>
 -->
 <script lang="ts">
+	import CopyLinkButton from '$lib/components/ui/CopyLinkButton.svelte';
 	import { t } from '$lib/i18n';
 	import type { Snippet } from 'svelte';
 	import XIcon from '@lucide/svelte/icons/x';
@@ -142,6 +143,7 @@
 
 					<!-- Header actions -->
 					<div class="header-right">
+						<CopyLinkButton />
 						{#if headerActions}
 							<div class="header-actions">
 								{@render headerActions()}

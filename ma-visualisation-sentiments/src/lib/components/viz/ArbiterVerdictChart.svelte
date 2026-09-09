@@ -78,6 +78,7 @@
 </script>
 
 <ArbiterPieChart
+	chartId="verdict"
 	data={verdictData}
 	countNoun={$t.arbiter.verdictsNoun}
 	ariaLabel={$t.arbiter.overallVerdict}

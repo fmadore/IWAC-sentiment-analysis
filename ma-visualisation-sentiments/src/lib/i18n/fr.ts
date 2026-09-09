@@ -10,6 +10,13 @@ import type { Translations } from './types.js';
  * cadratins avec parcimonie.
  */
 export const fr: Translations = {
+	links: {
+		copy: 'Copier le lien vers cette analyse',
+		copied: 'Lien vers l’analyse copié.',
+		copyFailed: 'Impossible de copier le lien. Copiez l’adresse dans votre navigateur.',
+		missing: 'L’élément de ce lien n’est pas disponible dans l’analyse sélectionnée.',
+		close: 'Revenir à l’analyse'
+	},
 	audit: {
 		place: 'Lieu',
 		flowFrom: 'Modèle et catégorie de départ',

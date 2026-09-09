@@ -19,7 +19,7 @@
 
 	function returnToCurrent() {
 		datasetState.setGeneration(CURRENT_GENERATION);
-		updateURL(uiState.activeView, datasetState.isComparisonMode);
+		updateURL(uiState.activeView);
 	}
 </script>
 

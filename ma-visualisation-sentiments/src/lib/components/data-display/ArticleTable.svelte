@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { viewOptionsState, paginationURLState } from '$lib/stores/view-options.svelte';
 	import { articleState } from '$lib/stores';
 	import { num, fmtDate } from '$lib/i18n/utils';
 	import { POLARITY_ORDER, CENTRALITY_ORDER, type Article } from '$lib/types/data';
@@ -25,8 +26,6 @@
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
 
 	// Variables pour le tri
-	let sortColumn = $state<string>('titre');
-	let sortDirection = $state<'asc' | 'desc'>('asc');
 
 	// Référence pour le conteneur du tableau
 	let tableContainerRef = $state<HTMLElement | undefined>();
@@ -37,7 +36,7 @@
 		articleState.selected = article;
 
 		// Update URL to include the selected article ID
-		updateURL(undefined, true);
+		updateURL();
 
 		// Notifier le parent de montrer les détails via callback prop
 		if (onShowDetails) {
@@ -49,14 +48,14 @@
 	}
 
 	// Fonction pour changer la colonne de tri
-	function sortBy(column: string) {
-		if (sortColumn === column) {
+	function sortBy(column: typeof viewOptionsState.tableSort) {
+		if (viewOptionsState.tableSort === column) {
 			// Inverser la direction si on clique sur la même colonne
-			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+			viewOptionsState.tableOrder = viewOptionsState.tableOrder === 'asc' ? 'desc' : 'asc';
 		} else {
 			// Nouvelle colonne de tri, direction par défaut ascendante
-			sortColumn = column;
-			sortDirection = 'asc';
+			viewOptionsState.tableSort = column;
+			viewOptionsState.tableOrder = 'asc';
 		}
 		// Réinitialiser à la première page après un tri
 		pagination.currentPage = 1;
@@ -68,7 +67,7 @@
 			let valA, valB;
 
 			// Extraction des valeurs selon la colonne
-			switch (sortColumn) {
+			switch (viewOptionsState.tableSort) {
 				case 'titre':
 					valA = a['o:title'] || '';
 					valB = b['o:title'] || '';
@@ -104,7 +103,7 @@
 			}
 
 			// Comparaison en fonction de la direction
-			if (sortDirection === 'asc') {
+			if (viewOptionsState.tableOrder === 'asc') {
 				return valA > valB ? 1 : valA < valB ? -1 : 0;
 			} else {
 				return valA < valB ? 1 : valA > valB ? -1 : 0;
@@ -126,6 +125,7 @@
 
 	// Pagination
 	const pagination = createPagination({
+		state: paginationURLState('table'),
 		totalItems: () => articles.length,
 		initialItemsPerPage: 50,
 		itemsPerPageOptions: [25, 50, 100, 200],
@@ -169,7 +169,7 @@
 				>
 				<select
 					id="mobile-sort-select"
-					bind:value={sortColumn}
+					bind:value={viewOptionsState.tableSort}
 					onchange={() => (pagination.currentPage = 1)}
 					class="select select-sm flex-1"
 				>
@@ -183,12 +183,12 @@
 				<button
 					class="sort-direction-btn"
 					onclick={() => {
-						sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+						viewOptionsState.tableOrder = viewOptionsState.tableOrder === 'asc' ? 'desc' : 'asc';
 						pagination.currentPage = 1;
 					}}
 					title={$t.table.sortBy}
 				>
-					{sortDirection === 'asc' ? '↑' : '↓'}
+					{viewOptionsState.tableOrder === 'asc' ? '↑' : '↓'}
 				</button>
 			</div>
 		</div>
@@ -240,79 +240,103 @@
 						<th
 							class="sortable-header"
 							scope="col"
-							aria-sort={sortColumn === 'titre'
-								? sortDirection === 'asc'
+							aria-sort={viewOptionsState.tableSort === 'titre'
+								? viewOptionsState.tableOrder === 'asc'
 									? 'ascending'
 									: 'descending'
 								: 'none'}
 							><button class="sort-button" type="button" onclick={() => sortBy('titre')}>
 								{$t.table.articleTitle}
-								{sortColumn === 'titre' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+								{viewOptionsState.tableSort === 'titre'
+									? viewOptionsState.tableOrder === 'asc'
+										? '↑'
+										: '↓'
+									: ''}
 							</button>
 						</th>
 						<th
 							class="sortable-header"
 							scope="col"
-							aria-sort={sortColumn === 'journal'
-								? sortDirection === 'asc'
+							aria-sort={viewOptionsState.tableSort === 'journal'
+								? viewOptionsState.tableOrder === 'asc'
 									? 'ascending'
 									: 'descending'
 								: 'none'}
 							><button class="sort-button" type="button" onclick={() => sortBy('journal')}>
 								{$t.filters.journal}
-								{sortColumn === 'journal' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+								{viewOptionsState.tableSort === 'journal'
+									? viewOptionsState.tableOrder === 'asc'
+										? '↑'
+										: '↓'
+									: ''}
 							</button>
 						</th>
 						<th
 							class="sortable-header"
 							scope="col"
-							aria-sort={sortColumn === 'date'
-								? sortDirection === 'asc'
+							aria-sort={viewOptionsState.tableSort === 'date'
+								? viewOptionsState.tableOrder === 'asc'
 									? 'ascending'
 									: 'descending'
 								: 'none'}
 							><button class="sort-button" type="button" onclick={() => sortBy('date')}>
 								{$t.table.date}
-								{sortColumn === 'date' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+								{viewOptionsState.tableSort === 'date'
+									? viewOptionsState.tableOrder === 'asc'
+										? '↑'
+										: '↓'
+									: ''}
 							</button>
 						</th>
 						<th
 							class="sortable-header"
 							scope="col"
-							aria-sort={sortColumn === 'centralite'
-								? sortDirection === 'asc'
+							aria-sort={viewOptionsState.tableSort === 'centralite'
+								? viewOptionsState.tableOrder === 'asc'
 									? 'ascending'
 									: 'descending'
 								: 'none'}
 							><button class="sort-button" type="button" onclick={() => sortBy('centralite')}>
 								{$t.table.centrality}
-								{sortColumn === 'centralite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+								{viewOptionsState.tableSort === 'centralite'
+									? viewOptionsState.tableOrder === 'asc'
+										? '↑'
+										: '↓'
+									: ''}
 							</button>
 						</th>
 						<th
 							class="sortable-header"
 							scope="col"
-							aria-sort={sortColumn === 'polarite'
-								? sortDirection === 'asc'
+							aria-sort={viewOptionsState.tableSort === 'polarite'
+								? viewOptionsState.tableOrder === 'asc'
 									? 'ascending'
 									: 'descending'
 								: 'none'}
 							><button class="sort-button" type="button" onclick={() => sortBy('polarite')}>
 								{$t.table.polarity}
-								{sortColumn === 'polarite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+								{viewOptionsState.tableSort === 'polarite'
+									? viewOptionsState.tableOrder === 'asc'
+										? '↑'
+										: '↓'
+									: ''}
 							</button>
 						</th>
 						<th
 							class="sortable-header"
 							scope="col"
-							aria-sort={sortColumn === 'subjectivite'
-								? sortDirection === 'asc'
+							aria-sort={viewOptionsState.tableSort === 'subjectivite'
+								? viewOptionsState.tableOrder === 'asc'
 									? 'ascending'
 									: 'descending'
 								: 'none'}
 							><button class="sort-button" type="button" onclick={() => sortBy('subjectivite')}>
 								{$t.table.subjectivity}
-								{sortColumn === 'subjectivite' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+								{viewOptionsState.tableSort === 'subjectivite'
+									? viewOptionsState.tableOrder === 'asc'
+										? '↑'
+										: '↓'
+									: ''}
 							</button>
 						</th>
 					</tr>

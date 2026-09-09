@@ -46,6 +46,7 @@ function loadArticles(articles: Article[]) {
 function renderChart() {
 	return render(TrendsChart, {
 		props: {
+			stateKey: 'polarityTrend',
 			frenchLabels: ['Positif', 'Neutre', 'Négatif'],
 			seriesLabels: ['Positive', 'Neutral', 'Negative'],
 			legendData: ['Positive', 'Neutral', 'Negative'],

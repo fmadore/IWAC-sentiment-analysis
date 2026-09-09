@@ -30,8 +30,9 @@
   — `setOption` merges by default and would otherwise leave the old series behind.
 -->
 <script lang="ts">
+	import { viewOptionsState } from '$lib/stores/view-options.svelte';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
-	import { Chart } from 'svelte-echarts';
+	import Chart from './CitableChart.svelte';
 	import { num, pct } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
@@ -87,17 +88,15 @@
 
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
 
-	let mode = $state<'stacked' | 'ternary'>('stacked');
-
 	/** One corner per model, or no triangle at all. See the header comment. */
 	let supportsTernary = $derived(models.length === TRIANGLE_CORNERS.length);
 
 	/**
-	 * What actually renders. Derived rather than an `$effect` that resets `mode`:
+	 * What actually renders. Derived rather than an `$effect` that resets `viewOptionsState.dissent`:
 	 * a reader who picked the triangle on the archive and then switched to the
 	 * five-model panel gets the bars, and gets the triangle back on returning.
 	 */
-	let activeMode = $derived(supportsTernary ? mode : 'stacked');
+	let activeMode = $derived(supportsTernary ? viewOptionsState.dissent : 'stacked');
 
 	// Only rendered when both modes exist — a segmented toggle offering one
 	// choice reads as a broken control, so the whole toggle is hidden instead.
@@ -462,7 +461,7 @@
 			<ChartTypeToggle
 				options={modeOptions}
 				value={activeMode}
-				onChange={(value) => (mode = value as 'stacked' | 'ternary')}
+				onChange={(value) => (viewOptionsState.dissent = value as 'stacked' | 'ternary')}
 				ariaLabel={$t.agreement.dissentTitle}
 			/>
 		{/if}
@@ -479,7 +478,11 @@
 			role="img"
 			aria-label={$t.agreement.dissentTitle}
 		>
-			<Chart {init} options={activeMode === 'stacked' ? stackedOptions : ternaryOptions} />
+			<Chart
+				chartId="dissent-profile-chart"
+				{init}
+				options={activeMode === 'stacked' ? stackedOptions : ternaryOptions}
+			/>
 		</div>
 	{/key}
 

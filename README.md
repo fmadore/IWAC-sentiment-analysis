@@ -14,6 +14,8 @@ The corpus is the [_Islam West Africa Collection_](https://islam.zmo.de/s/afriqu
 
 **Live site:** <https://iwac.frederickmadore.com/sentiment-analysis/>
 
+**Sharing analyses:** [Citable URLs, supported state and citation limits](ma-visualisation-sentiments/docs/citable-urls.md).
+
 Two top-level areas: `ma-visualisation-sentiments/` (the SvelteKit app) and `data-preprocess/` (the Python that builds its JSON payloads).
 
 ---

@@ -11,6 +11,7 @@
   - Click row to view article details
 -->
 <script lang="ts">
+	import { viewOptionsState, paginationURLState } from '$lib/stores/view-options.svelte';
 	import { arbiterEvaluations, comparisonState, datasetState } from '$lib/stores';
 	import { num, fmtDate } from '$lib/i18n/utils';
 	import { getPairModelNames, type ArbiterAnalysis } from '$lib/types/data';
@@ -43,18 +44,8 @@
 
 	// Reactive mobile detection
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
-	let viewMode = $state<'table' | 'cards'>('table');
 
 	// Sort state
-	let sortBy = $state<'title' | 'date' | 'verdict' | 'confidence'>('date');
-	let sortDirection = $state<'asc' | 'desc'>('desc');
-
-	// Switch to card view on mobile
-	$effect(() => {
-		if (isMobile) {
-			viewMode = 'cards';
-		}
-	});
 
 	// Get model names
 	const modelNames = $derived(getPairModelNames(datasetState.pair, datasetState.available));
@@ -113,7 +104,7 @@
 		[...articlesWithArbiter].sort((a, b) => {
 			let valA: string | number, valB: string | number;
 
-			switch (sortBy) {
+			switch (viewOptionsState.arbiterSort) {
 				case 'title':
 					valA = a.title.toLowerCase();
 					valB = b.title.toLowerCase();
@@ -134,7 +125,7 @@
 					return 0;
 			}
 
-			if (sortDirection === 'asc') {
+			if (viewOptionsState.arbiterOrder === 'asc') {
 				return valA > valB ? 1 : valA < valB ? -1 : 0;
 			} else {
 				return valA < valB ? 1 : valA > valB ? -1 : 0;
@@ -145,6 +136,7 @@
 	// Pagination via the shared composable (also used by ArticleTable and
 	// ComparisonTable); resets to page 1 when the total changes.
 	const pagination = createPagination({
+		state: paginationURLState('arbiter'),
 		totalItems: () => sortedArticles.length,
 		initialItemsPerPage: 25,
 		itemsPerPageOptions: [10, 25, 50, 100],
@@ -171,12 +163,12 @@
 		}
 	}
 
-	function handleSort(column: typeof sortBy) {
-		if (sortBy === column) {
-			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+	function handleSort(column: typeof viewOptionsState.arbiterSort) {
+		if (viewOptionsState.arbiterSort === column) {
+			viewOptionsState.arbiterOrder = viewOptionsState.arbiterOrder === 'asc' ? 'desc' : 'asc';
 		} else {
-			sortBy = column;
-			sortDirection = 'asc';
+			viewOptionsState.arbiterSort = column;
+			viewOptionsState.arbiterOrder = 'asc';
 		}
 		pagination.currentPage = 1;
 	}
@@ -194,16 +186,20 @@
 				<!-- View Mode Toggle -->
 				<div class="view-controls flex gap-2">
 					<button
-						class="control-btn {viewMode === 'table' ? 'control-btn-active' : ''}"
-						onclick={() => (viewMode = 'table')}
+						class="control-btn {viewOptionsState.arbiterLayout === 'table'
+							? 'control-btn-active'
+							: ''}"
+						onclick={() => (viewOptionsState.arbiterLayout = 'table')}
 						disabled={isMobile}
 					>
 						<TableIcon size={16} />
 						<span>{$t.common.tableView}</span>
 					</button>
 					<button
-						class="control-btn {viewMode === 'cards' ? 'control-btn-active' : ''}"
-						onclick={() => (viewMode = 'cards')}
+						class="control-btn {viewOptionsState.arbiterLayout === 'cards'
+							? 'control-btn-active'
+							: ''}"
+						onclick={() => (viewOptionsState.arbiterLayout = 'cards')}
 					>
 						<LayoutGridIcon size={16} />
 						<span>{$t.common.cardView}</span>
@@ -248,7 +244,7 @@
 			{/if}
 		</div>
 
-		{#if viewMode === 'table' && !isMobile}
+		{#if viewOptionsState.arbiterLayout === 'table' && !isMobile}
 			<!-- Table View -->
 			<div class="table-container arbiter-table-wrapper card variant-glass overflow-hidden">
 				<table class="table">
@@ -257,7 +253,7 @@
 							<th class="sortable-header">
 								<button class="sort-button" type="button" onclick={() => handleSort('title')}>
 									{$t.table.articleTitle}
-									{#if sortBy === 'title'}
+									{#if viewOptionsState.arbiterSort === 'title'}
 										<ArrowUpDownIcon size={14} class="inline ml-1" />
 									{/if}
 								</button>
@@ -266,7 +262,7 @@
 							<th class="sortable-header">
 								<button class="sort-button" type="button" onclick={() => handleSort('date')}>
 									{$t.table.date}
-									{#if sortBy === 'date'}
+									{#if viewOptionsState.arbiterSort === 'date'}
 										<ArrowUpDownIcon size={14} class="inline ml-1" />
 									{/if}
 								</button>
@@ -274,7 +270,7 @@
 							<th class="sortable-header text-center">
 								<button class="sort-button" type="button" onclick={() => handleSort('verdict')}>
 									{$t.arbiter.overallVerdict}
-									{#if sortBy === 'verdict'}
+									{#if viewOptionsState.arbiterSort === 'verdict'}
 										<ArrowUpDownIcon size={14} class="inline ml-1" />
 									{/if}
 								</button>
@@ -282,7 +278,7 @@
 							<th class="sortable-header text-center">
 								<button class="sort-button" type="button" onclick={() => handleSort('confidence')}>
 									{$t.arbiter.confidenceLevel}
-									{#if sortBy === 'confidence'}
+									{#if viewOptionsState.arbiterSort === 'confidence'}
 										<ArrowUpDownIcon size={14} class="inline ml-1" />
 									{/if}
 								</button>

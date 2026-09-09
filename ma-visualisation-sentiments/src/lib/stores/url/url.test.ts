@@ -172,7 +172,7 @@ describe('buildURLSearchParams', () => {
 
 			expect(params.getAll('countries')).toEqual(['Nigeria', 'Senegal']);
 			expect(params.getAll('journals')).toEqual(['Journal1']);
-			expect(params.getAll('polarities')).toEqual(['positive', 'negative']);
+			expect(params.getAll('polarities')).toEqual(['negative', 'positive']);
 		});
 
 		it('excludes empty array filters', () => {

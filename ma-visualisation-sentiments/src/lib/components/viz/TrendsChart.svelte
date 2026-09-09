@@ -6,7 +6,8 @@
   supply the dimension configuration (buckets, colors, labels).
 -->
 <script lang="ts">
-	import { Chart } from 'svelte-echarts';
+	import { viewOptionsState } from '$lib/stores/view-options.svelte';
+	import Chart from './CitableChart.svelte';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
@@ -39,6 +40,7 @@
 	} from '$lib/utils/chartTheme';
 
 	interface TrendsChartProps {
+		stateKey: 'polarityTrend' | 'subjectivityTrend';
 		/** French dimension labels used as data-lookup keys, in series order */
 		frenchLabels: string[];
 		/** Translated series names (same order as frenchLabels) */
@@ -56,6 +58,7 @@
 	}
 
 	let {
+		stateKey,
 		frenchLabels,
 		seriesLabels,
 		legendData,
@@ -75,8 +78,7 @@
 	 * renders each year as a 100% stacked band, which is what actually answers
 	 * "did coverage get more negative over time?".
 	 */
-	let displayMode = $state<'count' | 'share'>('count');
-	let isShare = $derived(displayMode === 'share');
+	let isShare = $derived(viewOptionsState[stateKey] === 'share');
 
 	let displayModeOptions = $derived([
 		{ value: 'count', label: $t.charts.countMode, icon: HashIcon },
@@ -175,8 +177,8 @@
 	<div class="chart-toolbar mb-4">
 		<ChartTypeToggle
 			options={displayModeOptions}
-			value={displayMode}
-			onChange={(value) => (displayMode = value as 'count' | 'share')}
+			value={viewOptionsState[stateKey]}
+			onChange={(value) => (viewOptionsState[stateKey] = value as 'count' | 'share')}
 			{ariaLabel}
 		/>
 	</div>
@@ -187,7 +189,7 @@
 		role="img"
 		aria-label={isShare ? `${ariaLabel} — ${$t.charts.shareMode}` : ariaLabel}
 	>
-		<Chart {init} {options} />
+		<Chart chartId={stateKey.replace('Trend', '-trend')} {init} {options} />
 	</div>
 	<ChartDataTable
 		columns={[
@@ -204,7 +206,7 @@
 			)
 		])}
 		caption={`${title} — ${isShare ? $t.charts.shareMode : $t.charts.countMode}`}
-		filenamePrefix={`trends-${displayMode}`}
+		filenamePrefix={`trends-${viewOptionsState[stateKey]}`}
 	/>
 {:else}
 	<p class="chart-empty">{$t.table.noFilteredArticles}</p>

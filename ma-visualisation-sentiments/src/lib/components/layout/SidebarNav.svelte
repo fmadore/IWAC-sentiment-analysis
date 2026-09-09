@@ -7,7 +7,7 @@
 	import { NAV_ITEMS } from './navItems';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
-	import type { ViewId } from '$lib/types/data';
+	import { hasSingleModelPicker, type ViewId } from '$lib/types/data';
 
 	// Default expanded on wider desktops where the labels fit and where the
 	// flame/gavel/git-compare icons aren't self-explanatory to a researcher.
@@ -76,10 +76,11 @@
 
 	<!-- Mobile only: the model picker, above the views it modifies. -->
 	{#if !desktop.current}
-		<div class="drawer-section">
-			<span class="drawer-label">{$t.datasets.availableModels ?? 'Model'}</span>
-			<DatasetPicker />
-		</div>
+		{#if hasSingleModelPicker(uiState.activeView)}<div class="drawer-section">
+				<span class="drawer-label">{$t.datasets.availableModels ?? 'Model'}</span>
+				<DatasetPicker />
+			</div>
+		{/if}
 		<span class="drawer-label drawer-label-standalone">{$t.nav.views ?? 'Views'}</span>
 	{/if}
 

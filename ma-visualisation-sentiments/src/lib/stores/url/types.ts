@@ -12,6 +12,8 @@ import type { ValidView, ValidDataset } from './constants';
  * Represents the parsed state from URL parameters
  */
 export interface URLState {
+	chartState?: import('../chart-interactions.svelte').ChartInteractions;
+	options?: Partial<import('../view-options.svelte').ViewOptions>;
 	view?: ValidView;
 	dimensions?: import('../analysis.svelte').AnalysisDimension[];
 	excludeNA?: boolean;
@@ -31,6 +33,7 @@ export interface URLState {
 	diffMax?: number;
 	articleId?: string | number;
 	comparisonArticleId?: string | number;
+	arbiterArticleId?: string;
 }
 
 /**

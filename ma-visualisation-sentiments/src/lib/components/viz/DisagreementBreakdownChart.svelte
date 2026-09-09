@@ -14,8 +14,9 @@
   would swing on a handful of articles.
 -->
 <script lang="ts">
+	import { viewOptionsState } from '$lib/stores/view-options.svelte';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
-	import { Chart } from 'svelte-echarts';
+	import Chart from './CitableChart.svelte';
 	import { dec, num, pct } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
@@ -41,8 +42,6 @@
 
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
 
-	let groupBy = $state<'decade' | 'country'>('decade');
-
 	let groupOptions = $derived([
 		{ value: 'decade', label: $t.comparison.byDecade, icon: CalendarIcon },
 		{ value: 'country', label: $t.filters.country, icon: GlobeIcon }
@@ -56,7 +55,7 @@
 		const result = aggregateDisagreement(
 			comparisonState.filtered.map((comparison) => ({
 				key:
-					groupBy === 'country'
+					viewOptionsState.breakdown === 'country'
 						? comparison.article.Country || noCountry
 						: bucketDecade(comparison.article.publication_date),
 				totalDiff: comparison.discrepancies.totalDiff,
@@ -65,7 +64,7 @@
 		);
 
 		// Decades read chronologically; countries read as a ranking.
-		return groupBy === 'decade'
+		return viewOptionsState.breakdown === 'decade'
 			? result.sort((a, b) => a.key.localeCompare(b.key))
 			: result.sort((a, b) => b.meanTotal - a.meanTotal);
 	});
@@ -170,8 +169,8 @@
 		<span class="toolbar-label">{$t.comparison.disagreementBreakdown}</span>
 		<ChartTypeToggle
 			options={groupOptions}
-			value={groupBy}
-			onChange={(value) => (groupBy = value as 'decade' | 'country')}
+			value={viewOptionsState.breakdown}
+			onChange={(value) => (viewOptionsState.breakdown = value as 'decade' | 'country')}
 			ariaLabel={$t.comparison.disagreementBreakdown}
 		/>
 	</div>
@@ -182,7 +181,7 @@
 		role="img"
 		aria-label={$t.comparison.disagreementBreakdown}
 	>
-		<Chart {init} {options} />
+		<Chart chartId="disagreement-breakdown-chart" {init} {options} />
 	</div>
 
 	<p class="chart-note">{$t.comparison.disagreementBreakdownNote}</p>
@@ -191,7 +190,9 @@
 {/if}
 <ChartDataTable
 	columns={[
-		{ label: groupBy === 'country' ? $t.filters.country : $t.comparison.byDecade },
+		{
+			label: viewOptionsState.breakdown === 'country' ? $t.filters.country : $t.comparison.byDecade
+		},
 		{ label: $t.comparison.totalDiscrepancy, format: 'decimal' },
 		{ label: $t.comparison.significantDifferences, format: 'percent' },
 		{ label: $t.audit.count, format: 'integer' }

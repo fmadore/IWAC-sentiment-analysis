@@ -17,7 +17,7 @@
 -->
 <script lang="ts">
 	import ChartDataTable from '../common/ChartDataTable.svelte';
-	import { Chart } from 'svelte-echarts';
+	import Chart from './CitableChart.svelte';
 	import { dec, num } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
@@ -193,7 +193,7 @@
 		role="img"
 		aria-label={$t.agreement.scatterTitle}
 	>
-		<Chart {init} {options} />
+		<Chart chartId="consensus-scatter-chart" {init} {options} />
 	</div>
 
 	<p class="chart-note">

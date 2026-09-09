@@ -4,7 +4,8 @@
   Yearly article volume per country, as stacked areas or plain lines.
 -->
 <script lang="ts">
-	import { Chart } from 'svelte-echarts';
+	import { viewOptionsState } from '$lib/stores/view-options.svelte';
+	import Chart from './CitableChart.svelte';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
@@ -38,7 +39,6 @@
 
 	// Reactive window width for responsive behavior
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
-	let chartType = $state<'area' | 'line'>('area');
 
 	const aggregate = $derived(aggregateByCountryAndYear(articleState.filtered));
 	let options = $derived.by(() => {
@@ -53,9 +53,9 @@
 			return {
 				name: country,
 				type: 'line' as const,
-				stack: chartType === 'area' ? 'total' : undefined,
+				stack: viewOptionsState.volumeChart === 'area' ? 'total' : undefined,
 				areaStyle:
-					chartType === 'area'
+					viewOptionsState.volumeChart === 'area'
 						? {
 								opacity: 0.4
 							}
@@ -120,8 +120,8 @@
 				{ value: 'area', label: $t.charts.stackedAreas, icon: AreaChartIcon },
 				{ value: 'line', label: $t.charts.lines, icon: LineChartIcon }
 			]}
-			value={chartType}
-			onChange={(value) => (chartType = value as 'area' | 'line')}
+			value={viewOptionsState.volumeChart}
+			onChange={(value) => (viewOptionsState.volumeChart = value as 'area' | 'line')}
 			ariaLabel={$t.charts.volumeByCountry}
 		/>
 	</div>
@@ -132,7 +132,7 @@
 		role="img"
 		aria-label={$t.charts.volumeByCountry}
 	>
-		<Chart {init} {options} />
+		<Chart chartId="volume-chart" {init} {options} />
 	</div>
 	<ChartDataTable
 		columns={[

@@ -4,23 +4,26 @@
  * Converts application state to URL search parameters.
  */
 
-import { SvelteURLSearchParams } from 'svelte/reactivity';
+import { SvelteURLSearchParams, SvelteSet } from 'svelte/reactivity';
 import { LANGUAGES } from '$lib/i18n';
 import { VALID_VIEWS, VALID_DATASETS, VALID_PAIRS, URL_PARAMS } from './constants';
 import type { URLState } from './types';
 import { TOTAL_DISCREPANCY_MAXIMUM } from '$lib/domain/sentimentContract';
+import { VIEW_OPTIONS, VIEW_OPTION_KEYS, optionApplies } from '../view-options.svelte';
 
 /**
  * Convert application state to URL search parameters
  */
 export function buildURLSearchParams(state: URLState): SvelteURLSearchParams {
 	const params = new SvelteURLSearchParams();
+	// Distinguishes repeated literal facet values from legacy comma-separated lists.
+	params.set('urlVersion', '2');
 
 	if (state.view && (VALID_VIEWS as readonly string[]).includes(state.view)) {
 		params.set(URL_PARAMS.view, state.view);
 	}
 
-	if (state.lang && state.lang in LANGUAGES) {
+	if (state.lang && Object.hasOwn(LANGUAGES, state.lang)) {
 		params.set(URL_PARAMS.lang, state.lang);
 	}
 
@@ -75,6 +78,9 @@ export function buildURLSearchParams(state: URLState): SvelteURLSearchParams {
 	if (state.comparisonArticleId !== undefined && state.compare === true) {
 		params.set(URL_PARAMS.comparisonArticleId, state.comparisonArticleId.toString());
 	}
+	if (state.view === 'arbiter' && state.arbiterArticleId !== undefined) {
+		params.set('arbiterArticleId', state.arbiterArticleId);
+	}
 
 	// Exclude regular filters for arbiter view (it has its own filter system)
 	if (!isArbiterView) {
@@ -85,7 +91,13 @@ export function buildURLSearchParams(state: URLState): SvelteURLSearchParams {
 			[URL_PARAMS.subjectivities, state.subjectivities],
 			[URL_PARAMS.centralities, state.centralities]
 		] as const) {
-			for (const value of values ?? []) params.append(key, value);
+			// Label filters do not scope agreement or comparison statistics.
+			if (
+				(state.view === 'comparison' || state.view === 'agreement') &&
+				!['countries', 'journals'].includes(key)
+			)
+				continue;
+			for (const value of [...new SvelteSet(values ?? [])].sort()) params.append(key, value);
 		}
 	}
 
@@ -100,6 +112,31 @@ export function buildURLSearchParams(state: URLState): SvelteURLSearchParams {
 		if (state.scope) params.set('scope', state.scope);
 		if (state.dimension) params.set('dimension', state.dimension);
 		if (state.declined !== undefined) params.set('declined', String(state.declined));
+	}
+	for (const key of VIEW_OPTION_KEYS) {
+		if (
+			(key === 'scanPage' || key === 'reasoning') &&
+			state.articleId === undefined &&
+			state.comparisonArticleId === undefined &&
+			state.arbiterArticleId === undefined
+		)
+			continue;
+		const value = state.options?.[key];
+		if (
+			value !== undefined &&
+			value !== VIEW_OPTIONS[key].default &&
+			optionApplies(key, state.view)
+		) {
+			params.set(key, String(value));
+		}
+	}
+	if (state.chartState && Object.keys(state.chartState).length > 0) {
+		params.set(
+			'chartState',
+			JSON.stringify(
+				Object.fromEntries(Object.entries(state.chartState).sort(([a], [b]) => a.localeCompare(b)))
+			)
+		);
 	}
 	return params;
 }

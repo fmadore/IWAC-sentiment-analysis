@@ -37,6 +37,8 @@
   chart-facing comes from `chartTheme.ts`, which holds the sRGB translations.
 -->
 <script lang="ts">
+	import DetailLinkNotice from '$lib/components/common/DetailLinkNotice.svelte';
+	import { viewOptionsState } from '$lib/stores/view-options.svelte';
 	import { dataUrl } from '$lib/data/release';
 	import { onMount } from 'svelte';
 	import { dec, num } from '$lib/i18n/utils';
@@ -59,7 +61,7 @@
 	import type { FeatureCollection } from 'geojson';
 	import { articleState, datasetState } from '$lib/stores';
 	import { placeState, loadPlaces } from '$lib/stores/places.svelte';
-	import type { MapDimension, PlaceAggregate } from '$lib/utils/placeAggregation';
+	import type { MapDimension } from '$lib/utils/placeAggregation';
 	import { MAP_DIMENSIONS } from '$lib/utils/placeAggregation';
 	import {
 		circleColorExpression,
@@ -82,10 +84,36 @@
 	];
 
 	let world = $state<FeatureCollection | null>(null);
-	let selected = $state<PlaceAggregate | null>(null);
+	let map = $state<import('maplibre-gl').Map>();
+	let mapReady = $state(false);
+	let restoringCamera = false;
+	function saveCamera() {
+		if (!map || !mapReady || restoringCamera) return;
+		const center = map.getCenter();
+		const lng = ((((center.lng + 180) % 360) + 360) % 360) - 180;
+		viewOptionsState.mapCamera = [
+			lng.toFixed(5),
+			center.lat.toFixed(5),
+			map.getZoom().toFixed(3)
+		].join(',');
+	}
+	$effect(() => {
+		const camera = viewOptionsState.mapCamera;
+		if (!map || !mapReady) return;
+		restoringCamera = true;
+		try {
+			if (camera) {
+				const [lng, lat, zoom] = camera.split(',').map(Number);
+				map.jumpTo({ center: [lng, lat], zoom });
+			} else {
+				map.fitBounds(WORLD_BOUNDS, { duration: 0 });
+			}
+		} finally {
+			restoringCamera = false;
+		}
+	});
 
 	/** Which dimension the bubble fill encodes. Size always means article count. */
-	let dimension = $state<MapDimension>('polarity');
 
 	const dimensionLabels = $derived<Record<MapDimension, string>>({
 		polarity: $t.filters.polarity,
@@ -110,6 +138,9 @@
 	const modelReady = $derived((articleState.datasets[datasetState.selected]?.length ?? 0) > 0);
 
 	const aggregates = $derived(placeState.aggregates);
+	const selected = $derived(
+		aggregates.find((place) => place.id === viewOptionsState.placeId) ?? null
+	);
 
 	/** Largest bubble in the current selection — the radius ramp is relative. */
 	const maxCount = $derived(aggregates.length > 0 ? aggregates[0].count : 1);
@@ -129,7 +160,7 @@
 				// which dimension is showing. MapLibre expressions cannot branch on
 				// null, so unscored places get the sentinel `circleColorExpression`
 				// tests for explicitly.
-				mean: place.stats[dimension].mean ?? UNSCORED_MEAN
+				mean: place.stats[viewOptionsState.mapDimension].mean ?? UNSCORED_MEAN
 			}
 		}))
 	});
@@ -137,13 +168,13 @@
 	// Both scales come from `utils/mapScales.ts`, which also feeds MapLegend —
 	// see that module for why they are not written inline here.
 	const radiusExpression = $derived(circleRadiusExpression(maxCount));
-	const colorExpression = $derived(circleColorExpression(dimension));
+	const colorExpression = $derived(circleColorExpression(viewOptionsState.mapDimension));
 
 	function onPlaceClick(event: MapLayerMouseEvent) {
 		const feature = event.features?.[0];
 		if (!feature) return;
 		const id = feature.properties?.id as number;
-		selected = aggregates.find((place) => place.id === id) ?? null;
+		viewOptionsState.placeId = id;
 	}
 
 	const popupPosition = $derived<LngLatLike | undefined>(
@@ -151,7 +182,7 @@
 	);
 
 	/** Stats for the active dimension of the place in the popup. */
-	const selectedStat = $derived(selected ? selected.stats[dimension] : null);
+	const selectedStat = $derived(selected ? selected.stats[viewOptionsState.mapDimension] : null);
 
 	function formatMean(mean: number | null): string {
 		return mean === null ? '—' : $dec(mean, 2);
@@ -164,14 +195,17 @@
 	control that recovers from an empty map must not be hidden by it.
 -->
 <div class="map-shell">
+	{#if placeState.loaded && modelReady && viewOptionsState.placeId && !selected}
+		<DetailLinkNotice onClose={() => (viewOptionsState.placeId = 0)} />
+	{/if}
 	<div class="dimension-tabs" role="tablist" aria-label={$t.agreement.dimensionSelector}>
 		{#each MAP_DIMENSIONS as option (option)}
 			<button
 				role="tab"
 				class="dimension-tab"
-				data-active={dimension === option}
-				aria-selected={dimension === option}
-				onclick={() => (dimension = option)}
+				data-active={viewOptionsState.mapDimension === option}
+				aria-selected={viewOptionsState.mapDimension === option}
+				onclick={() => (viewOptionsState.mapDimension = option)}
 			>
 				{dimensionLabels[option]}
 			</button>
@@ -186,6 +220,9 @@
 		<EmptyState title={$t.map.noPlacesTitle} lede={$t.map.noPlacesLede} />
 	{:else}
 		<MapLibre
+			bind:map
+			onload={() => (mapReady = true)}
+			onmoveend={saveCamera}
 			class="map-canvas"
 			autoloadGlobalCss={false}
 			attributionControl={false}
@@ -221,7 +258,7 @@
 			</GeoJSONSource>
 
 			{#if selected && popupPosition}
-				<Popup lnglat={popupPosition} closeButton onclose={() => (selected = null)}>
+				<Popup lnglat={popupPosition} closeButton onclose={() => (viewOptionsState.placeId = 0)}>
 					<div class="place-popup">
 						<h3 class="popup-title">{selected.title}</h3>
 						<p class="popup-count">
@@ -229,7 +266,12 @@
 							{$t.map.articlesMentioning}
 						</p>
 						<dl class="popup-stats">
-							<dt>{$t.map.meanOf.replace('{dimension}', dimensionLabels[dimension])}</dt>
+							<dt>
+								{$t.map.meanOf.replace(
+									'{dimension}',
+									dimensionLabels[viewOptionsState.mapDimension]
+								)}
+							</dt>
 							<dd>{formatMean(selectedStat?.mean ?? null)}</dd>
 							<dt>{$t.map.scoredArticles}</dt>
 							<dd>{$num(selectedStat?.scored ?? 0)}</dd>
@@ -239,7 +281,11 @@
 			{/if}
 		</MapLibre>
 
-		<MapLegend {maxCount} {dimension} label={dimensionLabels[dimension]} />
+		<MapLegend
+			{maxCount}
+			dimension={viewOptionsState.mapDimension}
+			label={dimensionLabels[viewOptionsState.mapDimension]}
+		/>
 
 		<p class="map-caveat">{$t.map.caveat}</p>
 	{/if}
@@ -251,7 +297,7 @@
 			{ label: $t.audit.place },
 			{ label: $t.audit.count, format: 'integer' },
 			{
-				label: $t.map.meanOf.replace('{dimension}', dimensionLabels[dimension]),
+				label: $t.map.meanOf.replace('{dimension}', dimensionLabels[viewOptionsState.mapDimension]),
 				format: 'decimal'
 			},
 			{ label: $t.map.scoredArticles, format: 'integer' }
@@ -259,11 +305,11 @@
 		rows={aggregates.map((p) => [
 			p.title,
 			p.count,
-			p.stats[dimension].mean,
-			p.stats[dimension].scored
+			p.stats[viewOptionsState.mapDimension].mean,
+			p.stats[viewOptionsState.mapDimension].scored
 		])}
 		caption={$t.nav.map}
-		filenamePrefix={`places-${dimension}`}
+		filenamePrefix={`places-${viewOptionsState.mapDimension}`}
 	/>
 {/if}
 

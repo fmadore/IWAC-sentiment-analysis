@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { viewOptionsState, paginationURLState } from '$lib/stores/view-options.svelte';
 	import { comparisonState, datasetState } from '$lib/stores';
 	import { num, fmtDate } from '$lib/i18n/utils';
 	import { t } from '$lib/i18n';
@@ -15,26 +16,15 @@
 	import { createPagination } from '$lib/utils/pagination.svelte';
 	import PaginationControls from '$lib/components/common/PaginationControls.svelte';
 
-	let viewMode = $state<'table' | 'cards'>('table');
-	let sortBy = $state<'discrepancy' | 'date' | 'title'>('discrepancy');
-	let sortDirection = $state<'asc' | 'desc'>('desc');
-
 	// Reactive mobile detection using Svelte 5 pattern
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
-
-	// Switch to card view on mobile
-	$effect(() => {
-		if (isMobile) {
-			viewMode = 'cards';
-		}
-	});
 
 	// Sort comparisons
 	const sortedComparisons = $derived(
 		[...comparisonState.filtered].sort((a, b) => {
 			let valA, valB;
 
-			switch (sortBy) {
+			switch (viewOptionsState.comparisonSort) {
 				case 'title':
 					valA = a.article['o:title'] || '';
 					valB = b.article['o:title'] || '';
@@ -50,7 +40,7 @@
 					break;
 			}
 
-			if (sortDirection === 'asc') {
+			if (viewOptionsState.comparisonOrder === 'asc') {
 				return valA > valB ? 1 : valA < valB ? -1 : 0;
 			} else {
 				return valA < valB ? 1 : valA > valB ? -1 : 0;
@@ -60,6 +50,7 @@
 
 	// Pagination
 	const pagination = createPagination({
+		state: paginationURLState('comparison'),
 		totalItems: () => sortedComparisons.length,
 		initialItemsPerPage: 25,
 		itemsPerPageOptions: [10, 25, 50, 100],
@@ -92,8 +83,8 @@
 			<div class="view-controls flex gap-2">
 				<button
 					class="view-toggle"
-					data-state={viewMode === 'table' ? 'active' : 'inactive'}
-					onclick={() => (viewMode = 'table')}
+					data-state={viewOptionsState.comparisonLayout === 'table' ? 'active' : 'inactive'}
+					onclick={() => (viewOptionsState.comparisonLayout = 'table')}
 					disabled={isMobile}
 				>
 					<TableIcon size={16} />
@@ -101,8 +92,8 @@
 				</button>
 				<button
 					class="view-toggle"
-					data-state={viewMode === 'cards' ? 'active' : 'inactive'}
-					onclick={() => (viewMode = 'cards')}
+					data-state={viewOptionsState.comparisonLayout === 'cards' ? 'active' : 'inactive'}
+					onclick={() => (viewOptionsState.comparisonLayout = 'cards')}
 				>
 					<LayoutGridIcon size={16} />
 					<span>{$t.common.cardView}</span>
@@ -142,7 +133,7 @@
 		{/if}
 	</div>
 
-	{#if viewMode === 'table' && !isMobile}
+	{#if viewOptionsState.comparisonLayout === 'table' && !isMobile}
 		<!-- Table View -->
 		<div class="table-container comparison-table-wrapper">
 			<table class="table">
@@ -153,8 +144,8 @@
 						<th
 							class="sortable-header"
 							scope="col"
-							aria-sort={sortBy === 'title'
-								? sortDirection === 'asc'
+							aria-sort={viewOptionsState.comparisonSort === 'title'
+								? viewOptionsState.comparisonOrder === 'asc'
 									? 'ascending'
 									: 'descending'
 								: 'none'}
@@ -163,12 +154,13 @@
 								class="sort-button"
 								type="button"
 								onclick={() => {
-									sortBy = 'title';
-									sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+									viewOptionsState.comparisonSort = 'title';
+									viewOptionsState.comparisonOrder =
+										viewOptionsState.comparisonOrder === 'asc' ? 'desc' : 'asc';
 								}}
 							>
 								{$t.table.articleTitle}
-								{#if sortBy === 'title'}
+								{#if viewOptionsState.comparisonSort === 'title'}
 									<ArrowUpDownIcon size={14} class="inline ml-1" />
 								{/if}
 							</button>
@@ -179,8 +171,8 @@
 						<th
 							class="sortable-header text-center"
 							scope="col"
-							aria-sort={sortBy === 'discrepancy'
-								? sortDirection === 'asc'
+							aria-sort={viewOptionsState.comparisonSort === 'discrepancy'
+								? viewOptionsState.comparisonOrder === 'asc'
 									? 'ascending'
 									: 'descending'
 								: 'none'}
@@ -189,12 +181,13 @@
 								class="sort-button"
 								type="button"
 								onclick={() => {
-									sortBy = 'discrepancy';
-									sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+									viewOptionsState.comparisonSort = 'discrepancy';
+									viewOptionsState.comparisonOrder =
+										viewOptionsState.comparisonOrder === 'asc' ? 'desc' : 'asc';
 								}}
 							>
 								{$t.comparison.totalDiscrepancy}
-								{#if sortBy === 'discrepancy'}
+								{#if viewOptionsState.comparisonSort === 'discrepancy'}
 									<ArrowUpDownIcon size={14} class="inline ml-1" />
 								{/if}
 							</button>

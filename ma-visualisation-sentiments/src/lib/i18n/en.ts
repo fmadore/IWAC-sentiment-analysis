@@ -9,6 +9,13 @@
  * ranges (1–5), em dashes used sparingly.
  */
 export const en = {
+	links: {
+		copy: 'Copy link to this analysis',
+		copied: 'Analysis link copied.',
+		copyFailed: 'Could not copy the link. Copy the address from your browser.',
+		missing: 'The item in this link is not available in the selected analysis.',
+		close: 'Return to the analysis'
+	},
 	audit: {
 		place: 'Place',
 		flowFrom: 'From model and label',

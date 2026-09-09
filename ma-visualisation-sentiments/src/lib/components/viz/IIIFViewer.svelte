@@ -1,6 +1,7 @@
 <!-- Embedded IIIF document viewer using OpenSeadragon -->
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { viewOptionsState } from '$lib/stores/view-options.svelte';
 	import { t } from '$lib/i18n';
 	import type OpenSeadragon from 'openseadragon';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
@@ -26,6 +27,14 @@
 	let error = $state<string | null>(null);
 	let fallback = $state(false);
 	let expanded = $state(false);
+	$effect(() => {
+		const requested = viewOptionsState.scanPage - 1;
+		if (viewer && totalPages > 0 && requested !== currentPage) {
+			const page = Math.min(requested, totalPages - 1);
+			currentPage = page;
+			viewer.open(tileSources[page] as unknown as OpenSeadragon.TileSourceSpecifier);
+		}
+	});
 
 	onMount(() => {
 		import('openseadragon').then((mod) => {
@@ -118,8 +127,7 @@
 
 	function goToPage(page: number) {
 		if (!viewer || page < 0 || page >= totalPages) return;
-		currentPage = page;
-		viewer.open(tileSources[page] as unknown as OpenSeadragon.TileSourceSpecifier);
+		viewOptionsState.scanPage = page + 1;
 	}
 
 	function toggleExpanded() {

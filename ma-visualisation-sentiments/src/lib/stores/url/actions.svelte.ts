@@ -1,12 +1,12 @@
-/**
- * URL State Actions
- *
- * Functions for manipulating URL state and syncing with stores.
- */
-
+/** Complete URL snapshots and browser history synchronization. */
 import { tick } from 'svelte';
-import { analysisState, ANALYSIS_DIMENSIONS } from '../analysis.svelte';
-import { uiState } from '../ui.svelte';
+import { chartInteractionsState } from '../chart-interactions.svelte';
+import { browser } from '$app/environment';
+import { goto } from '$app/navigation';
+import { resolve } from '$app/paths';
+import { page } from '$app/stores';
+import { get } from 'svelte/store';
+import { initializeLanguage } from '$lib/i18n';
 import {
 	CURRENT_GENERATION,
 	defaultDatasetOf,
@@ -15,21 +15,18 @@ import {
 	getPairModels,
 	TOTAL_DISCREPANCY_MAXIMUM
 } from '$lib/domain/sentimentContract';
-import { browser } from '$app/environment';
-import { goto } from '$app/navigation';
-import { resolve } from '$app/paths';
-import { page } from '$app/stores';
-import { get } from 'svelte/store';
-import { initializeLanguage } from '$lib/i18n';
-
-// Import directly from individual store modules to avoid circular dependencies
-// (importing from '$lib/stores' would create a cycle since stores/index.ts re-exports from url/)
+import { analysisState, ANALYSIS_DIMENSIONS } from '../analysis.svelte';
+import { uiState } from '../ui.svelte';
 import { filterState } from '../filters.svelte';
 import { datasetState } from '../datasets.svelte';
 import { articleState } from '../articles.svelte';
 import { comparisonState } from '../comparison.svelte';
-
-import { type ValidView } from './constants';
+import {
+	arbiterSelectionState,
+	viewOptionsState,
+	defaultViewOptions
+} from '../view-options.svelte';
+import type { ValidView } from './constants';
 import type { URLState } from './types';
 import { parseURLState } from './parser.svelte';
 import { buildURLSearchParams } from './builder.svelte';
@@ -39,23 +36,93 @@ import {
 	getCurrentState
 } from './state.svelte';
 
-/**
- * Apply URL state to application stores
- */
+let restoring = false;
+let restoration = 0;
+let selectionContext = '';
+let resultContext = '';
+let detailContext = '';
+
+function currentDetailContext(): string {
+	return String(
+		articleState.selected?.['o:id'] ??
+			pendingArticleState.current?.articleId ??
+			comparisonState.selected?.article['o:id'] ??
+			pendingComparisonArticleState.current ??
+			arbiterSelectionState.articleId ??
+			''
+	);
+}
+let scheduled = false;
+let replacePending = true;
+
+function currentSelectionContext(): string {
+	return [uiState.activeView, datasetState.selected, datasetState.pair].join(':');
+}
+
+function currentResultContext(): string {
+	return JSON.stringify([
+		currentSelectionContext(),
+		filterState.countries,
+		filterState.journals,
+		filterState.polarities,
+		filterState.subjectivities,
+		filterState.centralities,
+		filterState.discrepancy
+	]);
+}
+
+/** Detail objects belong to one model/view; do not carry stale analyses to another. */
+export function reconcileSelectionContext(): void {
+	const context = currentSelectionContext();
+	if (selectionContext && context !== selectionContext) {
+		articleState.selected = null;
+		comparisonState.selected = null;
+		arbiterSelectionState.articleId = null;
+		pendingArticleState.clear();
+		pendingComparisonArticleState.clear();
+		viewOptionsState.prompt = false;
+		viewOptionsState.scanPage = 1;
+	}
+	selectionContext = context;
+	const results = currentResultContext();
+	if (resultContext && results !== resultContext) {
+		viewOptionsState.tablePage =
+			viewOptionsState.comparisonPage =
+			viewOptionsState.arbiterPage =
+			viewOptionsState.panelPage =
+				1;
+	}
+	resultContext = results;
+	const detail = currentDetailContext();
+	if (detail !== detailContext) {
+		viewOptionsState.scanPage = 1;
+		viewOptionsState.reasoning = false;
+	}
+	detailContext = detail;
+}
+
 export function applyURLState(state: URLState): ValidView | undefined {
-	// Restore a complete snapshot, not a patch: absent fields mean defaults.
+	// Absent fields mean defaults, never the state left over from another history entry.
 	filterState.countries = state.countries ?? [];
 	filterState.journals = state.journals ?? [];
 	filterState.polarities = state.polarities ?? [];
 	filterState.subjectivities = state.subjectivities ?? [];
 	filterState.centralities = state.centralities ?? [];
 	datasetState.isComparisonMode = false;
-	datasetState.selected =
-		state.dataset ??
-		(state.pair ? getPairModels(state.pair)[0] : defaultDatasetOf(CURRENT_GENERATION));
-	datasetState.pair = state.pair ?? defaultPairOf(generationOf(datasetState.selected));
+	const pairView = state.view === 'comparison' || state.view === 'arbiter';
+	// The explicit pair is authoritative on pair views, including conflicting legacy links.
+	const dataset =
+		pairView && state.pair
+			? getPairModels(state.pair)[0]
+			: (state.dataset ??
+				(state.pair ? getPairModels(state.pair)[0] : defaultDatasetOf(CURRENT_GENERATION)));
+	datasetState.selected = dataset;
+	datasetState.pair =
+		state.pair && generationOf(state.pair) === generationOf(dataset)
+			? state.pair
+			: defaultPairOf(generationOf(dataset));
 	datasetState.isComparisonMode =
-		state.view === 'comparison' || state.view === 'arbiter' || state.compare === true;
+		state.view === 'comparison' || (state.view === 'arbiter' && generationOf(dataset) === 'v1');
 	filterState.discrepancy = {
 		minDifference: state.diffMin ?? 0,
 		maxDifference: state.diffMax ?? TOTAL_DISCREPANCY_MAXIMUM,
@@ -70,108 +137,44 @@ export function applyURLState(state: URLState): ValidView | undefined {
 	pendingArticleState.clear();
 	pendingComparisonArticleState.clear();
 	uiState.activeView = state.view ?? 'charts';
-	// Initialize language first (this handles URL lang, localStorage, and browser detection)
 	initializeLanguage(state.lang);
-
-	// Handle article selection from URL
-	if (state.articleId !== undefined) {
-		// Get the current dataset articles
-		const currentDataset = state.dataset || datasetState.selected;
-		const articlesForDataset = articleState.datasets[currentDataset];
-
-		if (articlesForDataset && articlesForDataset.length > 0) {
-			// Find the article with matching ID
-			const targetArticle = articlesForDataset.find(
-				(article) =>
-					article['o:id'] === state.articleId ||
-					article['o:id'].toString() === state.articleId?.toString()
-			);
-
-			if (targetArticle) {
-				articleState.selected = targetArticle;
-				// Clear any pending selection since we found the article
-				pendingArticleState.clear();
-				console.log(`[URL] Selected article from URL: ${targetArticle['o:title']}`);
-			} else {
-				// Article not found, clear the selection
-				articleState.selected = null;
-				console.warn(
-					`[URL] Article with ID ${state.articleId} not found in dataset ${currentDataset}`
-				);
-			}
-		} else {
-			// Dataset not loaded yet, store pending selection
-			pendingArticleState.current = {
-				articleId: state.articleId,
-				dataset: currentDataset
-			};
-			console.log(
-				`[URL] Will select article ${state.articleId} after dataset ${currentDataset} loads`
-			);
-		}
+	Object.assign(viewOptionsState, defaultViewOptions(), state.options);
+	chartInteractionsState[uiState.activeView] = state.chartState ?? {};
+	arbiterSelectionState.articleId =
+		state.view === 'arbiter' ? (state.arbiterArticleId ?? null) : null;
+	if (state.articleId !== undefined && !pairView) {
+		pendingArticleState.current = { articleId: state.articleId, dataset: datasetState.selected };
 	}
-
-	// Handle comparison article selection from URL
-	if (state.comparisonArticleId !== undefined && state.compare === true) {
-		// Try to find and select the comparison article
-		const comparisons = comparisonState.data;
-
-		if (comparisons && comparisons.length > 0) {
-			const targetComparison = comparisons.find(
-				(comp) =>
-					comp.article['o:id'] === state.comparisonArticleId ||
-					comp.article['o:id'].toString() === state.comparisonArticleId?.toString()
-			);
-
-			if (targetComparison) {
-				comparisonState.selected = targetComparison;
-				pendingComparisonArticleState.clear();
-				console.log(
-					`[URL] Selected comparison article from URL: ${targetComparison.article['o:title']}`
-				);
-			} else {
-				// Article not found in current comparisons, store as pending
-				pendingComparisonArticleState.current = state.comparisonArticleId;
-				console.log(
-					`[URL] Will select comparison article ${state.comparisonArticleId} after data loads`
-				);
-			}
-		} else {
-			// Comparison data not loaded yet, store as pending
-			pendingComparisonArticleState.current = state.comparisonArticleId;
-			console.log(
-				`[URL] Will select comparison article ${state.comparisonArticleId} after comparison data loads`
-			);
-		}
+	if (state.comparisonArticleId !== undefined && state.view === 'comparison') {
+		pendingComparisonArticleState.current = state.comparisonArticleId;
 	}
-
+	selectionContext = currentSelectionContext();
+	resultContext = currentResultContext();
+	handlePendingArticleSelection();
+	handlePendingComparisonArticleSelection();
+	detailContext = currentDetailContext();
 	return state.view;
 }
 
-/**
- * Update URL with current application state
- */
-let restoring = false;
-let scheduled = false;
-let replacePending = true;
-
-/** Popstate restoration suppresses effects writing the old URL back. */
+/** Suppress feedback writes until the complete snapshot has propagated through effects. */
 export async function restoreURLState(params: URLSearchParams): Promise<void> {
+	const revision = ++restoration;
 	restoring = true;
 	try {
 		applyURLState(parseURLState(params));
 		await tick();
 	} finally {
-		restoring = false;
+		if (revision === restoration) restoring = false;
 	}
 }
 
 export function updateURL(currentView?: ValidView, replaceState = false): void {
-	if (!browser || restoring) return;
-	// Read dependencies synchronously, even when a write is already scheduled.
+	if (!browser) return;
+	// Always read dependencies, including during restoration, to keep effects subscribed.
 	const state = getCurrentState();
 	if (currentView) state.view = currentView;
 	void buildURLSearchParams(state);
+	if (restoring) return;
 	replacePending = replacePending && replaceState;
 	if (scheduled) return;
 	scheduled = true;
@@ -183,7 +186,7 @@ export function updateURL(currentView?: ValidView, replaceState = false): void {
 		const query = buildURLSearchParams(getCurrentState()).toString();
 		if (window.location.search.slice(1) === query) return;
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		void goto(`${resolve('/')}?${query}`, {
+		void goto(resolve('/') + '?' + query + window.location.hash, {
 			replaceState: replace,
 			keepFocus: true,
 			noScroll: true
@@ -191,118 +194,57 @@ export function updateURL(currentView?: ValidView, replaceState = false): void {
 	});
 }
 
-/**
- * Initialize URL state management
- * Should be called once when the app loads
- */
 export function initializeURLState(): ValidView | undefined {
 	if (!browser) return;
-
-	const currentPage = get(page);
-	const urlState = parseURLState(currentPage.url.searchParams);
-
-	return applyURLState(urlState);
+	return applyURLState(parseURLState(get(page).url.searchParams));
 }
 
-/**
- * Clear all filters and update URL
- */
 export function clearAllFilters(): void {
 	filterState.countries = [];
 	filterState.journals = [];
 	filterState.polarities = [];
 	filterState.subjectivities = [];
 	filterState.centralities = [];
-	// Don't reset dataset selection or comparison mode when clearing filters
-
-	updateURL(undefined, true);
+	updateURL();
 }
 
-/**
- * Clear selected article and update URL
- */
 export function clearSelectedArticle(): void {
 	articleState.selected = null;
-	// Also clear any pending article selection
 	pendingArticleState.clear();
-	updateURL(undefined, true);
+	updateURL();
 }
 
-/**
- * Clear only the selected article without affecting pending selections or URL
- */
 export function clearSelectedArticleOnly(): void {
 	articleState.selected = null;
 }
 
-/**
- * Handle pending article selection after dataset is loaded
- */
+/** Retain IDs through slow/failed loads. Missing IDs are disclosed by the view. */
 export function handlePendingArticleSelection(): void {
 	const pending = pendingArticleState.current;
-	if (!pending) return;
-
-	const articlesForDataset = articleState.datasets[pending.dataset];
-
-	if (articlesForDataset && articlesForDataset.length > 0) {
-		// Find the article with matching ID
-		const targetArticle = articlesForDataset.find(
-			(article) =>
-				article['o:id'] === pending.articleId ||
-				article['o:id'].toString() === pending.articleId.toString()
-		);
-
-		if (targetArticle) {
-			articleState.selected = targetArticle;
-			console.log(
-				`[URL] Selected article ${pending.articleId} after dataset loading: ${targetArticle['o:title']}`
-			);
-		} else {
-			console.warn(
-				`[URL] Article with ID ${pending.articleId} not found in dataset ${pending.dataset}`
-			);
-		}
-
-		// Clear the pending selection
+	if (!pending || pending.dataset !== datasetState.selected) return;
+	const article = articleState.datasets[datasetState.selected]?.find(
+		(article) => String(article['o:id']) === String(pending.articleId)
+	);
+	if (article) {
+		articleState.selected = article;
 		pendingArticleState.clear();
 	}
 }
 
-/**
- * Handle pending comparison article selection after comparison data is loaded
- */
 export function handlePendingComparisonArticleSelection(): void {
 	const pending = pendingComparisonArticleState.current;
-	if (!pending) return;
-
-	const comparisons = comparisonState.data;
-
-	if (comparisons && comparisons.length > 0) {
-		// Find the comparison with matching article ID
-		const targetComparison = comparisons.find(
-			(comp) =>
-				comp.article['o:id'] === pending || comp.article['o:id'].toString() === pending.toString()
-		);
-
-		if (targetComparison) {
-			comparisonState.selected = targetComparison;
-			console.log(
-				`[URL] Selected comparison article ${pending} after data loading: ${targetComparison.article['o:title']}`
-			);
-		} else {
-			console.warn(`[URL] Comparison article with ID ${pending} not found`);
-		}
-
-		// Clear the pending selection
+	if (pending === null || uiState.activeView !== 'comparison') return;
+	const comparison = comparisonState.data.find(
+		(item) => String(item.article['o:id']) === String(pending)
+	);
+	if (comparison) {
+		comparisonState.selected = comparison;
 		pendingComparisonArticleState.clear();
 	}
 }
 
-/**
- * Clear selected comparison article and update URL
- */
 export function clearSelectedComparison(): void {
 	comparisonState.selected = null;
 	pendingComparisonArticleState.clear();
-	updateURL(undefined, true);
+	updateURL();
 }

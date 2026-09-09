@@ -10,7 +10,7 @@
   offset reads as a band sitting just beside it.
 -->
 <script lang="ts">
-	import { Chart } from 'svelte-echarts';
+	import Chart from './CitableChart.svelte';
 	import { num, pct } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
@@ -250,7 +250,7 @@
 		role="img"
 		aria-label="{$t.agreement.matrixTitle} — {modelAName} / {modelBName}"
 	>
-		<Chart {init} {options} />
+		<Chart chartId="agreement-matrix" {init} {options} />
 	</div>
 
 	<ChartDataTable

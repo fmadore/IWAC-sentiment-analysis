@@ -14,6 +14,7 @@
   is not doing its job.
 -->
 <script lang="ts">
+	import { viewOptionsState } from '$lib/stores/view-options.svelte';
 	import { t } from '$lib/i18n';
 	import { AccordionItem, PromptModal } from '$lib/components/common';
 	import CollapsibleMethodologyCard from '$lib/components/common/CollapsibleMethodologyCard.svelte';
@@ -32,7 +33,6 @@
 	import ScaleIcon from '@lucide/svelte/icons/scale';
 
 	const accordion = createAccordion();
-	let showPromptModal = $state(false);
 
 	const arbiterModel = SENTIMENT_CONTRACT_V2.arbiter.arbiterModel;
 	const spreadThreshold = SENTIMENT_CONTRACT_V2.discrepancy.threeWaySpread.significantSpread;
@@ -240,7 +240,7 @@
 		>
 			<div class="prompt-section">
 				<p class="section-text">{$t.arbiterV2.promptExplanation}</p>
-				<button class="prompt-btn" onclick={() => (showPromptModal = true)}>
+				<button class="prompt-btn" onclick={() => (viewOptionsState.prompt = true)}>
 					{$t.arbiterV2.viewFullPrompt}
 				</button>
 			</div>
@@ -248,7 +248,7 @@
 	</div>
 </CollapsibleMethodologyCard>
 
-<PromptModal open={showPromptModal} onClose={() => (showPromptModal = false)}>
+<PromptModal open={viewOptionsState.prompt} onClose={() => (viewOptionsState.prompt = false)}>
 	{#snippet title()}
 		<span class="arbiter-glyph"><GavelIcon size={20} /></span>
 		{$t.arbiterV2.arbiterPrompt}

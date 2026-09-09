@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ChartDataTable from '../common/ChartDataTable.svelte';
-	import { Chart } from 'svelte-echarts';
+	import Chart from './CitableChart.svelte';
 	import { dec, num } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
@@ -234,7 +234,7 @@
 		role="img"
 		aria-label={$t.charts.polaritySubjectivityDistribution}
 	>
-		<Chart {init} {options} />
+		<Chart chartId="correlation-chart" {init} {options} />
 	</div>
 
 	{#if !Number.isNaN(correlation.rho)}
