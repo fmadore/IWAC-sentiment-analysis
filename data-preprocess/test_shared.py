@@ -11,6 +11,7 @@ quietly disagreeing.
 Run with: python -m pytest data-preprocess/test_shared.py
 """
 
+import logging
 import os
 import sys
 
@@ -32,6 +33,7 @@ from shared import (  # noqa: E402
     build_model_scores,
     build_model_sentiment,
     calculate_discrepancies,
+    restrict_to_base_articles,
     safe_int_convert,
     safe_str,
     sentiment_column,
@@ -226,3 +228,37 @@ class TestCalculateDiscrepancies:
         )
         assert result["subjectivity_diff"] == 0
         assert result["total_diff"] == 0
+
+
+class TestRestrictToBaseArticles:
+    """The panel run is a discrete event; the corpus behind it keeps growing.
+
+    Counting rows ingested afterwards would put a corpus-wide denominator
+    beside annotation-scoped numerators and quietly deflate every published
+    percentage, so they are excluded rather than analysed as unscored.
+    """
+
+    logger = logging.getLogger("test_restrict")
+
+    @staticmethod
+    def records(*ids):
+        return [{"o:id": article_id} for article_id in ids]
+
+    def test_drops_articles_ingested_after_the_panel_run(self):
+        kept = restrict_to_base_articles(self.records(1, 2, 3), {"1", "2"}, self.logger)
+        assert [record["o:id"] for record in kept] == [1, 2]
+
+    def test_keeps_an_exactly_matching_corpus_untouched(self):
+        kept = restrict_to_base_articles(self.records(1, 2), {"1", "2"}, self.logger)
+        assert [record["o:id"] for record in kept] == [1, 2]
+
+    def test_compares_ids_as_strings(self):
+        # `o:id` is an int in Omeka and a string in the published base file.
+        kept = restrict_to_base_articles(self.records(1), {"1"}, self.logger)
+        assert len(kept) == 1
+
+    def test_an_article_vanishing_from_the_corpus_fails_loudly(self):
+        # The published base would reference a row nothing can supply, which is
+        # a drifted snapshot rather than an out-of-frame article.
+        with pytest.raises(SystemExit, match="gone from the Hugging Face corpus"):
+            restrict_to_base_articles(self.records(1), {"1", "2"}, self.logger)

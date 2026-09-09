@@ -33,10 +33,12 @@ from shared import (
     EXTREME_SUBJECTIVITY_LOW,
     GENERATIONS,
     SentimentContract,
+    get_base_article_ids,
     get_contract,
     get_logger,
     get_webapp_data_dir,
     load_iwac_records,
+    restrict_to_base_articles,
     safe_int_convert,
     safe_save_json,
     safe_str,
@@ -320,8 +322,15 @@ def main(argv: list[str] | None = None) -> None:
 
     logger.info("IWAC Extreme Lexical Analysis (%s)", contract.analysis_version)
 
+    output_dir = get_webapp_data_dir()
     records = load_iwac_records(contract)
     logger.info("Dataset loaded: %d articles", len(records))
+
+    # Scope every figure below to the articles the panel actually processed.
+    # Without this the corpus-wide facets and `total_articles` drift away from
+    # the annotation-scoped category counts as new articles are ingested.
+    records = restrict_to_base_articles(records, get_base_article_ids(output_dir), logger)
+    logger.info("Analysing %d processed articles", len(records))
 
     all_results = {}
     for model_id in contract.model_names:
@@ -330,7 +339,6 @@ def main(argv: list[str] | None = None) -> None:
             records, model_id, top_n=TOP_KEYWORDS, contract=contract
         )
 
-    output_dir = get_webapp_data_dir()
     for model_id, results in all_results.items():
         path = os.path.join(output_dir, f"iwac_extreme_analysis_{model_id}.json")
         logger.info("Saving %s extreme analysis to: %s", model_id, path)

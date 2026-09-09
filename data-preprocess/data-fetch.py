@@ -24,7 +24,6 @@ otherwise.
 """
 
 import argparse
-import json
 import os
 import shutil
 import tempfile
@@ -33,6 +32,7 @@ from pathlib import Path
 
 from iwac_preprocess.publication import publish_generation, recover_publication
 from shared import (
+    BASE_FILENAME,
     CONTRACT,
     GENERATIONS,
     HF_REPO_ID,
@@ -46,6 +46,7 @@ from shared import (
     get_webapp_data_dir,
     load_iwac_records,
     manifest_filename,
+    read_base_article_ids,
     safe_int_convert,
     safe_save_json,
     write_generation_manifest,
@@ -54,7 +55,6 @@ from tqdm import tqdm
 
 logger = get_logger(__name__)
 JUSTIFICATION_SHARDS = int(CONTRACT["delivery"]["justificationShards"])
-BASE_FILENAME = "iwac_articles_base.json"
 
 
 def justification_shard(article_id: str) -> int:
@@ -68,13 +68,6 @@ def justification_shard(article_id: str) -> int:
             value ^= byte
             value = (value * 16777619) & 0xFFFFFFFF
         return value % JUSTIFICATION_SHARDS
-
-
-def read_base_article_ids(base_path: str) -> set[str]:
-    """Return the article ids recorded in the shared base metadata file."""
-    with open(base_path, encoding="utf-8") as handle:
-        base_items = json.load(handle)
-    return {str(item["o:id"]) for item in base_items}
 
 
 def assert_base_matches(base_path: str, article_ids: set[str]) -> None:

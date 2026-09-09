@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import re
@@ -294,3 +295,65 @@ def get_webapp_data_dir() -> str:
     output = Path(__file__).resolve().parents[2] / "ma-visualisation-sentiments" / "static" / "data"
     output.mkdir(parents=True, exist_ok=True)
     return os.fspath(output)
+
+
+BASE_FILENAME = "iwac_articles_base.json"
+
+
+def read_base_article_ids(base_path: str) -> set[str]:
+    """Return the article ids recorded in the shared base metadata file."""
+    with open(base_path, encoding="utf-8") as handle:
+        base_items = json.load(handle)
+    return {str(item["o:id"]) for item in base_items}
+
+
+def get_base_article_ids(output_dir: str | None = None) -> set[str]:
+    """Read the published base article ids from the webapp's data directory."""
+    directory = output_dir if output_dir is not None else get_webapp_data_dir()
+    base_path = os.path.join(directory, BASE_FILENAME)
+    if not os.path.exists(base_path):
+        raise SystemExit(
+            f"{BASE_FILENAME} is missing from {directory}. Generate it with "
+            "`data-fetch.py --generation v1` before running this analysis."
+        )
+    return read_base_article_ids(base_path)
+
+
+def restrict_to_base_articles(
+    records: list[dict], base_ids: set[str], logger: logging.Logger
+) -> list[dict]:
+    """Drop live articles the sentiment panel never processed.
+
+    The Hugging Face corpus keeps growing, but a panel run is a discrete event:
+    articles ingested after it carry no scores at all. Counting them would put
+    a corpus-wide denominator beside annotation-scoped numerators, which is the
+    same half-updated state ``assert_base_matches`` refuses in ``data-fetch``.
+    Here the extra rows are genuinely out of frame rather than a drifted
+    snapshot, so they are excluded and reported instead of aborting the run.
+
+    An article present in the base but absent from the live corpus is the
+    opposite problem — the published metadata would reference a row nothing can
+    supply — so that still fails loudly.
+    """
+    live_ids = {str(record.get("o:id")) for record in records}
+    vanished = base_ids - live_ids
+    if vanished:
+        sample = sorted(vanished)[:5]
+        raise SystemExit(
+            f"{len(vanished)} article(s) in {BASE_FILENAME} are gone from the Hugging "
+            f"Face corpus (e.g. {sample}). The base metadata is shared with the frozen "
+            "v1 files, so reconciling it is a deliberate cross-generation decision "
+            "rather than a side effect of this run."
+        )
+
+    kept = [record for record in records if str(record.get("o:id")) in base_ids]
+    unprocessed = len(records) - len(kept)
+    if unprocessed:
+        logger.info(
+            "Excluding %d article(s) ingested after the panel run: the corpus holds "
+            "%d rows, the panel processed %d.",
+            unprocessed,
+            len(records),
+            len(kept),
+        )
+    return kept
