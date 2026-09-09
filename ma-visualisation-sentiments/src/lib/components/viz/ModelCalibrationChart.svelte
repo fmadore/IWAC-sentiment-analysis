@@ -13,7 +13,7 @@
 -->
 <script lang="ts">
 	import ChartDataTable from '../common/ChartDataTable.svelte';
-	import { Chart } from 'svelte-echarts';
+	import Chart from './CitableChart.svelte';
 	import { num, pct } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
@@ -170,7 +170,7 @@
 		role="img"
 		aria-label={$t.agreement.calibrationTitle}
 	>
-		<Chart {init} {options} />
+		<Chart chartId="model-calibration-chart" {init} {options} />
 	</div>
 {:else}
 	<p class="chart-empty">{$t.table.noFilteredArticles}</p>

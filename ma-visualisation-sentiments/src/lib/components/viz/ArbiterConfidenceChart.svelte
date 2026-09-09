@@ -48,6 +48,7 @@
 </script>
 
 <ArbiterPieChart
+	chartId="confidence"
 	data={confidenceData}
 	countNoun={$t.arbiter.evaluationsNoun}
 	ariaLabel={$t.arbiter.confidenceLevel}

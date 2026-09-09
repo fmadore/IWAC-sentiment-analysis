@@ -116,6 +116,11 @@ export function hasFilterRail(view: ViewId): boolean {
 	return VIEW_META[view].hasFilterRail;
 }
 
+/** Pair and panel views choose their models within the analysis itself. */
+export function hasSingleModelPicker(view: ViewId): boolean {
+	return view !== 'comparison' && view !== 'agreement' && view !== 'arbiter';
+}
+
 /**
  * A geocoded place from the IWAC authority file (`index` rows of type `Lieux`).
  * Only records that carry usable coordinates AND are cited by at least one

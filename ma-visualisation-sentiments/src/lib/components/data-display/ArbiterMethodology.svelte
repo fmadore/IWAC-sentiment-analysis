@@ -14,6 +14,7 @@
   <ArbiterMethodology />
 -->
 <script lang="ts">
+	import { viewOptionsState } from '$lib/stores/view-options.svelte';
 	import { t } from '$lib/i18n';
 	import { AccordionItem, PromptModal } from '$lib/components/common';
 	import CollapsibleMethodologyCard from '$lib/components/common/CollapsibleMethodologyCard.svelte';
@@ -32,7 +33,6 @@
 	const accordion = createAccordion();
 
 	// State for the prompt modal
-	let showPromptModal = $state(false);
 
 	// Evaluation-scale items (chip class + label + description)
 	const polarityItems: ScaleItem[] = $derived([
@@ -209,7 +209,7 @@
 		>
 			<div class="prompt-section">
 				<p class="section-text">{$t.arbiter.promptExplanation}</p>
-				<button class="prompt-btn" onclick={() => (showPromptModal = true)}>
+				<button class="prompt-btn" onclick={() => (viewOptionsState.prompt = true)}>
 					{$t.arbiter.viewFullPrompt}
 				</button>
 			</div>
@@ -218,7 +218,7 @@
 </CollapsibleMethodologyCard>
 
 <!-- Prompt Modal -->
-<PromptModal open={showPromptModal} onClose={() => (showPromptModal = false)}>
+<PromptModal open={viewOptionsState.prompt} onClose={() => (viewOptionsState.prompt = false)}>
 	{#snippet title()}
 		<span class="arbiter-glyph"><GavelIcon size={20} /></span>
 		{$t.arbiter.arbiterPrompt}

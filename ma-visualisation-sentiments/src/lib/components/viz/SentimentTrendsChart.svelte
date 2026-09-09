@@ -18,6 +18,7 @@
 </script>
 
 <TrendsChart
+	stateKey="polarityTrend"
 	frenchLabels={frenchPolarityLabels}
 	seriesLabels={polarityLabels}
 	legendData={polarityLabels}

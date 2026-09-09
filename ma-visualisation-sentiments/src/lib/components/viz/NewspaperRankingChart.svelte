@@ -14,7 +14,8 @@
   zero, and on the 1-5 subjectivity/centrality scales zero is not on the axis.
 -->
 <script lang="ts">
-	import { Chart } from 'svelte-echarts';
+	import { viewOptionsState } from '$lib/stores/view-options.svelte';
+	import Chart from './CitableChart.svelte';
 	import { dec, num } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
@@ -55,27 +56,29 @@
 
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
 
-	let measure = $state<RankingMeasure>('polarity');
-
 	let measureOptions = $derived([
 		{ value: 'polarity', label: $t.filters.polarity, icon: SmileIcon },
 		{ value: 'subjectivity', label: $t.filters.subjectivity, icon: PenLineIcon },
 		{ value: 'centrality', label: $t.filters.centrality, icon: CrosshairIcon }
 	]);
 
-	let ranks = $derived(rankNewspapers(articleState.filtered, measure, minArticles));
-	let excluded = $derived(countExcludedNewspapers(articleState.filtered, measure, minArticles));
+	let ranks = $derived(
+		rankNewspapers(articleState.filtered, viewOptionsState.rankingMeasure, minArticles)
+	);
+	let excluded = $derived(
+		countExcludedNewspapers(articleState.filtered, viewOptionsState.rankingMeasure, minArticles)
+	);
 
-	/** Colour a point by where its mean sits on the measure's own scale. */
+	/** Colour a point by where its mean sits on the selected measure's own scale. */
 	function pointColor(mean: number): string {
-		if (measure === 'polarity') {
+		if (viewOptionsState.rankingMeasure === 'polarity') {
 			if (mean <= -1) return polarityColors['Très négatif'];
 			if (mean < -0.2) return polarityColors['Négatif'];
 			if (mean <= 0.2) return polarityColors['Neutre'];
 			if (mean < 1) return polarityColors['Positif'];
 			return polarityColors['Très positif'];
 		}
-		if (measure === 'subjectivity') {
+		if (viewOptionsState.rankingMeasure === 'subjectivity') {
 			const step = Math.min(5, Math.max(1, Math.round(mean)));
 			return subjectivityColors[step as 1 | 2 | 3 | 4 | 5];
 		}
@@ -91,14 +94,14 @@
 
 	let options = $derived.by(() => {
 		const currentT = $t;
-		const scale = MEASURE_SCALES[measure];
+		const scale = MEASURE_SCALES[viewOptionsState.rankingMeasure];
 		const names = ranks.map((r) => r.newspaper);
 
 		const measureLabel = {
 			polarity: currentT.ranking.netPolarity,
 			subjectivity: currentT.ranking.meanSubjectivity,
 			centrality: currentT.ranking.meanCentrality
-		}[measure];
+		}[viewOptionsState.rankingMeasure];
 
 		const tooltipConfig = getTooltipConfig(isMobile);
 
@@ -262,8 +265,8 @@
 		<DatasetBadge size="sm" />
 		<ChartTypeToggle
 			options={measureOptions}
-			value={measure}
-			onChange={(value) => (measure = value as RankingMeasure)}
+			value={viewOptionsState.rankingMeasure}
+			onChange={(value) => (viewOptionsState.rankingMeasure = value as RankingMeasure)}
 			ariaLabel={$t.ranking.chartTitle}
 		/>
 	</div>
@@ -274,7 +277,7 @@
 		role="img"
 		aria-label={$t.ranking.chartTitle}
 	>
-		<Chart {init} {options} />
+		<Chart chartId="newspaper-ranking-chart" {init} {options} />
 	</div>
 
 	<ChartDataTable

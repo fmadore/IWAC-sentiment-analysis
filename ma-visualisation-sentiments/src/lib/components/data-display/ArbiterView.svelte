@@ -13,7 +13,10 @@
   - Filterable and interactive
 -->
 <script lang="ts">
+	import DetailLinkNotice from '$lib/components/common/DetailLinkNotice.svelte';
 	import { onMount } from 'svelte';
+	import { arbiterSelectionState, viewOptionsState } from '$lib/stores/view-options.svelte';
+	import { getArbiterForArticle, currentArbiterPair } from '$lib/stores/arbiter.svelte';
 	import {
 		arbiterEvaluations,
 		arbiterStatistics,
@@ -37,29 +40,26 @@
 		ArbiterConfidenceChart
 	} from '$lib/components/viz';
 	import { ArbiterArticleDetailModal } from '$lib/components/common';
-	import type { ArbiterAnalysis } from '$lib/types/data';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import TableIcon from '@lucide/svelte/icons/table';
 	import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
 	import SparklesIcon from '@lucide/svelte/icons/sparkles';
 
-	// Selected dimension filter (null = all dimensions)
-	let selectedDimension = $state<'polarity' | 'subjectivity' | 'centrality' | null>(null);
+	const selectedDimension = $derived(
+		viewOptionsState.arbiterDimension === 'all' ? null : viewOptionsState.arbiterDimension
+	);
+	const selectedArticleId = $derived(arbiterSelectionState.articleId);
+	const selectedArbiterData = $derived(
+		selectedArticleId && currentArbiterPair.current === datasetState.pair
+			? getArbiterForArticle(selectedArticleId)
+			: null
+	);
 
-	// Modal state for article detail
-	let selectedArticleId = $state<string | null>(null);
-	let selectedArbiterData = $state<ArbiterAnalysis | null>(null);
-
-	// Handler for article selection from table
-	function handleSelectArticle(articleId: string, arbiterData: ArbiterAnalysis) {
-		selectedArticleId = articleId;
-		selectedArbiterData = arbiterData;
+	function handleSelectArticle(articleId: string) {
+		arbiterSelectionState.articleId = articleId;
 	}
-
-	// Handler for closing modal
 	function handleCloseModal() {
-		selectedArticleId = null;
-		selectedArbiterData = null;
+		arbiterSelectionState.articleId = null;
 	}
 
 	// Cleanup function for arbiter reactivity
@@ -106,13 +106,17 @@
 	});
 
 	// Dimension filter options
-	const dimensionOptions = [
+	const dimensionOptions = $derived([
 		{ value: null, label: $t.arbiter.allDimensions },
 		{ value: 'polarity' as const, label: $t.arbiter.polarity },
 		{ value: 'subjectivity' as const, label: $t.arbiter.subjectivity },
 		{ value: 'centrality' as const, label: $t.arbiter.centrality }
-	];
+	]);
 </script>
+
+{#if hasData && currentArbiterPair.current === datasetState.pair && selectedArticleId && !selectedArbiterData}<DetailLinkNotice
+		onClose={handleCloseModal}
+	/>{/if}
 
 <div class="arbiter-view">
 	<!-- Header Section -->
@@ -179,7 +183,7 @@
 						<button
 							class="dimension-chip"
 							data-state={selectedDimension === option.value ? 'active' : 'inactive'}
-							onclick={() => (selectedDimension = option.value)}
+							onclick={() => (viewOptionsState.arbiterDimension = option.value ?? 'all')}
 						>
 							{option.label}
 						</button>
@@ -369,7 +373,7 @@
 		/* auto-fit already drops to one column when the track can't hold two,
 		   so no media query restates it — the pair used to be able to
 		   disagree. The floor is a token now rather than a literal 400px. */
-		grid-template-columns: repeat(auto-fit, minmax(var(--width-chart-min), 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--width-chart-min)), 1fr));
 		gap: var(--space-6);
 	}
 

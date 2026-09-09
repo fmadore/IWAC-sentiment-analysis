@@ -16,6 +16,8 @@ import { filterState } from '../filters.svelte';
 import { datasetState } from '../datasets.svelte';
 import { articleState } from '../articles.svelte';
 import { comparisonState } from '../comparison.svelte';
+import { arbiterSelectionState, viewOptionsState } from '../view-options.svelte';
+import { chartInteractionsState } from '../chart-interactions.svelte';
 
 // ============================================
 // Svelte 5 Runes State
@@ -78,6 +80,8 @@ export function getCurrentState(): URLState {
 	const currentArticle = articleState.selected;
 
 	const state: URLState = {
+		chartState: chartInteractionsState[uiState.activeView],
+		options: viewOptionsState,
 		view: uiState.activeView,
 		dimensions: filters.dimensions,
 		excludeNA: filters.excludeNonApplicable,
@@ -100,23 +104,33 @@ export function getCurrentState(): URLState {
 	}
 
 	// Include selected article ID if there is one
-	if (currentArticle) {
-		state.articleId = currentArticle['o:id'];
+	if (!isComparisonMode) {
+		state.articleId = currentArticle?.['o:id'] ?? pendingArticleState.current?.articleId;
 	}
 
 	// Only include comparison-related parameters when in comparison mode
 	if (isComparisonMode) {
 		state.compare = true;
 		state.pair = datasetState.pair;
-		// Always include diffMin/diffMax for the general comparison view
-		// (they will be conditionally excluded when a specific article is selected in buildURLSearchParams)
+		// Keep the background's discrepancy range when sharing a selected article.
+		// The builder may omit defaults, which the parser restores on a fresh load.
 		state.diffMin = filters.minDifference;
 		state.diffMax = filters.maxDifference;
 
 		// Include selected comparison article ID if there is one
 		const currentComparison = comparisonState.selected;
-		if (currentComparison) {
-			state.comparisonArticleId = currentComparison.article['o:id'];
+		if (uiState.activeView === 'comparison') {
+			state.comparisonArticleId =
+				currentComparison?.article['o:id'] ?? pendingComparisonArticleState.current ?? undefined;
+		}
+	}
+	if (uiState.activeView === 'arbiter') {
+		state.arbiterArticleId = arbiterSelectionState.articleId ?? undefined;
+		// The panel is generation-wide: no arbitrary pair belongs in its citation.
+		if (datasetState.generation === 'v2') {
+			state.compare = undefined;
+			state.pair = undefined;
+			state.dataset = datasetState.selected;
 		}
 	}
 

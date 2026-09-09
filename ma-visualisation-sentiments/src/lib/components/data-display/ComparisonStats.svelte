@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { viewOptionsState } from '$lib/stores/view-options.svelte';
 	import InfoIcon from '@lucide/svelte/icons/info';
 	import { comparisonState, arbiterStatistics, datasetState } from '$lib/stores';
 	import { dec, num, pct } from '$lib/i18n/utils';
@@ -33,7 +34,6 @@
 	});
 
 	// State for arbiter summary visibility
-	let showArbiterSummary = $state(false);
 </script>
 
 <div class="stats-grid">
@@ -163,8 +163,8 @@
 	<div class="arbiter-section mt-6">
 		<button
 			class="arbiter-header"
-			onclick={() => (showArbiterSummary = !showArbiterSummary)}
-			aria-expanded={showArbiterSummary}
+			onclick={() => (viewOptionsState.arbiterSummary = !viewOptionsState.arbiterSummary)}
+			aria-expanded={viewOptionsState.arbiterSummary}
 		>
 			<div class="arbiter-header-content">
 				<span class="arbiter-glyph"><GavelIcon size={20} /></span>
@@ -176,14 +176,14 @@
 					{$t.arbiter.articlesEvaluated}</span
 				>
 			</div>
-			{#if showArbiterSummary}
+			{#if viewOptionsState.arbiterSummary}
 				<span class="toggle-chevron"><ChevronUpIcon size={20} /></span>
 			{:else}
 				<span class="toggle-chevron"><ChevronDownIcon size={20} /></span>
 			{/if}
 		</button>
 
-		{#if showArbiterSummary}
+		{#if viewOptionsState.arbiterSummary}
 			<div class="arbiter-content">
 				<div class="arbiter-stats-grid">
 					<div class="arbiter-stat">

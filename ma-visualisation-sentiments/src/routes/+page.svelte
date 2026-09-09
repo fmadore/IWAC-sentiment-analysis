@@ -1,8 +1,11 @@
 <script lang="ts">
+	import DetailLinkNotice from '$lib/components/common/DetailLinkNotice.svelte';
+	import { pendingArticleState } from '$lib/stores/url';
 	import { onMount, untrack } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
-	import { restoreURLState } from '$lib/stores/url/actions.svelte';
-	import { analysisState } from '$lib/stores/analysis.svelte';
+	import { restoreURLState, reconcileSelectionContext } from '$lib/stores/url/actions.svelte';
+	import { getCurrentState, buildURLSearchParams } from '$lib/stores/url';
+	import { viewOptionsState } from '$lib/stores/view-options.svelte';
 	import { browser } from '$app/environment';
 	import {
 		loadCurrentDataset,
@@ -13,8 +16,7 @@
 		loadArbiterV2Evaluations,
 		uiState,
 		datasetState,
-		articleState,
-		filterState
+		articleState
 	} from '$lib/stores';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { hasFilterRail } from '$lib/types/data';
@@ -38,22 +40,23 @@
 		initializeURLState,
 		updateURL,
 		clearSelectedArticle,
-		clearSelectedArticleOnly,
 		handlePendingArticleSelection
 	} from '$lib/stores/url';
 
 	afterNavigate(({ type, to }) => {
-		if (type === 'popstate' && to) void restoreURLState(to.url.searchParams);
+		if (
+			to &&
+			type !== 'enter' &&
+			(type === 'popstate' ||
+				to.url.searchParams.toString() !== buildURLSearchParams(getCurrentState()).toString())
+		) {
+			void restoreURLState(to.url.searchParams);
+		}
 	});
 	// Application state
 	let detailedArticle: Article | null = $state(null);
 	let showDetailsSidebar = $state(false);
 	let isInitialized = $state(false);
-
-	// Extreme analysis controls state
-	let selectedCategory = $state<ExtremeCategory>('polarity_very_negative');
-	let selectedKeywordType = $state<KeywordType>('subject');
-	let showTopN = $state(10);
 
 	// Derived state from stores
 	let currentView = $derived(uiState.activeView);
@@ -110,27 +113,16 @@
 		const lang = $currentLanguage;
 		if (browser && typeof document !== 'undefined') {
 			document.documentElement.lang = lang;
-			if (isInitialized) updateURL(currentView, true);
 		}
 	});
 
-	// React to filter changes and update URL
+	// One subscriber owns URL writes for every filter, view control and selection.
+	let hasSyncedURL = false;
 	$effect(() => {
-		// Access filter state to track changes
-		void filterState.discrepancy;
-		void analysisState.scope;
-		void analysisState.dimension;
-		void analysisState.includeDeclined;
-		void filterState.countries;
-		void filterState.journals;
-		void filterState.polarities;
-		void filterState.subjectivities;
-		void filterState.centralities;
-		void isComparisonMode;
-
-		if (browser && isInitialized) {
-			updateURL(currentView);
-		}
+		if (!browser || !isInitialized) return;
+		reconcileSelectionContext();
+		updateURL(undefined, !hasSyncedURL);
+		hasSyncedURL = true;
 	});
 
 	// React to selectedArticle changes and show details if article is selected
@@ -157,8 +149,6 @@
 		untrack(() => loadCurrentDataset(fetch)).catch((error) => {
 			console.error('Failed to load dataset:', error);
 		});
-
-		untrack(() => updateURL(currentView));
 	});
 
 	/**
@@ -176,21 +166,25 @@
 	$effect(() => {
 		if (!browser || !isInitialized) return;
 
-		if (currentView === 'comparison' || currentView === 'arbiter') {
+		if (
+			currentView === 'comparison' ||
+			(currentView === 'arbiter' && datasetState.generation === 'v1')
+		) {
 			// Both views work in terms of a model pair.
 			if (!isComparisonMode) {
 				datasetState.isComparisonMode = true;
 			}
-		} else if (currentView === 'agreement') {
-			void datasetState.generation;
-			// Agreement compares every model against every other, so it needs the
-			// generation's whole panel rather than just the selected one.
-			// Idempotent, and no other effect requests this.
-			untrack(() => loadAllDatasets(fetch)).catch((error) => {
-				console.error('Failed to load datasets for agreement view:', error);
-			});
-		} else if (isComparisonMode) {
-			datasetState.isComparisonMode = false;
+		} else {
+			if (isComparisonMode) datasetState.isComparisonMode = false;
+			if (currentView === 'agreement') {
+				void datasetState.generation;
+				// Agreement compares every model against every other, so it needs the
+				// generation's whole panel rather than just the selected one.
+				// Idempotent, and no other effect requests this.
+				untrack(() => loadAllDatasets(fetch)).catch((error) => {
+					console.error('Failed to load datasets for agreement view:', error);
+				});
+			}
 		}
 	});
 
@@ -205,8 +199,6 @@
 		// article selection is drained reactively by the effect above once the
 		// dataset lands in the store.
 		const loadData = async () => {
-			clearSelectedArticleOnly();
-
 			try {
 				await loadCurrentDataset(fetch);
 			} catch (error) {
@@ -239,15 +231,15 @@
 
 	// Handlers for extreme analysis controls
 	function handleCategoryChange(category: ExtremeCategory) {
-		selectedCategory = category;
+		viewOptionsState.category = category;
 	}
 
 	function handleKeywordTypeChange(type: KeywordType) {
-		selectedKeywordType = type;
+		viewOptionsState.keywordType = type;
 	}
 
 	function handleTopNChange(value: number) {
-		showTopN = value;
+		viewOptionsState.topN = value;
 	}
 </script>
 
@@ -257,6 +249,9 @@
 <section class="main-container" data-layout={hasFilterRail(currentView) ? 'rail' : 'full'}>
 	<!-- Renders nothing unless the archived generation is on screen. -->
 	<ArchiveNotice />
+	{#if pendingArticleState.current && currentLoadState.status === 'ready'}
+		<DetailLinkNotice onClose={clearSelectedArticle} />
+	{/if}
 
 	<!-- The arbiter card is generation-specific: the two runs used different
 	     judges, different selection rules and different article text. -->
@@ -289,18 +284,18 @@
 		     ComparisonView carries Country/Journal/Discrepancy filters itself. -->
 		<ViewContent
 			activeView={currentView}
-			{selectedCategory}
-			{selectedKeywordType}
-			{showTopN}
+			selectedCategory={viewOptionsState.category}
+			selectedKeywordType={viewOptionsState.keywordType}
+			showTopN={viewOptionsState.topN}
 			onShowDetails={handleShowDetails}
 		/>
 	{:else if currentArticles.length > 0}
 		<div class="content-layout">
 			<FiltersPanel
 				activeView={currentView}
-				{selectedCategory}
-				{selectedKeywordType}
-				{showTopN}
+				selectedCategory={viewOptionsState.category}
+				selectedKeywordType={viewOptionsState.keywordType}
+				showTopN={viewOptionsState.topN}
 				onCategoryChange={handleCategoryChange}
 				onKeywordTypeChange={handleKeywordTypeChange}
 				onTopNChange={handleTopNChange}
@@ -309,9 +304,9 @@
 			<div class="content-col">
 				<ViewContent
 					activeView={currentView}
-					{selectedCategory}
-					{selectedKeywordType}
-					{showTopN}
+					selectedCategory={viewOptionsState.category}
+					selectedKeywordType={viewOptionsState.keywordType}
+					showTopN={viewOptionsState.topN}
 					onShowDetails={handleShowDetails}
 				/>
 			</div>

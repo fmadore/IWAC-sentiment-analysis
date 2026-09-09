@@ -8,7 +8,7 @@
 <script lang="ts">
 	import { t } from '$lib/i18n';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
-	import { Chart } from 'svelte-echarts';
+	import Chart from './CitableChart.svelte';
 	import { pct } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
@@ -28,6 +28,7 @@
 	}
 
 	interface ArbiterPieChartProps {
+		chartId: string;
 		data: PieDatum[];
 		/** Translated noun shown after the count in tooltips (e.g. "evaluations") */
 		countNoun: string;
@@ -35,7 +36,7 @@
 		ariaLabel: string;
 	}
 
-	let { data, countNoun, ariaLabel }: ArbiterPieChartProps = $props();
+	let { chartId, data, countNoun, ariaLabel }: ArbiterPieChartProps = $props();
 
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
 
@@ -86,7 +87,7 @@
 </script>
 
 <div class="chart-container" role="img" aria-label={ariaLabel}>
-	<Chart {options} {init} />
+	<Chart {chartId} {options} {init} />
 </div>
 
 <ChartDataTable

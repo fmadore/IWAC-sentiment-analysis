@@ -18,6 +18,8 @@ import {
 } from './constants';
 import { ANALYSIS_DIMENSIONS, type AnalysisDimension } from '../analysis.svelte';
 import type { URLState } from './types';
+import { parseViewOptions } from '../view-options.svelte';
+import { parseChartInteractions } from '../chart-interactions.svelte';
 
 /**
  * Parse URL search parameters into application state
@@ -33,7 +35,7 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
 
 	// Parse language
 	const lang = searchParams.get(URL_PARAMS.lang);
-	if (lang && lang in LANGUAGES) {
+	if (lang && Object.hasOwn(LANGUAGES, lang)) {
 		state.lang = lang as Language;
 	}
 
@@ -100,14 +102,33 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
 			state.view = 'comparison';
 		}
 	}
+	const arbiterArticleId = searchParams.get('arbiterArticleId');
+	if (arbiterArticleId) {
+		state.arbiterArticleId = arbiterArticleId;
+		state.view = 'arbiter';
+		delete state.articleId;
+		delete state.comparisonArticleId;
+	}
+	// A view determines its mode. Accept old compare=true-only links too.
+	if (!state.view && state.compare) state.view = 'comparison';
+	if (state.view === 'comparison') state.compare = true;
+	else if (state.view && state.view !== 'arbiter') delete state.compare;
 
 	// Parse array parameters
 	const parseArray = (key: string): string[] => {
 		const values = searchParams.getAll(key);
 		// Backward compatibility for existing shared links that used commas.
-		return values
-			.flatMap((value) => (values.length === 1 ? value.split(',') : [value]))
-			.filter(Boolean);
+		return [
+			...new SvelteSet(
+				values
+					.flatMap((value) =>
+						searchParams.get('urlVersion') !== '2' && values.length === 1
+							? value.split(',')
+							: [value]
+					)
+					.filter(Boolean)
+			)
+		];
 	};
 
 	for (const [key, stateKey] of [
@@ -138,5 +159,7 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
 	if (state.diffMin !== undefined && state.diffMax !== undefined && state.diffMin > state.diffMax) {
 		[state.diffMin, state.diffMax] = [state.diffMax, state.diffMin];
 	}
+	state.options = parseViewOptions(searchParams, state.view);
+	state.chartState = parseChartInteractions(searchParams.get('chartState'));
 	return state;
 }

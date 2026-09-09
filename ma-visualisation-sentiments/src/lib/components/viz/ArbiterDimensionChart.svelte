@@ -5,7 +5,7 @@
   as a stacked or grouped bar chart.
 -->
 <script lang="ts">
-	import { Chart } from 'svelte-echarts';
+	import Chart from './CitableChart.svelte';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
@@ -175,7 +175,7 @@
 </script>
 
 <div class="chart-container">
-	<Chart {options} {init} />
+	<Chart chartId="arbiter-dimension-chart" {options} {init} />
 </div>
 
 <style>

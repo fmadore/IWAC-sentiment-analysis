@@ -14,7 +14,8 @@
   separate one.
 -->
 <script lang="ts">
-	import { Chart } from 'svelte-echarts';
+	import { viewOptionsState } from '$lib/stores/view-options.svelte';
+	import Chart from './CitableChart.svelte';
 	import { dec, num } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
@@ -43,10 +44,9 @@
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
 
 	/**
-	 * Polar reads the cycle; the bar layout is the accessible/precise fallback
+	 * Polar reads the cycle; the bar chart is the accessible/precise fallback
 	 * and is easier to compare month against month.
 	 */
-	let layout = $state<'polar' | 'bar'>('polar');
 
 	let layoutOptions = $derived([
 		{ value: 'polar', label: $t.seasonality.cycleLayout, icon: CircleIcon },
@@ -113,7 +113,7 @@
 			}
 		};
 
-		if (layout === 'polar') {
+		if (viewOptionsState.seasonalityChart === 'polar') {
 			return {
 				backgroundColor: 'transparent',
 				title,
@@ -135,7 +135,7 @@
 				radiusAxis: {
 					// Radial tick labels sit right where the month names do and collide
 					// with them. The rings still convey relative magnitude, the tooltip
-					// gives exact counts, and the bar layout is one click away for
+					// gives exact counts, and the bar chart is one click away for
 					// precise reading — so drop the labels rather than the readability.
 					axisLabel: { show: false },
 					axisLine: { show: false },
@@ -249,8 +249,8 @@
 		<DatasetBadge size="sm" />
 		<ChartTypeToggle
 			options={layoutOptions}
-			value={layout}
-			onChange={(value) => (layout = value as 'polar' | 'bar')}
+			value={viewOptionsState.seasonalityChart}
+			onChange={(value) => (viewOptionsState.seasonalityChart = value as 'polar' | 'bar')}
 			ariaLabel={$t.seasonality.chartTitle}
 		/>
 	</div>
@@ -261,11 +261,11 @@
 		role="img"
 		aria-label={$t.seasonality.chartTitle}
 	>
-		{#key layout}
+		{#key viewOptionsState.seasonalityChart}
 			<!-- ECharts merges successive setOption calls, so switching layouts
 			     would otherwise leave the polar coordinate system behind and render
 			     the cycle on top of the bars. Keying rebuilds the instance. -->
-			<Chart {init} {options} />
+			<Chart chartId="hijri-seasonality-chart" {init} {options} />
 		{/key}
 	</div>
 

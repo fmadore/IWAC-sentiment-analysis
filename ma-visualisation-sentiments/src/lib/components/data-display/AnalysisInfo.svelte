@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { viewOptionsState } from '$lib/stores/view-options.svelte';
 	import { MODELS } from '$lib/data/modelMethodology';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { num } from '$lib/i18n/utils';
@@ -17,7 +18,6 @@
 	const accordion = createAccordion();
 
 	// State for the prompt modal
-	let showPromptModal = $state(false);
 
 	// Compute total article count from all datasets
 	let totalArticleCount = $derived.by(() => {
@@ -70,7 +70,7 @@
 
 	function viewArchive() {
 		datasetState.setGeneration(ARCHIVED_GENERATION);
-		updateURL(uiState.activeView, datasetState.isComparisonMode);
+		updateURL(uiState.activeView);
 	}
 
 	// Evaluation-scale items (badge class + label + description)
@@ -392,7 +392,7 @@
 							</li>
 						{/if}
 					</ul>
-					<button class="prompt-btn" onclick={() => (showPromptModal = true)}>
+					<button class="prompt-btn" onclick={() => (viewOptionsState.prompt = true)}>
 						{$t.analysis.viewFullPrompt}
 					</button>
 				</div>
@@ -435,7 +435,7 @@
 </CollapsibleMethodologyCard>
 
 <!-- Prompt Modal -->
-<PromptModal open={showPromptModal} onClose={() => (showPromptModal = false)}>
+<PromptModal open={viewOptionsState.prompt} onClose={() => (viewOptionsState.prompt = false)}>
 	{#snippet title()}
 		{$currentLanguage === 'en' ? 'The full analysis prompt' : 'Le prompt d’analyse complet'}
 	{/snippet}

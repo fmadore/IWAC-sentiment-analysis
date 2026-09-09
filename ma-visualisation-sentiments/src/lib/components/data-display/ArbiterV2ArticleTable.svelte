@@ -12,6 +12,7 @@
   several were equally close.
 -->
 <script lang="ts">
+	import { viewOptionsState, paginationURLState } from '$lib/stores/view-options.svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { t } from '$lib/i18n';
 	import { num, fmtDate } from '$lib/i18n/utils';
@@ -43,8 +44,6 @@
 	const wide = new MediaQuery('min-width: 640px', false);
 
 	type SortKey = 'spread' | 'date' | 'title' | 'verdict' | 'confidence';
-	let sortBy = $state<SortKey>('spread');
-	let sortDirection = $state<'asc' | 'desc'>('desc');
 
 	/** Contract order for the models, then "several", then "none". */
 	const verdictRank = $derived(
@@ -62,11 +61,11 @@
 	}
 
 	const sorted = $derived.by(() => {
-		const direction = sortDirection === 'asc' ? 1 : -1;
+		const direction = viewOptionsState.panelOrder === 'asc' ? 1 : -1;
 		return [...rows].sort((a, b) => {
 			let valA: string | number;
 			let valB: string | number;
-			switch (sortBy) {
+			switch (viewOptionsState.panelSort) {
 				case 'title':
 					valA = a.title.toLowerCase();
 					valB = b.title.toLowerCase();
@@ -95,6 +94,7 @@
 	});
 
 	const pagination = createPagination({
+		state: paginationURLState('panel'),
 		totalItems: () => sorted.length,
 		initialItemsPerPage: 25,
 		itemsPerPageOptions: [10, 25, 50, 100],
@@ -104,11 +104,11 @@
 	const page = $derived(sorted.slice(pagination.startIndex, pagination.endIndex));
 
 	function handleSort(column: SortKey) {
-		if (sortBy === column) {
-			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+		if (viewOptionsState.panelSort === column) {
+			viewOptionsState.panelOrder = viewOptionsState.panelOrder === 'asc' ? 'desc' : 'asc';
 		} else {
-			sortBy = column;
-			sortDirection = column === 'title' ? 'asc' : 'desc';
+			viewOptionsState.panelSort = column;
+			viewOptionsState.panelOrder = column === 'title' ? 'asc' : 'desc';
 		}
 		pagination.currentPage = 1;
 	}
@@ -168,31 +168,31 @@
 						<th class="sortable-header">
 							<button class="sort-button" type="button" onclick={() => handleSort('title')}>
 								{$t.table.articleTitle}
-								{#if sortBy === 'title'}<ArrowUpDownIcon size={14} />{/if}
+								{#if viewOptionsState.panelSort === 'title'}<ArrowUpDownIcon size={14} />{/if}
 							</button>
 						</th>
 						<th class="sortable-header col-date">
 							<button class="sort-button" type="button" onclick={() => handleSort('date')}>
 								{$t.table.date}
-								{#if sortBy === 'date'}<ArrowUpDownIcon size={14} />{/if}
+								{#if viewOptionsState.panelSort === 'date'}<ArrowUpDownIcon size={14} />{/if}
 							</button>
 						</th>
 						<th class="sortable-header text-center">
 							<button class="sort-button" type="button" onclick={() => handleSort('spread')}>
 								{$t.arbiterV2.spread}
-								{#if sortBy === 'spread'}<ArrowUpDownIcon size={14} />{/if}
+								{#if viewOptionsState.panelSort === 'spread'}<ArrowUpDownIcon size={14} />{/if}
 							</button>
 						</th>
 						<th class="sortable-header">
 							<button class="sort-button" type="button" onclick={() => handleSort('verdict')}>
 								{$t.arbiterV2.verdict}
-								{#if sortBy === 'verdict'}<ArrowUpDownIcon size={14} />{/if}
+								{#if viewOptionsState.panelSort === 'verdict'}<ArrowUpDownIcon size={14} />{/if}
 							</button>
 						</th>
 						<th class="sortable-header text-center">
 							<button class="sort-button" type="button" onclick={() => handleSort('confidence')}>
 								{$t.arbiterV2.confidence}
-								{#if sortBy === 'confidence'}<ArrowUpDownIcon size={14} />{/if}
+								{#if viewOptionsState.panelSort === 'confidence'}<ArrowUpDownIcon size={14} />{/if}
 							</button>
 						</th>
 					</tr>

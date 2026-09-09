@@ -1,5 +1,6 @@
 <!-- Shared prompt modal shell used by AnalysisInfo and ArbiterMethodology -->
 <script lang="ts">
+	import CopyLinkButton from '$lib/components/ui/CopyLinkButton.svelte';
 	import type { Snippet } from 'svelte';
 	import { t } from '$lib/i18n';
 
@@ -66,6 +67,7 @@
 			</div>
 
 			<div class="prompt-modal-footer">
+				<CopyLinkButton />
 				<button class="close-btn" onclick={onClose} type="button">
 					{$t.common.close}
 				</button>

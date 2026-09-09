@@ -1,4 +1,6 @@
 <script lang="ts">
+	import DetailLinkNotice from '$lib/components/common/DetailLinkNotice.svelte';
+	import { pendingComparisonArticleState } from '$lib/stores/url';
 	import { articleState } from '$lib/stores/articles.svelte';
 	import { datasetReadiness } from '$lib/utils/datasetReadiness';
 	import { getPairModels } from '$lib/domain/sentimentContract';
@@ -19,7 +21,6 @@
 	import { t } from '$lib/i18n';
 	import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
 	import {
-		updateURL,
 		handlePendingComparisonArticleSelection,
 		clearSelectedComparison
 	} from '$lib/stores/url';
@@ -35,9 +36,6 @@
 		// Clear the comparison and update URL to remove the articleId param
 		clearSelectedComparison();
 	}
-
-	// Track previous comparison to detect changes
-	let previousComparisonId: string | number | null = $state(null);
 
 	// Cleanup function for arbiter reactivity
 	let cleanupArbiter: (() => void) | null = $state(null);
@@ -57,19 +55,6 @@
 		};
 	});
 
-	// Watch for selectedComparison changes and update URL
-	$effect(() => {
-		const currentComparison = comparisonState.selected;
-		const currentId = currentComparison?.article['o:id'] ?? null;
-
-		// Only update URL if the selection actually changed
-		if (currentId !== previousComparisonId) {
-			previousComparisonId = currentId;
-			// Update URL with the new comparison article ID (or remove it if null)
-			updateURL(undefined, true);
-		}
-	});
-
 	// Watch for comparison data loading and handle pending selection from URL
 	$effect(() => {
 		const comparisons = comparisonState.data;
@@ -79,6 +64,10 @@
 		}
 	});
 </script>
+
+{#if loadStatus.ready && pendingComparisonArticleState.current !== null}
+	<DetailLinkNotice onClose={clearSelectedComparison} />
+{/if}
 
 <!-- Comparison Detail Modal (full-screen) -->
 <ComparisonDetailModal

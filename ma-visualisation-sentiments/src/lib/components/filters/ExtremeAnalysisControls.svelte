@@ -44,7 +44,8 @@
 	// Handle number change
 	function handleTopNChange(event: Event) {
 		const target = event.target as HTMLInputElement;
-		onTopNChange(parseInt(target.value, 10));
+		const value = Number(target.value);
+		if (Number.isInteger(value) && value >= 5 && value <= 25) onTopNChange(value);
 	}
 </script>
 

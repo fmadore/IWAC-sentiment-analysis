@@ -21,7 +21,7 @@
 -->
 <script lang="ts">
 	import ChartDataTable from '../common/ChartDataTable.svelte';
-	import { Chart } from 'svelte-echarts';
+	import Chart from './CitableChart.svelte';
 	import { pct } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
@@ -191,7 +191,7 @@
 		role="img"
 		aria-label={$t.agreement.directionTitle}
 	>
-		<Chart {init} {options} />
+		<Chart chartId="directional-dissent-chart" {init} {options} />
 	</div>
 
 	<p class="chart-note">{$t.agreement.directionNote}</p>

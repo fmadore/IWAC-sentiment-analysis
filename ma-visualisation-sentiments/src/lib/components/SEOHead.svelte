@@ -12,6 +12,7 @@
 -->
 <script lang="ts">
 	import { t, currentLanguage } from '$lib/i18n';
+	import { getCurrentState, buildURLSearchParams } from '$lib/stores/url';
 
 	let { view = 'charts', comparisonMode = false }: { view?: string; comparisonMode?: boolean } =
 		$props();
@@ -30,7 +31,7 @@
 	const metaContent = $derived.by(() => {
 		const m = $t.meta;
 		const lang = $currentLanguage;
-		const url = `${baseUrl}?view=${view}${comparisonMode ? '&compare=true' : ''}&lang=${lang}`;
+		const url = baseUrl + '?' + buildURLSearchParams(getCurrentState()).toString();
 		const locale = lang === 'en' ? 'en_US' : 'fr_FR';
 		const localeAlternate = lang === 'en' ? 'fr_FR' : 'en_US';
 

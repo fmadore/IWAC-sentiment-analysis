@@ -10,12 +10,13 @@
   The article list at the foot is joined to the corpus, so a verdict can be
   read against the article it judges: title and newspaper in the row, and the
   page, the five ratings and the reasoning behind a click. The arbiter file
-  carries ids only, so the join needs every panel model's scores — the view
-  is entered in comparison mode with two loaded, and asks for the rest in the
-  background.
+  carries ids only, so the view loads every panel model's scores in the
+  background, independently of the pairwise comparison mode.
 -->
 <script lang="ts">
+	import DetailLinkNotice from '$lib/components/common/DetailLinkNotice.svelte';
 	import { onMount } from 'svelte';
+	import { arbiterSelectionState } from '$lib/stores/view-options.svelte';
 	import { num } from '$lib/i18n/utils';
 	import {
 		arbiterV2Evaluations,
@@ -27,8 +28,7 @@
 		uiState,
 		articleState,
 		datasetState,
-		type ArbiterV2Dimension,
-		type ArbiterV2Row
+		type ArbiterV2Dimension
 	} from '$lib/stores';
 	import type { ArbiterV2Preference } from '$lib/types/data';
 	import { t } from '$lib/i18n';
@@ -85,7 +85,9 @@
 		}
 	});
 
-	let selected = $state<ArbiterV2Row | null>(null);
+	const selected = $derived(
+		rows.find((row) => row.articleId === arbiterSelectionState.articleId) ?? null
+	);
 
 	function verdictColor(preference: ArbiterV2Preference): string {
 		if (preference === 'multiple' || preference === 'none') return 'var(--text-muted)';
@@ -107,6 +109,10 @@
 		);
 	});
 </script>
+
+{#if hasData && arbiterSelectionState.articleId && !selected}<DetailLinkNotice
+		onClose={() => (arbiterSelectionState.articleId = null)}
+	/>{/if}
 
 <div class="arbiter-view">
 	<header class="arbiter-header mb-6">
@@ -212,7 +218,11 @@
 				<p class="section-lede">{$t.arbiterV2.evaluatedArticlesSubtitle}</p>
 			</div>
 
-			<ArbiterV2ArticleTable {rows} {legend} onSelect={(row) => (selected = row)} />
+			<ArbiterV2ArticleTable
+				{rows}
+				{legend}
+				onSelect={(row) => (arbiterSelectionState.articleId = row.articleId)}
+			/>
 		</section>
 	{:else}
 		<ChartCard>
@@ -225,7 +235,10 @@
 	{/if}
 </div>
 
-<ArbiterV2ArticleDetailModal row={selected} onClose={() => (selected = null)} />
+<ArbiterV2ArticleDetailModal
+	row={selected}
+	onClose={() => (arbiterSelectionState.articleId = null)}
+/>
 
 <style>
 	.arbiter-view {
@@ -271,7 +284,7 @@
 
 	.panels-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(var(--width-chart-min), 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--width-chart-min)), 1fr));
 		gap: var(--space-6);
 	}
 

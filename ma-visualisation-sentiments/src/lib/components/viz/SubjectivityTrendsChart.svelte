@@ -25,6 +25,7 @@
 </script>
 
 <TrendsChart
+	stateKey="subjectivityTrend"
 	frenchLabels={frenchSubjectivityLabels}
 	seriesLabels={subjectivityLabels}
 	legendData={subjectivityLabels.slice(0, 5)}

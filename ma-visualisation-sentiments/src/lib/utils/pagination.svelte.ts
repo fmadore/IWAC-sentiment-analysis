@@ -4,6 +4,7 @@
  */
 
 interface PaginationOptions {
+	state?: { currentPage: number; itemsPerPage: number };
 	totalItems: () => number;
 	initialItemsPerPage?: number;
 	itemsPerPageOptions?: number[];
@@ -34,20 +35,21 @@ export function createPagination(options: PaginationOptions): PaginationState {
 		onPageChange
 	} = options;
 
-	let currentPage = $state(1);
-	let itemsPerPage = $state(initialItemsPerPage);
+	const localState = $state({ currentPage: 1, itemsPerPage: initialItemsPerPage });
+	const state = options.state ?? localState;
 
-	const totalPages = $derived(Math.ceil(totalItems() / itemsPerPage));
-	const startIndex = $derived((currentPage - 1) * itemsPerPage);
-	const endIndex = $derived(Math.min(startIndex + itemsPerPage, totalItems()));
+	const totalPages = $derived(Math.ceil(totalItems() / state.itemsPerPage));
+	const startIndex = $derived((state.currentPage - 1) * state.itemsPerPage);
+	const endIndex = $derived(Math.min(startIndex + state.itemsPerPage, totalItems()));
 
 	// Reset to page 1 when total items changes (e.g. filter change)
 	let previousTotal = $state<number | null>(null);
 	$effect(() => {
 		const current = totalItems();
-		if (previousTotal !== null && previousTotal !== current) {
-			currentPage = 1;
+		if (!options.state && previousTotal !== null && previousTotal !== current) {
+			state.currentPage = 1;
 		}
+		if (current > 0 && state.currentPage > totalPages) state.currentPage = Math.max(1, totalPages);
 		previousTotal = current;
 	});
 
@@ -63,7 +65,7 @@ export function createPagination(options: PaginationOptions): PaginationState {
 			}
 		} else {
 			const half = Math.floor(max / 2);
-			let start = Math.max(1, currentPage - half);
+			let start = Math.max(1, state.currentPage - half);
 			const end = Math.min(totalPages, start + max - 1);
 			if (end - start + 1 < max) {
 				start = Math.max(1, end - max + 1);
@@ -77,43 +79,43 @@ export function createPagination(options: PaginationOptions): PaginationState {
 
 	function goToPage(page: number) {
 		if (page >= 1 && page <= totalPages) {
-			currentPage = page;
+			state.currentPage = page;
 			onPageChange?.();
 		}
 	}
 
 	function previousPage() {
-		if (currentPage > 1) {
-			currentPage--;
+		if (state.currentPage > 1) {
+			state.currentPage--;
 			onPageChange?.();
 		}
 	}
 
 	function nextPage() {
-		if (currentPage < totalPages) {
-			currentPage++;
+		if (state.currentPage < totalPages) {
+			state.currentPage++;
 			onPageChange?.();
 		}
 	}
 
 	function changeItemsPerPage(newItemsPerPage: number) {
-		itemsPerPage = newItemsPerPage;
-		currentPage = 1;
+		state.itemsPerPage = newItemsPerPage;
+		state.currentPage = 1;
 		onPageChange?.();
 	}
 
 	return {
 		get currentPage() {
-			return currentPage;
+			return state.currentPage;
 		},
 		set currentPage(v: number) {
-			currentPage = v;
+			state.currentPage = v;
 		},
 		get itemsPerPage() {
-			return itemsPerPage;
+			return state.itemsPerPage;
 		},
 		set itemsPerPage(v: number) {
-			itemsPerPage = v;
+			state.itemsPerPage = v;
 		},
 		itemsPerPageOptions,
 		get totalPages() {

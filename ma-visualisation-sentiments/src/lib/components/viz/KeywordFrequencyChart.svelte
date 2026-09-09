@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ChartDataTable from '../common/ChartDataTable.svelte';
-	import { Chart } from 'svelte-echarts';
+	import Chart from './CitableChart.svelte';
 	import { num } from '$lib/i18n/utils';
 	import { innerWidth } from 'svelte/reactivity/window';
 	import { uiState, extremeState } from '$lib/stores';
@@ -209,7 +209,7 @@
 		role="img"
 		aria-label={$t.extremeAnalysis.topKeywords}
 	>
-		<Chart {init} {options} />
+		<Chart chartId="keyword-frequency-chart" {init} {options} />
 	</div>
 
 	<!-- Statistics Card -->

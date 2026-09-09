@@ -21,6 +21,8 @@
   than reading the pair from the store.
 -->
 <script lang="ts">
+	import { untrack } from 'svelte';
+	import { viewOptionsState } from '$lib/stores/view-options.svelte';
 	import { t } from '$lib/i18n';
 	import {
 		datasetState,
@@ -83,12 +85,20 @@
 	// The models' own reasoning is prose the app never loads until asked. One
 	// toggle covers all three dimensions, and the fetch is one shard per model;
 	// the text appears in place because the row holds the store's own objects.
-	let showReasoning = $state(false);
 	let loadingReasoning = $state(false);
+	let requestedReasoning = '';
+	$effect(() => {
+		if (!viewOptionsState.reasoning) {
+			requestedReasoning = '';
+			return;
+		}
+		const id = row.articleId;
+		if (requestedReasoning === id) return;
+		requestedReasoning = id;
+		untrack(() => loadReasoning());
+	});
 
-	async function toggleReasoning() {
-		showReasoning = !showReasoning;
-		if (!showReasoning || loadingReasoning) return;
+	async function loadReasoning() {
 		loadingReasoning = true;
 		try {
 			await Promise.all(
@@ -160,8 +170,14 @@
 			<span class="chip-mark chip-mark-match"><EqualIcon size={12} /></span>
 			{$t.arbiterV2.matchesArbiter}
 		</span>
-		<button type="button" class="reasoning-toggle" onclick={toggleReasoning}>
-			{showReasoning ? $t.arbiterV2.hideModelsReasoning : $t.arbiterV2.showModelsReasoning}
+		<button
+			type="button"
+			class="reasoning-toggle"
+			onclick={() => (viewOptionsState.reasoning = !viewOptionsState.reasoning)}
+		>
+			{viewOptionsState.reasoning
+				? $t.arbiterV2.hideModelsReasoning
+				: $t.arbiterV2.showModelsReasoning}
 		</button>
 	</div>
 
@@ -232,7 +248,7 @@
 					<p class="field-text">{verdict.verdict_explanation}</p>
 				</div>
 
-				{#if showReasoning}
+				{#if viewOptionsState.reasoning}
 					<ul class="model-reasons">
 						{#each legend as entry (entry.label)}
 							{@const prose = analysisJustification(row.analyses[entry.modelId], dimension)}

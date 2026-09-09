@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ChartDataTable from '../common/ChartDataTable.svelte';
-	import { Chart } from 'svelte-echarts';
+	import Chart from './CitableChart.svelte';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
@@ -262,7 +262,7 @@
 		role="img"
 		aria-label={$t.charts.centralityHeatmap}
 	>
-		<Chart {init} {options} />
+		<Chart chartId="centrality-heatmap" {init} {options} />
 	</div>
 	<ChartDataTable
 		columns={[

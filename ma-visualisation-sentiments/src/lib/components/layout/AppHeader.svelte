@@ -48,6 +48,7 @@
       all there.
 -->
 <script lang="ts">
+	import CopyLinkButton from '$lib/components/ui/CopyLinkButton.svelte';
 	import FullscreenIcon from '@lucide/svelte/icons/maximize';
 	import MinimizeIcon from '@lucide/svelte/icons/minimize';
 	import MenuIcon from '@lucide/svelte/icons/menu';
@@ -58,7 +59,9 @@
 	import { t } from '$lib/i18n';
 	import { LanguageSwitcher, DatasetPicker } from '$lib/components/ui';
 	import { uiState, datasetState, filterState } from '$lib/stores';
-	import { hasFilterRail } from '$lib/types/data';
+	import { hasFilterRail, hasSingleModelPicker } from '$lib/types/data';
+	import { analysisState } from '$lib/stores/analysis.svelte';
+	import { getPairModels } from '$lib/domain/sentimentContract';
 	import { NAV_ITEMS } from './navItems';
 
 	let isFullscreen = $state(false);
@@ -87,7 +90,14 @@
 	let activeFilterCount = $derived(filterState.activeCount);
 
 	let currentModelName = $derived(
-		datasetState.available.find((d) => d.id === datasetState.selected)?.name ?? ''
+		hasSingleModelPicker(uiState.activeView)
+			? (datasetState.current?.name ?? '')
+			: (uiState.activeView === 'arbiter' && datasetState.generation === 'v2') ||
+				  (uiState.activeView === 'agreement' && analysisState.scope === 'panel')
+				? $t.agreement.scopePanel
+				: getPairModels(datasetState.pair)
+						.map((id) => datasetState.getById(id)?.name ?? id)
+						.join(' / ')
 	);
 
 	let currentViewName = $derived.by(() => {
@@ -146,11 +156,12 @@
 
 		{#if desktop.current}
 			<div class="header-headline">
-				<DatasetPicker />
+				{#if hasSingleModelPicker(uiState.activeView)}<DatasetPicker />{/if}
 			</div>
 		{/if}
 
 		<div class="header-trail">
+			<CopyLinkButton />
 			{#if showFiltersButton}
 				<button
 					class="filters-trigger"

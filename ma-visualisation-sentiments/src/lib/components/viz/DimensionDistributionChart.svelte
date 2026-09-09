@@ -7,7 +7,8 @@
   wrappers that supply the dimension configuration.
 -->
 <script lang="ts">
-	import { Chart } from 'svelte-echarts';
+	import { viewOptionsState } from '$lib/stores/view-options.svelte';
+	import Chart from './CitableChart.svelte';
 
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption, SeriesOption } from 'echarts';
@@ -75,8 +76,10 @@
 
 	// Reactive window width for responsive behavior
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
-	let chartType = $state<'bar' | 'pie'>('bar');
-	let grouping = $state<'global' | 'journal'>('global');
+	const chartKey = $derived(seriesIdPrefix === 'sentiment' ? 'polarityChart' : 'subjectivityChart');
+	const groupingKey = $derived(
+		seriesIdPrefix === 'sentiment' ? 'polarityGrouping' : 'subjectivityGrouping'
+	);
 	const aggregate = $derived(
 		aggregateByJournalAndDimension(articleState.filtered, frenchLabels, getKey)
 	);
@@ -89,7 +92,7 @@
 		)
 	);
 	const tableColumns = $derived(
-		grouping === 'global'
+		viewOptionsState[groupingKey] === 'global'
 			? [
 					{ label: seriesName },
 					{ label: $t.audit.count, format: 'integer' as const },
@@ -101,7 +104,7 @@
 				]
 	);
 	const tableRows = $derived(
-		grouping === 'global'
+		viewOptionsState[groupingKey] === 'global'
 			? totals.map((count, i) => [
 					translatedLabels[i],
 					count,
@@ -135,7 +138,7 @@
 				])
 			);
 		}
-		if (grouping === 'global' && chartType === 'bar') {
+		if (viewOptionsState[groupingKey] === 'global' && viewOptionsState[chartKey] === 'bar') {
 			return {
 				backgroundColor: 'transparent',
 				grid: { left: isMobile ? 112 : 150, right: 55, top: 20, bottom: 40 },
@@ -167,7 +170,7 @@
 			} as EChartsOption;
 		}
 
-		if (grouping === 'global' && chartType === 'pie') {
+		if (viewOptionsState[groupingKey] === 'global' && viewOptionsState[chartKey] === 'pie') {
 			// Pie chart: global aggregation by dimension label
 			const totalByLabel: Record<string, number> = {};
 			frenchLabels.forEach((frenchLabel, index) => {
@@ -300,32 +303,38 @@
 				{ value: 'global', label: $t.audit.globalAll },
 				{ value: 'journal', label: $t.audit.byJournal }
 			]}
-			value={grouping}
-			onChange={(value) => (grouping = value as 'global' | 'journal')}
+			value={viewOptionsState[groupingKey]}
+			onChange={(value) => (viewOptionsState[groupingKey] = value as 'global' | 'journal')}
 			ariaLabel={$t.audit.scope}
 		/>
 
-		{#if grouping === 'global'}
+		{#if viewOptionsState[groupingKey] === 'global'}
 			<ChartTypeToggle
 				options={[
 					{ value: 'bar', label: $t.charts.bars, icon: BarChart3Icon },
 					{ value: 'pie', label: $t.charts.pie, icon: PieChartIcon }
 				]}
-				value={chartType}
-				onChange={(value) => (chartType = value as 'bar' | 'pie')}
+				value={viewOptionsState[chartKey]}
+				onChange={(value) => (viewOptionsState[chartKey] = value as 'bar' | 'pie')}
 				ariaLabel={title}
 			/>
 		{/if}
 	</div>
 	<h2 class="chart-heading">{title}</h2>
-	{#if grouping === 'journal'}<p class="chart-note">{$t.audit.topJournals}</p>{/if}
+	{#if viewOptionsState[groupingKey] === 'journal'}<p class="chart-note">
+			{$t.audit.topJournals}
+		</p>{/if}
 	<div
 		style="height: {isMobile ? '350px' : '450px'}; position: relative;"
 		class="chart-container"
 		role="img"
 		aria-label={ariaLabel}
 	>
-		{#key `${grouping}-${chartType}`}<Chart {init} {options} />{/key}
+		{#key `${viewOptionsState[groupingKey]}-${viewOptionsState[chartKey]}`}<Chart
+				chartId={seriesIdPrefix}
+				{init}
+				{options}
+			/>{/key}
 	</div>
 	<p class="chart-note">
 		{$t.audit.included}: {formatNumber(aggregate.articlesAnalyzed, $currentLanguage)} · {$t.audit

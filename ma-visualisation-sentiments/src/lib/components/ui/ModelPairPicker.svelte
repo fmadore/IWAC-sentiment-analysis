@@ -52,7 +52,7 @@
 		datasetState.pair = pair;
 		isOpen = false;
 		// Update URL to reflect the new pair, passing the current view
-		updateURL(uiState.activeView, true);
+		updateURL(uiState.activeView);
 	}
 
 	function handleClickOutside(event: MouseEvent) {

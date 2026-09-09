@@ -16,7 +16,7 @@
   rule; that is why this sits here.
 -->
 <script lang="ts">
-	import { Chart } from 'svelte-echarts';
+	import Chart from './CitableChart.svelte';
 	import { dec, num, pct } from '$lib/i18n/utils';
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
@@ -225,7 +225,7 @@
 		role="img"
 		aria-label={$t.agreement.disagreementTitle}
 	>
-		<Chart {init} {options} />
+		<Chart chartId="newspaper-disagreement-chart" {init} {options} />
 	</div>
 
 	<ChartDataTable
