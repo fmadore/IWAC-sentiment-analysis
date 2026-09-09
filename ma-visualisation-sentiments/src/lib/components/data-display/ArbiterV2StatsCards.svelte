@@ -318,7 +318,6 @@
 
 	.bar-segment {
 		height: 100%;
-		transition: width var(--timing-normal) var(--easing-default);
 	}
 
 	.tie-segment {
@@ -379,12 +378,6 @@
 
 		.overall-bar {
 			height: var(--size-icon-lg);
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.bar-segment {
-			transition: none;
 		}
 	}
 </style>

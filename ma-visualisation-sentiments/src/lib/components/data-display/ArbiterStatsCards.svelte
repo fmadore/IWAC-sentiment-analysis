@@ -383,7 +383,6 @@
 
 	.bar-segment {
 		height: 100%;
-		transition: width var(--timing-normal) var(--easing-default);
 		position: relative;
 	}
 

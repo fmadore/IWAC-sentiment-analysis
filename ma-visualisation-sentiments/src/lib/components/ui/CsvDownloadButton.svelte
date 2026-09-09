@@ -2,12 +2,14 @@
   Shared CSV download button.
 
   Owns the export flow (in-progress guard, blob download, empty/error
-  alerts), the button markup and the bounce animation. Variant-specific
+  alerts), the button markup and its busy state (a `Spinner` in the icon's
+  place, tinted with the button's own colour). Variant-specific
   data + filename are supplied by the thin wrappers
   (CSVExportButton / ComparisonCSVExportButton / ArbiterCSVExportButton);
   `variant` selects the accent styling so the rendered output is unchanged.
 -->
 <script lang="ts">
+	import Spinner from '$lib/components/common/Spinner.svelte';
 	import { t } from '$lib/i18n';
 	import { downloadCSVFile } from '$lib/utils/csv';
 	import DownloadIcon from '@lucide/svelte/icons/download';
@@ -66,14 +68,20 @@
 <button
 	class="csv-export-btn"
 	data-variant={variant}
+	data-state={isExporting ? 'exporting' : 'idle'}
 	onclick={downloadCSV}
 	disabled={isExporting || count === 0}
+	aria-busy={isExporting}
 	title={count === 0 ? $t.export.noDataToExport : $t.export.downloadCSV}
 >
-	<DownloadIcon size={16} class={isExporting ? 'animate-bounce' : ''} />
+	{#if isExporting}
+		<Spinner size="sm" />
+	{:else}
+		<DownloadIcon size={16} />
+	{/if}
 	<span class="button-text">
 		{#if isExporting}
-			{$t.export.exporting}...
+			{$t.export.exporting}…
 		{:else}
 			{$t.export.exportCSV} ({count})
 		{/if}
@@ -82,6 +90,11 @@
 
 <style>
 	.csv-export-btn {
+		/* Spinner component API — the busy ring takes the button's own colour,
+		   so it reads correctly in all three variants without restating them. */
+		--spinner-accent: currentColor;
+		--spinner-track: color-mix(in oklab, currentColor 24%, transparent);
+
 		font-family: var(--font-mono);
 		font-size: var(--font-size-xs);
 		font-weight: var(--font-weight-semibold);
@@ -100,13 +113,20 @@
 		white-space: nowrap;
 	}
 
-	.csv-export-btn :global(svg) {
+	.csv-export-btn :global(svg),
+	.csv-export-btn :global(.spinner) {
 		flex-shrink: 0;
 	}
 
-	.csv-export-btn:disabled {
+	/* `disabled` while exporting is the re-entrancy guard, not "nothing to
+	   export" — only the genuinely-empty case earns the dimmed, refusing look. */
+	.csv-export-btn:disabled:not([data-state='exporting']) {
 		opacity: 0.5;
 		cursor: not-allowed;
+	}
+
+	.csv-export-btn[data-state='exporting'] {
+		cursor: progress;
 	}
 
 	/* --- Articles variant --- */
@@ -177,36 +197,9 @@
 		}
 	}
 
-	:global(.animate-bounce) {
-		animation: bounce 1s infinite;
-	}
-
-	@keyframes bounce {
-		0%,
-		20%,
-		53%,
-		80%,
-		100% {
-			transform: translate3d(0, 0, 0);
-		}
-		40%,
-		43% {
-			transform: translate3d(0, -8px, 0);
-		}
-		70% {
-			transform: translate3d(0, -4px, 0);
-		}
-		90% {
-			transform: translate3d(0, -2px, 0);
-		}
-	}
-
 	@media (prefers-reduced-motion: reduce) {
 		.csv-export-btn {
 			transition: none;
-		}
-		:global(.animate-bounce) {
-			animation: none;
 		}
 	}
 </style>

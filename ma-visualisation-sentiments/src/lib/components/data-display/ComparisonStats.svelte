@@ -105,7 +105,7 @@
 		<div class="breakdown-item">
 			<div
 				class="breakdown-bar"
-				style="--progress: {(stats.polarityConflicts / stats.totalArticles) * 100 || 0}%"
+				style="--progress: {stats.polarityConflicts / stats.totalArticles || 0}"
 			>
 				<div class="breakdown-fill polarity"></div>
 			</div>
@@ -123,7 +123,7 @@
 		<div class="breakdown-item">
 			<div
 				class="breakdown-bar"
-				style="--progress: {(stats.subjectivityConflicts / stats.totalArticles) * 100 || 0}%"
+				style="--progress: {stats.subjectivityConflicts / stats.totalArticles || 0}"
 			>
 				<div class="breakdown-fill subjectivity"></div>
 			</div>
@@ -141,7 +141,7 @@
 		<div class="breakdown-item">
 			<div
 				class="breakdown-bar"
-				style="--progress: {(stats.centralityConflicts / stats.totalArticles) * 100 || 0}%"
+				style="--progress: {stats.centralityConflicts / stats.totalArticles || 0}"
 			>
 				<div class="breakdown-fill centrality"></div>
 			</div>
@@ -187,7 +187,7 @@
 			<div class="arbiter-content">
 				<div class="arbiter-stats-grid">
 					<div class="arbiter-stat">
-						<div class="arbiter-stat-bar" style="--progress: {arbiterStats.modelAPercentage}%">
+						<div class="arbiter-stat-bar" style="--progress: {arbiterStats.modelAPercentage / 100}">
 							<div class="arbiter-stat-fill model-a"></div>
 						</div>
 						<div class="arbiter-stat-info">
@@ -204,7 +204,7 @@
 					</div>
 
 					<div class="arbiter-stat">
-						<div class="arbiter-stat-bar" style="--progress: {arbiterStats.modelBPercentage}%">
+						<div class="arbiter-stat-bar" style="--progress: {arbiterStats.modelBPercentage / 100}">
 							<div class="arbiter-stat-fill model-b"></div>
 						</div>
 						<div class="arbiter-stat-info">
@@ -221,7 +221,7 @@
 					</div>
 
 					<div class="arbiter-stat">
-						<div class="arbiter-stat-bar" style="--progress: {arbiterStats.bothPercentage}%">
+						<div class="arbiter-stat-bar" style="--progress: {arbiterStats.bothPercentage / 100}">
 							<div class="arbiter-stat-fill equal"></div>
 						</div>
 						<div class="arbiter-stat-info">
@@ -233,7 +233,10 @@
 					</div>
 
 					<div class="arbiter-stat">
-						<div class="arbiter-stat-bar" style="--progress: {arbiterStats.neitherPercentage}%">
+						<div
+							class="arbiter-stat-bar"
+							style="--progress: {arbiterStats.neitherPercentage / 100}"
+						>
 							<div class="arbiter-stat-fill neither"></div>
 						</div>
 						<div class="arbiter-stat-info">
@@ -398,8 +401,10 @@
 		top: 0;
 		left: 0;
 		height: 100%;
-		width: var(--progress);
-		transition: width var(--timing-slow) var(--easing-default);
+		width: 100%;
+		transform: scaleX(var(--progress));
+		transform-origin: left center;
+		transition: transform var(--timing-slow) var(--easing-default);
 	}
 
 	.breakdown-fill.polarity {
@@ -520,8 +525,10 @@
 		top: 0;
 		left: 0;
 		height: 100%;
-		width: var(--progress);
-		transition: width var(--timing-slow) var(--easing-default);
+		width: 100%;
+		transform: scaleX(var(--progress));
+		transform-origin: left center;
+		transition: transform var(--timing-slow) var(--easing-default);
 	}
 
 	.arbiter-stat-fill.model-a {
