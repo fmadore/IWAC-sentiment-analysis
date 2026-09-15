@@ -546,6 +546,7 @@ export const en = {
 			'Corpus runs: 3–5 August 2026 for GPT-5.6 Luna, Mistral Small 4 and DeepSeek v4 Flash; 14–15 August for Gemma 4 31B; 17–24 August for Qwen3.8 27B',
 			'Reasoning effort: medium for GPT-5.6 Luna and Qwen3.8 27B, the only two whose setting could be verified; high for Mistral Small 4 and DeepSeek v4 Flash, whose APIs offer no middle setting; nominally medium for Gemma 4 31B, whose OpenRouter route makes medium and high indistinguishable',
 			'Where each model ran: at its maker’s own API, except Gemma 4 31B and DeepSeek v4 Flash, which were served through OpenRouter, and Qwen3.8 27B, self-hosted with vLLM on the University of Bayreuth’s Festus cluster',
+			'Funding acknowledgement the centre that runs that cluster requires of any publication reporting work done on it, and states is mandatory: “Calculations were performed using the festus-cluster of the Bayreuth Centre for High Performance Computing (https://www.bzhpc.uni-bayreuth.de), funded by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) - 523317330.”',
 			'Temperature: not set by the pipeline — each model runs at its host’s default',
 			'Output format: structured JSON validated against a Pydantic schema',
 			'A resumable cache holding one record per article and model; only successful calls are kept',
