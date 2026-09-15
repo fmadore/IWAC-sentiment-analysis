@@ -538,6 +538,7 @@ export const fr: Translations = {
 			'Analyse du corpus : 3–5 août 2026 pour GPT-5.6 Luna, Mistral Small 4 et DeepSeek v4 Flash ; 14–15 août pour Gemma 4 31B ; 17–24 août pour Qwen3.8 27B',
 			"Effort de raisonnement : moyen pour GPT-5.6 Luna et Qwen3.8 27B, les deux seuls dont le réglage a pu être vérifié ; élevé pour Mistral Small 4 et DeepSeek v4 Flash, dont les API n'offrent aucun niveau intermédiaire ; nominalement moyen pour Gemma 4 31B, dont la route OpenRouter rend le moyen et l'élevé indiscernables",
 			'Où chaque modèle a tourné : chez son concepteur, sauf Gemma 4 31B et DeepSeek v4 Flash, servis via OpenRouter, et Qwen3.8 27B, auto-hébergé avec vLLM sur le cluster Festus de l’université de Bayreuth',
+			'Remerciement de financement que le centre exploitant ce cluster exige de toute publication rendant compte de travaux qui y ont été menés, et qu’il dit obligatoire : « Calculations were performed using the festus-cluster of the Bayreuth Centre for High Performance Computing (https://www.bzhpc.uni-bayreuth.de), funded by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) - 523317330. »',
 			'Température : non définie par le pipeline — chaque modèle tourne à la valeur par défaut de son hôte',
 			'Format de sortie : JSON structuré validé par un schéma Pydantic',
 			'Un cache reprenable, un enregistrement par article et par modèle ; seuls les appels réussis y sont conservés',

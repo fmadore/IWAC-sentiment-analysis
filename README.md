@@ -274,6 +274,14 @@ Cite the concept DOI — `10.5281/zenodo.21806223` — unless you need to pin a 
 
 Cite the underlying corpus separately — the _Islam West Africa Collection_ ([islam.zmo.de](https://islam.zmo.de/s/afrique_ouest/)) and its machine-readable export ([doi:10.57967/hf/9857](https://doi.org/10.57967/hf/9857)).
 
+## Acknowledgements
+
+Seven of the eight panel members across the two generations ran at a vendor's API. Qwen3.8 27B did not: it was self-hosted with vLLM on *festus*, the cluster of the Bayreuth Centre for High Performance Computing, which is why its column in the panel carries no invoice. The centre states that its funding acknowledgement is mandatory rather than a courtesy, so any publication reporting generation-2 results carries it verbatim:
+
+> Calculations were performed using the festus-cluster of the Bayreuth Centre for High Performance Computing (https://www.bzhpc.uni-bayreuth.de), funded by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) - 523317330.
+
+The dashboard carries the same sentence in its generation-2 run configuration. Wording checked against the [festus system guide](https://www.hpc.uni-bayreuth.de/clusters/festus/) on 15 September 2026; `CITATION.cff` has no field for a funding acknowledgement under CFF 1.2.0, so it is not recorded there.
+
 ## License
 
 The application code is released under the [MIT License](LICENSE). The IWAC corpus it visualizes is distributed under CC BY-NC-SA 4.0 and is **not** covered by that licence — reuse of the data follows the collection's own terms.
