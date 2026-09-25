@@ -3,6 +3,7 @@ import { browser } from '$app/environment';
 import type { Translations } from './types.js';
 import { fr } from './fr.js';
 import { en } from './en.js';
+import { readStorage, writeStorage } from '$lib/utils/safeStorage';
 
 // Available languages
 export const LANGUAGES = {
@@ -30,9 +31,8 @@ function createLanguageStore() {
 	return {
 		subscribe,
 		set: (lang: Language) => {
-			if (browser) {
-				localStorage.setItem('app-language', lang);
-			}
+			// A convenience only: blocked or full storage must not stop the switch.
+			if (browser) writeStorage('localStorage', 'app-language', lang);
 			set(lang);
 		},
 		update
@@ -56,7 +56,7 @@ export function initializeLanguage(urlLang?: Language): void {
 	}
 	// Priority 2: localStorage
 	else {
-		const stored = localStorage.getItem('app-language') as Language;
+		const stored = readStorage('localStorage', 'app-language') as Language | null;
 		if (stored && stored in LANGUAGES) {
 			targetLang = stored;
 		}

@@ -4,7 +4,7 @@
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
 	import { getModelsFromPair, type ComparisonData } from '$lib/types/data';
-	import { escapeCSVField, formatDateForCSV } from '$lib/utils/csv';
+	import { toCSV } from '$lib/utils/csv';
 	import { getModelDisplayName } from '$lib/utils/format';
 	import CsvDownloadButton from './CsvDownloadButton.svelte';
 
@@ -40,48 +40,31 @@
 			$t.export.articleId
 		];
 
-		const csvRows = [
-			headers.map((header) => escapeCSVField(header)).join(','),
-			...comparisons.map((comparison) => {
-				const row = [
-					escapeCSVField(comparison.article['o:title']),
-					escapeCSVField(comparison.article.Country),
-					escapeCSVField(getJournalName(comparison.article)),
-					escapeCSVField(formatDateForCSV(comparison.article.publication_date)),
-
-					escapeCSVField(translateSentimentValue(comparison.modelA?.polarite, $currentLanguage)),
-					escapeCSVField(
-						translateSubjectivityScore(comparison.modelA?.subjectivite_score, $currentLanguage)
-					),
-					escapeCSVField(
-						translateSentimentValue(comparison.modelA?.centralite_islam_musulmans, $currentLanguage)
-					),
-					escapeCSVField(comparison.modelA?.polarite_justification),
-					escapeCSVField(comparison.modelA?.subjectivite_justification),
-					escapeCSVField(comparison.modelA?.centralite_justification),
-
-					escapeCSVField(translateSentimentValue(comparison.modelB?.polarite, $currentLanguage)),
-					escapeCSVField(
-						translateSubjectivityScore(comparison.modelB?.subjectivite_score, $currentLanguage)
-					),
-					escapeCSVField(
-						translateSentimentValue(comparison.modelB?.centralite_islam_musulmans, $currentLanguage)
-					),
-					escapeCSVField(comparison.modelB?.polarite_justification),
-					escapeCSVField(comparison.modelB?.subjectivite_justification),
-					escapeCSVField(comparison.modelB?.centralite_justification),
-
-					escapeCSVField(comparison.discrepancies.polarityDiff.toString()),
-					escapeCSVField(comparison.discrepancies.subjectivityDiff.toString()),
-					escapeCSVField(comparison.discrepancies.centralityDiff.toString()),
-					escapeCSVField(comparison.discrepancies.totalDiff.toString()),
-					escapeCSVField(comparison.article['o:id']?.toString())
-				];
-				return row.join(',');
-			})
+		const modelColumns = (analysis: ComparisonData['modelA']) => [
+			translateSentimentValue(analysis?.polarite, $currentLanguage),
+			translateSubjectivityScore(analysis?.subjectivite_score, $currentLanguage),
+			translateSentimentValue(analysis?.centralite_islam_musulmans, $currentLanguage),
+			analysis?.polarite_justification,
+			analysis?.subjectivite_justification,
+			analysis?.centralite_justification
 		];
 
-		return csvRows.join('\n');
+		const rows = comparisons.map((comparison) => [
+			comparison.article['o:title'],
+			comparison.article.Country,
+			getJournalName(comparison.article),
+			// Exactly as stored: month-only and ranged dates are real in the corpus.
+			comparison.article.publication_date,
+			...modelColumns(comparison.modelA),
+			...modelColumns(comparison.modelB),
+			comparison.discrepancies.polarityDiff,
+			comparison.discrepancies.subjectivityDiff,
+			comparison.discrepancies.centralityDiff,
+			comparison.discrepancies.totalDiff,
+			comparison.article['o:id']
+		]);
+
+		return toCSV(headers, rows);
 	}
 
 	const comparisonCount = $derived(comparisonState.filtered.length);

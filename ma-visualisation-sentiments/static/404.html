@@ -35,10 +35,16 @@
 					hash: hash
 				};
 
-				sessionStorage.setItem('spa-redirect', JSON.stringify(redirectData));
-
-				// Redirect to the base path (which will serve index.html)
-				window.location.replace(basePath + '/');
+				// Redirect to the base path (which will serve index.html). If site
+				// storage is blocked, merely touching sessionStorage throws; carry the
+				// query and fragment in the URL instead, or the visitor would be left
+				// on this page.
+				try {
+					sessionStorage.setItem('spa-redirect', JSON.stringify(redirectData));
+					window.location.replace(basePath + '/');
+				} catch (error) {
+					window.location.replace(basePath + '/' + search + hash);
+				}
 			})();
 		</script>
 	</head>

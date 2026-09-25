@@ -14,7 +14,7 @@
 <script lang="ts">
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
-	import { escapeCSVField, formatDateForCSV } from '$lib/utils/csv';
+	import { toCSV } from '$lib/utils/csv';
 	import {
 		ARBITER_V2_DIMENSIONS,
 		analysisValue,
@@ -94,7 +94,8 @@
 				row.title,
 				row.country,
 				row.journal,
-				formatDateForCSV(row.date),
+				// Exactly as stored: month-only and ranged dates are real in the corpus.
+				row.date,
 				...legend.flatMap((entry) => {
 					const analysis = row.analyses[entry.modelId];
 					return [
@@ -126,12 +127,10 @@
 				]),
 				arbiter.overall_explanation,
 				row.articleId
-			]
-				.map((field) => escapeCSVField(field))
-				.join(',');
+			];
 		});
 
-		return [headers.map((header) => escapeCSVField(header)).join(','), ...lines].join('\n');
+		return toCSV(headers, lines);
 	}
 </script>
 

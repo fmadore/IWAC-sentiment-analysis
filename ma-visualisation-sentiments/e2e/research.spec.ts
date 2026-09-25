@@ -229,3 +229,31 @@ test.describe('immutable data cache', () => {
 		expect(result).toEqual({ cached: 200, other: 404 });
 	});
 });
+
+test('a browser that blocks site storage still gets a working dashboard', async ({ page }) => {
+	// "Block all cookies" makes merely touching either storage area throw.
+	await page.addInitScript(() => {
+		for (const name of ['localStorage', 'sessionStorage'] as const) {
+			Object.defineProperty(window, name, {
+				configurable: true,
+				get() {
+					throw new DOMException('The operation is insecure.', 'SecurityError');
+				}
+			});
+		}
+	});
+	const errors: string[] = [];
+	page.on('pageerror', (error) => errors.push(error.message));
+
+	// No `lang=`, so start-up consults the (blocked) remembered language.
+	await page.goto('?view=charts&dataset=luna');
+	await expect(
+		page.getByRole('heading', { level: 1, name: /^(Charts|Graphiques)$/ })
+	).toBeVisible();
+	await expect(page.locator('canvas').first()).toBeVisible();
+
+	await page.getByRole('button', { name: /^(Change language|Changer de langue)$/ }).click();
+	await page.getByRole('option', { name: 'Français' }).click();
+	await expect(page.getByRole('heading', { level: 1, name: 'Graphiques' })).toBeVisible();
+	expect(errors).toEqual([]);
+});

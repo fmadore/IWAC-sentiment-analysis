@@ -15,8 +15,12 @@
 	import { getJournalName } from '$lib/utils/format';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
-	import { getPairModelNames, type ArbiterEvaluationData } from '$lib/types/data';
-	import { escapeCSVField, formatDateForCSV } from '$lib/utils/csv';
+	import {
+		getPairModelNames,
+		type ArbiterEvaluationData,
+		type ComparisonData
+	} from '$lib/types/data';
+	import { toCSV } from '$lib/utils/csv';
 	import CsvDownloadButton from './CsvDownloadButton.svelte';
 
 	// Get model names from current pair
@@ -87,63 +91,42 @@
 			$t.export.articleId
 		];
 
-		const csvRows = [
-			headers.map((header) => escapeCSVField(header)).join(','),
-			...evaluations.map((evaluation) => {
-				const comparison = comparisons?.find(
-					(c) => String(c.article['o:id']) === String(evaluation.article_id)
-				);
-
-				const row = [
-					escapeCSVField(comparison?.article['o:title'] || `Article ${evaluation.article_id}`),
-					escapeCSVField(comparison?.article.Country || ''),
-					escapeCSVField(comparison ? getJournalName(comparison.article) : ''),
-					escapeCSVField(formatDateForCSV(comparison?.article.publication_date)),
-
-					escapeCSVField(translateSentimentValue(comparison?.modelA?.polarite, $currentLanguage)),
-					escapeCSVField(
-						translateSubjectivityScore(comparison?.modelA?.subjectivite_score, $currentLanguage)
-					),
-					escapeCSVField(
-						translateSentimentValue(
-							comparison?.modelA?.centralite_islam_musulmans,
-							$currentLanguage
-						)
-					),
-
-					escapeCSVField(translateSentimentValue(comparison?.modelB?.polarite, $currentLanguage)),
-					escapeCSVField(
-						translateSubjectivityScore(comparison?.modelB?.subjectivite_score, $currentLanguage)
-					),
-					escapeCSVField(
-						translateSentimentValue(
-							comparison?.modelB?.centralite_islam_musulmans,
-							$currentLanguage
-						)
-					),
-
-					escapeCSVField(translateVerdict(evaluation.arbiter.overall_winner)),
-					escapeCSVField(translateConfidence(evaluation.arbiter.confidence_level)),
-					escapeCSVField(evaluation.arbiter.polarity.score),
-					escapeCSVField(evaluation.arbiter.polarity.justification),
-					escapeCSVField(translateVerdict(evaluation.arbiter.polarity.preferred_model)),
-					escapeCSVField(evaluation.arbiter.polarity.verdict_explanation),
-					escapeCSVField(evaluation.arbiter.subjectivity.score),
-					escapeCSVField(evaluation.arbiter.subjectivity.justification),
-					escapeCSVField(translateVerdict(evaluation.arbiter.subjectivity.preferred_model)),
-					escapeCSVField(evaluation.arbiter.subjectivity.verdict_explanation),
-					escapeCSVField(evaluation.arbiter.centrality.score),
-					escapeCSVField(evaluation.arbiter.centrality.justification),
-					escapeCSVField(translateVerdict(evaluation.arbiter.centrality.preferred_model)),
-					escapeCSVField(evaluation.arbiter.centrality.verdict_explanation),
-					escapeCSVField(evaluation.arbiter.overall_explanation),
-					escapeCSVField(evaluation.article_id)
-				];
-				return row.join(',');
-			})
+		const comparisonsById = new Map(
+			(comparisons ?? []).map((comparison) => [String(comparison.article['o:id']), comparison])
+		);
+		const modelColumns = (analysis: ComparisonData['modelA'] | undefined) => [
+			translateSentimentValue(analysis?.polarite, $currentLanguage),
+			translateSubjectivityScore(analysis?.subjectivite_score, $currentLanguage),
+			translateSentimentValue(analysis?.centralite_islam_musulmans, $currentLanguage)
+		];
+		const dimensionColumns = (verdict: ArbiterEvaluationItem['arbiter']['polarity']) => [
+			verdict.score,
+			verdict.justification,
+			translateVerdict(verdict.preferred_model),
+			verdict.verdict_explanation
 		];
 
-		return csvRows.join('\n');
+		const rows = evaluations.map((evaluation) => {
+			const comparison = comparisonsById.get(String(evaluation.article_id));
+			return [
+				comparison?.article['o:title'] || `Article ${evaluation.article_id}`,
+				comparison?.article.Country,
+				comparison ? getJournalName(comparison.article) : '',
+				// Exactly as stored: month-only and ranged dates are real in the corpus.
+				comparison?.article.publication_date,
+				...modelColumns(comparison?.modelA),
+				...modelColumns(comparison?.modelB),
+				translateVerdict(evaluation.arbiter.overall_winner),
+				translateConfidence(evaluation.arbiter.confidence_level),
+				...dimensionColumns(evaluation.arbiter.polarity),
+				...dimensionColumns(evaluation.arbiter.subjectivity),
+				...dimensionColumns(evaluation.arbiter.centrality),
+				evaluation.arbiter.overall_explanation,
+				evaluation.article_id
+			];
+		});
+
+		return toCSV(headers, rows);
 	}
 
 	const evaluationCount = $derived(arbiterEvaluations.current?.evaluations?.length ?? 0);

@@ -23,7 +23,7 @@
 <script lang="ts">
 	import { t } from '$lib/i18n';
 	import { num, dec, pct } from '$lib/i18n/utils';
-	import { escapeCSVField, downloadCSVFile } from '$lib/utils/csv';
+	import { toCSV, downloadCSVFile } from '$lib/utils/csv';
 	import TableIcon from '@lucide/svelte/icons/table';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import DownloadIcon from '@lucide/svelte/icons/download';
@@ -87,16 +87,14 @@
 	}
 
 	function exportCSV() {
-		const lines = [
-			columns.map((column) => escapeCSVField(column.label)).join(','),
-			...rows.map((row) =>
-				row.map((cell, i) => escapeCSVField(exportValue(cell, columns[i]))).join(',')
-			)
-		];
+		const csv = toCSV(
+			columns.map((column) => column.label),
+			rows.map((row) => row.map((cell, i) => exportValue(cell, columns[i])))
+		);
 
 		const now = new Date();
 		const stamp = now.toISOString().split('T')[0];
-		downloadCSVFile(lines.join('\n'), `${filenamePrefix}-${stamp}.csv`);
+		downloadCSVFile(csv, `${filenamePrefix}-${stamp}.csv`);
 	}
 </script>
 

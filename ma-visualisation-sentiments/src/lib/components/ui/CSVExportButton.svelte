@@ -3,7 +3,7 @@
 	import { getJournalName } from '$lib/utils/format';
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
-	import { escapeCSVField, formatDateForCSV } from '$lib/utils/csv';
+	import { toCSV } from '$lib/utils/csv';
 	import type { Article } from '$lib/types/data';
 	import CsvDownloadButton from './CsvDownloadButton.svelte';
 
@@ -24,39 +24,25 @@
 			$t.export.articleId
 		];
 
-		const csvRows = [
-			headers.map((header) => escapeCSVField(header)).join(','),
-			...articles.map((article) => {
-				const row = [
-					escapeCSVField(article['o:title']),
-					escapeCSVField(article.Country),
-					escapeCSVField(getJournalName(article)),
-					escapeCSVField(formatDateForCSV(article.publication_date)),
-					escapeCSVField(
-						translateSentimentValue(article.sentiment_analysis?.polarite, $currentLanguage)
-					),
-					escapeCSVField(
-						translateSubjectivityScore(
-							article.sentiment_analysis?.subjectivite_score,
-							$currentLanguage
-						)
-					),
-					escapeCSVField(
-						translateSentimentValue(
-							article.sentiment_analysis?.centralite_islam_musulmans,
-							$currentLanguage
-						)
-					),
-					escapeCSVField(article.sentiment_analysis?.polarite_justification),
-					escapeCSVField(article.sentiment_analysis?.subjectivite_justification),
-					escapeCSVField(article.sentiment_analysis?.centralite_justification),
-					escapeCSVField(article['o:id']?.toString())
-				];
-				return row.join(',');
-			})
-		];
+		const rows = articles.map((article) => {
+			const analysis = article.sentiment_analysis;
+			return [
+				article['o:title'],
+				article.Country,
+				getJournalName(article),
+				// Exactly as stored: month-only and ranged dates are real in the corpus.
+				article.publication_date,
+				translateSentimentValue(analysis?.polarite, $currentLanguage),
+				translateSubjectivityScore(analysis?.subjectivite_score, $currentLanguage),
+				translateSentimentValue(analysis?.centralite_islam_musulmans, $currentLanguage),
+				analysis?.polarite_justification,
+				analysis?.subjectivite_justification,
+				analysis?.centralite_justification,
+				article['o:id']
+			];
+		});
 
-		return csvRows.join('\n');
+		return toCSV(headers, rows);
 	}
 
 	const articleCount = $derived(articleState.filtered.length);
