@@ -15,6 +15,7 @@
   - ArbiterSection for arbiter verdict
 -->
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import EmptyState from '$lib/components/common/EmptyState.svelte';
 	import type { ComparisonData } from '$lib/types/data';
 	import { ComparisonPanel, ArbiterSection } from '$lib/components/common';
@@ -69,9 +70,11 @@
 			: null
 	);
 
+	// Untracked: the loader reads every dataset's load state synchronously, and
+	// this effect must re-run for a new verdict row, not for each of those.
 	$effect(() => {
 		if (panelRow) {
-			loadArbiterV2Panel(fetch).catch((error) =>
+			untrack(() => loadArbiterV2Panel(fetch)).catch((error) =>
 				console.error('Failed to load the panel datasets for the verdict:', error)
 			);
 		}

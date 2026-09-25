@@ -1,4 +1,5 @@
 import { dataUrl } from '$lib/data/release';
+import { ABSENT, type Loaded } from '$lib/data/resource.svelte';
 import { SvelteSet } from 'svelte/reactivity';
 import type { Article, DatasetId, SentimentAnalysis } from '$lib/types/data';
 import {
@@ -82,6 +83,23 @@ export const fetchJSON = async (
 	const response = await fetchFunction(resolvedPath);
 	if (!response.ok) {
 		throw new Error(`Failed to fetch ${filePath}: ${response.statusText}`);
+	}
+	return response.json();
+};
+
+/**
+ * Fetch a data file that may legitimately be unpublished, such as an arbiter
+ * run. Only a 404 means "not published" (`ABSENT`); every other failure throws,
+ * so a transient 5xx is never mistaken for — and cached as — an absent file.
+ */
+export const fetchOptionalJSON = async (
+	filePath: string,
+	fetchFunction: typeof fetch
+): Promise<Loaded<unknown>> => {
+	const response = await fetchFunction(dataUrl(filePath));
+	if (response.status === 404) return ABSENT;
+	if (!response.ok) {
+		throw new Error(`Failed to fetch ${filePath}: ${response.status} ${response.statusText}`);
 	}
 	return response.json();
 };

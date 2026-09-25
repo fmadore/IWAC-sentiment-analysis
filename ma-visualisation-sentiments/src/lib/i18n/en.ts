@@ -185,8 +185,7 @@ export const en = {
 		caveat:
 			'A bubble counts articles that mention a place, not articles about it. Each article names about four places, so these totals add up to more than the number of articles. Colour is the rating the model gave the whole article on a 1–5 scale, averaged over the articles it actually rated on that dimension. For polarity, “Not applicable” means the article takes no position: it is left out of the average but still counts towards the size of the bubble. For centrality, “Not addressed” is a real bottom of the scale and is included. Places with no coordinates in the IWAC place list do not appear.',
 		noPlacesTitle: 'No mapped places',
-		noPlacesLede: 'No article in the current selection names a place with known coordinates.',
-		loadErrorTitle: 'Map data unavailable'
+		noPlacesLede: 'No article in the current selection names a place with known coordinates.'
 	},
 
 	// Hijri-calendar seasonality

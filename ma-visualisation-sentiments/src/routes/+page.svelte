@@ -9,11 +9,8 @@
 	import { browser } from '$app/environment';
 	import {
 		loadCurrentDataset,
-		loadAllDatasets,
-		loadComparisonDatasets,
-		loadCurrentExtremeAnalysis,
-		loadArbiterEvaluations,
-		loadArbiterV2Evaluations,
+		dataRequirements,
+		ensureDataRequirements,
 		uiState,
 		datasetState,
 		articleState
@@ -74,38 +71,23 @@
 		uiState.filtersDrawerOpen = false;
 	});
 
-	// Load extreme analysis when view is 'extremes' and dataset changes.
-	// This is the ONLY place that requests it — the activeView effect below
-	// used to request it as well, which doubled every load attempt.
+	// Everything the screen needs, derived from what is on it (see
+	// dataRequirements.ts). This one effect is the only request site for page
+	// data: it depends on the requirements alone — the loaders run untracked —
+	// and every loader is idempotent, so a re-run never double-fetches.
+	const requirements = $derived(
+		dataRequirements({
+			view: currentView,
+			dataset: currentDatasetId,
+			pair: datasetState.pair,
+			comparisonMode: isComparisonMode,
+			generation: datasetState.generation
+		})
+	);
 	$effect(() => {
-		if (currentView === 'extremes' && currentDatasetId && browser && isInitialized) {
-			untrack(() => loadCurrentExtremeAnalysis(fetch)).catch((error) =>
-				console.error('Failed to load extreme analysis data:', error)
-			);
-		}
-	});
-
-	// Load comparison data when comparison mode is enabled. Likewise the only
-	// request site for these two.
-	$effect(() => {
-		if (isComparisonMode && browser && isInitialized) {
-			void datasetState.pair;
-			untrack(() => loadComparisonDatasets(fetch)).catch((error) =>
-				console.error('Failed to load comparison datasets:', error)
-			);
-
-			untrack(() => loadArbiterEvaluations(fetch)).catch((error) =>
-				console.error('Failed to load arbiter evaluations:', error)
-			);
-
-			// The pairwise loader above refuses a generation-2 pair by design; the
-			// panel's verdicts live in one file that the comparison detail reads.
-			if (datasetState.generation === 'v2') {
-				loadArbiterV2Evaluations(fetch).catch((error) =>
-					console.error('Failed to load panel arbiter evaluations:', error)
-				);
-			}
-		}
+		if (!browser || !isInitialized) return;
+		const needs = requirements;
+		untrack(() => ensureDataRequirements(needs, fetch));
 	});
 
 	// Update HTML lang attribute when language changes
@@ -140,52 +122,18 @@
 		handlePendingArticleSelection();
 	});
 
-	// React to dataset changes: load the dataset if needed (loadCurrentDataset
-	// is idempotent and dedups in-flight fetches) and reflect it in the URL.
-	$effect(() => {
-		if (!browser || !isInitialized) return;
-
-		void currentDatasetId;
-		untrack(() => loadCurrentDataset(fetch)).catch((error) => {
-			console.error('Failed to load dataset:', error);
-		});
-	});
-
 	/**
-	 * React to activeView changes: toggle comparison mode, and load the data
-	 * only this effect is responsible for.
-	 *
-	 * Deliberately does NOT re-request comparison / arbiter / extreme data —
-	 * the dedicated effects above already own those, keyed on the state that
-	 * actually determines whether they're needed. Requesting from both places
-	 * doubled every attempt: because Svelte tracks reads transitively through
-	 * synchronous calls, each loader's internal state reads became dependencies
-	 * of *both* effects, so a single view change produced a cascade rather than
-	 * one request.
+	 * Comparison mode follows the view: the comparison view and the archived
+	 * pairwise arbiter work in terms of a model pair, every other view does not.
+	 * State only — what the mode needs loaded is in `requirements` above.
 	 */
 	$effect(() => {
 		if (!browser || !isInitialized) return;
 
-		if (
+		const wantsPair =
 			currentView === 'comparison' ||
-			(currentView === 'arbiter' && datasetState.generation === 'v1')
-		) {
-			// Both views work in terms of a model pair.
-			if (!isComparisonMode) {
-				datasetState.isComparisonMode = true;
-			}
-		} else {
-			if (isComparisonMode) datasetState.isComparisonMode = false;
-			if (currentView === 'agreement') {
-				void datasetState.generation;
-				// Agreement compares every model against every other, so it needs the
-				// generation's whole panel rather than just the selected one.
-				// Idempotent, and no other effect requests this.
-				untrack(() => loadAllDatasets(fetch)).catch((error) => {
-					console.error('Failed to load datasets for agreement view:', error);
-				});
-			}
-		}
+			(currentView === 'arbiter' && datasetState.generation === 'v1');
+		if (wantsPair !== isComparisonMode) datasetState.isComparisonMode = wantsPair;
 	});
 
 	onMount(() => {

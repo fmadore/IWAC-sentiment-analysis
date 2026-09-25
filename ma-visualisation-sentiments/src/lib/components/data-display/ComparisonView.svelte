@@ -5,12 +5,7 @@
 	import { datasetReadiness } from '$lib/utils/datasetReadiness';
 	import { getPairModels } from '$lib/domain/sentimentContract';
 	import DatasetLoadError from '../common/DatasetLoadError.svelte';
-	import {
-		comparisonState,
-		datasetState,
-		setupArbiterPairReactivity,
-		loadArbiterEvaluations
-	} from '$lib/stores';
+	import { comparisonState, datasetState } from '$lib/stores';
 	import { CountryFilter, JournalFilter, DiscrepancyFilter } from '$lib/components/filters';
 	import ComparisonTable from './ComparisonTable.svelte';
 	import ComparisonStats from './ComparisonStats.svelte';
@@ -24,7 +19,6 @@
 		handlePendingComparisonArticleSelection,
 		clearSelectedComparison
 	} from '$lib/stores/url';
-	import { onMount } from 'svelte';
 
 	const loadStatus = $derived(
 		datasetReadiness(getPairModels(datasetState.pair), articleState.loadStates)
@@ -37,23 +31,8 @@
 		clearSelectedComparison();
 	}
 
-	// Cleanup function for arbiter reactivity
-	let cleanupArbiter: (() => void) | null = $state(null);
-
-	// Setup arbiter reactivity on mount
-	onMount(() => {
-		// Setup arbiter pair reactivity - this will reload arbiter data when pair changes
-		cleanupArbiter = setupArbiterPairReactivity(fetch);
-
-		// Initial load of arbiter data (in case it wasn't loaded during prefetch)
-		loadArbiterEvaluations(fetch);
-
-		return () => {
-			if (cleanupArbiter) {
-				cleanupArbiter();
-			}
-		};
-	});
+	// The pair's datasets and arbiter file are requested by `+page.svelte`, which
+	// re-requests them whenever the pair changes.
 
 	// Watch for comparison data loading and handle pending selection from URL
 	$effect(() => {

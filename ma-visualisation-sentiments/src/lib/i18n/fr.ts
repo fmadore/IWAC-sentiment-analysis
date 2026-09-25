@@ -189,8 +189,7 @@ export const fr: Translations = {
 			'Une bulle compte les articles qui mentionnent un lieu, et non ceux qui portent sur lui. Chaque article nomme environ quatre lieux, si bien que ces totaux dépassent le nombre d’articles. La couleur correspond à la note attribuée à l’article entier sur une échelle de 1 à 5, moyennée sur les articles que le modèle a effectivement évalués pour cette dimension. Pour la polarité, « Non applicable » signifie qu’aucune position n’est exprimée : la valeur sort de la moyenne mais compte toujours dans la taille de la bulle. Pour la centralité, « Non abordé » constitue un véritable bas d’échelle et reste inclus. Les lieux dépourvus de coordonnées dans le référentiel IWAC n’apparaissent pas.',
 		noPlacesTitle: 'Aucun lieu cartographié',
 		noPlacesLede:
-			'Aucun article de la sélection actuelle ne nomme un lieu dont les coordonnées sont connues.',
-		loadErrorTitle: 'Données cartographiques indisponibles'
+			'Aucun article de la sélection actuelle ne nomme un lieu dont les coordonnées sont connues.'
 	},
 
 	// Saisonnalité du calendrier hégirien

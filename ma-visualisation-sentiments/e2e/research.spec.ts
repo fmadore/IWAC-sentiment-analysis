@@ -257,3 +257,80 @@ test('a browser that blocks site storage still gets a working dashboard', async 
 	await expect(page.getByRole('heading', { level: 1, name: 'Graphiques' })).toBeVisible();
 	expect(errors).toEqual([]);
 });
+
+test('a failed extremes payload is an error with a working retry, not an endless spinner', async ({
+	page
+}) => {
+	let fail = true;
+	await page.route('**/iwac_extreme_analysis_luna.json', (route) =>
+		fail ? route.fulfill({ status: 500, body: 'down' }) : route.continue()
+	);
+	await page.goto('?view=extremes&dataset=luna&lang=en');
+	const alert = page.getByRole('alert');
+	await expect(alert).toContainText('could not be loaded');
+	fail = false;
+	await alert.getByRole('button', { name: 'Retry' }).click();
+	await expect(alert).toHaveCount(0);
+	await expect(page.locator('canvas').first()).toBeVisible();
+});
+
+test('a server error on the panel arbiter is retryable, not shown as an unpublished run', async ({
+	page
+}) => {
+	let fail = true;
+	await page.route('**/iwac_arbiter_evaluations_v2.json', (route) =>
+		fail ? route.fulfill({ status: 503, body: 'down' }) : route.continue()
+	);
+	await page.goto('?view=arbiter&dataset=luna&lang=en');
+	const alert = page.getByRole('alert');
+	await expect(alert).toContainText('could not be loaded');
+	fail = false;
+	await alert.getByRole('button', { name: 'Retry' }).click();
+	await expect(alert).toHaveCount(0);
+	await expect(page.getByRole('table').first()).toBeVisible();
+});
+
+test('a failed basemap is reported instead of leaving the map loading forever', async ({
+	page
+}) => {
+	let fail = true;
+	await page.route('**/world-110m.geojson', (route) =>
+		fail ? route.fulfill({ status: 500, body: 'down' }) : route.continue()
+	);
+	await page.goto('?view=map&dataset=luna&lang=en');
+	const alert = page.getByRole('alert');
+	await expect(alert).toContainText('could not be loaded');
+	fail = false;
+	await alert.getByRole('button', { name: 'Retry' }).click();
+	await expect(alert).toHaveCount(0);
+});
+
+test('touring the views requests each data file once', async ({ page }) => {
+	// One effect owns page-level loading and every loader deduplicates, so no
+	// view change may re-fetch a file another view already asked for.
+	const requests = new Map<string, number>();
+	page.on('request', (request) => {
+		const url = new URL(request.url());
+		if (url.pathname.includes('/data/') && url.pathname.endsWith('.json')) {
+			const name = url.pathname.split('/').pop()!;
+			requests.set(name, (requests.get(name) ?? 0) + 1);
+		}
+	});
+	await page.goto('?view=charts&dataset=luna&lang=en');
+	await expect(page.locator('canvas').first()).toBeVisible();
+	for (const [label, id] of [
+		['Comparison', 'comparison'],
+		['Agreement', 'agreement'],
+		['Arbiter', 'arbiter'],
+		['Extremes', 'extremes'],
+		['Charts', 'charts']
+	]) {
+		await page.getByRole('button', { name: label, exact: true }).first().click();
+		await expect(page).toHaveURL(new RegExp(`view=${id}`));
+		await page.waitForLoadState('networkidle');
+	}
+	await page.waitForLoadState('networkidle');
+	const repeated = [...requests].filter(([, count]) => count > 1);
+	expect(repeated).toEqual([]);
+	expect(requests.get('iwac_arbiter_evaluations_v2.json')).toBe(1);
+});

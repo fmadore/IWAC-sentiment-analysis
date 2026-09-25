@@ -251,21 +251,6 @@ export const loadJustifications = async (
 export const hasJustifications = (datasetId: DatasetId): boolean =>
 	justificationsLoaded.has(datasetId);
 
-/**
- * Load every dataset of the active generation.
- *
- * Scoped to one generation on purpose: the three-way agreement statistics
- * compare models within a generation, and loading all six corpora would double
- * the transfer to answer a question nothing asks.
- */
-export const loadAllDatasets = async (fetchFunction: typeof fetch): Promise<void> => {
-	await Promise.all(
-		datasetState.availableInGeneration.map((dataset) =>
-			loadSpecificDataset(dataset.id, fetchFunction, { showLoading: false })
-		)
-	);
-};
-
 /** Load only the currently selected dataset (lazy loading) */
 export const loadCurrentDataset = async (fetchFunction: typeof fetch): Promise<void> => {
 	const currentDatasetId = datasetState.selected;

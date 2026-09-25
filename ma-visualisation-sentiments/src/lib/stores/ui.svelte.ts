@@ -15,10 +15,9 @@ let _sidebarExpanded = $state<boolean>(false);
 let _activeView = $state<ViewId>('charts');
 let _mobileMenuOpen = $state<boolean>(false);
 let _filtersDrawerOpen = $state<boolean>(false);
+// The one page-level spinner: a foreground dataset load. Optional payloads
+// (extremes, map, arbiters) report their own per-resource state instead.
 let _isLoadingDataset = $state<boolean>(false);
-let _isLoadingExtremeAnalysis = $state<boolean>(false);
-let _isLoadingComparison = $state<boolean>(false);
-let _isLoadingArbiter = $state<boolean>(false);
 
 // ============================================
 // Modern State Accessors (Recommended)
@@ -96,33 +95,5 @@ export const uiState = {
 	},
 	set isLoadingDataset(value: boolean) {
 		_isLoadingDataset = value;
-	},
-
-	get isLoadingExtremeAnalysis() {
-		return _isLoadingExtremeAnalysis;
-	},
-	set isLoadingExtremeAnalysis(value: boolean) {
-		_isLoadingExtremeAnalysis = value;
-	},
-
-	get isLoadingComparison() {
-		return _isLoadingComparison;
-	},
-	set isLoadingComparison(value: boolean) {
-		_isLoadingComparison = value;
-	},
-
-	get isLoadingArbiter() {
-		return _isLoadingArbiter;
-	},
-	set isLoadingArbiter(value: boolean) {
-		_isLoadingArbiter = value;
-	},
-
-	// Utility: Check if anything is loading
-	get isLoading() {
-		return (
-			_isLoadingDataset || _isLoadingExtremeAnalysis || _isLoadingComparison || _isLoadingArbiter
-		);
 	}
 };

@@ -14,18 +14,17 @@
 -->
 <script lang="ts">
 	import DetailLinkNotice from '$lib/components/common/DetailLinkNotice.svelte';
-	import { onMount } from 'svelte';
 	import { arbiterSelectionState, viewOptionsState } from '$lib/stores/view-options.svelte';
-	import { getArbiterForArticle, currentArbiterPair } from '$lib/stores/arbiter.svelte';
+	import { getArbiterForArticle } from '$lib/stores/arbiter.svelte';
 	import {
 		arbiterEvaluations,
+		arbiterLoadState,
 		arbiterStatistics,
-		loadArbiterEvaluations,
-		setupArbiterPairReactivity,
-		uiState,
+		retryArbiterEvaluations,
 		datasetState,
 		articleState
 	} from '$lib/stores';
+	import ResourceLoadError from '$lib/components/common/ResourceLoadError.svelte';
 	import { getPairModelNames, getModelsFromPair } from '$lib/types/data';
 	import { t } from '$lib/i18n';
 	import { ChartCard } from '$lib/components/ui';
@@ -49,10 +48,10 @@
 		viewOptionsState.arbiterDimension === 'all' ? null : viewOptionsState.arbiterDimension
 	);
 	const selectedArticleId = $derived(arbiterSelectionState.articleId);
+	// The evaluations are derived from the selected pair, so a lookup can never
+	// resolve against another pair's file.
 	const selectedArbiterData = $derived(
-		selectedArticleId && currentArbiterPair.current === datasetState.pair
-			? getArbiterForArticle(selectedArticleId)
-			: null
+		selectedArticleId ? getArbiterForArticle(selectedArticleId) : null
 	);
 
 	function handleSelectArticle(articleId: string) {
@@ -61,9 +60,6 @@
 	function handleCloseModal() {
 		arbiterSelectionState.articleId = null;
 	}
-
-	// Cleanup function for arbiter reactivity
-	let cleanupArbiter: (() => void) | null = $state(null);
 
 	// Get model names from current pair
 	const modelNames = $derived(getPairModelNames(datasetState.pair, datasetState.available));
@@ -90,20 +86,10 @@
 		return Math.min(a, b) || Math.max(a, b);
 	});
 
-	// Setup reactivity on mount
-	onMount(() => {
-		// Setup arbiter pair reactivity
-		cleanupArbiter = setupArbiterPairReactivity(fetch);
-
-		// Initial load
-		loadArbiterEvaluations(fetch);
-
-		return () => {
-			if (cleanupArbiter) {
-				cleanupArbiter();
-			}
-		};
-	});
+	// Loading is the page's: `+page.svelte` requests the selected pair's file
+	// whenever the arbiter or comparison view is on screen, pair changes included.
+	const loadState = $derived(arbiterLoadState.current);
+	const isLoading = $derived(loadState.status === 'idle' || loadState.status === 'loading');
 
 	// Dimension filter options
 	const dimensionOptions = $derived([
@@ -114,7 +100,7 @@
 	]);
 </script>
 
-{#if hasData && currentArbiterPair.current === datasetState.pair && selectedArticleId && !selectedArbiterData}<DetailLinkNotice
+{#if hasData && selectedArticleId && !selectedArbiterData}<DetailLinkNotice
 		onClose={handleCloseModal}
 	/>{/if}
 
@@ -143,7 +129,9 @@
 		</div>
 	</div>
 
-	{#if uiState.isLoadingArbiter}
+	{#if loadState.status === 'error'}
+		<ResourceLoadError error={loadState.error} onRetry={() => retryArbiterEvaluations(fetch)} />
+	{:else if isLoading}
 		<!-- Loading State -->
 		<div class="loading-section">
 			<ChartCard>

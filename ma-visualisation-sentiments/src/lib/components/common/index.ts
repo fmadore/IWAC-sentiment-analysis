@@ -35,3 +35,4 @@ export { default as ChartDataTable } from './ChartDataTable.svelte';
 
 // States
 export { default as LoadingState } from './LoadingState.svelte';
+export { default as ResourceLoadError } from './ResourceLoadError.svelte';

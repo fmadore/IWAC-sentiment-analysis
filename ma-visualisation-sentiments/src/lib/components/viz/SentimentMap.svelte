@@ -39,7 +39,6 @@
 <script lang="ts">
 	import DetailLinkNotice from '$lib/components/common/DetailLinkNotice.svelte';
 	import { viewOptionsState } from '$lib/stores/view-options.svelte';
-	import { dataUrl } from '$lib/data/release';
 	import { onMount } from 'svelte';
 	import { dec, num } from '$lib/i18n/utils';
 	// Side effect only, and first on purpose: calls `setWorkerUrl()` with a
@@ -60,7 +59,7 @@
 	import type { LngLatLike, MapLayerMouseEvent } from 'maplibre-gl';
 	import type { FeatureCollection } from 'geojson';
 	import { articleState, datasetState } from '$lib/stores';
-	import { placeState, loadPlaces } from '$lib/stores/places.svelte';
+	import { placeState, loadPlaces, retryPlaces } from '$lib/stores/places.svelte';
 	import type { MapDimension } from '$lib/utils/placeAggregation';
 	import { MAP_DIMENSIONS } from '$lib/utils/placeAggregation';
 	import {
@@ -71,6 +70,7 @@
 	import { t } from '$lib/i18n';
 	import LoadingState from '$lib/components/common/LoadingState.svelte';
 	import EmptyState from '$lib/components/common/EmptyState.svelte';
+	import ResourceLoadError from '$lib/components/common/ResourceLoadError.svelte';
 	import ChartDataTable from '$lib/components/common/ChartDataTable.svelte';
 	import MapLegend from './MapLegend.svelte';
 
@@ -83,7 +83,7 @@
 		[150, 70]
 	];
 
-	let world = $state<FeatureCollection | null>(null);
+	const world = $derived(placeState.world);
 	let map = $state<import('maplibre-gl').Map>();
 	let mapReady = $state(false);
 	let restoringCamera = false;
@@ -121,12 +121,10 @@
 		centrality: $t.filters.centrality
 	});
 
+	// Loaded here rather than by the page's orchestration so the places store
+	// stays in the map's lazy chunk (see ViewContent.svelte).
 	onMount(() => {
 		loadPlaces();
-		fetch(dataUrl(`/data/world-110m.geojson`))
-			.then((response) => (response.ok ? response.json() : null))
-			.then((data) => (world = data))
-			.catch(() => (world = null));
 	});
 
 	/**
@@ -212,9 +210,9 @@
 		{/each}
 	</div>
 
-	{#if placeState.error}
-		<EmptyState title={$t.map.loadErrorTitle} lede={placeState.error} />
-	{:else if !placeState.loaded || !world || !modelReady}
+	{#if placeState.loadState.status === 'error'}
+		<ResourceLoadError error={placeState.loadState.error} onRetry={() => retryPlaces(fetch)} />
+	{:else if placeState.loadState.status !== 'ready' || !world || !modelReady}
 		<LoadingState />
 	{:else if aggregates.length === 0}
 		<EmptyState title={$t.map.noPlacesTitle} lede={$t.map.noPlacesLede} />

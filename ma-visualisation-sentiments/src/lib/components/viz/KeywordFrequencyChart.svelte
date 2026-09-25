@@ -3,7 +3,8 @@
 	import Chart from './CitableChart.svelte';
 	import { num } from '$lib/i18n/utils';
 	import { innerWidth } from 'svelte/reactivity/window';
-	import { uiState, extremeState } from '$lib/stores';
+	import { extremeState, retryCurrentExtremeAnalysis } from '$lib/stores';
+	import ResourceLoadError from '$lib/components/common/ResourceLoadError.svelte';
 	import { t } from '$lib/i18n';
 	import Spinner from '$lib/components/common/Spinner.svelte';
 	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
@@ -34,8 +35,9 @@
 	// Reactive window width for responsive behavior
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
 
-	// Loading state - use specific loading state for better UX
-	let isLoading = $derived(uiState.isLoadingExtremeAnalysis || !extremeState.filtered);
+	// A failed load is its own state with a Retry action; only idle and loading spin.
+	let loadState = $derived(extremeState.loadState);
+	let isLoading = $derived(loadState.status === 'idle' || loadState.status === 'loading');
 
 	// Derived data
 	let categoryData = $derived.by(() => {
@@ -169,7 +171,9 @@
 	});
 </script>
 
-{#if isLoading}
+{#if loadState.status === 'error'}
+	<ResourceLoadError error={loadState.error} onRetry={() => retryCurrentExtremeAnalysis(fetch)} />
+{:else if isLoading}
 	<!-- Loading State -->
 	<div class="loading-container">
 		<div class="chart-container extreme-chart-container p-4" style="min-height: 500px;">
