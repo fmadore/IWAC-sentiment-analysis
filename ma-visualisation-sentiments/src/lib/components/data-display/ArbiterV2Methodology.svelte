@@ -21,10 +21,7 @@
 	import SentimentScaleList, {
 		type ScaleItem
 	} from '$lib/components/common/SentimentScaleList.svelte';
-	import {
-		ARBITER_SYSTEM_INSTRUCTION_V2,
-		ARBITER_USER_PROMPT_TEMPLATE_V2
-	} from '$lib/data/prompts';
+	import { loadPromptTexts, promptTexts } from '$lib/data/promptTexts.svelte';
 	import { SENTIMENT_CONTRACT_V2 } from '$lib/domain/sentimentContract';
 	import { createAccordion } from '$lib/utils/accordion.svelte';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
@@ -105,6 +102,12 @@
 			description: $t.arbiter.centralityNotAddressed
 		}
 	]);
+	// The prompt texts load only when the modal opens (see promptTexts.svelte.ts).
+	$effect(() => {
+		if (viewOptionsState.prompt) {
+			loadPromptTexts().catch((error) => console.error('Failed to load the prompt texts:', error));
+		}
+	});
 </script>
 
 <CollapsibleMethodologyCard
@@ -254,19 +257,23 @@
 		{$t.arbiterV2.arbiterPrompt}
 	{/snippet}
 
-	<div class="prompt-section-header">
-		<h4>{$t.arbiterV2.systemInstruction}</h4>
-	</div>
-	<div class="prompt-code-container">
-		<pre class="prompt-code">{ARBITER_SYSTEM_INSTRUCTION_V2}</pre>
-	</div>
+	{#if promptTexts.current}
+		<div class="prompt-section-header">
+			<h4>{$t.arbiterV2.systemInstruction}</h4>
+		</div>
+		<div class="prompt-code-container">
+			<pre class="prompt-code">{promptTexts.current.ARBITER_SYSTEM_INSTRUCTION_V2}</pre>
+		</div>
 
-	<div class="prompt-section-header">
-		<h4>{$t.arbiterV2.userPromptTemplate}</h4>
-	</div>
-	<div class="prompt-code-container">
-		<pre class="prompt-code">{ARBITER_USER_PROMPT_TEMPLATE_V2}</pre>
-	</div>
+		<div class="prompt-section-header">
+			<h4>{$t.arbiterV2.userPromptTemplate}</h4>
+		</div>
+		<div class="prompt-code-container">
+			<pre class="prompt-code">{promptTexts.current.ARBITER_USER_PROMPT_TEMPLATE_V2}</pre>
+		</div>
+	{:else}
+		<p class="prompt-loading" role="status">{$t.messages.loading}</p>
+	{/if}
 </PromptModal>
 
 <style>

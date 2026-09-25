@@ -6,6 +6,7 @@
 	import { AppHeader, SidebarNav } from '$lib/components/layout';
 	import PWAManager from '$lib/components/PWAManager.svelte';
 	import { uiState } from '$lib/stores';
+	import { readStorage, removeStorage } from '$lib/utils/safeStorage';
 
 	let { children } = $props();
 
@@ -16,9 +17,9 @@
 	// location with the SPA root; here we route through SvelteKit's own
 	// navigation API so its router stays authoritative.
 	onMount(() => {
-		const raw = sessionStorage.getItem('spa-redirect');
+		const raw = readStorage('sessionStorage', 'spa-redirect');
 		if (!raw) return;
-		sessionStorage.removeItem('spa-redirect');
+		removeStorage('sessionStorage', 'spa-redirect');
 		try {
 			const data = JSON.parse(raw) as { search?: string; hash?: string };
 			if (!data.search && !data.hash) return;

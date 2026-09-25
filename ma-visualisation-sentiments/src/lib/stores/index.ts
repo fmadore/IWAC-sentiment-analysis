@@ -18,6 +18,7 @@ export { comparisonState } from './comparison.svelte';
 export { type ArbiterStatistics } from './arbiter.svelte';
 export {
 	arbiterV2Evaluations,
+	arbiterV2LoadState,
 	arbiterV2Legend,
 	arbiterV2Rows,
 	arbiterV2Statistics,
@@ -26,6 +27,7 @@ export {
 	getArbiterV2RowForArticle,
 	loadArbiterV2Evaluations,
 	loadArbiterV2Panel,
+	retryArbiterV2Evaluations,
 	ARBITER_V2_DIMENSIONS,
 	type ArbiterV2Dimension,
 	type ArbiterV2DimensionBreakdown,
@@ -84,15 +86,18 @@ export {
 export {
 	loadDatasetArticles,
 	loadSpecificDataset,
-	loadAllDatasets,
 	loadCurrentDataset,
 	loadJustifications,
+	justificationsOf,
+	type Justifications,
 	hasJustifications
 } from './articles.svelte';
 
 export { loadComparisonDatasets } from './comparison.svelte';
+export { dataRequirements, type DataContext, type DataRequirement } from './dataRequirements';
+export { ensureDataRequirements } from './dataLoading';
 
-export { loadCurrentExtremeAnalysis } from './extreme-analysis.svelte';
+export { loadCurrentExtremeAnalysis, retryCurrentExtremeAnalysis } from './extreme-analysis.svelte';
 
 export { loadPlaces } from './places.svelte';
 
@@ -102,11 +107,11 @@ export { loadPlaces } from './places.svelte';
 
 export {
 	arbiterEvaluations,
-	currentArbiterPair,
+	arbiterLoadState,
 	arbiterModelAIsFirst,
 	getArbiterForArticle,
 	arbiterStatistics,
 	getActualModelName,
 	loadArbiterEvaluations,
-	setupArbiterPairReactivity
+	retryArbiterEvaluations
 } from './arbiter.svelte';

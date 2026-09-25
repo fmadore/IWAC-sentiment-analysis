@@ -2,14 +2,12 @@
  * Comparison State Module
  *
  * Manages model comparison state and derived data using Svelte 5 runes.
- * Provides both modern $state-based API and legacy store compatibility.
  */
 
 import type { ComparisonData } from '$lib/types/data';
 import { getModelsFromPair } from '$lib/types/data';
 import { datasetState } from './datasets.svelte';
 import { filterState } from './filters.svelte';
-import { uiState } from './ui.svelte';
 import { loadSpecificDataset, articleState } from './articles.svelte';
 import {
 	buildComparisonData,
@@ -24,7 +22,8 @@ export type { ComparisonStatistics };
 // Svelte 5 Runes State
 // ============================================
 
-let _selectedComparison = $state<ComparisonData | null>(null);
+// Raw: the row holds the corpora's own (raw) analysis objects; see articles.svelte.ts.
+let _selectedComparison = $state.raw<ComparisonData | null>(null);
 
 // ============================================
 // Derived State (reactive runes)
@@ -71,20 +70,13 @@ export const loadComparisonDatasets = async (fetchFunction: typeof fetch): Promi
 		datasetsToLoad.push(modelBId);
 	}
 
-	if (datasetsToLoad.length > 0) {
-		uiState.isLoadingComparison = true;
-
-		try {
-			// Use showLoading: false since we manage our own loading state (isLoadingComparison)
-			await Promise.all(
-				datasetsToLoad.map((datasetId) =>
-					loadSpecificDataset(datasetId, fetchFunction, { showLoading: false })
-				)
-			);
-		} finally {
-			uiState.isLoadingComparison = false;
-		}
-	}
+	// Background loads: the comparison view derives its own readiness and error
+	// state from the pair's per-dataset load states (see datasetReadiness).
+	await Promise.all(
+		datasetsToLoad.map((datasetId) =>
+			loadSpecificDataset(datasetId, fetchFunction, { showLoading: false })
+		)
+	);
 };
 
 // ============================================

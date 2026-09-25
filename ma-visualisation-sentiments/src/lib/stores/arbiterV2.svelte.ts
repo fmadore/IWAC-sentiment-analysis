@@ -1,4 +1,3 @@
-import { dataUrl } from '$lib/data/release';
 /**
  * Generation-2 arbiter state — one panel-wide verdict per article.
  *
@@ -9,11 +8,14 @@ import { dataUrl } from '$lib/data/release';
  * answer shape — and the panel has since grown from three models to five
  * without any of this needing to know how many there are.
  *
- * One file, loaded once, missing file → null. There is no pair to switch, so
- * none of v1's per-pair cache machinery is needed here.
+ * One file, loaded once through the shared resource: a 404 is `absent` (the run
+ * was not published, and the view says so), anything else is an `error` with a
+ * Retry action. There is no pair to switch, so the resource has a single key.
  */
 
 import { parseArbiterV2EvaluationData } from '$lib/data/validation';
+import { fetchOptionalJSON } from '$lib/data/articleRepository';
+import { ABSENT, createResource, type ResourceState } from '$lib/data/resource.svelte';
 import { datasetIdsOf, modelDisplayName } from '$lib/domain/sentimentContract';
 import { ARBITER_BLIND_LABELS } from '$lib/types/data';
 import type {
@@ -34,7 +36,6 @@ import {
 } from '$lib/utils/arbiterV2';
 // Leaf stores imported directly — going through './index' would be a cycle.
 import { articleState, loadSpecificDataset } from './articles.svelte';
-import { uiState } from './ui.svelte';
 
 export {
 	ARBITER_V2_DIMENSIONS,
@@ -47,15 +48,26 @@ export {
 // State
 // ============================================
 
-let _evaluations = $state<ArbiterV2EvaluationData | null>(null);
+const arbiterV2Resource = createResource<'v2', ArbiterV2EvaluationData>(
+	async (_key, fetchFunction) => {
+		const data = await fetchOptionalJSON('/data/iwac_arbiter_evaluations_v2.json', fetchFunction);
+		return data === ABSENT ? ABSENT : parseArbiterV2EvaluationData(data);
+	}
+);
 
-/** Panel arbiter payload, or null when the run has not been published. */
+const _evaluations = $derived(arbiterV2Resource.data('v2'));
+
+/** Panel arbiter payload, or null until it is ready (or when it is absent). */
 export const arbiterV2Evaluations = {
 	get current() {
 		return _evaluations;
-	},
-	set current(value: ArbiterV2EvaluationData | null) {
-		_evaluations = value;
+	}
+};
+
+/** Load state of the panel arbiter file: `absent` means the run was not published. */
+export const arbiterV2LoadState = {
+	get current(): ResourceState<ArbiterV2EvaluationData> {
+		return arbiterV2Resource.state('v2');
 	}
 };
 
@@ -318,42 +330,10 @@ export const loadArbiterV2Panel = async (fetchFunction: typeof fetch): Promise<v
 // Loading
 // ============================================
 
-/**
- * Result cache and in-flight dedup. A missing file is a legitimate, permanent
- * answer (the paid run is user-gated), so a 404 is cached as `null` and never
- * refetched; a network failure is not cached, so a later call can retry.
- */
-let attempted = false;
-let inFlight: Promise<void> | null = null;
-
 /** Load the panel arbiter file. Idempotent; safe to call from any view. */
-export const loadArbiterV2Evaluations = async (fetchFunction: typeof fetch): Promise<void> => {
-	if (attempted) return;
-	if (inFlight) return inFlight;
+export const loadArbiterV2Evaluations = (fetchFunction: typeof fetch = fetch): Promise<void> =>
+	arbiterV2Resource.ensure('v2', fetchFunction);
 
-	const load = fetchArbiterV2(fetchFunction).finally(() => {
-		inFlight = null;
-	});
-	inFlight = load;
-	return load;
-};
-
-const fetchArbiterV2 = async (fetchFunction: typeof fetch): Promise<void> => {
-	uiState.isLoadingArbiter = true;
-	try {
-		const response = await fetchFunction(dataUrl(`/data/iwac_arbiter_evaluations_v2.json`));
-		if (!response.ok) {
-			// Optional data: the panel arbiter run is paid and user-gated.
-			attempted = true;
-			_evaluations = null;
-			return;
-		}
-		_evaluations = parseArbiterV2EvaluationData(await response.json());
-		attempted = true;
-	} catch (error) {
-		console.log('[ArbiterV2] Evaluations not available:', error);
-		_evaluations = null;
-	} finally {
-		uiState.isLoadingArbiter = false;
-	}
-};
+/** Load the panel arbiter file again after a failure. */
+export const retryArbiterV2Evaluations = (fetchFunction: typeof fetch = fetch): Promise<void> =>
+	arbiterV2Resource.retry('v2', fetchFunction);

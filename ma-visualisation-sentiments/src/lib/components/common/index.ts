@@ -24,6 +24,7 @@ export { default as StatCardGrid } from './StatCardGrid.svelte';
 export { default as DropdownMenu } from './DropdownMenu.svelte';
 export { default as FilterChip } from './FilterChip.svelte';
 export { default as SearchInput } from './SearchInput.svelte';
+export { default as SortableHeader } from './SortableHeader.svelte';
 
 // Data Display
 export { default as SentimentBadge } from './SentimentBadge.svelte';
@@ -35,3 +36,4 @@ export { default as ChartDataTable } from './ChartDataTable.svelte';
 
 // States
 export { default as LoadingState } from './LoadingState.svelte';
+export { default as ResourceLoadError } from './ResourceLoadError.svelte';

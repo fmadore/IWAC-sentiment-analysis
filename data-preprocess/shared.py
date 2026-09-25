@@ -6,11 +6,12 @@ code and tests should import ``iwac_preprocess`` directly.
 
 from iwac_preprocess import *  # noqa: F401,F403
 
-# Extreme-analysis constants are presentation categories rather than part of
-# the cross-language sentiment contract.
-EXTREME_SUBJECTIVITY_HIGH = 4
-EXTREME_SUBJECTIVITY_LOW = 2
-EXTREME_POLARITY_VERY_NEGATIVE = "Très négatif"
-EXTREME_POLARITY_VERY_POSITIVE = "Très positif"
-EXTREME_CENTRALITY_VERY_CENTRAL = "Très central"
-EXTREME_CENTRALITY_MARGINAL = "Marginal"
+# Re-exported for older command-line helpers; they now live beside the analysis.
+from iwac_preprocess.extremes import (  # noqa: E402,F401
+    EXTREME_CENTRALITY_MARGINAL,
+    EXTREME_CENTRALITY_VERY_CENTRAL,
+    EXTREME_POLARITY_VERY_NEGATIVE,
+    EXTREME_POLARITY_VERY_POSITIVE,
+    EXTREME_SUBJECTIVITY_HIGH,
+    EXTREME_SUBJECTIVITY_LOW,
+)

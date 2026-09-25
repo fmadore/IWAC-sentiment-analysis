@@ -23,7 +23,7 @@ export default defineConfig({
 			'$app/paths': resolve('./src/mocks/app-paths.ts'),
 			'$app/environment': resolve('./src/mocks/app-environment.ts'),
 			'$app/navigation': resolve('./src/mocks/app-navigation.ts'),
-			'$app/stores': resolve('./src/mocks/app-stores.ts')
+			'$app/state': resolve('./src/mocks/app-state.ts')
 		}
 	}
 });

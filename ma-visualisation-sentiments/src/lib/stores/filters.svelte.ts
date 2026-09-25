@@ -2,7 +2,6 @@
  * Filter State Module
  *
  * Manages all filter-related state using Svelte 5 runes.
- * Provides both modern $state-based API and legacy store compatibility.
  */
 
 import type { DiscrepancyFilter } from '$lib/types/data';
@@ -12,12 +11,17 @@ import { TOTAL_DISCREPANCY_MAXIMUM } from '$lib/domain/sentimentContract';
 // Svelte 5 Runes State
 // ============================================
 
-let _countryFilters = $state<string[]>([]);
-let _journalFilters = $state<string[]>([]);
-let _polarityFilters = $state<string[]>([]);
-let _subjectivityFilters = $state<string[]>([]);
-let _centralityFilters = $state<string[]>([]);
-let _discrepancyFilters = $state<DiscrepancyFilter>({
+// `$state.raw`, not deep `$state`: every setter replaces the value wholesale and
+// nothing mutates one in place, so deep proxies bought nothing — while every
+// filter pass read these arrays once per article through a Proxy trap and a
+// signal. Measured on 12,349 articles: 43–65 ms per filter change through the
+// proxies, 1–2 ms with plain arrays.
+let _countryFilters = $state.raw<string[]>([]);
+let _journalFilters = $state.raw<string[]>([]);
+let _polarityFilters = $state.raw<string[]>([]);
+let _subjectivityFilters = $state.raw<string[]>([]);
+let _centralityFilters = $state.raw<string[]>([]);
+let _discrepancyFilters = $state.raw<DiscrepancyFilter>({
 	minDifference: 0,
 	maxDifference: TOTAL_DISCREPANCY_MAXIMUM,
 	dimensions: ['polarity', 'subjectivity', 'centrality'],

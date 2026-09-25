@@ -28,12 +28,12 @@
 		datasetState,
 		arbiterV2Evaluations,
 		arbiterV2Legend,
-		loadJustifications
+		loadJustifications,
+		justificationsOf
 	} from '$lib/stores';
 	import { SentimentBadge } from '$lib/components/common';
 	import {
 		ARBITER_V2_DIMENSIONS,
-		analysisJustification,
 		analysisValue,
 		matchesArbiterScore,
 		resolvePreference,
@@ -84,7 +84,8 @@
 
 	// The models' own reasoning is prose the app never loads until asked. One
 	// toggle covers all three dimensions, and the fetch is one shard per model;
-	// the text appears in place because the row holds the store's own objects.
+	// the row holds the store's own analysis objects, and `justificationsOf`
+	// re-reads their prose when the shard is merged.
 	let loadingReasoning = $state(false);
 	let requestedReasoning = '';
 	$effect(() => {
@@ -251,7 +252,7 @@
 				{#if viewOptionsState.reasoning}
 					<ul class="model-reasons">
 						{#each legend as entry (entry.label)}
-							{@const prose = analysisJustification(row.analyses[entry.modelId], dimension)}
+							{@const prose = justificationsOf(row.analyses[entry.modelId])[dimension]}
 							<li class="model-reason" style="--model-color: {modelColor(entry.modelId)}">
 								<span class="model-reason-head">
 									<span class="chip-letter">{entry.label.toUpperCase()}</span>

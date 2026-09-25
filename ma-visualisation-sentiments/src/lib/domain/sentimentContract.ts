@@ -132,11 +132,29 @@ export const POLARITY_VALENCE_BANDS = Object.freeze({
 });
 export const JUSTIFICATION_SHARD_COUNT = contractV1.delivery.justificationShards;
 
+/**
+ * The shard holding an article's justification prose — the one shard the
+ * browser fetches for a detail view.
+ *
+ * Must agree byte for byte with `justification_shard` in
+ * `data-preprocess/iwac_preprocess/shards.py`, which places the rows and which
+ * the validator checks every row against; `justification-shard-fixtures.json`
+ * holds both languages to the same cases. Canonical decimal ids take the exact
+ * decimal remainder, computed digit by digit so an id beyond 2^53 is not
+ * rounded first. Anything else is hashed with 32-bit FNV-1a: the two
+ * languages' number parsers disagree on signs, exponents, hex, underscores,
+ * whitespace and non-ASCII digits, so neither parser is trusted with them.
+ */
 export function justificationShard(articleId: string | number): number {
-	const numeric = Number(articleId);
-	if (Number.isSafeInteger(numeric)) return Math.abs(numeric) % JUSTIFICATION_SHARD_COUNT;
+	const text = String(articleId);
+	if (/^[0-9]+$/.test(text)) {
+		let remainder = 0;
+		for (const digit of text)
+			remainder = (remainder * 10 + Number(digit)) % JUSTIFICATION_SHARD_COUNT;
+		return remainder;
+	}
 	let hash = 2166136261;
-	for (const byte of new TextEncoder().encode(String(articleId))) {
+	for (const byte of new TextEncoder().encode(text)) {
 		hash ^= byte;
 		hash = Math.imul(hash, 16777619) >>> 0;
 	}
@@ -262,4 +280,15 @@ if (
 
 if (contractV2.delivery.justificationShards !== contractV1.delivery.justificationShards) {
 	throw new Error('Both generations must use the same justification shard count');
+}
+
+// SIGNIFICANT_CONFLICT_THRESHOLD and TOTAL_DISCREPANCY_MAXIMUM are read from v1
+// and applied to both generations' pairs, while Python reads each contract's
+// own values. Hold them equal here rather than rely on the v2 fixtures noticing.
+if (
+	contractV2.discrepancy.significantDimensionGap !==
+		contractV1.discrepancy.significantDimensionGap ||
+	contractV2.discrepancy.maximumTotal !== contractV1.discrepancy.maximumTotal
+) {
+	throw new Error('The v2 pairwise discrepancy thresholds have diverged from v1');
 }

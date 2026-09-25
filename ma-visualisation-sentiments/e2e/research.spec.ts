@@ -228,4 +228,195 @@ test.describe('immutable data cache', () => {
 		}, known);
 		expect(result).toEqual({ cached: 200, other: 404 });
 	});
+
+	test('activation keeps only the current data release, with its base precached', async ({
+		page
+	}) => {
+		// Seed what an older visit leaves behind, before the worker is installed:
+		// a superseded release and a file from the flat pre-release layout.
+		await page.addInitScript(() => {
+			if (navigator.serviceWorker.controller) return;
+			void caches
+				.open('iwac-data-v4')
+				.then((cache) =>
+					Promise.all([
+						cache.put(
+							'/sentiment-analysis/data/releases/000000000000000000000000/iwac_sentiment_luna.json',
+							new Response('{}')
+						),
+						cache.put('/sentiment-analysis/data/iwac_sentiment_luna.json', new Response('{}'))
+					])
+				);
+		});
+		await page.goto('?view=charts&dataset=luna&lang=en');
+		const release = await page.evaluate(async () => {
+			await navigator.serviceWorker.ready;
+			return (await (await fetch('data/release.json')).json()).release as string;
+		});
+		const cachedPaths = () =>
+			page.evaluate(async () =>
+				(await (await caches.open('iwac-data-v4')).keys()).map((r) => new URL(r.url).pathname)
+			);
+		await expect
+			.poll(cachedPaths, { timeout: 20_000 })
+			.toContain(`/sentiment-analysis/data/releases/${release}/iwac_articles_base.json`);
+		await expect
+			.poll(async () => (await cachedPaths()).filter((path) => !path.includes(release)), {
+				timeout: 20_000
+			})
+			.toEqual([]);
+	});
+});
+
+test('a browser that blocks site storage still gets a working dashboard', async ({ page }) => {
+	// "Block all cookies" makes merely touching either storage area throw.
+	await page.addInitScript(() => {
+		for (const name of ['localStorage', 'sessionStorage'] as const) {
+			Object.defineProperty(window, name, {
+				configurable: true,
+				get() {
+					throw new DOMException('The operation is insecure.', 'SecurityError');
+				}
+			});
+		}
+	});
+	const errors: string[] = [];
+	page.on('pageerror', (error) => errors.push(error.message));
+
+	// No `lang=`, so start-up consults the (blocked) remembered language.
+	await page.goto('?view=charts&dataset=luna');
+	await expect(
+		page.getByRole('heading', { level: 1, name: /^(Charts|Graphiques)$/ })
+	).toBeVisible();
+	await expect(page.locator('canvas').first()).toBeVisible();
+
+	await page.getByRole('button', { name: /^(Change language|Changer de langue)$/ }).click();
+	await page.getByRole('option', { name: 'Français' }).click();
+	await expect(page.getByRole('heading', { level: 1, name: 'Graphiques' })).toBeVisible();
+	expect(errors).toEqual([]);
+});
+
+test('a failed extremes payload is an error with a working retry, not an endless spinner', async ({
+	page
+}) => {
+	let fail = true;
+	await page.route('**/iwac_extreme_analysis_luna.json', (route) =>
+		fail ? route.fulfill({ status: 500, body: 'down' }) : route.continue()
+	);
+	await page.goto('?view=extremes&dataset=luna&lang=en');
+	const alert = page.getByRole('alert');
+	await expect(alert).toContainText('could not be loaded');
+	fail = false;
+	await alert.getByRole('button', { name: 'Retry' }).click();
+	await expect(alert).toHaveCount(0);
+	await expect(page.locator('canvas').first()).toBeVisible();
+});
+
+test('a server error on the panel arbiter is retryable, not shown as an unpublished run', async ({
+	page
+}) => {
+	let fail = true;
+	await page.route('**/iwac_arbiter_evaluations_v2.json', (route) =>
+		fail ? route.fulfill({ status: 503, body: 'down' }) : route.continue()
+	);
+	await page.goto('?view=arbiter&dataset=luna&lang=en');
+	const alert = page.getByRole('alert');
+	await expect(alert).toContainText('could not be loaded');
+	fail = false;
+	await alert.getByRole('button', { name: 'Retry' }).click();
+	await expect(alert).toHaveCount(0);
+	await expect(page.getByRole('table').first()).toBeVisible();
+});
+
+test('a failed basemap is reported instead of leaving the map loading forever', async ({
+	page
+}) => {
+	let fail = true;
+	await page.route('**/world-110m.geojson', (route) =>
+		fail ? route.fulfill({ status: 500, body: 'down' }) : route.continue()
+	);
+	await page.goto('?view=map&dataset=luna&lang=en');
+	const alert = page.getByRole('alert');
+	await expect(alert).toContainText('could not be loaded');
+	fail = false;
+	await alert.getByRole('button', { name: 'Retry' }).click();
+	await expect(alert).toHaveCount(0);
+});
+
+test('touring the views requests each data file once', async ({ page }) => {
+	// One effect owns page-level loading and every loader deduplicates, so no
+	// view change may re-fetch a file another view already asked for.
+	const requests = new Map<string, number>();
+	page.on('request', (request) => {
+		const url = new URL(request.url());
+		if (url.pathname.includes('/data/') && url.pathname.endsWith('.json')) {
+			const name = url.pathname.split('/').pop()!;
+			requests.set(name, (requests.get(name) ?? 0) + 1);
+		}
+	});
+	await page.goto('?view=charts&dataset=luna&lang=en');
+	await expect(page.locator('canvas').first()).toBeVisible();
+	for (const [label, id] of [
+		['Comparison', 'comparison'],
+		['Agreement', 'agreement'],
+		['Arbiter', 'arbiter'],
+		['Extremes', 'extremes'],
+		['Charts', 'charts']
+	]) {
+		await page.getByRole('button', { name: label, exact: true }).first().click();
+		await expect(page).toHaveURL(new RegExp(`view=${id}`));
+		await page.waitForLoadState('networkidle');
+	}
+	await page.waitForLoadState('networkidle');
+	const repeated = [...requests].filter(([, count]) => count > 1);
+	expect(repeated).toEqual([]);
+	expect(requests.get('iwac_arbiter_evaluations_v2.json')).toBe(1);
+});
+
+test('justification prose that arrives after a detail opens appears in it', async ({ page }) => {
+	// The corpora are raw state and prose is merged in place, so the detail views
+	// must re-read it when a shard lands. Hold the shards until the modal is up.
+	let release!: () => void;
+	const gate = new Promise<void>((resolve) => (release = resolve));
+	await page.route('**/iwac_justifications_*.json', async (route) => {
+		await gate;
+		await route.continue();
+	});
+
+	await page.goto('?view=table&dataset=luna&lang=en');
+	await page
+		.getByRole('button', { name: /View article details for/ })
+		.first()
+		.click();
+	const modal = page.getByRole('dialog');
+	await expect(modal).toBeVisible();
+	await expect(modal.locator('blockquote.justification')).toHaveCount(0);
+	release();
+	await expect(modal.locator('blockquote.justification').first()).toBeVisible();
+	await page.keyboard.press('Escape');
+
+	await page.goto('?view=comparison&compare=true&pair=luna-mistral-small&lang=en');
+	await page
+		.getByRole('button', { name: /View comparison details for/ })
+		.first()
+		.click();
+	await expect(page.getByRole('dialog').getByText(/\S/).first()).toBeVisible();
+	await expect
+		.poll(() => page.getByRole('dialog').locator('.justification, blockquote').count())
+		.toBeGreaterThan(0);
+});
+
+test('arbiter table headers announce their sort direction', async ({ page }) => {
+	await page.goto('?view=arbiter&dataset=luna&lang=en');
+	const confidence = page.getByRole('columnheader', { name: /Confidence/ });
+	await expect(confidence).toHaveAttribute('aria-sort', 'none');
+	await confidence.getByRole('button').click();
+	await expect(confidence).toHaveAttribute('aria-sort', 'descending');
+	await expect(confidence).toContainText('↓');
+	await confidence.getByRole('button').click();
+	await expect(confidence).toHaveAttribute('aria-sort', 'ascending');
+	await expect(page.getByRole('columnheader', { name: /Spread/ })).toHaveAttribute(
+		'aria-sort',
+		'none'
+	);
 });

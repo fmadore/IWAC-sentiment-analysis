@@ -276,3 +276,24 @@ describe('loadDatasetArticles', () => {
 		).rejects.toThrow('Failed to fetch');
 	});
 });
+
+describe('justificationsOf', () => {
+	it('reads each dimension’s prose, null until it has loaded', async () => {
+		const { justificationsOf } = await import('./articles.svelte');
+		expect(
+			justificationsOf({
+				polarite: 'Positif',
+				polarite_justification: 'because Positif',
+				subjectivite_score: 4,
+				subjectivite_justification: null,
+				centralite_islam_musulmans: 'Central',
+				centralite_justification: null
+			})
+		).toEqual({ polarity: 'because Positif', subjectivity: null, centrality: null });
+		expect(justificationsOf(undefined)).toEqual({
+			polarity: null,
+			subjectivity: null,
+			centrality: null
+		});
+	});
+});

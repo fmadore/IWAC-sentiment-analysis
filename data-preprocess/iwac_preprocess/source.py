@@ -291,8 +291,23 @@ def build_base_article(item: dict) -> dict:
     }
 
 
+WEBAPP_DIR = Path(__file__).resolve().parents[2] / "ma-visualisation-sentiments"
+
+
 def get_webapp_data_dir() -> str:
-    output = Path(__file__).resolve().parents[2] / "ma-visualisation-sentiments" / "static" / "data"
+    output = WEBAPP_DIR / "static" / "data"
+    output.mkdir(parents=True, exist_ok=True)
+    return os.fspath(output)
+
+
+def get_staging_dir() -> str:
+    """Scratch space for staged exports and the writer lock, beside ``static/``.
+
+    Never inside ``static/``: everything there is copied into the Pages
+    artifact. It shares the data directory's filesystem, which keeps promotion
+    an atomic rename (see ``iwac_preprocess.publication``).
+    """
+    output = WEBAPP_DIR / ".data-staging"
     output.mkdir(parents=True, exist_ok=True)
     return os.fspath(output)
 

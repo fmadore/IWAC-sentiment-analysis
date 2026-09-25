@@ -1,6 +1,6 @@
 /**
  * Shared pagination composable using Svelte 5 runes.
- * Used by: ArticleTable, ComparisonTable
+ * Used by: ArticleTable, ComparisonTable, ArbiterArticleTable, ArbiterV2ArticleTable
  */
 
 interface PaginationOptions {

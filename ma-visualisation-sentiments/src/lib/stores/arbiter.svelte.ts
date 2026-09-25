@@ -1,4 +1,3 @@
-import { dataUrl } from '$lib/data/release';
 /**
  * Arbiter State Module
  *
@@ -10,46 +9,58 @@ import { dataUrl } from '$lib/data/release';
 import type { ArbiterEvaluationData, ArbiterAnalysis, ModelPair } from '$lib/types/data';
 import { getPairModelNames } from '$lib/types/data';
 import { parseArbiterEvaluationData } from '$lib/data/validation';
+import { fetchOptionalJSON } from '$lib/data/articleRepository';
+import { ABSENT, createResource, type ResourceState } from '$lib/data/resource.svelte';
 import { generationOf } from '$lib/domain/sentimentContract';
 // Import the leaf stores directly — importing from './index' would create a
 // cycle (the barrel re-exports this module). Same convention as url/*.
 import { datasetState } from './datasets.svelte';
-import { uiState } from './ui.svelte';
 
 // ============================================
 // Arbiter State (Svelte 5 Runes)
 // ============================================
 
-/** Arbiter evaluation data */
-let _arbiterEvaluations = $state<ArbiterEvaluationData | null>(null);
+/**
+ * One file per generation-1 pair. A 404 is an absent file (cached); any other
+ * failure — a 5xx, a network error, a file that fails validation — is an error
+ * the view shows with a Retry action, not the "no arbiter data" empty state.
+ */
+const arbiterResource = createResource<ModelPair, ArbiterEvaluationData>(
+	async (pair, fetchFunction) => {
+		const data = await fetchOptionalJSON(
+			`/data/iwac_arbiter_evaluations_${pair}.json`,
+			fetchFunction
+		);
+		return data === ABSENT ? ABSENT : parseArbiterEvaluationData(data, pair);
+	}
+);
 
-/** Currently loaded arbiter pair */
-let _currentArbiterPair = $state<ModelPair | null>(null);
-
-/** Track if reactivity is set up */
-let arbiterReactivitySetUp = $state(false);
+/**
+ * The selected pair's evaluations. Derived from the pair rather than set by
+ * whichever load finished last, so a slow response for a pair the reader has
+ * left can never be shown under another pair.
+ */
+const _arbiterEvaluations = $derived(
+	generationOf(datasetState.pair) === 'v1' ? arbiterResource.data(datasetState.pair) : null
+);
 
 // ============================================
 // Exported State Accessors
 // ============================================
 
-/** Arbiter evaluation data - exported as object for cross-module reactivity */
+/** The selected pair's arbiter evaluations, or null (absent, loading, failed, or v2). */
 export const arbiterEvaluations = {
 	get current() {
 		return _arbiterEvaluations;
-	},
-	set current(value: ArbiterEvaluationData | null) {
-		_arbiterEvaluations = value;
 	}
 };
 
-/** Currently loaded arbiter pair - exported as object for cross-module reactivity */
-export const currentArbiterPair = {
-	get current() {
-		return _currentArbiterPair;
-	},
-	set current(value: ModelPair | null) {
-		_currentArbiterPair = value;
+/** Load state of the selected pair's file; `absent` for a generation-2 pair. */
+export const arbiterLoadState = {
+	get current(): ResourceState<ArbiterEvaluationData> {
+		return generationOf(datasetState.pair) === 'v1'
+			? arbiterResource.state(datasetState.pair)
+			: { status: 'absent' };
 	}
 };
 
@@ -272,112 +283,28 @@ export function getActualModelName(
 // ============================================
 
 /**
- * Per-pair result cache (null = attempted, file not available) and in-flight
- * dedup. Two effects in +page.svelte can both request arbiter data in the
- * same tick (comparison-mode effect + activeView effect); without this the
- * file was fetched twice on every entry into comparison/arbiter views.
+ * Load a pair's arbiter file (default: the selected pair). Idempotent, deduped
+ * in flight, and never retries a failure unasked.
+ *
+ * Only generation 1 has a per-pair arbiter file. A v2 pair would build a
+ * filename that cannot exist (`iwac_arbiter_evaluations_luna-mistral-small.json`)
+ * and 404 on every comparison mount and every pair switch — ten times over, now
+ * that the v2 panel has ten pairs. The v2 arbiter judges the whole panel at once
+ * and is loaded by `arbiterV2` from a single file.
  */
-// Plain Maps, not SvelteMaps: internal plumbing, never rendered, and read
-// from inside `$effect`s — a reactive map would make each caller depend on it,
-// so every set()/delete() would re-invalidate the effect that caused it.
-/* eslint-disable svelte/prefer-svelte-reactivity -- reactivity here causes an effect loop */
-const arbiterCache = new Map<ModelPair, ArbiterEvaluationData | null>();
-const arbiterInFlight = new Map<ModelPair, Promise<void>>();
-/* eslint-enable svelte/prefer-svelte-reactivity */
-
-/** Load arbiter evaluations for a specific model pair */
 export const loadArbiterEvaluations = async (
 	fetchFunction: typeof fetch,
-	pair?: ModelPair
+	pair: ModelPair = datasetState.pair
 ): Promise<void> => {
-	const targetPair: ModelPair = pair || datasetState.pair;
-
-	// Only generation 1 has a per-pair arbiter file. A v2 pair would build a
-	// filename that cannot exist (`iwac_arbiter_evaluations_luna-mistral-small.json`)
-	// and 404 on every comparison mount and every pair switch — ten times over,
-	// now that the v2 panel has ten pairs. The v2 arbiter judges the whole panel
-	// at once and is loaded by `arbiterV2` from a single file.
-	if (generationOf(targetPair) !== 'v1') {
-		_arbiterEvaluations = null;
-		_currentArbiterPair = targetPair;
-		return;
-	}
-
-	if (arbiterCache.has(targetPair)) {
-		_arbiterEvaluations = arbiterCache.get(targetPair) ?? null;
-		_currentArbiterPair = targetPair;
-		return;
-	}
-
-	const inFlight = arbiterInFlight.get(targetPair);
-	if (inFlight) {
-		return inFlight;
-	}
-
-	const load = fetchArbiterEvaluations(fetchFunction, targetPair).finally(() => {
-		arbiterInFlight.delete(targetPair);
-	});
-	arbiterInFlight.set(targetPair, load);
-	return load;
+	if (generationOf(pair) !== 'v1') return;
+	await arbiterResource.ensure(pair, fetchFunction);
 };
 
-const fetchArbiterEvaluations = async (
-	fetchFunction: typeof fetch,
-	targetPair: ModelPair
+/** Load the selected pair's arbiter file again after a failure. */
+export const retryArbiterEvaluations = async (
+	fetchFunction: typeof fetch = fetch
 ): Promise<void> => {
-	uiState.isLoadingArbiter = true;
-
-	try {
-		const pairSpecificPath = dataUrl(`/data/iwac_arbiter_evaluations_${targetPair}.json`);
-		const response = await fetchFunction(pairSpecificPath);
-
-		if (!response.ok) {
-			console.log(`[Arbiter] Evaluations not found for pair ${targetPair} (this is optional data)`);
-			arbiterCache.set(targetPair, null);
-			_arbiterEvaluations = null;
-			_currentArbiterPair = targetPair;
-			return;
-		}
-
-		const data = parseArbiterEvaluationData(await response.json(), targetPair);
-		arbiterCache.set(targetPair, data);
-		_arbiterEvaluations = data;
-		_currentArbiterPair = targetPair;
-	} catch (error) {
-		// Transient (network) failure: don't cache, so a later call can retry.
-		console.log('[Arbiter] Evaluations not available:', error);
-		_arbiterEvaluations = null;
-		_currentArbiterPair = targetPair;
-	} finally {
-		uiState.isLoadingArbiter = false;
-	}
-};
-
-/** Setup reactive arbiter data reloading when comparison pair changes */
-export const setupArbiterPairReactivity = (fetchFunction: typeof fetch): (() => void) => {
-	if (arbiterReactivitySetUp) {
-		return () => {};
-	}
-
-	arbiterReactivitySetUp = true;
-
-	// Use $effect.root to create an effect that can be manually cleaned up
-	const cleanup = $effect.root(() => {
-		let previousPair = _currentArbiterPair;
-
-		$effect(() => {
-			const newPair = datasetState.pair;
-			const isInComparisonMode = datasetState.isComparisonMode;
-
-			if (isInComparisonMode && previousPair !== null && previousPair !== newPair) {
-				loadArbiterEvaluations(fetchFunction, newPair);
-			}
-			previousPair = newPair;
-		});
-	});
-
-	return () => {
-		cleanup();
-		arbiterReactivitySetUp = false;
-	};
+	const pair = datasetState.pair;
+	if (generationOf(pair) !== 'v1') return;
+	await arbiterResource.retry(pair, fetchFunction);
 };

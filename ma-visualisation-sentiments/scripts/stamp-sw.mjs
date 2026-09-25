@@ -8,6 +8,10 @@
 //
 // Version source: the commit SHA in CI (stable, only changes with the code), or a
 // timestamp locally so `vite preview` of repeated local builds still differs.
+//
+// It also stamps `__DATA_RELEASE__` with the content-addressed data release that
+// publish-data-release.mjs (which runs first) recorded in data/release.json, so
+// the worker precaches the right release and evicts every other one.
 import { readFile, writeFile, access } from 'node:fs/promises';
 import { DEPLOY_PATH } from '../deploy.config.js';
 
@@ -16,6 +20,7 @@ import { DEPLOY_PATH } from '../deploy.config.js';
 const OUT_DIR = new URL(`../build${DEPLOY_PATH}/`, import.meta.url);
 const SW_PATH = new URL('sw.js', OUT_DIR);
 const PLACEHOLDER = '__BUILD_VERSION__';
+const RELEASE_PLACEHOLDER = '__DATA_RELEASE__';
 
 const version =
 	(process.env.GITHUB_SHA && process.env.GITHUB_SHA.slice(0, 12)) || `local-${Date.now()}`;
@@ -32,7 +37,15 @@ if (!source.includes(PLACEHOLDER)) {
 	throw new Error(`[stamp-sw] no ${PLACEHOLDER} placeholder in the built sw.js`);
 }
 
-const stamped = source.replaceAll(PLACEHOLDER, version);
+if (!source.includes(RELEASE_PLACEHOLDER)) {
+	throw new Error(`[stamp-sw] no ${RELEASE_PLACEHOLDER} placeholder in the built sw.js`);
+}
+const { release } = JSON.parse(await readFile(new URL('data/release.json', OUT_DIR), 'utf8'));
+if (!/^[0-9a-f]{24}$/.test(release ?? '')) {
+	throw new Error(`[stamp-sw] data/release.json does not name a release: ${release}`);
+}
+
+const stamped = source.replaceAll(PLACEHOLDER, version).replaceAll(RELEASE_PLACEHOLDER, release);
 await writeFile(SW_PATH, stamped);
 
-console.log(`[stamp-sw] Stamped build${DEPLOY_PATH}/sw.js → ${version}`);
+console.log(`[stamp-sw] Stamped build${DEPLOY_PATH}/sw.js → ${version}, data release ${release}`);

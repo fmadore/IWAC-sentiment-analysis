@@ -28,7 +28,7 @@
 		getArbiterForArticle,
 		arbiterModelAIsFirst,
 		getActualModelName,
-		uiState,
+		arbiterLoadState,
 		datasetState
 	} from '$lib/stores';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
@@ -164,7 +164,7 @@
 	</button>
 
 	{#if showArbiter}
-		{#if uiState.isLoadingArbiter}
+		{#if arbiterLoadState.current.status === 'loading'}
 			<div class="flex items-center justify-center p-8">
 				<Spinner
 					size="lg"

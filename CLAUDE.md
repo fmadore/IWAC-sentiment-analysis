@@ -172,7 +172,10 @@ What that comment does not cover:
 - The build intentionally emits no `.gz`/`.br` siblings: GitHub Pages handles
   transfer compression and duplicated files bloated the artifact.
   `check-build-artifact.mjs` rejects unstamped placeholders, precompressed
-  duplicates, missing nested files, and initial JS over 300 KiB gzip
+  duplicates, missing nested files, initial JS over 300 KiB gzip, and anything
+  stray: hidden files, unknown directories under the deploy path, data outside
+  the published release. Everything in `static/` ships, which is why the data
+  exports' lock and stages live in `.data-staging/`, never under `static/`
 
 ## Svelte, CSS and UI
 
@@ -261,8 +264,8 @@ forces runes mode on `node_modules`: a Dependabot bump shipping a legacy
 
 ## State
 
-- Stores are runes accessor objects only — no legacy writable layer (the sole
-  `writable` is the i18n `currentLanguage`)
+- Stores are runes accessor objects only — no legacy writable layer (the only
+  `writable`s are the i18n `currentLanguage` and its lazily loaded catalogues)
 - **Modules inside `stores/` must import individual store files, never the
   `./index` barrel** — the barrel re-exports everything, so that is an instant
   cycle. `scripts/check-store-cycles.mjs` fails `npm run lint` if one reappears.
@@ -271,7 +274,17 @@ forces runes mode on `node_modules`: a Dependabot bump shipping a legacy
   setters deliberately accept `string` with one internal cast. Don't "fix" the
   setter signatures — a prior attempt cascaded svelte-check errors across every
   call site
-- Data loading is idempotent with in-flight dedup (see `articles.svelte.ts`)
+- Data loading is idempotent with in-flight dedup (see `articles.svelte.ts`).
+  Page data is requested by one effect in `+page.svelte` from the pure
+  `dataRequirements()`; optional payloads (extremes, map, both arbiters) go
+  through `createResource` (`data/resource.svelte.ts`), whose `ensure` never
+  retries an error unasked and which keeps a 404 (`absent`) apart from a failure
+- **The corpora are `$state.raw`, and the justification prose is written into
+  them in place.** Read prose through `justificationsOf()`, which subscribes to
+  the merge; reading `analysis.polarite_justification` directly renders nothing
+  when the shard lands. And never hold an article in deep `$state` (a component
+  `let x = $state(article)`): the proxy caches each field on first read, so the
+  prose never appears. `+page.svelte`'s `detailedArticle` did exactly that
 
 ## Testing
 

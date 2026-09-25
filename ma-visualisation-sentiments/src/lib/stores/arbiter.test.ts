@@ -11,7 +11,6 @@ import { getModelsFromPair, type ArbiterEvaluationData } from '$lib/types/data';
 import {
 	arbiterEvaluations,
 	computeArbiterStatistics,
-	currentArbiterPair,
 	loadArbiterEvaluations
 } from './arbiter.svelte';
 
@@ -297,7 +296,6 @@ describe('loadArbiterEvaluations generation scoping', () => {
 
 		expect(spy).not.toHaveBeenCalled();
 		expect(arbiterEvaluations.current).toBeNull();
-		expect(currentArbiterPair.current).toBe('luna-mistral-small');
 	});
 
 	it('still fetches the pair file for a generation-1 pair', async () => {
@@ -307,5 +305,69 @@ describe('loadArbiterEvaluations generation scoping', () => {
 
 		expect(spy).toHaveBeenCalledTimes(1);
 		expect(String(spy.mock.calls[0][0])).toContain('iwac_arbiter_evaluations_chatgpt-mistral.json');
+	});
+});
+
+/**
+ * A 404 means the pair's file was never published; anything else is a failure
+ * the view must show with a Retry action. They used to render identically, and
+ * a transient 5xx was cached as "never published" for the whole session.
+ *
+ * Each test imports fresh modules: the per-pair cache is module state, and the
+ * archive has only three pairs.
+ */
+describe('loadArbiterEvaluations failure states', () => {
+	async function freshStores(pair: 'chatgpt-gemini') {
+		vi.resetModules();
+		const arbiter = await import('./arbiter.svelte');
+		const { datasetState: freshDatasets } = await import('./datasets.svelte');
+		freshDatasets.isComparisonMode = true;
+		freshDatasets.pair = pair;
+		return arbiter;
+	}
+
+	it('reads a 404 as absent and caches it', async () => {
+		const arbiter = await freshStores('chatgpt-gemini');
+		const spy = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 404 }));
+
+		await arbiter.loadArbiterEvaluations(spy as unknown as typeof fetch);
+		await arbiter.loadArbiterEvaluations(spy as unknown as typeof fetch);
+		await arbiter.retryArbiterEvaluations(spy as unknown as typeof fetch);
+
+		expect(arbiter.arbiterLoadState.current).toEqual({ status: 'absent' });
+		expect(spy).toHaveBeenCalledTimes(1);
+	});
+
+	it('reports a server error, and only an explicit retry loads again', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {});
+		const arbiter = await freshStores('chatgpt-gemini');
+		const spy = vi
+			.fn<typeof fetch>()
+			.mockResolvedValueOnce(new Response('down', { status: 503 }))
+			.mockResolvedValueOnce(new Response(null, { status: 404 }));
+
+		await arbiter.loadArbiterEvaluations(spy as unknown as typeof fetch);
+		expect(arbiter.arbiterLoadState.current.status).toBe('error');
+
+		// Asking again is not a retry: the failure stays on screen until asked.
+		await arbiter.loadArbiterEvaluations(spy as unknown as typeof fetch);
+		expect(spy).toHaveBeenCalledTimes(1);
+
+		await arbiter.retryArbiterEvaluations(spy as unknown as typeof fetch);
+		expect(spy).toHaveBeenCalledTimes(2);
+		expect(arbiter.arbiterLoadState.current).toEqual({ status: 'absent' });
+	});
+
+	it('reports a file that fails validation as an error, not as unpublished', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {});
+		const arbiter = await freshStores('chatgpt-gemini');
+		const spy = vi
+			.fn<typeof fetch>()
+			.mockResolvedValue(new Response(JSON.stringify({ evaluations: 'nope' }), { status: 200 }));
+
+		await arbiter.loadArbiterEvaluations(spy as unknown as typeof fetch);
+
+		expect(arbiter.arbiterLoadState.current.status).toBe('error');
+		expect(arbiter.arbiterEvaluations.current).toBeNull();
 	});
 });

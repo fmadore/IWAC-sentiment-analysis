@@ -15,17 +15,15 @@
 -->
 <script lang="ts">
 	import DetailLinkNotice from '$lib/components/common/DetailLinkNotice.svelte';
-	import { onMount } from 'svelte';
 	import { arbiterSelectionState } from '$lib/stores/view-options.svelte';
 	import { num } from '$lib/i18n/utils';
 	import {
 		arbiterV2Evaluations,
 		arbiterV2Legend,
+		arbiterV2LoadState,
 		arbiterV2Rows,
 		arbiterV2Statistics,
-		loadArbiterV2Evaluations,
-		loadArbiterV2Panel,
-		uiState,
+		retryArbiterV2Evaluations,
 		articleState,
 		datasetState,
 		type ArbiterV2Dimension
@@ -34,6 +32,7 @@
 	import { t } from '$lib/i18n';
 	import { ChartCard } from '$lib/components/ui';
 	import Spinner from '$lib/components/common/Spinner.svelte';
+	import ResourceLoadError from '$lib/components/common/ResourceLoadError.svelte';
 	import ArbiterV2ArticleDetailModal from '$lib/components/common/ArbiterV2ArticleDetailModal.svelte';
 	import { getConfidenceLabel } from '$lib/utils/arbiter';
 	import ArbiterCoverage from './ArbiterCoverage.svelte';
@@ -102,12 +101,9 @@
 		return $t.arbiterV2[dimension];
 	}
 
-	onMount(() => {
-		loadArbiterV2Evaluations(fetch);
-		loadArbiterV2Panel(fetch).catch((error) =>
-			console.error('Failed to load the panel datasets for the arbiter view:', error)
-		);
-	});
+	// Loading is the page's: `+page.svelte` requests the arbiter file and the
+	// whole panel's scores whenever this view is on screen.
+	const loadState = $derived(arbiterV2LoadState.current);
 </script>
 
 {#if hasData && arbiterSelectionState.articleId && !selected}<DetailLinkNotice
@@ -124,7 +120,9 @@
 		<p class="arbiter-lede">{$t.arbiterV2.viewSubtitle}</p>
 	</header>
 
-	{#if uiState.isLoadingArbiter}
+	{#if loadState.status === 'error'}
+		<ResourceLoadError error={loadState.error} onRetry={() => retryArbiterV2Evaluations(fetch)} />
+	{:else if loadState.status === 'idle' || loadState.status === 'loading'}
 		<ChartCard>
 			<div class="flex flex-col items-center justify-center py-16">
 				<Spinner

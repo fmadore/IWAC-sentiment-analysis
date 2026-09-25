@@ -1,10 +1,14 @@
 /**
  * Pure store derivations
  *
- * Framework-agnostic computation behind the article/comparison derived state.
- * Extracted from the store modules so the exact same logic backs both the
- * (transitional) legacy derived stores and the runes-based accessors, and so
- * it can be unit-tested directly without a Svelte runtime.
+ * Framework-agnostic computation behind the article/comparison derived state,
+ * extracted from the store modules so it can be unit-tested directly without a
+ * Svelte runtime.
+ *
+ * Every filter criterion is turned into a `Set` once, on entry, rather than
+ * searched with `includes` once per row: these run over the whole corpus on
+ * every filter change, and a criteria array handed in from reactive state may
+ * be a Proxy whose every read is a trap and a signal.
  */
 
 import type {
@@ -58,53 +62,45 @@ function filterBucket(value: string | number | null | undefined): string {
 	return value === null || value === undefined ? NOT_ANNOTATED : String(value);
 }
 
-/** Apply the active filters to a list of articles. */
-export function filterArticles(
-	articles: Article[],
-	{ countries, journals, polarities, subjectivities, centralities }: ArticleFilterCriteria
-): Article[] {
-	return articles.filter((article) => {
-		if (countries.length > 0 && !countries.includes(article.Country || '')) {
-			return false;
-		}
+/** A criterion as a lookup set, or null when it selects everything. */
+function criterion(values: readonly string[]): Set<string> | null {
+	return values.length > 0 ? new Set(values) : null;
+}
 
-		if (journals.length > 0) {
-			const journalName = getJournalName(article);
-			if (!journals.includes(journalName)) {
-				return false;
-			}
-		}
+/** Apply the active filters to a list of articles. */
+export function filterArticles(articles: Article[], criteria: ArticleFilterCriteria): Article[] {
+	const countries = criterion(criteria.countries);
+	const journals = criterion(criteria.journals);
+	const polarities = criterion(criteria.polarities);
+	const subjectivities = criterion(criteria.subjectivities);
+	const centralities = criterion(criteria.centralities);
+	// Always a fresh array, as `filter` would return: callers may sort it.
+	if (!countries && !journals && !polarities && !subjectivities && !centralities) {
+		return articles.slice();
+	}
+
+	return articles.filter((article) => {
+		if (countries && !countries.has(article.Country || '')) return false;
+		if (journals && !journals.has(getJournalName(article))) return false;
 
 		const analysis = article.sentiment_analysis;
-
-		if (polarities.length > 0 && !polarities.includes(filterBucket(analysis?.polarite))) {
+		if (polarities && !polarities.has(filterBucket(analysis?.polarite))) return false;
+		if (subjectivities && !subjectivities.has(filterBucket(analysis?.subjectivite_score))) {
 			return false;
 		}
-
-		if (
-			subjectivities.length > 0 &&
-			!subjectivities.includes(filterBucket(analysis?.subjectivite_score))
-		) {
+		if (centralities && !centralities.has(filterBucket(analysis?.centralite_islam_musulmans))) {
 			return false;
 		}
-
-		if (
-			centralities.length > 0 &&
-			!centralities.includes(filterBucket(analysis?.centralite_islam_musulmans))
-		) {
-			return false;
-		}
-
 		return true;
 	});
 }
 
 /** Compute the sorted, unique list of journals available for the given articles. */
 export function computeAvailableJournals(articles: Article[], countries: string[]): string[] {
-	const scoped =
-		countries.length > 0
-			? articles.filter((article) => countries.includes(article.Country || ''))
-			: articles;
+	const countrySet = criterion(countries);
+	const scoped = countrySet
+		? articles.filter((article) => countrySet.has(article.Country || ''))
+		: articles;
 
 	return [
 		...new Set(
@@ -346,43 +342,39 @@ export function filterComparisons(
 	countries: string[],
 	journals: string[]
 ): ComparisonData[] {
+	const countrySet = criterion(countries);
+	const journalSet = criterion(journals);
+	const dimensions = new Set(filters.dimensions);
+	const allDimensions = dimensions.size === 0;
+
 	return comparisons
 		.map((comparison) => {
 			const originalDisc = comparison.discrepancies;
-			let filteredDiscrepancy = {
-				polarityDiff: filters.dimensions.includes('polarity') ? originalDisc.polarityDiff : 0,
-				subjectivityDiff: filters.dimensions.includes('subjectivity')
-					? originalDisc.subjectivityDiff
-					: 0,
-				centralityDiff: filters.dimensions.includes('centrality') ? originalDisc.centralityDiff : 0,
-				totalDiff: 0,
-				hasConflict: false,
+			if (allDimensions) return comparison;
+
+			const polarityDiff = dimensions.has('polarity') ? originalDisc.polarityDiff : 0;
+			const subjectivityDiff = dimensions.has('subjectivity') ? originalDisc.subjectivityDiff : 0;
+			const centralityDiff = dimensions.has('centrality') ? originalDisc.centralityDiff : 0;
+			const filteredDiscrepancy: DiscrepancyInfo = {
+				polarityDiff,
+				subjectivityDiff,
+				centralityDiff,
+				totalDiff: polarityDiff + subjectivityDiff + centralityDiff,
+				hasConflict:
+					polarityDiff >= SIGNIFICANT_CONFLICT_THRESHOLD ||
+					subjectivityDiff >= SIGNIFICANT_CONFLICT_THRESHOLD ||
+					centralityDiff >= SIGNIFICANT_CONFLICT_THRESHOLD,
 				isComparable: originalDisc.isComparable
 			};
-
-			if (filters.dimensions.length === 0) {
-				filteredDiscrepancy = originalDisc;
-			} else {
-				filteredDiscrepancy.totalDiff =
-					filteredDiscrepancy.polarityDiff +
-					filteredDiscrepancy.subjectivityDiff +
-					filteredDiscrepancy.centralityDiff;
-
-				filteredDiscrepancy.hasConflict =
-					filteredDiscrepancy.polarityDiff >= SIGNIFICANT_CONFLICT_THRESHOLD ||
-					filteredDiscrepancy.subjectivityDiff >= SIGNIFICANT_CONFLICT_THRESHOLD ||
-					filteredDiscrepancy.centralityDiff >= SIGNIFICANT_CONFLICT_THRESHOLD;
-			}
 
 			return { ...comparison, discrepancies: filteredDiscrepancy };
 		})
 		.filter((comparison) => {
-			if (countries.length > 0 && !countries.includes(comparison.article.Country || '')) {
+			if (countrySet && !countrySet.has(comparison.article.Country || '')) {
 				return false;
 			}
 
-			const journalName = getJournalName(comparison.article);
-			if (journals.length > 0 && !journals.includes(journalName)) {
+			if (journalSet && !journalSet.has(getJournalName(comparison.article))) {
 				return false;
 			}
 
@@ -396,7 +388,7 @@ export function filterComparisons(
 				return false;
 			}
 
-			if (filters.dimensions.length === 0) {
+			if (allDimensions) {
 				return true;
 			}
 

@@ -1,3 +1,10 @@
+# Not an installable package: this table only declares the interpreter the
+# pipeline targets, so tooling (and a reader) can see it. CI runs 3.12.
+[project]
+name = "iwac-sentiment-preprocess"
+version = "0"
+requires-python = ">=3.12"
+
 [tool.pytest.ini_options]
 pythonpath = ["data-preprocess"]
 testpaths = ["data-preprocess"]

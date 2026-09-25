@@ -1,4 +1,4 @@
-"""Importable core for the IWAC v1 sentiment preprocessing pipeline."""
+"""Importable core for the IWAC sentiment preprocessing pipeline (both generations)."""
 
 from .arbiter_cache import (
     CacheReconciliation,
@@ -63,6 +63,7 @@ from .source import (
     get_logger,
     get_models_from_pair,
     get_source_revision,
+    get_staging_dir,
     get_webapp_data_dir,
     load_iwac_dataset,
     load_iwac_full_text,
@@ -124,6 +125,7 @@ __all__ = [
     "get_logger",
     "get_models_from_pair",
     "get_source_revision",
+    "get_staging_dir",
     "get_webapp_data_dir",
     "load_iwac_dataset",
     "load_iwac_full_text",

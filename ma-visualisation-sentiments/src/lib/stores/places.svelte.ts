@@ -18,52 +18,66 @@ import { dataUrl } from '$lib/data/release';
  */
 
 import type { Place, PlacesPayload } from '$lib/types/data';
+import type { FeatureCollection } from 'geojson';
 import { aggregatePlaces, type PlaceAggregate } from '$lib/utils/placeAggregation';
 import { parsePlacesPayload } from '$lib/data/validation';
+import { createResource, type ResourceState } from '$lib/data/resource.svelte';
 // Leaf/data stores imported directly — importing from './index' would create a
 // cycle (the barrel re-exports this module). Same convention as agreement.svelte.
 import { articleState } from './articles.svelte';
 
 export type { PlaceAggregate };
 
-let _payload = $state<PlacesPayload | null>(null);
-let _loading = $state(false);
-let _error = $state<string | null>(null);
+async function fetchMapJSON(path: string, fetchFunction: typeof fetch): Promise<unknown> {
+	const response = await fetchFunction(dataUrl(path));
+	if (!response.ok) {
+		throw new Error(`Failed to fetch ${path}: ${response.status} ${response.statusText}`);
+	}
+	return response.json();
+}
 
-let payloadPromise: Promise<PlacesPayload> | null = null;
+// Both files are always published, so a 404 is a failure here, not an absence.
+const placesResource = createResource<'places', PlacesPayload>(async (_key, fetchFunction) =>
+	parsePlacesPayload(await fetchMapJSON('/data/iwac_places.json', fetchFunction))
+);
+const basemapResource = createResource<'basemap', FeatureCollection>(
+	async (_key, fetchFunction) =>
+		(await fetchMapJSON('/data/world-110m.geojson', fetchFunction)) as FeatureCollection
+);
 
 /**
- * Fetch the map payload once. Idempotent with in-flight dedup, and a rejection
- * is not cached so a transient failure can be retried — same contract as
- * `loadJustifications`.
+ * Fetch the map payload and the basemap. Idempotent with in-flight dedup; a
+ * failure is reported through `placeState.loadState` and retried only on
+ * request (`retryPlaces`). The basemap used to be fetched by the component with
+ * its failure swallowed, which left the map on its loading state for good.
  */
 export async function loadPlaces(fetchFunction: typeof fetch = fetch): Promise<void> {
-	if (_payload) return;
-
-	if (!payloadPromise) {
-		_loading = true;
-		_error = null;
-		payloadPromise = fetchFunction(dataUrl(`/data/iwac_places.json`))
-			.then((response) => {
-				if (!response.ok) {
-					throw new Error(`Failed to fetch place data: ${response.statusText}`);
-				}
-				return response.json();
-			})
-			.then((data: unknown) => parsePlacesPayload(data));
-		payloadPromise.catch(() => {
-			payloadPromise = null;
-		});
-	}
-
-	try {
-		_payload = await payloadPromise;
-	} catch (error) {
-		_error = error instanceof Error ? error.message : String(error);
-	} finally {
-		_loading = false;
-	}
+	await Promise.all([
+		placesResource.ensure('places', fetchFunction),
+		basemapResource.ensure('basemap', fetchFunction)
+	]);
 }
+
+/** Retry whichever of the two map files failed. */
+export async function retryPlaces(fetchFunction: typeof fetch = fetch): Promise<void> {
+	await Promise.all([
+		placesResource.retry('places', fetchFunction),
+		basemapResource.retry('basemap', fetchFunction)
+	]);
+}
+
+/** The map's combined state: an error in either file wins, then loading. */
+function combinedState(): ResourceState<true> {
+	const states = [placesResource.state('places'), basemapResource.state('basemap')];
+	const failed = states.find((state) => state.status === 'error');
+	if (failed) return failed;
+	if (states.every((state) => state.status === 'ready')) return { status: 'ready', data: true };
+	return states.some((state) => state.status === 'loading')
+		? { status: 'loading' }
+		: { status: 'idle' };
+}
+
+const _payload = $derived(placesResource.data('places'));
 
 /**
  * Per-place aggregates over `articleState.filtered`.
@@ -76,14 +90,16 @@ const _aggregates = $derived.by((): PlaceAggregate[] =>
 );
 
 export const placeState = {
-	get loading() {
-		return _loading;
-	},
-	get error() {
-		return _error;
+	/** Both map files together: ready only when the payload and the basemap are. */
+	get loadState(): ResourceState<true> {
+		return combinedState();
 	},
 	get loaded() {
 		return _payload !== null;
+	},
+	/** The Natural Earth basemap, or null until it is ready. */
+	get world(): FeatureCollection | null {
+		return basemapResource.data('basemap');
 	},
 	/** Every geocoded place in the registry, regardless of the active filters. */
 	get places(): Place[] {

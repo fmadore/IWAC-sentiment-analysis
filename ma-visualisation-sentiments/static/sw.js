@@ -14,6 +14,13 @@
 
 const SW_VERSION = '__BUILD_VERSION__';
 
+// The content-addressed data release this build serves, stamped alongside the
+// version (scripts/stamp-sw.mjs). Production data lives only under
+// `data/releases/<release>/`; this is what tells the worker which release is
+// current, so it can precache it and evict every other one.
+const DATA_RELEASE = '__DATA_RELEASE__';
+const RELEASE_PREFIX = `/data/releases/${DATA_RELEASE}/`;
+
 // App-shell + build assets change every deploy → version these per build so old
 // copies are purged. The data JSON is large and network-first, so keep its cache
 // stable to avoid re-downloading the whole corpus on every deploy.
@@ -71,7 +78,10 @@ function isDataFilePath(pathname) {
 // model-specific, and the runtime rule below caches them into the same stable
 // DATA_CACHE_NAME the moment they're actually requested. Precaching them cost a
 // first-time visitor tens of MB before they had opened anything.
-const DATA_FILES_PRIORITY = [`${BASE_PATH}/data/iwac_articles_base.json`];
+// Release-scoped: the flat `data/iwac_articles_base.json` stopped existing when
+// data moved under content-addressed release directories, and precaching it
+// 404ed on every install.
+const DATA_FILES_PRIORITY = [`${BASE_PATH}${RELEASE_PREFIX}iwac_articles_base.json`];
 
 // Install event - cache static files (tolerantly), then data files progressively.
 self.addEventListener('install', (event) => {
@@ -137,15 +147,17 @@ self.addEventListener('activate', (event) => {
 				})
 			);
 
-			// The data cache is deliberately NOT versioned (re-downloading the
-			// corpus on every deploy would be brutal), so stale entries have to be
-			// evicted by name instead. Anything in there that no longer looks like a
-			// current data file is a leftover from a previous data layout — e.g. the
-			// pre-normalization `iwac_articles_{model}.json` payloads, tens of MB of
-			// dead weight in the caches of anyone who visited before that refactor.
+			// The data cache is deliberately NOT versioned by deploy (a code-only
+			// deploy keeps its data release, and re-downloading the corpus then
+			// would be brutal), so stale entries are evicted by name instead: every
+			// entry outside the current release. That covers superseded releases —
+			// several MB each, and they used to accumulate with every regeneration
+			// because they still looked like data files — as well as leftovers of
+			// older layouts, such as the flat pre-release files and the
+			// pre-normalization `iwac_articles_{model}.json` payloads.
 			const dataCache = await caches.open(DATA_CACHE_NAME);
 			const staleDataEntries = (await dataCache.keys()).filter(
-				(request) => !isDataFilePath(new URL(request.url).pathname)
+				(request) => !new URL(request.url).pathname.includes(RELEASE_PREFIX)
 			);
 			await Promise.all(
 				staleDataEntries.map((request) => {

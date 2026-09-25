@@ -9,7 +9,8 @@ node_modules/
 __pycache__/
 *.py[cod]
 .pytest_cache/
-.iwac-generation.lock
+# The data exports' writer lock and stages (see iwac_preprocess/publication.py).
+.data-staging/
 
 # Claude Code local settings (settings.local.json, launch.json, lockfiles).
 #

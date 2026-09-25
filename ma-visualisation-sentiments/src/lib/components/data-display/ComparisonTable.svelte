@@ -7,7 +7,8 @@
 	import { getModelDisplayName } from '$lib/utils/format';
 	import { discrepancyAttributes, formatDiff } from '$lib/utils/discrepancy';
 	import type { ComparisonData } from '$lib/types/data';
-	import ArrowUpDownIcon from '@lucide/svelte/icons/arrow-up-down';
+	import { nextSort, type SortOrder } from '$lib/utils/sorting';
+	import SortableHeader from '$lib/components/common/SortableHeader.svelte';
 	import LayoutGridIcon from '@lucide/svelte/icons/layout-grid';
 	import TableIcon from '@lucide/svelte/icons/table';
 	import { ComparisonCSVExportButton } from '$lib/components/ui';
@@ -49,6 +50,21 @@
 	);
 
 	// Pagination
+	/**
+	 * Same column flips; a new column starts at its own default (titles A→Z,
+	 * discrepancies largest first). The header used to flip the previous
+	 * column's direction on a switch, so a new column opened the wrong way round.
+	 */
+	function sortBy(column: typeof viewOptionsState.comparisonSort, defaultOrder: SortOrder) {
+		const next = nextSort(
+			{ column: viewOptionsState.comparisonSort, order: viewOptionsState.comparisonOrder },
+			column,
+			defaultOrder
+		);
+		viewOptionsState.comparisonSort = next.column;
+		viewOptionsState.comparisonOrder = next.order;
+	}
+
 	const pagination = createPagination({
 		state: paginationURLState('comparison'),
 		totalItems: () => sortedComparisons.length,
@@ -141,57 +157,24 @@
 					<!-- Row backgrounds live on the cells, not the rows: a `tr` fill sits
 					     behind the sticky cells and scrolls away from under them. -->
 					<tr>
-						<th
-							class="sortable-header"
-							scope="col"
-							aria-sort={viewOptionsState.comparisonSort === 'title'
-								? viewOptionsState.comparisonOrder === 'asc'
-									? 'ascending'
-									: 'descending'
-								: 'none'}
-						>
-							<button
-								class="sort-button"
-								type="button"
-								onclick={() => {
-									viewOptionsState.comparisonSort = 'title';
-									viewOptionsState.comparisonOrder =
-										viewOptionsState.comparisonOrder === 'asc' ? 'desc' : 'asc';
-								}}
-							>
-								{$t.table.articleTitle}
-								{#if viewOptionsState.comparisonSort === 'title'}
-									<ArrowUpDownIcon size={14} class="inline ml-1" />
-								{/if}
-							</button>
-						</th>
+						<SortableHeader
+							label={$t.table.articleTitle}
+							active={viewOptionsState.comparisonSort === 'title'}
+							order={viewOptionsState.comparisonOrder}
+							onsort={() => sortBy('title', 'asc')}
+							accent="neutral"
+						/>
 						<th class="text-center" colspan="2">{$t.comparison.polarity}</th>
 						<th class="text-center" colspan="2">{$t.comparison.subjectivity}</th>
 						<th class="text-center" colspan="2">{$t.comparison.centrality}</th>
-						<th
-							class="sortable-header text-center"
-							scope="col"
-							aria-sort={viewOptionsState.comparisonSort === 'discrepancy'
-								? viewOptionsState.comparisonOrder === 'asc'
-									? 'ascending'
-									: 'descending'
-								: 'none'}
-						>
-							<button
-								class="sort-button"
-								type="button"
-								onclick={() => {
-									viewOptionsState.comparisonSort = 'discrepancy';
-									viewOptionsState.comparisonOrder =
-										viewOptionsState.comparisonOrder === 'asc' ? 'desc' : 'asc';
-								}}
-							>
-								{$t.comparison.totalDiscrepancy}
-								{#if viewOptionsState.comparisonSort === 'discrepancy'}
-									<ArrowUpDownIcon size={14} class="inline ml-1" />
-								{/if}
-							</button>
-						</th>
+						<SortableHeader
+							label={$t.comparison.totalDiscrepancy}
+							active={viewOptionsState.comparisonSort === 'discrepancy'}
+							order={viewOptionsState.comparisonOrder}
+							onsort={() => sortBy('discrepancy', 'desc')}
+							accent="neutral"
+							align="center"
+						/>
 					</tr>
 					<tr class="text-xs">
 						<th></th>
@@ -481,47 +464,6 @@
 		border: 1px solid var(--border-subtle);
 	}
 
-	.sortable-header {
-		cursor: pointer;
-		user-select: none;
-		transition: background-color var(--timing-fast) var(--easing-default);
-	}
-
-	.sort-button {
-		align-items: center;
-		appearance: none;
-		background: none;
-		border: 0;
-		color: inherit;
-		cursor: pointer;
-		display: flex;
-		font: inherit;
-		font-weight: inherit;
-		gap: var(--space-1);
-		padding: 0;
-		text-align: inherit;
-		width: 100%;
-	}
-
-	.sortable-header.text-center .sort-button {
-		justify-content: center;
-	}
-
-	.sort-button:focus-visible {
-		outline: 2px solid var(--color-primary-400);
-		outline-offset: 3px;
-	}
-
-	.sortable-header:hover {
-		/* Mixed into the opaque header colour: the header is sticky, so any
-		   translucent fill lets the scrolling rows read through it. */
-		background-color: color-mix(
-			in oklab,
-			var(--color-surface-50) 10%,
-			var(--surface-card-elevated)
-		);
-	}
-
 	/*
 		Sticky header — typography and the opaque background are owned by the
 		global `.table th` rule.
@@ -721,7 +663,6 @@
 
 	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
-		.sortable-header,
 		.comparison-card,
 		tbody tr {
 			transition: none;

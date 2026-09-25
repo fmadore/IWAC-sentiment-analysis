@@ -15,6 +15,7 @@
   - ArbiterSection for arbiter verdict
 -->
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import EmptyState from '$lib/components/common/EmptyState.svelte';
 	import type { ComparisonData } from '$lib/types/data';
 	import { ComparisonPanel, ArbiterSection } from '$lib/components/common';
@@ -31,7 +32,8 @@
 		getArbiterForArticle,
 		getArbiterV2RowForArticle,
 		loadArbiterV2Panel,
-		loadJustifications
+		loadJustifications,
+		justificationsOf
 	} from '$lib/stores';
 
 	// Props: Accept comparison data as a prop
@@ -39,17 +41,25 @@
 
 	// Both models' justification prose loads on demand (see articles.svelte.ts);
 	// a comparison detail needs each side's reasoning, not just the scores.
+	// Untracked, so this effect follows the comparison, not every load state.
 	$effect(() => {
 		if (comparison) {
+			const { modelAId, modelBId } = comparison;
 			const articleIds = [comparison.article['o:id']];
-			loadJustifications(comparison.modelAId, fetch, articleIds).catch((error) =>
-				console.error('Failed to load model A justification:', error)
-			);
-			loadJustifications(comparison.modelBId, fetch, articleIds).catch((error) =>
-				console.error('Failed to load model B justification:', error)
-			);
+			untrack(() => {
+				loadJustifications(modelAId, fetch, articleIds).catch((error) =>
+					console.error('Failed to load model A justification:', error)
+				);
+				loadJustifications(modelBId, fetch, articleIds).catch((error) =>
+					console.error('Failed to load model B justification:', error)
+				);
+			});
 		}
 	});
+
+	// Prose is merged in place into raw state; this re-reads it when it lands.
+	const proseA = $derived(justificationsOf(comparison?.modelA));
+	const proseB = $derived(justificationsOf(comparison?.modelB));
 
 	// Check if arbiter data exists for this article
 	const hasArbiterData = $derived(
@@ -69,9 +79,11 @@
 			: null
 	);
 
+	// Untracked: the loader reads every dataset's load state synchronously, and
+	// this effect must re-run for a new verdict row, not for each of those.
 	$effect(() => {
 		if (panelRow) {
-			loadArbiterV2Panel(fetch).catch((error) =>
+			untrack(() => loadArbiterV2Panel(fetch)).catch((error) =>
 				console.error('Failed to load the panel datasets for the verdict:', error)
 			);
 		}
@@ -188,10 +200,10 @@
 				dimension="centrality"
 				{modelAName}
 				modelAValue={comparison.modelA?.centralite_islam_musulmans}
-				modelAJustification={comparison.modelA?.centralite_justification}
+				modelAJustification={proseA.centrality}
 				{modelBName}
 				modelBValue={comparison.modelB?.centralite_islam_musulmans}
-				modelBJustification={comparison.modelB?.centralite_justification}
+				modelBJustification={proseB.centrality}
 			/>
 		</div>
 
@@ -209,10 +221,10 @@
 				dimension="polarity"
 				{modelAName}
 				modelAValue={comparison.modelA?.polarite}
-				modelAJustification={comparison.modelA?.polarite_justification}
+				modelAJustification={proseA.polarity}
 				{modelBName}
 				modelBValue={comparison.modelB?.polarite}
-				modelBJustification={comparison.modelB?.polarite_justification}
+				modelBJustification={proseB.polarity}
 			/>
 		</div>
 
@@ -230,10 +242,10 @@
 				dimension="subjectivity"
 				{modelAName}
 				modelAValue={comparison.modelA?.subjectivite_score}
-				modelAJustification={comparison.modelA?.subjectivite_justification}
+				modelAJustification={proseA.subjectivity}
 				{modelBName}
 				modelBValue={comparison.modelB?.subjectivite_score}
-				modelBJustification={comparison.modelB?.subjectivite_justification}
+				modelBJustification={proseB.subjectivity}
 			/>
 		</div>
 

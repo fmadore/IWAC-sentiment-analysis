@@ -8,7 +8,8 @@
 -->
 <script lang="ts">
 	import type { ArbiterAnalysis } from '$lib/types/data';
-	import { comparisonState, datasetState, loadJustifications } from '$lib/stores';
+	import { untrack } from 'svelte';
+	import { comparisonState, datasetState, loadJustifications, justificationsOf } from '$lib/stores';
 	import { getPairModelNames } from '$lib/types/data';
 	import { t } from '$lib/i18n';
 	import { fmtDate } from '$lib/i18n/utils';
@@ -41,17 +42,25 @@
 	const modelNames = $derived(getPairModelNames(datasetState.pair, datasetState.available));
 
 	// Both models' justification prose loads on demand (see articles.svelte.ts).
+	// Untracked, so this effect follows the comparison, not every load state.
 	$effect(() => {
 		if (comparison) {
+			const { modelAId, modelBId } = comparison;
 			const articleIds = [comparison.article['o:id']];
-			loadJustifications(comparison.modelAId, fetch, articleIds).catch((error) =>
-				console.error('Failed to load model A justification:', error)
-			);
-			loadJustifications(comparison.modelBId, fetch, articleIds).catch((error) =>
-				console.error('Failed to load model B justification:', error)
-			);
+			untrack(() => {
+				loadJustifications(modelAId, fetch, articleIds).catch((error) =>
+					console.error('Failed to load model A justification:', error)
+				);
+				loadJustifications(modelBId, fetch, articleIds).catch((error) =>
+					console.error('Failed to load model B justification:', error)
+				);
+			});
 		}
 	});
+
+	// Prose is merged in place into raw state; this re-reads it when it lands.
+	const proseA = $derived(justificationsOf(comparison?.modelA));
+	const proseB = $derived(justificationsOf(comparison?.modelB));
 
 	const modalTitle = $derived(comparison?.article['o:title'] || $t.arbiter.articleWithArbiter);
 	const modalSubtitle = $derived(
@@ -118,10 +127,10 @@
 							dimension="polarity"
 							modelAName={modelNames.modelAName}
 							modelAValue={comparison.modelA?.polarite}
-							modelAJustification={comparison.modelA?.polarite_justification}
+							modelAJustification={proseA.polarity}
 							modelBName={modelNames.modelBName}
 							modelBValue={comparison.modelB?.polarite}
-							modelBJustification={comparison.modelB?.polarite_justification}
+							modelBJustification={proseB.polarity}
 						/>
 					</div>
 					<div>
@@ -131,10 +140,10 @@
 							dimension="subjectivity"
 							modelAName={modelNames.modelAName}
 							modelAValue={comparison.modelA?.subjectivite_score}
-							modelAJustification={comparison.modelA?.subjectivite_justification}
+							modelAJustification={proseA.subjectivity}
 							modelBName={modelNames.modelBName}
 							modelBValue={comparison.modelB?.subjectivite_score}
-							modelBJustification={comparison.modelB?.subjectivite_justification}
+							modelBJustification={proseB.subjectivity}
 						/>
 					</div>
 					<div>
@@ -144,10 +153,10 @@
 							dimension="centrality"
 							modelAName={modelNames.modelAName}
 							modelAValue={comparison.modelA?.centralite_islam_musulmans}
-							modelAJustification={comparison.modelA?.centralite_justification}
+							modelAJustification={proseA.centrality}
 							modelBName={modelNames.modelBName}
 							modelBValue={comparison.modelB?.centralite_islam_musulmans}
-							modelBJustification={comparison.modelB?.centralite_justification}
+							modelBJustification={proseB.centrality}
 						/>
 					</div>
 				</div>

@@ -10,6 +10,8 @@
 	import { updateURL } from '$lib/stores/url';
 	import { innerWidth } from 'svelte/reactivity/window';
 	import { createPagination } from '$lib/utils/pagination.svelte';
+	import { nextSort } from '$lib/utils/sorting';
+	import SortableHeader from '$lib/components/common/SortableHeader.svelte';
 	import PaginationControls from '$lib/components/common/PaginationControls.svelte';
 
 	// Props - for event dispatching
@@ -47,19 +49,27 @@
 		}
 	}
 
-	// Fonction pour changer la colonne de tri
-	function sortBy(column: typeof viewOptionsState.tableSort) {
-		if (viewOptionsState.tableSort === column) {
-			// Inverser la direction si on clique sur la même colonne
-			viewOptionsState.tableOrder = viewOptionsState.tableOrder === 'asc' ? 'desc' : 'asc';
-		} else {
-			// Nouvelle colonne de tri, direction par défaut ascendante
-			viewOptionsState.tableSort = column;
-			viewOptionsState.tableOrder = 'asc';
-		}
-		// Réinitialiser à la première page après un tri
+	type SortColumn = typeof viewOptionsState.tableSort;
+
+	/** Same column flips; a new column starts ascending. Back to page one either way. */
+	function sortBy(column: SortColumn) {
+		const next = nextSort(
+			{ column: viewOptionsState.tableSort, order: viewOptionsState.tableOrder },
+			column
+		);
+		viewOptionsState.tableSort = next.column;
+		viewOptionsState.tableOrder = next.order;
 		pagination.currentPage = 1;
 	}
+
+	const sortColumns = $derived<{ key: SortColumn; label: string }[]>([
+		{ key: 'titre', label: $t.table.articleTitle },
+		{ key: 'journal', label: $t.filters.journal },
+		{ key: 'date', label: $t.table.date },
+		{ key: 'centralite', label: $t.table.centrality },
+		{ key: 'polarite', label: $t.table.polarity },
+		{ key: 'subjectivite', label: $t.table.subjectivity }
+	]);
 
 	// Fonction pour trier les articles
 	const sortedArticles = $derived(
@@ -237,108 +247,14 @@
 			<table class="table">
 				<thead>
 					<tr class="bg-surface-800">
-						<th
-							class="sortable-header"
-							scope="col"
-							aria-sort={viewOptionsState.tableSort === 'titre'
-								? viewOptionsState.tableOrder === 'asc'
-									? 'ascending'
-									: 'descending'
-								: 'none'}
-							><button class="sort-button" type="button" onclick={() => sortBy('titre')}>
-								{$t.table.articleTitle}
-								{viewOptionsState.tableSort === 'titre'
-									? viewOptionsState.tableOrder === 'asc'
-										? '↑'
-										: '↓'
-									: ''}
-							</button>
-						</th>
-						<th
-							class="sortable-header"
-							scope="col"
-							aria-sort={viewOptionsState.tableSort === 'journal'
-								? viewOptionsState.tableOrder === 'asc'
-									? 'ascending'
-									: 'descending'
-								: 'none'}
-							><button class="sort-button" type="button" onclick={() => sortBy('journal')}>
-								{$t.filters.journal}
-								{viewOptionsState.tableSort === 'journal'
-									? viewOptionsState.tableOrder === 'asc'
-										? '↑'
-										: '↓'
-									: ''}
-							</button>
-						</th>
-						<th
-							class="sortable-header"
-							scope="col"
-							aria-sort={viewOptionsState.tableSort === 'date'
-								? viewOptionsState.tableOrder === 'asc'
-									? 'ascending'
-									: 'descending'
-								: 'none'}
-							><button class="sort-button" type="button" onclick={() => sortBy('date')}>
-								{$t.table.date}
-								{viewOptionsState.tableSort === 'date'
-									? viewOptionsState.tableOrder === 'asc'
-										? '↑'
-										: '↓'
-									: ''}
-							</button>
-						</th>
-						<th
-							class="sortable-header"
-							scope="col"
-							aria-sort={viewOptionsState.tableSort === 'centralite'
-								? viewOptionsState.tableOrder === 'asc'
-									? 'ascending'
-									: 'descending'
-								: 'none'}
-							><button class="sort-button" type="button" onclick={() => sortBy('centralite')}>
-								{$t.table.centrality}
-								{viewOptionsState.tableSort === 'centralite'
-									? viewOptionsState.tableOrder === 'asc'
-										? '↑'
-										: '↓'
-									: ''}
-							</button>
-						</th>
-						<th
-							class="sortable-header"
-							scope="col"
-							aria-sort={viewOptionsState.tableSort === 'polarite'
-								? viewOptionsState.tableOrder === 'asc'
-									? 'ascending'
-									: 'descending'
-								: 'none'}
-							><button class="sort-button" type="button" onclick={() => sortBy('polarite')}>
-								{$t.table.polarity}
-								{viewOptionsState.tableSort === 'polarite'
-									? viewOptionsState.tableOrder === 'asc'
-										? '↑'
-										: '↓'
-									: ''}
-							</button>
-						</th>
-						<th
-							class="sortable-header"
-							scope="col"
-							aria-sort={viewOptionsState.tableSort === 'subjectivite'
-								? viewOptionsState.tableOrder === 'asc'
-									? 'ascending'
-									: 'descending'
-								: 'none'}
-							><button class="sort-button" type="button" onclick={() => sortBy('subjectivite')}>
-								{$t.table.subjectivity}
-								{viewOptionsState.tableSort === 'subjectivite'
-									? viewOptionsState.tableOrder === 'asc'
-										? '↑'
-										: '↓'
-									: ''}
-							</button>
-						</th>
+						{#each sortColumns as column (column.key)}
+							<SortableHeader
+								label={column.label}
+								active={viewOptionsState.tableSort === column.key}
+								order={viewOptionsState.tableOrder}
+								onsort={() => sortBy(column.key)}
+							/>
+						{/each}
 					</tr>
 				</thead>
 				<tbody>
@@ -422,7 +338,9 @@
 		border-collapse: collapse;
 	}
 
-	th,
+	/* Sortable header cells are rendered by SortableHeader, a child component, so
+	   this table's rules reach them as `:global(th)` under its own `table`. */
+	table :global(th),
 	td {
 		padding: var(--space-2);
 		text-align: left;
@@ -430,7 +348,7 @@
 	}
 
 	@media (min-width: 640px) {
-		th,
+		table :global(th),
 		td {
 			padding: var(--space-3) var(--space-4);
 		}
@@ -463,7 +381,7 @@
 	/* ==============================================
      Sticky Table Headers
      ============================================== */
-	th {
+	table :global(th) {
 		position: sticky;
 		top: 0;
 		z-index: 1;
@@ -472,40 +390,6 @@
 		   `.table th` rule — that shorthand ties on specificity with this scoped
 		   rule and wins on source order, so setting a background here silently
 		   does nothing. */
-	}
-
-	.sortable-header {
-		cursor: pointer;
-		user-select: none;
-		transition: background-color var(--timing-fast) var(--easing-default);
-	}
-
-	.sort-button {
-		appearance: none;
-		background: none;
-		border: 0;
-		color: inherit;
-		cursor: pointer;
-		font: inherit;
-		font-weight: inherit;
-		padding: 0;
-		text-align: inherit;
-		width: 100%;
-	}
-
-	.sort-button:focus-visible {
-		outline: 2px solid var(--color-primary-400);
-		outline-offset: 3px;
-	}
-
-	.sortable-header:hover {
-		/* Mixed into the opaque header colour: the header is sticky, so any
-		   translucent fill lets the scrolling rows read through it. */
-		background-color: color-mix(
-			in oklab,
-			var(--color-primary-500) 15%,
-			var(--surface-card-elevated)
-		);
 	}
 
 	/* ==============================================
@@ -599,7 +483,6 @@
 	@media (prefers-reduced-motion: reduce) {
 		.article-row,
 		.article-title,
-		.sortable-header,
 		.mobile-card {
 			transition: none;
 		}

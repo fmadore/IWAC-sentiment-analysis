@@ -7,21 +7,27 @@
 	import { SentimentBadge } from '$lib/components/common';
 	import EmptyState from '$lib/components/common/EmptyState.svelte';
 	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
-	import { loadJustifications } from '$lib/stores';
+	import { untrack } from 'svelte';
+	import { loadJustifications, justificationsOf } from '$lib/stores';
 
 	let { article }: { article: Article | null } = $props();
 
 	// The model's justification prose is fetched on demand — the charts never
-	// need it, so it isn't part of the initial dataset payload. Merging it into
-	// the existing sentiment_analysis object makes the blockquotes below appear
-	// as soon as it lands, without re-rendering anything else.
+	// need it, so it isn't part of the initial dataset payload. It is merged
+	// into the existing analysis object, and `justificationsOf` re-reads it when
+	// it lands, without re-rendering anything else. The load runs untracked so
+	// this effect follows the article, not every dataset's load state.
 	$effect(() => {
-		if (article?.dataset_id) {
-			loadJustifications(article.dataset_id, fetch, [article['o:id']]).catch((error) =>
+		const datasetId = article?.dataset_id;
+		const articleId = article?.['o:id'];
+		if (datasetId && articleId !== undefined) {
+			untrack(() => loadJustifications(datasetId, fetch, [articleId])).catch((error) =>
 				console.error('Failed to load article justification:', error)
 			);
 		}
 	});
+
+	const prose = $derived(justificationsOf(article?.sentiment_analysis));
 </script>
 
 {#if article}
@@ -71,11 +77,11 @@
 					<span class="dimension-label">{$t.analysis.centralitySection}</span>
 				</header>
 
-				{#if article.sentiment_analysis.centralite_justification}
+				{#if prose.centrality}
 					<div class="justification-block">
 						<span class="justification-label">{$t.article.justification}</span>
 						<blockquote class="justification">
-							{article.sentiment_analysis.centralite_justification}
+							{prose.centrality}
 						</blockquote>
 					</div>
 				{/if}
@@ -88,11 +94,11 @@
 					<span class="dimension-label">{$t.analysis.polaritySection}</span>
 				</header>
 
-				{#if article.sentiment_analysis.polarite_justification}
+				{#if prose.polarity}
 					<div class="justification-block">
 						<span class="justification-label">{$t.article.justification}</span>
 						<blockquote class="justification">
-							{article.sentiment_analysis.polarite_justification}
+							{prose.polarity}
 						</blockquote>
 					</div>
 				{/if}
@@ -109,11 +115,11 @@
 					<span class="dimension-label">{$t.filters.subjectivityScore}</span>
 				</header>
 
-				{#if article.sentiment_analysis.subjectivite_justification}
+				{#if prose.subjectivity}
 					<div class="justification-block">
 						<span class="justification-label">{$t.article.justification}</span>
 						<blockquote class="justification">
-							{article.sentiment_analysis.subjectivite_justification}
+							{prose.subjectivity}
 						</blockquote>
 					</div>
 				{/if}

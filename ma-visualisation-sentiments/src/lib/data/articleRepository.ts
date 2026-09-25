@@ -1,5 +1,5 @@
 import { dataUrl } from '$lib/data/release';
-import { SvelteSet } from 'svelte/reactivity';
+import { ABSENT, type Loaded } from '$lib/data/resource.svelte';
 import type { Article, DatasetId, SentimentAnalysis } from '$lib/types/data';
 import {
 	parseBaseArticles,
@@ -46,10 +46,11 @@ export function mapArticleProperties(
  *
  * The per-model data is itself split in two. `iwac_sentiment_<model>.json`
  * holds only the three SCORES every chart, filter and aggregate reads (~59KB
- * gzipped); `iwac_justifications_<model>.json` holds the free-text prose that
- * only the detail views and CSV exports show (~1.4MB gzipped, 86-92% of the
- * old combined payload). Justifications load on demand — see
- * loadJustifications below.
+ * gzipped); `iwac_justifications_<model>_<shard>.json` (32 shards) holds the
+ * free-text prose that only the detail views and CSV exports show (86-92% of
+ * the old combined payload). Prose loads on demand, one shard per article
+ * detail or every shard for an export — see loadJustifications in
+ * articles.svelte.ts.
  */
 /**
  * Expand a score-only record into a full SentimentAnalysis with the
@@ -86,6 +87,23 @@ export const fetchJSON = async (
 	return response.json();
 };
 
+/**
+ * Fetch a data file that may legitimately be unpublished, such as an arbiter
+ * run. Only a 404 means "not published" (`ABSENT`); every other failure throws,
+ * so a transient 5xx is never mistaken for — and cached as — an absent file.
+ */
+export const fetchOptionalJSON = async (
+	filePath: string,
+	fetchFunction: typeof fetch
+): Promise<Loaded<unknown>> => {
+	const response = await fetchFunction(dataUrl(filePath));
+	if (response.status === 404) return ABSENT;
+	if (!response.ok) {
+		throw new Error(`Failed to fetch ${filePath}: ${response.status} ${response.statusText}`);
+	}
+	return response.json();
+};
+
 const loadArticleBase = (fetchFunction: typeof fetch): Promise<BaseArticleRecord[]> => {
 	if (!baseArticlesPromise) {
 		baseArticlesPromise = fetchJSON('/data/iwac_articles_base.json', fetchFunction).then((data) => {
@@ -118,11 +136,11 @@ export function joinArticles(
  * (exported for tests).
  *
  * Writes the three prose fields onto the EXISTING `sentiment_analysis` objects
- * rather than rebuilding the array. Two reasons: Svelte 5's deep `$state`
- * proxies make these property writes wake exactly the components reading a
- * justification and nothing else — no re-filter, no chart redraw — and any
- * reference already captured elsewhere (the open detail modal, a selected
- * comparison row) sees the prose appear rather than pointing at a stale copy.
+ * rather than rebuilding the array, so no re-filter or chart redraw follows,
+ * and any reference already captured elsewhere (the open detail modal, a
+ * selected comparison row) sees the prose rather than a stale copy. The store
+ * holds the corpora as raw state, so the caller announces the write; views
+ * read prose through `justificationsOf` (articles.svelte.ts).
  */
 export function applyJustifications(
 	articles: Article[],
@@ -152,7 +170,7 @@ export const loadDatasetArticles = async (
 		fetchJSON(filePath, fetchFunction)
 	]);
 	const sentimentData = parseSentimentFile(rawSentimentData, datasetId);
-	const baseIds = new SvelteSet(baseRecords.map((record) => String(record['o:id'])));
+	const baseIds = new Set(baseRecords.map((record) => String(record['o:id'])));
 	const sentimentIds = Object.keys(sentimentData.sentiments);
 	if (
 		sentimentIds.length !== baseIds.size ||

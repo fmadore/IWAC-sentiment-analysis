@@ -11,7 +11,7 @@
 	import SentimentScaleList, {
 		type ScaleItem
 	} from '$lib/components/common/SentimentScaleList.svelte';
-	import { SENTIMENT_ANALYSIS_PROMPT, SENTIMENT_ANALYSIS_PROMPT_V2 } from '$lib/data/prompts';
+	import { loadPromptTexts, promptTexts } from '$lib/data/promptTexts.svelte';
 	import { base } from '$app/paths';
 	import { createAccordion } from '$lib/utils/accordion.svelte';
 
@@ -37,8 +37,19 @@
 	// Each generation ran its own prompt text; the modal must show the one that
 	// produced the scores on screen.
 	const activePrompt = $derived(
-		datasetState.generation === 'v2' ? SENTIMENT_ANALYSIS_PROMPT_V2 : SENTIMENT_ANALYSIS_PROMPT
+		promptTexts.current
+			? datasetState.generation === 'v2'
+				? promptTexts.current.SENTIMENT_ANALYSIS_PROMPT_V2
+				: promptTexts.current.SENTIMENT_ANALYSIS_PROMPT
+			: null
 	);
+
+	// The prompt texts load only when the modal opens (see promptTexts.svelte.ts).
+	$effect(() => {
+		if (viewOptionsState.prompt) {
+			loadPromptTexts().catch((error) => console.error('Failed to load the prompt texts:', error));
+		}
+	});
 
 	// Everything the two campaigns disagree about — scale wording, run
 	// configuration, what the prompt asks for. Same reasoning as activePrompt:
@@ -452,7 +463,11 @@
 	<div class="prompt-code-container">
 		<!-- The prompt was rewritten between generations, so showing the current
 		     text next to archived scores would misattribute them. -->
-		<pre class="prompt-code">{activePrompt[$currentLanguage]}</pre>
+		{#if activePrompt}
+			<pre class="prompt-code">{activePrompt[$currentLanguage]}</pre>
+		{:else}
+			<p class="prompt-loading" role="status">{$t.messages.loading}</p>
+		{/if}
 	</div>
 </PromptModal>
 

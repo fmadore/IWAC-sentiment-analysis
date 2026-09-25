@@ -4,7 +4,7 @@
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
-	import { SvelteSet } from 'svelte/reactivity';
+	import { unique } from '$lib/utils/collections';
 
 	import { articleState } from '$lib/stores';
 	import type { Article } from '$lib/types/data';
@@ -93,16 +93,10 @@
 		});
 
 		const countries = Object.keys(countryYearCentrality).sort();
-		const allYears = new SvelteSet<string>();
-
-		// Collecter toutes les années
-		countries.forEach((country) => {
-			Object.keys(countryYearCentrality[country]).forEach((year) => {
-				allYears.add(year);
-			});
-		});
-
-		const years = Array.from(allYears).sort();
+		// Every year any country has data for.
+		const years = unique(
+			countries.flatMap((country) => Object.keys(countryYearCentrality[country]))
+		).sort();
 
 		// Préparer les données pour la heatmap
 		const heatmapData: Array<[number, number, number]> = [];

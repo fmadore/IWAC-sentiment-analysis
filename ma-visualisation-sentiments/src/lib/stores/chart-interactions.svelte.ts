@@ -1,4 +1,4 @@
-import { SvelteSet } from 'svelte/reactivity';
+import { unique } from '$lib/utils/collections';
 import type { ViewId } from '$lib/types/data';
 
 export interface ChartInteraction {
@@ -25,7 +25,7 @@ export function parseChartInteractions(raw: string | null): ChartInteractions {
 						(n: unknown) => Number.isSafeInteger(n) && Number(n) >= 0 && Number(n) < 100
 					)
 				) {
-					result.hidden = [...new SvelteSet<number>(value.hidden)].sort((a, b) => a - b);
+					result.hidden = unique<number>(value.hidden).sort((a, b) => a - b);
 				}
 				if (
 					Array.isArray(value.zoom) &&

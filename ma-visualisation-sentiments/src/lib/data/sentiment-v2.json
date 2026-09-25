@@ -1,7 +1,7 @@
 {
 	"schemaVersion": "2.1.0",
 	"analysisVersion": "v2",
-	"description": "Generation-2 five-model IWAC sentiment-analysis contract. Polarity and centrality scales are identical to v1; subjectivity is stored upstream as an ordinal label and is mapped to the shared 1-5 rank at generation time. Qwen's coverage is deliberately 153 articles short of the eligible corpus (a retired gap, not a failed run), so its scores carry legitimate nulls on every dimension.",
+	"description": "Generation-2 five-model IWAC sentiment-analysis contract. Polarity and centrality scales are identical to v1; subjectivity is stored upstream as an ordinal label and is mapped to the shared 1-5 rank at generation time. Qwen's coverage is deliberately 200 articles short of the rest of the panel (a retired gap, not a failed run: 251 null rows, less the 51 articles no model annotates), so its scores carry legitimate nulls on every dimension.",
 	"models": {
 		"luna": {
 			"displayName": "GPT-5.6 Luna",

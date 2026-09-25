@@ -26,11 +26,11 @@ otherwise.
 import argparse
 import os
 import shutil
-import tempfile
-from contextlib import contextmanager
 from pathlib import Path
 
-from iwac_preprocess.publication import publish_generation, recover_publication
+import validate_generated_data as validator
+from iwac_preprocess.publication import publish_generation, staged_publication
+from iwac_preprocess.shards import justification_shard as _justification_shard
 from shared import (
     BASE_FILENAME,
     CONTRACT,
@@ -43,6 +43,7 @@ from shared import (
     get_contract,
     get_logger,
     get_source_revision,
+    get_staging_dir,
     get_webapp_data_dir,
     load_iwac_records,
     manifest_filename,
@@ -58,16 +59,8 @@ JUSTIFICATION_SHARDS = int(CONTRACT["delivery"]["justificationShards"])
 
 
 def justification_shard(article_id: str) -> int:
-    """Stable browser-compatible shard for a numeric Omeka article ID."""
-    try:
-        return int(article_id) % JUSTIFICATION_SHARDS
-    except ValueError:
-        # FNV-1a fallback for any future non-numeric identifier.
-        value = 2166136261
-        for byte in article_id.encode("utf-8"):
-            value ^= byte
-            value = (value * 16777619) & 0xFFFFFFFF
-        return value % JUSTIFICATION_SHARDS
+    """The shard the browser will fetch this article's prose from."""
+    return _justification_shard(article_id, JUSTIFICATION_SHARDS)
 
 
 def assert_base_matches(base_path: str, article_ids: set[str]) -> None:
@@ -97,33 +90,6 @@ def assert_base_matches(base_path: str, article_ids: set[str]) -> None:
         "with the frozen v1 files, so refreshing it is a deliberate cross-generation "
         "decision rather than a side effect of this run."
     )
-
-
-@contextmanager
-def publication_lock(target: Path):
-    path = target.parent / ".iwac-generation.lock"
-    with path.open("a+b") as lock:
-        lock.seek(0)
-        if not lock.read(1):
-            lock.write(b"0")
-            lock.flush()
-        lock.seek(0)
-        if os.name == "nt":
-            import msvcrt
-
-            msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
-        else:
-            import fcntl
-
-            fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        try:
-            yield
-        finally:
-            lock.seek(0)
-            if os.name == "nt":
-                msvcrt.locking(lock.fileno(), msvcrt.LK_UNLCK, 1)
-            else:
-                fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -160,102 +126,94 @@ def main(argv: list[str] | None = None) -> None:
 
     logger.info("Processing %d records...", len(records))
     for item in tqdm(records, desc="Processing articles"):
-        article_id = safe_int_convert(item.get("o:id"))
+        article_key = str(safe_int_convert(item.get("o:id")))
+        shard = justification_shard(article_key)
         base_items.append(build_base_article(item))
 
         for model_id in model_ids:
-            scores[model_id][str(article_id)] = build_model_scores(item, model_id, contract)
-            article_key = str(article_id)
-            justifications[model_id][justification_shard(article_key)][article_key] = (
-                build_model_justifications(item, model_id, contract)
+            scores[model_id][article_key] = build_model_scores(item, model_id, contract)
+            justifications[model_id][shard][article_key] = build_model_justifications(
+                item, model_id, contract
             )
 
     target = Path(get_webapp_data_dir())
-    # Exclusive process lock is released by the OS even if a run is killed.
-    with publication_lock(target):
-        recover_publication(target)
-        with tempfile.TemporaryDirectory(prefix="iwac-stage-", dir=target.parent) as stage_dir:
-            if (target / BASE_FILENAME).exists():
-                shutil.copy2(target / BASE_FILENAME, Path(stage_dir) / BASE_FILENAME)
-            output_dir = stage_dir
-            base_path = os.path.join(output_dir, BASE_FILENAME)
+    # Exclusive writer lock, released by the OS even if a run is killed; the
+    # stage sits beside static/, never inside it.
+    with staged_publication(target, Path(get_staging_dir())) as stage:
+        if (target / BASE_FILENAME).exists():
+            shutil.copy2(target / BASE_FILENAME, stage / BASE_FILENAME)
+        output_dir = os.fspath(stage)
+        base_path = os.path.join(output_dir, BASE_FILENAME)
 
-            if args.generation == "v1":
-                logger.info("Saving shared article base metadata to: %s", base_path)
-                safe_save_json(base_items, base_path)
-                logger.info("Base metadata saved (%d records)", len(base_items))
-            else:
-                assert_base_matches(base_path, {str(item["o:id"]) for item in base_items})
-                logger.info("Shared article base metadata verified against %s", base_path)
+        if args.generation == "v1":
+            logger.info("Saving shared article base metadata to: %s", base_path)
+            safe_save_json(base_items, base_path)
+            logger.info("Base metadata saved (%d records)", len(base_items))
+        else:
+            assert_base_matches(base_path, {str(item["o:id"]) for item in base_items})
+            logger.info("Shared article base metadata verified against %s", base_path)
 
-            # The base file is listed first either way: for v1 it is a published
-            # artifact, for v2 an informational checksum of the input it was verified
-            # against.
-            generated_files = [base_path]
-            for model_id in model_ids:
-                score_path = os.path.join(output_dir, f"iwac_sentiment_{model_id}.json")
-                logger.info("Saving %s sentiment scores to: %s", model_id, score_path)
+        # The base file is listed first either way: for v1 it is a published
+        # artifact, for v2 an informational checksum of the input it was verified
+        # against.
+        generated_files = [base_path]
+        for model_id in model_ids:
+            score_path = os.path.join(output_dir, f"iwac_sentiment_{model_id}.json")
+            logger.info("Saving %s sentiment scores to: %s", model_id, score_path)
+            safe_save_json(
+                {
+                    "schema_version": contract.schema_version,
+                    "analysis_version": contract.analysis_version,
+                    "model": model_id,
+                    "sentiments": scores[model_id],
+                },
+                score_path,
+            )
+
+            generated_files.append(score_path)
+            for shard, shard_data in enumerate(justifications[model_id]):
+                justification_path = os.path.join(
+                    output_dir, f"iwac_justifications_{model_id}_{shard:02d}.json"
+                )
                 safe_save_json(
                     {
                         "schema_version": contract.schema_version,
                         "analysis_version": contract.analysis_version,
                         "model": model_id,
-                        "sentiments": scores[model_id],
+                        "shard": shard,
+                        "shard_count": JUSTIFICATION_SHARDS,
+                        "justifications": shard_data,
                     },
-                    score_path,
+                    justification_path,
                 )
+                generated_files.append(justification_path)
 
-                generated_files.append(score_path)
-                for shard, shard_data in enumerate(justifications[model_id]):
-                    justification_path = os.path.join(
-                        output_dir, f"iwac_justifications_{model_id}_{shard:02d}.json"
-                    )
-                    safe_save_json(
-                        {
-                            "schema_version": contract.schema_version,
-                            "analysis_version": contract.analysis_version,
-                            "model": model_id,
-                            "shard": shard,
-                            "shard_count": JUSTIFICATION_SHARDS,
-                            "justifications": shard_data,
-                        },
-                        justification_path,
-                    )
-                    generated_files.append(justification_path)
-
-                logger.info(
-                    "%s JSON files saved successfully! (%d records)",
-                    model_id,
-                    len(scores[model_id]),
-                )
-
-            manifest_path = os.path.join(output_dir, manifest_filename(contract.analysis_version))
-            write_generation_manifest(
-                manifest_path,
-                generated_files,
-                contract_schema_version=contract.schema_version,
-                analysis_version=contract.analysis_version,
-                source_repository=HF_REPO_ID,
-                source_revision=get_source_revision(HF_REPO_ID),
+            logger.info(
+                "%s JSON files saved successfully! (%d records)",
+                model_id,
+                len(scores[model_id]),
             )
-            logger.info("Staged generation manifest: %s", manifest_path)
 
-            import validate_generated_data as validator
+        manifest_path = os.path.join(output_dir, manifest_filename(contract.analysis_version))
+        write_generation_manifest(
+            manifest_path,
+            generated_files,
+            contract_schema_version=contract.schema_version,
+            analysis_version=contract.analysis_version,
+            source_repository=HF_REPO_ID,
+            source_revision=get_source_revision(HF_REPO_ID),
+        )
+        logger.info("Staged generation manifest: %s", manifest_path)
 
-            previous_dir = validator.DATA_DIR
-            try:
-                validator.DATA_DIR = Path(output_dir)
-                base_ids = validator.validate_base()
-                validator.validate_core(contract, base_ids)
-                validator.validate_manifest(contract)
-            finally:
-                validator.DATA_DIR = previous_dir
-            names = [
-                Path(path).name
-                for path in generated_files
-                if args.generation == "v1" or Path(path).name != BASE_FILENAME
-            ]
-            publish_generation(Path(output_dir), target, [*names, Path(manifest_path).name])
+        base_ids = validator.validate_base(stage)
+        validator.validate_core(contract, base_ids, stage)
+        validator.validate_manifest(contract, stage)
+        names = [
+            Path(path).name
+            for path in generated_files
+            if args.generation == "v1" or Path(path).name != BASE_FILENAME
+        ]
+        publish_generation(stage, target, [*names, Path(manifest_path).name])
 
 
 if __name__ == "__main__":

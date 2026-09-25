@@ -8,6 +8,8 @@
  * coefficient, not Pearson's r on the coded values.
  */
 
+import { pearson } from './stats';
+
 export interface SpearmanResult {
 	/** Spearman's rank correlation, -1 to 1. NaN when undefined. */
 	rho: number;
@@ -142,27 +144,9 @@ export function spearman(xs: number[], ys: number[]): SpearmanResult {
 	const n = Math.min(xs.length, ys.length);
 	if (n < 2) return { rho: NaN, n, pValue: NaN };
 
-	const rx = rankWithTies(xs.slice(0, n));
-	const ry = rankWithTies(ys.slice(0, n));
-
-	const meanX = rx.reduce((s, v) => s + v, 0) / n;
-	const meanY = ry.reduce((s, v) => s + v, 0) / n;
-
-	let covariance = 0;
-	let varianceX = 0;
-	let varianceY = 0;
-
-	for (let i = 0; i < n; i++) {
-		const dx = rx[i] - meanX;
-		const dy = ry[i] - meanY;
-		covariance += dx * dy;
-		varianceX += dx * dx;
-		varianceY += dy * dy;
-	}
-
-	if (varianceX === 0 || varianceY === 0) return { rho: NaN, n, pValue: NaN };
-
-	const rho = covariance / Math.sqrt(varianceX * varianceY);
+	// Spearman's rho is Pearson's r over the tie-averaged ranks.
+	const rho = pearson(rankWithTies(xs.slice(0, n)), rankWithTies(ys.slice(0, n)));
+	if (Number.isNaN(rho)) return { rho: NaN, n, pValue: NaN };
 
 	// t approximation; only meaningful once there are a few degrees of freedom.
 	let pValue = NaN;

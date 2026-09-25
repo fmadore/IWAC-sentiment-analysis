@@ -37,7 +37,8 @@
 		filterState.discrepancy = {
 			minDifference: minDiff,
 			maxDifference: maxDiff,
-			dimensions: selectedDimensions as Dimension[],
+			// A plain copy: the store holds raw state, not this component's proxy.
+			dimensions: [...selectedDimensions] as Dimension[],
 			excludeNonApplicable: excludeNonApplicable
 		};
 	}

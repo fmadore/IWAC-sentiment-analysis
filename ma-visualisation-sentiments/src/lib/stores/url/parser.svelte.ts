@@ -4,8 +4,8 @@
  * Parses URL search parameters into application state.
  */
 
-import { SvelteSet } from 'svelte/reactivity';
 import { LANGUAGES, type Language } from '$lib/i18n';
+import { unique } from '$lib/utils/collections';
 import type { ModelPair } from '$lib/types/data';
 import { TOTAL_DISCREPANCY_MAXIMUM } from '$lib/domain/sentimentContract';
 import {
@@ -102,7 +102,7 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
 			state.view = 'comparison';
 		}
 	}
-	const arbiterArticleId = searchParams.get('arbiterArticleId');
+	const arbiterArticleId = searchParams.get(URL_PARAMS.arbiterArticleId);
 	if (arbiterArticleId) {
 		state.arbiterArticleId = arbiterArticleId;
 		state.view = 'arbiter';
@@ -118,17 +118,15 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
 	const parseArray = (key: string): string[] => {
 		const values = searchParams.getAll(key);
 		// Backward compatibility for existing shared links that used commas.
-		return [
-			...new SvelteSet(
-				values
-					.flatMap((value) =>
-						searchParams.get('urlVersion') !== '2' && values.length === 1
-							? value.split(',')
-							: [value]
-					)
-					.filter(Boolean)
-			)
-		];
+		return unique(
+			values
+				.flatMap((value) =>
+					searchParams.get(URL_PARAMS.urlVersion) !== '2' && values.length === 1
+						? value.split(',')
+						: [value]
+				)
+				.filter(Boolean)
+		);
 	};
 
 	for (const [key, stateKey] of [
@@ -142,24 +140,24 @@ export function parseURLState(searchParams: URLSearchParams): URLState {
 		if (values.length > 0) state[stateKey] = values;
 	}
 
-	if (searchParams.has('dimensions')) {
-		state.dimensions = [
-			...new SvelteSet(searchParams.getAll('dimensions').flatMap((v) => v.split(',')))
-		].filter((v): v is AnalysisDimension => ANALYSIS_DIMENSIONS.includes(v as AnalysisDimension));
+	if (searchParams.has(URL_PARAMS.dimensions)) {
+		state.dimensions = unique(
+			searchParams.getAll(URL_PARAMS.dimensions).flatMap((v) => v.split(','))
+		).filter((v): v is AnalysisDimension => ANALYSIS_DIMENSIONS.includes(v as AnalysisDimension));
 	}
 	for (const key of ['excludeNA', 'declined'] as const) {
-		const value = searchParams.get(key);
+		const value = searchParams.get(URL_PARAMS[key]);
 		if (value === 'true' || value === 'false') state[key] = value === 'true';
 	}
-	const scope = searchParams.get('scope');
+	const scope = searchParams.get(URL_PARAMS.scope);
 	if (scope === 'pair' || scope === 'panel') state.scope = scope;
-	const dimension = searchParams.get('dimension');
+	const dimension = searchParams.get(URL_PARAMS.dimension);
 	if (ANALYSIS_DIMENSIONS.includes(dimension as AnalysisDimension))
 		state.dimension = dimension as AnalysisDimension;
 	if (state.diffMin !== undefined && state.diffMax !== undefined && state.diffMin > state.diffMax) {
 		[state.diffMin, state.diffMax] = [state.diffMax, state.diffMin];
 	}
 	state.options = parseViewOptions(searchParams, state.view);
-	state.chartState = parseChartInteractions(searchParams.get('chartState'));
+	state.chartState = parseChartInteractions(searchParams.get(URL_PARAMS.chartState));
 	return state;
 }

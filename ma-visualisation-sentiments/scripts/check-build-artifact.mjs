@@ -34,11 +34,45 @@ if (compressed.length) {
 	throw new Error(`[artifact] unexpected precompressed siblings: ${compressed.length}`);
 }
 
+// Everything under static/ is published verbatim, so scratch state that lands
+// there ships with the site: the data exports' writer lock did, and a stage left
+// by a killed export would have shipped a second copy of the generation. Nothing
+// legitimate in this artifact is a dot-file, and its directories are known.
+const relativePaths = files.map((file) => file.pathname.slice(root.pathname.length));
+const hidden = relativePaths.filter((path) => path.split('/').some((part) => part.startsWith('.')));
+if (hidden.length) {
+	throw new Error(`[artifact] unexpected hidden files: ${hidden.slice(0, 5).join(', ')}`);
+}
+const ALLOWED_DIRECTORIES = new Set(['_app', 'data', 'icons', 'logo']);
+const nestedPrefix = nested.pathname.slice(root.pathname.length);
+const strayDirectories = new Set(
+	relativePaths
+		.filter((path) => path.startsWith(nestedPrefix))
+		.map((path) => path.slice(nestedPrefix.length).split('/'))
+		.filter((parts) => parts.length > 1 && !ALLOWED_DIRECTORIES.has(parts[0]))
+		.map((parts) => parts[0])
+);
+if (strayDirectories.size) {
+	throw new Error(
+		`[artifact] unexpected directories under ${DEPLOY_PATH}/: ${[...strayDirectories].join(', ')} ` +
+			'(a new static/ folder must be added to ALLOWED_DIRECTORIES in check-build-artifact.mjs)'
+	);
+}
+const strayData = relativePaths
+	.filter((path) => path.startsWith(`${nestedPrefix}data/`))
+	.map((path) => path.slice(`${nestedPrefix}data/`.length))
+	.filter((path) => path !== 'release.json' && !path.startsWith('releases/'));
+if (strayData.length) {
+	throw new Error(
+		`[artifact] data outside the published release: ${strayData.slice(0, 5).join(', ')}`
+	);
+}
+
 for (const file of files.filter((candidate) =>
 	/\.(?:html|js|json|css)$/.test(candidate.pathname)
 )) {
 	const source = await readFile(file, 'utf8');
-	for (const placeholder of ['__DEPLOY_PATH__', '__BUILD_VERSION__']) {
+	for (const placeholder of ['__DEPLOY_PATH__', '__BUILD_VERSION__', '__DATA_RELEASE__']) {
 		if (source.includes(placeholder))
 			throw new Error(`[artifact] unresolved ${placeholder} in ${file.pathname}`);
 	}
