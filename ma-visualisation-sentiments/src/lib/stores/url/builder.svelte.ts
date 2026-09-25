@@ -4,8 +4,8 @@
  * Converts application state to URL search parameters.
  */
 
-import { SvelteURLSearchParams, SvelteSet } from 'svelte/reactivity';
 import { LANGUAGES } from '$lib/i18n';
+import { unique } from '$lib/utils/collections';
 import { VALID_VIEWS, VALID_DATASETS, VALID_PAIRS, URL_PARAMS } from './constants';
 import type { URLState } from './types';
 import { TOTAL_DISCREPANCY_MAXIMUM } from '$lib/domain/sentimentContract';
@@ -14,10 +14,12 @@ import { VIEW_OPTIONS, VIEW_OPTION_KEYS, optionApplies } from '../view-options.s
 /**
  * Convert application state to URL search parameters
  */
-export function buildURLSearchParams(state: URLState): SvelteURLSearchParams {
-	const params = new SvelteURLSearchParams();
+export function buildURLSearchParams(state: URLState): URLSearchParams {
+	// A serialization buffer, built and returned in one call; nothing renders it.
+	// eslint-disable-next-line svelte/prefer-svelte-reactivity
+	const params = new URLSearchParams();
 	// Distinguishes repeated literal facet values from legacy comma-separated lists.
-	params.set('urlVersion', '2');
+	params.set(URL_PARAMS.urlVersion, '2');
 
 	if (state.view && (VALID_VIEWS as readonly string[]).includes(state.view)) {
 		params.set(URL_PARAMS.view, state.view);
@@ -79,7 +81,7 @@ export function buildURLSearchParams(state: URLState): SvelteURLSearchParams {
 		params.set(URL_PARAMS.comparisonArticleId, state.comparisonArticleId.toString());
 	}
 	if (state.view === 'arbiter' && state.arbiterArticleId !== undefined) {
-		params.set('arbiterArticleId', state.arbiterArticleId);
+		params.set(URL_PARAMS.arbiterArticleId, state.arbiterArticleId);
 	}
 
 	// Exclude regular filters for arbiter view (it has its own filter system)
@@ -97,21 +99,21 @@ export function buildURLSearchParams(state: URLState): SvelteURLSearchParams {
 				!['countries', 'journals'].includes(key)
 			)
 				continue;
-			for (const value of [...new SvelteSet(values ?? [])].sort()) params.append(key, value);
+			for (const value of unique(values ?? []).sort()) params.append(key, value);
 		}
 	}
 
 	if (state.view === 'comparison') {
 		if (state.dimensions) {
-			params.set('dimensions', state.dimensions.join(','));
+			params.set(URL_PARAMS.dimensions, state.dimensions.join(','));
 		}
-		if (state.excludeNA !== undefined) params.set('excludeNA', String(state.excludeNA));
+		if (state.excludeNA !== undefined) params.set(URL_PARAMS.excludeNA, String(state.excludeNA));
 	}
 	if (state.view === 'agreement') {
 		if (state.pair) params.set(URL_PARAMS.pair, state.pair);
-		if (state.scope) params.set('scope', state.scope);
-		if (state.dimension) params.set('dimension', state.dimension);
-		if (state.declined !== undefined) params.set('declined', String(state.declined));
+		if (state.scope) params.set(URL_PARAMS.scope, state.scope);
+		if (state.dimension) params.set(URL_PARAMS.dimension, state.dimension);
+		if (state.declined !== undefined) params.set(URL_PARAMS.declined, String(state.declined));
 	}
 	for (const key of VIEW_OPTION_KEYS) {
 		if (
@@ -132,7 +134,7 @@ export function buildURLSearchParams(state: URLState): SvelteURLSearchParams {
 	}
 	if (state.chartState && Object.keys(state.chartState).length > 0) {
 		params.set(
-			'chartState',
+			URL_PARAMS.chartState,
 			JSON.stringify(
 				Object.fromEntries(Object.entries(state.chartState).sort(([a], [b]) => a.localeCompare(b)))
 			)

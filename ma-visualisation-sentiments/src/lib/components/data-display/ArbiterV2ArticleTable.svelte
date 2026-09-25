@@ -26,7 +26,8 @@
 	import { createPagination } from '$lib/utils/pagination.svelte';
 	import PaginationControls from '$lib/components/common/PaginationControls.svelte';
 	import ArbiterV2CSVExportButton from '$lib/components/ui/ArbiterV2CSVExportButton.svelte';
-	import ArrowUpDownIcon from '@lucide/svelte/icons/arrow-up-down';
+	import { nextSort } from '$lib/utils/sorting';
+	import SortableHeader from '$lib/components/common/SortableHeader.svelte';
 
 	interface ArbiterV2ArticleTableProps {
 		rows: ArbiterV2Row[];
@@ -103,15 +104,27 @@
 
 	const page = $derived(sorted.slice(pagination.startIndex, pagination.endIndex));
 
+	/** Same column flips; a new column starts A→Z for titles, largest first otherwise. */
 	function handleSort(column: SortKey) {
-		if (viewOptionsState.panelSort === column) {
-			viewOptionsState.panelOrder = viewOptionsState.panelOrder === 'asc' ? 'desc' : 'asc';
-		} else {
-			viewOptionsState.panelSort = column;
-			viewOptionsState.panelOrder = column === 'title' ? 'asc' : 'desc';
-		}
+		const next = nextSort(
+			{ column: viewOptionsState.panelSort, order: viewOptionsState.panelOrder },
+			column,
+			column === 'title' ? 'asc' : 'desc'
+		);
+		viewOptionsState.panelSort = next.column;
+		viewOptionsState.panelOrder = next.order;
 		pagination.currentPage = 1;
 	}
+
+	const panelColumns = $derived<
+		{ key: SortKey; label: string; align: 'start' | 'center'; class?: string }[]
+	>([
+		{ key: 'title', label: $t.table.articleTitle, align: 'start' },
+		{ key: 'date', label: $t.table.date, align: 'start', class: 'col-date' },
+		{ key: 'spread', label: $t.arbiterV2.spread, align: 'center' },
+		{ key: 'verdict', label: $t.arbiterV2.verdict, align: 'start' },
+		{ key: 'confidence', label: $t.arbiterV2.confidence, align: 'center' }
+	]);
 
 	function winnerName(row: ArbiterV2Row): string {
 		if (row.winner) {
@@ -165,36 +178,17 @@
 			<table class="table">
 				<thead>
 					<tr>
-						<th class="sortable-header">
-							<button class="sort-button" type="button" onclick={() => handleSort('title')}>
-								{$t.table.articleTitle}
-								{#if viewOptionsState.panelSort === 'title'}<ArrowUpDownIcon size={14} />{/if}
-							</button>
-						</th>
-						<th class="sortable-header col-date">
-							<button class="sort-button" type="button" onclick={() => handleSort('date')}>
-								{$t.table.date}
-								{#if viewOptionsState.panelSort === 'date'}<ArrowUpDownIcon size={14} />{/if}
-							</button>
-						</th>
-						<th class="sortable-header text-center">
-							<button class="sort-button" type="button" onclick={() => handleSort('spread')}>
-								{$t.arbiterV2.spread}
-								{#if viewOptionsState.panelSort === 'spread'}<ArrowUpDownIcon size={14} />{/if}
-							</button>
-						</th>
-						<th class="sortable-header">
-							<button class="sort-button" type="button" onclick={() => handleSort('verdict')}>
-								{$t.arbiterV2.verdict}
-								{#if viewOptionsState.panelSort === 'verdict'}<ArrowUpDownIcon size={14} />{/if}
-							</button>
-						</th>
-						<th class="sortable-header text-center">
-							<button class="sort-button" type="button" onclick={() => handleSort('confidence')}>
-								{$t.arbiterV2.confidence}
-								{#if viewOptionsState.panelSort === 'confidence'}<ArrowUpDownIcon size={14} />{/if}
-							</button>
-						</th>
+						{#each panelColumns as column (column.key)}
+							<SortableHeader
+								label={column.label}
+								active={viewOptionsState.panelSort === column.key}
+								order={viewOptionsState.panelOrder}
+								onsort={() => handleSort(column.key)}
+								accent="arbiter"
+								align={column.align}
+								class={column.class}
+							/>
+						{/each}
 					</tr>
 				</thead>
 				<tbody>
@@ -330,51 +324,13 @@
 
 	/* Typography and the opaque background are owned by the global `.table th`
 	   rule; only sticky positioning is added here. */
-	th {
+	/* Sortable header cells are rendered by SortableHeader, a child component, so
+	   this table's rules reach them as `:global(th)` under its own `table`. */
+	table :global(th) {
 		position: sticky;
 		top: 0;
 		z-index: 1;
 		box-shadow: 0 1px 0 color-mix(in oklab, var(--color-surface-50) 15%, transparent);
-	}
-
-	.sortable-header {
-		cursor: pointer;
-		user-select: none;
-	}
-
-	.sortable-header:hover {
-		/* Mixed into the opaque header colour: the header is sticky, so any
-		   translucent fill lets the scrolling rows read through it. */
-		background-color: color-mix(
-			in oklab,
-			var(--sentiment-arbiter) 15%,
-			var(--surface-card-elevated)
-		);
-	}
-
-	.sort-button {
-		display: flex;
-		align-items: center;
-		gap: var(--space-1);
-		width: 100%;
-		padding: 0;
-		appearance: none;
-		background: none;
-		border: 0;
-		color: inherit;
-		cursor: pointer;
-		font: inherit;
-		font-weight: inherit;
-		text-align: inherit;
-	}
-
-	.sortable-header.text-center .sort-button {
-		justify-content: center;
-	}
-
-	.sort-button:focus-visible {
-		outline: 2px solid var(--color-primary-400);
-		outline-offset: 3px;
 	}
 
 	.article-row {

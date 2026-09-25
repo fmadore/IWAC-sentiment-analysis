@@ -48,11 +48,13 @@ jobs:
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
 
-      - name: Check types
-        run: npm run check
-
+      # Cheapest first, the verify skill's order: a formatting or token slip
+      # fails here in seconds instead of after the type check.
       - name: Lint
         run: npm run lint
+
+      - name: Check types
+        run: npm run check
 
       - name: Run unit and integration tests
         run: npm run test:run
@@ -60,8 +62,22 @@ jobs:
       - name: Build and verify artifact budgets
         run: npm run build
 
+      # The browser download is keyed on the lockfile, which pins Playwright;
+      # the OS packages it needs are installed either way.
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('ma-visualisation-sentiments/package-lock.json') }}
+
       - name: Install Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
+
+      - name: Install Chromium system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
 
       - name: Run browser and accessibility smoke tests
         run: npm run test:e2e

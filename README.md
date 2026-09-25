@@ -106,7 +106,7 @@ Thirteen views, all sharing one filter rail (country → newspaper → polarity 
 ?dataset=chatgpt
 ```
 
-Parameters: `view`, `lang`, `dataset`, `compare`, `pair`, `countries`, `journals`, `polarities`, `subjectivities`, `centralities`, `diffMin`, `diffMax`.
+Core parameters: `view`, `lang`, `dataset`, `compare`, `pair`, `countries`, `journals`, `polarities`, `subjectivities`, `centralities`, `diffMin`, `diffMax`. Each view adds its own analytical and presentation state (comparison `dimensions`/`excludeNA`, agreement `scope`/`dimension`/`declined`, detail ids, sort and pagination, `chartState`); the full per-view list is in [Citable URLs](ma-visualisation-sentiments/docs/citable-urls.md). Every name the app reads or writes is declared in `src/lib/stores/url/constants.ts` (`URL_PARAMS`) or, for presentation options, as a key of `VIEW_OPTIONS`.
 
 ---
 

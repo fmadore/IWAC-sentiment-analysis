@@ -281,3 +281,14 @@ if (
 if (contractV2.delivery.justificationShards !== contractV1.delivery.justificationShards) {
 	throw new Error('Both generations must use the same justification shard count');
 }
+
+// SIGNIFICANT_CONFLICT_THRESHOLD and TOTAL_DISCREPANCY_MAXIMUM are read from v1
+// and applied to both generations' pairs, while Python reads each contract's
+// own values. Hold them equal here rather than rely on the v2 fixtures noticing.
+if (
+	contractV2.discrepancy.significantDimensionGap !==
+		contractV1.discrepancy.significantDimensionGap ||
+	contractV2.discrepancy.maximumTotal !== contractV1.discrepancy.maximumTotal
+) {
+	throw new Error('The v2 pairwise discrepancy thresholds have diverged from v1');
+}

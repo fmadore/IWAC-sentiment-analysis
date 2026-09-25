@@ -6,12 +6,14 @@ import { scheduleSmartPrefetch, type PrefetchTask } from '$lib/data/prefetch';
  */
 
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
+import { DEV } from 'esm-env';
 import type { Article, DatasetId, LoadState, SentimentAnalysis } from '$lib/types/data';
 import { datasetState } from './datasets.svelte';
 import { filterState } from './filters.svelte';
 import { uiState } from './ui.svelte';
 import { filterArticles, computeAvailableJournals } from './derivations';
 import { parseJustificationFile } from '$lib/data/validation';
+import { unique } from '$lib/utils/collections';
 import { fetchJSON, loadDatasetArticles, applyJustifications } from '$lib/data/articleRepository';
 export {
 	mapArticleProperties,
@@ -241,7 +243,7 @@ export const loadJustifications = async (
 	try {
 		await loadSpecificDataset(datasetId, fetchFunction, { showLoading: false });
 		const shards = articleIds
-			? [...new SvelteSet(articleIds.map(justificationShard))]
+			? unique(articleIds.map(justificationShard))
 			: Array.from({ length: JUSTIFICATION_SHARD_COUNT }, (_, index) => index);
 
 		// A bounded batch avoids opening 32 HTTP connections for a CSV export.
@@ -336,9 +338,11 @@ const prefetchOtherDatasets = async (
 	}
 
 	prefetchQueue.sort((a, b) => a.priority - b.priority);
-	console.log(
-		`[Prefetch] Queue: ${prefetchQueue.map((t) => `${t.id}(P${t.priority})`).join(', ')}`
-	);
+	if (DEV) {
+		console.log(
+			`[Prefetch] Queue: ${prefetchQueue.map((t) => `${t.id}(P${t.priority})`).join(', ')}`
+		);
+	}
 	scheduleSmartPrefetch(prefetchQueue);
 };
 

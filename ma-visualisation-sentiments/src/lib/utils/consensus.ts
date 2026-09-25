@@ -46,6 +46,7 @@ import type { Article } from '$lib/types/data';
 import { getJournalName } from '$lib/utils/format';
 import { CENTRALITY_ORDER, POLARITY_ORDER } from '$lib/domain/sentimentContract';
 import type { AgreementDimension } from './agreementData';
+import { countGroupsBelow, median, pearson, summarizeMean } from './stats';
 
 export type { AgreementDimension };
 
@@ -422,18 +423,10 @@ export function rankNewspaperDisagreement(
 		const n = group.spreads.length;
 		if (n < minArticles) continue;
 
-		const mean = group.spreads.reduce((sum, value) => sum + value, 0) / n;
-		const variance =
-			n > 1 ? group.spreads.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (n - 1) : 0;
-		const standardDeviation = Math.sqrt(variance);
-
 		ranked.push({
 			newspaper,
 			country: group.country,
-			mean,
-			standardDeviation,
-			confidence: n > 1 ? 1.96 * (standardDeviation / Math.sqrt(n)) : 0,
-			n,
+			...summarizeMean(group.spreads),
 			unanimity: group.unanimous / n,
 			declinedShare: group.labelled > 0 ? group.declined / group.labelled : 0,
 			medianYear: median(group.years),
@@ -446,13 +439,6 @@ export function rankNewspaperDisagreement(
 	return ranked.sort((a, b) => a.mean - b.mean);
 }
 
-function median(values: number[]): number | null {
-	if (values.length === 0) return null;
-	const sorted = [...values].sort((a, b) => a - b);
-	const middle = Math.floor(sorted.length / 2);
-	return sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
-}
-
 /** Titles a threshold hid, for an honest "n omitted" note. */
 export function countExcludedTitles(
 	rows: ConsensusRow[],
@@ -460,18 +446,11 @@ export function countExcludedTitles(
 	options: { includeDeclined?: boolean; minArticles?: number } = {}
 ): number {
 	const { includeDeclined = false, minArticles = 30 } = options;
-	const counts = new Map<string, number>();
-
+	const newspapers: string[] = [];
 	for (const { row } of usableValues(rows, dimension, includeDeclined)) {
-		if (!row.newspaper) continue;
-		counts.set(row.newspaper, (counts.get(row.newspaper) ?? 0) + 1);
+		if (row.newspaper) newspapers.push(row.newspaper);
 	}
-
-	let excluded = 0;
-	for (const count of counts.values()) {
-		if (count < minArticles) excluded++;
-	}
-	return excluded;
+	return countGroupsBelow(newspapers, minArticles);
 }
 
 /**
@@ -481,28 +460,7 @@ export function countExcludedTitles(
  * sentiment. It does not (v1 polarity r = −0.06), and saying so is the finding
  * — models are not simply arguing about the titles with the strongest views.
  */
-export function pearson(xs: number[], ys: number[]): number {
-	const n = Math.min(xs.length, ys.length);
-	if (n < 2) return Number.NaN;
-
-	const meanX = xs.slice(0, n).reduce((sum, value) => sum + value, 0) / n;
-	const meanY = ys.slice(0, n).reduce((sum, value) => sum + value, 0) / n;
-
-	let covariance = 0;
-	let varianceX = 0;
-	let varianceY = 0;
-
-	for (let index = 0; index < n; index++) {
-		const dx = xs[index] - meanX;
-		const dy = ys[index] - meanY;
-		covariance += dx * dy;
-		varianceX += dx * dx;
-		varianceY += dy * dy;
-	}
-
-	const denominator = Math.sqrt(varianceX * varianceY);
-	return denominator === 0 ? Number.NaN : covariance / denominator;
-}
+export { pearson };
 
 /**
  * Barycentric projection of a title's dissent shares onto an equilateral

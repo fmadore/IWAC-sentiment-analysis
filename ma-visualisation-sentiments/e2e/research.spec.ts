@@ -405,3 +405,18 @@ test('justification prose that arrives after a detail opens appears in it', asyn
 		.poll(() => page.getByRole('dialog').locator('.justification, blockquote').count())
 		.toBeGreaterThan(0);
 });
+
+test('arbiter table headers announce their sort direction', async ({ page }) => {
+	await page.goto('?view=arbiter&dataset=luna&lang=en');
+	const confidence = page.getByRole('columnheader', { name: /Confidence/ });
+	await expect(confidence).toHaveAttribute('aria-sort', 'none');
+	await confidence.getByRole('button').click();
+	await expect(confidence).toHaveAttribute('aria-sort', 'descending');
+	await expect(confidence).toContainText('↓');
+	await confidence.getByRole('button').click();
+	await expect(confidence).toHaveAttribute('aria-sort', 'ascending');
+	await expect(page.getByRole('columnheader', { name: /Spread/ })).toHaveAttribute(
+		'aria-sort',
+		'none'
+	);
+});

@@ -4,8 +4,7 @@ import { chartInteractionsState } from '../chart-interactions.svelte';
 import { browser } from '$app/environment';
 import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
-import { page } from '$app/stores';
-import { get } from 'svelte/store';
+import { page } from '$app/state';
 import { initializeLanguage } from '$lib/i18n';
 import {
 	CURRENT_GENERATION,
@@ -196,7 +195,7 @@ export function updateURL(currentView?: ValidView, replaceState = false): void {
 
 export function initializeURLState(): ValidView | undefined {
 	if (!browser) return;
-	return applyURLState(parseURLState(get(page).url.searchParams));
+	return applyURLState(parseURLState(page.url.searchParams));
 }
 
 export function clearAllFilters(): void {

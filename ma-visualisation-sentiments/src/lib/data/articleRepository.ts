@@ -1,6 +1,5 @@
 import { dataUrl } from '$lib/data/release';
 import { ABSENT, type Loaded } from '$lib/data/resource.svelte';
-import { SvelteSet } from 'svelte/reactivity';
 import type { Article, DatasetId, SentimentAnalysis } from '$lib/types/data';
 import {
 	parseBaseArticles,
@@ -47,10 +46,11 @@ export function mapArticleProperties(
  *
  * The per-model data is itself split in two. `iwac_sentiment_<model>.json`
  * holds only the three SCORES every chart, filter and aggregate reads (~59KB
- * gzipped); `iwac_justifications_<model>.json` holds the free-text prose that
- * only the detail views and CSV exports show (~1.4MB gzipped, 86-92% of the
- * old combined payload). Justifications load on demand — see
- * loadJustifications below.
+ * gzipped); `iwac_justifications_<model>_<shard>.json` (32 shards) holds the
+ * free-text prose that only the detail views and CSV exports show (86-92% of
+ * the old combined payload). Prose loads on demand, one shard per article
+ * detail or every shard for an export — see loadJustifications in
+ * articles.svelte.ts.
  */
 /**
  * Expand a score-only record into a full SentimentAnalysis with the
@@ -170,7 +170,7 @@ export const loadDatasetArticles = async (
 		fetchJSON(filePath, fetchFunction)
 	]);
 	const sentimentData = parseSentimentFile(rawSentimentData, datasetId);
-	const baseIds = new SvelteSet(baseRecords.map((record) => String(record['o:id'])));
+	const baseIds = new Set(baseRecords.map((record) => String(record['o:id'])));
 	const sentimentIds = Object.keys(sentimentData.sentiments);
 	if (
 		sentimentIds.length !== baseIds.size ||

@@ -11,6 +11,7 @@
 
 import type { Article } from '$lib/types/data';
 import { getJournalName } from '$lib/utils/format';
+import { countGroupsBelow, summarizeMean } from '$lib/utils/stats';
 
 /** Which measure to rank newspapers by. */
 export type RankingMeasure = 'polarity' | 'subjectivity' | 'centrality';
@@ -117,20 +118,9 @@ export function rankNewspapers(
 	const ranks: NewspaperRank[] = [];
 
 	for (const [newspaper, values] of groups) {
-		const n = values.length;
-		if (n < minArticles) continue;
+		if (values.length < minArticles) continue;
 
-		const mean = values.reduce((sum, v) => sum + v, 0) / n;
-		const variance = n > 1 ? values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / (n - 1) : 0;
-		const standardDeviation = Math.sqrt(variance);
-
-		ranks.push({
-			newspaper,
-			mean,
-			standardDeviation,
-			confidence: n > 1 ? 1.96 * (standardDeviation / Math.sqrt(n)) : 0,
-			n
-		});
+		ranks.push({ newspaper, ...summarizeMean(values) });
 	}
 
 	return ranks.sort((a, b) => a.mean - b.mean);
@@ -142,18 +132,11 @@ export function countExcludedNewspapers(
 	measure: RankingMeasure,
 	minArticles = 30
 ): number {
-	const counts = new Map<string, number>();
-
+	const newspapers: string[] = [];
 	for (const article of articles) {
 		if (getMeasureValue(article, measure) === null) continue;
 		const newspaper = getJournalName(article);
-		if (!newspaper) continue;
-		counts.set(newspaper, (counts.get(newspaper) ?? 0) + 1);
+		if (newspaper) newspapers.push(newspaper);
 	}
-
-	let excluded = 0;
-	for (const count of counts.values()) {
-		if (count < minArticles) excluded++;
-	}
-	return excluded;
+	return countGroupsBelow(newspapers, minArticles);
 }
