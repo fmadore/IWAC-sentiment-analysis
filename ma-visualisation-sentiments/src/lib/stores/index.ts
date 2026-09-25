@@ -88,6 +88,8 @@ export {
 	loadSpecificDataset,
 	loadCurrentDataset,
 	loadJustifications,
+	justificationsOf,
+	type Justifications,
 	hasJustifications
 } from './articles.svelte';
 

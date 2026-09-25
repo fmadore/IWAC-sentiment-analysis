@@ -136,11 +136,11 @@ export function joinArticles(
  * (exported for tests).
  *
  * Writes the three prose fields onto the EXISTING `sentiment_analysis` objects
- * rather than rebuilding the array. Two reasons: Svelte 5's deep `$state`
- * proxies make these property writes wake exactly the components reading a
- * justification and nothing else — no re-filter, no chart redraw — and any
- * reference already captured elsewhere (the open detail modal, a selected
- * comparison row) sees the prose appear rather than pointing at a stale copy.
+ * rather than rebuilding the array, so no re-filter or chart redraw follows,
+ * and any reference already captured elsewhere (the open detail modal, a
+ * selected comparison row) sees the prose rather than a stale copy. The store
+ * holds the corpora as raw state, so the caller announces the write; views
+ * read prose through `justificationsOf` (articles.svelte.ts).
  */
 export function applyJustifications(
 	articles: Article[],

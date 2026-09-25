@@ -2,7 +2,6 @@
  * Comparison State Module
  *
  * Manages model comparison state and derived data using Svelte 5 runes.
- * Provides both modern $state-based API and legacy store compatibility.
  */
 
 import type { ComparisonData } from '$lib/types/data';
@@ -23,7 +22,8 @@ export type { ComparisonStatistics };
 // Svelte 5 Runes State
 // ============================================
 
-let _selectedComparison = $state<ComparisonData | null>(null);
+// Raw: the row holds the corpora's own (raw) analysis objects; see articles.svelte.ts.
+let _selectedComparison = $state.raw<ComparisonData | null>(null);
 
 // ============================================
 // Derived State (reactive runes)

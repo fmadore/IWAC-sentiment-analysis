@@ -51,7 +51,9 @@
 		}
 	});
 	// Application state
-	let detailedArticle: Article | null = $state(null);
+	// Raw: the article is the corpus's own object, whose prose is merged in place
+	// (see articles.svelte.ts). A deep-state proxy would cache the empty prose.
+	let detailedArticle = $state.raw<Article | null>(null);
 	let showDetailsSidebar = $state(false);
 	let isInitialized = $state(false);
 

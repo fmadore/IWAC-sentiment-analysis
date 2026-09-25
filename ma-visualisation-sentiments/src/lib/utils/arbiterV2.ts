@@ -161,22 +161,6 @@ export function analysisValue(
 	}
 }
 
-/** A model's justification prose on one dimension, or null until it has loaded. */
-export function analysisJustification(
-	analysis: SentimentAnalysis | null | undefined,
-	dimension: ArbiterV2Dimension
-): string | null {
-	if (!analysis) return null;
-	switch (dimension) {
-		case 'polarity':
-			return analysis.polarite_justification;
-		case 'subjectivity':
-			return analysis.subjectivite_justification;
-		case 'centrality':
-			return analysis.centralite_justification;
-	}
-}
-
 /**
  * Whether a model's rating is the arbiter's own rating on that dimension.
  *

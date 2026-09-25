@@ -72,7 +72,7 @@ for (const file of files.filter((candidate) =>
 	/\.(?:html|js|json|css)$/.test(candidate.pathname)
 )) {
 	const source = await readFile(file, 'utf8');
-	for (const placeholder of ['__DEPLOY_PATH__', '__BUILD_VERSION__']) {
+	for (const placeholder of ['__DEPLOY_PATH__', '__BUILD_VERSION__', '__DATA_RELEASE__']) {
 		if (source.includes(placeholder))
 			throw new Error(`[artifact] unresolved ${placeholder} in ${file.pathname}`);
 	}

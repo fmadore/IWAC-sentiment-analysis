@@ -39,6 +39,14 @@
 	font-size: var(--font-size-sm);
 }
 
+/* Shown in a prompt modal while the prompt texts load (they are fetched on
+   first open; see src/lib/data/promptTexts.svelte.ts). */
+.prompt-loading {
+	color: var(--text-muted);
+	font-size: var(--font-size-sm);
+	padding: var(--space-4) 0;
+}
+
 /* Eyebrow naming what a .chart-toolbar's controls act on. */
 .toolbar-label {
 	font-family: var(--font-mono);

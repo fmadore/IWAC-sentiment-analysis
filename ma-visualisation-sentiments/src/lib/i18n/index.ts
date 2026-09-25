@@ -2,7 +2,6 @@ import { writable, derived } from 'svelte/store';
 import { browser } from '$app/environment';
 import type { Translations } from './types.js';
 import { fr } from './fr.js';
-import { en } from './en.js';
 import { readStorage, writeStorage } from '$lib/utils/safeStorage';
 
 // Available languages
@@ -13,11 +12,35 @@ export const LANGUAGES = {
 
 export type Language = keyof typeof LANGUAGES;
 
-// Translation data
-const translations: Record<Language, Translations> = {
-	fr,
-	en
+/*
+ * The catalogues. French — the default, and the language the page is
+ * prerendered in — ships with the app; English (about 18 KiB gzip) is fetched
+ * the first time it is needed. `currentLanguage` still switches at once, so the
+ * URL and the `lang` attribute are always what was asked for; `t` shows French
+ * for the moment it takes the English catalogue to arrive, which is what the
+ * prerendered page already shows before hydration.
+ */
+const catalogues = writable<Partial<Record<Language, Translations>>>({ fr });
+const catalogueLoaders: Record<Exclude<Language, 'fr'>, () => Promise<Translations>> = {
+	en: () => import('./en.js').then((module) => module.en)
 };
+const pendingCatalogues = new Map<Language, Promise<void>>();
+
+/** Load a language's catalogue if it is not already here. Retried on failure. */
+export function loadCatalogue(lang: Language): Promise<void> {
+	if (lang === 'fr') return Promise.resolve();
+	let pending = pendingCatalogues.get(lang);
+	if (!pending) {
+		pending = catalogueLoaders[lang]()
+			.then((catalogue) => catalogues.update((loaded) => ({ ...loaded, [lang]: catalogue })))
+			.catch((error) => {
+				pendingCatalogues.delete(lang);
+				console.error(`Failed to load the ${lang} catalogue:`, error);
+			});
+		pendingCatalogues.set(lang, pending);
+	}
+	return pending;
+}
 
 // Current language store
 function createLanguageStore() {
@@ -33,6 +56,7 @@ function createLanguageStore() {
 		set: (lang: Language) => {
 			// A convenience only: blocked or full storage must not stop the switch.
 			if (browser) writeStorage('localStorage', 'app-language', lang);
+			void loadCatalogue(lang);
 			set(lang);
 		},
 		update
@@ -73,13 +97,16 @@ export function initializeLanguage(urlLang?: Language): void {
 	currentLanguage.set(targetLang);
 }
 
-// Current translations store
-export const t = derived(currentLanguage, ($currentLanguage) => translations[$currentLanguage]);
+// Current translations store: the chosen catalogue, French until it arrives.
+export const t = derived(
+	[currentLanguage, catalogues],
+	([$currentLanguage, $catalogues]) => $catalogues[$currentLanguage] ?? fr
+);
 
 // Translation function
 export function translate(key: string, lang?: Language): string {
 	const targetLang = lang || get(currentLanguage);
-	const translation = translations[targetLang];
+	const translation = get(catalogues)[targetLang] ?? fr;
 
 	// Support nested keys with dot notation
 	const keys = key.split('.');

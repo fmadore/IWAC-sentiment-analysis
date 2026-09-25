@@ -3,6 +3,13 @@
  * Global setup for all tests
  */
 import '@testing-library/svelte/vitest';
+import { loadCatalogue } from '$lib/i18n';
+
+/**
+ * The English catalogue is loaded on demand in the app. Tests switch language
+ * synchronously and assert on English text at once, so it is loaded up front.
+ */
+await loadCatalogue('en');
 
 /**
  * jsdom implements neither `matchMedia` nor `ResizeObserver`.

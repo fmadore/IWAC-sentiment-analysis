@@ -32,7 +32,8 @@
 		getArbiterForArticle,
 		getArbiterV2RowForArticle,
 		loadArbiterV2Panel,
-		loadJustifications
+		loadJustifications,
+		justificationsOf
 	} from '$lib/stores';
 
 	// Props: Accept comparison data as a prop
@@ -40,17 +41,25 @@
 
 	// Both models' justification prose loads on demand (see articles.svelte.ts);
 	// a comparison detail needs each side's reasoning, not just the scores.
+	// Untracked, so this effect follows the comparison, not every load state.
 	$effect(() => {
 		if (comparison) {
+			const { modelAId, modelBId } = comparison;
 			const articleIds = [comparison.article['o:id']];
-			loadJustifications(comparison.modelAId, fetch, articleIds).catch((error) =>
-				console.error('Failed to load model A justification:', error)
-			);
-			loadJustifications(comparison.modelBId, fetch, articleIds).catch((error) =>
-				console.error('Failed to load model B justification:', error)
-			);
+			untrack(() => {
+				loadJustifications(modelAId, fetch, articleIds).catch((error) =>
+					console.error('Failed to load model A justification:', error)
+				);
+				loadJustifications(modelBId, fetch, articleIds).catch((error) =>
+					console.error('Failed to load model B justification:', error)
+				);
+			});
 		}
 	});
+
+	// Prose is merged in place into raw state; this re-reads it when it lands.
+	const proseA = $derived(justificationsOf(comparison?.modelA));
+	const proseB = $derived(justificationsOf(comparison?.modelB));
 
 	// Check if arbiter data exists for this article
 	const hasArbiterData = $derived(
@@ -191,10 +200,10 @@
 				dimension="centrality"
 				{modelAName}
 				modelAValue={comparison.modelA?.centralite_islam_musulmans}
-				modelAJustification={comparison.modelA?.centralite_justification}
+				modelAJustification={proseA.centrality}
 				{modelBName}
 				modelBValue={comparison.modelB?.centralite_islam_musulmans}
-				modelBJustification={comparison.modelB?.centralite_justification}
+				modelBJustification={proseB.centrality}
 			/>
 		</div>
 
@@ -212,10 +221,10 @@
 				dimension="polarity"
 				{modelAName}
 				modelAValue={comparison.modelA?.polarite}
-				modelAJustification={comparison.modelA?.polarite_justification}
+				modelAJustification={proseA.polarity}
 				{modelBName}
 				modelBValue={comparison.modelB?.polarite}
-				modelBJustification={comparison.modelB?.polarite_justification}
+				modelBJustification={proseB.polarity}
 			/>
 		</div>
 
@@ -233,10 +242,10 @@
 				dimension="subjectivity"
 				{modelAName}
 				modelAValue={comparison.modelA?.subjectivite_score}
-				modelAJustification={comparison.modelA?.subjectivite_justification}
+				modelAJustification={proseA.subjectivity}
 				{modelBName}
 				modelBValue={comparison.modelB?.subjectivite_score}
-				modelBJustification={comparison.modelB?.subjectivite_justification}
+				modelBJustification={proseB.subjectivity}
 			/>
 		</div>
 

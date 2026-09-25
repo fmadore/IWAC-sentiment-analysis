@@ -3,11 +3,10 @@ import { scheduleSmartPrefetch, type PrefetchTask } from '$lib/data/prefetch';
  * Articles State Module
  *
  * Manages article data, loading, and filtering using Svelte 5 runes.
- * Provides both modern $state-based API and legacy store compatibility.
  */
 
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
-import type { Article, DatasetId, LoadState } from '$lib/types/data';
+import type { Article, DatasetId, LoadState, SentimentAnalysis } from '$lib/types/data';
 import { datasetState } from './datasets.svelte';
 import { filterState } from './filters.svelte';
 import { uiState } from './ui.svelte';
@@ -31,11 +30,29 @@ import {
 // Svelte 5 Runes State
 // ============================================
 
-let _datasetArticles = $state<Record<string, Article[]>>({});
-let _currentDatasetArticles = $state<Article[]>([]);
-let _selectedArticle = $state<Article | null>(null);
-const _loadStates = $state<Partial<Record<DatasetId, LoadState<Article[]>>>>({});
+/*
+ * The corpora are held as `$state.raw`: up to five models × 12,349 articles
+ * that are replaced wholesale, never edited through the store. Deep `$state`
+ * wrapped every article and its analysis in a Proxy and gave every property a
+ * signal the first time an aggregate read it, so each filter pass paid a trap
+ * and a dependency per field read. Measured in the production build, filter
+ * changes were roughly 2–3× slower that way.
+ *
+ * The one in-place write is the justification prose, merged into the existing
+ * analysis objects on demand (see `applyJustifications`). Raw state does not
+ * see it, so the merge bumps `_justificationVersion`, and the views that show
+ * prose read it through `justificationsOf`.
+ */
+let _datasetArticles = $state.raw<Record<string, Article[]>>({});
+let _currentDatasetArticles = $state.raw<Article[]>([]);
+let _selectedArticle = $state.raw<Article | null>(null);
+let _loadStates = $state.raw<Partial<Record<DatasetId, LoadState<Article[]>>>>({});
 const _justificationErrors = $state<Partial<Record<DatasetId, Error>>>({});
+let _justificationVersion = $state(0);
+
+function setLoadState(datasetId: DatasetId, state: LoadState<Article[]>): void {
+	_loadStates = { ..._loadStates, [datasetId]: state };
+}
 
 // ============================================
 // Derived State (reactive runes)
@@ -124,16 +141,16 @@ export const loadSpecificDataset = async (
 		if (!dataset) {
 			throw new Error(`Dataset ${datasetId} not found`);
 		}
-		_loadStates[datasetId] = { status: 'loading' };
+		setLoadState(datasetId, { status: 'loading' });
 		load = loadDatasetArticles(dataset.file, datasetId, fetchFunction)
 			.then((articles) => {
 				articleState.updateDatasets(datasetId, articles);
-				_loadStates[datasetId] = { status: 'ready', data: articles };
+				setLoadState(datasetId, { status: 'ready', data: articles });
 				return articles;
 			})
 			.catch((error: unknown) => {
 				const normalizedError = error instanceof Error ? error : new Error(String(error));
-				_loadStates[datasetId] = { status: 'error', error: normalizedError };
+				setLoadState(datasetId, { status: 'error', error: normalizedError });
 				throw normalizedError;
 			})
 			.finally(() => {
@@ -198,6 +215,8 @@ async function loadJustificationShard(
 		);
 		applyJustifications(_datasetArticles[datasetId] ?? [], data.justifications);
 		loaded.add(shard);
+		// The corpora are raw state: announce the in-place prose write.
+		_justificationVersion++;
 	})().finally(() => justificationLoads.delete(key));
 
 	justificationLoads.set(key, load);
@@ -250,6 +269,26 @@ export const loadJustifications = async (
 /** True once a dataset's justification prose has been merged in. */
 export const hasJustifications = (datasetId: DatasetId): boolean =>
 	justificationsLoaded.has(datasetId);
+
+export interface Justifications {
+	polarity: string | null;
+	subjectivity: string | null;
+	centrality: string | null;
+}
+
+/**
+ * An analysis's justification prose, read so the caller re-renders when a
+ * shard is merged. Prose is written in place into raw state, so reading the
+ * fields directly would show nothing until something else re-rendered.
+ */
+export function justificationsOf(analysis: SentimentAnalysis | null | undefined): Justifications {
+	void _justificationVersion;
+	return {
+		polarity: analysis?.polarite_justification ?? null,
+		subjectivity: analysis?.subjectivite_justification ?? null,
+		centrality: analysis?.centralite_justification ?? null
+	};
+}
 
 /** Load only the currently selected dataset (lazy loading) */
 export const loadCurrentDataset = async (fetchFunction: typeof fetch): Promise<void> => {

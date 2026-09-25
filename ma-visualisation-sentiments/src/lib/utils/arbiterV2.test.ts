@@ -9,7 +9,6 @@
  */
 import { describe, expect, it } from 'vitest';
 import {
-	analysisJustification,
 	analysisValue,
 	blindLegend,
 	buildArbiterV2Rows,
@@ -199,7 +198,7 @@ describe('buildArbiterV2Rows', () => {
 	});
 });
 
-describe('analysisValue / analysisJustification / matchesArbiterScore', () => {
+describe('analysisValue / matchesArbiterScore', () => {
 	const rated = analysis('Positif', 4);
 
 	it('reads each dimension’s stored value', () => {
@@ -207,12 +206,6 @@ describe('analysisValue / analysisJustification / matchesArbiterScore', () => {
 		expect(analysisValue(rated, 'subjectivity')).toBe(4);
 		expect(analysisValue(rated, 'centrality')).toBe('Central');
 		expect(analysisValue(null, 'polarity')).toBeNull();
-	});
-
-	it('reads the prose, null until it has loaded', () => {
-		expect(analysisJustification(rated, 'polarity')).toBe('because Positif');
-		expect(analysisJustification(rated, 'subjectivity')).toBeNull();
-		expect(analysisJustification(undefined, 'centrality')).toBeNull();
 	});
 
 	it('compares subjectivity as a rank and the other dimensions as labels', () => {
