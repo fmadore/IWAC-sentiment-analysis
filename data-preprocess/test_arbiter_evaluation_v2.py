@@ -10,12 +10,13 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import sys
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from iwac_preprocess import CONTRACT_V2
+from iwac_preprocess import CONTRACT_V2, arbiter_prompt, arbiter_selection
 from pydantic import ValidationError
 
 
@@ -576,10 +577,11 @@ def test_response_schema_rejects_an_out_of_contract_score():
 def test_a_valid_response_is_stored_with_subjectivity_as_the_shared_rank():
     client = StubClient(message(valid_response()))
     result = arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION)
-    assert result is not None
-    assert result.subjectivity.score == "4"  # "Plutôt subjectif"
-    assert result.polarity.score == "Positif"
-    assert result.overall_winner == "b"
+    assert result.outcome == arbiter.OUTCOME_OK
+    assert result.analysis is not None
+    assert result.analysis.subjectivity.score == "4"  # "Plutôt subjectif"
+    assert result.analysis.polarity.score == "Positif"
+    assert result.analysis.overall_winner == "b"
 
 
 def test_the_request_carries_no_sampling_parameters_and_no_thinking_block():
@@ -669,9 +671,9 @@ def test_a_failed_call_is_still_billed_and_still_counted():
     )
     client = StubClient(message(valid_response(), stop_reason="refusal", usage=usage))
     totals = arbiter.UsageTotals()
-    assert (
-        arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION, usage=totals) is None
-    )
+    result = arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION, usage=totals)
+    assert result.analysis is None
+    assert result.outcome == arbiter.OUTCOME_REFUSED
     assert totals.calls == 1
     assert totals.cache_read_input_tokens == 1463
 
@@ -685,27 +687,34 @@ def test_a_schema_violation_is_not_retried():
         arbiter.ArbiterResponseV2.model_validate({})
     except ValidationError as error:
         client = StubClient(error)
-    assert arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION) is None
+    result = arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION)
+    assert result.outcome == arbiter.OUTCOME_INVALID
     assert len(client.calls) == 1
 
 
-def test_a_refusal_is_recorded_as_a_failure_and_not_retried():
+def test_a_refusal_is_recorded_as_a_refusal_and_not_retried():
     client = StubClient(
         message(None, stop_reason="refusal", stop_details=SimpleNamespace(category="cyber"))
     )
-    assert arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION) is None
+    result = arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION)
+    assert result.outcome == arbiter.OUTCOME_REFUSED
+    assert result.analysis is None
     assert len(client.calls) == 1
 
 
 def test_a_truncated_response_is_a_failure_rather_than_a_partial_verdict():
     client = StubClient(message(None, stop_reason="max_tokens"))
-    assert arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION) is None
+    result = arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION)
+    assert result.outcome == arbiter.OUTCOME_TRUNCATED
+    assert result.analysis is None
 
 
 def test_an_article_without_text_is_never_sent():
     client = StubClient(message(valid_response()))
     article = {**prompt_article(), "OCR": ""}
-    assert arbiter.evaluate_with_arbiter(client, article, PERMUTATION) is None
+    assert arbiter.evaluate_with_arbiter(client, article, PERMUTATION).outcome == (
+        arbiter.OUTCOME_NO_TEXT
+    )
     assert client.calls == []
 
 
@@ -726,6 +735,7 @@ def stub_pipeline(monkeypatch, tmp_path):
         arbiter, "load_iwac_full_text", lambda: {"1": "Texte un.", "2": "Texte deux."}
     )
     monkeypatch.setattr(arbiter, "get_webapp_data_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(arbiter, "get_staging_dir", lambda: str(tmp_path / ".staging"))
     monkeypatch.setattr(
         arbiter, "get_source_revision", lambda repo=None: "rev-scores" if repo else None
     )
@@ -891,3 +901,108 @@ def test_main_returns_nonzero_when_the_private_mirror_is_unavailable(monkeypatch
 
     monkeypatch.setattr(arbiter, "load_iwac_full_text", fail)
     assert arbiter.main(["--dry-run"]) == 2
+
+
+# ---------------------------------------------------------------------------
+# One definition of the selection vocabulary and the blind labels
+# ---------------------------------------------------------------------------
+
+
+def test_the_script_uses_the_selection_modules_vocabulary_not_a_copy():
+    assert arbiter.RULES is arbiter_selection.RULES
+    assert arbiter.DIMENSIONS is arbiter_selection.DIMENSIONS
+    assert arbiter.SPREAD_KEYS is arbiter_selection.SPREAD_KEYS
+    assert arbiter.BLIND_LABELS is arbiter_prompt.BLIND_LABELS
+
+
+def test_an_unknown_rule_is_refused_rather_than_widened_to_the_union():
+    with pytest.raises(ValueError, match="Unknown arbiter rule"):
+        arbiter.find_three_way_conflicts([record(1, spread_of(PANEL_FULL_FLIP))], rule="valance")
+
+
+TYPES_TS = PROMPTS_TS.parent.parent / "types" / "data.ts"
+
+
+def test_the_browser_resolves_verdicts_with_the_same_blind_labels():
+    """Published verdicts name a label; the browser maps it back to a model."""
+    source = TYPES_TS.read_text(encoding="utf-8")
+    match = re.search(r"export const ARBITER_BLIND_LABELS = \[([^\]]*)\] as const;", source)
+    assert match, "ARBITER_BLIND_LABELS not found in types/data.ts"
+    assert tuple(re.findall(r"'([a-z])'", match.group(1))) == arbiter.BLIND_LABELS
+
+
+# ---------------------------------------------------------------------------
+# Run safety: the cache, the cost record, refusals and interruptions
+# ---------------------------------------------------------------------------
+
+
+def test_a_corrupt_cache_file_is_refused_rather_than_started_over(stub_pipeline):
+    """Treating it as empty would redraw the permutation and re-price the frame."""
+    path = stub_pipeline / arbiter.OUTPUT_FILENAME
+    path.write_text("{not json", encoding="utf-8")
+    assert arbiter.main(["--prune-cache-only"]) == 2
+    assert path.read_text(encoding="utf-8") == "{not json"
+
+
+PUBLISHED_USAGE = {
+    "calls": 281,
+    "input_tokens": 1151111,
+    "output_tokens": 453184,
+    "cache_creation_input_tokens": 3578,
+    "cache_read_input_tokens": 1001840,
+    "output_tokens_per_call": 1613,
+    "input_tokens_per_call": 4096,
+    "usd": 17.61,
+}
+
+
+def test_a_run_that_spends_nothing_keeps_the_published_cost(stub_pipeline):
+    assert arbiter.main(["--prune-cache-only"]) == 0
+    path = stub_pipeline / arbiter.OUTPUT_FILENAME
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload["metadata"]["usage"] = PUBLISHED_USAGE
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    assert arbiter.main(["--prune-cache-only"]) == 0
+    assert json.loads(path.read_text(encoding="utf-8"))["metadata"]["usage"] == PUBLISHED_USAGE
+
+
+def test_the_resumed_cost_is_the_published_figure():
+    assert arbiter.UsageTotals.from_metadata(PUBLISHED_USAGE).as_metadata() == PUBLISHED_USAGE
+
+
+def paid_run(monkeypatch, outcomes: list) -> None:
+    """Replace the paid call with a scripted sequence of outcomes."""
+    monkeypatch.setattr(arbiter, "create_anthropic_client", lambda api_key: object())
+    scripted = iter(outcomes)
+
+    def evaluate(client, article, permutation, **kwargs):
+        outcome = next(scripted)
+        if isinstance(outcome, BaseException):
+            raise outcome
+        if outcome == arbiter.OUTCOME_OK:
+            analysis = arbiter.convert_response(valid_response(), str(article["o:id"]))
+            return arbiter.EvaluationResult(outcome, analysis)
+        return arbiter.EvaluationResult(outcome)
+
+    monkeypatch.setattr(arbiter, "evaluate_with_arbiter", evaluate)
+
+
+def test_refusals_are_counted_apart_from_failures(stub_pipeline, monkeypatch):
+    paid_run(monkeypatch, [arbiter.OUTCOME_REFUSED, arbiter.OUTCOME_INVALID])
+    assert arbiter.main(["--yes"]) == 0
+    metadata = json.loads((stub_pipeline / arbiter.OUTPUT_FILENAME).read_text(encoding="utf-8"))[
+        "metadata"
+    ]
+    assert metadata["refused_evaluations"] == 1
+    assert metadata["failed_evaluations"] == 1
+    assert metadata["successful_evaluations"] == 0
+
+
+def test_an_interrupted_run_saves_every_verdict_already_paid_for(stub_pipeline, monkeypatch):
+    paid_run(monkeypatch, [arbiter.OUTCOME_OK, KeyboardInterrupt()])
+    with pytest.raises(KeyboardInterrupt):
+        arbiter.main(["--yes"])
+    payload = json.loads((stub_pipeline / arbiter.OUTPUT_FILENAME).read_text(encoding="utf-8"))
+    assert [row["article_id"] for row in payload["evaluations"]] == ["1"]
+    assert payload["metadata"]["successful_evaluations"] == 1

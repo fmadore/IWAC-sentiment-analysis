@@ -1,0 +1,86 @@
+{
+	"description": "Cross-language contract for which justification shard holds an article's prose. data-preprocess/test_shards.py and src/lib/domain/sentimentContract.test.ts both read this file; the browser fetches exactly the shard these cases name.",
+	"shardCount": 32,
+	"cases": [
+		{
+			"name": "zero",
+			"id": "0",
+			"shard": 0
+		},
+		{
+			"name": "small id",
+			"id": "7",
+			"shard": 7
+		},
+		{
+			"name": "last shard",
+			"id": "31",
+			"shard": 31
+		},
+		{
+			"name": "wraps to the first shard",
+			"id": "32",
+			"shard": 0
+		},
+		{
+			"name": "typical Omeka id",
+			"id": "12345",
+			"shard": 25
+		},
+		{
+			"name": "leading zeros are still decimal",
+			"id": "007",
+			"shard": 7
+		},
+		{
+			"name": "2^53 + 1: exact remainder where a float would round to 2^53",
+			"id": "9007199254740993",
+			"shard": 1
+		},
+		{
+			"name": "a sign is not canonical",
+			"id": "-5",
+			"shard": 23
+		},
+		{
+			"name": "an exponent is not canonical",
+			"id": "1e3",
+			"shard": 24
+		},
+		{
+			"name": "hex is not canonical",
+			"id": "0x10",
+			"shard": 20
+		},
+		{
+			"name": "an underscore is not canonical",
+			"id": "1_000",
+			"shard": 3
+		},
+		{
+			"name": "empty string",
+			"id": "",
+			"shard": 5
+		},
+		{
+			"name": "whitespace is not canonical",
+			"id": " 123",
+			"shard": 1
+		},
+		{
+			"name": "non-ASCII digits are not canonical",
+			"id": "１２３",
+			"shard": 4
+		},
+		{
+			"name": "non-numeric",
+			"id": "abc",
+			"shard": 11
+		},
+		{
+			"name": "multi-byte UTF-8",
+			"id": "é",
+			"shard": 1
+		}
+	]
+}

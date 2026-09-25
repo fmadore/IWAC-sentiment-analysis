@@ -61,6 +61,10 @@ def qualifies(
     `--rule valence` they are inert by construction, which is why the CLI says
     so rather than silently ignoring them.
     """
+    if rule not in RULES:
+        # Falling through to the union would silently widen a mistyped rule to
+        # the whole contract frame, which is the most expensive reading of it.
+        raise ValueError(f"Unknown arbiter rule {rule!r}; expected one of {', '.join(RULES)}")
     by_spread = any(spread[SPREAD_KEYS[dimension]] >= threshold for dimension in dimensions)
     if rule == RULE_SPREAD:
         return by_spread

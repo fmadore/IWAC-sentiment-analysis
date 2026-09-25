@@ -155,7 +155,7 @@ pip install -r data-preprocess/requirements-dev.txt
 
 Source reads resolve a single immutable Hugging Face commit per repository before loading. Set `IWAC_HF_REVISION` for the public dataset and `IWAC_HF_FULL_REVISION` for the private OCR mirror to reproduce a prior run; both the parquet and datasets fallback paths use the resolved commit.
 
-Exports are staged and validated before publication. A writer lock prevents concurrent exports; a recovery journal restores the previous complete generation after an interrupted promotion. Run the same export command again to recover. Builds refuse a pending journal. Production builds bind the frontend to content-addressed `data/releases/<release>/` URLs; the service worker never substitutes files from a different release. The source `static/data/` layout and frozen v1 files remain unchanged.
+Every export — scores and prose, extreme analysis, places, basemap and the panel arbiter — is staged and validated before publication, then promoted under one writer lock, so two exports can never interleave a mixed set. A recovery journal restores the previous complete set after an interrupted promotion. The lock and the stages live in `ma-visualisation-sentiments/.data-staging/` (gitignored), never under `static/`, whose contents are published with the site. Run the same export command again to recover. Builds refuse a pending journal. Production builds bind the frontend to content-addressed `data/releases/<release>/` URLs; the service worker never substitutes files from a different release. The source `static/data/` layout and frozen v1 files remain unchanged.
 
 **`--generation` is required and deliberately has no default.** An unflagged re-run would rewrite the frozen v1 files from whatever revision is current. A v2 run does not write `iwac_articles_base.json` at all — it asserts the live article id set still matches the frozen base and fails loudly on drift.
 
@@ -194,7 +194,7 @@ Validate before committing generated data:
 python -m pytest data-preprocess -q && python data-preprocess/validate_generated_data.py
 ```
 
-An offline test suite, plus a validator that checks category domains, article-id coverage, prose shard placement, arbiter eligibility and fingerprints, and manifest hashes — entirely offline, for both generations. Both Python and TypeScript read the same checked-in contracts, and shared fixtures assert identical discrepancy and label-mapping behaviour across the two languages.
+An offline test suite, plus a validator that checks category domains, article-id coverage, prose shard placement, arbiter eligibility and fingerprints, and manifest hashes — entirely offline, for both generations. Both Python and TypeScript read the same checked-in contracts, and shared fixtures assert identical discrepancy, label-mapping and prose-shard behaviour across the two languages.
 
 Environment variables live in a root `.env` — copy [`.env.example`](.env.example): `ANTHROPIC_API_KEY` (v2 arbiter), `HF_TOKEN` (private mirror), `GOOGLE_API_KEY` (v1 arbiter). Only the arbiter scripts load that file.
 

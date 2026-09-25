@@ -82,7 +82,7 @@ import argparse
 import json
 import os
 import random
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields
 from datetime import datetime
 from functools import partial
 from pathlib import Path
@@ -98,11 +98,23 @@ from iwac_preprocess.arbiter_prompt import (
     display_order as display_order,
 )
 from iwac_preprocess.arbiter_selection import (
+    DEFAULT_RULE,
+    DIMENSIONS,
+    RULE_UNION,
+    RULE_VALENCE,
+    RULES,
     apply_limit,
     attach_full_text,
     find_three_way_conflicts,
     resolve_threshold,
 )
+from iwac_preprocess.arbiter_selection import (
+    RULE_SPREAD as RULE_SPREAD,
+)
+from iwac_preprocess.arbiter_selection import (
+    SPREAD_KEYS as SPREAD_KEYS,
+)
+from iwac_preprocess.publication import publish_json_files
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from shared import (
     CONTRACT_V2,
@@ -111,15 +123,16 @@ from shared import (
     SentimentContract,
     get_logger,
     get_source_revision,
+    get_staging_dir,
     get_webapp_data_dir,
     load_iwac_dataset,
     load_iwac_full_text,
     reconcile_cached_evaluations,
-    safe_save_json,
     three_way_cache_fingerprint,
     validate_columns,
 )
 from tqdm import tqdm
+from validate_generated_data import validate_arbiter_envelope
 
 logger = get_logger(__name__)
 
@@ -173,36 +186,14 @@ ESTIMATE_OUTPUT_TOKENS = {"low": 1100, "medium": 1613, "high": 2400, "xhigh": 35
 # Dataset columns the selection pass depends on.
 REQUIRED_BASE_COLUMNS = ["o:id", "title", "newspaper", "country", "pub_date"]
 
-# The anonymised labels the five panel models are presented under. One label per
-# contract model, in this order; `resolve_blind_permutation` refuses to run if
-# the two lengths ever disagree.
+# The anonymised labels the five panel models are presented under come from
+# `iwac_preprocess.arbiter_prompt.BLIND_LABELS`, as do the selection rules and
+# spread keys from `arbiter_selection`: one definition each, imported above.
+# `resolve_blind_permutation` refuses to run if the label and model counts ever
+# disagree.
 PREFERENCE_VALUES = (*BLIND_LABELS, "multiple", "none")
 
-# Which dimensions may *trigger* selection, and where each one's spread lives.
-# All three dimensions by default, matching the contract rule the validator
-# enforces.
-SPREAD_KEYS = {
-    "polarity": "polarity_spread",
-    "subjectivity": "subjectivity_spread",
-    "centrality": "centrality_spread",
-}
-DIMENSIONS = tuple(SPREAD_KEYS)
-
-# Which of the contract's two arbiter rules a run selects on. `spread` is
-# amplitude, narrowed further by --dimensions/--threshold; `valence` is the
-# polarity sign disagreement, which no spread threshold can reach below 3;
-# `spread-or-valence` is the union, and is the frame the validator enforces.
-RULE_SPREAD = "spread"
-RULE_VALENCE = "valence"
-RULE_UNION = "spread-or-valence"
-RULES = (RULE_SPREAD, RULE_VALENCE, RULE_UNION)
-DEFAULT_RULE = RULE_UNION if CONTRACT.polarity_valence_bands else RULE_SPREAD
-
 MODEL_IDS = list(CONTRACT.model_names)
-# rank -> upstream ordinal label. v2 stores subjectivity as the shared 1-5 rank
-# everywhere, but the arbiter is shown (and answers with) the label wording the
-# analysed models themselves used.
-SUBJECTIVITY_LABELS = {rank: label for label, rank in CONTRACT.subjectivity_label_scores.items()}
 
 
 # ============================================================================
@@ -311,6 +302,25 @@ class UsageTotals:
     cache_creation_input_tokens: int = 0
     cache_read_input_tokens: int = 0
 
+    @classmethod
+    def from_metadata(cls, stored: Any) -> "UsageTotals":
+        """Resume the totals a previous run published.
+
+        The published file is the record of what it cost. A resumed run adds
+        its own calls to that record; a run that makes no call at all —
+        `--prune-cache-only`, or one that finds everything cached — keeps it
+        rather than overwriting it with nothing.
+        """
+        if not isinstance(stored, dict):
+            return cls()
+        return cls(
+            **{
+                field.name: int(stored.get(field.name) or 0)
+                for field in fields(cls)
+                if isinstance(stored.get(field.name, 0), int | float)
+            }
+        )
+
     def add(self, usage: Any) -> None:
         if usage is None:
             return
@@ -404,8 +414,8 @@ def resolve_blind_permutation(
             f"The blind permutation is a bijection: {len(BLIND_LABELS)} labels "
             f"({', '.join(label.upper() for label in BLIND_LABELS)}) for "
             f"{len(model_ids)} model(s) ({', '.join(model_ids)}). Growing or shrinking the "
-            "panel means editing BLIND_LABELS here, the browser's ARBITER_BLIND_LABELS, "
-            "and the prompt prose that enumerates the analyses."
+            "panel means editing BLIND_LABELS in iwac_preprocess/arbiter_prompt.py, the "
+            "browser's ARBITER_BLIND_LABELS, and the prompt prose that enumerates the analyses."
         )
 
     stored = (metadata or {}).get("blind_permutation")
@@ -424,6 +434,24 @@ def resolve_blind_permutation(
 # ============================================================================
 # Paid evaluation
 # ============================================================================
+
+# Why an article produced no verdict, counted separately in the published
+# metadata. `refused` is the model declining the task; every other non-ok
+# outcome is a failure of the call or of the response.
+OUTCOME_OK = "ok"
+OUTCOME_REFUSED = "refused"
+OUTCOME_TRUNCATED = "truncated"
+OUTCOME_INVALID = "invalid"
+OUTCOME_ERROR = "error"
+OUTCOME_NO_TEXT = "no_text"
+
+
+@dataclass(frozen=True)
+class EvaluationResult:
+    """One article's verdict, or the reason there is none."""
+
+    outcome: str
+    analysis: ArbiterAnalysisV2 | None = None
 
 
 def create_anthropic_client(api_key: str):
@@ -481,7 +509,7 @@ def evaluate_with_arbiter(
     effort: str = ARBITER_DEFAULT_EFFORT,
     contract: SentimentContract = CONTRACT,
     usage: UsageTotals | None = None,
-) -> ArbiterAnalysisV2 | None:
+) -> EvaluationResult:
     """Send one article to Claude Opus 5 and return its structured verdict.
 
     No `temperature` and no `thinking` block: sampling parameters are rejected
@@ -496,7 +524,7 @@ def evaluate_with_arbiter(
     article_id = str(article.get("o:id"))
     if not article.get("OCR"):
         logger.warning("No text available for article %s", article_id)
-        return None
+        return EvaluationResult(OUTCOME_NO_TEXT)
 
     prompt = create_arbiter_prompt(article, permutation, contract)
 
@@ -523,10 +551,10 @@ def evaluate_with_arbiter(
         )
     except ValidationError as error:
         logger.error("Invalid structured response for article %s: %s", article_id, error)
-        return None
+        return EvaluationResult(OUTCOME_INVALID)
     except Exception as error:  # noqa: BLE001 - one bad article must not end the run
         logger.error("Arbiter call failed for article %s: %s", article_id, error)
-        return None
+        return EvaluationResult(OUTCOME_ERROR)
 
     # Recorded before any early return: a refused or truncated call is billed
     # like any other, and an accounting that skipped those would understate the
@@ -538,21 +566,21 @@ def evaluate_with_arbiter(
     if stop_reason == "refusal":
         category = getattr(getattr(response, "stop_details", None), "category", None)
         logger.warning("Arbiter declined article %s (category=%s)", article_id, category)
-        return None
+        return EvaluationResult(OUTCOME_REFUSED)
     if stop_reason == "max_tokens":
         logger.error(
             "Article %s hit max_tokens (%d); raise ARBITER_MAX_OUTPUT_TOKENS or lower --effort",
             article_id,
             ARBITER_MAX_OUTPUT_TOKENS,
         )
-        return None
+        return EvaluationResult(OUTCOME_TRUNCATED)
 
     parsed = getattr(response, "parsed_output", None)
     if parsed is None:
         logger.error("Empty structured response for article %s", article_id)
-        return None
+        return EvaluationResult(OUTCOME_INVALID)
 
-    return convert_response(parsed, article_id, contract)
+    return EvaluationResult(OUTCOME_OK, convert_response(parsed, article_id, contract))
 
 
 # ============================================================================
@@ -560,17 +588,34 @@ def evaluate_with_arbiter(
 # ============================================================================
 
 
+class CacheUnreadableError(RuntimeError):
+    """The published file exists but cannot be used as the cache."""
+
+
 def load_cached_evaluations(path: str) -> tuple[list[dict], dict]:
-    """Load the published file, which doubles as the incremental cache."""
+    """Load the published file, which doubles as the incremental cache.
+
+    A missing file is a first run. A file that exists but cannot be read is not:
+    treating it as empty would draw a fresh blind permutation — so "Analyse A"
+    would stop meaning what the published verdicts say it means — and price the
+    whole frame again as new paid calls. That is refused, loudly.
+    """
     if not os.path.exists(path):
         return [], {}
     try:
         with open(path, encoding="utf-8") as handle:
             payload = json.load(handle)
-        return list(payload.get("evaluations", [])), dict(payload.get("metadata", {}))
-    except (OSError, json.JSONDecodeError, TypeError, ValueError) as error:
-        logger.warning("Failed to load existing data from %s: %s", path, error)
-        return [], {}
+        evaluations = payload.get("evaluations", [])
+        metadata = payload.get("metadata", {})
+        if not isinstance(evaluations, list) or not isinstance(metadata, dict):
+            raise ValueError("expected an object with 'evaluations' and 'metadata'")
+        return list(evaluations), dict(metadata)
+    except (OSError, AttributeError, json.JSONDecodeError, TypeError, ValueError) as error:
+        raise CacheUnreadableError(
+            f"{path} exists but is not a readable arbiter file ({error}). It is the paid "
+            "cache and holds the blind permutation; restore it from version control "
+            "rather than letting a run start over."
+        ) from error
 
 
 def build_fingerprint(source_revision: str | None, text_revision: str | None):
@@ -600,9 +645,9 @@ def build_metadata(
     measured = usage.as_metadata() if usage else {}
     return {
         "generated": datetime.now().isoformat(),
-        # Empty on a run that made no paid call, and cumulative only over the
-        # calls of *this* run — a resumed run measures what it added, not the
-        # whole file.
+        # Cumulative over every run that contributed to the file: seeded from
+        # the published record, so a resumed run adds to it and a run that
+        # makes no call leaves it as it was.
         "usage": measured,
         "arbiter_model": ARBITER_MODEL,
         "mode": CONTRACT.arbiter["mode"],
@@ -638,7 +683,21 @@ def build_metadata(
 
 
 def save_results(path: str, evaluations: list[dict], metadata: dict) -> None:
-    safe_save_json({"metadata": metadata, "evaluations": evaluations}, path)
+    """Publish the file through the shared staged path, envelope checked first.
+
+    Waits for the writer lock rather than failing: a concurrent export must not
+    cost this run the paid verdicts it is about to save.
+    """
+    output = Path(path)
+    publish_json_files(
+        output.parent,
+        Path(get_staging_dir()),
+        {output.name: {"metadata": metadata, "evaluations": evaluations}},
+        validate=lambda stage: validate_arbiter_envelope(
+            CONTRACT, json.loads((stage / output.name).read_text(encoding="utf-8"))
+        ),
+        blocking=True,
+    )
 
 
 # ============================================================================
@@ -891,7 +950,11 @@ def main(argv: list[str] | None = None) -> int:
     source_revision = get_source_revision(HF_REPO_ID)
     text_revision = get_source_revision(HF_FULL_REPO_ID)
     output_path = os.path.join(get_webapp_data_dir(), OUTPUT_FILENAME)
-    cached, cached_metadata = load_cached_evaluations(output_path)
+    try:
+        cached, cached_metadata = load_cached_evaluations(output_path)
+    except CacheUnreadableError as error:
+        logger.error("%s", error)
+        return 2
     permutation = resolve_blind_permutation(cached_metadata, MODEL_IDS)
     logger.info(
         "Blind assignment: %s",
@@ -932,7 +995,7 @@ def main(argv: list[str] | None = None) -> int:
         "valence_flips_selected": sum(1 for article in selected if article.get("valence_flip")),
     }
     # Threaded through `publish`, so a partial save carries the spend so far.
-    usage = UsageTotals()
+    usage = UsageTotals.from_metadata(cached_metadata.get("usage"))
     counts = {
         "total": len(selected),
         "successful": len(evaluations),
@@ -999,35 +1062,45 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     fingerprint = build_fingerprint(source_revision, text_revision)
-    successful = failed = 0
+    successful = failed = refused = 0
 
-    for article in tqdm(remaining, desc="Panel arbiter"):
-        result = evaluate_with_arbiter(
-            client, article, permutation, effort=args.effort, usage=usage
-        )
-        if result is None:
-            failed += 1
-            continue
+    def run_counts() -> dict[str, int]:
+        return {"failed": failed, "refused": refused}
 
-        evaluations.append(
-            {
-                "article_id": result.article_id,
-                "cache_fingerprint": fingerprint(article),
-                "spread": article["spread"],
-                "arbiter": asdict(result),
-            }
-        )
-        successful += 1
-        if successful % SAVE_INTERVAL == 0:
-            publish({"failed": failed})
-            logger.info("Saved %d evaluations", len(evaluations))
+    try:
+        for article in tqdm(remaining, desc="Panel arbiter"):
+            result = evaluate_with_arbiter(
+                client, article, permutation, effort=args.effort, usage=usage
+            )
+            if result.analysis is None:
+                if result.outcome == OUTCOME_REFUSED:
+                    refused += 1
+                else:
+                    failed += 1
+                continue
 
-    publish({"failed": failed})
+            evaluations.append(
+                {
+                    "article_id": result.analysis.article_id,
+                    "cache_fingerprint": fingerprint(article),
+                    "spread": article["spread"],
+                    "arbiter": asdict(result.analysis),
+                }
+            )
+            successful += 1
+            if successful % SAVE_INTERVAL == 0:
+                publish(run_counts())
+                logger.info("Saved %d evaluations", len(evaluations))
+    finally:
+        # Also on Ctrl-C or a crash: every verdict already paid for is saved.
+        publish(run_counts())
+
     logger.info(
-        "Complete: %d newly evaluated, %d from cache, %d failed",
+        "Complete: %d newly evaluated, %d from cache, %d failed, %d refused",
         successful,
         len(reconciliation.evaluated_ids),
         failed,
+        refused,
     )
     return 0
 

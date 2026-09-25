@@ -8,6 +8,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { ARBITER_BLIND_LABELS } from '$lib/types/data';
+import shardFixtures from '$lib/data/justification-shard-fixtures.json';
 import {
 	ARCHIVED_GENERATION,
 	CURRENT_GENERATION,
@@ -15,6 +16,7 @@ import {
 	DATASET_IDS_V1,
 	DATASET_IDS_V2,
 	GENERATION_IDS,
+	JUSTIFICATION_SHARD_COUNT,
 	MODEL_PAIR_IDS,
 	MODEL_PAIR_IDS_V2,
 	SENTIMENT_CONTRACTS,
@@ -26,6 +28,7 @@ import {
 	getPairModels,
 	isDatasetId,
 	isModelPair,
+	justificationShard,
 	modelDisplayName,
 	pairIdsOf
 } from './sentimentContract';
@@ -131,5 +134,26 @@ describe('model naming', () => {
 		expect(analysisModelName('mistral-small')).toBe('Mistral Small 4 2603');
 		expect(analysisModelName('gemma')).toBe('Gemma 4 31B IT');
 		expect(analysisModelName('mistral')).toBe('Ministral 14B 2512');
+	});
+});
+
+/**
+ * The browser fetches exactly the shard this names; the Python pipeline placed
+ * the row with its own implementation. `data-preprocess/test_shards.py` reads
+ * the same fixture, so the two cannot drift apart.
+ */
+describe('shared justification shard contract', () => {
+	it('uses the contract shard count', () => {
+		expect(shardFixtures.shardCount).toBe(JUSTIFICATION_SHARD_COUNT);
+	});
+
+	for (const fixture of shardFixtures.cases) {
+		it(fixture.name, () => {
+			expect(justificationShard(fixture.id)).toBe(fixture.shard);
+		});
+	}
+
+	it('shards a numeric id like its decimal string', () => {
+		expect(justificationShard(12345)).toBe(justificationShard('12345'));
 	});
 });

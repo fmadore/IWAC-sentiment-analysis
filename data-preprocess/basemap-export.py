@@ -20,8 +20,10 @@ import json
 import os
 import ssl
 import urllib.request
+from pathlib import Path
 
-from shared import get_logger, get_webapp_data_dir, safe_save_json
+from iwac_preprocess.publication import publish_json_files
+from shared import get_logger, get_staging_dir, get_webapp_data_dir
 
 logger = get_logger(__name__)
 
@@ -76,8 +78,14 @@ def main() -> None:
 
     logger.info("Kept %d country features", len(features))
 
-    output_path = os.path.join(get_webapp_data_dir(), OUTPUT_FILENAME)
-    safe_save_json({"type": "FeatureCollection", "features": features}, output_path, indent=None)
+    output_dir = get_webapp_data_dir()
+    output_path = os.path.join(output_dir, OUTPUT_FILENAME)
+    publish_json_files(
+        Path(output_dir),
+        Path(get_staging_dir()),
+        {OUTPUT_FILENAME: {"type": "FeatureCollection", "features": features}},
+        indent=None,
+    )
 
     size = os.path.getsize(output_path)
     logger.info("Saved basemap to %s (%.1f KB)", output_path, size / 1024)

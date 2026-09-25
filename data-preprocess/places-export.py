@@ -24,133 +24,70 @@ mentioning X*; anything stronger is a claim the data does not support.
 """
 
 import os
-from collections import Counter
+from pathlib import Path
 
+from iwac_preprocess.places import build_place_edges, build_place_lookup, build_places_payload
+from iwac_preprocess.publication import publish_json_files
 from shared import (
-    INDEX_TYPE_PLACE,
+    get_base_article_ids,
     get_logger,
+    get_staging_dir,
     get_webapp_data_dir,
     load_iwac_index,
     load_iwac_records,
-    parse_coordinates,
-    safe_int_convert,
-    safe_save_json,
-    safe_str,
-    split_pipe_field,
+    restrict_to_base_articles,
 )
-from tqdm import tqdm
+from validate_generated_data import validate_places
 
 logger = get_logger(__name__)
-
-# Coordinates are rounded before export: five decimals is ~1 m, far beyond what
-# a city-level authority record means, and trimming the tail is a third of the
-# file size.
-COORD_PRECISION = 4
-
-
-def build_place_lookup(index_df) -> tuple[dict[str, int], dict[int, dict]]:
-    """Map every place label (and alias) to its authority id.
-
-    Returns:
-        (label -> place id, place id -> place record).
-        Canonical ``Titre`` values win over ``Titre alternatif`` aliases, so a
-        title that doubles as another record's alias still resolves to itself.
-    """
-    places = index_df[index_df["Type"] == INDEX_TYPE_PLACE]
-    logger.info("Index rows of type %r: %d", INDEX_TYPE_PLACE, len(places))
-
-    records: dict[int, dict] = {}
-    by_title: dict[str, int] = {}
-    aliases: dict[str, int] = {}
-    skipped = 0
-
-    for row in places.to_dict("records"):
-        place_id = safe_int_convert(row.get("o:id"))
-        title = safe_str(row.get("Titre"))
-        coords = parse_coordinates(row.get("Coordonnées"))
-        if place_id is None or not title or coords is None:
-            skipped += 1
-            continue
-
-        lat, lng = coords
-        records[place_id] = {
-            "id": place_id,
-            "title": title,
-            "lat": round(lat, COORD_PRECISION),
-            "lng": round(lng, COORD_PRECISION),
-        }
-        by_title[title] = place_id
-        for alias in split_pipe_field(row.get("Titre alternatif")):
-            aliases.setdefault(alias, place_id)
-
-    logger.info("Places with usable coordinates: %d (skipped %d)", len(records), skipped)
-
-    # Canonical titles take precedence over aliases.
-    lookup = {**aliases, **by_title}
-    return lookup, records
+OUTPUT_FILENAME = "iwac_places.json"
 
 
 def main() -> None:
     """Join articles to geocoded places and write the webapp's map payload."""
     logger.info("Loading config: places")
 
-    lookup, records = build_place_lookup(load_iwac_index())
+    lookup, place_records = build_place_lookup(load_iwac_index())
 
-    articles = load_iwac_records()
+    output_dir = get_webapp_data_dir()
+    base_ids = get_base_article_ids(output_dir)
+    # Scope to the articles the panel processed. The live corpus keeps growing,
+    # and `validate_places` rejects an edge for any article outside the base, so
+    # an unscoped run would write a file the repo's own tests refuse.
+    articles = restrict_to_base_articles(load_iwac_records(), base_ids, logger)
     logger.info("Resolving spatial tags for %d articles...", len(articles))
 
-    edges: dict[str, list[int]] = {}
-    mentions = Counter()
-    unresolved = Counter()
+    edges = build_place_edges(articles, lookup)
+    payload = build_places_payload(place_records, edges)
 
-    for item in tqdm(articles, desc="Mapping articles"):
-        article_id = safe_int_convert(item.get("o:id"))
-        if article_id is None:
-            continue
-
-        place_ids: list[int] = []
-        for label in split_pipe_field(item.get("spatial")):
-            place_id = lookup.get(label)
-            if place_id is None:
-                unresolved[label] += 1
-                continue
-            # An article can tag a title and its own alias; count each place once.
-            if place_id not in place_ids:
-                place_ids.append(place_id)
-                mentions[place_id] += 1
-
-        if place_ids:
-            edges[str(article_id)] = place_ids
-
-    # Only ship places something actually points at — the registry is otherwise
-    # ~20 dead entries the client would filter out on every render.
-    cited = {pid: rec for pid, rec in records.items() if mentions[pid] > 0}
-
-    total_pairs = sum(mentions.values())
     logger.info(
         "Mappable articles: %d / %d (%.1f%%)",
-        len(edges),
+        len(edges.edges),
         len(articles),
-        100 * len(edges) / max(len(articles), 1),
+        100 * len(edges.edges) / max(len(articles), 1),
     )
-    logger.info("Cited places: %d   article-place pairs: %d", len(cited), total_pairs)
+    logger.info(
+        "Cited places: %d   article-place pairs: %d",
+        len(payload["places"]),
+        sum(edges.mentions.values()),
+    )
     logger.info(
         "Unresolved spatial labels: %d distinct, %d mentions",
-        len(unresolved),
-        sum(unresolved.values()),
+        len(edges.unresolved),
+        sum(edges.unresolved.values()),
     )
-    for label, count in unresolved.most_common(10):
+    for label, count in edges.unresolved.most_common(10):
         logger.info("  unresolved: %-40s %d", label[:40], count)
 
-    payload = {
-        "places": sorted(cited.values(), key=lambda p: p["id"]),
-        "articles": edges,
-    }
-
-    output_path = os.path.join(get_webapp_data_dir(), "iwac_places.json")
-    logger.info("Saving place map data to: %s", output_path)
-    safe_save_json(payload, output_path, indent=None)
-    logger.info("Saved %d places and %d article edges", len(cited), len(edges))
+    logger.info("Saving place map data to: %s", os.path.join(output_dir, OUTPUT_FILENAME))
+    publish_json_files(
+        Path(output_dir),
+        Path(get_staging_dir()),
+        {OUTPUT_FILENAME: payload},
+        indent=None,
+        validate=lambda stage: validate_places(base_ids, data_dir=stage),
+    )
+    logger.info("Saved %d places and %d article edges", len(payload["places"]), len(edges.edges))
 
 
 if __name__ == "__main__":

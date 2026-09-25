@@ -1,5 +1,9 @@
 node_modules
 
+# Data-export scratch space: writer lock and staged files. Deliberately outside
+# static/, whose contents are all published with the site.
+/.data-staging
+
 # Output
 .output
 .vercel
