@@ -1,5 +1,7 @@
 # Repository audit — 25 September 2026
 
+> **Status:** implemented the same day — see the [implementation record](REFACTORING-IMPLEMENTATION-2026-09-25.md) for what changed, the measurements, and the one item left for a decision.
+
 A follow-up to [the 7 September audit](REPO-AUDIT-2026-09-07.md), whose fifteen findings were implemented on 8 September ([record](REFACTORING-IMPLEMENTATION-2026-09-08.md)). This pass looks for what that one missed or what has appeared since, rather than re-checking its list. The foundation is still sound: no finding here calls for a rewrite, and most are small, local fixes.
 
 The headline items are four defects a user or maintainer would hit without warning. **A browser that blocks site storage gets a blank dashboard.** **The Extremes view spins forever when its file fails to load.** **The next `places-export.py` run will fail CI.** **The pipeline's lock file ships in the Pages artifact.** Behind those sit a measured 20–60× slowdown in the filter hot path, two service-worker regressions left behind by content-addressed releases, and a cross-language shard function that the validator does not check, although the README says it does.
