@@ -82,12 +82,12 @@
 		}
 	},
 	"dependencies": {
-		"@lucide/svelte": "^1.38.0",
+		"@lucide/svelte": "^1.48.0",
 		"@sveltejs/kit": "^2.70.3",
 		"echarts": "^6.1.0",
 		"esm-env": "^1.2.2",
-		"maplibre-gl": "^6.6.0",
-		"openseadragon": "^6.1.0",
+		"maplibre-gl": "^6.11.2",
+		"openseadragon": "^6.1.1",
 		"svelte-echarts": "^1.0.0",
 		"svelte-maplibre-gl": "^2.2.1"
 	}
