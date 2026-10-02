@@ -9,6 +9,120 @@
  * ranges (1–5), em dashes used sparingly.
  */
 export const en = {
+	historyResearch: {
+		rangeBandNote:
+			'The pale band spans the lowest to highest model share where every model meets the minimum. It describes model differences, not a confidence interval; exact bounds are available in the data table.',
+
+		title: 'Historical trends across models',
+		intro:
+			'Compare the panel on the same collected articles. These shares describe model annotations of this collection, not public opinion or all newspaper output.',
+		corpusFilters:
+			'Country and newspaper filters apply here. Sentiment filters above apply only to the single-model charts; selecting on one model’s labels would bias this comparison.',
+		negative: 'Negative polarity share',
+		central: 'Central or very central share',
+		subjective: 'Rather or very subjective share',
+		measure: 'Measure',
+		period: 'Period',
+		year: 'Year',
+		decade: 'Decade',
+		facet: 'Panels',
+		all: 'Whole selection',
+		country: 'By country',
+		journal: 'By newspaper',
+		cohort: 'Article cohort',
+		common: 'Same applicable articles for every model',
+		available: 'Available applicable ratings per model',
+		availableNote:
+			'Available-case denominators differ between models. Changes from the common cohort can reflect selection as well as annotation differences.',
+		commonNote:
+			'Each period uses articles with an applicable rating from every model on the selected dimension. Missing and non-applicable ratings are excluded. In the current panel, Qwen’s non-random missing ratings favour articles where Islam is more central.',
+		support:
+			'{common} dated common-cohort articles out of {total} collected; {undated} without a usable year.',
+		minimum: 'Minimum articles per point',
+		minimumNote:
+			'Gaps indicate no applicable ratings or fewer articles than the chosen minimum. A zero share is a measured value.',
+		range: 'Model range',
+		rangeNote:
+			'The data table includes the minimum and maximum model share. This is a descriptive model range, not a confidence interval.',
+		unknown: 'Country not recorded',
+		model: 'Model',
+		collected: 'Collected articles',
+		rated: 'Applicable articles',
+		target: 'Articles in category',
+		share: 'Share',
+		minimumShare: 'Lowest model share',
+		maximumShare: 'Highest model share',
+		previous: 'Previous panels',
+		next: 'Next panels',
+		page: 'Page {page} of {pages}',
+		timelineTitle: 'Newspaper coverage over time',
+		timelineIntro:
+			'Counts of collected articles by newspaper and publication period. Empty cells mean no articles in this selection; they do not establish that a newspaper published nothing.',
+		timelineFilters:
+			'This timeline uses country and newspaper filters only, independent of sentiment annotations.',
+		timelineSupport: '{total} dated articles; {undated} without a usable year.',
+		timelineHint: 'Select a newspaper below to apply its filter across the dashboard.',
+		order: 'Newspaper order',
+		countOrder: 'Most collected articles',
+		nameOrder: 'Name',
+		filterNewspaper: 'Filter to this newspaper',
+		timelinePage: 'Newspapers {start}–{end} of {total}',
+		timelineLegend: 'Collected articles per cell'
+	},
+
+	agreementResearch: {
+		cohortNote:
+			'The current panel’s complete cases lean towards articles where Islam is more central because Qwen’s missing ratings are not random.',
+
+		overviewTitle: 'Agreement across model pairs',
+		overviewNote:
+			'Each cell compares the same two models on the selected dimension. The count is the number of articles usable for that metric. Select a cell to inspect its label matrix. Pairwise samples may differ; agreement is not accuracy.',
+		metric: 'Agreement measure',
+		method: 'Method',
+		legacyMethod: 'Legacy ordinal method v1',
+		ordinalMethod: 'Applicable ordinal method v2',
+		weightedLegacyNote:
+			'Method: ordinal-v1 (archive). Weighted polarity and within-one-step agreement retain “Not applicable” as the lowest category to reproduce the published calculations.',
+		weightedApplicableNote:
+			'Method: applicable-ordinal-v2. Weighted polarity and within-one-step agreement exclude pairs where either label is “Not applicable”. The full matrix and unweighted agreement retain that category; their counts can differ.',
+		weightedAllNote:
+			'Quadratic ordinal agreement; the count includes pairs with both ratings present on this dimension.',
+		closeAgreementNote:
+			'Weighted agreement gives more credit to small differences. A higher weighted value alone does not establish a directional offset or show that most differences are one step.',
+		openPair: 'Inspect {modelA} and {modelB}',
+		models: 'Models',
+		patternsTitle: 'Full label patterns',
+		patternsNote:
+			'Each row preserves the labels assigned to the same articles by every model, in column order. Split sizes describe equal-label groups: 3–2, for example, means three models used one label and two used another. Missing ratings are excluded; the “Not applicable” setting above applies.',
+		patternKind: 'Pattern group',
+		allPatterns: 'All patterns',
+		unanimousPatterns: 'Unanimous',
+		lonePatterns: 'One against the rest',
+		splitPatterns: 'Other divisions',
+		patternLimit: 'Patterns shown',
+		pattern: 'Pattern',
+		splitSize: 'Split sizes',
+		share: 'Share of usable articles',
+		articles: 'Articles',
+		selectPattern: 'Show articles for pattern {pattern}',
+		patternsSummary:
+			'Showing {shown} of {total} patterns from {articles} usable articles. Shares use all usable articles, before the pattern-group filter.',
+		patternArticles: 'Articles with the selected pattern',
+		noPattern: 'Select a pattern to inspect its articles.',
+		missingPattern:
+			'The selected pattern is absent under the current dimension, generation or filters.',
+		articleTitle: 'Article',
+		articleYear: 'Year',
+		articleJournal: 'Newspaper',
+		openArticle: 'Open annotation for {title}',
+		loadMore: 'Show more articles',
+		articleCount: 'Showing {shown} of {total} matching articles.',
+		undefined: 'Not defined',
+		pair: 'Model pair',
+		weightedN: '{count} articles · {method}',
+		patternSelection: 'Selected pattern'
+	},
+
 	links: {
 		copy: 'Copy link to this analysis',
 		copied: 'Analysis link copied.',
@@ -158,7 +272,7 @@ export const en = {
 	ranking: {
 		title: 'Newspapers',
 		subtitle:
-			'Newspapers ranked by their average rating on the dimension you choose. The 95% confidence interval shows how far that average might move if the sample were drawn again, so titles with few rated articles carry wide intervals and a high average from a small sample is a weak result.',
+			'Newspapers ranked by their average rating on the dimension you choose. The 95% confidence intervals describe within-sample uncertainty in those model ratings. They do not account for archival selection, missing articles or annotation error; this collection is not a random sample of all newspaper output.',
 		chartTitle: 'Newspapers ranked',
 		chartSubtitle: 'Mean with 95% CI · titles with at least {min} rated articles',
 		netPolarity: 'Net polarity',
@@ -198,7 +312,7 @@ export const en = {
 		cycleLayout: 'Cycle',
 		coverageIndex: 'Coverage index',
 		calendarNote:
-			'Dates converted with the tabular (arithmetic) Islamic calendar, civil epoch. This can differ by a day or two from the dates announced locally, which is accurate enough for monthly totals but not for dating a particular observance.',
+			'Stored Umm al-Qura dates provide the IWAC chronology. A tabular civil conversion is used only when stored Hijri fields are unavailable. Neither calendar establishes the date of a locally observed religious event.',
 		undatedNote: '{count} articles left out: no full publication date.',
 		months: {
 			muharram: 'Muharram',
@@ -235,7 +349,7 @@ export const en = {
 			'Agreement corrected for chance. 0 means no better than chance; 1 means perfect. It treats every disagreement as equally severe, so two models that rank articles the same way but sit one category apart still score poorly.',
 		weightedKappa: 'Weighted κ',
 		weightedKappaHelp:
-			'Quadratic-weighted kappa. Being one category off costs far less than being four off, which suits scales whose categories run in order. A weighted score much higher than the unweighted one means the models mostly rank alike but calibrate differently.',
+			'Quadratic-weighted kappa gives more credit to nearby ordinal ratings. Compare its sample size with the unweighted statistic; a higher weighted value alone does not establish a directional offset.',
 		fleissKappa: 'Fleiss’ κ',
 		fleissHelp:
 			'Fleiss’ kappa across every model of the panel at once, over articles every model rated.',
@@ -249,7 +363,7 @@ export const en = {
 		calibrationTitle: 'Model calibration',
 		calibrationSubtitle: 'How often each model uses each point on the scale',
 		systematicOffsetNote:
-			'Weighted agreement is far higher than unweighted agreement here. That is the signature of a systematic offset rather than a genuine conflict: {modelA} and {modelB} rank articles similarly but draw the boundaries between categories in different places, so most of their disagreement amounts to a single step on the scale.',
+			'Weighted agreement gives more credit to small differences. A higher weighted value alone does not establish a directional offset; inspect the matrix and the direction of the differences.',
 		strength: {
 			poor: 'Poor',
 			slight: 'Slight',
@@ -319,7 +433,7 @@ export const en = {
 
 		flowTitle: 'Label flow across the panel',
 		flowNote:
-			'The agreement matrix extended to the whole panel. A systematic offset appears as a mass of ribbons sliding down one band, and the routes a pairwise matrix hides — articles where the first and last model agree by way of a disagreeing middle one — become visible.',
+			'Ribbons show counts between adjacent model columns. The merged links do not preserve complete article paths; use Full label patterns below to inspect every model’s labels on the same articles.',
 		flowArticles: 'articles',
 
 		scatterTitle: 'Is disagreement about extreme coverage or ambiguous coverage?',
@@ -390,8 +504,13 @@ export const en = {
 
 	// Heatmap view
 	heatmap: {
+		minimumCount: 'Minimum annotated articles per cell',
+		scaleNote:
+			'Mean centrality uses the shared 1–5 scale. Missing and Not applicable ratings are excluded; n is the number of rated articles in each cell. These are means of ordinal ranks, not measured units.',
+		hiddenCells: '{count} cells are hidden below the minimum sample size.',
+
 		subtitle:
-			'How central Islam and Muslims are to the coverage, country by country and year by year. Darker cells mean the theme sits closer to the centre of the articles published that year.'
+			'How central Islam and Muslims are to the coverage, country by country and year by year. Brighter cells mean the theme sits closer to the centre of the articles published that year.'
 	},
 
 	// Correlation/Distribution view

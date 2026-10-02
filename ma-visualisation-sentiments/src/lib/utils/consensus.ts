@@ -549,11 +549,10 @@ export interface FlowLink {
 /**
  * Label flow between consecutive models, for a Sankey.
  *
- * The three-way generalisation of the pairwise agreement matrix: a systematic
- * deflation shows up as a mass of ribbons all sliding down one band, and the
- * routes a matrix cannot show — articles where the first and last model agree
- * *through* a disagreeing middle one — become visible as ribbons that leave a
- * band and come back.
+ * Adjacent-pair transitions across the panel. Labels merge at each model node,
+ * so the ribbons do not retain an article's complete path through all models.
+ * Full paths, including first/last agreement through a dissenting middle model,
+ * are available in labelPatterns.ts instead.
  *
  * Node names are prefixed with the column index because the same category
  * appears in every column and Sankey nodes are keyed by name.

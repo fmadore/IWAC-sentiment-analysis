@@ -99,6 +99,49 @@ deliberately without a default: an unflagged re-run would rewrite the frozen v1
 files. A v2 run does not write `iwac_articles_base.json` at all; it asserts the
 live article id set still matches it and fails loudly on drift.
 
+## Python pipeline
+
+Install the hashed dependency set with
+`pip install --require-hashes -r data-preprocess/requirements-dev.lock`
+(development/CI), or `requirements.lock` for runtime only. The `.txt` files
+declare version constraints, not a reproducible installation. After changing
+them, regenerate both locks with the commands in `requirements.txt`; the dev
+lock is constrained to the runtime lock. Audit the exact runtime set with
+`pip-audit -r data-preprocess/requirements.lock --disable-pip --require-hashes`.
+
+Future `write_generation_manifest()` calls record the runtime lock's exact-byte
+SHA-256 under optional `environment.requirements_lock`, without checkout paths.
+This identifies the dependency specification, not an attestation of installed
+packages. Preserve existing published manifests: their historical environment
+must never be retroactively labelled with the current lock.
+
+**The v2 arbiter's public selection is not its entire paid history.**
+`iwac_preprocess/arbiter_lifecycle.py` bootstraps from the published file and
+retains evaluations by input fingerprint, with per-evaluation provenance, in
+`ma-visualisation-sentiments/.data-staging/arbiter-v2/evaluations.json`.
+Narrowing a selection or changing source revisions must never discard that
+history: matching evaluations can be reused when the selection expands or a
+prior revision is restored. `--prune-cache-only` republishes selected cached
+rows without pruning the durable cache. Usage remains cumulative.
+
+- A populated cache with a missing/invalid blind permutation must fail, never
+  draw another mapping and attach it to existing verdicts. The same check
+  applies to both the durable and published files.
+- A populated cache binds the recorded `effort`; a different `--effort` fails
+  instead of relabelling cached work. Use a separate experiment/checkout and
+  output/cache for another effort. The current publication cannot be reused
+  as the starting cache for that different-effort experiment.
+- `--limit` is strictly positive, checked before source loading. The pure
+  selection helper rejects non-positive limits too.
+- A dedicated lock covers the whole arbiter session, before loading its cache;
+  the shorter shared export lock still protects publication. Checkpoint paid
+  verdicts before attempting the public write. Dry runs do not write the cache.
+- **Do not treat all of `.data-staging/` as disposable.** The `arbiter-v2/`
+  directory is ignored and never deployed. Back it up before cleaning ignored
+  files or moving between checkouts, then restore it to continue unpublished
+  paid history; Git and the current public selection cannot reconstruct it.
+  Neither representation stores article OCR.
+
 ## Data model
 
 Sentiment values are stored as **French strings used as lookup keys**, and the
@@ -113,8 +156,12 @@ accents are part of the key:
   `None` would ship a complete set of well-formed files full of nulls
 - `chartTheme.ts` keys its lookups on these same French strings
 
-Agreement statistics retain the full ordinal scales, but discrepancy and arbiter
-comparisons treat `Non applicable`, `Non abordé` and missing categorical values
+Categorical agreement retains every present category. For v2 polarity only,
+weighted κ and within-one-step agreement use applicable ranks 1–5 and expose
+their own denominator; the archived v1 ordinal method stays unchanged. Keep
+these generation-versioned rules in `utils/agreementMetrics.ts`. A gap between
+weighted and unweighted κ alone does not establish a directional offset.
+Discrepancy and arbiter comparisons treat `Non applicable`, `Non abordé` and missing categorical values
 as **non-comparable** and exclude the row; missing subjectivity skips only that
 dimension. These rules live in the contracts, and cross-language fixtures ensure
 Python and TypeScript cannot drift.
@@ -262,6 +309,13 @@ forces runes mode on `node_modules`: a Dependabot bump shipping a legacy
   lands under `_app/immutable/workers/`, already covered by `sw.js`'s `/_app/`
   immutable rule — don't narrow that rule
 
+The cross-model history (`researchTimeline.ts`) uses source-only facets and a
+common applicable cohort by default, with available-case denominators explicit.
+The min–max model band is descriptive, never a confidence interval. Qwen’s
+non-random missingness also affects this common cohort. The newspaper timeline
+uses collected metadata independently of ratings. Missing means remain `null`;
+never coerce them to zero or connect their chart gaps.
+
 ## State
 
 - Stores are runes accessor objects only — no legacy writable layer (the only
@@ -285,6 +339,11 @@ forces runes mode on `node_modules`: a Dependabot bump shipping a legacy
   when the shard lands. And never hold an article in deep `$state` (a component
   `let x = $state(article)`): the proxy caches each field on first read, so the
   prose never appears. `+page.svelte`'s `detailedArticle` did exactly that
+
+CSV jobs capture rows, model IDs, language and URL provenance synchronously
+before loading justification shards. Keep capture separate from preparation so
+a user changing filters during download cannot change its rows or filenames.
+Only request shards containing the selected row IDs.
 
 ## Testing
 

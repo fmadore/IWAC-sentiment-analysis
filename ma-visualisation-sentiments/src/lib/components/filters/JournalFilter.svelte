@@ -19,7 +19,7 @@
 
 	// Journaux à afficher (limités ou tous selon showAll)
 	let displayedJournals = $derived(
-		showAll ? filteredJournals : filteredJournals.slice(0, INITIAL_DISPLAY_COUNT)
+		showAll || searchTerm ? filteredJournals : filteredJournals.slice(0, INITIAL_DISPLAY_COUNT)
 	);
 
 	let hasMoreJournals = $derived(filteredJournals.length > INITIAL_DISPLAY_COUNT);

@@ -20,13 +20,11 @@ export const AGREEMENT_DIMENSIONS: AgreementDimension[] = [
 ];
 
 /**
- * Category scales in ORDINAL order — weighted kappa and the adjacency band
- * both read positions from these arrays, so the order is load-bearing, not
- * cosmetic.
- *
- * 'Non applicable' / 'Non abordé' sit at the bottom of the polarity and
- * centrality scales respectively because that is where the app's existing
- * score maps (derivations.ts) put them.
+ * Complete category sets for the nominal matrix and legacy adjacency band.
+ * Their historical order is preserved for archived v1 calculations. In v2,
+ * agreementMetrics excludes the non-ordinal polarity verdict 'Non applicable'
+ * from weighted agreement, while this full categorical matrix retains it.
+ * 'Non abordé' remains the genuine bottom of the centrality scale.
  */
 export const DIMENSION_CATEGORIES: Record<AgreementDimension, string[]> = {
 	polarity: ['Non applicable', 'Très négatif', 'Négatif', 'Neutre', 'Positif', 'Très positif'],

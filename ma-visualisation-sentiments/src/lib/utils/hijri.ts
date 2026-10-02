@@ -9,14 +9,12 @@
  * pattern is invisible to any Gregorian bucketing — it smears across every
  * month over a 60-year corpus.
  *
- * Uses the TABULAR (arithmetic) calendar with the civil ("Friday") epoch —
- * 1 Muharram 1 AH = 16 July 622 Julian — not observational sighting. For a
- * corpus-scale seasonality question that is the right tool: it is
- * deterministic, needs no ephemeris, and its one-to-two day divergence from
- * announced local dates is far below the resolution of a month-level
- * aggregate over 12,000 articles. It must NOT be used to date an individual
- * observance: tabular 1 Ramadan 1445 falls on 10 March 2024, while most
- * countries announced the 11th.
+ * Stored Umm al-Qura fields take precedence in the seasonality aggregate;
+ * this conversion is only a fallback for records without those fields.
+ * It uses the TABULAR (arithmetic) calendar with the civil ("Friday") epoch —
+ * 1 Muharram 1 AH = 16 July 622 Julian = 19 July 622 proleptic Gregorian.
+ * It is deterministic, but local observances and Umm al-Qura month boundaries
+ * may differ. Do not use it to establish a locally observed religious date.
  */
 
 /** Hijri month numbers, 1-12. */
@@ -57,7 +55,10 @@ export const OBSERVANCE_MONTHS: Record<string, HijriMonthKey[]> = {
  * Proleptic Gregorian, which is fine: the corpus starts in 1961.
  */
 function toJulianDayNumber(year: number, month: number, day: number): number {
-	const a = Math.floor((month - 14) / 12);
+	// The original Fortran algorithm uses integer division toward zero. Floor
+	// gives -2 in January and -1 in March–December, shifting dates by 1–2 days.
+	// Reference: https://aa.usno.navy.mil/faq/JD_formula
+	const a = Math.trunc((month - 14) / 12);
 	return (
 		Math.floor((1461 * (year + 4800 + a)) / 4) +
 		Math.floor((367 * (month - 2 - 12 * a)) / 12) -
@@ -79,15 +80,18 @@ export interface HijriDate {
  * Returns null for a date outside the calendar's valid range.
  */
 export function gregorianToHijri(year: number, month: number, day: number): HijriDate | null {
-	if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
-	if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+	if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return null;
+	if (year < 1 || year > 9999 || month < 1 || month > 12 || day < 1) return null;
+	const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+	const monthLength = [31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+	if (day > monthLength[month - 1]) return null;
 
 	const jd = toJulianDayNumber(year, month, day);
+	if (jd < 1948440) return null;
 
 	// Days elapsed since the Islamic epoch (1 Muharram 1 AH = JD 1948440 in the
 	// civil variant), offset into the 30-year cycle arithmetic below.
 	let l = jd - 1948440 + 10632;
-	if (l < 1) return null;
 
 	const n = Math.floor((l - 1) / 10631);
 	l = l - 10631 * n + 354;
@@ -116,7 +120,7 @@ export function gregorianToHijri(year: number, month: number, day: number): Hijr
  * Returns null for the year-only and 'N/A' values the corpus also contains.
  */
 export function publicationDateToHijri(publicationDate: string | undefined): HijriDate | null {
-	if (!publicationDate || publicationDate.length < 10) return null;
+	if (!publicationDate || !/^\d{4}-\d{2}-\d{2}$/.test(publicationDate)) return null;
 
 	const [yearPart, monthPart, dayPart] = publicationDate.split('-');
 	const year = Number(yearPart);

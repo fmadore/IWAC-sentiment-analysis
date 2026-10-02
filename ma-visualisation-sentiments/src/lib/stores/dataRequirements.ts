@@ -53,7 +53,7 @@ export function dataRequirements(context: DataContext): DataRequirement[] {
 		);
 	}
 
-	if (context.view === 'agreement') {
+	if (context.view === 'agreement' || context.view === 'trends') {
 		needs.push({ kind: 'panel', generation: context.generation });
 	}
 	if (context.view === 'extremes') {

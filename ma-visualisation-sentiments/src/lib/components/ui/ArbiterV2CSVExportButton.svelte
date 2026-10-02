@@ -14,7 +14,12 @@
 <script lang="ts">
 	import { t, currentLanguage } from '$lib/i18n';
 	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
-	import { toCSV } from '$lib/utils/csv';
+	import {
+		captureExportProvenance,
+		toResearchCSV,
+		type CSVExportJob,
+		type ExportProvenance
+	} from '$lib/utils/exportSnapshot';
 	import {
 		ARBITER_V2_DIMENSIONS,
 		analysisValue,
@@ -59,7 +64,7 @@
 		return $t.arbiterV2[dimension];
 	}
 
-	function convertToCSV(): string {
+	function convertToCSV(provenance: ExportProvenance): string {
 		if (rows.length === 0) return '';
 
 		const headers = [
@@ -130,7 +135,15 @@
 			];
 		});
 
-		return toCSV(headers, lines);
+		return toResearchCSV(headers, lines, provenance);
+	}
+	function createExport(): CSVExportJob {
+		const provenance = captureExportProvenance(
+			legend.map((entry) => entry.modelId),
+			'arbiter_evaluations'
+		);
+		const csv = convertToCSV(provenance);
+		return { buildCsv: () => csv };
 	}
 </script>
 
@@ -138,5 +151,5 @@
 	count={rows.length}
 	filenamePrefix="iwac-panel-arbiter"
 	variant="arbiter"
-	buildCsv={convertToCSV}
+	{createExport}
 />

@@ -8,13 +8,13 @@
 
 ![Social card for the IWAC Sentiment Analysis dashboard: per-model polarity distributions across 12,349 francophone West African press articles, 1961–2025](ma-visualisation-sentiments/static/social-preview.png)
 
-A SvelteKit dashboard for exploring how large language models annotated the same corpus — 12,349 francophone West African press articles from 57 newspapers in Benin, Burkina Faso, Côte d'Ivoire, Niger and Togo, published 1961–2025 — on three dimensions: **polarity**, **subjectivity**, and the **centrality** of Islam and Muslims to the article. The current panel is five models; the archived one is three.
+A SvelteKit dashboard for exploring how large language models annotated the same corpus — 12,349 francophone West African press articles from 58 newspapers in Benin, Burkina Faso, Côte d'Ivoire, Niger and Togo, published 1961–2025 — on three dimensions: **polarity**, **subjectivity**, and the **centrality** of Islam and Muslims to the article. The current panel is five models; the archived one is three.
 
 The corpus is the [_Islam West Africa Collection_](https://islam.zmo.de/s/afrique_ouest/page/accueil) (IWAC). The dashboard reports each model's distributions, their agreement, where they diverge, and blind third-party arbiter verdicts on the sharpest disagreements.
 
 **Live site:** <https://iwac.frederickmadore.com/sentiment-analysis/>
 
-**Sharing analyses:** [Citable URLs, supported state and citation limits](ma-visualisation-sentiments/docs/citable-urls.md).
+**Sharing analyses:** [Citable URLs, supported state and citation limits](ma-visualisation-sentiments/docs/citable-urls.md). Article, comparison and arbiter CSVs append release, model, selection and URL provenance. Downloads capture the selection at click time and load only its required justification shards.
 
 Two top-level areas: `ma-visualisation-sentiments/` (the SvelteKit app) and `data-preprocess/` (the Python that builds its JSON payloads).
 
@@ -59,16 +59,16 @@ Thirteen views, all sharing one filter rail (country → newspaper → polarity 
 | View             | What it answers                                                                           |
 | ---------------- | ----------------------------------------------------------------------------------------- |
 | **Charts**       | Polarity and subjectivity distributions per newspaper — bars or global pie                |
-| **Trends**       | Polarity over time, as counts or as 100% stacked shares                                   |
+| **Trends**       | Cross-model historical shares with common or available cohorts; single-model counts/shares                                   |
 | **Distribution** | Polarity × subjectivity cross-tabulation, with Spearman's ρ, p and n                      |
-| **Volume**       | Publication volume per country over time — stacked areas or lines                         |
-| **Heatmap**      | Centrality by country and year                                                            |
+| **Volume**       | Newspaper-by-period collection timeline; publication volume per country                         |
+| **Heatmap**      | Centrality by country and year, with sample counts and a minimum-count threshold                                                            |
 | **Seasonality**  | Coverage across the twelve Hijri months — polar cycle or bars                             |
 | **Newspapers**   | Titles ranked by mean polarity, subjectivity or centrality, with 95% CIs                  |
 | **Map**          | Bubble map of geocoded places cited by the corpus, coloured by any dimension              |
 | **Table**        | The article list, sortable and paginated; detail modal carries the model's justifications |
 | **Comparison**★  | Two models side by side, with per-dimension discrepancies and where they diverge          |
-| **Agreement**★   | Cohen's κ, weighted κ, Fleiss' κ, confusion matrices, per-model calibration               |
+| **Agreement**★   | Pair overview, full label patterns with article drill-down, κ, confusion matrices and calibration               |
 | **Extremes**     | Keywords characterising the most extreme cases per category and model                     |
 | **Arbiter**★     | Blind third-party verdicts on articles the models disagreed about most                    |
 
@@ -76,11 +76,14 @@ Thirteen views, all sharing one filter rail (country → newspaper → polarity 
 
 ### Notes worth reading before interpreting
 
-- **Seasonality exists because the Gregorian axis hides it.** The Hijri year drifts ~11 days a year, so lunar patterns are invisible in any year- or month-based view. Coverage nearly doubles during Ramadan and the hajj months. Conversions use the tabular (arithmetic) Islamic calendar, stated on the chart.
+- **Seasonality exists because the Gregorian axis hides it.** The Hijri year drifts ~11 days a year, so lunar patterns are invisible in any year- or month-based view. Coverage nearly doubles during Ramadan and the hajj months. Stored Umm al-Qura dates are canonical; Gregorian-only records use a tabular (arithmetic) fallback. Neither establishes local lunar observance, as stated on the chart. Missing scores leave gaps; they never become zero.
 - **The map counts mentions, not aboutness.** A bubble counts articles that _mention_ a place (`dcterms:spatial` is item-level tagging, ~3.8 places per article), never articles _about_ it. `Non applicable` is excluded from the mean but the article is still counted — it means "no stance expressed", so averaging it in would drag heavily-covered places toward the negative pole.
-- **Agreement offers only corpus-scope facets** (country, newspaper). Sentiment filters are deliberately absent: selecting by the label under comparison would make the statistics circular. A large gap between unweighted and quadratic-weighted κ signals a systematic offset rather than genuine conflict. Panel-scope statistics count only articles _every_ model rated, so on v2 they inherit Qwen's coverage gap.
+- **Agreement offers only corpus-scope facets** (country, newspaper). Sentiment filters are deliberately absent: selecting by the label under comparison would make the statistics circular. For v2 polarity, weighted κ and within-one-step agreement exclude `Non applicable`; the categorical matrix and unweighted agreement retain it, with their own denominators. The archived v1 calculation remains unchanged. A higher weighted κ alone does not establish a directional offset. Panel-scope statistics count only articles _every_ model rated, so on v2 they inherit Qwen's coverage gap.
 - **"Who breaks ranks" means something different at five models than at three.** The dissent profile names a model only when it stands alone against all the others; a 3–2 split has no lone dissenter and lands in "divided several ways". The ternary triangle is offered for the three-model archive only — a simplex over five models has no honest 2-D projection.
-- **Newspaper ranking omits titles under 30 rated articles**, and states how many it omitted.
+- **Newspaper ranking omits titles under 30 rated articles**, and states how many it omitted. Its confidence intervals describe within-sample variation in model ratings, not uncertainty from archival selection, missing articles or annotation error.
+- **Historical model shares default to a common applicable cohort** for the chosen dimension. Available-case mode exposes each model’s own denominator. The pale band spans model minima and maxima; it is descriptive, not a confidence interval. Source-only country/newspaper filters apply, and a minimum count suppresses sparse points.
+- **The newspaper timeline counts collected articles**, independent of model annotations. Empty cells indicate no articles in the selection, not that a newspaper published nothing. All titles are available through pagination and keyboard-operable filter buttons.
+- **Full label patterns preserve the complete three- or five-model combination** and open the matching articles. The Sankey shows adjacent transitions only; merged ribbons do not retain full article paths.
 - **Discrepancies are not errors.** No model is ground truth, and disagreement often reflects a legitimate difference of reading. `Non applicable` and `Non abordé` are treated as non-comparable and exclude the row rather than counting as maximal disagreement; missing subjectivity skips only that dimension.
 - **A missing rating is not `Non applicable`.** `Non applicable` is a verdict: the model read the article and found no stance. A null rating is one the model never produced — Qwen's declined rows, the 51 articles no model annotates. The filter rail keeps them apart with a separate "Not annotated" chip on each dimension, so the table's counts under "Not applicable" match the charts, which skip nulls.
 - **Arbiter percentages are conditional.** The arbiter reviews only articles selected _because_ the models disagreed sharply, so its verdicts measure who is right given a disagreement — never which model is better across the corpus.
@@ -150,12 +153,20 @@ How the v2 arbiter differs from v1, and why:
 Python 3.12+, from the repo root:
 
 ```bash
-pip install -r data-preprocess/requirements-dev.txt
+# Development and CI, including all runtime dependencies
+pip install --require-hashes -r data-preprocess/requirements-dev.lock
+
+# Runtime-only environment for generating data
+pip install --require-hashes -r data-preprocess/requirements.lock
 ```
+
+The `.lock` files pin every dependency and its hashes. The `.txt` files are the human-maintained version constraints; after changing them, regenerate both locks with the commands documented in `data-preprocess/requirements.txt`. The development lock is constrained to the runtime lock so generation and CI use the same runtime versions. CI audits that exact runtime set with `pip-audit -r data-preprocess/requirements.lock --disable-pip --require-hashes`.
+
+Newly generated data manifests also record the runtime lock's filename and SHA-256 under `environment.requirements_lock`, identifying the dependency specification available to that generation. This optional field is absent when no lock is available; it does not verify the packages installed in the running interpreter. Existing published manifests are unchanged and make no claim to have been generated with the new lock.
 
 Source reads resolve a single immutable Hugging Face commit per repository before loading. Set `IWAC_HF_REVISION` for the public dataset and `IWAC_HF_FULL_REVISION` for the private OCR mirror to reproduce a prior run; both the parquet and datasets fallback paths use the resolved commit.
 
-Every export — scores and prose, extreme analysis, places, basemap and the panel arbiter — is staged and validated before publication, then promoted under one writer lock, so two exports can never interleave a mixed set. A recovery journal restores the previous complete set after an interrupted promotion. The lock and the stages live in `ma-visualisation-sentiments/.data-staging/` (gitignored), never under `static/`, whose contents are published with the site. Run the same export command again to recover. Builds refuse a pending journal. Production builds bind the frontend to content-addressed `data/releases/<release>/` URLs; the service worker never substitutes files from a different release. The source `static/data/` layout and frozen v1 files remain unchanged.
+Every export — scores and prose, extreme analysis, places, basemap and the panel arbiter — is staged and validated before publication, then promoted under one writer lock, so two exports can never interleave a mixed set. A recovery journal restores the previous complete set after an interrupted promotion. The lock, temporary export stages and retained panel-arbiter cache live in `ma-visualisation-sentiments/.data-staging/` (gitignored), never under `static/`, whose contents are published with the site. Run the same export command again to recover. Builds refuse a pending journal. Production builds bind the frontend to content-addressed `data/releases/<release>/` URLs; the service worker never substitutes files from a different release. The source `static/data/` layout and frozen v1 files remain unchanged.
 
 **`--generation` is required and deliberately has no default.** An unflagged re-run would rewrite the frozen v1 files from whatever revision is current. A v2 run does not write `iwac_articles_base.json` at all — it asserts the live article id set still matches the frozen base and fails loudly on drift.
 
@@ -173,7 +184,7 @@ python data-preprocess/places-export.py
 python data-preprocess/basemap-export.py
 ```
 
-Arbiter runs cost money and are gated behind a dry run and a confirmation:
+Arbiter runs cost money. Use a dry run first; a paid run requires confirmation or `--yes`:
 
 ```bash
 # v2, whole panel: counts and a cost estimate, no API call
@@ -182,9 +193,18 @@ python data-preprocess/arbiter-evaluation-v2.py --dry-run
 # ...then, to actually spend (needs ANTHROPIC_API_KEY and HF_TOKEN)
 python data-preprocess/arbiter-evaluation-v2.py --rule valence --yes
 
+# Republish a narrower v2 selection from cache, without paid calls
+python data-preprocess/arbiter-evaluation-v2.py --rule valence --limit 20 --prune-cache-only
+
 # v1, pairwise (needs GOOGLE_API_KEY); frozen — reconcile only
 python data-preprocess/arbiter-evaluation.py --prune-cache-only
 ```
+
+The v2 arbiter bootstraps its durable cache from the existing published file and retains it at `ma-visualisation-sentiments/.data-staging/arbiter-v2/evaluations.json`. Each input fingerprint retains its verdict and source/model/prompt/effort provenance, including evaluations omitted by a later selection or belonging to an earlier source revision. Narrowing `--limit` or changing the selection rule only changes the public projection; expanding it again reuses matching paid work. `--prune-cache-only` makes no paid calls and never prunes this durable history. Recorded usage remains cumulative, rather than becoming the cost of the narrower selection.
+
+A populated cache must retain its original valid blind-label mapping and recorded effort. A missing/invalid mapping or a different `--effort` stops the run before either cache is rewritten; restore the mapping or resume at the recorded effort. Run a different-effort experiment in a separate checkout with its own output/cache instead of relabelling an existing run. `--limit` must be a positive integer and is checked before source loading. A dedicated lock covers the whole panel-arbiter session, and paid verdicts are checkpointed before the public export, so a failed publication can resume without repeating those calls. A dry run does not write the durable cache.
+
+**Back up the `arbiter-v2/` directory before deleting ignored files or changing checkouts.** Git does not retain it, and the selected public file cannot recover paid evaluations that were never published or were omitted from the current selection. Restore the directory alongside the matching checkout to continue that history. Neither cache nor publication stores article OCR.
 
 `data-preprocess/significant-differences-export.py` is a side helper rather than part of the pipeline: it writes ad-hoc CSVs of the sharpest pairwise disagreements into `exports/`, nothing the dashboard reads. It resolves its pairs through `shared.py`, so it still covers **generation 1 only**.
 
@@ -232,7 +252,7 @@ Two repo-level helpers run against the root `.venv`:
 - **`src/lib/stores/`** — Svelte 5 runes accessor objects, one per domain (`filters`, `articles`, `datasets`, `comparison`, `arbiter`, `arbiterV2`, `extreme-analysis`, `ui`), plus `url/` for filter-state ↔ URL synchronisation. Leaf stores import from no other store; modules inside `stores/` must never import the barrel.
 - **`src/lib/utils/`** — pure helpers, including the statistics modules: `agreement.ts` (Cohen's/Fleiss' κ), `correlation.ts` (Spearman's ρ), `newspaperRanking.ts`, `hijri.ts`, `placeAggregation.ts`.
 - **`src/lib/domain/sentimentContract.ts`** — the dual-generation registry, with import-time invariants for id collisions, pair membership, shared scales and shard counts.
-- **`data-preprocess/iwac_preprocess/`** — importable package split into the per-generation contract, revision-pinned source loading, discrepancy rules, recoverable generation publication, panel candidate selection and prompt construction, atomic serialisation and arbiter-cache reconciliation. `shared.py` remains a compatibility facade for the command-line scripts.
+- **`data-preprocess/iwac_preprocess/`** — importable package split into the per-generation contract, revision-pinned source loading, discrepancy rules, recoverable generation publication, panel candidate selection and prompt construction, atomic serialisation, v1 cache reconciliation and the durable v2 cache lifecycle (`arbiter_lifecycle.py`). `shared.py` remains a compatibility facade for the command-line scripts.
 
 Built with Svelte 5 (runes), SvelteKit 2 + `adapter-static`, TypeScript in strict mode, Tailwind CSS v4, ECharts 6, MapLibre GL v6, and Vite 8 (Rolldown). The design system is repository-owned: CSS tokens plus reusable Svelte controls, with automated token and class checks.
 

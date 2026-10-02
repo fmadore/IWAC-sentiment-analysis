@@ -4,14 +4,18 @@
 	import { init } from '$lib/utils/echartsSetup';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
-	import { unique } from '$lib/utils/collections';
 
 	import { articleState } from '$lib/stores';
-	import type { Article } from '$lib/types/data';
+	import { viewOptionsState } from '$lib/stores/view-options.svelte';
 	import { t, currentLanguage } from '$lib/i18n';
-	import { dec, translateSentimentValue } from '$lib/i18n/utils';
+	import { dec, num, translateSentimentValue } from '$lib/i18n/utils';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
-	import { extractYear } from '$lib/utils/chartAggregators';
+	import {
+		aggregateCentralityHeatmap,
+		HEATMAP_CENTRALITY_VALUES,
+		HEATMAP_CENTRALITY_MIN,
+		HEATMAP_CENTRALITY_MAX
+	} from '$lib/utils/centralityHeatmap';
 
 	// Import centralized chart theme
 	import {
@@ -24,108 +28,14 @@
 		chartColors
 	} from '$lib/utils/chartTheme';
 
-	// Mapping des centralités vers des valeurs numériques (toujours en français pour les données)
-	const centralityToNumber = {
-		'Non abordé': 0,
-		Marginal: 1,
-		Secondaire: 2,
-		Central: 3,
-		'Très central': 4
-	};
-
-	// Heatmap color gradient from not addressed (dark) to very central (bright gold)
-	const heatmapColors = [
-		centralityColors['Non abordé'],
-		centralityColors['Marginal'],
-		centralityColors['Secondaire'],
-		centralityColors['Central'],
-		centralityColors['Très central']
-	];
-
-	// Labels de centralité traduits
-	const centralityLabels = $derived([
-		translateSentimentValue('Non abordé', $currentLanguage),
-		translateSentimentValue('Marginal', $currentLanguage),
-		translateSentimentValue('Secondaire', $currentLanguage),
-		translateSentimentValue('Central', $currentLanguage),
-		translateSentimentValue('Très central', $currentLanguage)
-	]);
-
-	// Reactive window width for responsive behavior
+	const heatmapColors = HEATMAP_CENTRALITY_VALUES.map((label) => centralityColors[label]);
+	const centralityLabels = $derived(
+		HEATMAP_CENTRALITY_VALUES.map((label) => translateSentimentValue(label, $currentLanguage))
+	);
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
-
-	const aggregate = $derived.by(() => {
-		const articles = articleState.filtered;
-		const countryYearCentrality: Record<
-			string,
-			Record<string, { total: number; count: number }>
-		> = {};
-		let articlesAnalyzed = 0;
-
-		// Get current translations to use in tooltip
-
-		articles.forEach((article: Article) => {
-			const year = extractYear(article);
-			if (
-				year !== null &&
-				article.Country &&
-				article.sentiment_analysis?.centralite_islam_musulmans
-			) {
-				const country = article.Country;
-				const centralityValue =
-					centralityToNumber[
-						article.sentiment_analysis.centralite_islam_musulmans as keyof typeof centralityToNumber
-					];
-
-				if (centralityValue !== undefined) {
-					if (!countryYearCentrality[country]) {
-						countryYearCentrality[country] = {};
-					}
-					if (!countryYearCentrality[country][year]) {
-						countryYearCentrality[country][year] = { total: 0, count: 0 };
-					}
-
-					countryYearCentrality[country][year].total += centralityValue;
-					countryYearCentrality[country][year].count++;
-					articlesAnalyzed++;
-				}
-			}
-		});
-
-		const countries = Object.keys(countryYearCentrality).sort();
-		// Every year any country has data for.
-		const years = unique(
-			countries.flatMap((country) => Object.keys(countryYearCentrality[country]))
-		).sort();
-
-		// Préparer les données pour la heatmap
-		const heatmapData: Array<[number, number, number]> = [];
-		let maxValue = 0;
-		let minValue = 4;
-
-		countries.forEach((country, countryIndex) => {
-			years.forEach((year, yearIndex) => {
-				const data = countryYearCentrality[country]?.[year];
-				if (data && data.count > 0) {
-					const avgCentrality = data.total / data.count;
-					heatmapData.push([yearIndex, countryIndex, avgCentrality]);
-					maxValue = Math.max(maxValue, avgCentrality);
-					minValue = Math.min(minValue, avgCentrality);
-				}
-				// Don't push any data point when there are no articles - this will leave the cell empty
-			});
-		});
-
-		return {
-			countries,
-			years,
-			heatmapData,
-			articlesAnalyzed,
-			countryYearCentrality,
-			maxValue,
-			minValue
-		};
-	});
+	const aggregate = $derived(
+		aggregateCentralityHeatmap(articleState.filtered, viewOptionsState.heatmapMinCount)
+	);
 	let options = $derived.by(() => {
 		const { countries, years, heatmapData, articlesAnalyzed } = aggregate;
 		const currentTranslations = $t;
@@ -134,7 +44,7 @@
 		return {
 			backgroundColor: 'transparent',
 			title: {
-				text: `${$t.charts.centralityHeatmap} (${articlesAnalyzed} ${$t.charts.articlesAnalyzed})`,
+				text: `${$t.charts.centralityHeatmap} (${$num(articlesAnalyzed)} ${$t.charts.articlesAnalyzed})`,
 				left: 'center',
 				top: '2%',
 				textStyle: getTitleStyle(isMobile)
@@ -143,29 +53,34 @@
 				...tooltipConfig,
 				position: 'top',
 				formatter: function (params: unknown) {
-					const p = params as { data?: [number, number, number] };
+					const p = params as { data?: [number, number, number, number] };
 					if (!p.data || p.data.length < 3) {
 						return `<div style="font-weight:600;">${currentTranslations.messages.noData}</div>`;
 					}
 
-					const [yearIndex, countryIndex, value] = p.data;
+					const [yearIndex, countryIndex, value, count] = p.data;
 					const year = years[yearIndex];
 					const country = countries[countryIndex];
 
-					if (value === 0 || value === undefined || value === null) {
+					if (value === undefined || value === null) {
 						return `<div style="min-width:140px;">
               <div style="font-weight:600;margin-bottom:4px;">${country} - ${year}</div>
               <div style="opacity:0.7;">${currentTranslations.messages.noData}</div>
             </div>`;
 					}
 
-					const centralityLabel = centralityLabels[Math.round(value)] || 'N/A';
+					const centralityLabel =
+						centralityLabels[Math.round(value) - HEATMAP_CENTRALITY_MIN] || 'N/A';
 
 					return `<div style="min-width:160px;">
             <div style="font-weight:600;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid ${chartColors.border.light};">${country} - ${year}</div>
             <div style="display:flex;justify-content:space-between;padding:2px 0;">
               <span>${currentTranslations.filters.averageCentrality}:</span>
               <strong>${$dec(value, 2)}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:2px 0;">
+              <span>${currentTranslations.audit.count} (n):</span>
+              <strong>${$num(count)}</strong>
             </div>
             <div style="display:flex;justify-content:space-between;padding:2px 0;">
               <span>${currentTranslations.filters.level}:</span>
@@ -208,15 +123,14 @@
 				axisLine: getAxisLineStyle()
 			},
 			visualMap: {
-				...getVisualMapConfig(isMobile, 0, 4, heatmapColors),
-				text: [centralityLabels[4], centralityLabels[0]],
-				pieces: [
-					{ min: 0, max: 0.5, label: centralityLabels[0], color: heatmapColors[0] },
-					{ min: 0.5, max: 1.5, label: centralityLabels[1], color: heatmapColors[1] },
-					{ min: 1.5, max: 2.5, label: centralityLabels[2], color: heatmapColors[2] },
-					{ min: 2.5, max: 3.5, label: centralityLabels[3], color: heatmapColors[3] },
-					{ min: 3.5, max: 4, label: centralityLabels[4], color: heatmapColors[4] }
-				]
+				...getVisualMapConfig(
+					isMobile,
+					HEATMAP_CENTRALITY_MIN,
+					HEATMAP_CENTRALITY_MAX,
+					heatmapColors
+				),
+				dimension: 2,
+				text: [centralityLabels.at(-1), centralityLabels[0]]
 			},
 			series: [
 				{
@@ -246,9 +160,33 @@
 </script>
 
 {#if articleState.filtered.length > 0}
-	<div class="mb-4">
+	<div class="chart-toolbar">
 		<DatasetBadge size="sm" />
+		<label class="sample-control">
+			<span>{$t.heatmap.minimumCount}</span>
+			<input
+				type="number"
+				min="0"
+				max="1000"
+				step="1"
+				value={viewOptionsState.heatmapMinCount}
+				onchange={(event) => {
+					const value = event.currentTarget.valueAsNumber;
+					if (Number.isInteger(value) && value >= 0 && value <= 1000) {
+						viewOptionsState.heatmapMinCount = value;
+					} else {
+						event.currentTarget.value = String(viewOptionsState.heatmapMinCount);
+					}
+				}}
+			/>
+		</label>
 	</div>
+	<p class="heatmap-note">{$t.heatmap.scaleNote}</p>
+	{#if aggregate.hiddenCellCount > 0}
+		<p class="heatmap-note" role="status">
+			{$t.heatmap.hiddenCells.replace('{count}', $num(aggregate.hiddenCellCount))}
+		</p>
+	{/if}
 
 	<div
 		style="height: {isMobile ? '500px' : '600px'}; position: relative;"
@@ -265,15 +203,36 @@
 			{ label: $t.filters.centrality, format: 'decimal', digits: 2 },
 			{ label: $t.audit.count, format: 'integer' }
 		]}
-		rows={aggregate.heatmapData.map(([x, y, value]) => [
-			aggregate.countries[y],
-			aggregate.years[x],
-			value,
-			aggregate.countryYearCentrality[aggregate.countries[y]][aggregate.years[x]].count
-		])}
+		rows={aggregate.cells.map((cell) => [cell.country, cell.year, cell.meanCentrality, cell.count])}
 		caption={$t.filters.centrality}
 		filenamePrefix="centrality-by-country-year"
 	/>
 {:else}
 	<p class="chart-empty">{$t.table.noFilteredArticles}</p>
 {/if}
+
+<style>
+	.sample-control {
+		display: flex;
+		align-items: center;
+		gap: var(--gap-inline);
+		font-size: var(--font-size-sm);
+		color: var(--text-secondary);
+	}
+
+	.sample-control input {
+		width: 8ch;
+		padding: var(--space-1) var(--space-2);
+		border: 1px solid var(--border-default);
+		border-radius: var(--radius-panel);
+		background: var(--surface-nested);
+		color: var(--text-primary);
+	}
+
+	.heatmap-note {
+		font-size: var(--font-size-sm);
+		color: var(--text-muted);
+		line-height: var(--line-height-relaxed);
+		margin: var(--space-2) 0;
+	}
+</style>

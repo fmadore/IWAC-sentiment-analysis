@@ -17,10 +17,16 @@
 	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
 	import {
 		getPairModelNames,
+		getModelsFromPair,
 		type ArbiterEvaluationData,
 		type ComparisonData
 	} from '$lib/types/data';
-	import { toCSV } from '$lib/utils/csv';
+	import {
+		captureExportProvenance,
+		toResearchCSV,
+		type CSVExportJob,
+		type ExportProvenance
+	} from '$lib/utils/exportSnapshot';
 	import CsvDownloadButton from './CsvDownloadButton.svelte';
 
 	// Get model names from current pair
@@ -57,7 +63,10 @@
 
 	type ArbiterEvaluationItem = ArbiterEvaluationData['evaluations'][number];
 
-	function convertToCSV(evaluations: ArbiterEvaluationItem[]): string {
+	function convertToCSV(
+		evaluations: ArbiterEvaluationItem[],
+		provenance: ExportProvenance
+	): string {
 		if (evaluations.length === 0) return '';
 
 		const comparisons = comparisonState.data;
@@ -126,15 +135,23 @@
 			];
 		});
 
-		return toCSV(headers, rows);
+		return toResearchCSV(headers, rows, provenance);
 	}
 
 	const evaluationCount = $derived(arbiterEvaluations.current?.evaluations?.length ?? 0);
+	function createExport(): CSVExportJob {
+		const provenance = captureExportProvenance(
+			getModelsFromPair(datasetState.pair),
+			'arbiter_evaluations'
+		);
+		const csv = convertToCSV(arbiterEvaluations.current?.evaluations ?? [], provenance);
+		return { buildCsv: () => csv };
+	}
 </script>
 
 <CsvDownloadButton
 	count={evaluationCount}
 	filenamePrefix="iwac-arbiter-evaluations"
 	variant="arbiter"
-	buildCsv={() => convertToCSV(arbiterEvaluations.current?.evaluations ?? [])}
+	{createExport}
 />

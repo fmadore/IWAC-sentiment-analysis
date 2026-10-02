@@ -82,6 +82,17 @@ jobs:
       - name: Run browser and accessibility smoke tests
         run: npm run test:e2e
 
+      - name: Preserve browser diagnostics and performance measurements
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: chromium-browser-results
+          path: |
+            ma-visualisation-sentiments/test-results/
+            ma-visualisation-sentiments/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
@@ -99,14 +110,16 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
-          python-version: '3.12'
+          python-version: "3.12"
           cache: pip
           cache-dependency-path: |
             data-preprocess/requirements.txt
             data-preprocess/requirements-dev.txt
+            data-preprocess/requirements.lock
+            data-preprocess/requirements-dev.lock
 
       - name: Install dependencies
-        run: pip install -r data-preprocess/requirements-dev.txt
+        run: pip install --require-hashes -r data-preprocess/requirements-dev.lock
 
       - name: Compile Python sources
         run: python -m compileall -q data-preprocess
@@ -120,7 +133,7 @@ jobs:
         run: python -m pytest data-preprocess -q
 
       - name: Audit Python runtime dependencies
-        run: pip-audit -r data-preprocess/requirements.txt
+        run: pip-audit -r data-preprocess/requirements.lock --disable-pip --require-hashes
 
   dependency-review:
     if: github.event_name == 'pull_request'

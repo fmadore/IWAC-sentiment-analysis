@@ -73,7 +73,7 @@
 			itemStyle: { color: barColor(i) }
 		}));
 
-		const centralityData = buckets.map((bucket) => bucket.meanCentrality ?? 0);
+		const centralityData = buckets.map((bucket) => bucket.meanCentrality);
 
 		const tooltipConfig = getTooltipConfig(isMobile);
 
@@ -231,6 +231,7 @@
 					type: 'line',
 					yAxisIndex: 1,
 					data: centralityData,
+					connectNulls: false,
 					smooth: false,
 					symbolSize: 6,
 					// Steel-blue, not the chrome amber the bars use — the line is a
@@ -298,7 +299,7 @@
 {/if}
 
 <style>
-	/* Methodological footnote — the tabular-calendar caveat belongs next to the
+	/* Methodological footnote — the calendar caveat belongs next to the
 	   chart, not buried in a tooltip (see .impeccable.md principle 3). */
 	.calendar-note {
 		font-family: var(--font-mono);

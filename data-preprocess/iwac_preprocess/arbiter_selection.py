@@ -164,6 +164,8 @@ def apply_limit(
     `selection_magnitude`). Ties are broken by article id so that two runs with
     the same corpus and the same cap select the same articles.
     """
+    if limit is not None and limit <= 0:
+        raise ValueError("limit must be a positive integer")
     if limit is None or limit >= len(articles):
         return articles
     ordered = sorted(

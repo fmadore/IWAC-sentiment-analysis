@@ -282,7 +282,9 @@ export function aggregateByHijriMonth(
 
 		const label = article.sentiment_analysis?.centralite_islam_musulmans;
 		const score = label ? centralityScores[label] : undefined;
-		if (score !== undefined) {
+		// Non applicable (0) is a verdict outside the 1–5 centrality scale.
+		// It counts toward coverage volume, but cannot lower the rank mean.
+		if (score !== undefined && score >= 1 && score <= 5) {
 			centralitySums[i] += score;
 			centralityCounts[i]++;
 		}

@@ -1,6 +1,6 @@
 <!-- Embedded IIIF document viewer using OpenSeadragon -->
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { tick } from 'svelte';
 	import { viewOptionsState } from '$lib/stores/view-options.svelte';
 	import { t } from '$lib/i18n';
 	import type OpenSeadragon from 'openseadragon';
@@ -18,7 +18,6 @@
 	let { manifestUrl, articleUrl }: IIIFViewerProps = $props();
 
 	let viewerContainer = $state<HTMLDivElement>();
-	let OSD: typeof OpenSeadragon | null = $state(null);
 	let viewer: OpenSeadragon.Viewer | null = $state(null);
 	let tileSources = $state<(string | { type: string; url: string })[]>([]);
 	let currentPage = $state(0);
@@ -27,102 +26,122 @@
 	let error = $state<string | null>(null);
 	let fallback = $state(false);
 	let expanded = $state(false);
+	let resizeFrame: number | undefined;
+
 	$effect(() => {
-		const requested = viewOptionsState.scanPage - 1;
-		if (viewer && totalPages > 0 && requested !== currentPage) {
-			const page = Math.min(requested, totalPages - 1);
+		const page = Math.max(0, Math.min(viewOptionsState.scanPage - 1, totalPages - 1));
+		if (viewer && totalPages > 0 && page !== currentPage) {
 			currentPage = page;
 			viewer.open(tileSources[page] as unknown as OpenSeadragon.TileSourceSpecifier);
 		}
 	});
 
-	onMount(() => {
-		import('openseadragon').then((mod) => {
-			OSD = mod.default;
-			loadManifest();
-		});
+	$effect(() => {
+		const url = manifestUrl;
+		const controller = new AbortController();
+		let activeViewer: OpenSeadragon.Viewer | null = null;
+		viewer = null;
+		tileSources = [];
+		totalPages = 0;
+		currentPage = 0;
+		loading = true;
+		error = null;
+		fallback = false;
+		expanded = false;
+
+		async function load() {
+			try {
+				const [{ default: OSD }, sources] = await Promise.all([
+					import('openseadragon'),
+					loadManifest(url, controller.signal)
+				]);
+				// A prop change or unmount can finish before the import or response body does.
+				if (controller.signal.aborted) return;
+				if (sources.length === 0) {
+					fallback = true;
+					loading = false;
+					return;
+				}
+
+				tileSources = sources;
+				totalPages = sources.length;
+				loading = false;
+				// The loading branch must yield its container before OpenSeadragon mounts.
+				await tick();
+				if (controller.signal.aborted || !viewerContainer) return;
+
+				const page = Math.max(0, Math.min(viewOptionsState.scanPage - 1, sources.length - 1));
+				currentPage = page;
+				activeViewer = OSD({
+					element: viewerContainer,
+					// OSD accepts strings and { type, url } objects at runtime; its
+					// TileSourceSpecifier type is stricter than these IIIF URLs.
+					tileSources: sources[page] as unknown as OpenSeadragon.TileSourceSpecifier,
+					showNavigationControl: false,
+					showZoomControl: false,
+					showHomeControl: false,
+					showFullPageControl: false,
+					gestureSettingsMouse: { scrollToZoom: true },
+					gestureSettingsTouch: { pinchToZoom: true },
+					animationTime: 0.3,
+					minZoomLevel: 0.5,
+					maxZoomLevel: 10,
+					visibilityRatio: 0.8,
+					constrainDuringPan: true
+				});
+				viewer = activeViewer;
+			} catch (e) {
+				if (controller.signal.aborted) return;
+				error = e instanceof Error ? e.message : 'Failed to load manifest';
+				loading = false;
+			}
+		}
+
+		void load();
 		return () => {
-			viewer?.destroy();
+			controller.abort();
+			if (resizeFrame !== undefined) cancelAnimationFrame(resizeFrame);
+			resizeFrame = undefined;
+			activeViewer?.destroy();
+			viewer = null;
 		};
 	});
 
-	async function loadManifest() {
-		try {
-			const res = await fetch(manifestUrl);
-			if (!res.ok) throw new Error(`HTTP ${res.status}`);
-			const manifest = await res.json();
+	async function loadManifest(url: string, signal: AbortSignal) {
+		const res = await fetch(url, { signal });
+		if (!res.ok) throw new Error(`HTTP ${res.status}`);
+		const manifest = await res.json();
+		const sources: (string | { type: string; url: string })[] = [];
 
-			// IIIF v3: items[].items[].items[].body.service[]
-			const sources: (string | { type: string; url: string })[] = [];
-
-			// IIIF v3: items[].items[].items[].body.service[]
-			if (manifest.items) {
-				for (const canvas of manifest.items) {
-					const body = canvas.items?.[0]?.items?.[0]?.body;
-					if (!body) continue;
-					const service = body.service?.[0];
-					if (service?.id) {
-						sources.push(service.id + '/info.json');
-					} else if (body.id) {
-						sources.push({ type: 'image', url: body.id });
-					}
+		// IIIF v3: items[].items[].items[].body.service[]
+		if (manifest.items) {
+			for (const canvas of manifest.items) {
+				const body = canvas.items?.[0]?.items?.[0]?.body;
+				if (!body) continue;
+				const service = body.service?.[0];
+				if (service?.id) {
+					sources.push(service.id + '/info.json');
+				} else if (body.id) {
+					sources.push({ type: 'image', url: body.id });
 				}
 			}
-
-			// IIIF v2 fallback: sequences[].canvases[].images[].resource.service
-			if (sources.length === 0 && manifest.sequences) {
-				for (const canvas of manifest.sequences[0]?.canvases ?? []) {
-					const resource = canvas.images?.[0]?.resource;
-					if (!resource) continue;
-					const service = resource.service;
-					const svcId = service?.['@id'] ?? service?.id;
-					if (svcId) {
-						sources.push(svcId + '/info.json');
-					} else if (resource['@id']) {
-						sources.push({ type: 'image', url: resource['@id'] });
-					}
-				}
-			}
-
-			if (sources.length === 0) {
-				// Manifest exists but has no canvases — fall back to external link
-				fallback = true;
-				loading = false;
-				return;
-			}
-
-			tileSources = sources;
-			totalPages = sources.length;
-			loading = false;
-
-			// Wait for DOM, then init viewer
-			requestAnimationFrame(() => initViewer());
-		} catch (e) {
-			error = e instanceof Error ? e.message : 'Failed to load manifest';
-			loading = false;
 		}
-	}
 
-	function initViewer() {
-		if (!viewerContainer || tileSources.length === 0 || !OSD) return;
-
-		viewer = OSD({
-			element: viewerContainer,
-			// OSD accepts strings and { type, url } objects at runtime; its TileSourceSpecifier
-			// type is stricter than what we need for IIIF info.json URLs.
-			tileSources: tileSources[0] as unknown as OpenSeadragon.TileSourceSpecifier,
-			showNavigationControl: false,
-			showZoomControl: false,
-			showHomeControl: false,
-			showFullPageControl: false,
-			gestureSettingsMouse: { scrollToZoom: true },
-			gestureSettingsTouch: { pinchToZoom: true },
-			animationTime: 0.3,
-			minZoomLevel: 0.5,
-			maxZoomLevel: 10,
-			visibilityRatio: 0.8,
-			constrainDuringPan: true
-		});
+		// IIIF v2 fallback: sequences[].canvases[].images[].resource.service
+		if (sources.length === 0 && manifest.sequences) {
+			for (const canvas of manifest.sequences[0]?.canvases ?? []) {
+				const resource = canvas.images?.[0]?.resource;
+				if (!resource) continue;
+				const service = resource.service;
+				const svcId = service?.['@id'] ?? service?.id;
+				if (svcId) {
+					sources.push(svcId + '/info.json');
+				} else if (resource['@id']) {
+					sources.push({ type: 'image', url: resource['@id'] });
+				}
+			}
+		}
+		return sources;
 	}
 
 	function goToPage(page: number) {
@@ -132,9 +151,12 @@
 
 	function toggleExpanded() {
 		expanded = !expanded;
-		// Let the container resize, then fit the image
-		requestAnimationFrame(() => {
-			viewer?.viewport?.goHome(true);
+		// Fit only the viewer that requested this resize, if it is still mounted.
+		const activeViewer = viewer;
+		if (resizeFrame !== undefined) cancelAnimationFrame(resizeFrame);
+		resizeFrame = requestAnimationFrame(() => {
+			resizeFrame = undefined;
+			if (viewer === activeViewer) activeViewer?.viewport?.goHome(true);
 		});
 	}
 </script>

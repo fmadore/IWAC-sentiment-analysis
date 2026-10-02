@@ -1,0 +1,56 @@
+name: Cross-browser smoke tests
+
+on:
+  schedule:
+    - cron: "30 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: browser-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ./ma-visualisation-sentiments
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: ma-visualisation-sentiments/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the production artifact
+        run: npm run build
+
+      - name: Install Firefox and WebKit
+        run: npx playwright install --with-deps firefox webkit
+
+      - name: Check navigation, downloads and worker recovery
+        env:
+          PLAYWRIGHT_CROSS_BROWSER: "1"
+        run: npm run test:e2e -- e2e/browser-smoke.spec.ts
+
+      - name: Preserve browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: cross-browser-results
+          path: |
+            ma-visualisation-sentiments/test-results/
+            ma-visualisation-sentiments/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14

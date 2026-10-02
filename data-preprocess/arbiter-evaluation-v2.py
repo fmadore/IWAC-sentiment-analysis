@@ -25,11 +25,16 @@ What differs from `arbiter-evaluation.py`, and why:
   rows always mean the same thing.
 * **`--dry-run` prints the eligible/selected counts and a cost estimate and
   exits without making a single API call.** The paid run is deliberately gated.
+* **Paid work is retained separately from the public selection.** A private
+  cache under `.data-staging/arbiter-v2/` bootstraps from the published file and
+  preserves excluded evaluations and their provenance. Back up that directory
+  to retain unpublished work across checkouts. One session holds its run lock;
+  populated caches reject a changed effort or an invalid blind assignment.
 
 **Which disagreements are worth paying for.** Measured on the current corpus of
 12,349 articles with all five models: 11,402 rows are comparable (every model
 gave a comparable polarity and centrality) and 947 are excluded. 251 of those
-exclusions are Qwen's deliberate abstentions — its retired 153-article gap plus
+exclusions are Qwen's deliberate abstentions — its 200-article gap plus
 the 51 articles no model annotates — and they can never be arbitrated, because
 on those rows a five-way comparison does not exist.
 
@@ -88,6 +93,17 @@ from functools import partial
 from pathlib import Path
 from typing import Any, Literal, get_args
 
+from iwac_preprocess.arbiter_lifecycle import (
+    CACHE_FILENAME,
+    CacheUnreadableError,
+    PanelCache,
+)
+from iwac_preprocess.arbiter_lifecycle import (
+    load_cached_evaluations as load_cached_evaluations,
+)
+from iwac_preprocess.arbiter_lifecycle import (
+    resolve_blind_permutation as resolve_blind_permutation,
+)
 from iwac_preprocess.arbiter_prompt import (
     ARBITER_MAX_INPUT_CHARS,
     BLIND_LABELS,
@@ -114,7 +130,7 @@ from iwac_preprocess.arbiter_selection import (
 from iwac_preprocess.arbiter_selection import (
     SPREAD_KEYS as SPREAD_KEYS,
 )
-from iwac_preprocess.publication import publish_json_files
+from iwac_preprocess.publication import publication_lock, publish_json_files
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from shared import (
     CONTRACT_V2,
@@ -127,7 +143,6 @@ from shared import (
     get_webapp_data_dir,
     load_iwac_dataset,
     load_iwac_full_text,
-    reconcile_cached_evaluations,
     three_way_cache_fingerprint,
     validate_columns,
 )
@@ -396,42 +411,6 @@ def load_dataset_records(contract: SentimentContract = CONTRACT) -> list[dict]:
 
 
 # ============================================================================
-# Blind permutation
-# ============================================================================
-
-
-def resolve_blind_permutation(
-    metadata: dict | None, model_ids: list[str], rng: random.Random | None = None
-) -> dict[str, str]:
-    """Reuse the stored label -> model mapping, or draw a new one once.
-
-    Re-rolling on an incremental run would silently change what "Analyse A"
-    means between cached and new rows, which is the panel analogue of v1's
-    `model_a_is_first` bug.
-    """
-    if len(model_ids) != len(BLIND_LABELS):
-        raise ValueError(
-            f"The blind permutation is a bijection: {len(BLIND_LABELS)} labels "
-            f"({', '.join(label.upper() for label in BLIND_LABELS)}) for "
-            f"{len(model_ids)} model(s) ({', '.join(model_ids)}). Growing or shrinking the "
-            "panel means editing BLIND_LABELS in iwac_preprocess/arbiter_prompt.py, the "
-            "browser's ARBITER_BLIND_LABELS, and the prompt prose that enumerates the analyses."
-        )
-
-    stored = (metadata or {}).get("blind_permutation")
-    if (
-        isinstance(stored, dict)
-        and set(stored) == set(BLIND_LABELS)
-        and sorted(str(value) for value in stored.values()) == sorted(model_ids)
-    ):
-        return {label: str(stored[label]) for label in BLIND_LABELS}
-
-    shuffled = list(model_ids)
-    (rng or random).shuffle(shuffled)
-    return dict(zip(BLIND_LABELS, shuffled, strict=True))
-
-
-# ============================================================================
 # Paid evaluation
 # ============================================================================
 
@@ -586,36 +565,6 @@ def evaluate_with_arbiter(
 # ============================================================================
 # Cache and output
 # ============================================================================
-
-
-class CacheUnreadableError(RuntimeError):
-    """The published file exists but cannot be used as the cache."""
-
-
-def load_cached_evaluations(path: str) -> tuple[list[dict], dict]:
-    """Load the published file, which doubles as the incremental cache.
-
-    A missing file is a first run. A file that exists but cannot be read is not:
-    treating it as empty would draw a fresh blind permutation — so "Analyse A"
-    would stop meaning what the published verdicts say it means — and price the
-    whole frame again as new paid calls. That is refused, loudly.
-    """
-    if not os.path.exists(path):
-        return [], {}
-    try:
-        with open(path, encoding="utf-8") as handle:
-            payload = json.load(handle)
-        evaluations = payload.get("evaluations", [])
-        metadata = payload.get("metadata", {})
-        if not isinstance(evaluations, list) or not isinstance(metadata, dict):
-            raise ValueError("expected an object with 'evaluations' and 'metadata'")
-        return list(evaluations), dict(metadata)
-    except (OSError, AttributeError, json.JSONDecodeError, TypeError, ValueError) as error:
-        raise CacheUnreadableError(
-            f"{path} exists but is not a readable arbiter file ({error}). It is the paid "
-            "cache and holds the blind permutation; restore it from version control "
-            "rather than letting a run start over."
-        ) from error
 
 
 def build_fingerprint(source_revision: str | None, text_revision: str | None):
@@ -798,6 +747,16 @@ def confirm_api_calls(estimate: dict, effort: str, assume_yes: bool) -> bool:
 # ============================================================================
 
 
+def positive_limit(value: str) -> int:
+    try:
+        limit = int(value)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError("--limit must be a positive integer") from error
+    if limit <= 0:
+        raise argparse.ArgumentTypeError("--limit must be a positive integer")
+    return limit
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="IWAC panel arbiter evaluation (generation 2)",
@@ -815,7 +774,7 @@ Examples:
     )
     parser.add_argument(
         "--limit",
-        type=int,
+        type=positive_limit,
         default=None,
         help="Evaluate at most N articles, the widest disagreements first "
         "(ties broken by article id).",
@@ -862,7 +821,7 @@ Examples:
     parser.add_argument(
         "--prune-cache-only",
         action="store_true",
-        help="Reconcile and republish the cache file without making paid API calls.",
+        help="Republish the selected cached evaluations without paid calls; the durable cache retains every evaluation.",
     )
     parser.add_argument(
         "--yes",
@@ -874,8 +833,21 @@ Examples:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Parse limits before source loading, cache reads, or filesystem mutation.
     args = parse_args(argv)
+    if args.dry_run:
+        return run(args)
+    # Serialize whole arbiter sessions, not just public writes: two sessions
+    # must never price the same missing rows or overwrite each other's cache.
+    try:
+        with publication_lock(Path(get_staging_dir()) / "arbiter-v2"):
+            return run(args)
+    except (BlockingIOError, PermissionError) as error:
+        logger.error("Another panel arbiter run holds the cache lock: %s", error)
+        return 2
 
+
+def run(args: argparse.Namespace) -> int:
     env_path = Path(__file__).parent.parent / ".env"
     if env_path.exists():
         from dotenv import load_dotenv
@@ -951,28 +923,31 @@ def main(argv: list[str] | None = None) -> int:
     text_revision = get_source_revision(HF_FULL_REPO_ID)
     output_path = os.path.join(get_webapp_data_dir(), OUTPUT_FILENAME)
     try:
-        cached, cached_metadata = load_cached_evaluations(output_path)
+        cache = PanelCache.load(
+            Path(get_staging_dir()) / "arbiter-v2" / CACHE_FILENAME,
+            Path(output_path),
+            MODEL_IDS,
+            args.effort,
+        )
     except CacheUnreadableError as error:
         logger.error("%s", error)
         return 2
-    permutation = resolve_blind_permutation(cached_metadata, MODEL_IDS)
+    cached_metadata = cache.metadata
+    permutation = resolve_blind_permutation(
+        cached_metadata, MODEL_IDS, populated=bool(cache.evaluations)
+    )
     logger.info(
         "Blind assignment: %s",
         ", ".join(f"{label.upper()}={permutation[label]}" for label in BLIND_LABELS),
     )
 
-    reconciliation = reconcile_cached_evaluations(
-        cached, selected, fingerprint=build_fingerprint(source_revision, text_revision)
-    )
+    reconciliation = cache.select(selected, build_fingerprint(source_revision, text_revision))
     evaluations = reconciliation.evaluations
-    if cached:
+    if cache.evaluations:
         logger.info(
-            "Reconciled cache: %d kept, %d stale/duplicate pruned, %d changed invalidated, "
-            "%d legacy adopted",
+            "Cache: %d evaluations match this selection; %d retained in durable history",
             len(evaluations),
-            reconciliation.pruned,
-            reconciliation.invalidated,
-            reconciliation.adopted_legacy,
+            len(cache.evaluations),
         )
 
     remaining = [
@@ -1005,20 +980,18 @@ def main(argv: list[str] | None = None) -> int:
     }
 
     def publish(extra_counts: dict | None = None) -> None:
-        save_results(
-            output_path,
-            evaluations,
-            build_metadata(
-                permutation=permutation,
-                selection=selection,
-                counts={**counts, **(extra_counts or {}), "successful": len(evaluations)},
-                source_revision=source_revision,
-                text_revision=text_revision,
-                effort=args.effort,
-                legacy_cache_adopted=reconciliation.adopted_legacy,
-                usage=usage,
-            ),
+        metadata = build_metadata(
+            permutation=permutation,
+            selection=selection,
+            counts={**counts, **(extra_counts or {}), "successful": len(evaluations)},
+            source_revision=source_revision,
+            text_revision=text_revision,
+            effort=args.effort,
+            legacy_cache_adopted=reconciliation.adopted_legacy,
+            usage=usage,
         )
+        cache.checkpoint(evaluations, metadata)
+        save_results(output_path, evaluations, metadata)
 
     estimate = estimate_cost(remaining, permutation, args.effort)
 
@@ -1037,7 +1010,7 @@ def main(argv: list[str] | None = None) -> int:
     if not remaining:
         publish()
         logger.info(
-            "All %d selected articles are already evaluated; republished the cache file",
+            "All %d selected articles are already evaluated; republished the selection",
             len(selected),
         )
         return 0
