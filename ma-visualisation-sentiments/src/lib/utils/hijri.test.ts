@@ -9,16 +9,15 @@ import {
 describe('gregorianToHijri', () => {
 	it('places the Islamic epoch on 1 Muharram 1 AH', () => {
 		// Civil ("Friday") epoch: 1 Muharram 1 AH = 16 July 622 Julian =
-		// 17 July 622 in the proleptic Gregorian calendar used here.
-		expect(gregorianToHijri(622, 7, 17)).toEqual({ year: 1, month: 1, day: 1 });
-		expect(gregorianToHijri(622, 7, 16)).toEqual({ year: 0, month: 12, day: 29 });
+		// 19 July 622 in the proleptic Gregorian calendar used here.
+		expect(gregorianToHijri(622, 7, 19)).toEqual({ year: 1, month: 1, day: 1 });
+		expect(gregorianToHijri(622, 7, 18)).toBeNull();
 	});
 
 	it('converts a known modern date', () => {
-		// Tabular 1 Ramadan 1445 = 10 March 2024. Announced observance in most
-		// countries began a day later — the expected tabular-vs-sighting offset,
-		// and the reason this module is documented as month-level only.
-		expect(gregorianToHijri(2024, 3, 10)).toEqual({ year: 1445, month: 9, day: 1 });
+		// Civil tabular calendar, matching ICU islamic-civil; this does not
+		// establish the date of a local observation.
+		expect(gregorianToHijri(2024, 3, 11)).toEqual({ year: 1445, month: 9, day: 1 });
 	});
 
 	it('advances the Hijri day in step with the Gregorian day', () => {
@@ -29,9 +28,38 @@ describe('gregorianToHijri', () => {
 	});
 
 	it('rolls over the month boundary', () => {
-		// Tabular Ramadan 1445 runs 30 days, so 9 April 2024 opens Shawwal.
-		expect(gregorianToHijri(2024, 4, 8)).toEqual({ year: 1445, month: 9, day: 30 });
-		expect(gregorianToHijri(2024, 4, 9)).toEqual({ year: 1445, month: 10, day: 1 });
+		// Tabular Ramadan 1445 runs 30 days, so 10 April 2024 opens Shawwal.
+		expect(gregorianToHijri(2024, 4, 9)).toEqual({ year: 1445, month: 9, day: 30 });
+		expect(gregorianToHijri(2024, 4, 10)).toEqual({ year: 1445, month: 10, day: 1 });
+	});
+
+	it.each([
+		[2024, 1, 1, { year: 1445, month: 6, day: 19 }],
+		[2024, 2, 29, { year: 1445, month: 8, day: 19 }],
+		[2024, 3, 1, { year: 1445, month: 8, day: 20 }],
+		[2024, 3, 10, { year: 1445, month: 8, day: 29 }],
+		[2024, 7, 7, { year: 1445, month: 12, day: 30 }],
+		[2024, 7, 8, { year: 1446, month: 1, day: 1 }],
+		[2000, 2, 29, { year: 1420, month: 11, day: 24 }],
+		[1900, 3, 1, { year: 1317, month: 10, day: 28 }]
+	])('matches civil-calendar reference date %i-%i-%i', (year, month, day, expected) => {
+		// Fixed fixtures independently checked with ICU's islamic-civil calendar.
+		expect(gregorianToHijri(year, month, day)).toEqual(expected);
+	});
+
+	it.each([
+		[2023, 2, 29],
+		[1900, 2, 29],
+		[2024, 2, 30],
+		[2024, 4, 31],
+		[2024.5, 1, 1],
+		[2024, 1.5, 1],
+		[2024, 1, 1.5],
+		[0, 1, 1],
+		[10000, 1, 1],
+		[Infinity, 1, 1]
+	])('rejects an invalid Gregorian date %s-%s-%s', (year, month, day) => {
+		expect(gregorianToHijri(year, month, day)).toBeNull();
 	});
 
 	it('produces a Hijri year ~11 days shorter, so it drifts against the Gregorian one', () => {
@@ -65,7 +93,7 @@ describe('gregorianToHijri', () => {
 
 describe('publicationDateToHijri', () => {
 	it('parses a full YYYY-MM-DD publication date', () => {
-		expect(publicationDateToHijri('2024-03-11')).toEqual({ year: 1445, month: 9, day: 2 });
+		expect(publicationDateToHijri('2024-03-11')).toEqual({ year: 1445, month: 9, day: 1 });
 	});
 
 	it('returns null for the partial and placeholder dates the corpus contains', () => {
@@ -77,7 +105,17 @@ describe('publicationDateToHijri', () => {
 	});
 
 	it('returns null for a malformed date of the right length', () => {
-		expect(publicationDateToHijri('20xx-03-11')).toBeNull();
+		for (const date of [
+			'20xx-03-11',
+			'2024-3-011',
+			'2024-03-11-extra',
+			'2024-03-11T00:00:00Z',
+			'2024-03-1e1',
+			'2024-04-31',
+			'2023-02-29'
+		]) {
+			expect(publicationDateToHijri(date)).toBeNull();
+		}
 	});
 });
 

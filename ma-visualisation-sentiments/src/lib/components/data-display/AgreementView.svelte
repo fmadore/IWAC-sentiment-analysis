@@ -43,6 +43,7 @@
 	import { AgreementMatrix, ModelCalibrationChart } from '$lib/components/viz';
 	import ChartTypeToggle from '$lib/components/viz/ChartTypeToggle.svelte';
 	import ConsensusSection from './ConsensusSection.svelte';
+	import ModelAgreementOverview from '../viz/ModelAgreementOverview.svelte';
 	import ChartCard from '$lib/components/ui/ChartCard.svelte';
 	import LoadingState from '$lib/components/common/LoadingState.svelte';
 	import TargetIcon from '@lucide/svelte/icons/target';
@@ -89,7 +90,7 @@
 	}
 
 	function formatPercent(value: number): string {
-		return $pct(value, 1);
+		return Number.isFinite(value) ? $pct(value, 1) : $t.agreementResearch.undefined;
 	}
 
 	/** Landis & Koch band, translated; null when kappa is undefined. */
@@ -167,11 +168,14 @@
 	</div>
 
 	{#if analysisState.scope === 'pair'}
+		<h2 id="agreement-pair-detail" class="sr-only" tabindex="-1">
+			{$t.agreement.matrixTitle}: {modelNames.modelAName} / {modelNames.modelBName}
+		</h2>
 		<!-- Headline statistics for the active dimension -->
 		<StatCardGrid>
 			<StatCard
 				label={$t.agreement.exactAgreement}
-				value={formatPercent(active.matrix.exactAgreement)}
+				value={formatPercent(active.matrix.n > 0 ? active.matrix.exactAgreement : NaN)}
 				detail="{$num(active.matrix.n)} {$t.agreement.articlesCompared}"
 				tooltip={$t.agreement.exactAgreementHelp}
 				accent="comparison"
@@ -181,8 +185,8 @@
 
 			<StatCard
 				label={$t.agreement.adjacentAgreement}
-				value={formatPercent(active.matrix.adjacentAgreement)}
-				detail={$t.agreement.adjacentDetail}
+				value={formatPercent(active.ordinalAdjacency.value)}
+				detail="{$num(active.ordinalAdjacency.n)} {$t.agreement.articlesCompared}"
 				tooltip={$t.agreement.adjacentAgreementHelp}
 				accent="comparison"
 			>
@@ -203,8 +207,10 @@
 			<StatCard
 				label={$t.agreement.weightedKappa}
 				value={formatKappa(active.weightedKappa.kappa)}
-				detail={strengthLabel(active.weightedKappa.kappa)}
-				tooltip={$t.agreement.weightedKappaHelp}
+				detail={$t.agreementResearch.weightedN
+					.replace('{count}', $num(active.weightedKappa.n))
+					.replace('{method}', active.weightedMethod)}
+				tooltip={$t.agreementResearch.closeAgreementNote}
 				accent="arbiter"
 				preserveLabelCase
 			>
@@ -212,20 +218,13 @@
 			</StatCard>
 		</StatCardGrid>
 
-		<!--
-		The gap between the two kappas IS the finding when it is large, so say so
-		in words rather than leaving the reader to notice two numbers differ.
-	-->
-		{#if !Number.isNaN(active.kappa.kappa) && !Number.isNaN(active.weightedKappa.kappa)}
-			{@const gap = active.weightedKappa.kappa - active.kappa.kappa}
-			{#if gap >= 0.2}
-				<p class="reading-note">
-					{$t.agreement.systematicOffsetNote
-						.replace('{modelA}', modelNames.modelAName)
-						.replace('{modelB}', modelNames.modelBName)}
-				</p>
-			{/if}
-		{/if}
+		<p class="reading-note">
+			{analysisState.dimension === 'polarity'
+				? datasetState.generation === 'v1'
+					? $t.agreementResearch.weightedLegacyNote
+					: $t.agreementResearch.weightedApplicableNote
+				: $t.agreementResearch.weightedAllNote}
+		</p>
 
 		<ChartCard variant="comparison">
 			<AgreementMatrix
@@ -260,6 +259,10 @@
 				{/each}
 			</StatCardGrid>
 		{/if}
+
+		<ChartCard variant="comparison" class="mb-6">
+			<ModelAgreementOverview dimension={analysisState.dimension} />
+		</ChartCard>
 
 		{#if marginals}
 			<ChartCard variant="comparison" class="mb-6">

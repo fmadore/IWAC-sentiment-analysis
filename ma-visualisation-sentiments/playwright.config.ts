@@ -1,7 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
+import { DEPLOY_PATH } from './deploy.config.js';
 
 const previewPort = process.env.PLAYWRIGHT_PORT ?? '4317';
 const previewOrigin = `http://127.0.0.1:${previewPort}`;
+const previewURL = `${previewOrigin}${DEPLOY_PATH}/`;
+const crossBrowser = process.env.PLAYWRIGHT_CROSS_BROWSER === '1';
 
 export default defineConfig({
 	testDir: './e2e',
@@ -15,16 +18,21 @@ export default defineConfig({
 	// 2 of 4 suite runs while 2 workers failed 0 of 4. Busy is the normal case,
 	// since e2e runs last in the verify sequence, right after a build.
 	workers: 2,
-	reporter: process.env.CI ? 'github' : 'list',
+	reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
 	use: {
-		baseURL: `${previewOrigin}/sentiment-analysis/`,
+		baseURL: previewURL,
 		trace: 'on-first-retry',
 		serviceWorkers: 'block'
 	},
-	projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+	projects: crossBrowser
+		? [
+				{ name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+				{ name: 'webkit', use: { ...devices['Desktop Safari'] } }
+			]
+		: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 	webServer: {
 		command: `npm run preview -- --host 127.0.0.1 --port ${previewPort} --strictPort`,
-		url: `${previewOrigin}/sentiment-analysis/`,
+		url: previewURL,
 		reuseExistingServer: !process.env.CI,
 		timeout: 120_000
 	}

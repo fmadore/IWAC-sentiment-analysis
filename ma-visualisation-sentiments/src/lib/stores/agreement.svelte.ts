@@ -12,14 +12,7 @@
 import type { Article, DatasetId, ModelPair } from '$lib/types/data';
 import { getModelsFromPair } from '$lib/types/data';
 import { datasetIdsOf } from '$lib/domain/sentimentContract';
-import {
-	buildConfusionMatrix,
-	kappaFromMatrix,
-	fleissKappa,
-	type ConfusionMatrix,
-	type FleissResult,
-	type KappaResult
-} from '$lib/utils/agreement';
+import { fleissKappa, type FleissResult } from '$lib/utils/agreement';
 import {
 	AGREEMENT_DIMENSIONS,
 	DIMENSION_CATEGORIES,
@@ -30,6 +23,13 @@ import {
 	type ModelMarginals
 } from '$lib/utils/agreementData';
 import { buildConsensusRows, type ConsensusRow } from '$lib/utils/consensus';
+import {
+	summarizeAgreement,
+	summarizeModelPairs,
+	type DimensionAgreement,
+	type PairAgreementSummary
+} from '$lib/utils/agreementMetrics';
+export type { DimensionAgreement } from '$lib/utils/agreementMetrics';
 // Leaf stores imported directly — importing from './index' would create a
 // cycle (the barrel re-exports this module). Same convention as url/* and
 // arbiter.svelte.
@@ -68,16 +68,6 @@ const filteredDatasets = $derived.by(
 		) as Record<DatasetId, Article[]>
 );
 
-export interface DimensionAgreement {
-	dimension: AgreementDimension;
-	categories: string[];
-	matrix: ConfusionMatrix;
-	/** Classic all-or-nothing kappa. */
-	kappa: KappaResult;
-	/** Quadratic-weighted kappa: credits near-misses on an ordinal scale. */
-	weightedKappa: KappaResult;
-}
-
 // Re-exported so callers have one import site for "agreement" regardless of
 // whether a symbol is reactive state or a pure helper.
 export { AGREEMENT_DIMENSIONS, DIMENSION_CATEGORIES, type AgreementDimension, type ModelMarginals };
@@ -97,22 +87,14 @@ export const pairAgreement = {
 		const filteredB = filteredDatasets[modelBId];
 
 		return Object.fromEntries(
-			AGREEMENT_DIMENSIONS.map((dimension) => {
-				const categories = DIMENSION_CATEGORIES[dimension];
-				const pairs = buildLabelPairs(filteredA, filteredB, dimension);
-				const matrix = buildConfusionMatrix(pairs, categories);
-
-				return [
+			AGREEMENT_DIMENSIONS.map((dimension) => [
+				dimension,
+				summarizeAgreement(
+					buildLabelPairs(filteredA, filteredB, dimension),
 					dimension,
-					{
-						dimension,
-						categories,
-						matrix,
-						kappa: kappaFromMatrix(matrix, 'none'),
-						weightedKappa: kappaFromMatrix(matrix, 'quadratic')
-					} satisfies DimensionAgreement
-				];
-			})
+					datasetState.generation
+				)
+			])
 		) as Record<AgreementDimension, DimensionAgreement>;
 	}
 };
@@ -197,5 +179,23 @@ export const modelMarginals = {
 				loadedIds.map((id) => computeMarginals(filteredDatasets[id], dimension, id))
 			])
 		) as Record<AgreementDimension, ModelMarginals[]>;
+	}
+};
+
+/** Cached panel pair summaries; switching the displayed metric does not repeat joins. */
+const allPairSummaries = $derived.by(() => {
+	const ids = datasetIdsOf(datasetState.generation);
+	if (!ids.every((id) => articleState.datasets[id]?.length)) return null;
+	return Object.fromEntries(
+		AGREEMENT_DIMENSIONS.map((dimension) => [
+			dimension,
+			summarizeModelPairs(filteredDatasets, datasetState.generation, dimension)
+		])
+	) as Record<AgreementDimension, PairAgreementSummary[]>;
+});
+
+export const modelPairAgreements = {
+	get current(): Record<AgreementDimension, PairAgreementSummary[]> | null {
+		return allPairSummaries;
 	}
 };

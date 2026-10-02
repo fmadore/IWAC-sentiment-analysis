@@ -22,6 +22,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { cohensKappa, buildConfusionMatrix, fleissKappa } from './agreement';
 import { DIMENSION_CATEGORIES } from './agreementData';
+import { summarizeAgreement } from './agreementMetrics';
 import type { LabelPair } from './agreement';
 
 // Vitest runs with the project root as cwd; import.meta.url is a Vite-served
@@ -127,4 +128,18 @@ describe('agreement statistics over the shipped corpus', () => {
 		const unanimous = items.filter((l) => l[0] === l[1] && l[1] === l[2]).length;
 		expect(unanimous / items.length).toBeCloseTo(0.543, 3);
 	});
+});
+
+// Independently calculated from the shipped v2 scores: the ordinal-only sample
+// differs from the nominal matrix, while archived results remain untouched.
+it('pins the v2 applicable-polarity method and both sample sizes', () => {
+	const currentPairs = pairs(loadScores('mistral-small'), loadScores('deepseek'), polarity);
+	const current = summarizeAgreement(currentPairs, 'polarity', 'v2');
+	expect(current.matrix.n).toBe(12298);
+	expect(current.weightedKappa.n).toBe(11595);
+	expect(current.weightedKappa.kappa).toBeCloseTo(0.453219678064523, 10);
+	const legacy = summarizeAgreement(pairs(chatgpt, gemini, polarity), 'polarity', 'v1');
+	expect(legacy.weightedKappa).toEqual(
+		cohensKappa(pairs(chatgpt, gemini, polarity), DIMENSION_CATEGORIES.polarity, 'quadratic')
+	);
 });

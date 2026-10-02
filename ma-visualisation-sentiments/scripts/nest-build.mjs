@@ -24,14 +24,6 @@ try {
 	throw new Error('[nest-build] no build/ directory');
 }
 
-if (!DEPLOY_PATH) {
-	// Serving at the domain root: the adapter already wrote everything where it
-	// belongs and there is nothing to hoist. Only the CNAME still applies.
-	await writeFile(new URL('CNAME', BUILD_ROOT), `${CUSTOM_DOMAIN}\n`);
-	console.log('[nest-build] DEPLOY_PATH empty — wrote CNAME only.');
-	process.exit(0);
-}
-
 // ---------------------------------------------------------------- CNAME
 // Generated rather than shipped in static/, which would place it inside the
 // nested directory where Pages never looks for it.
@@ -56,6 +48,13 @@ if (notFound) {
 	const stamped = notFound.replaceAll(PLACEHOLDER, DEPLOY_PATH);
 	await writeFile(new URL('404.html', BUILD_ROOT), stamped);
 	await writeFile(nested404, stamped);
+}
+
+if (!DEPLOY_PATH) {
+	// The app already lives at the root, but its 404 still needs stamping. Keep
+	// the real app index instead of replacing it with a redirect to itself.
+	console.log('[nest-build] Root ready: CNAME, stamped 404.html, existing app index.html.');
+	process.exit(0);
 }
 
 // ---------------------------------------------------------------- index.html

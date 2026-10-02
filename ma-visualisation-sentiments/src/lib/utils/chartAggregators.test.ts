@@ -331,7 +331,7 @@ describe('aggregateDisagreement', () => {
 });
 
 describe('aggregateByHijriMonth', () => {
-	const CENTRALITY = { Marginal: 2, Central: 4 };
+	const CENTRALITY = { 'Non abordé': 1, Marginal: 2, Central: 4 };
 
 	function dated(date: string, centrality?: string): Article {
 		return {
@@ -354,21 +354,21 @@ describe('aggregateByHijriMonth', () => {
 	}
 
 	it('returns twelve buckets in calendar order', () => {
-		const result = aggregateByHijriMonth([dated('2024-03-10')], CENTRALITY);
+		const result = aggregateByHijriMonth([dated('2024-03-11')], CENTRALITY);
 		expect(result.buckets).toHaveLength(12);
 		expect(result.buckets.map((b) => b.month)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
 	});
 
 	it('places a date in its Hijri month', () => {
-		// 10 March 2024 = 1 Ramadan 1445 (month 9).
-		const result = aggregateByHijriMonth([dated('2024-03-10')], CENTRALITY);
+		// 11 March 2024 = 1 Ramadan 1445 (month 9).
+		const result = aggregateByHijriMonth([dated('2024-03-11')], CENTRALITY);
 		expect(result.buckets[8].count).toBe(1);
 		expect(result.total).toBe(1);
 	});
 
 	it('computes the coverage index against an even twelfth', () => {
 		// 12 articles all in one month: index 12 there, 0 elsewhere.
-		const articles = Array.from({ length: 12 }, () => dated('2024-03-10'));
+		const articles = Array.from({ length: 12 }, () => dated('2024-03-11'));
 		const result = aggregateByHijriMonth(articles, CENTRALITY);
 
 		expect(result.buckets[8].index).toBeCloseTo(12);
@@ -377,7 +377,7 @@ describe('aggregateByHijriMonth', () => {
 
 	it('averages centrality only over analysed articles', () => {
 		const result = aggregateByHijriMonth(
-			[dated('2024-03-10', 'Central'), dated('2024-03-11', 'Marginal'), dated('2024-03-12')],
+			[dated('2024-03-11', 'Central'), dated('2024-03-12', 'Marginal'), dated('2024-03-13')],
 			CENTRALITY
 		);
 
@@ -387,13 +387,40 @@ describe('aggregateByHijriMonth', () => {
 	});
 
 	it('reports null centrality rather than 0 for a month with nothing analysed', () => {
-		const result = aggregateByHijriMonth([dated('2024-03-10')], CENTRALITY);
+		const result = aggregateByHijriMonth([dated('2024-03-11')], CENTRALITY);
 		expect(result.buckets[8].meanCentrality).toBeNull();
+	});
+
+	it('uses stored Umm al-Qura months before the arithmetic fallback', () => {
+		const canonical = {
+			...dated('2024-03-10', 'Central'),
+			hijri_month: 9,
+			hijri_year: 1445,
+			hijri_day: 1
+		};
+		const result = aggregateByHijriMonth([canonical, dated('2024-03-10', 'Marginal')], CENTRALITY);
+		expect(result.buckets[8].count).toBe(1);
+		expect(result.buckets[8].meanCentrality).toBe(4);
+		expect(result.buckets[7].count).toBe(1);
+	});
+
+	it('counts non-applicable ratings as coverage without averaging them as zero', () => {
+		const result = aggregateByHijriMonth(
+			[dated('2024-03-11', 'Non applicable'), dated('2024-03-12', 'Non abordé')],
+			{ ...CENTRALITY, 'Non applicable': 0 }
+		);
+		expect(result.buckets[8]).toMatchObject({ count: 2, analyzed: 1, meanCentrality: 1 });
+	});
+
+	it('rejects impossible publication dates instead of moving them to another month', () => {
+		const result = aggregateByHijriMonth([dated('2024-04-31'), dated('2023-02-29')], CENTRALITY);
+		expect(result.total).toBe(0);
+		expect(result.undated).toBe(2);
 	});
 
 	it('counts undated articles separately instead of bucketing them', () => {
 		const result = aggregateByHijriMonth(
-			[dated('2024-03-10'), dated('N/A'), dated('2024')],
+			[dated('2024-03-11'), dated('N/A'), dated('2024')],
 			CENTRALITY
 		);
 		expect(result.total).toBe(1);

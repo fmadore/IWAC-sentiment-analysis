@@ -18,6 +18,7 @@
 -->
 <script lang="ts">
 	import { analysisState } from '$lib/stores/analysis.svelte';
+	import { datasetState } from '$lib/stores/datasets.svelte';
 	import { consensusRows, consensusModels } from '$lib/stores';
 	import { dec, num, pct } from '$lib/i18n/utils';
 	import type { AgreementDimension } from '$lib/stores/agreement.svelte';
@@ -27,6 +28,7 @@
 	import { StatCard, StatCardGrid, SectionHead } from '$lib/components/common';
 	import ChartCard from '$lib/components/ui/ChartCard.svelte';
 	import ChartTypeToggle from '$lib/components/viz/ChartTypeToggle.svelte';
+	import LabelPatternExplorer from '$lib/components/viz/LabelPatternExplorer.svelte';
 	import {
 		NewspaperDisagreementChart,
 		DissentProfileChart,
@@ -89,6 +91,10 @@
 </script>
 
 <SectionHead title={$t.agreement.consensusTitle} lede={$t.agreement.consensusLede} />
+
+{#if datasetState.generation === 'v2'}
+	<p class="reading-note">{$t.agreementResearch.cohortNote}</p>
+{/if}
 
 <div class="consensus-toolbar">
 	<span class="toolbar-label">{$t.agreement.declinedToggle}</span>
@@ -157,6 +163,10 @@
 
 <ChartCard variant="comparison" class="mb-6">
 	<DissentProfileChart {rows} {models} {dimension} {includeDeclined} />
+</ChartCard>
+
+<ChartCard variant="comparison" class="mb-6">
+	<LabelPatternExplorer {rows} {models} {dimension} {includeDeclined} />
 </ChartCard>
 
 <ChartCard variant="comparison" class="mb-6">

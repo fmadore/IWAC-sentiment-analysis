@@ -12,6 +12,7 @@
 	import Spinner from '$lib/components/common/Spinner.svelte';
 	import { t } from '$lib/i18n';
 	import { downloadCSVFile } from '$lib/utils/csv';
+	import type { CSVExportJob } from '$lib/utils/exportSnapshot';
 	import DownloadIcon from '@lucide/svelte/icons/download';
 
 	interface Props {
@@ -19,19 +20,15 @@
 		count: number;
 		/** Filename stem, e.g. `iwac-articles`; date/time + .csv are appended. */
 		filenamePrefix: string;
-		/** Builds the CSV text for the current data. */
-		buildCsv: () => string;
 		/**
-		 * Optional async step run before `buildCsv`, for data the app loads
-		 * lazily. Exports include the models' justification prose, which is not
-		 * part of the initial payload — this is where it gets fetched. The button
-		 * already shows an in-progress state, so the wait is visible.
+		 * Capture rows, models, language and provenance synchronously. The job's
+		 * preparation may fetch prose, but its builder must keep that selection.
 		 */
-		prepare?: () => Promise<void>;
+		createExport: () => CSVExportJob;
 		variant: 'articles' | 'comparison' | 'arbiter';
 	}
 
-	let { count, filenamePrefix, buildCsv, prepare, variant }: Props = $props();
+	let { count, filenamePrefix, createExport, variant }: Props = $props();
 
 	let isExporting = $state(false);
 
@@ -52,10 +49,12 @@
 				return;
 			}
 
-			await prepare?.();
+			const job = createExport();
+			const filename = generateFilename();
+			await job.prepare?.();
 
-			const csvContent = buildCsv();
-			downloadCSVFile(csvContent, generateFilename());
+			const csvContent = job.buildCsv();
+			downloadCSVFile(csvContent, filename);
 		} catch (error) {
 			console.error('Error exporting CSV:', error);
 			alert($t.export.exportError);

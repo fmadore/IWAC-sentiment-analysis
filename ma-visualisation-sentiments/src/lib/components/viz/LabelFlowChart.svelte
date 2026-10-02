@@ -1,14 +1,12 @@
 <!--
   LabelFlowChart Component
 
-  The panel-wide generalisation of AgreementMatrix: every article tracked from
-  one model's label to the next, as a Sankey.
+  The panel-wide extension of AgreementMatrix: adjacent model-label
+  transitions, aggregated as a Sankey.
 
-  Two things a pairwise matrix cannot show. A systematic offset appears as a
-  mass of ribbons all sliding down by one band, which is a shape rather than a
-  number. And the minority routes become visible — the articles where the first
-  and last model agree *through* a disagreeing middle one are a ribbon that
-  leaves a band and comes back, which no cross-tabulation of two models contains.
+  Adjacent-pair transitions show how labels differ between neighboring model
+  columns. Articles merge at each label node; ribbons cannot establish a full
+  article trajectory. LabelPatternExplorer preserves those complete patterns.
 
   Nodes take the dimension's own sentiment ramp, because the bands ARE sentiment
   values; ribbons inherit a translucent blend of their endpoints.

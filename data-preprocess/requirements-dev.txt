@@ -1,6 +1,7 @@
 -r requirements.txt
 
-# Development/CI only. Runtime generation does not need these packages.
+# Development/CI inputs. Install requirements-dev.lock with --require-hashes;
+# it includes the complete runtime lock plus these development dependencies.
 pytest~=9.1.1
 ruff~=0.16.10
 pip-audit~=2.10.1

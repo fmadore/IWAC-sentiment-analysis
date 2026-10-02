@@ -14,6 +14,7 @@ from typing import Any
 # The v1 manifest keeps its original unsuffixed name so that the published v1
 # artifact set stays byte-stable; later generations are suffixed.
 MANIFEST_FILENAMES = {"v1": "iwac_data_manifest.json", "v2": "iwac_data_manifest_v2.json"}
+RUNTIME_REQUIREMENTS_LOCK = Path(__file__).resolve().parents[1] / "requirements.lock"
 
 
 def manifest_filename(analysis_version: str) -> str:
@@ -80,8 +81,15 @@ def write_generation_manifest(
     analysis_version: str,
     source_repository: str,
     source_revision: str | None,
+    requirements_lock: str | os.PathLike[str] | None = RUNTIME_REQUIREMENTS_LOCK,
 ) -> None:
-    """Publish checksums and provenance after every data file is complete."""
+    """Publish checksums, source provenance and the available runtime lock identity.
+
+    The lock hash identifies the dependency specification beside the generator;
+    it does not assert that the running interpreter installed it. Existing
+    manifests stay untouched, and callers without a lock may omit this optional
+    field by passing ``None``. No absolute checkout path enters the manifest.
+    """
     target = Path(filepath)
     entries: dict[str, dict[str, int | str]] = {}
     for generated_file in generated_files:
@@ -89,12 +97,22 @@ def write_generation_manifest(
         digest = hashlib.sha256(path.read_bytes()).hexdigest()
         entries[path.name] = {"bytes": path.stat().st_size, "sha256": digest}
 
+    environment = {}
+    if requirements_lock is not None:
+        lock_path = Path(requirements_lock)
+        if lock_path.is_file():
+            environment["requirements_lock"] = {
+                "file": lock_path.name,
+                "sha256": hashlib.sha256(lock_path.read_bytes()).hexdigest(),
+            }
+
     safe_save_json(
         {
             "schema_version": contract_schema_version,
             "analysis_version": analysis_version,
             "generated": datetime.now(UTC).isoformat(),
             "source": {"repository": source_repository, "revision": source_revision},
+            **({"environment": environment} if environment else {}),
             "files": entries,
         },
         target,

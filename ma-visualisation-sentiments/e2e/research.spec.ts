@@ -226,7 +226,8 @@ test.describe('immutable data cache', () => {
 			const other = await fetch(url!.replace(/\/releases\/[^/]+\//, '/releases/nonexistent/'));
 			return { cached: cached.status, other: other.status };
 		}, known);
-		expect(result).toEqual({ cached: 200, other: 404 });
+		// An offline miss cannot establish that the requested release is absent.
+		expect(result).toEqual({ cached: 200, other: 503 });
 	});
 
 	test('activation keeps only the current data release, with its base precached', async ({

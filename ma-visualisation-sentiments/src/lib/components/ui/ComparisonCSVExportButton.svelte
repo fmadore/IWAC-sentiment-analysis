@@ -1,14 +1,25 @@
 <script lang="ts">
 	import { comparisonState, datasetState, loadJustifications } from '$lib/stores';
 	import { getJournalName } from '$lib/utils/format';
-	import { t, currentLanguage } from '$lib/i18n';
+	import { t, currentLanguage, type Language } from '$lib/i18n';
+	import type { Translations } from '$lib/i18n/types';
 	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
 	import { getModelsFromPair, type ComparisonData } from '$lib/types/data';
-	import { toCSV } from '$lib/utils/csv';
+	import {
+		captureExportProvenance,
+		toResearchCSV,
+		type CSVExportJob,
+		type ExportProvenance
+	} from '$lib/utils/exportSnapshot';
 	import { getModelDisplayName } from '$lib/utils/format';
 	import CsvDownloadButton from './CsvDownloadButton.svelte';
 
-	function convertToCSV(comparisons: ComparisonData[]): string {
+	function convertToCSV(
+		comparisons: ComparisonData[],
+		labels: Translations,
+		language: Language,
+		provenance: ExportProvenance
+	): string {
 		if (comparisons.length === 0) return '';
 
 		// Get model names from first comparison (they're all the same pair)
@@ -17,33 +28,33 @@
 		const modelBName = getModelDisplayName(firstComp.modelBId, datasetState.available);
 
 		const headers = [
-			$t.table.articleTitle,
-			$t.filters.country,
-			$t.filters.journal,
-			$t.table.date,
-			modelAName + ' - ' + $t.table.polarity,
-			modelAName + ' - ' + $t.table.subjectivity,
-			modelAName + ' - ' + $t.table.centrality,
-			modelAName + ' - ' + $t.export.polarityJustification,
-			modelAName + ' - ' + $t.export.subjectivityJustification,
-			modelAName + ' - ' + $t.export.centralityJustification,
-			modelBName + ' - ' + $t.table.polarity,
-			modelBName + ' - ' + $t.table.subjectivity,
-			modelBName + ' - ' + $t.table.centrality,
-			modelBName + ' - ' + $t.export.polarityJustification,
-			modelBName + ' - ' + $t.export.subjectivityJustification,
-			modelBName + ' - ' + $t.export.centralityJustification,
-			$t.comparison.polarity + ' ' + $t.comparison.pointsDifference,
-			$t.comparison.subjectivity + ' ' + $t.comparison.pointsDifference,
-			$t.comparison.centrality + ' ' + $t.comparison.pointsDifference,
-			$t.comparison.totalDiscrepancy,
-			$t.export.articleId
+			labels.table.articleTitle,
+			labels.filters.country,
+			labels.filters.journal,
+			labels.table.date,
+			modelAName + ' - ' + labels.table.polarity,
+			modelAName + ' - ' + labels.table.subjectivity,
+			modelAName + ' - ' + labels.table.centrality,
+			modelAName + ' - ' + labels.export.polarityJustification,
+			modelAName + ' - ' + labels.export.subjectivityJustification,
+			modelAName + ' - ' + labels.export.centralityJustification,
+			modelBName + ' - ' + labels.table.polarity,
+			modelBName + ' - ' + labels.table.subjectivity,
+			modelBName + ' - ' + labels.table.centrality,
+			modelBName + ' - ' + labels.export.polarityJustification,
+			modelBName + ' - ' + labels.export.subjectivityJustification,
+			modelBName + ' - ' + labels.export.centralityJustification,
+			labels.comparison.polarity + ' ' + labels.comparison.pointsDifference,
+			labels.comparison.subjectivity + ' ' + labels.comparison.pointsDifference,
+			labels.comparison.centrality + ' ' + labels.comparison.pointsDifference,
+			labels.comparison.totalDiscrepancy,
+			labels.export.articleId
 		];
 
 		const modelColumns = (analysis: ComparisonData['modelA']) => [
-			translateSentimentValue(analysis?.polarite, $currentLanguage),
-			translateSubjectivityScore(analysis?.subjectivite_score, $currentLanguage),
-			translateSentimentValue(analysis?.centralite_islam_musulmans, $currentLanguage),
+			translateSentimentValue(analysis?.polarite, language),
+			translateSubjectivityScore(analysis?.subjectivite_score, language),
+			translateSentimentValue(analysis?.centralite_islam_musulmans, language),
 			analysis?.polarite_justification,
 			analysis?.subjectivite_justification,
 			analysis?.centralite_justification
@@ -64,15 +75,24 @@
 			comparison.article['o:id']
 		]);
 
-		return toCSV(headers, rows);
+		return toResearchCSV(headers, rows, provenance);
 	}
 
 	const comparisonCount = $derived(comparisonState.filtered.length);
 
-	/** Both sides' justification prose, fetched on demand for the export. */
-	async function loadPairJustifications(): Promise<void> {
-		const [modelAId, modelBId] = getModelsFromPair(datasetState.pair);
-		await Promise.all([loadJustifications(modelAId), loadJustifications(modelBId)]);
+	function createExport(): CSVExportJob {
+		const models = getModelsFromPair(datasetState.pair);
+		const comparisons = [...comparisonState.filtered];
+		const ids = comparisons.map((comparison) => comparison.article['o:id']);
+		const language = $currentLanguage;
+		const labels = $t;
+		const provenance = captureExportProvenance(models, 'filtered_comparisons');
+		return {
+			prepare: async () => {
+				await Promise.all(models.map((id) => loadJustifications(id, fetch, ids)));
+			},
+			buildCsv: () => convertToCSV(comparisons, labels, language, provenance)
+		};
 	}
 </script>
 
@@ -80,6 +100,5 @@
 	count={comparisonCount}
 	filenamePrefix="iwac-comparison"
 	variant="comparison"
-	prepare={loadPairJustifications}
-	buildCsv={() => convertToCSV(comparisonState.filtered)}
+	{createExport}
 />

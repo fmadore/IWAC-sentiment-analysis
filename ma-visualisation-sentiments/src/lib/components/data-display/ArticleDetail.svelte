@@ -71,7 +71,7 @@
 				<header class="dimension-head">
 					<SentimentBadge
 						type="centrality"
-						value={article.sentiment_analysis.centralite_islam_musulmans ?? 'Non abordé'}
+						value={article.sentiment_analysis.centralite_islam_musulmans}
 						size="lg"
 					/>
 					<span class="dimension-label">{$t.analysis.centralitySection}</span>

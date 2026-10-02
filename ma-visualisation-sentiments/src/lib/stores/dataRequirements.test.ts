@@ -50,6 +50,13 @@ describe('dataRequirements', () => {
 			expect.objectContaining({ kind: 'extremes' })
 		);
 	});
+	it('loads only the active generation for historical model comparisons', () => {
+		for (const generation of ['v1', 'v2'] as const) {
+			const needs = dataRequirements({ ...base, view: 'trends', generation });
+			expect(needs).toContainEqual({ kind: 'panel', generation });
+			expect(needs.filter((item) => item.kind === 'panel')).toHaveLength(1);
+		}
+	});
 
 	it('asks for the panel arbiter and the whole panel on the v2 arbiter view', () => {
 		const needs = dataRequirements({ ...base, view: 'arbiter' });

@@ -10,6 +10,121 @@ import type { Translations } from './types.js';
  * cadratins avec parcimonie.
  */
 export const fr: Translations = {
+	historyResearch: {
+		rangeBandNote:
+			'La bande pâle s’étend de la part la plus faible à la plus élevée parmi les modèles lorsque tous atteignent le seuil minimal. Elle décrit leurs différences, sans être un intervalle de confiance ; les bornes exactes figurent dans le tableau de données.',
+
+		title: 'Évolution historique selon les modèles',
+		intro:
+			'Comparez le panel sur les mêmes articles collectés. Ces proportions décrivent les annotations de cette collection, pas l’opinion publique ni l’ensemble de la production journalistique.',
+		corpusFilters:
+			'Les filtres de pays et de journaux s’appliquent ici. Les filtres de sentiments concernent uniquement les graphiques à un seul modèle ci-dessus ; sélectionner les articles selon un modèle biaiserait cette comparaison.',
+		negative: 'Part de polarité négative',
+		central: 'Part centrale ou très centrale',
+		subjective: 'Part plutôt ou très subjective',
+		measure: 'Mesure',
+		period: 'Période',
+		year: 'Année',
+		decade: 'Décennie',
+		facet: 'Panneaux',
+		all: 'Toute la sélection',
+		country: 'Par pays',
+		journal: 'Par journal',
+		cohort: 'Cohorte d’articles',
+		common: 'Mêmes articles applicables pour tous les modèles',
+		available: 'Annotations applicables disponibles par modèle',
+		availableNote:
+			'Les dénominateurs disponibles diffèrent entre modèles. Les écarts avec la cohorte commune peuvent refléter la sélection autant que les différences d’annotation.',
+		commonNote:
+			'Chaque période retient les articles ayant une note applicable de chaque modèle sur la dimension choisie. Les notes absentes ou non applicables sont exclues. Dans le panel actuel, les absences non aléatoires de Qwen favorisent les articles où l’islam est plus central.',
+		support:
+			'{common} articles datés dans la cohorte commune sur {total} collectés ; {undated} sans année exploitable.',
+		minimum: 'Nombre minimal d’articles par point',
+		minimumNote:
+			'Les interruptions signalent l’absence d’annotations applicables ou un effectif inférieur au minimum choisi. Une proportion nulle est une valeur mesurée.',
+		range: 'Étendue entre modèles',
+		rangeNote:
+			'Le tableau indique les proportions minimale et maximale des modèles. Cette étendue est descriptive, ce n’est pas un intervalle de confiance.',
+		unknown: 'Pays non renseigné',
+		model: 'Modèle',
+		collected: 'Articles collectés',
+		rated: 'Articles applicables',
+		target: 'Articles dans la catégorie',
+		share: 'Proportion',
+		minimumShare: 'Proportion minimale des modèles',
+		maximumShare: 'Proportion maximale des modèles',
+		previous: 'Panneaux précédents',
+		next: 'Panneaux suivants',
+		page: 'Page {page} sur {pages}',
+		timelineTitle: 'Couverture des journaux dans le temps',
+		timelineIntro:
+			'Nombre d’articles collectés par journal et période de publication. Une case vide signifie qu’aucun article ne figure dans cette sélection ; elle ne prouve pas que le journal n’a rien publié.',
+		timelineFilters:
+			'Cette chronologie utilise uniquement les filtres de pays et de journaux, indépendamment des annotations de sentiments.',
+		timelineSupport: '{total} articles datés ; {undated} sans année exploitable.',
+		timelineHint:
+			'Sélectionnez un journal ci-dessous pour appliquer son filtre dans le tableau de bord.',
+		order: 'Ordre des journaux',
+		countOrder: 'Nombre d’articles collectés',
+		nameOrder: 'Nom',
+		filterNewspaper: 'Filtrer sur ce journal',
+		timelinePage: 'Journaux {start}–{end} sur {total}',
+		timelineLegend: 'Articles collectés par case'
+	},
+
+	agreementResearch: {
+		cohortNote:
+			'Les cas complets du panel actuel favorisent les articles où l’islam est plus central, car les notes absentes de Qwen ne le sont pas aléatoirement.',
+
+		overviewTitle: 'Accord entre les paires de modèles',
+		overviewNote:
+			'Chaque case compare deux modèles sur la dimension choisie. L’effectif indique les articles utilisables pour cette mesure. Sélectionnez une case pour examiner la matrice des catégories. Les échantillons peuvent différer selon la paire ; l’accord ne mesure pas l’exactitude.',
+		metric: 'Mesure d’accord',
+		method: 'Méthode',
+		legacyMethod: 'Méthode ordinale historique v1',
+		ordinalMethod: 'Méthode ordinale applicable v2',
+		weightedLegacyNote:
+			'Méthode : ordinal-v1 (archives). La polarité pondérée et l’accord à un échelon près conservent « Non applicable » au bas de l’échelle pour reproduire les calculs publiés.',
+		weightedApplicableNote:
+			'Méthode : applicable-ordinal-v2. L’accord pondéré en polarité et l’accord à un échelon près excluent les paires où une note est « Non applicable ». La matrice complète et l’accord non pondéré conservent cette catégorie ; leurs effectifs peuvent différer.',
+		weightedAllNote:
+			'Accord ordinal à pondération quadratique ; l’effectif comprend les paires disposant de deux réponses sur cette dimension.',
+		closeAgreementNote:
+			'L’accord pondéré accorde davantage de crédit aux petits écarts. Une valeur pondérée supérieure ne suffit pas à établir un décalage directionnel ni à montrer que la plupart des écarts sont d’un cran.',
+		openPair: 'Examiner {modelA} et {modelB}',
+		models: 'Modèles',
+		patternsTitle: 'Combinaisons complètes de catégories',
+		patternsNote:
+			'Chaque ligne conserve les catégories attribuées aux mêmes articles par tous les modèles, dans l’ordre des colonnes. Les tailles de groupes correspondent aux réponses identiques : 3–2 signifie que trois modèles ont choisi une catégorie et deux une autre. Les réponses manquantes sont exclues ; le réglage « Non applicable » ci-dessus s’applique.',
+		patternKind: 'Type de combinaison',
+		allPatterns: 'Toutes les combinaisons',
+		unanimousPatterns: 'Unanimité',
+		lonePatterns: 'Un contre les autres',
+		splitPatterns: 'Autres divisions',
+		patternLimit: 'Combinaisons affichées',
+		pattern: 'Combinaison',
+		splitSize: 'Tailles des groupes',
+		share: 'Part des articles utilisables',
+		articles: 'Articles',
+		selectPattern: 'Afficher les articles de la combinaison {pattern}',
+		patternsSummary:
+			'{shown} combinaisons affichées sur {total}, pour {articles} articles utilisables. Les parts portent sur tous les articles utilisables, avant le filtre par type de combinaison.',
+		patternArticles: 'Articles de la combinaison sélectionnée',
+		noPattern: 'Sélectionnez une combinaison pour examiner ses articles.',
+		missingPattern:
+			'La combinaison sélectionnée est absente avec la dimension, la génération ou les filtres actuels.',
+		articleTitle: 'Article',
+		articleYear: 'Année',
+		articleJournal: 'Journal',
+		openArticle: 'Ouvrir l’annotation de {title}',
+		loadMore: 'Afficher davantage d’articles',
+		articleCount: '{shown} articles affichés sur {total} correspondances.',
+		undefined: 'Non défini',
+		pair: 'Paire de modèles',
+		weightedN: '{count} articles · {method}',
+		patternSelection: 'Combinaison sélectionnée'
+	},
+
 	links: {
 		copy: 'Copier le lien vers cette analyse',
 		copied: 'Lien vers l’analyse copié.',
@@ -160,7 +275,7 @@ export const fr: Translations = {
 	ranking: {
 		title: 'Journaux',
 		subtitle:
-			'Les journaux classés selon leur note moyenne sur la dimension choisie. L’intervalle de confiance à 95 % indique de combien cette moyenne pourrait bouger sur un autre échantillon : les titres comptant peu d’articles évalués présentent des intervalles larges, si bien qu’une moyenne élevée sur un petit échantillon ne constitue pas un résultat solide.',
+			'Journaux classés selon leur note moyenne sur la dimension choisie. Les intervalles de confiance à 95 % décrivent l’incertitude au sein de cet échantillon de notes. Ils ne prennent pas en compte la sélection archivistique, les articles manquants ni les erreurs d’annotation ; cette collection n’est pas un échantillon aléatoire de toute la production journalistique.',
 		chartTitle: 'Classement des journaux',
 		chartSubtitle: 'Moyenne et IC à 95 % · titres comptant au moins {min} articles évalués',
 		netPolarity: 'Polarité nette',
@@ -202,7 +317,7 @@ export const fr: Translations = {
 		cycleLayout: 'Cycle',
 		coverageIndex: 'Indice de couverture',
 		calendarNote:
-			'Dates converties selon le calendrier islamique tabulaire (arithmétique), époque civile. Il peut différer d’un ou deux jours des dates annoncées localement, ce qui suffit pour des totaux mensuels mais non pour dater une observance précise.',
+			'Les dates enregistrées selon le calendrier Umm al-Qura constituent la chronologie de l’IWAC. La conversion tabulaire civile intervient uniquement en l’absence de champs hégiriens enregistrés. Aucun de ces calendriers n’établit la date d’une observance religieuse locale.',
 		undatedNote: '{count} articles écartés : date de publication incomplète.',
 		months: {
 			muharram: 'Mouharram',
@@ -239,7 +354,7 @@ export const fr: Translations = {
 			'Accord corrigé du hasard. 0 signifie pas mieux que le hasard, 1 signifie parfait. Tous les désaccords y pèsent autant, si bien que deux modèles qui classent les articles de la même façon mais restent à une catégorie d’écart obtiennent malgré tout un score faible.',
 		weightedKappa: 'κ pondéré',
 		weightedKappaHelp:
-			'Kappa à pondération quadratique. Se tromper d’une catégorie coûte bien moins que de s’en écarter de quatre, ce qui convient aux échelles dont les catégories se suivent dans un ordre. Un score pondéré nettement supérieur au score non pondéré indique que les modèles classent de façon semblable mais se calibrent différemment.',
+			'Le kappa à pondération quadratique accorde davantage de crédit aux notes ordinales proches. Comparez son effectif à celui de l’accord non pondéré ; une valeur pondérée supérieure ne suffit pas à établir un décalage directionnel.',
 		fleissKappa: 'κ de Fleiss',
 		fleissHelp:
 			'Kappa de Fleiss sur tous les modèles du panel à la fois, pour les articles que tous ont évalués.',
@@ -253,7 +368,7 @@ export const fr: Translations = {
 		calibrationTitle: 'Calibration des modèles',
 		calibrationSubtitle: 'À quelle fréquence chaque modèle emploie chaque échelon',
 		systematicOffsetNote:
-			'L’accord pondéré dépasse ici nettement l’accord non pondéré. C’est la signature d’un décalage systématique plutôt que d’un conflit réel : {modelA} et {modelB} classent les articles de manière semblable mais tracent les frontières entre catégories à des endroits différents, de sorte que l’essentiel de leur désaccord tient à un seul cran d’écart.',
+			'L’accord pondéré accorde davantage de crédit aux petits écarts. Une valeur pondérée supérieure ne suffit pas à établir un décalage directionnel ; examinez la matrice et le sens des différences.',
 		strength: {
 			poor: 'Médiocre',
 			slight: 'Faible',
@@ -324,7 +439,7 @@ export const fr: Translations = {
 
 		flowTitle: 'Circulation des étiquettes dans le panel',
 		flowNote:
-			'La matrice d’accord étendue à l’ensemble du panel. Un décalage systématique apparaît comme une masse de rubans glissant d’un cran, et les trajets qu’une matrice par paire dissimule — les articles où le premier et le dernier modèle s’accordent en passant par un modèle intermédiaire divergent — deviennent visibles.',
+			'Les rubans représentent les effectifs entre colonnes de modèles adjacentes. Les liens fusionnés ne conservent pas le parcours complet des articles ; consultez les combinaisons complètes ci-dessous pour examiner les notes de tous les modèles sur les mêmes articles.',
 		flowArticles: 'articles',
 
 		scatterTitle: 'Le désaccord porte-t-il sur les couvertures extrêmes ou ambiguës ?',
@@ -396,8 +511,13 @@ export const fr: Translations = {
 
 	// Heatmap view
 	heatmap: {
+		minimumCount: 'Minimum d’articles annotés par cellule',
+		scaleNote:
+			'La centralité moyenne suit l’échelle commune de 1 à 5. Les annotations manquantes et les réponses « Non applicable » sont exclues ; n indique le nombre d’articles annotés par cellule. Il s’agit de moyennes de rangs ordinaux, pas d’unités mesurées.',
+		hiddenCells: '{count} cellules sont masquées car leur effectif est inférieur au seuil.',
+
 		subtitle:
-			'La centralité de l’islam et des musulmans dans la couverture, pays par pays et année par année. Plus une case est sombre, plus le thème occupe le centre des articles publiés cette année-là.'
+			'La place de l’islam et des musulmans dans les articles, pays par pays et année par année. Les cellules plus claires indiquent que le thème occupe une place plus centrale.'
 	},
 
 	// Correlation/Distribution view

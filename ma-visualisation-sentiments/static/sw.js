@@ -129,7 +129,14 @@ self.addEventListener('install', (event) => {
 	);
 });
 
-// Activate event - delete any cache that isn't part of this version's set.
+// CacheStorage is shared by the whole origin, even when workers have different
+// scopes. Only retire names this application has used; another dashboard's
+// offline cache must survive a sentiment-analysis deployment.
+function isOwnedCacheName(name) {
+	return /^(?:iwac-static-|iwac-runtime-|iwac-data-v\d+$)/.test(name);
+}
+
+// Activate event - retire this application's superseded caches.
 self.addEventListener('activate', (event) => {
 	console.log('[SW] Activating', SW_VERSION);
 
@@ -139,7 +146,7 @@ self.addEventListener('activate', (event) => {
 			const cacheNames = await caches.keys();
 			await Promise.all(
 				cacheNames.map((cacheName) => {
-					if (!keep.has(cacheName)) {
+					if (isOwnedCacheName(cacheName) && !keep.has(cacheName)) {
 						console.log('[SW] Deleting old cache:', cacheName);
 						return caches.delete(cacheName);
 					}
@@ -277,10 +284,11 @@ function cacheResponse(event, cacheName, request, response) {
 async function networkFirstStrategy(request, cacheName, fallbackUrl = null, event = null) {
 	const requestUrl = new URL(request.url);
 	const canCache = requestUrl.protocol.startsWith('http');
+	let networkResponse;
 
 	try {
 		// Try network first
-		const networkResponse = await fetch(request);
+		networkResponse = await fetch(request);
 
 		// If successful, update cache and return response
 		if (networkResponse.ok && canCache) {
@@ -293,19 +301,22 @@ async function networkFirstStrategy(request, cacheName, fallbackUrl = null, even
 		console.log('[SW] Network failed for:', request.url);
 	}
 
-	// Network failed, try cache (searches all caches)
-	const cachedResponse = await caches.match(request);
+	// Only consult the cache belonging to this request strategy.
+	const cachedResponse = await (await caches.open(cacheName)).match(request);
 	if (cachedResponse) {
 		return cachedResponse;
 	}
 
 	// If we have a fallback URL (for navigation), try that
 	if (fallbackUrl) {
-		const fallbackResponse = await caches.match(fallbackUrl);
+		const fallbackResponse = await (await caches.open(STATIC_CACHE_NAME)).match(fallbackUrl);
 		if (fallbackResponse) {
 			return fallbackResponse;
 		}
 	}
+	// Preserve genuine HTTP errors. In particular, a 503 must never masquerade
+	// as a 404: optional payload loaders interpret the latter as unpublished.
+	if (networkResponse) return networkResponse;
 
 	// Return a basic offline page if nothing else works
 	if (request.mode === 'navigate') {
@@ -358,13 +369,13 @@ async function networkFirstStrategy(request, cacheName, fallbackUrl = null, even
       </html>
     `,
 			{
+				status: 503,
 				headers: { 'Content-Type': 'text/html' }
 			}
 		);
 	}
 
-	// For other requests, return a 404
-	return new Response('Not found', { status: 404 });
+	return new Response('Service unavailable', { status: 503 });
 }
 
 // Cache-first strategy: check cache first, fallback to network
@@ -373,7 +384,7 @@ async function cacheFirstStrategy(request, cacheName, event = null) {
 	const canCache = requestUrl.protocol.startsWith('http');
 
 	// Try cache first
-	const cachedResponse = await caches.match(request);
+	const cachedResponse = await (await caches.open(cacheName)).match(request);
 	if (cachedResponse) {
 		return cachedResponse;
 	}
@@ -385,14 +396,13 @@ async function cacheFirstStrategy(request, cacheName, event = null) {
 			// Same lifetime hazard as networkFirstStrategy — see cacheResponse.
 			cacheResponse(event, cacheName, request, networkResponse.clone());
 		}
-		if (networkResponse.ok) {
-			return networkResponse;
-		}
+		// A missing file remains 404; server errors remain retryable errors.
+		return networkResponse;
 	} catch (_error) {
 		console.log('[SW] Network failed for:', request.url);
 	}
 
-	return new Response('Not found', { status: 404 });
+	return new Response('Service unavailable', { status: 503 });
 }
 
 // Listen for messages from the client

@@ -52,6 +52,28 @@ export const VIEW_OPTIONS = {
 	placeId: integer(['map'], 0, 0, Number.MAX_SAFE_INTEGER),
 	breakdown: choice(['comparison'], 'decade', ['decade', 'country']),
 	dissent: choice(['agreement'], 'stacked', ['stacked', 'ternary']),
+	agreementMetric: choice(['agreement'], 'exact', ['exact', 'kappa', 'weighted']),
+	patternKind: choice(['agreement'], 'all', ['all', 'unanimous', 'lone', 'split']),
+	patternLimit: choice(['agreement'], '10', ['10', '25', '50', 'all']),
+	labelPattern: {
+		views: ['agreement'],
+		default: '',
+		parse: (raw: string) =>
+			raw === '' || (/^[0-5](?:-[0-5]){2,4}$/.test(raw) && [3, 5].includes(raw.split('-').length))
+				? raw
+				: undefined
+	} as Option<string>,
+	patternArticles: integer(['agreement'], 25, 25, 1_000_000),
+	heatmapMinCount: integer(['heatmap'], 0, 0, 1000),
+	historyMeasure: choice(['trends'], 'negative', ['negative', 'central', 'subjective']),
+	historyPeriod: choice(['trends'], 'decade', ['year', 'decade']),
+	historyFacet: choice(['trends'], 'all', ['all', 'country', 'journal']),
+	historyCohort: choice(['trends'], 'common', ['common', 'available']),
+	historyMinCount: integer(['trends'], 5, 1, 1000),
+	historyPage: integer(['trends'], 1, 1, 1000),
+	newspaperPeriod: choice(['volume'], 'year', ['year', 'decade']),
+	newspaperOrder: choice(['volume'], 'count', ['count', 'name']),
+	newspaperPage: integer(['volume'], 1, 1, 1000),
 	category: choice(['extremes'], 'polarity_very_negative', [
 		'polarity_very_negative',
 		'polarity_very_positive',
