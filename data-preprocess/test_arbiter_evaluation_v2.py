@@ -12,6 +12,7 @@ import importlib.util
 import json
 import re
 import sys
+from functools import partial
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -582,6 +583,63 @@ def test_a_valid_response_is_stored_with_subjectivity_as_the_shared_rank():
     assert result.analysis.subjectivity.score == "4"  # "Plutôt subjectif"
     assert result.analysis.polarity.score == "Positif"
     assert result.analysis.overall_winner == "b"
+
+
+def test_real_sdk_serializes_and_parses_the_panel_verdict_without_network(monkeypatch):
+    """Exercise the SDK boundary that StubClient cannot check after upgrades.
+
+    Anthropic 1.x uses httpx2 rather than httpx. A mock on the old transport
+    would miss requests, so attach the mock directly to the SDK's transport.
+    """
+    import anthropic
+    import httpx2
+
+    requests = []
+
+    def respond(request):
+        requests.append(request)
+        return httpx2.Response(
+            200,
+            json={
+                "id": "msg_test",
+                "type": "message",
+                "role": "assistant",
+                "model": arbiter.ARBITER_MODEL,
+                "content": [{"type": "text", "text": valid_response().model_dump_json()}],
+                "stop_reason": "end_turn",
+                "stop_sequence": None,
+                "usage": {"input_tokens": 20, "output_tokens": 10},
+            },
+        )
+
+    transport = httpx2.MockTransport(respond)
+    monkeypatch.setattr(
+        anthropic,
+        "Anthropic",
+        partial(
+            anthropic.Anthropic,
+            base_url="https://arbiter.example.test",
+            http_client=httpx2.Client(transport=transport, trust_env=False),
+        ),
+    )
+    with arbiter.create_anthropic_client("test-api-key") as client:
+        result = arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION, effort="low")
+
+    assert result.outcome == arbiter.OUTCOME_OK
+    assert result.analysis is not None
+    assert result.analysis.subjectivity.score == "4"
+    assert result.analysis.overall_winner == "b"
+    (request,) = requests
+    assert request.method == "POST"
+    assert request.url.path == "/v1/messages"
+    sent = json.loads(request.content)
+    assert sent["model"] == arbiter.ARBITER_MODEL
+    assert sent["output_config"]["effort"] == "low"
+    assert sent["output_config"]["format"]["type"] == "json_schema"
+    assert "polarity" in sent["output_config"]["format"]["schema"]["required"]
+    assert sent["system"][0]["cache_control"] == {"type": "ephemeral"}
+    assert "temperature" not in sent
+    assert "thinking" not in sent
 
 
 def test_the_request_carries_no_sampling_parameters_and_no_thinking_block():

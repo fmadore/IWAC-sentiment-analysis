@@ -50,6 +50,7 @@ describe('downloadCSVFile', () => {
 	afterEach(() => {
 		vi.useRealTimers();
 		vi.restoreAllMocks();
+		vi.unstubAllGlobals();
 	});
 
 	it('prefixes a UTF-8 byte-order mark and revokes the URL only later', async () => {
@@ -70,6 +71,5 @@ describe('downloadCSVFile', () => {
 		expect(revoke).toHaveBeenCalledWith('blob:csv');
 		const bytes = new Uint8Array(await blob!.arrayBuffer());
 		expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf]);
-		vi.unstubAllGlobals();
 	});
 });

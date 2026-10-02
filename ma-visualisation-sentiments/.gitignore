@@ -13,6 +13,9 @@ node_modules
 /build
 /dist
 
+# Vitest reports and artifacts
+/.vitest/
+
 # Playwright
 /test-results
 /playwright-report

@@ -189,7 +189,11 @@ export function formatDate(dateStr: string | null | undefined, lang?: Language):
 	return date.toLocaleDateString(localeOf(lang), {
 		day: 'numeric',
 		month: 'long',
-		year: 'numeric'
+		year: 'numeric',
+		// ISO date-only values are calendar dates, parsed by JavaScript at
+		// midnight UTC. Formatting in a western timezone would show the day
+		// before publication. Timestamps retain their local-time behaviour.
+		timeZone: /^\d{4}-\d{2}-\d{2}$/.test(dateStr) ? 'UTC' : undefined
 	});
 }
 

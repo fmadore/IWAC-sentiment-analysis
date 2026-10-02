@@ -13,11 +13,13 @@
 # panel one. Neither is imported until a paid run actually starts.
 
 datasets~=5.0.1
-tqdm~=4.70.0
-pandas~=3.0.5
-huggingface_hub~=1.27.0
-google-genai~=2.20.0
-anthropic~=0.121.0
+tqdm~=4.70.1
+pandas~=3.0.6
+# datasets 5.0.1 requires huggingface-hub<2.0. Upgrade both together once
+# datasets supports Hub 2; otherwise even a clean installation cannot resolve.
+huggingface_hub~=1.33.0
+google-genai~=2.25.0
+anthropic~=1.8.0
 pydantic~=2.13.5
-python-dotenv~=1.2.3
+python-dotenv~=1.2.4
 pyarrow~=25.0.1

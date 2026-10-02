@@ -202,7 +202,8 @@ Environment variables live in a root `.env` — copy [`.env.example`](.env.examp
 
 ## Development
 
-Node 24+.
+Node 24.15+ (24.x LTS) or 26+. `.nvmrc` and CI use Node 24 LTS. The Vitest 5
+component suite uses jsdom 30, which requires this minimum patch level.
 
 ```bash
 cd ma-visualisation-sentiments && npm install && npm run dev
@@ -215,7 +216,7 @@ cd ma-visualisation-sentiments && npm install && npm run dev
 | `npm run preview`  | Serve the final Pages artifact (including postbuild releases)               |
 | `npm run check`    | `svelte-check` — must report 0 errors, 0 warnings                           |
 | `npm run lint`     | Prettier, ESLint, store-cycle detection, design-token validation            |
-| `npm run test:run` | Vitest unit and integration tests                                           |
+| `npm run test:run` | Vitest 5 unit and integration tests                                         |
 | `npm run test:e2e` | Playwright deep-link, failure-state and axe accessibility smoke tests       |
 
 Run the checks in [`.claude/skills/verify/SKILL.md`](.claude/skills/verify/SKILL.md) before committing anything that ships through CI — the ordering and pass criteria are not guessable. CSS and component rules are in [DESIGN.md](DESIGN.md), and `npm run lint` enforces most of them.
