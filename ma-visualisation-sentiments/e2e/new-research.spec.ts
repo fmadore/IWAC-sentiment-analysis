@@ -83,21 +83,25 @@ test('historical comparison controls survive a shared URL and reload', async ({ 
 		exact: true
 	});
 	const controls = [
-		['Measure', 'subjective'],
-		['Period', 'year'],
-		['Panels', 'country'],
-		['Article cohort', 'available'],
-		['Minimum articles per point', '10']
+		['combobox', 'Measure', 'subjective'],
+		['combobox', 'Period', 'year'],
+		['combobox', 'Panels', 'country'],
+		['combobox', 'Article cohort', 'available'],
+		['spinbutton', 'Minimum articles per point', '10']
 	] as const;
-	for (const [label, value] of controls)
-		await expect(history.getByLabel(label, { exact: true })).toHaveValue(value);
+	for (const [role, name, value] of controls)
+		await expect(history.getByRole(role, { name, exact: true })).toHaveValue(value);
 	await page.reload();
-	for (const [label, value] of controls)
-		await expect(history.getByLabel(label, { exact: true })).toHaveValue(value);
-	await history.getByLabel('Article cohort', { exact: true }).selectOption('common');
+	for (const [role, name, value] of controls)
+		await expect(history.getByRole(role, { name, exact: true })).toHaveValue(value);
+	await history
+		.getByRole('combobox', { name: 'Article cohort', exact: true })
+		.selectOption('common');
 	await expect(page).not.toHaveURL(/historyCohort=available/);
 	await page.goBack();
-	await expect(history.getByLabel('Article cohort', { exact: true })).toHaveValue('available');
+	await expect(history.getByRole('combobox', { name: 'Article cohort', exact: true })).toHaveValue(
+		'available'
+	);
 	await expect(history.locator('canvas').first()).toBeVisible();
 	await expectAccessible(page, 'section[aria-labelledby="historical-trends-title"]');
 });
@@ -107,16 +111,24 @@ test('newspaper coverage exposes a keyboard-operated filter and restores its opt
 }) => {
 	await page.goto('?view=volume&dataset=luna&lang=en&newspaperPeriod=decade&newspaperOrder=name');
 	const timeline = page.getByRole('region', { name: 'Newspaper coverage over time', exact: true });
-	await expect(timeline.getByLabel('Period', { exact: true })).toHaveValue('decade');
-	await expect(timeline.getByLabel('Newspaper order', { exact: true })).toHaveValue('name');
+	await expect(timeline.getByRole('combobox', { name: 'Period', exact: true })).toHaveValue(
+		'decade'
+	);
+	await expect(
+		timeline.getByRole('combobox', { name: 'Newspaper order', exact: true })
+	).toHaveValue('name');
 	const journal = timeline.locator('.journal-buttons').getByRole('button').first();
 	const title = (await journal.innerText()).replace(/ \([^)]*\)$/, '');
 	await journal.focus();
 	await page.keyboard.press('Enter');
 	await expect.poll(() => new URL(page.url()).searchParams.getAll('journals')).toEqual([title]);
 	await page.reload();
-	await expect(timeline.getByLabel('Period', { exact: true })).toHaveValue('decade');
-	await expect(timeline.getByLabel('Newspaper order', { exact: true })).toHaveValue('name');
+	await expect(timeline.getByRole('combobox', { name: 'Period', exact: true })).toHaveValue(
+		'decade'
+	);
+	await expect(
+		timeline.getByRole('combobox', { name: 'Newspaper order', exact: true })
+	).toHaveValue('name');
 	await expect(timeline.locator('.journal-buttons').getByRole('button')).toHaveCount(1);
 	await expectAccessible(page, 'section[aria-label="Newspaper coverage over time"]');
 });
