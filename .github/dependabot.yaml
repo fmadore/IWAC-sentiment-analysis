@@ -84,6 +84,11 @@ updates:
     commit-message:
       prefix: "deps"
     open-pull-requests-limit: 5
+    ignore:
+      # datasets 5.0.1 requires huggingface-hub<2.0. Review these together
+      # when datasets permits Hub 2 so the runtime group remains installable.
+      - dependency-name: "huggingface-hub"
+        update-types: ["version-update:semver-major"]
     groups:
       python-runtime:
         patterns:

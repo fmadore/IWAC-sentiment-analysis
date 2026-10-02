@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
 import { currentLanguage } from './index';
@@ -24,6 +24,8 @@ describe('the "not annotated" bucket', () => {
 });
 
 describe('formatDate', () => {
+	afterEach(() => vi.restoreAllMocks());
+
 	it('spells the month out in the requested language', () => {
 		expect(formatDate('2011-10-19', 'en')).toBe('19 October 2011');
 		expect(formatDate('2011-10-19', 'fr')).toBe('19 octobre 2011');
@@ -31,6 +33,31 @@ describe('formatDate', () => {
 
 	it('uses the British day-first order in English', () => {
 		expect(formatDate('2025-03-01', 'en')).toBe('1 March 2025');
+	});
+
+	it.each([
+		['America/Los_Angeles', '31 December 2024'],
+		['Pacific/Kiritimati', '1 January 2025']
+	])('preserves publication dates in %s', (timeZone, timestampDate) => {
+		// Supply the host's default timezone without depending on the machine
+		// running this suite. Explicit formatter options still take precedence.
+		const toLocaleDateString = Date.prototype.toLocaleDateString;
+		vi.spyOn(Date.prototype, 'toLocaleDateString').mockImplementation(function (
+			this: Date,
+			locales,
+			options
+		) {
+			return toLocaleDateString.call(this, locales, {
+				...options,
+				timeZone: options?.timeZone ?? timeZone
+			});
+		});
+
+		expect(formatDate('2025-01-01', 'en')).toBe('1 January 2025');
+		expect(formatDate('2024-03-01', 'fr')).toBe('1 mars 2024');
+		expect(formatDate('2024-02-29', 'en')).toBe('29 February 2024');
+		// A timestamp describes an instant and still follows the host timezone.
+		expect(formatDate('2025-01-01T00:30:00Z', 'en')).toBe(timestampDate);
 	});
 
 	it('returns an unparseable value as it came, and a missing one as the localised placeholder', () => {
