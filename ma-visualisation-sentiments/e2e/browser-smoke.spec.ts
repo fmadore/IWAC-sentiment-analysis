@@ -45,8 +45,19 @@ test.describe('controlled-browser recovery', () => {
 
 	test('an uncached arbiter while offline remains retryable after reconnecting', async ({
 		page,
-		context
+		context,
+		browserName
 	}) => {
+		// The premise is a worker that is offline but still answers from its own
+		// cache, and two ports cannot emulate it. Firefox's offline mode does not
+		// reach the worker's own fetch(), so the "uncached" file arrives from the
+		// live server. WebKit on Windows fails requests before the worker sees
+		// them, so even cached chunks break and the view, not the data, errors.
+		test.skip(browserName === 'firefox', 'offline emulation bypasses service-worker fetches');
+		test.skip(
+			browserName === 'webkit' && process.platform === 'win32',
+			'offline emulation pre-empts the service worker on this port'
+		);
 		// Reload under the active worker so the arbiter's JS is cached too. A fresh
 		// table page then clears the in-memory resource without clearing its assets.
 		await page.goto('?view=arbiter&dataset=luna&lang=en');
@@ -69,8 +80,10 @@ test.describe('controlled-browser recovery', () => {
 		expect(removed).toBe(1);
 		await context.setOffline(true);
 		await page.getByRole('button', { name: 'Arbiter', exact: true }).first().click();
+		// The data error specifically: the view's own load error says "could not be
+		// loaded" too, but offers no Retry, and the test would time out on the click.
 		const alert = page.getByRole('alert');
-		await expect(alert).toContainText('could not be loaded');
+		await expect(alert).toContainText('corpus data could not be loaded');
 		await context.setOffline(false);
 		await alert.getByRole('button', { name: 'Retry' }).click();
 		await expect(alert).toHaveCount(0);
