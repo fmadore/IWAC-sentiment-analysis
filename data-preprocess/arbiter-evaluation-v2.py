@@ -842,7 +842,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         with publication_lock(Path(get_staging_dir()) / "arbiter-v2"):
             return run(args)
-    except (BlockingIOError, PermissionError) as error:
+    except BlockingIOError as error:
         logger.error("Another panel arbiter run holds the cache lock: %s", error)
         return 2
 

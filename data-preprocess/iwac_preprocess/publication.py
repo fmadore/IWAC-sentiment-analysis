@@ -20,6 +20,7 @@ The staging directory must sit on the same filesystem as the target so that
 
 from __future__ import annotations
 
+import errno
 import json
 import os
 import shutil
@@ -98,6 +99,25 @@ def publish_generation(stage: Path, target: Path, names: list[str]) -> None:
     _remove_backup(target)
 
 
+def _lock_windows(fd: int, *, blocking: bool) -> None:
+    """Take the msvcrt lock with the semantics ``fcntl.flock`` has elsewhere.
+
+    msvcrt reports contention as EACCES, and its blocking mode gives up after
+    ten one-second attempts with EDEADLOCK, so a writer that must wait retries.
+    """
+    import msvcrt
+
+    while True:
+        try:
+            msvcrt.locking(fd, msvcrt.LK_LOCK if blocking else msvcrt.LK_NBLCK, 1)
+            return
+        except OSError as error:
+            if error.errno not in (errno.EACCES, errno.EDEADLOCK):
+                raise
+            if not blocking:
+                raise BlockingIOError(errno.EAGAIN, os.strerror(errno.EAGAIN)) from error
+
+
 @contextmanager
 def publication_lock(staging_dir: Path, *, blocking: bool = False) -> Iterator[None]:
     """Hold the exclusive writer lock; the OS releases it even if the run is killed.
@@ -105,20 +125,19 @@ def publication_lock(staging_dir: Path, *, blocking: bool = False) -> Iterator[N
     Non-blocking by default, so a second export fails at once rather than
     queueing behind a long one. The panel arbiter saves every few paid
     evaluations and must not lose them to a concurrent export, so it waits.
+    A refused writer gets ``BlockingIOError`` on every platform.
     """
     staging_dir.mkdir(parents=True, exist_ok=True)
     path = staging_dir / LOCK
     with path.open("a+b") as lock:
-        lock.seek(0)
-        if not lock.read(1):
-            lock.write(b"0")
-            lock.flush()
+        # Byte 0 need not exist: Windows locks past the end of a file. Never read
+        # it first — Windows locks are mandatory, so a second writer reading the
+        # held byte failed with PermissionError before it could be refused.
         lock.seek(0)
         if os.name == "nt":
             import msvcrt
 
-            mode = msvcrt.LK_LOCK if blocking else msvcrt.LK_NBLCK
-            msvcrt.locking(lock.fileno(), mode, 1)
+            _lock_windows(lock.fileno(), blocking=blocking)
         else:
             import fcntl
 
