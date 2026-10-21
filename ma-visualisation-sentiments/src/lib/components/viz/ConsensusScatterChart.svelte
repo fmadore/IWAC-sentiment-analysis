@@ -18,20 +18,20 @@
 <script lang="ts">
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import Chart from './CitableChart.svelte';
-	import { dec, num } from '$lib/i18n/utils';
-	import { init } from '$lib/utils/echartsSetup';
+	import { dec, num } from '#lib/i18n/utils.js';
+	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	import { t } from '$lib/i18n';
+	import { t } from '#lib/i18n/index.js';
 	import {
 		dimensionScale,
 		pearson,
 		rankNewspaperDisagreement,
 		type AgreementDimension,
 		type ConsensusRow
-	} from '$lib/utils/consensus';
-	import { tooltipHeader, tooltipPanel, tooltipRow } from '$lib/utils/chartFormatters';
+	} from '#lib/utils/consensus.js';
+	import { tooltipHeader, tooltipPanel, tooltipRow } from '#lib/utils/chartFormatters.js';
 	import {
 		seriesColorPalette,
 		chartColors,
@@ -41,7 +41,7 @@
 		getAxisLineStyle,
 		getAxisLabelStyle,
 		getSplitLineStyle
-	} from '$lib/utils/chartTheme';
+	} from '#lib/utils/chartTheme.js';
 
 	interface ConsensusScatterChartProps {
 		rows: ConsensusRow[];

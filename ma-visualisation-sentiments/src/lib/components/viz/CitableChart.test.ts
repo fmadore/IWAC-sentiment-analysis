@@ -2,10 +2,10 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { render, fireEvent, cleanup } from '@testing-library/svelte';
 import { tick } from 'svelte';
 import CitableChart from './CitableChart.svelte';
-import { chartInteractionsState } from '$lib/stores/chart-interactions.svelte';
-import { uiState } from '$lib/stores/ui.svelte';
-import { getCurrentState, buildURLSearchParams, parseURLState } from '$lib/stores/url';
-import { applyURLState } from '$lib/stores/url/actions.svelte';
+import { chartInteractionsState } from '#lib/stores/chart-interactions.svelte.js';
+import { uiState } from '#lib/stores/ui.svelte.js';
+import { getCurrentState, buildURLSearchParams, parseURLState } from '#lib/stores/url/index.js';
+import { applyURLState } from '#lib/stores/url/actions.svelte.js';
 import type { init } from 'echarts';
 
 vi.mock('svelte-echarts', async () => ({

@@ -19,7 +19,7 @@
  * Values are stored in French, exactly as the models emit them.
  */
 
-import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
+import { NOT_ANNOTATED } from '#lib/domain/sentimentContract.js';
 
 /**
  * The slug for a rating that was never produced, in every family: a null

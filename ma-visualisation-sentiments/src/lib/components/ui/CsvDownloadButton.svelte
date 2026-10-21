@@ -9,10 +9,10 @@
   `variant` selects the accent styling so the rendered output is unchanged.
 -->
 <script lang="ts">
-	import Spinner from '$lib/components/common/Spinner.svelte';
-	import { t } from '$lib/i18n';
-	import { downloadCSVFile } from '$lib/utils/csv';
-	import type { CSVExportJob } from '$lib/utils/exportSnapshot';
+	import Spinner from '#lib/components/common/Spinner.svelte';
+	import { t } from '#lib/i18n/index.js';
+	import { downloadCSVFile } from '#lib/utils/csv.js';
+	import type { CSVExportJob } from '#lib/utils/exportSnapshot.js';
 	import DownloadIcon from '@lucide/svelte/icons/download';
 
 	interface Props {

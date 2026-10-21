@@ -16,17 +16,17 @@
 -->
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import EmptyState from '$lib/components/common/EmptyState.svelte';
-	import type { ComparisonData } from '$lib/types/data';
-	import { ComparisonPanel, ArbiterSection } from '$lib/components/common';
-	import ArbiterV2VerdictPanel from '$lib/components/common/ArbiterV2VerdictPanel.svelte';
-	import { generationOf } from '$lib/domain/sentimentContract';
-	import { getJournalName } from '$lib/utils/format';
-	import { getArticleUrl, getModelDisplayName } from '$lib/utils/format';
-	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
-	import { discrepancyAttributes } from '$lib/utils/discrepancy';
-	import { t } from '$lib/i18n';
-	import { fmtDate } from '$lib/i18n/utils';
+	import EmptyState from '#lib/components/common/EmptyState.svelte';
+	import type { ComparisonData } from '#lib/types/data.js';
+	import { ComparisonPanel, ArbiterSection } from '#lib/components/common/index.js';
+	import ArbiterV2VerdictPanel from '#lib/components/common/ArbiterV2VerdictPanel.svelte';
+	import { generationOf } from '#lib/domain/sentimentContract.js';
+	import { getJournalName } from '#lib/utils/format.js';
+	import { getArticleUrl, getModelDisplayName } from '#lib/utils/format.js';
+	import IIIFViewer from '#lib/components/viz/IIIFViewer.svelte';
+	import { discrepancyAttributes } from '#lib/utils/discrepancy.js';
+	import { t } from '#lib/i18n/index.js';
+	import { fmtDate } from '#lib/i18n/utils.js';
 	import {
 		datasetState,
 		getArbiterForArticle,
@@ -34,7 +34,7 @@
 		loadArbiterV2Panel,
 		loadJustifications,
 		justificationsOf
-	} from '$lib/stores';
+	} from '#lib/stores/index.js';
 
 	// Props: Accept comparison data as a prop
 	let { comparison }: { comparison: ComparisonData | null } = $props();

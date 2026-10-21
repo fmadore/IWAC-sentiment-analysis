@@ -5,9 +5,9 @@
   as a donut chart via the shared ArbiterPieChart. Supports filtering by dimension.
 -->
 <script lang="ts">
-	import { arbiterEvaluations, arbiterModelAIsFirst } from '$lib/stores';
-	import { t } from '$lib/i18n';
-	import { arbiterVerdictColors } from '$lib/utils/chartTheme';
+	import { arbiterEvaluations, arbiterModelAIsFirst } from '#lib/stores/index.js';
+	import { t } from '#lib/i18n/index.js';
+	import { arbiterVerdictColors } from '#lib/utils/chartTheme.js';
 	import ArbiterPieChart from './ArbiterPieChart.svelte';
 
 	interface ArbiterVerdictChartProps {

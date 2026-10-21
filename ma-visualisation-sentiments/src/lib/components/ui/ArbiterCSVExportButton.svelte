@@ -11,22 +11,22 @@
 		comparisonState,
 		datasetState,
 		getActualModelName
-	} from '$lib/stores';
-	import { getJournalName } from '$lib/utils/format';
-	import { t, currentLanguage } from '$lib/i18n';
-	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
+	} from '#lib/stores/index.js';
+	import { getJournalName } from '#lib/utils/format.js';
+	import { t, currentLanguage } from '#lib/i18n/index.js';
+	import { translateSentimentValue, translateSubjectivityScore } from '#lib/i18n/utils.js';
 	import {
 		getPairModelNames,
 		getModelsFromPair,
 		type ArbiterEvaluationData,
 		type ComparisonData
-	} from '$lib/types/data';
+	} from '#lib/types/data.js';
 	import {
 		captureExportProvenance,
 		toResearchCSV,
 		type CSVExportJob,
 		type ExportProvenance
-	} from '$lib/utils/exportSnapshot';
+	} from '#lib/utils/exportSnapshot.js';
 	import CsvDownloadButton from './CsvDownloadButton.svelte';
 
 	// Get model names from current pair

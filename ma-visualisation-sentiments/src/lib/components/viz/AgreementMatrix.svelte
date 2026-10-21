@@ -11,15 +11,15 @@
 -->
 <script lang="ts">
 	import Chart from './CitableChart.svelte';
-	import { num, pct } from '$lib/i18n/utils';
-	import { init } from '$lib/utils/echartsSetup';
+	import { num, pct } from '#lib/i18n/utils.js';
+	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	import { t, currentLanguage } from '$lib/i18n';
-	import { translateSentimentValue } from '$lib/i18n/utils';
-	import type { ConfusionMatrix } from '$lib/utils/agreement';
-	import type { AgreementDimension } from '$lib/stores/agreement.svelte';
+	import { t, currentLanguage } from '#lib/i18n/index.js';
+	import { translateSentimentValue } from '#lib/i18n/utils.js';
+	import type { ConfusionMatrix } from '#lib/utils/agreement.js';
+	import type { AgreementDimension } from '#lib/stores/agreement.svelte.js';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import {
 		centralityColors,
@@ -28,7 +28,7 @@
 		getAxisLineStyle,
 		getAxisLabelStyle,
 		chartColors
-	} from '$lib/utils/chartTheme';
+	} from '#lib/utils/chartTheme.js';
 
 	interface AgreementMatrixProps {
 		matrix: ConfusionMatrix;

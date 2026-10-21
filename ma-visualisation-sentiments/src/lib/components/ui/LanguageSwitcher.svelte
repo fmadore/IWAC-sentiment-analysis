@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { t } from '$lib/i18n';
-	import { currentLanguage, switchLanguage, getAvailableLanguages } from '$lib/i18n';
-	import { DropdownMenu } from '$lib/components/common';
+	import { t } from '#lib/i18n/index.js';
+	import { currentLanguage, switchLanguage, getAvailableLanguages } from '#lib/i18n/index.js';
+	import { DropdownMenu } from '#lib/components/common/index.js';
 	import GlobeIcon from '@lucide/svelte/icons/globe';
 
 	let languages = getAvailableLanguages();

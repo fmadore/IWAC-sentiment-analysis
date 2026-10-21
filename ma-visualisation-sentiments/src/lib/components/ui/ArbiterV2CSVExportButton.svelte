@@ -12,22 +12,22 @@
   models is 160 requests a CSV button should not start.
 -->
 <script lang="ts">
-	import { t, currentLanguage } from '$lib/i18n';
-	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
+	import { t, currentLanguage } from '#lib/i18n/index.js';
+	import { translateSentimentValue, translateSubjectivityScore } from '#lib/i18n/utils.js';
 	import {
 		captureExportProvenance,
 		toResearchCSV,
 		type CSVExportJob,
 		type ExportProvenance
-	} from '$lib/utils/exportSnapshot';
+	} from '#lib/utils/exportSnapshot.js';
 	import {
 		ARBITER_V2_DIMENSIONS,
 		analysisValue,
 		type ArbiterV2LegendEntry,
 		type ArbiterV2Row
-	} from '$lib/utils/arbiterV2';
-	import { SUBJECTIVITY_LABELS_V2, type SubjectivityScore } from '$lib/domain/sentimentContract';
-	import type { ArbiterV2Preference } from '$lib/types/data';
+	} from '#lib/utils/arbiterV2.js';
+	import { SUBJECTIVITY_LABELS_V2, type SubjectivityScore } from '#lib/domain/sentimentContract.js';
+	import type { ArbiterV2Preference } from '#lib/types/data.js';
 	import CsvDownloadButton from './CsvDownloadButton.svelte';
 
 	interface ArbiterV2CSVExportButtonProps {

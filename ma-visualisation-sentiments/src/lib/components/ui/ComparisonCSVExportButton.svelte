@@ -1,17 +1,17 @@
 <script lang="ts">
-	import { comparisonState, datasetState, loadJustifications } from '$lib/stores';
-	import { getJournalName } from '$lib/utils/format';
-	import { t, currentLanguage, type Language } from '$lib/i18n';
-	import type { Translations } from '$lib/i18n/types';
-	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
-	import { getModelsFromPair, type ComparisonData } from '$lib/types/data';
+	import { comparisonState, datasetState, loadJustifications } from '#lib/stores/index.js';
+	import { getJournalName } from '#lib/utils/format.js';
+	import { t, currentLanguage, type Language } from '#lib/i18n/index.js';
+	import type { Translations } from '#lib/i18n/types.js';
+	import { translateSentimentValue, translateSubjectivityScore } from '#lib/i18n/utils.js';
+	import { getModelsFromPair, type ComparisonData } from '#lib/types/data.js';
 	import {
 		captureExportProvenance,
 		toResearchCSV,
 		type CSVExportJob,
 		type ExportProvenance
-	} from '$lib/utils/exportSnapshot';
-	import { getModelDisplayName } from '$lib/utils/format';
+	} from '#lib/utils/exportSnapshot.js';
+	import { getModelDisplayName } from '#lib/utils/format.js';
 	import CsvDownloadButton from './CsvDownloadButton.svelte';
 
 	function convertToCSV(

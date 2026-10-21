@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { computeArbiterV2Statistics } from './arbiterV2.svelte';
-import { parseArbiterV2EvaluationData } from '$lib/data/validation';
-import { ARBITER_PANEL_IDS, SENTIMENT_CONTRACT_V2 } from '$lib/domain/sentimentContract';
-import { ARBITER_BLIND_LABELS } from '$lib/types/data';
+import { parseArbiterV2EvaluationData } from '#lib/data/validation.js';
+import { ARBITER_PANEL_IDS, SENTIMENT_CONTRACT_V2 } from '#lib/domain/sentimentContract.js';
+import { ARBITER_BLIND_LABELS } from '#lib/types/data.js';
 import type {
 	ArbiterBlindLabel,
 	ArbiterV2EvaluationData,
 	ArbiterV2Preference,
 	DatasetId
-} from '$lib/types/data';
+} from '#lib/types/data.js';
 
 // The arbiter's panel, not the generation's: Haiku is recused.
 const MODELS = [...ARBITER_PANEL_IDS] as DatasetId[];

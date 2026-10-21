@@ -42,9 +42,9 @@
  * 'Non abordé' as position 1.
  */
 
-import type { Article } from '$lib/types/data';
-import { getJournalName } from '$lib/utils/format';
-import { CENTRALITY_ORDER, POLARITY_ORDER } from '$lib/domain/sentimentContract';
+import type { Article } from '#lib/types/data.js';
+import { getJournalName } from '#lib/utils/format.js';
+import { CENTRALITY_ORDER, POLARITY_ORDER } from '#lib/domain/sentimentContract.js';
 import type { AgreementDimension } from './agreementData';
 import { countGroupsBelow, median, pearson, summarizeMean } from './stats';
 

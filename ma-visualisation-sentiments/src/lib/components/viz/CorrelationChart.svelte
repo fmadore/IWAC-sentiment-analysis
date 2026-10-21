@@ -1,18 +1,18 @@
 <script lang="ts">
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import Chart from './CitableChart.svelte';
-	import { dec, num } from '$lib/i18n/utils';
-	import { init } from '$lib/utils/echartsSetup';
+	import { dec, num } from '#lib/i18n/utils.js';
+	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	import { articleState } from '$lib/stores';
-	import type { Article } from '$lib/types/data';
-	import { t, currentLanguage } from '$lib/i18n';
-	import { translateSentimentValue } from '$lib/i18n/utils';
+	import { articleState } from '#lib/stores/index.js';
+	import type { Article } from '#lib/types/data.js';
+	import { t, currentLanguage } from '#lib/i18n/index.js';
+	import { translateSentimentValue } from '#lib/i18n/utils.js';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
-	import { createStackedBarTooltipFormatter } from '$lib/utils/chartFormatters';
-	import { spearman, interpretRho } from '$lib/utils/correlation';
+	import { createStackedBarTooltipFormatter } from '#lib/utils/chartFormatters.js';
+	import { spearman, interpretRho } from '#lib/utils/correlation.js';
 
 	// Import centralized chart theme
 	import {
@@ -27,7 +27,7 @@
 		getEmphasisConfig,
 		getStaggeredAnimationDelay,
 		chartColors
-	} from '$lib/utils/chartTheme';
+	} from '#lib/utils/chartTheme.js';
 
 	// Ordre des polarités pour l'affichage (French values for data operations)
 	const polarityOrder = [

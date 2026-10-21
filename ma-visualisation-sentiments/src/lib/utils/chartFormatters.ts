@@ -8,8 +8,8 @@
  * getter here. This module is not a component, so it cannot read the `$num`
  * store — the caller supplies the language instead.
  */
-import type { Language } from '$lib/i18n';
-import { formatNumber, formatPercent } from '$lib/i18n/utils';
+import type { Language } from '#lib/i18n/index.js';
+import { formatNumber, formatPercent } from '#lib/i18n/utils.js';
 
 /**
  * Subset of ECharts tooltip callback params we rely on.

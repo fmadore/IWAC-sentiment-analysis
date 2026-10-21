@@ -7,7 +7,7 @@
  * - Comparison state management
  */
 import { describe, it, expect } from 'vitest';
-import type { SentimentAnalysis } from '$lib/types/data';
+import type { SentimentAnalysis } from '#lib/types/data.js';
 // Test the REAL shipped function — this file previously exercised a local
 // re-implementation, which silently preserved bugs the real code had.
 import { calculateDiscrepancies } from './derivations';

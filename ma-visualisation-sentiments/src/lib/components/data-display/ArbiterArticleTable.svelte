@@ -11,24 +11,24 @@
   - Click row to view article details
 -->
 <script lang="ts">
-	import { viewOptionsState, paginationURLState } from '$lib/stores/view-options.svelte';
-	import { arbiterEvaluations, comparisonState, datasetState } from '$lib/stores';
-	import { num, fmtDate } from '$lib/i18n/utils';
-	import { getPairModelNames, type ArbiterAnalysis } from '$lib/types/data';
-	import { t } from '$lib/i18n';
-	import { getJournalName } from '$lib/utils/format';
-	import { createPagination } from '$lib/utils/pagination.svelte';
+	import { viewOptionsState, paginationURLState } from '#lib/stores/view-options.svelte.js';
+	import { arbiterEvaluations, comparisonState, datasetState } from '#lib/stores/index.js';
+	import { num, fmtDate } from '#lib/i18n/utils.js';
+	import { getPairModelNames, type ArbiterAnalysis } from '#lib/types/data.js';
+	import { t } from '#lib/i18n/index.js';
+	import { getJournalName } from '#lib/utils/format.js';
+	import { createPagination } from '#lib/utils/pagination.svelte.js';
 	import {
 		VERDICT_ORDER,
 		CONFIDENCE_ORDER,
 		getVerdictBadgeClass,
 		getConfidenceBadgeClass,
 		getConfidenceLabel
-	} from '$lib/utils/arbiter';
-	import PaginationControls from '$lib/components/common/PaginationControls.svelte';
-	import { ArbiterCSVExportButton } from '$lib/components/ui';
-	import { nextSort } from '$lib/utils/sorting';
-	import SortableHeader from '$lib/components/common/SortableHeader.svelte';
+	} from '#lib/utils/arbiter.js';
+	import PaginationControls from '#lib/components/common/PaginationControls.svelte';
+	import { ArbiterCSVExportButton } from '#lib/components/ui/index.js';
+	import { nextSort } from '#lib/utils/sorting.js';
+	import SortableHeader from '#lib/components/common/SortableHeader.svelte';
 	import LayoutGridIcon from '@lucide/svelte/icons/layout-grid';
 	import TableIcon from '@lucide/svelte/icons/table';
 	import CheckCircleIcon from '@lucide/svelte/icons/check-circle';

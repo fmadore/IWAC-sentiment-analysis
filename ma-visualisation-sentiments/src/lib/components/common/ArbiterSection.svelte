@@ -15,22 +15,22 @@
   <ArbiterSection articleId={article['o:id']} />
 -->
 <script lang="ts">
-	import { getPairModelNames } from '$lib/types/data';
-	import { SentimentBadge } from '$lib/components/common';
+	import { getPairModelNames } from '#lib/types/data.js';
+	import { SentimentBadge } from '#lib/components/common/index.js';
 	import Spinner from './Spinner.svelte';
 	import {
 		getVerdictBadgeClass,
 		getConfidenceBadgeClass,
 		getConfidenceLabel
-	} from '$lib/utils/arbiter';
-	import { t } from '$lib/i18n';
+	} from '#lib/utils/arbiter.js';
+	import { t } from '#lib/i18n/index.js';
 	import {
 		getArbiterForArticle,
 		arbiterModelAIsFirst,
 		getActualModelName,
 		arbiterLoadState,
 		datasetState
-	} from '$lib/stores';
+	} from '#lib/stores/index.js';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import ChevronUpIcon from '@lucide/svelte/icons/chevron-up';

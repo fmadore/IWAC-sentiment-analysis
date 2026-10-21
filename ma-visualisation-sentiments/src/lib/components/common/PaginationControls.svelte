@@ -2,7 +2,7 @@
   PaginationControls Component
 
   Presentational pagination bar driven by the shared PaginationState composable
-  (see $lib/utils/pagination.svelte.ts). Renders prev / numbered pages / next
+  (see #lib/utils/pagination.svelte.ts). Renders prev / numbered pages / next
   using the global `.pagination-btn` classes from app.css, plus an optional
   results-info + items-per-page row above the bar.
 
@@ -16,8 +16,8 @@
 -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import type { PaginationState } from '$lib/utils/pagination.svelte';
-	import { t } from '$lib/i18n';
+	import type { PaginationState } from '#lib/utils/pagination.svelte.js';
+	import { t } from '#lib/i18n/index.js';
 
 	interface PaginationControlsProps {
 		/** Pagination state object from createPagination() */

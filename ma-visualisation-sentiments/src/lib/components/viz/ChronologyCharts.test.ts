@@ -1,16 +1,16 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render } from '@testing-library/svelte';
-import { currentLanguage } from '$lib/i18n';
-import { articleState, datasetState, filterState } from '$lib/stores';
-import { viewOptionsState } from '$lib/stores/view-options.svelte';
-import type { Article, CentralityValue } from '$lib/types/data';
+import { currentLanguage } from '#lib/i18n/index.js';
+import { articleState, datasetState, filterState } from '#lib/stores/index.js';
+import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
+import type { Article, CentralityValue } from '#lib/types/data.js';
 import CentralityHeatmap from './CentralityHeatmap.svelte';
 import HijriSeasonalityChart from './HijriSeasonalityChart.svelte';
 
 vi.mock('svelte-echarts', async () => ({
 	Chart: (await import('../../../mocks/interactive-chart-stub.svelte')).default
 }));
-vi.mock('$lib/utils/echartsSetup', () => ({ init: vi.fn() }));
+vi.mock('#lib/utils/echartsSetup.js', () => ({ init: vi.fn() }));
 
 function article(id: number, centrality: CentralityValue | null, country = 'Bénin'): Article {
 	return {

@@ -7,13 +7,13 @@
   the RangeSlider, ToggleSwitch, and InfoTooltip widgets.
 -->
 <script lang="ts">
-	import { filterState } from '$lib/stores';
-	import { t } from '$lib/i18n';
-	import { TOTAL_DISCREPANCY_MAXIMUM } from '$lib/domain/sentimentContract';
-	import { FilterCard, FilterChip } from '$lib/components/common';
-	import RangeSlider from '$lib/components/common/RangeSlider.svelte';
-	import ToggleSwitch from '$lib/components/common/ToggleSwitch.svelte';
-	import InfoTooltip from '$lib/components/common/InfoTooltip.svelte';
+	import { filterState } from '#lib/stores/index.js';
+	import { t } from '#lib/i18n/index.js';
+	import { TOTAL_DISCREPANCY_MAXIMUM } from '#lib/domain/sentimentContract.js';
+	import { FilterCard, FilterChip } from '#lib/components/common/index.js';
+	import RangeSlider from '#lib/components/common/RangeSlider.svelte';
+	import ToggleSwitch from '#lib/components/common/ToggleSwitch.svelte';
+	import InfoTooltip from '#lib/components/common/InfoTooltip.svelte';
 	import FilterIcon from '@lucide/svelte/icons/filter';
 	import SlidersIcon from '@lucide/svelte/icons/sliders';
 

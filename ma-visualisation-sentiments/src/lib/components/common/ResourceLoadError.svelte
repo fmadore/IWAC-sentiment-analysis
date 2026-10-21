@@ -7,7 +7,7 @@
   only the second has a remedy. `onRetry` is the resource's explicit retry.
 -->
 <script lang="ts">
-	import { t } from '$lib/i18n';
+	import { t } from '#lib/i18n/index.js';
 
 	interface Props {
 		/** The error the load ended in, shown on demand for a bug report. */

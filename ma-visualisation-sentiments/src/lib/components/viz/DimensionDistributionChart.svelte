@@ -7,18 +7,18 @@
   wrappers that supply the dimension configuration.
 -->
 <script lang="ts">
-	import { viewOptionsState } from '$lib/stores/view-options.svelte';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
 	import Chart from './CitableChart.svelte';
 
-	import { init } from '$lib/utils/echartsSetup';
+	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption, SeriesOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	import { articleState } from '$lib/stores';
-	import type { Article } from '$lib/types/data';
-	import { aggregateByJournalAndDimension } from '$lib/utils/chartAggregators';
-	import { t, currentLanguage } from '$lib/i18n';
-	import { formatNumber } from '$lib/i18n/utils';
+	import { articleState } from '#lib/stores/index.js';
+	import type { Article } from '#lib/types/data.js';
+	import { aggregateByJournalAndDimension } from '#lib/utils/chartAggregators.js';
+	import { t, currentLanguage } from '#lib/i18n/index.js';
+	import { formatNumber } from '#lib/i18n/utils.js';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import ChartTypeToggle from './ChartTypeToggle.svelte';
 	import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
@@ -26,7 +26,7 @@
 	import {
 		createPieTooltipFormatter,
 		createStackedBarTooltipFormatter
-	} from '$lib/utils/chartFormatters';
+	} from '#lib/utils/chartFormatters.js';
 
 	// Import centralized chart theme
 	import {
@@ -42,7 +42,7 @@
 		getUniversalTransitionConfig,
 		getStaggeredAnimationDelay,
 		chartColors
-	} from '$lib/utils/chartTheme';
+	} from '#lib/utils/chartTheme.js';
 
 	interface DimensionDistributionChartProps {
 		/** French dimension labels used as data-lookup keys, in display order */

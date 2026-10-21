@@ -1,10 +1,10 @@
 <!-- PWA Service Worker Registration Component -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { browser } from '$app/environment';
-	import { base } from '$app/paths';
+	import { browser } from '$app/env';
+	import { asset, resolve } from '$app/paths';
 	import { DEV } from 'esm-env';
-	import { createControllerChangeTracker } from '$lib/utils/swUpdate';
+	import { createControllerChangeTracker } from '#lib/utils/swUpdate.js';
 	let registration = $state<ServiceWorkerRegistration | null>(null);
 
 	onMount(async () => {
@@ -26,11 +26,10 @@
 		}
 
 		try {
-			// Register service worker with proper base path for GitHub Pages
-			// Ensure basePath ends with a slash for proper URL construction
-			const basePath = base ? (base.endsWith('/') ? base : `${base}/`) : '/';
-			registration = await navigator.serviceWorker.register(`${basePath}sw.js`, {
-				scope: basePath,
+			// Register service worker with proper base path for GitHub Pages.
+			// The scope is the app root, which `resolve` returns with its trailing slash.
+			registration = await navigator.serviceWorker.register(asset('sw.js'), {
+				scope: resolve('/'),
 				// Always revalidate the worker script against the network so a new
 				// deploy is detected immediately (never served from the HTTP cache).
 				updateViaCache: 'none'

@@ -1,5 +1,5 @@
-import type { Article } from '$lib/types/data';
-import { CENTRALITY_ORDER, POLARITY_ORDER } from '$lib/domain/sentimentContract';
+import type { Article } from '#lib/types/data.js';
+import { CENTRALITY_ORDER, POLARITY_ORDER } from '#lib/domain/sentimentContract.js';
 import { extractYear } from './chartAggregators';
 import { getJournalName } from './format';
 

@@ -6,7 +6,7 @@ const state = vi.hoisted(() => ({
 	articleState: { journals: Array.from({ length: 16 }, (_, index) => `Le Journal ${index + 1}`) },
 	filterState: { journals: [] as string[] }
 }));
-vi.mock('$lib/stores', () => state);
+vi.mock('#lib/stores/index.js', () => state);
 afterEach(cleanup);
 
 it('makes all matching journals selectable while searching a collapsed filter', async () => {

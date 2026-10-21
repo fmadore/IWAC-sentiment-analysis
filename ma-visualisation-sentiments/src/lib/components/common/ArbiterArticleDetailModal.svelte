@@ -7,16 +7,21 @@
   chrome, scroll locking and Escape handling.
 -->
 <script lang="ts">
-	import type { ArbiterAnalysis } from '$lib/types/data';
+	import type { ArbiterAnalysis } from '#lib/types/data.js';
 	import { untrack } from 'svelte';
-	import { comparisonState, datasetState, loadJustifications, justificationsOf } from '$lib/stores';
-	import { getPairModelNames } from '$lib/types/data';
-	import { t } from '$lib/i18n';
-	import { fmtDate } from '$lib/i18n/utils';
-	import { getJournalName } from '$lib/utils/format';
-	import { getArticleUrl } from '$lib/utils/format';
-	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
-	import { ComparisonPanel, ArbiterSection } from '$lib/components/common';
+	import {
+		comparisonState,
+		datasetState,
+		loadJustifications,
+		justificationsOf
+	} from '#lib/stores/index.js';
+	import { getPairModelNames } from '#lib/types/data.js';
+	import { t } from '#lib/i18n/index.js';
+	import { fmtDate } from '#lib/i18n/utils.js';
+	import { getJournalName } from '#lib/utils/format.js';
+	import { getArticleUrl } from '#lib/utils/format.js';
+	import IIIFViewer from '#lib/components/viz/IIIFViewer.svelte';
+	import { ComparisonPanel, ArbiterSection } from '#lib/components/common/index.js';
 	import FullScreenModal from './FullScreenModal.svelte';
 	import ScaleIcon from '@lucide/svelte/icons/scale';
 	import ExternalLinkIcon from '@lucide/svelte/icons/external-link';

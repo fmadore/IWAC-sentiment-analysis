@@ -1,8 +1,8 @@
 <!-- Composant JournalFilter.svelte -->
 <script lang="ts">
-	import { articleState, filterState } from '$lib/stores';
-	import { t } from '$lib/i18n';
-	import { FilterCard, FilterChip, SearchInput } from '$lib/components/common';
+	import { articleState, filterState } from '#lib/stores/index.js';
+	import { t } from '#lib/i18n/index.js';
+	import { FilterCard, FilterChip, SearchInput } from '#lib/components/common/index.js';
 
 	// Variables locales
 	let selectedJournals = $derived(filterState.journals);

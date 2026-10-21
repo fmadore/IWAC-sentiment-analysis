@@ -19,7 +19,7 @@
 // only ever reads from there (CNAME, 404.html, and a redirect index.html).
 //
 // Everything that needs to know the path or the domain imports it from here:
-// svelte.config.js, scripts/nest-build.mjs and scripts/stamp-sw.mjs. `static/sw.js`
+// vite.config.ts, scripts/nest-build.mjs and scripts/stamp-sw.mjs. `static/sw.js`
 // derives its own base from `self.location` and `static/404.html` carries a
 // `__DEPLOY_PATH__` placeholder stamped at build time, so neither hardcodes it.
 

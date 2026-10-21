@@ -16,8 +16,8 @@ import {
 	matchesArbiterScore,
 	resolvePreference
 } from './arbiterV2';
-import { ARBITER_PANEL_IDS, SENTIMENT_CONTRACT_V2 } from '$lib/domain/sentimentContract';
-import { ARBITER_BLIND_LABELS } from '$lib/types/data';
+import { ARBITER_PANEL_IDS, SENTIMENT_CONTRACT_V2 } from '#lib/domain/sentimentContract.js';
+import { ARBITER_BLIND_LABELS } from '#lib/types/data.js';
 import type {
 	ArbiterBlindLabel,
 	ArbiterV2Evaluation,
@@ -25,7 +25,7 @@ import type {
 	Article,
 	DatasetId,
 	SentimentAnalysis
-} from '$lib/types/data';
+} from '#lib/types/data.js';
 
 // The arbiter's panel, not the generation's: Haiku is recused.
 const MODELS = [...ARBITER_PANEL_IDS] as DatasetId[];

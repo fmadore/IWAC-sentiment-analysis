@@ -13,8 +13,8 @@
   values, because those must match what WebGL actually painted.
 -->
 <script lang="ts">
-	import { t } from '$lib/i18n';
-	import type { MapDimension } from '$lib/utils/placeAggregation';
+	import { t } from '#lib/i18n/index.js';
+	import type { MapDimension } from '#lib/utils/placeAggregation.js';
 	import {
 		DIMENSION_RAMPS,
 		LABEL_GROUP,
@@ -22,7 +22,7 @@
 		circleRadius,
 		legendCountStops,
 		MAX_RADIUS
-	} from '$lib/utils/mapScales';
+	} from '#lib/utils/mapScales.js';
 
 	interface MapLegendProps {
 		/** Article count of the busiest place in the current selection. */

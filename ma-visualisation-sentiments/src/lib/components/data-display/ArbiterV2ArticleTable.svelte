@@ -12,22 +12,22 @@
   several were equally close.
 -->
 <script lang="ts">
-	import { viewOptionsState, paginationURLState } from '$lib/stores/view-options.svelte';
+	import { viewOptionsState, paginationURLState } from '#lib/stores/view-options.svelte.js';
 	import { MediaQuery } from 'svelte/reactivity';
-	import { t } from '$lib/i18n';
-	import { num, fmtDate } from '$lib/i18n/utils';
-	import { datasetState } from '$lib/stores';
-	import type { ArbiterV2LegendEntry, ArbiterV2Row } from '$lib/utils/arbiterV2';
+	import { t } from '#lib/i18n/index.js';
+	import { num, fmtDate } from '#lib/i18n/utils.js';
+	import { datasetState } from '#lib/stores/index.js';
+	import type { ArbiterV2LegendEntry, ArbiterV2Row } from '#lib/utils/arbiterV2.js';
 	import {
 		CONFIDENCE_ORDER,
 		getConfidenceBadgeClass,
 		getConfidenceLabel
-	} from '$lib/utils/arbiter';
-	import { createPagination } from '$lib/utils/pagination.svelte';
-	import PaginationControls from '$lib/components/common/PaginationControls.svelte';
-	import ArbiterV2CSVExportButton from '$lib/components/ui/ArbiterV2CSVExportButton.svelte';
-	import { nextSort } from '$lib/utils/sorting';
-	import SortableHeader from '$lib/components/common/SortableHeader.svelte';
+	} from '#lib/utils/arbiter.js';
+	import { createPagination } from '#lib/utils/pagination.svelte.js';
+	import PaginationControls from '#lib/components/common/PaginationControls.svelte';
+	import ArbiterV2CSVExportButton from '#lib/components/ui/ArbiterV2CSVExportButton.svelte';
+	import { nextSort } from '#lib/utils/sorting.js';
+	import SortableHeader from '#lib/components/common/SortableHeader.svelte';
 
 	interface ArbiterV2ArticleTableProps {
 		rows: ArbiterV2Row[];

@@ -1,9 +1,9 @@
-import { dataUrl } from '$lib/data/release';
+import { dataUrl } from '#lib/data/release.js';
 /**
  * Utility functions for extreme analysis data management
  */
 
-import type { DatasetId } from '$lib/types/data';
+import type { DatasetId } from '#lib/types/data.js';
 import { polarityColors, subjectivityColors, centralityColors } from './chartTheme';
 import type {
 	ExtremeAnalysisData,
@@ -12,7 +12,7 @@ import type {
 	ExtremeCategoryAnalysis,
 	ExtremeStatistics,
 	ExtremeArticle
-} from '$lib/types/extremeAnalysis';
+} from '#lib/types/extremeAnalysis.js';
 
 /**
  * On-disk shape of the extreme-analysis files: article payloads are stored
