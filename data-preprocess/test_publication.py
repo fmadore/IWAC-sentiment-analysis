@@ -1,4 +1,5 @@
 import json
+import threading
 from pathlib import Path
 
 import pytest
@@ -98,6 +99,23 @@ def test_a_second_writer_is_refused_while_the_lock_is_held(tmp_path):
     # Released on exit: the next writer proceeds.
     with publication.publication_lock(staging):
         pass
+
+
+def test_a_blocking_writer_waits_for_the_lock_instead_of_failing(tmp_path):
+    staging = tmp_path / "staging"
+    acquired = threading.Event()
+
+    def wait_for_lock():
+        with publication.publication_lock(staging, blocking=True):
+            acquired.set()
+
+    with publication.publication_lock(staging):
+        waiter = threading.Thread(target=wait_for_lock)
+        waiter.start()
+        assert not acquired.wait(0.5)
+    # msvcrt retries once a second, so allow for more than one attempt.
+    waiter.join(timeout=15)
+    assert acquired.is_set()
 
 
 def test_an_unsafe_payload_name_is_refused_before_anything_is_written(tmp_path):
