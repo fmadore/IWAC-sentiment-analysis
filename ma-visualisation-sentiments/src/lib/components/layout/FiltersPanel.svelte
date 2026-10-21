@@ -24,7 +24,7 @@
 		onCategoryChange,
 		onKeywordTypeChange,
 		onTopNChange
-	} = $props<{
+	}: {
 		activeView: string;
 		selectedCategory: ExtremeCategory;
 		selectedKeywordType: KeywordType;
@@ -32,7 +32,7 @@
 		onCategoryChange: (c: ExtremeCategory) => void;
 		onKeywordTypeChange: (k: KeywordType) => void;
 		onTopNChange: (n: number) => void;
-	}>();
+	} = $props();
 
 	function closeDrawer() {
 		uiState.filtersDrawerOpen = false;

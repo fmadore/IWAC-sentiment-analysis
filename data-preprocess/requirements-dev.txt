@@ -3,5 +3,5 @@
 # Development/CI inputs. Install requirements-dev.lock with --require-hashes;
 # it includes the complete runtime lock plus these development dependencies.
 pytest~=9.1.1
-ruff~=0.16.10
+ruff~=0.17.1
 pip-audit~=2.10.1
