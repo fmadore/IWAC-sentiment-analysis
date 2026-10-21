@@ -1,5 +1,6 @@
 // Définitions TypeScript pour vos données
 
+import type { AssetPath } from '$app/types';
 import {
 	CENTRALITY_ORDER,
 	DATASET_IDS,
@@ -12,7 +13,7 @@ import {
 	type ModelPair,
 	type PolarityValue,
 	type SubjectivityScore
-} from '$lib/domain/sentimentContract';
+} from '#lib/domain/sentimentContract.js';
 
 export {
 	CENTRALITY_ORDER,
@@ -154,8 +155,8 @@ export interface DatasetOption {
 	generation: GenerationId;
 	name: string;
 	file: string;
-	/** Path to SVG logo (relative to static folder, e.g., '/logo/ChatGPT_logo.svg') */
-	logo?: string;
+	/** Logo in `static/`, e.g. 'logo/ChatGPT_logo.svg'; render it through `asset()` */
+	logo?: AssetPath;
 	/** Fallback icon emoji (deprecated, use logo instead) */
 	icon?: string;
 	color?: string;

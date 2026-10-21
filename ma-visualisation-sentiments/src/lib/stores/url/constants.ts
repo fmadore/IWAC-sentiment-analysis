@@ -11,7 +11,7 @@ import {
 	type DatasetId,
 	type ViewId,
 	type ModelPair
-} from '$lib/types/data';
+} from '#lib/types/data.js';
 
 // Valid views that can be set in URL (canonical list lives in types/data)
 export const VALID_VIEWS = VIEW_IDS;

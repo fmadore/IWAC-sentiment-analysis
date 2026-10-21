@@ -6,9 +6,9 @@
  * rather than silently producing two different answers for one article.
  */
 import { describe, expect, it } from 'vitest';
-import fixtures from '$lib/data/discrepancy-v2-fixtures.json';
-import subjectivityFixtures from '$lib/data/subjectivity-labels-v2-fixtures.json';
-import type { SentimentAnalysis } from '$lib/types/data';
+import fixtures from '#lib/data/discrepancy-v2-fixtures.json';
+import subjectivityFixtures from '#lib/data/subjectivity-labels-v2-fixtures.json';
+import type { SentimentAnalysis } from '#lib/types/data.js';
 import {
 	calculateDiscrepancies,
 	calculateThreeWaySpread,
@@ -19,7 +19,7 @@ import {
 	SUBJECTIVITY_LABELS_V2,
 	TOTAL_DISCREPANCY_MAXIMUM,
 	isSubjectivityScore
-} from '$lib/domain/sentimentContract';
+} from '#lib/domain/sentimentContract.js';
 
 type FixtureAnalysis = (typeof fixtures)['pairwise'][number]['analysisA'];
 

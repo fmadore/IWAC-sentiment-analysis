@@ -1,4 +1,4 @@
-import { scheduleSmartPrefetch, type PrefetchTask } from '$lib/data/prefetch';
+import { scheduleSmartPrefetch, type PrefetchTask } from '#lib/data/prefetch.js';
 /**
  * Articles State Module
  *
@@ -7,26 +7,30 @@ import { scheduleSmartPrefetch, type PrefetchTask } from '$lib/data/prefetch';
 
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 import { DEV } from 'esm-env';
-import type { Article, DatasetId, LoadState, SentimentAnalysis } from '$lib/types/data';
+import type { Article, DatasetId, LoadState, SentimentAnalysis } from '#lib/types/data.js';
 import { datasetState } from './datasets.svelte';
 import { filterState } from './filters.svelte';
 import { uiState } from './ui.svelte';
 import { filterArticles, computeAvailableJournals } from './derivations';
-import { parseJustificationFile } from '$lib/data/validation';
-import { unique } from '$lib/utils/collections';
-import { fetchJSON, loadDatasetArticles, applyJustifications } from '$lib/data/articleRepository';
+import { parseJustificationFile } from '#lib/data/validation.js';
+import { unique } from '#lib/utils/collections.js';
+import {
+	fetchJSON,
+	loadDatasetArticles,
+	applyJustifications
+} from '#lib/data/articleRepository.js';
 export {
 	mapArticleProperties,
 	joinArticles,
 	applyJustifications,
 	loadDatasetArticles
-} from '$lib/data/articleRepository';
+} from '#lib/data/articleRepository.js';
 import {
 	JUSTIFICATION_SHARD_COUNT,
 	getPairModels,
 	isDatasetId,
 	justificationShard
-} from '$lib/domain/sentimentContract';
+} from '#lib/domain/sentimentContract.js';
 
 // ============================================
 // Svelte 5 Runes State

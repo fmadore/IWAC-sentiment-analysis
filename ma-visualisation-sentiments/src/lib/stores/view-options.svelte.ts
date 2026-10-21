@@ -1,4 +1,5 @@
-import type { ViewId } from '$lib/types/data';
+import type { ReadonlyURLSearchParams } from '$app/state';
+import type { ViewId } from '#lib/types/data.js';
 
 interface Option<T extends string | number | boolean> {
 	views: readonly ViewId[];
@@ -147,7 +148,7 @@ export function optionApplies(key: ViewOptionKey, view: ViewId | undefined): boo
 }
 
 export function parseViewOptions(
-	params: URLSearchParams,
+	params: ReadonlyURLSearchParams,
 	view: ViewId | undefined
 ): Partial<ViewOptions> {
 	const entries = VIEW_OPTION_KEYS.flatMap((key) => {

@@ -1,12 +1,12 @@
 /** Generation-versioned agreement calculations shared by the pair and panel views. */
-import type { Article } from '$lib/types/data';
+import type { Article } from '#lib/types/data.js';
 import {
 	getPairModels,
 	pairIdsOf,
 	type GenerationId,
 	type ModelPair,
 	type DatasetId
-} from '$lib/domain/sentimentContract';
+} from '#lib/domain/sentimentContract.js';
 import {
 	buildConfusionMatrix,
 	kappaFromMatrix,

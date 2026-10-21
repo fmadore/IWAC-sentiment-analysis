@@ -6,11 +6,11 @@
   never produced, kept apart from "Non applicable", which is a rating.
 -->
 <script lang="ts">
-	import { filterState } from '$lib/stores';
-	import { t, currentLanguage } from '$lib/i18n';
-	import { translateSentimentValue } from '$lib/i18n/utils';
-	import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
-	import { FilterCard, FilterChip } from '$lib/components/common';
+	import { filterState } from '#lib/stores/index.js';
+	import { t, currentLanguage } from '#lib/i18n/index.js';
+	import { translateSentimentValue } from '#lib/i18n/utils.js';
+	import { NOT_ANNOTATED } from '#lib/domain/sentimentContract.js';
+	import { FilterCard, FilterChip } from '#lib/components/common/index.js';
 
 	// French values (stored in data) with their FilterChip variants
 	const polarityOptions = [

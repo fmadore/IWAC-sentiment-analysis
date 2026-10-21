@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { computeArbiterV2Statistics } from './arbiterV2.svelte';
-import { parseArbiterV2EvaluationData } from '$lib/data/validation';
-import { SENTIMENT_CONTRACT_V2, datasetIdsOf } from '$lib/domain/sentimentContract';
-import { ARBITER_BLIND_LABELS } from '$lib/types/data';
+import { parseArbiterV2EvaluationData } from '#lib/data/validation.js';
+import { SENTIMENT_CONTRACT_V2, datasetIdsOf } from '#lib/domain/sentimentContract.js';
+import { ARBITER_BLIND_LABELS } from '#lib/types/data.js';
 import type {
 	ArbiterBlindLabel,
 	ArbiterV2EvaluationData,
 	ArbiterV2Preference,
 	DatasetId
-} from '$lib/types/data';
+} from '#lib/types/data.js';
 
 const MODELS = datasetIdsOf('v2') as DatasetId[];
 

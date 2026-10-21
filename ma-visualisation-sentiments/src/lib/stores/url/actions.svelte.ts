@@ -1,11 +1,11 @@
 /** Complete URL snapshots and browser history synchronization. */
 import { tick } from 'svelte';
 import { chartInteractionsState } from '../chart-interactions.svelte';
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
 import { page } from '$app/state';
-import { initializeLanguage } from '$lib/i18n';
+import { initializeLanguage } from '#lib/i18n/index.js';
 import {
 	CURRENT_GENERATION,
 	defaultDatasetOf,
@@ -13,7 +13,7 @@ import {
 	generationOf,
 	getPairModels,
 	TOTAL_DISCREPANCY_MAXIMUM
-} from '$lib/domain/sentimentContract';
+} from '#lib/domain/sentimentContract.js';
 import { analysisState, ANALYSIS_DIMENSIONS } from '../analysis.svelte';
 import { uiState } from '../ui.svelte';
 import { filterState } from '../filters.svelte';
@@ -186,9 +186,8 @@ export function updateURL(currentView?: ValidView, replaceState = false): void {
 		if (window.location.search.slice(1) === query) return;
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
 		void goto(resolve('/') + '?' + query + window.location.hash, {
-			replaceState: replace,
-			keepFocus: true,
-			noScroll: true
+			replace,
+			reset: false
 		});
 	});
 }

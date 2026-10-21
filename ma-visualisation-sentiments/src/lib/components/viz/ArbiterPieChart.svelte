@@ -6,11 +6,11 @@
   translated count noun used in tooltips.
 -->
 <script lang="ts">
-	import { t } from '$lib/i18n';
+	import { t } from '#lib/i18n/index.js';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import Chart from './CitableChart.svelte';
-	import { pct } from '$lib/i18n/utils';
-	import { init } from '$lib/utils/echartsSetup';
+	import { pct } from '#lib/i18n/utils.js';
+	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
@@ -19,7 +19,7 @@
 		getLegendConfig,
 		getPieSeriesStyle,
 		chartColors
-	} from '$lib/utils/chartTheme';
+	} from '#lib/utils/chartTheme.js';
 
 	interface PieDatum {
 		name: string;

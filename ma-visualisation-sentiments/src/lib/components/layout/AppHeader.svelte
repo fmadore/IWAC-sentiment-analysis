@@ -48,7 +48,7 @@
       all there.
 -->
 <script lang="ts">
-	import CopyLinkButton from '$lib/components/ui/CopyLinkButton.svelte';
+	import CopyLinkButton from '#lib/components/ui/CopyLinkButton.svelte';
 	import FullscreenIcon from '@lucide/svelte/icons/maximize';
 	import MinimizeIcon from '@lucide/svelte/icons/minimize';
 	import MenuIcon from '@lucide/svelte/icons/menu';
@@ -56,12 +56,12 @@
 	import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
 	import { onMount } from 'svelte';
 	import { MediaQuery } from 'svelte/reactivity';
-	import { t } from '$lib/i18n';
-	import { LanguageSwitcher, DatasetPicker } from '$lib/components/ui';
-	import { uiState, datasetState, filterState } from '$lib/stores';
-	import { hasFilterRail, hasSingleModelPicker } from '$lib/types/data';
-	import { analysisState } from '$lib/stores/analysis.svelte';
-	import { getPairModels } from '$lib/domain/sentimentContract';
+	import { t } from '#lib/i18n/index.js';
+	import { LanguageSwitcher, DatasetPicker } from '#lib/components/ui/index.js';
+	import { uiState, datasetState, filterState } from '#lib/stores/index.js';
+	import { hasFilterRail, hasSingleModelPicker } from '#lib/types/data.js';
+	import { analysisState } from '#lib/stores/analysis.svelte.js';
+	import { getPairModels } from '#lib/domain/sentimentContract.js';
 	import { NAV_ITEMS } from './navItems';
 
 	let isFullscreen = $state(false);

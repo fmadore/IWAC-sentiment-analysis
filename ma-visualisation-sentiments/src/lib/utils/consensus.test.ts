@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Article } from '$lib/types/data';
+import type { Article } from '#lib/types/data.js';
 import {
 	barycentric,
 	buildConsensusRows,

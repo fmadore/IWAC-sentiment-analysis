@@ -1,7 +1,7 @@
 import { derived } from 'svelte/store';
 import type { Language } from './index.js';
 import { currentLanguage, translate } from './index.js';
-import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
+import { NOT_ANNOTATED } from '#lib/domain/sentimentContract.js';
 
 // Mapping of French sentiment values to translation keys
 export const SENTIMENT_VALUE_MAP = {

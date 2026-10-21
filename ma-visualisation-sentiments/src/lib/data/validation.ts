@@ -5,8 +5,8 @@ import type {
 	PlacesPayload,
 	SentimentAnalysis,
 	SubjectivityScore
-} from '$lib/types/data';
-import { ARBITER_BLIND_LABELS } from '$lib/types/data';
+} from '#lib/types/data.js';
+import { ARBITER_BLIND_LABELS } from '#lib/types/data.js';
 import {
 	datasetIdsOf,
 	generationOf,
@@ -20,7 +20,7 @@ import {
 	SENTIMENT_CONTRACTS,
 	type DatasetId,
 	type ModelPair
-} from '$lib/domain/sentimentContract';
+} from '#lib/domain/sentimentContract.js';
 
 export type UnknownRecord = Record<string, unknown>;
 

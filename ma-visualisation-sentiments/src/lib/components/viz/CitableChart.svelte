@@ -2,8 +2,8 @@
 	import { Chart } from 'svelte-echarts';
 	import type { ComponentProps } from 'svelte';
 	import type { EChartsOption, LegendComponentOption } from 'echarts';
-	import { chartInteractionsState } from '$lib/stores/chart-interactions.svelte';
-	import { uiState } from '$lib/stores/ui.svelte';
+	import { chartInteractionsState } from '#lib/stores/chart-interactions.svelte.js';
+	import { uiState } from '#lib/stores/ui.svelte.js';
 	let { chartId, options, ...props }: ComponentProps<typeof Chart> & { chartId: string } = $props();
 	const interaction = $derived(chartInteractionsState[uiState.activeView]?.[chartId]);
 	const legends = $derived(

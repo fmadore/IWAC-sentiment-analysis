@@ -1,12 +1,12 @@
 <script lang="ts">
-	import DetailLinkNotice from '$lib/components/common/DetailLinkNotice.svelte';
-	import { pendingArticleState } from '$lib/stores/url';
+	import DetailLinkNotice from '#lib/components/common/DetailLinkNotice.svelte';
+	import { pendingArticleState } from '#lib/stores/url/index.js';
 	import { onMount, untrack } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
-	import { restoreURLState, reconcileSelectionContext } from '$lib/stores/url/actions.svelte';
-	import { getCurrentState, buildURLSearchParams } from '$lib/stores/url';
-	import { viewOptionsState } from '$lib/stores/view-options.svelte';
-	import { browser } from '$app/environment';
+	import { restoreURLState, reconcileSelectionContext } from '#lib/stores/url/actions.svelte.js';
+	import { getCurrentState, buildURLSearchParams } from '#lib/stores/url/index.js';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
+	import { browser } from '$app/env';
 	import {
 		loadCurrentDataset,
 		dataRequirements,
@@ -14,31 +14,31 @@
 		uiState,
 		datasetState,
 		articleState
-	} from '$lib/stores';
-	import { t, currentLanguage } from '$lib/i18n';
-	import { hasFilterRail } from '$lib/types/data';
-	import type { Article } from '$lib/types/data';
-	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
+	} from '#lib/stores/index.js';
+	import { t, currentLanguage } from '#lib/i18n/index.js';
+	import { hasFilterRail } from '#lib/types/data.js';
+	import type { Article } from '#lib/types/data.js';
+	import type { ExtremeCategory, KeywordType } from '#lib/types/extremeAnalysis.js';
 
 	// Layout
-	import { FiltersPanel, ViewContent } from '$lib/components/layout';
+	import { FiltersPanel, ViewContent } from '#lib/components/layout/index.js';
 
 	// Data Display
-	import AnalysisInfo from '$lib/components/data-display/AnalysisInfo.svelte';
-	import ArbiterMethodology from '$lib/components/data-display/ArbiterMethodology.svelte';
-	import ArbiterV2Methodology from '$lib/components/data-display/ArbiterV2Methodology.svelte';
+	import AnalysisInfo from '#lib/components/data-display/AnalysisInfo.svelte';
+	import ArbiterMethodology from '#lib/components/data-display/ArbiterMethodology.svelte';
+	import ArbiterV2Methodology from '#lib/components/data-display/ArbiterV2Methodology.svelte';
 
 	// Common
-	import { ArchiveNotice, ArticleDetailModal, LoadingState } from '$lib/components/common';
+	import { ArchiveNotice, ArticleDetailModal, LoadingState } from '#lib/components/common/index.js';
 
 	// Utilities
-	import SEOHead from '$lib/components/SEOHead.svelte';
+	import SEOHead from '#lib/components/SEOHead.svelte';
 	import {
 		initializeURLState,
 		updateURL,
 		clearSelectedArticle,
 		handlePendingArticleSelection
-	} from '$lib/stores/url';
+	} from '#lib/stores/url/index.js';
 
 	afterNavigate(({ type, to }) => {
 		if (

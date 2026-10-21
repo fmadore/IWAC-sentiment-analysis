@@ -14,19 +14,19 @@
   would swing on a handful of articles.
 -->
 <script lang="ts">
-	import { viewOptionsState } from '$lib/stores/view-options.svelte';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import Chart from './CitableChart.svelte';
-	import { dec, num, pct } from '$lib/i18n/utils';
-	import { init } from '$lib/utils/echartsSetup';
+	import { dec, num, pct } from '#lib/i18n/utils.js';
+	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	import { comparisonState, datasetState } from '$lib/stores';
-	import { t } from '$lib/i18n';
-	import { getPairModelNames } from '$lib/types/data';
+	import { comparisonState, datasetState } from '#lib/stores/index.js';
+	import { t } from '#lib/i18n/index.js';
+	import { getPairModelNames } from '#lib/types/data.js';
 	import ChartTypeToggle from './ChartTypeToggle.svelte';
-	import { aggregateDisagreement, bucketDecade } from '$lib/utils/chartAggregators';
+	import { aggregateDisagreement, bucketDecade } from '#lib/utils/chartAggregators.js';
 	import {
 		seriesColorPalette,
 		chartColors,
@@ -36,7 +36,7 @@
 		getAxisLabelStyle,
 		getSplitLineStyle,
 		getEmphasisConfig
-	} from '$lib/utils/chartTheme';
+	} from '#lib/utils/chartTheme.js';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import GlobeIcon from '@lucide/svelte/icons/globe';
 

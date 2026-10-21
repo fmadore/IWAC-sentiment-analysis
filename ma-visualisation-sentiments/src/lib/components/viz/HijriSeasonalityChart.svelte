@@ -14,18 +14,18 @@
   separate one.
 -->
 <script lang="ts">
-	import { viewOptionsState } from '$lib/stores/view-options.svelte';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
 	import Chart from './CitableChart.svelte';
-	import { dec, num } from '$lib/i18n/utils';
-	import { init } from '$lib/utils/echartsSetup';
+	import { dec, num } from '#lib/i18n/utils.js';
+	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	import { articleState } from '$lib/stores';
-	import { t } from '$lib/i18n';
-	import { centralityScores } from '$lib/stores/derivations';
-	import { aggregateByHijriMonth } from '$lib/utils/chartAggregators';
-	import { HIJRI_MONTH_KEYS } from '$lib/utils/hijri';
+	import { articleState } from '#lib/stores/index.js';
+	import { t } from '#lib/i18n/index.js';
+	import { centralityScores } from '#lib/stores/derivations.js';
+	import { aggregateByHijriMonth } from '#lib/utils/chartAggregators.js';
+	import { HIJRI_MONTH_KEYS } from '#lib/utils/hijri.js';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
 	import ChartTypeToggle from './ChartTypeToggle.svelte';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
@@ -37,7 +37,7 @@
 		getTooltipConfig,
 		getLegendConfig,
 		getAxisLabelStyle
-	} from '$lib/utils/chartTheme';
+	} from '#lib/utils/chartTheme.js';
 	import CircleIcon from '@lucide/svelte/icons/circle';
 	import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
 

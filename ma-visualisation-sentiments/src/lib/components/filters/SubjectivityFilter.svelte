@@ -5,11 +5,11 @@
   components, plus the "not annotated" bucket for a score the model never gave.
 -->
 <script lang="ts">
-	import { filterState } from '$lib/stores';
-	import { t, currentLanguage } from '$lib/i18n';
-	import { translateSentimentValue } from '$lib/i18n/utils';
-	import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
-	import { FilterCard, FilterChip } from '$lib/components/common';
+	import { filterState } from '#lib/stores/index.js';
+	import { t, currentLanguage } from '#lib/i18n/index.js';
+	import { translateSentimentValue } from '#lib/i18n/utils.js';
+	import { NOT_ANNOTATED } from '#lib/domain/sentimentContract.js';
+	import { FilterCard, FilterChip } from '#lib/components/common/index.js';
 
 	// Filter values (the score as a string, as the store and URL carry it)
 	// with corresponding FilterChip variants

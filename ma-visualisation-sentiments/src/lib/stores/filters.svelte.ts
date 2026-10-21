@@ -4,8 +4,8 @@
  * Manages all filter-related state using Svelte 5 runes.
  */
 
-import type { DiscrepancyFilter } from '$lib/types/data';
-import { TOTAL_DISCREPANCY_MAXIMUM } from '$lib/domain/sentimentContract';
+import type { DiscrepancyFilter } from '#lib/types/data.js';
+import { TOTAL_DISCREPANCY_MAXIMUM } from '#lib/domain/sentimentContract.js';
 
 // ============================================
 // Svelte 5 Runes State

@@ -1,14 +1,14 @@
 <script lang="ts">
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import Chart from './CitableChart.svelte';
-	import { num } from '$lib/i18n/utils';
+	import { num } from '#lib/i18n/utils.js';
 	import { innerWidth } from 'svelte/reactivity/window';
-	import { extremeState, retryCurrentExtremeAnalysis } from '$lib/stores';
-	import ResourceLoadError from '$lib/components/common/ResourceLoadError.svelte';
-	import { t } from '$lib/i18n';
-	import Spinner from '$lib/components/common/Spinner.svelte';
-	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
-	import { getExtremeCategoryConfig, getTopKeywords } from '$lib/utils/extremeAnalysis';
+	import { extremeState, retryCurrentExtremeAnalysis } from '#lib/stores/index.js';
+	import ResourceLoadError from '#lib/components/common/ResourceLoadError.svelte';
+	import { t } from '#lib/i18n/index.js';
+	import Spinner from '#lib/components/common/Spinner.svelte';
+	import type { ExtremeCategory, KeywordType } from '#lib/types/extremeAnalysis.js';
+	import { getExtremeCategoryConfig, getTopKeywords } from '#lib/utils/extremeAnalysis.js';
 	import {
 		getTitleStyle,
 		getTooltipConfig,
@@ -16,12 +16,12 @@
 		getAxisLabelStyle,
 		getSplitLineStyle,
 		chartColors
-	} from '$lib/utils/chartTheme';
+	} from '#lib/utils/chartTheme.js';
 
 	// ECharts imports
-	import { init } from '$lib/utils/echartsSetup';
+	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
-	import { createSimpleTooltipFormatter } from '$lib/utils/chartFormatters';
+	import { createSimpleTooltipFormatter } from '#lib/utils/chartFormatters.js';
 
 	// Component props
 	interface Props {

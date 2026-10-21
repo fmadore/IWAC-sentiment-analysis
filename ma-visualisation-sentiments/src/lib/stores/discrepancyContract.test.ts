@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import fixtures from '$lib/data/discrepancy-v1-fixtures.json';
-import type { SentimentAnalysis } from '$lib/types/data';
+import fixtures from '#lib/data/discrepancy-v1-fixtures.json';
+import type { SentimentAnalysis } from '#lib/types/data.js';
 import { calculateDiscrepancies } from './derivations';
-import { TOTAL_DISCREPANCY_MAXIMUM } from '$lib/domain/sentimentContract';
+import { TOTAL_DISCREPANCY_MAXIMUM } from '#lib/domain/sentimentContract.js';
 
 const fullAnalysis = (value: (typeof fixtures)[number]['analysisA']): SentimentAnalysis => ({
 	...value,

@@ -14,9 +14,9 @@
   background, independently of the pairwise comparison mode.
 -->
 <script lang="ts">
-	import DetailLinkNotice from '$lib/components/common/DetailLinkNotice.svelte';
-	import { arbiterSelectionState } from '$lib/stores/view-options.svelte';
-	import { num } from '$lib/i18n/utils';
+	import DetailLinkNotice from '#lib/components/common/DetailLinkNotice.svelte';
+	import { arbiterSelectionState } from '#lib/stores/view-options.svelte.js';
+	import { num } from '#lib/i18n/utils.js';
 	import {
 		arbiterV2Evaluations,
 		arbiterV2Legend,
@@ -27,14 +27,14 @@
 		articleState,
 		datasetState,
 		type ArbiterV2Dimension
-	} from '$lib/stores';
-	import type { ArbiterV2Preference } from '$lib/types/data';
-	import { t } from '$lib/i18n';
-	import { ChartCard } from '$lib/components/ui';
-	import Spinner from '$lib/components/common/Spinner.svelte';
-	import ResourceLoadError from '$lib/components/common/ResourceLoadError.svelte';
-	import ArbiterV2ArticleDetailModal from '$lib/components/common/ArbiterV2ArticleDetailModal.svelte';
-	import { getConfidenceLabel } from '$lib/utils/arbiter';
+	} from '#lib/stores/index.js';
+	import type { ArbiterV2Preference } from '#lib/types/data.js';
+	import { t } from '#lib/i18n/index.js';
+	import { ChartCard } from '#lib/components/ui/index.js';
+	import Spinner from '#lib/components/common/Spinner.svelte';
+	import ResourceLoadError from '#lib/components/common/ResourceLoadError.svelte';
+	import ArbiterV2ArticleDetailModal from '#lib/components/common/ArbiterV2ArticleDetailModal.svelte';
+	import { getConfidenceLabel } from '#lib/utils/arbiter.js';
 	import ArbiterCoverage from './ArbiterCoverage.svelte';
 	import ArbiterV2StatsCards from './ArbiterV2StatsCards.svelte';
 	import ArbiterV2ArticleTable from './ArbiterV2ArticleTable.svelte';

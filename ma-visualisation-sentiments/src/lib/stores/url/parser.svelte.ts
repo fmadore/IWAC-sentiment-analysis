@@ -4,10 +4,11 @@
  * Parses URL search parameters into application state.
  */
 
-import { LANGUAGES, type Language } from '$lib/i18n';
-import { unique } from '$lib/utils/collections';
-import type { ModelPair } from '$lib/types/data';
-import { TOTAL_DISCREPANCY_MAXIMUM } from '$lib/domain/sentimentContract';
+import type { ReadonlyURLSearchParams } from '$app/state';
+import { LANGUAGES, type Language } from '#lib/i18n/index.js';
+import { unique } from '#lib/utils/collections.js';
+import type { ModelPair } from '#lib/types/data.js';
+import { TOTAL_DISCREPANCY_MAXIMUM } from '#lib/domain/sentimentContract.js';
 import {
 	VALID_VIEWS,
 	VALID_DATASETS,
@@ -24,7 +25,7 @@ import { parseChartInteractions } from '../chart-interactions.svelte';
 /**
  * Parse URL search parameters into application state
  */
-export function parseURLState(searchParams: URLSearchParams): URLState {
+export function parseURLState(searchParams: ReadonlyURLSearchParams): URLState {
 	const state: URLState = {};
 
 	// Parse view

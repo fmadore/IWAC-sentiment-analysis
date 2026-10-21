@@ -13,18 +13,18 @@
  * Retry action. There is no pair to switch, so the resource has a single key.
  */
 
-import { parseArbiterV2EvaluationData } from '$lib/data/validation';
-import { fetchOptionalJSON } from '$lib/data/articleRepository';
-import { ABSENT, createResource, type ResourceState } from '$lib/data/resource.svelte';
-import { datasetIdsOf, modelDisplayName } from '$lib/domain/sentimentContract';
-import { ARBITER_BLIND_LABELS } from '$lib/types/data';
+import { parseArbiterV2EvaluationData } from '#lib/data/validation.js';
+import { fetchOptionalJSON } from '#lib/data/articleRepository.js';
+import { ABSENT, createResource, type ResourceState } from '#lib/data/resource.svelte.js';
+import { datasetIdsOf, modelDisplayName } from '#lib/domain/sentimentContract.js';
+import { ARBITER_BLIND_LABELS } from '#lib/types/data.js';
 import type {
 	ArbiterBlindLabel,
 	ArbiterV2Analysis,
 	ArbiterV2EvaluationData,
 	ArbiterV2Preference,
 	DatasetId
-} from '$lib/types/data';
+} from '#lib/types/data.js';
 import {
 	ARBITER_V2_DIMENSIONS,
 	blindLegend,
@@ -33,7 +33,7 @@ import {
 	type ArbiterV2Dimension,
 	type ArbiterV2LegendEntry,
 	type ArbiterV2Row
-} from '$lib/utils/arbiterV2';
+} from '#lib/utils/arbiterV2.js';
 // Leaf stores imported directly — going through './index' would be a cycle.
 import { articleState, loadSpecificDataset } from './articles.svelte';
 

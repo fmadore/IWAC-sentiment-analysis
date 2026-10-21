@@ -4,8 +4,8 @@
  * Manages model comparison state and derived data using Svelte 5 runes.
  */
 
-import type { ComparisonData } from '$lib/types/data';
-import { getModelsFromPair } from '$lib/types/data';
+import type { ComparisonData } from '#lib/types/data.js';
+import { getModelsFromPair } from '#lib/types/data.js';
 import { datasetState } from './datasets.svelte';
 import { filterState } from './filters.svelte';
 import { loadSpecificDataset, articleState } from './articles.svelte';

@@ -17,21 +17,21 @@
 -->
 <script lang="ts">
 	import Chart from './CitableChart.svelte';
-	import { dec, num, pct } from '$lib/i18n/utils';
-	import { init } from '$lib/utils/echartsSetup';
+	import { dec, num, pct } from '#lib/i18n/utils.js';
+	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	import { t } from '$lib/i18n';
+	import { t } from '#lib/i18n/index.js';
 	import {
 		rankNewspaperDisagreement,
 		countExcludedTitles,
 		dimensionScale,
 		type AgreementDimension,
 		type ConsensusRow
-	} from '$lib/utils/consensus';
+	} from '#lib/utils/consensus.js';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
-	import { tooltipHeader, tooltipPanel, tooltipRow } from '$lib/utils/chartFormatters';
+	import { tooltipHeader, tooltipPanel, tooltipRow } from '#lib/utils/chartFormatters.js';
 	import {
 		chartColors,
 		getTitleStyle,
@@ -39,7 +39,7 @@
 		getAxisLineStyle,
 		getAxisLabelStyle,
 		getSplitLineStyle
-	} from '$lib/utils/chartTheme';
+	} from '#lib/utils/chartTheme.js';
 
 	interface NewspaperDisagreementChartProps {
 		rows: ConsensusRow[];

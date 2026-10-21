@@ -1,8 +1,8 @@
 <script lang="ts">
 	import FilterXIcon from '@lucide/svelte/icons/filter-x';
-	import { clearAllFilters } from '$lib/stores/url';
-	import { filterState } from '$lib/stores';
-	import { t } from '$lib/i18n';
+	import { clearAllFilters } from '#lib/stores/url/index.js';
+	import { filterState } from '#lib/stores/index.js';
+	import { t } from '#lib/i18n/index.js';
 
 	// Track if we have any active filters
 	let hasActiveFilters = $derived(

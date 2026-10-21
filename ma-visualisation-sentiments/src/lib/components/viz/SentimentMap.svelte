@@ -37,10 +37,10 @@
   chart-facing comes from `chartTheme.ts`, which holds the sRGB translations.
 -->
 <script lang="ts">
-	import DetailLinkNotice from '$lib/components/common/DetailLinkNotice.svelte';
-	import { viewOptionsState } from '$lib/stores/view-options.svelte';
+	import DetailLinkNotice from '#lib/components/common/DetailLinkNotice.svelte';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
 	import { onMount } from 'svelte';
-	import { dec, num } from '$lib/i18n/utils';
+	import { dec, num } from '#lib/i18n/utils.js';
 	// Side effect only, and first on purpose: calls `setWorkerUrl()` with a
 	// Vite-built worker chunk. See the header comment — without it v6 renders a
 	// blank canvas and reports nothing.
@@ -58,20 +58,20 @@
 	import 'maplibre-gl/dist/maplibre-gl.css';
 	import type { LngLatLike, MapLayerMouseEvent } from 'maplibre-gl';
 	import type { FeatureCollection } from 'geojson';
-	import { articleState, datasetState } from '$lib/stores';
-	import { placeState, loadPlaces, retryPlaces } from '$lib/stores/places.svelte';
-	import type { MapDimension } from '$lib/utils/placeAggregation';
-	import { MAP_DIMENSIONS } from '$lib/utils/placeAggregation';
+	import { articleState, datasetState } from '#lib/stores/index.js';
+	import { placeState, loadPlaces, retryPlaces } from '#lib/stores/places.svelte.js';
+	import type { MapDimension } from '#lib/utils/placeAggregation.js';
+	import { MAP_DIMENSIONS } from '#lib/utils/placeAggregation.js';
 	import {
 		circleColorExpression,
 		circleRadiusExpression,
 		UNSCORED_MEAN
-	} from '$lib/utils/mapScales';
-	import { t } from '$lib/i18n';
-	import LoadingState from '$lib/components/common/LoadingState.svelte';
-	import EmptyState from '$lib/components/common/EmptyState.svelte';
-	import ResourceLoadError from '$lib/components/common/ResourceLoadError.svelte';
-	import ChartDataTable from '$lib/components/common/ChartDataTable.svelte';
+	} from '#lib/utils/mapScales.js';
+	import { t } from '#lib/i18n/index.js';
+	import LoadingState from '#lib/components/common/LoadingState.svelte';
+	import EmptyState from '#lib/components/common/EmptyState.svelte';
+	import ResourceLoadError from '#lib/components/common/ResourceLoadError.svelte';
+	import ChartDataTable from '#lib/components/common/ChartDataTable.svelte';
 	import MapLegend from './MapLegend.svelte';
 
 	const PLACE_SOURCE = 'iwac-places';

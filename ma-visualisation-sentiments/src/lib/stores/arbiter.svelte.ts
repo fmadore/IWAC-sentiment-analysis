@@ -6,12 +6,12 @@
  * Uses Svelte 5 runes for reactivity.
  */
 
-import type { ArbiterEvaluationData, ArbiterAnalysis, ModelPair } from '$lib/types/data';
-import { getPairModelNames } from '$lib/types/data';
-import { parseArbiterEvaluationData } from '$lib/data/validation';
-import { fetchOptionalJSON } from '$lib/data/articleRepository';
-import { ABSENT, createResource, type ResourceState } from '$lib/data/resource.svelte';
-import { generationOf } from '$lib/domain/sentimentContract';
+import type { ArbiterEvaluationData, ArbiterAnalysis, ModelPair } from '#lib/types/data.js';
+import { getPairModelNames } from '#lib/types/data.js';
+import { parseArbiterEvaluationData } from '#lib/data/validation.js';
+import { fetchOptionalJSON } from '#lib/data/articleRepository.js';
+import { ABSENT, createResource, type ResourceState } from '#lib/data/resource.svelte.js';
+import { generationOf } from '#lib/domain/sentimentContract.js';
 // Import the leaf stores directly — importing from './index' would create a
 // cycle (the barrel re-exports this module). Same convention as url/*.
 import { datasetState } from './datasets.svelte';

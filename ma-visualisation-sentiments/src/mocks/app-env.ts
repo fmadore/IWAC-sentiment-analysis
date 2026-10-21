@@ -1,5 +1,5 @@
 /**
- * Mock for $app/environment SvelteKit module
+ * Mock for $app/env SvelteKit module
  * Used in testing environment
  */
 export const browser = true;

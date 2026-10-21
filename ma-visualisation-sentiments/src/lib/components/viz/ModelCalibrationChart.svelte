@@ -14,16 +14,16 @@
 <script lang="ts">
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import Chart from './CitableChart.svelte';
-	import { num, pct } from '$lib/i18n/utils';
-	import { init } from '$lib/utils/echartsSetup';
+	import { num, pct } from '#lib/i18n/utils.js';
+	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	import { t, currentLanguage } from '$lib/i18n';
-	import { translateSentimentValue } from '$lib/i18n/utils';
-	import { getModelDisplayName } from '$lib/utils/format';
-	import { datasetState } from '$lib/stores';
-	import type { AgreementDimension, ModelMarginals } from '$lib/stores/agreement.svelte';
+	import { t, currentLanguage } from '#lib/i18n/index.js';
+	import { translateSentimentValue } from '#lib/i18n/utils.js';
+	import { getModelDisplayName } from '#lib/utils/format.js';
+	import { datasetState } from '#lib/stores/index.js';
+	import type { AgreementDimension, ModelMarginals } from '#lib/stores/agreement.svelte.js';
 	import {
 		seriesColorPalette,
 		getTitleStyle,
@@ -35,7 +35,7 @@
 		getGridConfig,
 		getEmphasisConfig,
 		chartColors
-	} from '$lib/utils/chartTheme';
+	} from '#lib/utils/chartTheme.js';
 
 	interface ModelCalibrationChartProps {
 		marginals: ModelMarginals[];

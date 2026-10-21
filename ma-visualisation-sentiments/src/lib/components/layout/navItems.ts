@@ -12,7 +12,7 @@
  */
 
 import type { Component } from 'svelte';
-import type { ViewId } from '$lib/types/data';
+import type { ViewId } from '#lib/types/data.js';
 import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
 import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
 import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';

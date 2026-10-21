@@ -1,24 +1,28 @@
 <script lang="ts">
-	import DetailLinkNotice from '$lib/components/common/DetailLinkNotice.svelte';
-	import { pendingComparisonArticleState } from '$lib/stores/url';
-	import { articleState } from '$lib/stores/articles.svelte';
-	import { datasetReadiness } from '$lib/utils/datasetReadiness';
-	import { getPairModels } from '$lib/domain/sentimentContract';
+	import DetailLinkNotice from '#lib/components/common/DetailLinkNotice.svelte';
+	import { pendingComparisonArticleState } from '#lib/stores/url/index.js';
+	import { articleState } from '#lib/stores/articles.svelte.js';
+	import { datasetReadiness } from '#lib/utils/datasetReadiness.js';
+	import { getPairModels } from '#lib/domain/sentimentContract.js';
 	import DatasetLoadError from '../common/DatasetLoadError.svelte';
-	import { comparisonState, datasetState } from '$lib/stores';
-	import { CountryFilter, JournalFilter, DiscrepancyFilter } from '$lib/components/filters';
+	import { comparisonState, datasetState } from '#lib/stores/index.js';
+	import {
+		CountryFilter,
+		JournalFilter,
+		DiscrepancyFilter
+	} from '#lib/components/filters/index.js';
 	import ComparisonTable from './ComparisonTable.svelte';
 	import ComparisonStats from './ComparisonStats.svelte';
-	import { ComparisonDetailModal } from '$lib/components/common';
-	import Spinner from '$lib/components/common/Spinner.svelte';
-	import ModelPairPicker from '$lib/components/ui/ModelPairPicker.svelte';
-	import { DisagreementBreakdownChart } from '$lib/components/viz';
-	import { t } from '$lib/i18n';
+	import { ComparisonDetailModal } from '#lib/components/common/index.js';
+	import Spinner from '#lib/components/common/Spinner.svelte';
+	import ModelPairPicker from '#lib/components/ui/ModelPairPicker.svelte';
+	import { DisagreementBreakdownChart } from '#lib/components/viz/index.js';
+	import { t } from '#lib/i18n/index.js';
 	import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
 	import {
 		handlePendingComparisonArticleSelection,
 		clearSelectedComparison
-	} from '$lib/stores/url';
+	} from '#lib/stores/url/index.js';
 
 	const loadStatus = $derived(
 		datasetReadiness(getPairModels(datasetState.pair), articleState.loadStates)

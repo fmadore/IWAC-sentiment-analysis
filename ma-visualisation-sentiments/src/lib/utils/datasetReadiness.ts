@@ -1,4 +1,4 @@
-import type { DatasetId, LoadState, Article } from '$lib/types/data';
+import type { DatasetId, LoadState, Article } from '#lib/types/data.js';
 
 /** Resolve only the required models; unrelated prefetch must not gate a view. */
 export function datasetReadiness(

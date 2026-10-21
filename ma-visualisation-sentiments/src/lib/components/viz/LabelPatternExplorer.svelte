@@ -1,18 +1,23 @@
 <script lang="ts">
-	import { t, currentLanguage } from '$lib/i18n';
-	import { num, pct, translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
-	import { articleState } from '$lib/stores/articles.svelte';
-	import { datasetState } from '$lib/stores/datasets.svelte';
-	import { viewOptionsState } from '$lib/stores/view-options.svelte';
-	import { getModelDisplayNames, getJournalName } from '$lib/utils/format';
-	import { dimensionScale, type ConsensusRow } from '$lib/utils/consensus';
+	import { t, currentLanguage } from '#lib/i18n/index.js';
+	import {
+		num,
+		pct,
+		translateSentimentValue,
+		translateSubjectivityScore
+	} from '#lib/i18n/utils.js';
+	import { articleState } from '#lib/stores/articles.svelte.js';
+	import { datasetState } from '#lib/stores/datasets.svelte.js';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
+	import { getModelDisplayNames, getJournalName } from '#lib/utils/format.js';
+	import { dimensionScale, type ConsensusRow } from '#lib/utils/consensus.js';
 	import {
 		buildLabelPatterns,
 		filterLabelPatterns,
 		type PatternKind
-	} from '$lib/utils/labelPatterns';
-	import type { AgreementDimension } from '$lib/utils/agreementData';
-	import type { Article } from '$lib/types/data';
+	} from '#lib/utils/labelPatterns.js';
+	import type { AgreementDimension } from '#lib/utils/agreementData.js';
+	import type { Article } from '#lib/types/data.js';
 	import SectionHead from '../common/SectionHead.svelte';
 	import SentimentBadge from '../common/SentimentBadge.svelte';
 	import ChartDataTable from '../common/ChartDataTable.svelte';

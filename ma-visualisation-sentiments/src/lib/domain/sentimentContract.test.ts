@@ -7,8 +7,8 @@
  * ordinal scales the shared chart code reads from v1.
  */
 import { describe, expect, it } from 'vitest';
-import { ARBITER_BLIND_LABELS } from '$lib/types/data';
-import shardFixtures from '$lib/data/justification-shard-fixtures.json';
+import { ARBITER_BLIND_LABELS } from '#lib/types/data.js';
+import shardFixtures from '#lib/data/justification-shard-fixtures.json';
 import {
 	ARCHIVED_GENERATION,
 	CURRENT_GENERATION,

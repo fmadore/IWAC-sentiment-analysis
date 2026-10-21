@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { Article, DatasetId } from '$lib/types/data';
-import { datasetIdsOf } from '$lib/domain/sentimentContract';
+import type { Article, DatasetId } from '#lib/types/data.js';
+import { datasetIdsOf } from '#lib/domain/sentimentContract.js';
 import { cohensKappa, type LabelPair } from './agreement';
 import { DIMENSION_CATEGORIES } from './agreementData';
 import { agreementMetricValue, summarizeAgreement, summarizeModelPairs } from './agreementMetrics';

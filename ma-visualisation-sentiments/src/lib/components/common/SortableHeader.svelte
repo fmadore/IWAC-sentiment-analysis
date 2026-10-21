@@ -11,7 +11,7 @@
   the label for numeric columns.
 -->
 <script lang="ts">
-	import { ariaSort, type SortOrder } from '$lib/utils/sorting';
+	import { ariaSort, type SortOrder } from '#lib/utils/sorting.js';
 
 	interface Props {
 		label: string;

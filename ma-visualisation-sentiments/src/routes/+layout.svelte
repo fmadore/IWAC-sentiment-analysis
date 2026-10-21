@@ -3,10 +3,10 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { AppHeader, SidebarNav } from '$lib/components/layout';
-	import PWAManager from '$lib/components/PWAManager.svelte';
-	import { uiState } from '$lib/stores';
-	import { readStorage, removeStorage } from '$lib/utils/safeStorage';
+	import { AppHeader, SidebarNav } from '#lib/components/layout/index.js';
+	import PWAManager from '#lib/components/PWAManager.svelte';
+	import { uiState } from '#lib/stores/index.js';
+	import { readStorage, removeStorage } from '#lib/utils/safeStorage.js';
 
 	let { children } = $props();
 
@@ -25,7 +25,7 @@
 			if (!data.search && !data.hash) return;
 			const target = `${resolve('/')}${data.search ?? ''}${data.hash ?? ''}`;
 			// eslint-disable-next-line svelte/no-navigation-without-resolve
-			goto(target, { replaceState: true, keepFocus: true, noScroll: true });
+			goto(target, { replace: true, reset: false });
 		} catch (err) {
 			console.error('Failed to parse SPA redirect data:', err);
 		}

@@ -13,7 +13,7 @@
  *
  * Usage in a chart component:
  *   import { Chart } from 'svelte-echarts';
- *   import { init } from '$lib/utils/echartsSetup';
+ *   import { init } from '#lib/utils/echartsSetup.js';
  */
 import { init as coreInit, use } from 'echarts/core';
 import {

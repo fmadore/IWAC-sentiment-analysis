@@ -14,21 +14,21 @@
   zero, and on the 1-5 subjectivity/centrality scales zero is not on the axis.
 -->
 <script lang="ts">
-	import { viewOptionsState } from '$lib/stores/view-options.svelte';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
 	import Chart from './CitableChart.svelte';
-	import { dec, num } from '$lib/i18n/utils';
-	import { init } from '$lib/utils/echartsSetup';
+	import { dec, num } from '#lib/i18n/utils.js';
+	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	import { articleState } from '$lib/stores';
-	import { t } from '$lib/i18n';
+	import { articleState } from '#lib/stores/index.js';
+	import { t } from '#lib/i18n/index.js';
 	import {
 		rankNewspapers,
 		countExcludedNewspapers,
 		MEASURE_SCALES,
 		type RankingMeasure
-	} from '$lib/utils/newspaperRanking';
+	} from '#lib/utils/newspaperRanking.js';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
 	import ChartTypeToggle from './ChartTypeToggle.svelte';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
@@ -42,7 +42,7 @@
 		getAxisLineStyle,
 		getAxisLabelStyle,
 		getSplitLineStyle
-	} from '$lib/utils/chartTheme';
+	} from '#lib/utils/chartTheme.js';
 	import SmileIcon from '@lucide/svelte/icons/smile';
 	import PenLineIcon from '@lucide/svelte/icons/pen-line';
 	import CrosshairIcon from '@lucide/svelte/icons/crosshair';

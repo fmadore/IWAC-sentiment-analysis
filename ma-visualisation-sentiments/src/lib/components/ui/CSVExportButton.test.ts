@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, waitFor } from '@testing-library/svelte';
-import type { Article, ComparisonData } from '$lib/types/data';
-import { currentLanguage } from '$lib/i18n';
-import { downloadCSVFile } from '$lib/utils/csv';
+import type { Article, ComparisonData } from '#lib/types/data.js';
+import { currentLanguage } from '#lib/i18n/index.js';
+import { downloadCSVFile } from '#lib/utils/csv.js';
 import CSVExportButton from './CSVExportButton.svelte';
 import ComparisonCSVExportButton from './ComparisonCSVExportButton.svelte';
 
@@ -21,10 +21,10 @@ const mocks = vi.hoisted(() => ({
 	urlState: { view: 'table', dataset: 'luna', lang: 'fr', countries: ['Bénin'] }
 }));
 
-vi.mock('$lib/stores', () => mocks);
-vi.mock('$lib/stores/url/state.svelte', () => ({ getCurrentState: () => mocks.urlState }));
-vi.mock('$lib/utils/csv', async (importOriginal) => ({
-	...(await importOriginal<typeof import('$lib/utils/csv')>()),
+vi.mock('#lib/stores/index.js', () => mocks);
+vi.mock('#lib/stores/url/state.svelte.js', () => ({ getCurrentState: () => mocks.urlState }));
+vi.mock('#lib/utils/csv.js', async (importOriginal) => ({
+	...(await importOriginal<typeof import('#lib/utils/csv.js')>()),
 	downloadCSVFile: vi.fn()
 }));
 

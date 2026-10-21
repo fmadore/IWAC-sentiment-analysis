@@ -22,16 +22,16 @@
 -->
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import { viewOptionsState } from '$lib/stores/view-options.svelte';
-	import { t } from '$lib/i18n';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
+	import { t } from '#lib/i18n/index.js';
 	import {
 		datasetState,
 		arbiterV2Evaluations,
 		arbiterV2Legend,
 		loadJustifications,
 		justificationsOf
-	} from '$lib/stores';
-	import { SentimentBadge } from '$lib/components/common';
+	} from '#lib/stores/index.js';
+	import { SentimentBadge } from '#lib/components/common/index.js';
 	import {
 		ARBITER_V2_DIMENSIONS,
 		analysisValue,
@@ -39,9 +39,9 @@
 		resolvePreference,
 		type ArbiterV2Dimension,
 		type ArbiterV2Row
-	} from '$lib/utils/arbiterV2';
-	import { getConfidenceBadgeClass, getConfidenceLabel } from '$lib/utils/arbiter';
-	import type { ArbiterV2Preference, DatasetId } from '$lib/types/data';
+	} from '#lib/utils/arbiterV2.js';
+	import { getConfidenceBadgeClass, getConfidenceLabel } from '#lib/utils/arbiter.js';
+	import type { ArbiterV2Preference, DatasetId } from '#lib/types/data.js';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import SparklesIcon from '@lucide/svelte/icons/sparkles';
 	import CheckIcon from '@lucide/svelte/icons/check';

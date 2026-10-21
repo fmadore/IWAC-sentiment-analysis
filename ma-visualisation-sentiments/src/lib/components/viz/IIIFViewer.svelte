@@ -1,8 +1,8 @@
 <!-- Embedded IIIF document viewer using OpenSeadragon -->
 <script lang="ts">
 	import { tick } from 'svelte';
-	import { viewOptionsState } from '$lib/stores/view-options.svelte';
-	import { t } from '$lib/i18n';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
+	import { t } from '#lib/i18n/index.js';
 	import type OpenSeadragon from 'openseadragon';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';

@@ -14,17 +14,21 @@
 <script lang="ts">
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import Chart from './CitableChart.svelte';
-	import { num } from '$lib/i18n/utils';
-	import { init } from '$lib/utils/echartsSetup';
+	import { num } from '#lib/i18n/utils.js';
+	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	import { t, currentLanguage } from '$lib/i18n';
-	import { translateSentimentValue } from '$lib/i18n/utils';
-	import { getModelDisplayNames } from '$lib/utils/format';
-	import { tooltipPanel } from '$lib/utils/chartFormatters';
-	import { datasetState } from '$lib/stores';
-	import { buildLabelFlow, type AgreementDimension, type ConsensusRow } from '$lib/utils/consensus';
+	import { t, currentLanguage } from '#lib/i18n/index.js';
+	import { translateSentimentValue } from '#lib/i18n/utils.js';
+	import { getModelDisplayNames } from '#lib/utils/format.js';
+	import { tooltipPanel } from '#lib/utils/chartFormatters.js';
+	import { datasetState } from '#lib/stores/index.js';
+	import {
+		buildLabelFlow,
+		type AgreementDimension,
+		type ConsensusRow
+	} from '#lib/utils/consensus.js';
 	import {
 		polarityColors,
 		subjectivityColors,
@@ -32,7 +36,7 @@
 		chartColors,
 		getTitleStyle,
 		getTooltipConfig
-	} from '$lib/utils/chartTheme';
+	} from '#lib/utils/chartTheme.js';
 
 	interface LabelFlowChartProps {
 		rows: ConsensusRow[];

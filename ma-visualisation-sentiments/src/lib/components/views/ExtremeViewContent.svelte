@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
-	import KeywordFrequencyChart from '$lib/components/viz/KeywordFrequencyChart.svelte';
-	import { ChartCard } from '$lib/components/ui';
+	import type { ExtremeCategory, KeywordType } from '#lib/types/extremeAnalysis.js';
+	import KeywordFrequencyChart from '#lib/components/viz/KeywordFrequencyChart.svelte';
+	import { ChartCard } from '#lib/components/ui/index.js';
 
 	let {
 		selectedCategory,

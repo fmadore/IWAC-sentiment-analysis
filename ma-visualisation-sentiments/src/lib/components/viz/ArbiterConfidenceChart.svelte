@@ -5,9 +5,9 @@
   as a donut chart via the shared ArbiterPieChart.
 -->
 <script lang="ts">
-	import { arbiterEvaluations } from '$lib/stores';
-	import { t } from '$lib/i18n';
-	import { arbiterConfidenceColors } from '$lib/utils/chartTheme';
+	import { arbiterEvaluations } from '#lib/stores/index.js';
+	import { t } from '#lib/i18n/index.js';
+	import { arbiterConfidenceColors } from '#lib/utils/chartTheme.js';
 	import ArbiterPieChart from './ArbiterPieChart.svelte';
 
 	// Compute confidence distribution

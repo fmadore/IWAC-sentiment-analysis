@@ -4,8 +4,8 @@
  * Type definitions for URL state management.
  */
 
-import type { ModelPair } from '$lib/types/data';
-import type { Language } from '$lib/i18n';
+import type { ModelPair } from '#lib/types/data.js';
+import type { Language } from '#lib/i18n/index.js';
 import type { ValidView, ValidDataset } from './constants';
 
 /**

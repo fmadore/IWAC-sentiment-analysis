@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, it, expect } from 'vitest';
-import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
+import { NOT_ANNOTATED } from '#lib/domain/sentimentContract.js';
 import {
 	CENTRALITY_SLUGS,
 	NOT_ANNOTATED_SLUG,

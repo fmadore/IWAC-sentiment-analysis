@@ -7,7 +7,7 @@
  * the store module (agreement.svelte.ts) only wires these into runes.
  */
 
-import type { Article } from '$lib/types/data';
+import type { Article } from '#lib/types/data.js';
 import type { LabelPair } from './agreement';
 
 /** The three analysis dimensions, with their ordered category scales. */

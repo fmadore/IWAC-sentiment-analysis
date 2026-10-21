@@ -1,8 +1,8 @@
-import { DATA_RELEASE } from '$lib/data/release';
-import { generationOf } from '$lib/domain/sentimentContract';
-import { buildURLSearchParams } from '$lib/stores/url/builder.svelte';
-import { getCurrentState } from '$lib/stores/url/state.svelte';
-import type { DatasetId } from '$lib/types/data';
+import { DATA_RELEASE } from '#lib/data/release.js';
+import { generationOf } from '#lib/domain/sentimentContract.js';
+import { buildURLSearchParams } from '#lib/stores/url/builder.svelte.js';
+import { getCurrentState } from '#lib/stores/url/state.svelte.js';
+import type { DatasetId } from '#lib/types/data.js';
 import { toCSV, type CSVCell } from './csv';
 
 /** Created synchronously at click time, before any lazy prose requests start. */

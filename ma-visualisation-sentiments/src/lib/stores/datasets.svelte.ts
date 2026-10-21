@@ -10,7 +10,7 @@
  * generation flag and a model id to disagree.
  */
 
-import type { DatasetId, DatasetOption, GenerationId, ModelPair } from '$lib/types/data';
+import type { DatasetId, DatasetOption, GenerationId, ModelPair } from '#lib/types/data.js';
 import {
 	CURRENT_GENERATION,
 	datasetIdsOf,
@@ -21,7 +21,7 @@ import {
 	isDatasetId,
 	isModelPair,
 	pairIdsOf
-} from '$lib/domain/sentimentContract';
+} from '#lib/domain/sentimentContract.js';
 
 // ============================================
 // Dataset Configuration (Static)
@@ -35,7 +35,7 @@ const DATASETS: DatasetOption[] = [
 		generation: 'v1',
 		name: 'ChatGPT',
 		file: '/data/iwac_sentiment_chatgpt.json',
-		logo: '/logo/ChatGPT_logo.svg',
+		logo: 'logo/ChatGPT_logo.svg',
 		color: '#10a37f'
 	},
 	{
@@ -43,7 +43,7 @@ const DATASETS: DatasetOption[] = [
 		generation: 'v1',
 		name: 'Gemini',
 		file: '/data/iwac_sentiment_gemini.json',
-		logo: '/logo/Gemini_logo.svg',
+		logo: 'logo/Gemini_logo.svg',
 		color: '#8e75b2'
 	},
 	{
@@ -51,7 +51,7 @@ const DATASETS: DatasetOption[] = [
 		generation: 'v1',
 		name: 'Mistral',
 		file: '/data/iwac_sentiment_mistral.json',
-		logo: '/logo/Mistral_AI_logo.svg',
+		logo: 'logo/Mistral_AI_logo.svg',
 		color: '#F54E42'
 	},
 	{
@@ -59,7 +59,7 @@ const DATASETS: DatasetOption[] = [
 		generation: 'v2',
 		name: 'GPT-5.6 Luna',
 		file: '/data/iwac_sentiment_luna.json',
-		logo: '/logo/ChatGPT_logo.svg',
+		logo: 'logo/ChatGPT_logo.svg',
 		color: '#10a37f'
 	},
 	{
@@ -67,7 +67,7 @@ const DATASETS: DatasetOption[] = [
 		generation: 'v2',
 		name: 'Mistral Small 4',
 		file: '/data/iwac_sentiment_mistral-small.json',
-		logo: '/logo/Mistral_AI_logo.svg',
+		logo: 'logo/Mistral_AI_logo.svg',
 		color: '#F54E42'
 	},
 	{
@@ -75,7 +75,7 @@ const DATASETS: DatasetOption[] = [
 		generation: 'v2',
 		name: 'DeepSeek v4 Flash',
 		file: '/data/iwac_sentiment_deepseek.json',
-		logo: '/logo/DeepSeek_logo.svg',
+		logo: 'logo/DeepSeek_logo.svg',
 		color: '#4d6bfe'
 	},
 	{
@@ -83,7 +83,7 @@ const DATASETS: DatasetOption[] = [
 		generation: 'v2',
 		name: 'Gemma 4 31B',
 		file: '/data/iwac_sentiment_gemma.json',
-		logo: '/logo/Gemma_logo.png',
+		logo: 'logo/Gemma_logo.png',
 		color: '#338dff'
 	},
 	{
@@ -91,7 +91,7 @@ const DATASETS: DatasetOption[] = [
 		generation: 'v2',
 		name: 'Qwen3.8 27B',
 		file: '/data/iwac_sentiment_qwen.json',
-		logo: '/logo/Qwen_logo.png',
+		logo: 'logo/Qwen_logo.png',
 		color: '#615ced'
 	}
 ];

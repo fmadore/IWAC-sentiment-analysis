@@ -4,14 +4,14 @@
  * Svelte 5 runes-based state for pending selections and current URL state.
  */
 
-import { currentLanguage } from '$lib/i18n';
+import { currentLanguage } from '#lib/i18n/index.js';
 import { get } from 'svelte/store';
 import { analysisState } from '../analysis.svelte';
 import { uiState } from '../ui.svelte';
 import type { URLState, PendingArticleSelection } from './types';
 
 // Import directly from individual store modules to avoid circular dependencies
-// (importing from '$lib/stores' would create a cycle since stores/index.ts re-exports from url/)
+// (importing from '#lib/stores/index.js' would create a cycle since stores/index.ts re-exports from url/)
 import { filterState } from '../filters.svelte';
 import { datasetState } from '../datasets.svelte';
 import { articleState } from '../articles.svelte';

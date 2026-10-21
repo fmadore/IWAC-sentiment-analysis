@@ -1,8 +1,8 @@
 <!-- Shared prompt modal shell used by AnalysisInfo and ArbiterMethodology -->
 <script lang="ts">
-	import CopyLinkButton from '$lib/components/ui/CopyLinkButton.svelte';
+	import CopyLinkButton from '#lib/components/ui/CopyLinkButton.svelte';
 	import type { Snippet } from 'svelte';
-	import { t } from '$lib/i18n';
+	import { t } from '#lib/i18n/index.js';
 
 	interface PromptModalProps {
 		open: boolean;

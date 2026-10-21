@@ -1,9 +1,9 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, render } from '@testing-library/svelte';
-import type { Article } from '$lib/types/data';
+import type { Article } from '#lib/types/data.js';
 import ArticleDetail from './ArticleDetail.svelte';
 
-vi.mock('$lib/stores', () => ({
+vi.mock('#lib/stores/index.js', () => ({
 	loadJustifications: vi.fn(async () => {}),
 	justificationsOf: () => ({ polarity: null, subjectivity: null, centrality: null })
 }));

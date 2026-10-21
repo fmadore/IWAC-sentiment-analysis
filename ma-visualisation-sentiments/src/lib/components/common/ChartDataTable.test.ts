@@ -11,8 +11,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/svelte';
 import { afterEach } from 'vitest';
 import ChartDataTable from './ChartDataTable.svelte';
-import { currentLanguage } from '$lib/i18n';
-import * as csv from '$lib/utils/csv';
+import { currentLanguage } from '#lib/i18n/index.js';
+import * as csv from '#lib/utils/csv.js';
 
 afterEach(() => {
 	cleanup();

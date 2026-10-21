@@ -19,12 +19,12 @@
   effect on. So the picker renders only in pair scope.
 -->
 <script lang="ts">
-	import { datasetReadiness } from '$lib/utils/datasetReadiness';
-	import { getPairModels } from '$lib/domain/sentimentContract';
+	import { datasetReadiness } from '#lib/utils/datasetReadiness.js';
+	import { getPairModels } from '#lib/domain/sentimentContract.js';
 	import DatasetLoadError from '../common/DatasetLoadError.svelte';
-	import { analysisState } from '$lib/stores/analysis.svelte';
-	import { datasetState, articleState } from '$lib/stores';
-	import { dec, num, pct } from '$lib/i18n/utils';
+	import { analysisState } from '#lib/stores/analysis.svelte.js';
+	import { datasetState, articleState } from '#lib/stores/index.js';
+	import { dec, num, pct } from '#lib/i18n/utils.js';
 	import {
 		pairAgreement,
 		panelAgreement,
@@ -32,20 +32,20 @@
 		AGREEMENT_DIMENSIONS,
 		DIMENSION_CATEGORIES,
 		type AgreementDimension
-	} from '$lib/stores/agreement.svelte';
-	import { interpretKappa } from '$lib/utils/agreement';
-	import { getPairModelNames } from '$lib/types/data';
-	import { datasetIdsOf } from '$lib/domain/sentimentContract';
-	import { t } from '$lib/i18n';
-	import { StatCard, StatCardGrid, SectionHead } from '$lib/components/common';
-	import ModelPairPicker from '$lib/components/ui/ModelPairPicker.svelte';
-	import { CountryFilter, JournalFilter } from '$lib/components/filters';
-	import { AgreementMatrix, ModelCalibrationChart } from '$lib/components/viz';
-	import ChartTypeToggle from '$lib/components/viz/ChartTypeToggle.svelte';
+	} from '#lib/stores/agreement.svelte.js';
+	import { interpretKappa } from '#lib/utils/agreement.js';
+	import { getPairModelNames } from '#lib/types/data.js';
+	import { datasetIdsOf } from '#lib/domain/sentimentContract.js';
+	import { t } from '#lib/i18n/index.js';
+	import { StatCard, StatCardGrid, SectionHead } from '#lib/components/common/index.js';
+	import ModelPairPicker from '#lib/components/ui/ModelPairPicker.svelte';
+	import { CountryFilter, JournalFilter } from '#lib/components/filters/index.js';
+	import { AgreementMatrix, ModelCalibrationChart } from '#lib/components/viz/index.js';
+	import ChartTypeToggle from '#lib/components/viz/ChartTypeToggle.svelte';
 	import ConsensusSection from './ConsensusSection.svelte';
 	import ModelAgreementOverview from '../viz/ModelAgreementOverview.svelte';
-	import ChartCard from '$lib/components/ui/ChartCard.svelte';
-	import LoadingState from '$lib/components/common/LoadingState.svelte';
+	import ChartCard from '#lib/components/ui/ChartCard.svelte';
+	import LoadingState from '#lib/components/common/LoadingState.svelte';
 	import TargetIcon from '@lucide/svelte/icons/target';
 	import ScaleIcon from '@lucide/svelte/icons/scale';
 	import LayersIcon from '@lucide/svelte/icons/layers';

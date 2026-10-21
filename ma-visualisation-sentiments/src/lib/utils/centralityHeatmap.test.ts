@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { CENTRALITY_ORDER, type CentralityValue } from '$lib/domain/sentimentContract';
-import type { Article } from '$lib/types/data';
+import { CENTRALITY_ORDER, type CentralityValue } from '#lib/domain/sentimentContract.js';
+import type { Article } from '#lib/types/data.js';
 import {
 	aggregateCentralityHeatmap,
 	HEATMAP_CENTRALITY_MIN,

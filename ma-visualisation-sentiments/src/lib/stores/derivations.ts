@@ -18,9 +18,9 @@ import type {
 	DiscrepancyFilter,
 	ModelPair,
 	SentimentAnalysis
-} from '$lib/types/data';
-import { getModelsFromPair } from '$lib/types/data';
-import { getJournalName } from '$lib/utils/format';
+} from '#lib/types/data.js';
+import { getModelsFromPair } from '#lib/types/data.js';
+import { getJournalName } from '#lib/utils/format.js';
 import {
 	CENTRALITY_NON_COMPARABLE,
 	CENTRALITY_ORDER,
@@ -30,7 +30,7 @@ import {
 	POLARITY_VALENCE_BANDS,
 	SIGNIFICANT_CONFLICT_THRESHOLD,
 	SIGNIFICANT_SPREAD_THRESHOLD
-} from '$lib/domain/sentimentContract';
+} from '#lib/domain/sentimentContract.js';
 
 // ============================================
 // Score Mappings

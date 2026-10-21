@@ -10,13 +10,13 @@
   different page.
 -->
 <script lang="ts">
-	import { t } from '$lib/i18n';
-	import { fmtDate } from '$lib/i18n/utils';
-	import { getArticleUrl } from '$lib/utils/format';
-	import { datasetIdsOf } from '$lib/domain/sentimentContract';
-	import { hasPolarityValenceFlip } from '$lib/stores/derivations';
-	import type { ArbiterV2Row } from '$lib/utils/arbiterV2';
-	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
+	import { t } from '#lib/i18n/index.js';
+	import { fmtDate } from '#lib/i18n/utils.js';
+	import { getArticleUrl } from '#lib/utils/format.js';
+	import { datasetIdsOf } from '#lib/domain/sentimentContract.js';
+	import { hasPolarityValenceFlip } from '#lib/stores/derivations.js';
+	import type { ArbiterV2Row } from '#lib/utils/arbiterV2.js';
+	import IIIFViewer from '#lib/components/viz/IIIFViewer.svelte';
 	import FullScreenModal from './FullScreenModal.svelte';
 	import ArbiterV2VerdictPanel from './ArbiterV2VerdictPanel.svelte';
 	import ScaleIcon from '@lucide/svelte/icons/scale';

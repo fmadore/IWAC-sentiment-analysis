@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { datasetState } from '$lib/stores';
-	import { t } from '$lib/i18n';
-	import { base } from '$app/paths';
+	import { datasetState } from '#lib/stores/index.js';
+	import { t } from '#lib/i18n/index.js';
+	import { asset } from '$app/paths';
 	import GitCompareIcon from '@lucide/svelte/icons/git-compare';
 
 	let currentDataset = $derived(datasetState.available.find((d) => d.id === datasetState.selected));
@@ -51,7 +51,7 @@
 		{#if showIcon}
 			{#if currentDataset.logo}
 				<img
-					src="{base}{currentDataset.logo}"
+					src={asset(currentDataset.logo)}
 					alt="{currentDataset.name} logo"
 					class="dataset-logo"
 					style="width: {logoSizes[size]}px; height: {logoSizes[size]}px;"

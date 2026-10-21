@@ -15,7 +15,7 @@
  * opened.
  */
 
-import type { DatasetId, GenerationId, ModelPair, ViewId } from '$lib/types/data';
+import type { DatasetId, GenerationId, ModelPair, ViewId } from '#lib/types/data.js';
 
 export type DataRequirement =
 	/** The selected model's scores, in the foreground, then background prefetch. */

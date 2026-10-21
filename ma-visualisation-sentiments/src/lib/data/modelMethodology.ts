@@ -1,10 +1,11 @@
-import type { Language } from '$lib/i18n';
-import type { DatasetId } from '$lib/domain/sentimentContract';
+import type { Language } from '#lib/i18n/index.js';
+import type { DatasetId } from '#lib/domain/sentimentContract.js';
+import type { AssetPath } from '$app/types';
 type LocalizedText = Record<Language, string>;
 
 interface ModelInfo {
 	id: DatasetId;
-	logo: string;
+	logo: AssetPath;
 	logoAlt: string;
 	/** Name shown on the comparison-grid card */
 	cardName: string;
@@ -36,7 +37,7 @@ interface ModelInfo {
 export const MODELS: ModelInfo[] = [
 	{
 		id: 'chatgpt',
-		logo: '/logo/ChatGPT_logo.svg',
+		logo: 'logo/ChatGPT_logo.svg',
 		logoAlt: 'ChatGPT logo',
 		cardName: 'ChatGPT (GPT-5 mini)',
 		badgeName: 'GPT-5 mini',
@@ -56,7 +57,7 @@ export const MODELS: ModelInfo[] = [
 	},
 	{
 		id: 'gemini',
-		logo: '/logo/Gemini_logo.svg',
+		logo: 'logo/Gemini_logo.svg',
 		logoAlt: 'Gemini logo',
 		cardName: 'Gemini 3 Flash',
 		badgeName: 'Gemini 3 Flash',
@@ -76,7 +77,7 @@ export const MODELS: ModelInfo[] = [
 	},
 	{
 		id: 'mistral',
-		logo: '/logo/Mistral_AI_logo.svg',
+		logo: 'logo/Mistral_AI_logo.svg',
 		logoAlt: 'Mistral logo',
 		cardName: 'Ministral 3 14B',
 		badgeName: 'Ministral 3 14B',
@@ -96,7 +97,7 @@ export const MODELS: ModelInfo[] = [
 	},
 	{
 		id: 'luna',
-		logo: '/logo/ChatGPT_logo.svg',
+		logo: 'logo/ChatGPT_logo.svg',
 		logoAlt: 'OpenAI logo',
 		cardName: 'GPT-5.6 Luna',
 		badgeName: 'GPT-5.6 Luna',
@@ -116,7 +117,7 @@ export const MODELS: ModelInfo[] = [
 	},
 	{
 		id: 'mistral-small',
-		logo: '/logo/Mistral_AI_logo.svg',
+		logo: 'logo/Mistral_AI_logo.svg',
 		logoAlt: 'Mistral logo',
 		cardName: 'Mistral Small 4 (2603)',
 		badgeName: 'Mistral Small 4',
@@ -136,7 +137,7 @@ export const MODELS: ModelInfo[] = [
 	},
 	{
 		id: 'deepseek',
-		logo: '/logo/DeepSeek_logo.svg',
+		logo: 'logo/DeepSeek_logo.svg',
 		logoAlt: 'DeepSeek logo',
 		cardName: 'DeepSeek v4 Flash (0731)',
 		badgeName: 'DeepSeek v4 Flash',
@@ -156,7 +157,7 @@ export const MODELS: ModelInfo[] = [
 	},
 	{
 		id: 'gemma',
-		logo: '/logo/Gemma_logo.png',
+		logo: 'logo/Gemma_logo.png',
 		logoAlt: 'Gemma logo',
 		cardName: 'Gemma 4 31B',
 		badgeName: 'Gemma 4 31B',
@@ -180,7 +181,7 @@ export const MODELS: ModelInfo[] = [
 	},
 	{
 		id: 'qwen',
-		logo: '/logo/Qwen_logo.png',
+		logo: 'logo/Qwen_logo.png',
 		logoAlt: 'Qwen logo',
 		cardName: 'Qwen3.8 27B',
 		badgeName: 'Qwen3.8 27B',

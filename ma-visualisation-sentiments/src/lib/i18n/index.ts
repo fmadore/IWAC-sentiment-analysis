@@ -1,8 +1,8 @@
 import { writable, derived } from 'svelte/store';
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 import type { Translations } from './types.js';
 import { fr } from './fr.js';
-import { readStorage, writeStorage } from '$lib/utils/safeStorage';
+import { readStorage, writeStorage } from '#lib/utils/safeStorage.js';
 
 // Available languages
 export const LANGUAGES = {

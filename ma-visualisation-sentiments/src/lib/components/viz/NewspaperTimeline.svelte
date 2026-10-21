@@ -1,14 +1,14 @@
 <script lang="ts">
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
-	import { t } from '$lib/i18n';
-	import { num } from '$lib/i18n/utils';
-	import { articleState } from '$lib/stores/articles.svelte';
-	import { datasetState } from '$lib/stores/datasets.svelte';
-	import { filterState } from '$lib/stores/filters.svelte';
-	import { viewOptionsState } from '$lib/stores/view-options.svelte';
-	import { corpusSlice, newspaperTimeline } from '$lib/utils/researchTimeline';
-	import { init } from '$lib/utils/echartsSetup';
+	import { t } from '#lib/i18n/index.js';
+	import { num } from '#lib/i18n/utils.js';
+	import { articleState } from '#lib/stores/articles.svelte.js';
+	import { datasetState } from '#lib/stores/datasets.svelte.js';
+	import { filterState } from '#lib/stores/filters.svelte.js';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
+	import { corpusSlice, newspaperTimeline } from '#lib/utils/researchTimeline.js';
+	import { init } from '#lib/utils/echartsSetup.js';
 	import {
 		chartColors,
 		seriesColorPalette,
@@ -16,7 +16,7 @@
 		getAxisLineStyle,
 		getTooltipConfig,
 		getVisualMapConfig
-	} from '$lib/utils/chartTheme';
+	} from '#lib/utils/chartTheme.js';
 	import Chart from './CitableChart.svelte';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import SectionHead from '../common/SectionHead.svelte';

@@ -6,10 +6,10 @@
 -->
 <script lang="ts">
 	import TrendsChart from './TrendsChart.svelte';
-	import { t, currentLanguage } from '$lib/i18n';
-	import { getSentimentLabels } from '$lib/i18n/utils';
-	import { getSubjectivityLabel } from '$lib/utils/chartAggregators';
-	import { subjectivityColors } from '$lib/utils/chartTheme';
+	import { t, currentLanguage } from '#lib/i18n/index.js';
+	import { getSentimentLabels } from '#lib/i18n/utils.js';
+	import { getSubjectivityLabel } from '#lib/utils/chartAggregators.js';
+	import { subjectivityColors } from '#lib/utils/chartTheme.js';
 
 	// French labels for data lookup, in score order (1-5, no N/A)
 	const frenchSubjectivityLabels = [

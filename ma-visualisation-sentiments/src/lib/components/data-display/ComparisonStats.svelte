@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { viewOptionsState } from '$lib/stores/view-options.svelte';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
 	import InfoIcon from '@lucide/svelte/icons/info';
-	import { comparisonState, arbiterStatistics, datasetState } from '$lib/stores';
-	import { dec, num, pct } from '$lib/i18n/utils';
-	import { getPairModelNames } from '$lib/types/data';
-	import { t } from '$lib/i18n';
+	import { comparisonState, arbiterStatistics, datasetState } from '#lib/stores/index.js';
+	import { dec, num, pct } from '#lib/i18n/utils.js';
+	import { getPairModelNames } from '#lib/types/data.js';
+	import { t } from '#lib/i18n/index.js';
 	import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
 	import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
 	import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';

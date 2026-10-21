@@ -14,16 +14,16 @@
   is not doing its job.
 -->
 <script lang="ts">
-	import { viewOptionsState } from '$lib/stores/view-options.svelte';
-	import { t } from '$lib/i18n';
-	import { AccordionItem, PromptModal } from '$lib/components/common';
-	import CollapsibleMethodologyCard from '$lib/components/common/CollapsibleMethodologyCard.svelte';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
+	import { t } from '#lib/i18n/index.js';
+	import { AccordionItem, PromptModal } from '#lib/components/common/index.js';
+	import CollapsibleMethodologyCard from '#lib/components/common/CollapsibleMethodologyCard.svelte';
 	import SentimentScaleList, {
 		type ScaleItem
-	} from '$lib/components/common/SentimentScaleList.svelte';
-	import { loadPromptTexts, promptTexts } from '$lib/data/promptTexts.svelte';
-	import { SENTIMENT_CONTRACT_V2 } from '$lib/domain/sentimentContract';
-	import { createAccordion } from '$lib/utils/accordion.svelte';
+	} from '#lib/components/common/SentimentScaleList.svelte';
+	import { loadPromptTexts, promptTexts } from '#lib/data/promptTexts.svelte.js';
+	import { SENTIMENT_CONTRACT_V2 } from '#lib/domain/sentimentContract.js';
+	import { createAccordion } from '#lib/utils/accordion.svelte.js';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import EyeOffIcon from '@lucide/svelte/icons/eye-off';
 	import FileTextIcon from '@lucide/svelte/icons/file-text';

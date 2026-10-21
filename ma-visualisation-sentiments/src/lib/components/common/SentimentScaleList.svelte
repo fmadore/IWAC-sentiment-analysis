@@ -17,7 +17,7 @@
   <SentimentScaleList items={[{ variant: 'polarity-positive', badge: 'Positif', description: '…' }]} />
 -->
 <script lang="ts" module>
-	import type { SentimentVariant } from '$lib/utils/sentimentTokens';
+	import type { SentimentVariant } from '#lib/utils/sentimentTokens.js';
 
 	export interface ScaleItem {
 		/** Which scale value this row describes; selects its colours */
@@ -32,7 +32,7 @@
 </script>
 
 <script lang="ts">
-	import { variantAttributes } from '$lib/utils/sentimentTokens';
+	import { variantAttributes } from '#lib/utils/sentimentTokens.js';
 
 	interface SentimentScaleListProps {
 		items: ScaleItem[];

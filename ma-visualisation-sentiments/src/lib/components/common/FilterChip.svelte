@@ -19,7 +19,7 @@
 		isSentimentVariant,
 		variantAttributes,
 		type SentimentVariant
-	} from '$lib/utils/sentimentTokens';
+	} from '#lib/utils/sentimentTokens.js';
 
 	/** Non-sentiment variants; they set the same three palette variables locally. */
 	type UtilityVariant = 'comparison' | 'warning' | 'default';

@@ -18,10 +18,11 @@ export default defineConfig({
 		// server build and fails with "mount(...) is not available on the server",
 		// so no component can be tested at all.
 		conditions: ['browser'],
+		// `#lib` needs no alias: it is a package.json subpath import, which Vite
+		// resolves natively.
 		alias: {
-			$lib: resolve('./src/lib'),
 			'$app/paths': resolve('./src/mocks/app-paths.ts'),
-			'$app/environment': resolve('./src/mocks/app-environment.ts'),
+			'$app/env': resolve('./src/mocks/app-env.ts'),
 			'$app/navigation': resolve('./src/mocks/app-navigation.ts'),
 			'$app/state': resolve('./src/mocks/app-state.ts')
 		}

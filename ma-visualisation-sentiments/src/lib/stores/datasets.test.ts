@@ -7,7 +7,7 @@
  * - getById / current helpers
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { datasetState } from '$lib/stores/datasets.svelte';
+import { datasetState } from '#lib/stores/datasets.svelte.js';
 
 beforeEach(() => {
 	datasetState.selected = 'chatgpt';

@@ -37,7 +37,9 @@
 		"@eslint/compat": "^2.1.1",
 		"@eslint/js": "^10.0.1",
 		"@playwright/test": "^1.64.1",
-		"@sveltejs/adapter-static": "^3.0.10",
+		"@sveltejs/adapter-static": "^4.0.0",
+		"@sveltejs/kit": "^3.1.0",
+		"@sveltejs/load-config": "^0.2.3",
 		"@sveltejs/vite-plugin-svelte": "^7.3.1",
 		"@tailwindcss/vite": "^4.3.3",
 		"@testing-library/svelte": "^5.4.2",
@@ -72,7 +74,6 @@
 		"corpus-analysis"
 	],
 	"overrides": {
-		"cookie": "^0.7.0",
 		"picomatch@<2.3.2": "^2.3.2",
 		"@tailwindcss/vite": {
 			"vite": "$vite"
@@ -83,12 +84,14 @@
 	},
 	"dependencies": {
 		"@lucide/svelte": "^1.61.0",
-		"@sveltejs/kit": "^2.70.3",
 		"echarts": "^6.1.0",
 		"esm-env": "^1.2.2",
 		"maplibre-gl": "^6.15.0",
 		"openseadragon": "^6.1.1",
 		"svelte-echarts": "^1.0.0",
 		"svelte-maplibre-gl": "^2.2.1"
+	},
+	"imports": {
+		"#lib/*": "./src/lib/*"
 	}
 }

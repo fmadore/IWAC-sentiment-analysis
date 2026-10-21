@@ -1,6 +1,6 @@
-import { dataUrl } from '$lib/data/release';
-import { ABSENT, type Loaded } from '$lib/data/resource.svelte';
-import type { Article, DatasetId, SentimentAnalysis } from '$lib/types/data';
+import { dataUrl } from '#lib/data/release.js';
+import { ABSENT, type Loaded } from '#lib/data/resource.svelte.js';
+import type { Article, DatasetId, SentimentAnalysis } from '#lib/types/data.js';
 import {
 	parseBaseArticles,
 	parseSentimentFile,

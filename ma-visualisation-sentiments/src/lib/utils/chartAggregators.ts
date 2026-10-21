@@ -5,9 +5,9 @@
  * Extracted from the chart components so the grouping logic is unit-tested
  * once instead of being copy-pasted into each `$derived.by` block.
  */
-import type { Article } from '$lib/types/data';
-import { getJournalName } from '$lib/utils/format';
-import { publicationDateToHijri } from '$lib/utils/hijri';
+import type { Article } from '#lib/types/data.js';
+import { getJournalName } from '#lib/utils/format.js';
+import { publicationDateToHijri } from '#lib/utils/hijri.js';
 
 export interface JournalDimensionAggregation {
 	/** journal -> { frenchLabel -> count }, every label pre-seeded to 0 */

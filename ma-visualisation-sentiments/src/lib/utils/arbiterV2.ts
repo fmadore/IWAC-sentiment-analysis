@@ -17,10 +17,10 @@ import type {
 	Article,
 	DatasetId,
 	SentimentAnalysis
-} from '$lib/types/data';
-import { ARBITER_BLIND_LABELS } from '$lib/types/data';
-import { modelDisplayName } from '$lib/domain/sentimentContract';
-import { getJournalName } from '$lib/utils/format';
+} from '#lib/types/data.js';
+import { ARBITER_BLIND_LABELS } from '#lib/types/data.js';
+import { modelDisplayName } from '#lib/domain/sentimentContract.js';
+import { getJournalName } from '#lib/utils/format.js';
 
 /** The three dimensions every evaluation scores, in display order. */
 export const ARBITER_V2_DIMENSIONS = ['polarity', 'subjectivity', 'centrality'] as const;

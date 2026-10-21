@@ -22,11 +22,11 @@
   same kind of number.
 -->
 <script lang="ts">
-	import type { ArbiterV2Statistics } from '$lib/stores';
-	import { num, pct } from '$lib/i18n/utils';
-	import { datasetState } from '$lib/stores';
-	import { t } from '$lib/i18n';
-	import { base } from '$app/paths';
+	import type { ArbiterV2Statistics } from '#lib/stores/index.js';
+	import { num, pct } from '#lib/i18n/utils.js';
+	import { datasetState } from '#lib/stores/index.js';
+	import { t } from '#lib/i18n/index.js';
+	import { asset } from '$app/paths';
 	import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
 	import ScaleIcon from '@lucide/svelte/icons/scale';
 	import CircleSlashIcon from '@lucide/svelte/icons/circle-slash';
@@ -65,7 +65,7 @@
 		<div class="stat-card">
 			<div class="stat-icon model" style="--model-color: {dataset?.color ?? 'currentColor'}">
 				{#if dataset?.logo}
-					<img src="{base}{dataset.logo}" alt="" class="model-logo" />
+					<img src={asset(dataset.logo)} alt="" class="model-logo" />
 				{/if}
 			</div>
 			<div class="stat-content">

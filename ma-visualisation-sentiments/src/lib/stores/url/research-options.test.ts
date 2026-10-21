@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import type { ViewId } from '$lib/types/data';
+import type { ViewId } from '#lib/types/data.js';
 import { defaultViewOptions, viewOptionsState, type ViewOptions } from '../view-options.svelte';
 import { applyURLState } from './actions.svelte';
 import { buildURLSearchParams } from './builder.svelte';

@@ -10,7 +10,7 @@
  * a parameter so this module never subscribes to stores.
  */
 
-import type { Translations } from '$lib/i18n/types';
+import type { Translations } from '#lib/i18n/types.js';
 
 /** Sort weight for overall verdicts (higher = model A preferred). */
 export const VERDICT_ORDER: Record<string, number> = {

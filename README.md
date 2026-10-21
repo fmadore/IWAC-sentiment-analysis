@@ -254,7 +254,7 @@ Two repo-level helpers run against the root `.venv`:
 - **`src/lib/domain/sentimentContract.ts`** — the dual-generation registry, with import-time invariants for id collisions, pair membership, shared scales and shard counts.
 - **`data-preprocess/iwac_preprocess/`** — importable package split into the per-generation contract, revision-pinned source loading, discrepancy rules, recoverable generation publication, panel candidate selection and prompt construction, atomic serialisation, v1 cache reconciliation and the durable v2 cache lifecycle (`arbiter_lifecycle.py`). `shared.py` remains a compatibility facade for the command-line scripts.
 
-Built with Svelte 5 (runes), SvelteKit 2 + `adapter-static`, TypeScript in strict mode, Tailwind CSS v4, ECharts 6, MapLibre GL v6, and Vite 8 (Rolldown). The design system is repository-owned: CSS tokens plus reusable Svelte controls, with automated token and class checks.
+Built with Svelte 5 (runes), SvelteKit 3 + `adapter-static`, TypeScript in strict mode, Tailwind CSS v4, ECharts 6, MapLibre GL v6, and Vite 8 (Rolldown). The design system is repository-owned: CSS tokens plus reusable Svelte controls, with automated token and class checks.
 
 ### Performance
 

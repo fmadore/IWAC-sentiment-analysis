@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, waitFor } from '@testing-library/svelte';
 import { tick } from 'svelte';
 import IIIFViewer from './IIIFViewer.svelte';
-import { viewOptionsState } from '$lib/stores/view-options.svelte';
-import { currentLanguage } from '$lib/i18n';
+import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
+import { currentLanguage } from '#lib/i18n/index.js';
 
 const { openSeadragon } = vi.hoisted(() => ({ openSeadragon: vi.fn() }));
 vi.mock('openseadragon', () => ({ default: openSeadragon }));

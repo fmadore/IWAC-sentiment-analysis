@@ -1,6 +1,6 @@
 // Guards the store layering convention: no circular imports inside
 // src/lib/stores. The barrel (index.ts) re-exports every store, so a store
-// importing './index' (or the '$lib/stores' alias) is an instant cycle that
+// importing './index' (or '#lib/stores/index.js') is an instant cycle that
 // only keeps working by accident of ESM live bindings. eslint-plugin-import-x
 // can't trace .svelte.ts modules, hence this dedicated check (run via
 // `npm run lint`).
@@ -21,18 +21,20 @@ function collect(dir) {
 	return out;
 }
 
-/** Resolve a relative or $lib/stores import specifier to a file in the graph */
+/** Resolve a relative or #lib/stores import specifier to a file in the graph */
 function resolveSpecifier(fromFile, spec) {
 	let base;
 	if (spec.startsWith('.')) {
 		base = resolve(dirname(fromFile), spec);
-	} else if (spec === '$lib/stores' || spec.startsWith('$lib/stores/')) {
-		base = resolve(storesDir, spec === '$lib/stores' ? '.' : spec.slice('$lib/stores/'.length));
+	} else if (spec.startsWith('#lib/stores/')) {
+		base = resolve(storesDir, spec.slice('#lib/stores/'.length));
 	} else {
 		return null; // external module — out of scope
 	}
 	for (const candidate of [
 		base,
+		// `#lib` specifiers name the emitted `.js`; the source is `.ts`
+		base.replace(/\.js$/, '.ts'),
 		`${base}.ts`,
 		`${base}.svelte.ts`,
 		join(base, 'index.ts'),

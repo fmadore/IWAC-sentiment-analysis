@@ -1,15 +1,15 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { render, fireEvent, cleanup } from '@testing-library/svelte';
 import { tick } from 'svelte';
-import { currentLanguage } from '$lib/i18n';
+import { currentLanguage } from '#lib/i18n/index.js';
 import DimensionDistributionChart from './DimensionDistributionChart.svelte';
-import type { Article } from '$lib/types/data';
+import type { Article } from '#lib/types/data.js';
 
 vi.mock('svelte-echarts', async () => ({
 	Chart: (await import('../../../mocks/echarts-chart-stub.svelte')).default
 }));
-vi.mock('$lib/utils/echartsSetup', () => ({ init: vi.fn() }));
-vi.mock('$lib/stores', () => ({
+vi.mock('#lib/utils/echartsSetup.js', () => ({ init: vi.fn() }));
+vi.mock('#lib/stores/index.js', () => ({
 	articleState: {
 		filtered: [
 			{ 'o:id': 1, journal_source: 'A', publication_date: '2000-01-01' },

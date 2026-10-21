@@ -1,21 +1,21 @@
 <script lang="ts">
-	import { viewOptionsState, paginationURLState } from '$lib/stores/view-options.svelte';
-	import { comparisonState, datasetState } from '$lib/stores';
-	import { num, fmtDate } from '$lib/i18n/utils';
-	import { t } from '$lib/i18n';
-	import { getJournalName } from '$lib/utils/format';
-	import { getModelDisplayName } from '$lib/utils/format';
-	import { discrepancyAttributes, formatDiff } from '$lib/utils/discrepancy';
-	import type { ComparisonData } from '$lib/types/data';
-	import { nextSort, type SortOrder } from '$lib/utils/sorting';
-	import SortableHeader from '$lib/components/common/SortableHeader.svelte';
+	import { viewOptionsState, paginationURLState } from '#lib/stores/view-options.svelte.js';
+	import { comparisonState, datasetState } from '#lib/stores/index.js';
+	import { num, fmtDate } from '#lib/i18n/utils.js';
+	import { t } from '#lib/i18n/index.js';
+	import { getJournalName } from '#lib/utils/format.js';
+	import { getModelDisplayName } from '#lib/utils/format.js';
+	import { discrepancyAttributes, formatDiff } from '#lib/utils/discrepancy.js';
+	import type { ComparisonData } from '#lib/types/data.js';
+	import { nextSort, type SortOrder } from '#lib/utils/sorting.js';
+	import SortableHeader from '#lib/components/common/SortableHeader.svelte';
 	import LayoutGridIcon from '@lucide/svelte/icons/layout-grid';
 	import TableIcon from '@lucide/svelte/icons/table';
-	import { ComparisonCSVExportButton } from '$lib/components/ui';
-	import { SentimentBadge } from '$lib/components/common';
+	import { ComparisonCSVExportButton } from '#lib/components/ui/index.js';
+	import { SentimentBadge } from '#lib/components/common/index.js';
 	import { innerWidth } from 'svelte/reactivity/window';
-	import { createPagination } from '$lib/utils/pagination.svelte';
-	import PaginationControls from '$lib/components/common/PaginationControls.svelte';
+	import { createPagination } from '#lib/utils/pagination.svelte.js';
+	import PaginationControls from '#lib/components/common/PaginationControls.svelte';
 
 	// Reactive mobile detection using Svelte 5 pattern
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);

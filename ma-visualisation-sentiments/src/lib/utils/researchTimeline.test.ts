@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Article } from '$lib/types/data';
+import type { Article } from '#lib/types/data.js';
 import { corpusSlice, historicalTrends, newspaperTimeline, targetRating } from './researchTimeline';
 
 function article(

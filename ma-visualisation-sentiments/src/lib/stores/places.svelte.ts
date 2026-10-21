@@ -1,4 +1,4 @@
-import { dataUrl } from '$lib/data/release';
+import { dataUrl } from '#lib/data/release.js';
 /**
  * Places State Module
  *
@@ -17,11 +17,11 @@ import { dataUrl } from '$lib/data/release';
  * "articles mentioning X". Anything stronger is unsupported by the data.
  */
 
-import type { Place, PlacesPayload } from '$lib/types/data';
+import type { Place, PlacesPayload } from '#lib/types/data.js';
 import type { FeatureCollection } from 'geojson';
-import { aggregatePlaces, type PlaceAggregate } from '$lib/utils/placeAggregation';
-import { parsePlacesPayload } from '$lib/data/validation';
-import { createResource, type ResourceState } from '$lib/data/resource.svelte';
+import { aggregatePlaces, type PlaceAggregate } from '#lib/utils/placeAggregation.js';
+import { parsePlacesPayload } from '#lib/data/validation.js';
+import { createResource, type ResourceState } from '#lib/data/resource.svelte.js';
 // Leaf/data stores imported directly — importing from './index' would create a
 // cycle (the barrel re-exports this module). Same convention as agreement.svelte.
 import { articleState } from './articles.svelte';

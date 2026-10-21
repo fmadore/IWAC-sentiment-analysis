@@ -1,16 +1,16 @@
 <script lang="ts">
-	import SentimentChart from '$lib/components/viz/SentimentChart.svelte';
-	import SentimentTrendsChart from '$lib/components/viz/SentimentTrendsChart.svelte';
-	import SubjectivityChart from '$lib/components/viz/SubjectivityChart.svelte';
-	import SubjectivityTrendsChart from '$lib/components/viz/SubjectivityTrendsChart.svelte';
-	import HistoricalModelTrends from '$lib/components/viz/HistoricalModelTrends.svelte';
-	import CorrelationChart from '$lib/components/viz/CorrelationChart.svelte';
-	import VolumeChart from '$lib/components/viz/VolumeChart.svelte';
-	import NewspaperTimeline from '$lib/components/viz/NewspaperTimeline.svelte';
-	import CentralityHeatmap from '$lib/components/viz/CentralityHeatmap.svelte';
-	import HijriSeasonalityChart from '$lib/components/viz/HijriSeasonalityChart.svelte';
-	import NewspaperRankingChart from '$lib/components/viz/NewspaperRankingChart.svelte';
-	import { ChartCard } from '$lib/components/ui';
+	import SentimentChart from '#lib/components/viz/SentimentChart.svelte';
+	import SentimentTrendsChart from '#lib/components/viz/SentimentTrendsChart.svelte';
+	import SubjectivityChart from '#lib/components/viz/SubjectivityChart.svelte';
+	import SubjectivityTrendsChart from '#lib/components/viz/SubjectivityTrendsChart.svelte';
+	import HistoricalModelTrends from '#lib/components/viz/HistoricalModelTrends.svelte';
+	import CorrelationChart from '#lib/components/viz/CorrelationChart.svelte';
+	import VolumeChart from '#lib/components/viz/VolumeChart.svelte';
+	import NewspaperTimeline from '#lib/components/viz/NewspaperTimeline.svelte';
+	import CentralityHeatmap from '#lib/components/viz/CentralityHeatmap.svelte';
+	import HijriSeasonalityChart from '#lib/components/viz/HijriSeasonalityChart.svelte';
+	import NewspaperRankingChart from '#lib/components/viz/NewspaperRankingChart.svelte';
+	import { ChartCard } from '#lib/components/ui/index.js';
 
 	type ChartView =
 		'charts' | 'trends' | 'correlation' | 'volume' | 'seasonality' | 'heatmap' | 'ranking';

@@ -4,21 +4,21 @@
   Yearly article volume per country, as stacked areas or plain lines.
 -->
 <script lang="ts">
-	import { viewOptionsState } from '$lib/stores/view-options.svelte';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
 	import Chart from './CitableChart.svelte';
-	import { init } from '$lib/utils/echartsSetup';
+	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	import { articleState } from '$lib/stores';
-	import { t, currentLanguage } from '$lib/i18n';
-	import { formatNumber } from '$lib/i18n/utils';
+	import { articleState } from '#lib/stores/index.js';
+	import { t, currentLanguage } from '#lib/i18n/index.js';
+	import { formatNumber } from '#lib/i18n/utils.js';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import ChartTypeToggle from './ChartTypeToggle.svelte';
 	import AreaChartIcon from '@lucide/svelte/icons/area-chart';
 	import LineChartIcon from '@lucide/svelte/icons/line-chart';
-	import { createTrendTooltipFormatter } from '$lib/utils/chartFormatters';
-	import { aggregateByCountryAndYear } from '$lib/utils/chartAggregators';
+	import { createTrendTooltipFormatter } from '#lib/utils/chartFormatters.js';
+	import { aggregateByCountryAndYear } from '#lib/utils/chartAggregators.js';
 
 	// Import centralized chart theme
 	import {
@@ -35,7 +35,7 @@
 		getLineSeriesStyle,
 		getEmphasisConfig,
 		getUniversalTransitionConfig
-	} from '$lib/utils/chartTheme';
+	} from '#lib/utils/chartTheme.js';
 
 	// Reactive window width for responsive behavior
 	let isMobile = $derived((innerWidth.current ?? 1024) < 768);

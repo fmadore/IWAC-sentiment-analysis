@@ -16,8 +16,8 @@ import {
 	matchesArbiterScore,
 	resolvePreference
 } from './arbiterV2';
-import { SENTIMENT_CONTRACT_V2, datasetIdsOf } from '$lib/domain/sentimentContract';
-import { ARBITER_BLIND_LABELS } from '$lib/types/data';
+import { SENTIMENT_CONTRACT_V2, datasetIdsOf } from '#lib/domain/sentimentContract.js';
+import { ARBITER_BLIND_LABELS } from '#lib/types/data.js';
 import type {
 	ArbiterBlindLabel,
 	ArbiterV2Evaluation,
@@ -25,7 +25,7 @@ import type {
 	Article,
 	DatasetId,
 	SentimentAnalysis
-} from '$lib/types/data';
+} from '#lib/types/data.js';
 
 const MODELS = datasetIdsOf('v2') as DatasetId[];
 

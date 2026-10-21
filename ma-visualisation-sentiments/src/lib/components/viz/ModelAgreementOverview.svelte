@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import { t } from '$lib/i18n';
-	import { num, dec, pct } from '$lib/i18n/utils';
-	import { datasetState } from '$lib/stores/datasets.svelte';
-	import { analysisState } from '$lib/stores/analysis.svelte';
-	import { viewOptionsState } from '$lib/stores/view-options.svelte';
-	import { modelPairAgreements } from '$lib/stores/agreement.svelte';
-	import { datasetIdsOf, type ModelPair } from '$lib/domain/sentimentContract';
-	import { getModelDisplayNames } from '$lib/utils/format';
-	import { agreementMetricValue, type AgreementMetric } from '$lib/utils/agreementMetrics';
-	import type { AgreementDimension } from '$lib/utils/agreementData';
+	import { t } from '#lib/i18n/index.js';
+	import { num, dec, pct } from '#lib/i18n/utils.js';
+	import { datasetState } from '#lib/stores/datasets.svelte.js';
+	import { analysisState } from '#lib/stores/analysis.svelte.js';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
+	import { modelPairAgreements } from '#lib/stores/agreement.svelte.js';
+	import { datasetIdsOf, type ModelPair } from '#lib/domain/sentimentContract.js';
+	import { getModelDisplayNames } from '#lib/utils/format.js';
+	import { agreementMetricValue, type AgreementMetric } from '#lib/utils/agreementMetrics.js';
+	import type { AgreementDimension } from '#lib/utils/agreementData.js';
 	import SectionHead from '../common/SectionHead.svelte';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 

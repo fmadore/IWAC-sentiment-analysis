@@ -1,15 +1,15 @@
 <script lang="ts">
 	import type { EChartsOption, LineSeriesOption } from 'echarts';
-	import { articleState } from '$lib/stores/articles.svelte';
-	import { datasetState } from '$lib/stores/datasets.svelte';
-	import { filterState } from '$lib/stores/filters.svelte';
-	import { VIEW_OPTIONS, viewOptionsState } from '$lib/stores/view-options.svelte';
-	import { datasetIdsOf } from '$lib/domain/sentimentContract';
-	import { datasetReadiness } from '$lib/utils/datasetReadiness';
-	import { historicalTrends, type HistoricalGroup } from '$lib/utils/researchTimeline';
-	import { init } from '$lib/utils/echartsSetup';
-	import { t } from '$lib/i18n';
-	import { num, pct } from '$lib/i18n/utils';
+	import { articleState } from '#lib/stores/articles.svelte.js';
+	import { datasetState } from '#lib/stores/datasets.svelte.js';
+	import { filterState } from '#lib/stores/filters.svelte.js';
+	import { VIEW_OPTIONS, viewOptionsState } from '#lib/stores/view-options.svelte.js';
+	import { datasetIdsOf } from '#lib/domain/sentimentContract.js';
+	import { datasetReadiness } from '#lib/utils/datasetReadiness.js';
+	import { historicalTrends, type HistoricalGroup } from '#lib/utils/researchTimeline.js';
+	import { init } from '#lib/utils/echartsSetup.js';
+	import { t } from '#lib/i18n/index.js';
+	import { num, pct } from '#lib/i18n/utils.js';
 	import {
 		chartColors,
 		seriesColorPalette,
@@ -18,7 +18,7 @@
 		getShareYAxis,
 		getLegendConfig,
 		getTooltipConfig
-	} from '$lib/utils/chartTheme';
+	} from '#lib/utils/chartTheme.js';
 	import Chart from './CitableChart.svelte';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import DatasetLoadError from '../common/DatasetLoadError.svelte';

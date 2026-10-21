@@ -11,7 +11,7 @@
  * caller's effect must depend on the requirements, not on the loaders' state.
  */
 
-import { datasetIdsOf } from '$lib/domain/sentimentContract';
+import { datasetIdsOf } from '#lib/domain/sentimentContract.js';
 // Individual store files, never './index' — the barrel re-exports this module.
 import { loadCurrentDataset, loadSpecificDataset } from './articles.svelte';
 import { loadComparisonDatasets } from './comparison.svelte';

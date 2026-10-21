@@ -9,9 +9,9 @@
  * most extreme means are usually the ones with the fewest articles.
  */
 
-import type { Article } from '$lib/types/data';
-import { getJournalName } from '$lib/utils/format';
-import { countGroupsBelow, summarizeMean } from '$lib/utils/stats';
+import type { Article } from '#lib/types/data.js';
+import { getJournalName } from '#lib/utils/format.js';
+import { countGroupsBelow, summarizeMean } from '#lib/utils/stats.js';
 
 /** Which measure to rank newspapers by. */
 export type RankingMeasure = 'polarity' | 'subjectivity' | 'centrality';
