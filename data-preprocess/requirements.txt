@@ -17,14 +17,15 @@
 # uv pip compile data-preprocess/requirements.txt --generate-hashes --python-version 3.12 --universal --output-file data-preprocess/requirements.lock
 # uv pip compile data-preprocess/requirements-dev.txt --constraint data-preprocess/requirements.lock --generate-hashes --python-version 3.12 --universal --output-file data-preprocess/requirements-dev.lock
 
-datasets~=5.0.1
+# datasets caps huggingface-hub below its next major (5.1 accepts Hub 2 but
+# not 3). Upgrade both together; otherwise even a clean installation cannot
+# resolve.
+datasets~=5.1.0
 tqdm~=4.70.1
 pandas~=3.0.6
-# datasets 5.0.1 requires huggingface-hub<2.0. Upgrade both together once
-# datasets supports Hub 2; otherwise even a clean installation cannot resolve.
-huggingface_hub~=1.33.0
-google-genai~=2.25.0
-anthropic~=1.8.0
-pydantic~=2.13.5
+huggingface_hub~=2.2.0
+google-genai~=2.32.0
+anthropic~=1.17.0
+pydantic~=2.14.1
 python-dotenv~=1.2.4
-pyarrow~=25.0.1
+pyarrow~=26.0.0
