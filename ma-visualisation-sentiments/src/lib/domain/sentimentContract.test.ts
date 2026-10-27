@@ -10,11 +10,13 @@ import { describe, expect, it } from 'vitest';
 import { ARBITER_BLIND_LABELS } from '$lib/types/data';
 import shardFixtures from '$lib/data/justification-shard-fixtures.json';
 import {
+	ARBITER_DEVELOPER,
 	ARBITER_PANEL_IDS,
 	ARBITER_RECUSED_IDS,
 	ARCHIVED_GENERATION,
 	CURRENT_GENERATION,
 	DATASET_IDS,
+	DEVELOPER_IDS,
 	DATASET_IDS_V1,
 	DATASET_IDS_V2,
 	GENERATION_IDS,
@@ -23,6 +25,7 @@ import {
 	MODEL_PAIR_IDS_V2,
 	SENTIMENT_CONTRACTS,
 	analysisModelName,
+	arbiterPanelFor,
 	datasetIdsOf,
 	defaultDatasetOf,
 	defaultPairOf,
@@ -33,7 +36,8 @@ import {
 	isModelPair,
 	justificationShard,
 	modelDisplayName,
-	pairIdsOf
+	pairIdsOf,
+	recusedFor
 } from './sentimentContract';
 
 describe('generation registry', () => {
@@ -135,6 +139,26 @@ describe('panel completeness', () => {
 		expect(isArbiterRecused('haiku')).toBe(true);
 		expect(isArbiterRecused('luna')).toBe(false);
 		expect(datasetIdsOf('v2')).toContain('haiku');
+	});
+
+	it('derives each judge’s recusal from its developer, as Python does', () => {
+		// Mirrors SentimentContract.recused_for / panel_for: the contract names
+		// who built each model, never which models a judge recuses.
+		expect(ARBITER_DEVELOPER).toBe('anthropic');
+		expect(recusedFor('google')).toEqual(['gemma']);
+		expect(recusedFor('openai')).toEqual(['luna']);
+		expect(arbiterPanelFor('google')).toEqual([
+			'luna',
+			'mistral-small',
+			'deepseek',
+			'qwen',
+			'haiku'
+		]);
+		// Every frontier developer has one member, so every judge reads five.
+		for (const developer of DEVELOPER_IDS) {
+			expect(recusedFor(developer)).toHaveLength(1);
+			expect(arbiterPanelFor(developer)).toHaveLength(ARBITER_BLIND_LABELS.length);
+		}
 	});
 });
 

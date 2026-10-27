@@ -34,6 +34,9 @@ DEFAULT_GENERATION = "v1"
 # one this module knew about.
 CONTRACT_PATH = CONTRACT_PATHS["v1"]
 
+# The only recusal rule: a judge never reads a model from its own developer.
+SAME_DEVELOPER = "same-developer"
+
 
 class SentimentContract:
     """One generation of the research contract, loaded from its JSON file."""
@@ -89,25 +92,41 @@ class SentimentContract:
         )
 
         self.arbiter = dict(contract["arbiter"])
-        # The models the arbiter reads. A recused model (one from the judge's own
-        # developer) stays a full member of the panel everywhere else — pairs,
-        # agreement, discrepancy views — but never reaches the judge: selection,
-        # prompt, blind labels and fingerprints are all computed without it.
-        recused = tuple((contract["arbiter"].get("recusal") or {}).get("models", ()))
-        unknown_recused = [model_id for model_id in recused if model_id not in self.model_names]
-        if unknown_recused:
+        # Who built each model, and the registry of developer ids a judge may
+        # name. The registry is what makes a typo fail: a judge whose developer
+        # matched no member would otherwise recuse nobody and read its own model.
+        self.developers = {
+            developer_id: entry["displayName"]
+            for developer_id, entry in (contract.get("developers") or {}).items()
+        }
+        self.model_developers = {
+            model_id: model.get("developer") for model_id, model in contract["models"].items()
+        }
+        self.recusal_rule = (contract["arbiter"].get("recusal") or {}).get("rule")
+        if self.recusal_rule not in (None, SAME_DEVELOPER):
             raise ValueError(
-                f"The {self.analysis_version} arbiter recuses unknown model(s): "
-                + ", ".join(unknown_recused)
+                f"Unknown {self.analysis_version} recusal rule {self.recusal_rule!r}; "
+                f"expected {SAME_DEVELOPER!r}"
             )
-        self.arbiter_recused_ids = recused
-        self.arbiter_model_ids = [
-            model_id for model_id in self.model_names if model_id not in recused
-        ]
-        if len(self.arbiter_model_ids) < 2:
-            raise ValueError(
-                f"The {self.analysis_version} arbiter needs at least two unrecused models"
-            )
+        if self.recusal_rule:
+            undeclared = [
+                model_id
+                for model_id, developer in self.model_developers.items()
+                if developer not in self.developers
+            ]
+            if undeclared:
+                raise ValueError(
+                    f"The {self.analysis_version} recusal rule needs a registered developer on "
+                    "every model; missing or unknown for: " + ", ".join(undeclared)
+                )
+        # The published judge's developer, and so the models it reads. A recused
+        # model (one from the judge's own developer) stays a full member of the
+        # panel everywhere else — pairs, agreement, discrepancy views — but never
+        # reaches the judge: selection, prompt, blind labels and fingerprints are
+        # all computed without it.
+        self.arbiter_developer = contract["arbiter"].get("developer")
+        self.arbiter_recused_ids = self.recused_for(self.arbiter_developer)
+        self.arbiter_model_ids = self.panel_for(self.arbiter_developer)
         # What is worth *paying* to arbitrate, which is not what the dashboard
         # calls a significant disagreement. Keeping the two apart is the whole
         # point of the separate key: widening the arbiter's frame must not move
@@ -145,6 +164,36 @@ class SentimentContract:
         if declared != generation:
             raise ValueError(f"Expected the {generation} sentiment contract, got {declared!r}")
         return cls(contract, generation)
+
+    def recused_for(self, developer: str | None) -> tuple[str, ...]:
+        """The panel members a judge from ``developer`` must never read.
+
+        Derived, never listed: the contract records who built each model and the
+        rule, so a second judge from another developer recuses its own member
+        without a contract edit. A contract with no rule (v1) recuses nobody.
+        """
+        if self.recusal_rule is None:
+            return ()
+        if developer not in self.developers:
+            raise ValueError(
+                f"Unknown judge developer {developer!r} for the {self.analysis_version} "
+                f"recusal rule; expected one of {', '.join(sorted(self.developers))}"
+            )
+        return tuple(
+            model_id
+            for model_id, model_developer in self.model_developers.items()
+            if model_developer == developer
+        )
+
+    def panel_for(self, developer: str | None) -> list[str]:
+        """The models a judge from ``developer`` reads, in contract order."""
+        recused = self.recused_for(developer)
+        panel = [model_id for model_id in self.model_names if model_id not in recused]
+        if len(panel) < 2:
+            raise ValueError(
+                f"The {self.analysis_version} arbiter needs at least two unrecused models"
+            )
+        return panel
 
     def sentiment_column(self, model_id: str, suffix: str) -> str:
         """Return the canonical HF column name for a stable model id."""

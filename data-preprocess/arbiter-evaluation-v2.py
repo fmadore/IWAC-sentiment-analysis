@@ -33,7 +33,10 @@ What differs from `arbiter-evaluation.py`, and why:
   its polarity coincides with the arbiter's in 192, inside the 190-205 of the
   four non-dissenting members: no sign of a shared Anthropic reading. What the
   recusal cannot do is hear Haiku's own dissents — the 45 valence flips that
-  exist only because of it — which needs a judge from another developer.
+  exist only because of it — which needs a judge from another developer:
+  `arbiter-evaluation-v2-second-judge.py`. The recused set is derived from the
+  contract's `arbiter.developer`, not listed, so that judge recuses its own
+  developer's member by the same rule.
 * **`--dry-run` prints the eligible/selected counts and a cost estimate and
   exits without making a single API call.** The paid run is deliberately gated.
 * **Paid work is retained separately from the public selection.** A private
@@ -102,7 +105,7 @@ from dataclasses import asdict, dataclass, fields
 from datetime import datetime
 from functools import partial
 from pathlib import Path
-from typing import Any, Literal, get_args
+from typing import Any
 
 from iwac_preprocess.arbiter_lifecycle import (
     CACHE_FILENAME,
@@ -124,6 +127,26 @@ from iwac_preprocess.arbiter_prompt import (
 from iwac_preprocess.arbiter_prompt import (
     display_order as display_order,
 )
+from iwac_preprocess.arbiter_schema import (
+    PREFERENCE_VALUES as PREFERENCE_VALUES,
+)
+from iwac_preprocess.arbiter_schema import (
+    ArbiterAnalysisV2,
+    ArbiterResponseV2,
+    convert_response,
+)
+from iwac_preprocess.arbiter_schema import (
+    ArbiterScoreV2 as ArbiterScoreV2,
+)
+from iwac_preprocess.arbiter_schema import (
+    CentralityVerdict as CentralityVerdict,
+)
+from iwac_preprocess.arbiter_schema import (
+    PolarityVerdict as PolarityVerdict,
+)
+from iwac_preprocess.arbiter_schema import (
+    SubjectivityVerdict as SubjectivityVerdict,
+)
 from iwac_preprocess.arbiter_selection import (
     DEFAULT_RULE,
     DIMENSIONS,
@@ -142,7 +165,7 @@ from iwac_preprocess.arbiter_selection import (
     SPREAD_KEYS as SPREAD_KEYS,
 )
 from iwac_preprocess.publication import publication_lock, publish_json_files
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import ValidationError
 from shared import (
     CONTRACT_V2,
     HF_FULL_REPO_ID,
@@ -212,101 +235,14 @@ ESTIMATE_OUTPUT_TOKENS = {"low": 1100, "medium": 1613, "high": 2400, "xhigh": 35
 # Dataset columns the selection pass depends on.
 REQUIRED_BASE_COLUMNS = ["o:id", "title", "newspaper", "country", "pub_date"]
 
-# The anonymised labels the arbiter's panel is presented under come from
-# `iwac_preprocess.arbiter_prompt.BLIND_LABELS`, as do the selection rules and
-# spread keys from `arbiter_selection`: one definition each, imported above.
-# `resolve_blind_permutation` refuses to run if the label and model counts ever
-# disagree.
-PREFERENCE_VALUES = (*BLIND_LABELS, "multiple", "none")
-
 # The arbiter's panel, not the generation's: a recused model (one from the
 # judge's own developer, see `arbiter.recusal` in the contract) is never shown
 # to it, so it takes no label, no fingerprint slot and no part in selection.
 MODEL_IDS = list(CONTRACT.arbiter_model_ids)
 
-
-# ============================================================================
-# Structured output schema
-# ============================================================================
-
-
-class DimensionVerdict(BaseModel):
-    """Verdict fields shared by each independently constrained dimension."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    justification: str = Field(description="Raisonnement pour ce score")
-    preferred: Literal["a", "b", "c", "d", "e", "multiple", "none"] = Field(
-        description="Quelle analyse est la plus juste: 'a', 'b', 'c', 'd', 'e', "
-        "'multiple' (plusieurs sont équivalentes) ou 'none' (aucune)"
-    )
-    verdict_explanation: str = Field(description="Pourquoi cette analyse est préférée")
-
-
-class PolarityVerdict(DimensionVerdict):
-    arbiter_score: Literal[
-        "Très positif", "Positif", "Neutre", "Négatif", "Très négatif", "Non applicable"
-    ]
-
-
-class SubjectivityVerdict(DimensionVerdict):
-    arbiter_score: Literal[
-        "Très objectif", "Plutôt objectif", "Mixte", "Plutôt subjectif", "Très subjectif"
-    ]
-
-
-class CentralityVerdict(DimensionVerdict):
-    arbiter_score: Literal["Très central", "Central", "Secondaire", "Marginal", "Non abordé"]
-
-
-class ArbiterResponseV2(BaseModel):
-    """Complete structured response from the panel arbiter."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    polarity: PolarityVerdict = Field(description="Évaluation de la polarité/sentiment")
-    subjectivity: SubjectivityVerdict = Field(description="Évaluation de la subjectivité")
-    centrality: CentralityVerdict = Field(
-        description="Évaluation de la centralité de l'islam/des musulmans"
-    )
-    overall_winner: Literal["a", "b", "c", "d", "e", "multiple", "none"] = Field(
-        description="Quelle analyse est globalement la meilleure"
-    )
-    overall_explanation: str = Field(description="Explication détaillée du verdict global")
-    confidence_level: Literal["high", "medium", "low"] = Field(
-        description="Niveau de confiance dans l'évaluation"
-    )
-
-
-def _assert_schema_matches_contract(contract: SentimentContract) -> None:
-    """Fail at import if the response literals drift from the contract scales.
-
-    Pydantic needs static literals, so the scales are spelled out twice. A
-    silent divergence would let the arbiter return a score the dashboard cannot
-    map, one paid article at a time.
-    """
-    expected = {
-        "polarity": set(contract.polarity_scores),
-        "centrality": set(contract.centrality_scores),
-        "subjectivity": set(contract.subjectivity_label_scores),
-    }
-    declared = {
-        "polarity": set(get_args(PolarityVerdict.model_fields["arbiter_score"].annotation)),
-        "centrality": set(get_args(CentralityVerdict.model_fields["arbiter_score"].annotation)),
-        "subjectivity": set(get_args(SubjectivityVerdict.model_fields["arbiter_score"].annotation)),
-    }
-    for dimension, values in expected.items():
-        # Centrality's "Non applicable" is a v1 legacy key the arbiter is never
-        # asked to produce; every other value must round-trip.
-        if not declared[dimension] <= values:
-            raise ValueError(
-                f"Arbiter {dimension} literals are not a subset of the "
-                f"{contract.analysis_version} contract scale: "
-                f"{sorted(declared[dimension] - values)}"
-            )
-
-
-_assert_schema_matches_contract(CONTRACT)
+# The response schema and the published verdict shape (`ArbiterResponseV2`,
+# `ArbiterAnalysisV2`) live in `iwac_preprocess.arbiter_schema`, shared with the
+# second judge so the two judges' verdicts stay comparable field by field.
 
 
 # ============================================================================
@@ -384,29 +320,6 @@ class UsageTotals:
         }
 
 
-@dataclass
-class ArbiterScoreV2:
-    """The arbiter's own score for one dimension, plus its preference."""
-
-    score: str
-    justification: str
-    preferred: str
-    verdict_explanation: str
-
-
-@dataclass
-class ArbiterAnalysisV2:
-    article_id: str
-    polarity: ArbiterScoreV2
-    subjectivity: ArbiterScoreV2
-    centrality: ArbiterScoreV2
-    overall_winner: str
-    overall_explanation: str
-    confidence_level: str
-    timestamp: str
-    # The label -> model mapping is stored once in metadata, not per article.
-
-
 # ============================================================================
 # Prompt
 # ============================================================================
@@ -456,42 +369,6 @@ def create_anthropic_client(api_key: str):
     # The SDK retries 429/5xx with backoff; article-level failures below are
     # deterministic and are deliberately not retried.
     return anthropic.Anthropic(api_key=api_key, max_retries=5)
-
-
-def convert_response(
-    response: ArbiterResponseV2, article_id: str, contract: SentimentContract = CONTRACT
-) -> ArbiterAnalysisV2:
-    """Map the validated response onto the published shape.
-
-    Subjectivity is stored as the shared 1-5 rank, like every other v2 file, so
-    the browser's numeric code paths keep working; the label is recoverable from
-    the contract.
-    """
-    return ArbiterAnalysisV2(
-        article_id=article_id,
-        polarity=ArbiterScoreV2(
-            score=response.polarity.arbiter_score,
-            justification=response.polarity.justification,
-            preferred=response.polarity.preferred,
-            verdict_explanation=response.polarity.verdict_explanation,
-        ),
-        subjectivity=ArbiterScoreV2(
-            score=str(contract.subjectivity_label_scores[response.subjectivity.arbiter_score]),
-            justification=response.subjectivity.justification,
-            preferred=response.subjectivity.preferred,
-            verdict_explanation=response.subjectivity.verdict_explanation,
-        ),
-        centrality=ArbiterScoreV2(
-            score=response.centrality.arbiter_score,
-            justification=response.centrality.justification,
-            preferred=response.centrality.preferred,
-            verdict_explanation=response.centrality.verdict_explanation,
-        ),
-        overall_winner=response.overall_winner,
-        overall_explanation=response.overall_explanation,
-        confidence_level=response.confidence_level,
-        timestamp=datetime.now().isoformat(),
-    )
 
 
 def evaluate_with_arbiter(

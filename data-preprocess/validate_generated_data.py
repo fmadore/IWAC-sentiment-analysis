@@ -41,6 +41,9 @@ EXTREME_CATEGORIES = {
     "centrality_not_central",
 }
 ARBITER_V2_FILENAME = "iwac_arbiter_evaluations_v2.json"
+# A second v2 judge from another developer publishes beside the first, one file
+# per judge (`arbiter-evaluation-v2-second-judge.py`).
+SECOND_JUDGE_PATTERN = "iwac_arbiter_evaluations_v2_*.json"
 # Arbiter modes that judge the whole panel in one call and publish a single
 # file. "three-way" is the name the mode carried while the panel had three
 # models; it is still accepted so an older contract or file validates.
@@ -277,7 +280,9 @@ def validate_arbiter(
             )
 
 
-def validate_arbiter_envelope(contract: SentimentContract, payload: dict) -> None:
+def validate_arbiter_envelope(
+    contract: SentimentContract, payload: dict, model_ids: list[str] | None = None
+) -> None:
     """Check a panel arbiter file's self-consistency, without the score files.
 
     Everything that can be judged from the file and the contract alone: the
@@ -286,11 +291,12 @@ def validate_arbiter_envelope(contract: SentimentContract, payload: dict) -> Non
     every save; `validate_arbiter_three_way` adds the eligibility frame, which
     needs the published scores.
 
-    The model list is the arbiter's panel: a model the contract recuses must
-    never appear in the file, which a bijection over the unrecused models
-    already guarantees.
+    The model list is the arbiter's panel — the published judge's unless
+    ``model_ids`` names another judge's: a model the contract recuses must never
+    appear in the file, which a bijection over the unrecused models already
+    guarantees.
     """
-    model_ids = list(contract.arbiter_model_ids)
+    model_ids = list(contract.arbiter_model_ids if model_ids is None else model_ids)
     metadata = payload.get("metadata", {})
     evaluations = payload.get("evaluations", [])
     evaluation_ids = [str(row.get("article_id")) for row in evaluations]
@@ -372,6 +378,61 @@ def validate_arbiter_three_way(
     )
 
 
+def validate_second_judge_envelope(contract: SentimentContract, payload: dict) -> None:
+    """Check a second judge's file: its panel is its *own* developer's recusal.
+
+    The judge's developer is read from the file and must be registered; the
+    model list must then be exactly `panel_for(developer)` and the recorded
+    recusal exactly `recused_for(developer)`. A judge whose file listed its own
+    developer's member would be the unrecused reading this whole design exists
+    to prevent.
+    """
+    metadata = payload.get("metadata", {})
+    developer = metadata.get("arbiter_developer")
+    require(
+        developer in contract.developers,
+        f"second judge names unregistered developer {developer!r}",
+    )
+    require(
+        list(metadata.get("recused_models", [])) == list(contract.recused_for(developer)),
+        f"second judge from {developer} does not record its own developer's recusal",
+    )
+    validate_arbiter_envelope(contract, payload, contract.panel_for(developer))
+
+
+def validate_second_judges(
+    contract: SentimentContract,
+    base_ids: set[str],
+    sentiments: dict[str, dict[str, dict | None]],
+    data_dir: Path = DATA_DIR,
+) -> None:
+    """Validate every second-judge file, each optional until it runs.
+
+    A second judge's frame is the whole generation's, not its own panel's: it
+    exists to hear the flips the published arbiter's recused member creates. So
+    eligibility is recomputed over every model of the generation.
+    """
+    model_ids = list(contract.model_names)
+    eligible: set[str] | None = None
+    for path in sorted(data_dir.glob(SECOND_JUDGE_PATTERN)):
+        payload = read_json(path.name, data_dir)
+        validate_second_judge_envelope(contract, payload)
+        if eligible is None:
+            eligible = {
+                article_id
+                for article_id in base_ids
+                if is_arbiter_eligible(
+                    [sentiments[model_id].get(article_id) or {} for model_id in model_ids],
+                    contract,
+                )
+            }
+        evaluation_ids = {str(row.get("article_id")) for row in payload.get("evaluations", [])}
+        require(
+            evaluation_ids.issubset(eligible),
+            f"{path.name} contains stale/non-eligible IDs",
+        )
+
+
 def validate_manifest(contract: SentimentContract, data_dir: Path = DATA_DIR) -> None:
     name = manifest_filename(contract.analysis_version)
     path = data_dir / name
@@ -403,6 +464,7 @@ def validate_generation(
     validate_extremes(contract, base_ids, data_dir)
     if contract.arbiter.get("mode") in PANEL_ARBITER_MODES:
         validate_arbiter_three_way(contract, base_ids, sentiments, data_dir)
+        validate_second_judges(contract, base_ids, sentiments, data_dir)
     else:
         validate_arbiter(contract, base_ids, sentiments, data_dir)
     validate_manifest(contract, data_dir)

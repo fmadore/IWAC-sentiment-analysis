@@ -6,33 +6,47 @@
 		"luna": {
 			"displayName": "GPT-5.6 Luna",
 			"analysisModel": "GPT-5.6 Luna",
-			"hfPrefixes": ["gpt_5_6_luna"]
+			"hfPrefixes": ["gpt_5_6_luna"],
+			"developer": "openai"
 		},
 		"mistral-small": {
 			"displayName": "Mistral Small 4 (2603)",
 			"analysisModel": "Mistral Small 4 2603",
-			"hfPrefixes": ["mistral_small_2603"]
+			"hfPrefixes": ["mistral_small_2603"],
+			"developer": "mistral"
 		},
 		"deepseek": {
 			"displayName": "DeepSeek v4 Flash",
 			"analysisModel": "DeepSeek v4 Flash 0731",
-			"hfPrefixes": ["deepseek_v4_flash_0731"]
+			"hfPrefixes": ["deepseek_v4_flash_0731"],
+			"developer": "deepseek"
 		},
 		"gemma": {
 			"displayName": "Gemma 4 31B",
 			"analysisModel": "Gemma 4 31B IT",
-			"hfPrefixes": ["gemma_4_31b_it"]
+			"hfPrefixes": ["gemma_4_31b_it"],
+			"developer": "google"
 		},
 		"qwen": {
 			"displayName": "Qwen3.8 27B",
 			"analysisModel": "Qwen3.8 27B",
-			"hfPrefixes": ["qwen3_8_27b"]
+			"hfPrefixes": ["qwen3_8_27b"],
+			"developer": "alibaba"
 		},
 		"haiku": {
 			"displayName": "Claude Haiku 5.5",
 			"analysisModel": "Claude Haiku 5.5",
-			"hfPrefixes": ["claude_haiku_5_5"]
+			"hfPrefixes": ["claude_haiku_5_5"],
+			"developer": "anthropic"
 		}
+	},
+	"developers": {
+		"alibaba": { "displayName": "Alibaba" },
+		"anthropic": { "displayName": "Anthropic" },
+		"deepseek": { "displayName": "DeepSeek" },
+		"google": { "displayName": "Google" },
+		"mistral": { "displayName": "Mistral AI" },
+		"openai": { "displayName": "OpenAI" }
 	},
 	"pairs": [
 		{ "id": "luna-mistral-small", "models": ["luna", "mistral-small"] },
@@ -109,11 +123,12 @@
 	"arbiter": {
 		"promptVersion": "v2.2.0",
 		"arbiterModel": "claude-opus-5",
+		"developer": "anthropic",
 		"cacheSchemaVersion": 1,
 		"mode": "panel",
 		"recusal": {
-			"models": ["haiku"],
-			"description": "Panel members from the arbiter's own developer are never shown to it. Blind labels hide a model's name but not its style, and LLM judges measurably favour their own and their family's output, so a same-developer analysis would make any verdict involving it uninterpretable. The arbiter's panel is every other model: selection, prompt, blind labels and fingerprints are computed over it alone, so recusing a model neither adds articles to the frame nor changes a published verdict. A recused model's ratings are compared with the verdicts afterwards, never fed into them."
+			"rule": "same-developer",
+			"description": "A judge never reads a panel member from its own developer: the recused set is derived from the judge's `developer`, never listed, so a second judge from another developer recuses its own member in turn. Blind labels hide a model's name but not its style, and LLM judges measurably favour their own and their family's output, so a same-developer analysis would make any verdict involving it uninterpretable. The judge's panel is every other model: for the published arbiter (Anthropic) selection, prompt, blind labels and fingerprints are computed over it alone, so recusing a model neither adds articles to that frame nor changes a published verdict. A recused model's ratings are compared with the verdicts afterwards, never fed into them. Every frontier developer has a member on this panel, so every judge recuses exactly one."
 		},
 		"eligibility": {
 			"rule": "spread-or-valence-flip",

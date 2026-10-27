@@ -142,6 +142,8 @@ Two things to keep in mind when reading the verdicts:
 
 - **The frame is the panel's dissenter's frame.** Mistral Small 4 is the only model across the valence line in 189 of the 301 articles (162 as the sole negative reader); the strict four-against-one exact-label split is 56. The arbiter's polarity coincides with Mistral's in 37 articles, against 190–205 for each of the other four. Per-model tallies therefore measure how often the dissenter was upheld on the articles where it dissented, not the models' general quality.
 - **Claude Haiku 5.5 is recused, because the judge is also Anthropic's.** Haiku joined the panel after this run, and a judge reading a same-developer analysis is not a neutral judge: blind labels hide a model's name but not its house style, and LLM judges measurably favour their own output and that of related models (Panickssery et al., 2024; Wataoka et al., 2024; Goel et al., 2025). The contract's `arbiter.recusal` therefore keeps Haiku out of the arbiter's panel altogether — selection, prompt, blind labels and fingerprints run over the other five, which is exactly the panel the published run judged, so no verdict was invalidated and nothing was re-bought. Haiku is compared with the verdicts afterwards: the verdict panel shows its rating beside the arbiter's, unlettered and marked *Recused*. On the 301 articles its polarity coincides with the arbiter's in 192, inside the 190–205 of the four members other than Mistral Small 4, so there is no sign of a reading the two Anthropic models share. What recusal cannot do is hear Haiku's own dissents: with six models the panel has 346 valence flips, and the 45 that exist only because of Haiku (38 as the sole negative reader, 7 as the sole positive one) are outside the frame. Settling those needs a judge from another developer — and since every frontier developer now has a model on the panel (OpenAI, Google, Anthropic, Mistral, DeepSeek, Alibaba), that judge must recuse its own developer's member in turn.
+- **Recusal is derived from the judge's developer, never listed.** Every model in `sentiment-v2.json` names its `developer`, the arbiter names its own, and `arbiter.recusal.rule` is `same-developer`; `SentimentContract.recused_for()` / `recusedFor()` compute the recused set in both languages. An unregistered developer is an error rather than a judge that recuses nobody. The published fingerprints are unchanged (a test pins one).
+- **A second judge is built but has not run.** `data-preprocess/arbiter-evaluation-v2-second-judge.py` runs a judge from another developer — Gemini 4 Argon by default, recusing Gemma — over the six-model valence-flip frame, with the same prompt, labels, presentation order and schema as the published run, and its own output file (`iwac_arbiter_evaluations_v2_<judge>.json`), durable cache and lock. `--frame recused` judges only Haiku's 45; `--frame full` judges all 346, so the 301 shared with the published run give a judge-agreement figure and a difference-in-differences estimate of each judge's affinity for its own developer's model. The dashboard does not read that file yet.
 - **Position bias was checked.** The five blocks are reshuffled per article, seeded on the article id, and the position of the winning analysis is indistinguishable from chance (χ² = 5.3 on 4 df over the 231 single-winner verdicts).
 
 How the v2 arbiter differs from v1, and why:
@@ -199,6 +201,14 @@ python data-preprocess/arbiter-evaluation-v2.py --rule valence --yes
 
 # Republish a narrower v2 selection from cache, without paid calls
 python data-preprocess/arbiter-evaluation-v2.py --rule valence --limit 20 --prune-cache-only
+
+# v2 second judge: frame counts and a cost estimate for both frames and every
+# registered judge, no API call
+python data-preprocess/arbiter-evaluation-v2-second-judge.py --dry-run
+
+# ...then a pilot and the full frame (needs GOOGLE_API_KEY and HF_TOKEN)
+python data-preprocess/arbiter-evaluation-v2-second-judge.py --frame full --limit 20 --yes
+python data-preprocess/arbiter-evaluation-v2-second-judge.py --frame full --yes
 
 # v1, pairwise (needs GOOGLE_API_KEY); frozen — reconcile only
 python data-preprocess/arbiter-evaluation.py --prune-cache-only

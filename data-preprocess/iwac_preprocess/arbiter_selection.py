@@ -1,6 +1,6 @@
 """Pure candidate selection for the panel arbiter; no provider calls or output writes."""
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 from tqdm import tqdm
 
@@ -80,6 +80,7 @@ def find_three_way_conflicts(
     dimensions: Sequence[str] = DIMENSIONS,
     threshold: int | None = None,
     rule: str = DEFAULT_RULE,
+    model_ids: Sequence[str] | None = None,
 ) -> list[dict]:
     """Select every article the configured rule says is worth arbitrating.
 
@@ -95,10 +96,13 @@ def find_three_way_conflicts(
     dict is hashed into the cache fingerprint, and a row's identity must not
     depend on which rule happened to select it.
 
-    The panel is the arbiter's, not the generation's: a recused model's ratings
-    neither put an article in the frame nor reach the judge.
+    By default the panel is the published arbiter's, not the generation's: a
+    recused model's ratings neither put an article in the frame nor reach the
+    judge. ``model_ids`` names another set — the second judge selects over the
+    whole generation, then shows each row to its own panel through
+    `project_to_panel`.
     """
-    model_ids = list(contract.arbiter_model_ids)
+    model_ids = list(contract.arbiter_model_ids if model_ids is None else model_ids)
     threshold = resolve_threshold(threshold, contract)
     selected: list[dict] = []
 
@@ -127,6 +131,67 @@ def find_three_way_conflicts(
         )
 
     return selected
+
+
+FLIP_NEGATIVE = "negative"
+FLIP_POSITIVE = "positive"
+
+
+def flip_dissenters(
+    analyses: Mapping[str, dict], contract: SentimentContract = CONTRACT
+) -> dict[str, str]:
+    """The models a valence flip exists *only* because of, with their side.
+
+    A flip needs one model at or above the positive band and one at or below the
+    negative band. Removing a model kills it exactly when that model is alone on
+    its side, so these are the sole positive and the sole negative readers. A
+    row can have two (one alone on each side) or none (several on both).
+    Returns an empty dict for a row with no flip at all.
+    """
+    if not has_polarity_valence_flip(list(analyses.values()), contract):
+        return {}
+    positive_minimum, negative_maximum = contract.polarity_valence_bands
+    ranks = {
+        model_id: contract.polarity_scores[analysis.get("polarite")]
+        for model_id, analysis in analyses.items()
+    }
+    positive = [model_id for model_id, rank in ranks.items() if rank >= positive_minimum]
+    negative = [model_id for model_id, rank in ranks.items() if rank <= negative_maximum]
+    dissenters: dict[str, str] = {}
+    if len(positive) == 1:
+        dissenters[positive[0]] = FLIP_POSITIVE
+    if len(negative) == 1:
+        dissenters[negative[0]] = FLIP_NEGATIVE
+    return dissenters
+
+
+def project_to_panel(
+    article: dict, panel: Sequence[str], contract: SentimentContract = CONTRACT
+) -> dict:
+    """Show a row selected over a wider frame to the judge's own panel.
+
+    The analyses are cut to ``panel`` and the spread recomputed over it, because
+    both are hashed into the cache fingerprint and both must describe what the
+    judge actually read. ``valence_flip`` keeps the frame's answer — it is why
+    the row was selected — and ``panel_valence_flip`` records whether the judge
+    can see the flip at all: when the only reader across the line is the
+    judge's own recused member, it cannot.
+
+    Comparability is inherited: a row comparable over the frame is comparable
+    over any subset of it.
+    """
+    missing = [model_id for model_id in panel if model_id not in article["analyses"]]
+    if missing:
+        raise ValueError(f"Panel model(s) outside the selection frame: {', '.join(missing)}")
+    analyses = {model_id: article["analyses"][model_id] for model_id in panel}
+    ordered = list(analyses.values())
+    return {
+        **article,
+        "analyses": analyses,
+        "spread": calculate_three_way_spread(ordered, contract),
+        "frame_spread": article["spread"],
+        "panel_valence_flip": has_polarity_valence_flip(ordered, contract),
+    }
 
 
 def attach_full_text(articles: list[dict], texts: dict[str, str]) -> tuple[list[dict], list[str]]:

@@ -60,6 +60,21 @@ it now reads the sizes from the contracts.
   unlettered. Its polarity matches the arbiter's in 192 of 301, inside the
   others' 190–205; the 45 valence flips only Haiku creates are outside the frame
   and would need a judge from another developer
+- **Recusal is derived from a judge's `developer`, never listed.** Each v2 model
+  and the arbiter name a developer from the contract's `developers` registry;
+  `recused_for()` / `recusedFor()` derive the set. Never reintroduce a list of
+  recused ids, and never bump `schemaVersion`, `promptVersion` or
+  `cacheSchemaVersion` for a recusal change: they feed the published Opus
+  fingerprints, which `test_arbiter_cache.py` pins
+- **The second judge (`arbiter-evaluation-v2-second-judge.py`) selects over the
+  whole generation and shows each row to its own panel.** Its frame is the six-
+  model valence flips (346); its panel is the generation minus its developer's
+  member (Gemma for the default Gemini 4 Argon), so on 27 rows it sees no flip.
+  It shares prompt, labels, `display_order` and `arbiter_schema` with the
+  published run, but its blind labels are its own: compare the two judges on
+  their own scores (`judge_comparison.py`), never on `preferred`. Each judge
+  recuses the member the other one read, so the affinity
+  difference-in-differences is conservative by construction
 - **Haiku's 47-article gap is mechanical, not Qwen's kind.** Its 2026-10-23 pass
   logged 47 French articles as having no content in Omeka that the rest of the
   panel read in August; it annotates 12,251 of 12,348. Do not fold it into the
