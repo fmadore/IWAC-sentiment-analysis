@@ -93,6 +93,14 @@ const DATASETS: DatasetOption[] = [
 		file: '/data/iwac_sentiment_qwen.json',
 		logo: '/logo/Qwen_logo.png',
 		color: '#615ced'
+	},
+	{
+		id: 'haiku',
+		generation: 'v2',
+		name: 'Claude Haiku 5.5',
+		file: '/data/iwac_sentiment_haiku.json',
+		logo: '/logo/Claude_logo.svg',
+		color: '#d97757'
 	}
 ];
 

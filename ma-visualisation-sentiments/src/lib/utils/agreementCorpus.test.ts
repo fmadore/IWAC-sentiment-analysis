@@ -66,11 +66,12 @@ const centrality = (s: NonNullable<Scores[string]>) => s.centralite_islam_musulm
 
 describe('agreement statistics over the shipped corpus', () => {
 	it('has the expected corpus size', () => {
-		// 12,349 since the 2026-08-25 refresh: seven articles were deleted
-		// upstream, which is why every pinned figure below moved a little at the
-		// same time. Both generations read the same article base, so the archived
-		// v1 score files shrank with it.
-		expect(ids).toHaveLength(12349);
+		// 12,348 since the 2026-10-27 refresh: article 78587 was deleted upstream.
+		// It was one of the articles no model annotates, so no pinned figure
+		// below moved. Both generations read the same article base, so the
+		// archived v1 score files shrank with it. (12,349 since 2026-08-25, when
+		// seven deletions did move every figure a little.)
+		expect(ids).toHaveLength(12348);
 	});
 
 	it('reproduces the ChatGPT/Gemini polarity figures', () => {

@@ -17,16 +17,19 @@ wrong. Structure, scripts and dependencies are discoverable from the repo.
 
 ## Two analysis generations
 
-v2 (`luna`, `mistral-small`, `deepseek`, `gemma`, `qwen` — five models, ten
-pairs) is showcased; v1 (`chatgpt`, `gemini`, `mistral`) is a hidden archive
+v2 (`luna`, `mistral-small`, `deepseek`, `gemma`, `qwen`, `haiku` — six models,
+fifteen pairs) is showcased; v1 (`chatgpt`, `gemini`, `mistral`) is a hidden archive
 whose data files are frozen so published figures stay reproducible. The
 contracts are `src/lib/data/sentiment-v{1,2}.json`, read by both languages.
 
 **The panel size is never a constant.** It grew from three to five on
-2026-08-25, and everything that survived the move reads `datasetIdsOf(gen)` or a
-`models.length` argument. Anything you write that hardcodes three is wrong for
-v2, and anything that hardcodes five is wrong for the archive — including UI
-copy, which is why the strings say "the panel" rather than a number.
+2026-08-25 and to six on 2026-10-27, and everything that survived the moves reads
+`datasetIdsOf(gen)` or a `models.length` argument. Anything you write that
+hardcodes three is wrong for v2, and anything that hardcodes six is wrong for
+the archive — including UI copy, which is why the strings say "the panel" rather
+than a number. The second move found one survivor: the `labelPattern` URL
+parser accepted only lengths 3 and 5, silently dropping every six-model pattern;
+it now reads the sizes from the contracts.
 
 - **Generation is derived from the id, never stored.** `generationOf()` in
   `domain/sentimentContract.ts` does the work; there is no generation URL
@@ -46,12 +49,27 @@ copy, which is why the strings say "the panel" rather than a number.
   peripheral, so every complete-case statistic — Fleiss' κ, the consensus
   charts, arbiter eligibility — skews towards high-centrality material. Say so
   when reporting one; never present the gap as repairable
+- **The arbiter's panel is not the generation's panel.** Claude Haiku 5.5 joined
+  without a pilot and shares a developer with the judge (Claude Opus 5), so the
+  contract's `arbiter.recusal` keeps it away from the arbiter entirely:
+  selection, prompt, blind labels (still a–e) and fingerprints run over
+  `contract.arbiter_model_ids` / `ARBITER_PANEL_IDS`, which is exactly the five
+  the published run judged. Anything that asks what the judge was shown reads
+  those; anything that asks how the panel rated an article reads
+  `datasetIdsOf('v2')`. The verdict panel sets Haiku's rating beside the verdict,
+  unlettered. Its polarity matches the arbiter's in 192 of 301, inside the
+  others' 190–205; the 45 valence flips only Haiku creates are outside the frame
+  and would need a judge from another developer
+- **Haiku's 47-article gap is mechanical, not Qwen's kind.** Its 2026-10-23 pass
+  logged 47 French articles as having no content in Omeka that the rest of the
+  panel read in August; it annotates 12,251 of 12,348. Do not fold it into the
+  Qwen caveat
 - **The ternary triangle in `DissentProfileChart` is three-rater geometry.** A
   simplex over n models needs n corners, so `barycentric()` returns null for
   anything but three shares and the chart hides the mode unless the generation
   has exactly three models. Same reason `classifyDissent`'s `split` bucket is
-  labelled "divided several ways" rather than "all three differ": at five
-  raters it also absorbs 3-2 splits
+  labelled "divided several ways" rather than "all three differ": at six
+  raters it also absorbs 4-2 and 3-3 splits
 - **The two arbiters are different shapes, not two versions of one thing.** v1 is
   pairwise (Gemini 3 Pro, one file per pair); v2 judges the whole panel at once
   (Claude Opus 5, one file, blind labels a–e). They have separate stores,
@@ -75,9 +93,11 @@ copy, which is why the strings say "the panel" rather than a number.
   interchangeable.** `discrepancy.threeWaySpread` (spread ≥ 3 on any dimension)
   is what the dashboard flags to a _reader_; `arbiter.eligibility` — the spread
   rule **or** a polarity valence flip — is what was judged worth _paying_ to
-  settle. The frames differ by 168 rows — 2,102 against 2,270 — all of them
-  articles where one model says `Positif` and another `Négatif`, two ranks apart
-  and reachable by no spread threshold. Widening the arbiter frame must never move
+  settle. Over the arbiter's five the frames differ by 168 rows — 2,102 against
+  2,270 — all of them articles where one model says `Positif` and another
+  `Négatif`, two ranks apart and reachable by no spread threshold. The reader's
+  rule runs over all six, so the dashboard flags 2,923 articles while the
+  arbiter's frame stays 2,270. Widening the arbiter frame must never move
   the discrepancy views, which is why the keys are separate; use
   `is_arbiter_eligible` / `isArbiterEligible` for the arbiter and
   `has_significant_spread` for everything else
@@ -96,8 +116,19 @@ copy, which is why the strings say "the panel" rather than a number.
 
 `--generation` is required on `data-fetch.py` and `extreme-analysis.py`,
 deliberately without a default: an unflagged re-run would rewrite the frozen v1
-files. A v2 run does not write `iwac_articles_base.json` at all; it asserts the
-live article id set still matches it and fails loudly on drift.
+files. A v2 run does not write `iwac_articles_base.json` at all; it fails loudly
+if an article in it was deleted upstream.
+
+**The base is also the corpus, and it does not grow by itself.** Every run is
+scoped to the base's ids: articles ingested upstream since are excluded and
+logged, because only part of the panel has read them (4,367 Burkina Faso
+articles added in October 2026 carry Haiku's ratings and no one else's). A
+`--generation v1` run drops articles deleted upstream (78587 on 2026-10-27, one
+the panel never annotated) and admits new ones only with
+`--admit-new-articles`, which gives every model that has not read them null
+rows. The public projection now masks `iiif_manifest` as a private field on
+1,144 articles (920 of them Fraternité Matin), so those lose the page viewer:
+an upstream rights decision, not a pipeline fault.
 
 ## Python pipeline
 

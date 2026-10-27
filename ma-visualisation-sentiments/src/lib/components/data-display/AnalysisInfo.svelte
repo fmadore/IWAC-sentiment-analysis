@@ -362,7 +362,7 @@
 					     from the generation block rather than being assembled here. The
 					     two runs share no parameter: v1 sent no reasoning setting at all
 					     and pinned temperature on two of its three models, while v2 sets
-					     a reasoning effort per model across a five-model panel. -->
+					     a reasoning effort per model across a six-model panel. -->
 					<ul class="config-list">
 						{#each copy.config as line (line)}
 							<li>{line}</li>
@@ -628,7 +628,7 @@
      MODEL CARDS
      ========================================================================== */
 	/* Auto-fit rather than a column count per breakpoint: the panel is three
-	   cards on the archive and five on the current generation, so a hardcoded
+	   cards on the archive and six on the current generation, so a hardcoded
 	   `repeat(3, 1fr)` would strand two cards in a half-empty row on one of
 	   them. The floor token does the reflow; no media query restates it. */
 	.model-grid {
@@ -798,6 +798,16 @@
 
 	.model-badge.qwen:hover {
 		background: color-mix(in oklab, var(--brand-qwen) 28%, transparent);
+	}
+
+	.model-badge.haiku {
+		background: color-mix(in oklab, var(--brand-claude) 18%, transparent);
+		border: 1px solid color-mix(in oklab, var(--brand-claude) 32%, transparent);
+		color: var(--brand-claude-light);
+	}
+
+	.model-badge.haiku:hover {
+		background: color-mix(in oklab, var(--brand-claude) 28%, transparent);
 	}
 
 	.model-detail {

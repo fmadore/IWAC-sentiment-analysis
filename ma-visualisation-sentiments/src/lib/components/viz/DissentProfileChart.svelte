@@ -4,7 +4,7 @@
   The chart the pairwise architecture structurally cannot produce: every article
   decomposed into mutually exclusive outcomes — unanimous, one model standing
   alone against all the rest, or the panel divided several ways. That is five
-  outcomes for the three-model archive and seven for the five-model panel; the
+  outcomes for the three-model archive and eight for the six-model panel; the
   bands are built from `models`, so neither number appears here.
 
   Two forms of the same finding. The stacked bars are exact and readable per
@@ -13,10 +13,10 @@
   and at the centre when the three share it evenly.
 
   **The triangle is offered only for a three-model generation.** Barycentric
-  coordinates need one corner per model, so five models have no honest ternary
-  form — four would want a tetrahedron and five a shape with no 2-D projection.
+  coordinates need one corner per model, so six models have no honest ternary
+  form — four would want a tetrahedron and more a shape with no 2-D projection.
   Rather than silently drawing a wrong triangle (`barycentric` returns null for
-  a five-share vector, so the panel would simply render empty), the mode is not
+  a six-share vector, so the panel would simply render empty), the mode is not
   offered at all and the stacked bars carry the reading. The archive keeps it.
 
   ECharts has no ternary series, so the triangle is barycentric coordinates
@@ -94,7 +94,7 @@
 	/**
 	 * What actually renders. Derived rather than an `$effect` that resets `viewOptionsState.dissent`:
 	 * a reader who picked the triangle on the archive and then switched to the
-	 * five-model panel gets the bars, and gets the triangle back on returning.
+	 * six-model panel gets the bars, and gets the triangle back on returning.
 	 */
 	let activeMode = $derived(supportsTernary ? viewOptionsState.dissent : 'stacked');
 

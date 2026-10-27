@@ -90,7 +90,7 @@ it('keeps source-only cohorts, minimum gaps and raw denominators visible', async
 	]);
 	await fireEvent.click(getByRole('button', { name: 'Data' }));
 	const rows = getByRole('table').querySelectorAll('tbody tr');
-	expect(rows).toHaveLength(5);
+	expect(rows).toHaveLength(models.length);
 	expect(rows[0].textContent).toContain('luna');
 	expect([...rows[0].querySelectorAll('td')].map((cell) => cell.textContent)).toEqual([
 		'luna',

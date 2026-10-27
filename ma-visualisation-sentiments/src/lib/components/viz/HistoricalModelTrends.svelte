@@ -25,7 +25,7 @@
 	import LoadingState from '../common/LoadingState.svelte';
 
 	const PAGE_SIZE = 6;
-	const symbols = ['circle', 'rect', 'triangle', 'diamond', 'pin'];
+	const symbols = ['circle', 'rect', 'triangle', 'diamond', 'pin', 'arrow'];
 	const dashes = ['solid', 'dashed', 'dotted'] as const;
 	const modelIds = $derived(datasetIdsOf(datasetState.generation));
 	const models = $derived(

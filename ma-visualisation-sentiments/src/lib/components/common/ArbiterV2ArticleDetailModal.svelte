@@ -6,14 +6,14 @@
   it in front of the arbiter, and then the verdict itself with every rating
   the judge was shown. The v1 counterpart is ArbiterArticleDetailModal; this
   is a sibling rather than a branch of it because the v1 modal is a pairwise
-  comparison with an arbiter section underneath, and a panel of five is a
+  comparison with an arbiter section underneath, and a whole panel is a
   different page.
 -->
 <script lang="ts">
 	import { t } from '$lib/i18n';
 	import { fmtDate } from '$lib/i18n/utils';
 	import { getArticleUrl } from '$lib/utils/format';
-	import { datasetIdsOf } from '$lib/domain/sentimentContract';
+	import { ARBITER_PANEL_IDS } from '$lib/domain/sentimentContract';
 	import { hasPolarityValenceFlip } from '$lib/stores/derivations';
 	import type { ArbiterV2Row } from '$lib/utils/arbiterV2';
 	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
@@ -33,7 +33,9 @@
 	const title = $derived(row?.title || $t.arbiterV2.articleWithVerdict);
 	const subtitle = $derived(row?.article ? `${row.journal} • ${$fmtDate(row.date)}` : '');
 
-	const panelIds = datasetIdsOf('v2');
+	// The models the judge read, not the whole panel: a recused model never put
+	// an article in front of it, so it must not decide why one was selected.
+	const panelIds = ARBITER_PANEL_IDS;
 
 	/**
 	 * Whether the panel reads the coverage as both favourable and hostile — the

@@ -32,12 +32,12 @@ const examples: Array<{ view: ViewId; query: string; options: Partial<ViewOption
 	{
 		view: 'agreement',
 		query:
-			'agreementMetric=weighted&patternKind=lone&patternLimit=25&labelPattern=3-2-3-3-3&patternArticles=50',
+			'agreementMetric=weighted&patternKind=lone&patternLimit=25&labelPattern=3-2-3-3-3-3&patternArticles=50',
 		options: {
 			agreementMetric: 'weighted',
 			patternKind: 'lone',
 			patternLimit: '25',
-			labelPattern: '3-2-3-3-3',
+			labelPattern: '3-2-3-3-3-3',
 			patternArticles: 50
 		}
 	},
@@ -98,7 +98,7 @@ describe('research view URL state', () => {
 		expect(snapshot().options).toEqual({});
 	});
 
-	it.each(['3-2', '3-2-3-3', '3-2-3-3-3-3', '6-2-3', '3--2-3', '3.5-2-3'])(
+	it.each(['3-2', '3-2-3-3', '3-2-3-3-3', '3-2-3-3-3-3-3', '6-2-3', '3--2-3', '3.5-2-3'])(
 		'rejects malformed label pattern %s',
 		(pattern) => {
 			restore(`view=agreement&dataset=luna&labelPattern=${pattern}`);
@@ -109,7 +109,7 @@ describe('research view URL state', () => {
 
 	it.each([
 		['chatgpt', '3-2-3'],
-		['luna', '3-2-3-3-3']
+		['luna', '3-2-3-3-3-3']
 	])('retains full model-order patterns for %s', (dataset, pattern) => {
 		restore(`view=agreement&dataset=${dataset}&scope=panel&labelPattern=${pattern}`);
 		expect(snapshot()).toMatchObject({

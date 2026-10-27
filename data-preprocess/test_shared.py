@@ -262,3 +262,56 @@ class TestRestrictToBaseArticles:
         # a drifted snapshot rather than an out-of-frame article.
         with pytest.raises(SystemExit, match="gone from the Hugging Face corpus"):
             restrict_to_base_articles(self.records(1), {"1", "2"}, self.logger)
+
+    def test_only_the_base_owning_run_may_drop_a_deleted_article(self):
+        # A v1 data-fetch owns the shared base, so reconciling an upstream
+        # deletion is its job; every other caller keeps failing loudly.
+        kept = restrict_to_base_articles(
+            self.records(1, 3), {"1", "2"}, self.logger, drop_vanished=True
+        )
+        assert [record["o:id"] for record in kept] == [1]
+
+
+class TestDataFetchCorpusScope:
+    """`data-fetch.py` never grows the published corpus unless told to."""
+
+    @pytest.fixture
+    def data_fetch(self, tmp_path, monkeypatch):
+        import importlib.util
+        import json
+
+        spec = importlib.util.spec_from_file_location(
+            "data_fetch", os.path.join(os.path.dirname(os.path.abspath(__file__)), "data-fetch.py")
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        (tmp_path / "iwac_articles_base.json").write_text(
+            json.dumps([{"o:id": 1}, {"o:id": 2}]), encoding="utf-8"
+        )
+        monkeypatch.setattr(module, "get_webapp_data_dir", lambda: str(tmp_path))
+        monkeypatch.setattr(module, "get_base_article_ids", lambda: {"1", "2"})
+        return module
+
+    @staticmethod
+    def ids(records):
+        return [record["o:id"] for record in records]
+
+    def test_v2_keeps_the_published_corpus(self, data_fetch):
+        live = [{"o:id": 1}, {"o:id": 2}, {"o:id": 3}]
+        assert self.ids(data_fetch.scope_to_published_corpus(live, "v2", False)) == [1, 2]
+
+    def test_v2_fails_on_an_upstream_deletion(self, data_fetch):
+        with pytest.raises(SystemExit, match="gone from the Hugging Face corpus"):
+            data_fetch.scope_to_published_corpus([{"o:id": 1}], "v2", False)
+
+    def test_v1_drops_a_deletion_but_admits_nothing_new(self, data_fetch):
+        live = [{"o:id": 1}, {"o:id": 3}]
+        assert self.ids(data_fetch.scope_to_published_corpus(live, "v1", False)) == [1]
+
+    def test_v1_admits_new_articles_only_when_asked(self, data_fetch):
+        live = [{"o:id": 1}, {"o:id": 3}]
+        assert self.ids(data_fetch.scope_to_published_corpus(live, "v1", True)) == [1, 3]
+
+    def test_only_a_v1_run_may_admit_new_articles(self, data_fetch):
+        with pytest.raises(SystemExit, match="only a v1 run writes"):
+            data_fetch.scope_to_published_corpus([{"o:id": 1}], "v2", True)

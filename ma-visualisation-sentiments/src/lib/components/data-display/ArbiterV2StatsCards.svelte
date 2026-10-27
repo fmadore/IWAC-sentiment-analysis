@@ -11,7 +11,7 @@
 
   Nothing here counts the models: the grid auto-fits, the overall bar is one
   segment per model, and the legend wraps. The panel grew from three to five
-  without this file changing, which is the property to preserve.
+  without this file changing (the sixth member is recused from the arbiter), which is the property to preserve.
 
   Every headline figure in the grid is an *overall* verdict, one per article,
   so the cards share a denominator and sum to the articles reviewed. The

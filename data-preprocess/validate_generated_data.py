@@ -285,8 +285,12 @@ def validate_arbiter_envelope(contract: SentimentContract, payload: dict) -> Non
     stored count and the fingerprints. The export runs this on its stage before
     every save; `validate_arbiter_three_way` adds the eligibility frame, which
     needs the published scores.
+
+    The model list is the arbiter's panel: a model the contract recuses must
+    never appear in the file, which a bijection over the unrecused models
+    already guarantees.
     """
-    model_ids = list(contract.model_names)
+    model_ids = list(contract.arbiter_model_ids)
     metadata = payload.get("metadata", {})
     evaluations = payload.get("evaluations", [])
     evaluation_ids = [str(row.get("article_id")) for row in evaluations]
@@ -302,7 +306,7 @@ def validate_arbiter_envelope(contract: SentimentContract, payload: dict) -> Non
     )
     require(
         list(metadata.get("models", [])) == model_ids,
-        "panel arbiter metadata does not list the contract's models",
+        "panel arbiter metadata does not list the contract's arbiter panel",
     )
     # One anonymised label per model, taken from the canonical sequence: the
     # published verdicts name a label, and only this mapping resolves it.
@@ -347,7 +351,9 @@ def validate_arbiter_three_way(
     payload = read_json(ARBITER_V2_FILENAME, data_dir)
     validate_arbiter_envelope(contract, payload)
 
-    model_ids = list(contract.model_names)
+    # Recomputed over the arbiter's panel only: a recused model never moves an
+    # article into the frame or out of it.
+    model_ids = list(contract.arbiter_model_ids)
     # The frame is the contract's *arbiter* eligibility, not the dashboard's
     # significant-spread rule: a valence flip two ranks wide is worth paying to
     # arbitrate without being worth flagging as a significant discrepancy. A run

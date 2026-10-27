@@ -21,6 +21,14 @@ re-run would silently rewrite them from whatever revision is current. The base
 metadata belongs to both generations, so only a v1 run writes it; a v2 run
 verifies that the live article set still matches it and refuses to continue
 otherwise.
+
+The base is also the corpus. Articles ingested upstream after it was written
+are left out of both generations, because a panel run is a discrete event and
+a newer article is scored by part of the panel at most (Claude Haiku 5.5
+annotated the 4,367 Burkina Faso articles added in October 2026, which no other
+model has read). Admitting them is a deliberate step: a v1 run with
+``--admit-new-articles``. An article deleted upstream fails a v2 run; a v1 run
+drops it from the base, which is that run's job.
 """
 
 import argparse
@@ -40,6 +48,7 @@ from shared import (
     build_base_article,
     build_model_justifications,
     build_model_scores,
+    get_base_article_ids,
     get_contract,
     get_logger,
     get_source_revision,
@@ -48,6 +57,7 @@ from shared import (
     load_iwac_records,
     manifest_filename,
     read_base_article_ids,
+    restrict_to_base_articles,
     safe_int_convert,
     safe_save_json,
     write_generation_manifest,
@@ -92,6 +102,28 @@ def assert_base_matches(base_path: str, article_ids: set[str]) -> None:
     )
 
 
+def scope_to_published_corpus(
+    records: list[dict], generation: str, admit_new_articles: bool
+) -> list[dict]:
+    """Keep the run on the corpus the base already defines.
+
+    A v1 run owns the base, so it may drop articles deleted upstream and, only
+    when asked, admit new ones; with no base yet it writes the first one from
+    everything. A v2 run may do neither.
+    """
+    if admit_new_articles and generation != "v1":
+        raise SystemExit(
+            "--admit-new-articles changes the shared base, which only a v1 run writes. "
+            "Run `data-fetch.py --generation v1 --admit-new-articles` first."
+        )
+    base_path = os.path.join(get_webapp_data_dir(), BASE_FILENAME)
+    if generation == "v1" and (admit_new_articles or not os.path.exists(base_path)):
+        return records
+    return restrict_to_base_articles(
+        records, get_base_article_ids(), logger, drop_vanished=generation == "v1"
+    )
+
+
 def main(argv: list[str] | None = None) -> None:
     """Fetch the IWAC articles and export one JSON dataset per model."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -101,6 +133,13 @@ def main(argv: list[str] | None = None) -> None:
         choices=GENERATIONS,
         help="Analysis generation to publish. Required: a v1 run rewrites the frozen "
         "published files.",
+    )
+    parser.add_argument(
+        "--admit-new-articles",
+        action="store_true",
+        help="v1 only: add articles ingested upstream since the base was written, with "
+        "null scores for every model that has not annotated them. Without it the "
+        "published corpus never grows.",
     )
     args = parser.parse_args(argv)
 
@@ -116,6 +155,7 @@ def main(argv: list[str] | None = None) -> None:
 
     records = load_iwac_records(contract)
     logger.info("Dataset loaded successfully! Number of articles: %d", len(records))
+    records = scope_to_published_corpus(records, args.generation, args.admit_new_articles)
 
     model_ids = list(contract.model_names)
     base_items: list[dict] = []

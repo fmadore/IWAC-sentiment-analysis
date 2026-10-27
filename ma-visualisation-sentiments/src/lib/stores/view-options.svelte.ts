@@ -1,4 +1,7 @@
 import type { ViewId } from '$lib/types/data';
+import { GENERATION_IDS, datasetIdsOf } from '$lib/domain/sentimentContract';
+
+const PANEL_SIZES = GENERATION_IDS.map((generation) => datasetIdsOf(generation).length);
 
 interface Option<T extends string | number | boolean> {
 	views: readonly ViewId[];
@@ -58,8 +61,11 @@ export const VIEW_OPTIONS = {
 	labelPattern: {
 		views: ['agreement'],
 		default: '',
+		// One rank per model, so a pattern is as long as some generation's panel.
+		// Read from the contracts: a literal list of sizes went stale when the
+		// panel grew, and silently dropped every shared six-model pattern.
 		parse: (raw: string) =>
-			raw === '' || (/^[0-5](?:-[0-5]){2,4}$/.test(raw) && [3, 5].includes(raw.split('-').length))
+			raw === '' || (/^[0-5](?:-[0-5])+$/.test(raw) && PANEL_SIZES.includes(raw.split('-').length))
 				? raw
 				: undefined
 	} as Option<string>,

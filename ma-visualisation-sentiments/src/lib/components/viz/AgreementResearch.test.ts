@@ -58,7 +58,10 @@ describe('agreement research panels', () => {
 			id: String(index),
 			values: {
 				...base.values,
-				polarity: Array.from({ length: 5 }, (_, digit) => 1 + (Math.floor(index / 5 ** digit) % 5))
+				polarity: Array.from(
+					{ length: models.length },
+					(_, digit) => 1 + (Math.floor(index / 5 ** digit) % 5)
+				)
 			}
 		}));
 		viewOptionsState.patternLimit = '50';
@@ -98,7 +101,10 @@ describe('agreement research panels', () => {
 
 	it('shows the metric-specific sample and opens the selected pair using a native button', async () => {
 		const view = render(ModelAgreementOverview, { dimension: 'polarity' });
-		expect(view.container.querySelectorAll('.matrix-cell')).toHaveLength(20);
+		const panelSize = datasetIdsOf('v2').length;
+		expect(view.container.querySelectorAll('.matrix-cell')).toHaveLength(
+			panelSize * (panelSize - 1)
+		);
 		await fireEvent.change(view.getByLabelText('Agreement measure'), {
 			target: { value: 'weighted' }
 		});
@@ -121,18 +127,21 @@ describe('agreement research panels', () => {
 		});
 		await fireEvent.click(
 			view.getByRole('button', {
-				name: 'Show articles for pattern Neutral / Neutral / Neutral / Neutral / Neutral'
+				name: `Show articles for pattern ${models.map(() => 'Neutral').join(' / ')}`
 			})
 		);
-		expect(viewOptionsState.labelPattern).toBe('3-3-3-3-3');
+		const neutral = models.map(() => '3').join('-');
+		expect(viewOptionsState.labelPattern).toBe(neutral);
 		const snapshot = parseURLState(buildURLSearchParams(getCurrentState()));
-		expect(snapshot.options?.labelPattern).toBe('3-3-3-3-3');
+		expect(snapshot.options?.labelPattern).toBe(neutral);
 		await fireEvent.click(view.getByRole('button', { name: 'Open annotation for Article 2' }));
 		expect(articleState.selected?.['o:id']).toBe(2);
 	});
 
 	it('reports a selected pattern that does not exist instead of showing a stale article list', () => {
-		viewOptionsState.labelPattern = '1-1-1-1-1';
+		viewOptionsState.labelPattern = datasetIdsOf('v2')
+			.map(() => '1')
+			.join('-');
 		const models = datasetIdsOf('v2');
 		const rows = buildConsensusRows(articleState.datasets, models);
 		const view = render(LabelPatternExplorer, {

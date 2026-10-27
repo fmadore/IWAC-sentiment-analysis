@@ -201,5 +201,25 @@ export const MODELS: ModelInfo[] = [
 			en: ', Alibaba’s open-weights model, self-hosted with vLLM on the University of Bayreuth’s Festus cluster.',
 			fr: ', le modèle à poids ouverts d’Alibaba, auto-hébergé avec vLLM sur le cluster Festus de l’université de Bayreuth.'
 		}
+	},
+	{
+		id: 'haiku',
+		logo: '/logo/Claude_logo.svg',
+		logoAlt: 'Claude logo',
+		cardName: 'Claude Haiku 5.5',
+		badgeName: 'Claude Haiku 5.5',
+		docsUrl: 'https://www.anthropic.com/claude/haiku',
+		cardDescription: {
+			en: 'Anthropic’s smallest model, called through Anthropic’s own API at medium reasoning effort — a genuine middle step on a ladder that runs from low to max. It joined the panel in October 2026 without a pilot.',
+			fr: 'Le plus petit modèle d’Anthropic, appelé par l’API d’Anthropic avec un effort de raisonnement moyen — un véritable échelon intermédiaire sur une échelle allant de low à max. Il a rejoint le panel en octobre 2026 sans pilote.'
+		},
+		detail: {
+			en: 'It comes from the same developer as the panel arbiter, Claude Opus 5, so its analyses are never shown to the arbiter. Its coverage is 47 articles short of the other API members, which its pass found without text.',
+			fr: 'Il vient du même concepteur que l’arbitre du panel, Claude Opus 5 : ses analyses ne sont donc jamais soumises à l’arbitre. Sa couverture compte 47 articles de moins que celle des autres membres appelés par API, que son passage a trouvés sans texte.'
+		},
+		inlineDescription: {
+			en: ', Anthropic’s smallest model, called through Anthropic’s own API at medium reasoning effort; it joined the panel in October 2026 without a pilot.',
+			fr: ', le plus petit modèle d’Anthropic, appelé par l’API d’Anthropic avec un effort de raisonnement moyen ; il a rejoint le panel en octobre 2026 sans pilote.'
+		}
 	}
 ];

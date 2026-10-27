@@ -22,7 +22,7 @@
 		type ScaleItem
 	} from '$lib/components/common/SentimentScaleList.svelte';
 	import { loadPromptTexts, promptTexts } from '$lib/data/promptTexts.svelte';
-	import { SENTIMENT_CONTRACT_V2 } from '$lib/domain/sentimentContract';
+	import { ARBITER_RECUSED_IDS, SENTIMENT_CONTRACT_V2 } from '$lib/domain/sentimentContract';
 	import { createAccordion } from '$lib/utils/accordion.svelte';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import EyeOffIcon from '@lucide/svelte/icons/eye-off';
@@ -164,6 +164,12 @@
 					<h4 class="section-title">{$t.arbiterV2.frameCaveat}</h4>
 					<p class="section-text">{$t.arbiterV2.frameCaveatDesc}</p>
 				</div>
+				{#if ARBITER_RECUSED_IDS.length}
+					<div class="methodology-section">
+						<h4 class="section-title">{$t.arbiterV2.recusal}</h4>
+						<p class="section-text">{$t.arbiterV2.recusalDesc}</p>
+					</div>
+				{/if}
 				<div class="methodology-section">
 					<h4 class="section-title">{$t.arbiterV2.blindEvaluation}</h4>
 					<p class="section-text">{$t.arbiterV2.blindEvaluationDesc}</p>

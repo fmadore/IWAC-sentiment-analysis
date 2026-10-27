@@ -2,7 +2,7 @@
 	"id": "iwac-sentiment-analysis",
 	"name": "IWAC Sentiment Analysis",
 	"short_name": "IWAC Analysis",
-	"description": "How five AI models read the Islam West Africa Collection: an interactive view of their sentiment ratings of the francophone West African press",
+	"description": "How six AI models read the Islam West Africa Collection: an interactive view of their sentiment ratings of the francophone West African press",
 	"start_url": "./",
 	"display": "standalone",
 	"background_color": "#0a0d12",
@@ -84,6 +84,18 @@
 			"short_name": "Qwen",
 			"description": "View the Qwen3.8 27B sentiment analysis results",
 			"url": "./?dataset=qwen",
+			"icons": [
+				{
+					"src": "./icons/icon-192x192.png",
+					"sizes": "192x192"
+				}
+			]
+		},
+		{
+			"name": "Claude Haiku 5.5 Analysis",
+			"short_name": "Claude Haiku",
+			"description": "View the Claude Haiku 5.5 sentiment analysis results",
+			"url": "./?dataset=haiku",
 			"icons": [
 				{
 					"src": "./icons/icon-192x192.png",

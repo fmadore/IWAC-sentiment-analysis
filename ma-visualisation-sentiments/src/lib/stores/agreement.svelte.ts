@@ -156,7 +156,7 @@ export const consensusRows = {
 };
 
 /** The active generation's model ids, in contract order — the consensus axis.
- * Three for the archive, five for the current panel; every consumer reads the
+ * Three for the archive, six for the current panel; every consumer reads the
  * length from here rather than assuming one. */
 export const consensusModels = {
 	get current(): readonly DatasetId[] {

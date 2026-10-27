@@ -10,6 +10,8 @@ import { describe, expect, it } from 'vitest';
 import { ARBITER_BLIND_LABELS } from '$lib/types/data';
 import shardFixtures from '$lib/data/justification-shard-fixtures.json';
 import {
+	ARBITER_PANEL_IDS,
+	ARBITER_RECUSED_IDS,
 	ARCHIVED_GENERATION,
 	CURRENT_GENERATION,
 	DATASET_IDS,
@@ -26,6 +28,7 @@ import {
 	defaultPairOf,
 	generationOf,
 	getPairModels,
+	isArbiterRecused,
 	isDatasetId,
 	isModelPair,
 	justificationShard,
@@ -97,7 +100,8 @@ describe('shared scales', () => {
 			['mistral_small_2603'],
 			['deepseek_v4_flash_0731'],
 			['gemma_4_31b_it'],
-			['qwen3_8_27b']
+			['qwen3_8_27b'],
+			['claude_haiku_5_5']
 		]);
 	});
 });
@@ -105,7 +109,7 @@ describe('shared scales', () => {
 describe('panel completeness', () => {
 	it('declares every unordered pair of the v2 panel exactly once', () => {
 		// The pair list is hand-authored in two places (the tuple here, the JSON
-		// the pipeline reads) and grows quadratically: five models are ten pairs,
+		// the pipeline reads) and grows quadratically: six models are fifteen pairs,
 		// and a missing one is invisible — the picker simply never offers that
 		// comparison, and nobody notices a conversation that was never had.
 		const models = datasetIdsOf('v2');
@@ -115,12 +119,22 @@ describe('panel completeness', () => {
 		expect(pairIdsOf('v2')).toHaveLength((models.length * (models.length - 1)) / 2);
 	});
 
-	it('gives the arbiter one blind label per v2 model', () => {
+	it('gives the arbiter one blind label per model it reads', () => {
 		// The permutation is a bijection labels → models; too few labels would
 		// leave a model unnameable in a verdict, too many would name a model that
-		// does not exist. parseArbiterV2EvaluationData enforces this at load, but
-		// the run is not published yet, so nothing would exercise it until then.
-		expect(ARBITER_BLIND_LABELS).toHaveLength(datasetIdsOf('v2').length);
+		// does not exist. parseArbiterV2EvaluationData enforces this at load.
+		expect(ARBITER_BLIND_LABELS).toHaveLength(ARBITER_PANEL_IDS.length);
+	});
+
+	it('recuses the panel member that shares the arbiter’s developer', () => {
+		// Claude Haiku 5.5 and the judge, Claude Opus 5, are both Anthropic's.
+		// The arbiter's panel is every other model: exactly the five the
+		// published run judged, so adding Haiku invalidated no verdict.
+		expect(ARBITER_RECUSED_IDS).toEqual(['haiku']);
+		expect(ARBITER_PANEL_IDS).toEqual(['luna', 'mistral-small', 'deepseek', 'gemma', 'qwen']);
+		expect(isArbiterRecused('haiku')).toBe(true);
+		expect(isArbiterRecused('luna')).toBe(false);
+		expect(datasetIdsOf('v2')).toContain('haiku');
 	});
 });
 
@@ -130,6 +144,8 @@ describe('model naming', () => {
 		expect(modelDisplayName('deepseek')).toBe('DeepSeek v4 Flash');
 		expect(modelDisplayName('gemma')).toBe('Gemma 4 31B');
 		expect(modelDisplayName('qwen')).toBe('Qwen3.8 27B');
+		expect(modelDisplayName('haiku')).toBe('Claude Haiku 5.5');
+		expect(analysisModelName('haiku')).toBe('Claude Haiku 5.5');
 		expect(modelDisplayName('chatgpt')).toBe('ChatGPT');
 		expect(analysisModelName('mistral-small')).toBe('Mistral Small 4 2603');
 		expect(analysisModelName('gemma')).toBe('Gemma 4 31B IT');
