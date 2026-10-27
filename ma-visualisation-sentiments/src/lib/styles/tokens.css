@@ -494,6 +494,8 @@
 	--brand-gemma-light: #6cb0ff;
 	--brand-qwen: #615ced;
 	--brand-qwen-light: #8d89f3;
+	--brand-claude: #d97757;
+	--brand-claude-light: #e49a82;
 
 	/* --- Print — the one light-background context this app has. --- */
 	--print-surface: white;

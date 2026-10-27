@@ -1,5 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { readFileSync } from 'node:fs';
+
+const panelSize = Object.keys(
+	JSON.parse(readFileSync('src/lib/data/sentiment-v2.json', 'utf8')).models
+).length;
 
 const pageErrors = new WeakMap<Page, string[]>();
 test.beforeEach(({ page }) => {
@@ -52,7 +57,9 @@ test('full label patterns link to a reloadable article annotation', async ({ pag
 		.click();
 	await expect(page).toHaveURL(/labelPattern=/);
 	const selectedPattern = new URL(page.url()).searchParams.get('labelPattern');
-	expect(selectedPattern).toMatch(/^[0-5](?:-[0-5]){4}$/);
+	// One rank per model of the current panel.
+	expect(selectedPattern?.split('-')).toHaveLength(panelSize);
+	expect(selectedPattern).toMatch(/^[0-5](?:-[0-5])+$/);
 	const articles = page.getByRole('region', {
 		name: 'Articles with the selected pattern',
 		exact: true

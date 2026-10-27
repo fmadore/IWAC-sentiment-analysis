@@ -179,10 +179,51 @@ def test_v2_uses_exact_model_column_prefixes():
         "deepseek": "deepseek_v4_flash_0731",
         "gemma": "gemma_4_31b_it",
         "qwen": "qwen3_8_27b",
+        "haiku": "claude_haiku_5_5",
     }
+    assert CONTRACT_V2.sentiment_column("haiku", "polarite") == "claude_haiku_5_5_polarite"
     assert CONTRACT_V2.sentiment_column("deepseek", "polarite") == "deepseek_v4_flash_0731_polarite"
     # No vendor aliases: a v2 id must never resolve through a v1 prefix.
     assert set(CONTRACT_V2.hf_column_prefixes).isdisjoint(CONTRACT_V1.hf_column_prefixes)
+
+
+def test_the_v2_panel_has_a_pair_for_every_two_models():
+    models = list(CONTRACT_V2.model_names)
+    assert len(models) == 6
+    assert len(CONTRACT_V2.model_pairs) == len(models) * (len(models) - 1) // 2
+    assert {frozenset(members) for members in CONTRACT_V2.pair_models.values()} == {
+        frozenset((first, second))
+        for index, first in enumerate(models)
+        for second in models[index + 1 :]
+    }
+
+
+def test_the_arbiter_never_reads_a_recused_model():
+    """Haiku is a panel member everywhere except in front of the judge.
+
+    The judge (Claude Opus 5) and Haiku share a developer, so the arbiter's
+    panel is every other model: exactly the five the published run judged.
+    """
+    assert CONTRACT_V2.arbiter_recused_ids == ("haiku",)
+    assert CONTRACT_V2.arbiter_model_ids == ["luna", "mistral-small", "deepseek", "gemma", "qwen"]
+    assert "haiku" in CONTRACT_V2.model_names
+    # The archive recuses nobody.
+    assert CONTRACT_V1.arbiter_recused_ids == ()
+    assert CONTRACT_V1.arbiter_model_ids == list(CONTRACT_V1.model_names)
+
+
+def test_a_recusal_naming_an_unknown_model_is_rejected():
+    contract = json.loads(json.dumps(CONTRACT_V2.contract))
+    contract["arbiter"]["recusal"] = {"models": ["claude"]}
+    with pytest.raises(ValueError, match="recuses unknown model"):
+        type(CONTRACT_V2)(contract, "v2")
+
+
+def test_a_recusal_leaving_fewer_than_two_judged_models_is_rejected():
+    contract = json.loads(json.dumps(CONTRACT_V2.contract))
+    contract["arbiter"]["recusal"] = {"models": list(contract["models"])[1:]}
+    with pytest.raises(ValueError, match="at least two unrecused models"):
+        type(CONTRACT_V2)(contract, "v2")
 
 
 def test_legacy_hf_prefixes_are_normalized_to_exact_v1_names():

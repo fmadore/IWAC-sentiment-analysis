@@ -23,6 +23,17 @@ What differs from `arbiter-evaluation.py`, and why:
   permutation maps the five model ids onto the labels A-E; it is persisted in
   the output metadata and reused by every incremental run, so cached and new
   rows always mean the same thing.
+* **The judge never reads its own developer's model.** Claude Haiku 5.5 joined
+  the panel as its sixth member on 2026-10-22; the judge is Claude Opus 5. Blind
+  labels hide a name, not a house style, and LLM judges favour their own and
+  their family's output, so the contract's `arbiter.recusal` keeps Haiku out of
+  everything this script does: selection, prompt, labels and fingerprints run
+  over the other five, exactly the panel the published run judged. Haiku is
+  compared with the verdicts afterwards, in the dashboard. On the published 301
+  its polarity coincides with the arbiter's in 192, inside the 190-205 of the
+  four non-dissenting members: no sign of a shared Anthropic reading. What the
+  recusal cannot do is hear Haiku's own dissents — the 45 valence flips that
+  exist only because of it — which needs a judge from another developer.
 * **`--dry-run` prints the eligible/selected counts and a cost estimate and
   exits without making a single API call.** The paid run is deliberately gated.
 * **Paid work is retained separately from the public selection.** A private
@@ -201,14 +212,17 @@ ESTIMATE_OUTPUT_TOKENS = {"low": 1100, "medium": 1613, "high": 2400, "xhigh": 35
 # Dataset columns the selection pass depends on.
 REQUIRED_BASE_COLUMNS = ["o:id", "title", "newspaper", "country", "pub_date"]
 
-# The anonymised labels the five panel models are presented under come from
+# The anonymised labels the arbiter's panel is presented under come from
 # `iwac_preprocess.arbiter_prompt.BLIND_LABELS`, as do the selection rules and
 # spread keys from `arbiter_selection`: one definition each, imported above.
 # `resolve_blind_permutation` refuses to run if the label and model counts ever
 # disagree.
 PREFERENCE_VALUES = (*BLIND_LABELS, "multiple", "none")
 
-MODEL_IDS = list(CONTRACT.model_names)
+# The arbiter's panel, not the generation's: a recused model (one from the
+# judge's own developer, see `arbiter.recusal` in the contract) is never shown
+# to it, so it takes no label, no fingerprint slot and no part in selection.
+MODEL_IDS = list(CONTRACT.arbiter_model_ids)
 
 
 # ============================================================================

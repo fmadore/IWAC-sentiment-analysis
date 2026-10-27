@@ -53,7 +53,7 @@
 	import GitCompareIcon from '@lucide/svelte/icons/git-compare';
 	import NetworkIcon from '@lucide/svelte/icons/network';
 
-	// 'panel', not 'trio': the current generation has five models, and a value
+	// 'panel', not 'trio': the current generation has six models, and a value
 	// named for three would be the same class of lie as a class name that stopped
 	// meaning what it looks like.
 

@@ -17,7 +17,7 @@ beforeEach(() => {
 
 describe('datasetState.available', () => {
 	it('contains both generations', () => {
-		expect(datasetState.available).toHaveLength(8);
+		expect(datasetState.available).toHaveLength(9);
 		expect(datasetState.available.map((d) => d.id)).toEqual([
 			'chatgpt',
 			'gemini',
@@ -26,7 +26,8 @@ describe('datasetState.available', () => {
 			'mistral-small',
 			'deepseek',
 			'gemma',
-			'qwen'
+			'qwen',
+			'haiku'
 		]);
 	});
 
@@ -66,19 +67,25 @@ describe('datasetState.availableInGeneration', () => {
 			'mistral-small',
 			'deepseek',
 			'gemma',
-			'qwen'
+			'qwen',
+			'haiku'
 		]);
 		expect(datasetState.pairsInGeneration).toEqual([
 			'luna-mistral-small',
 			'luna-deepseek',
 			'luna-gemma',
 			'luna-qwen',
+			'luna-haiku',
 			'mistral-small-deepseek',
 			'mistral-small-gemma',
 			'mistral-small-qwen',
+			'mistral-small-haiku',
 			'deepseek-gemma',
 			'deepseek-qwen',
-			'gemma-qwen'
+			'deepseek-haiku',
+			'gemma-qwen',
+			'gemma-haiku',
+			'qwen-haiku'
 		]);
 	});
 });
@@ -240,6 +247,9 @@ describe('datasetState.getById', () => {
 		expect(datasetState.getById('gemma')?.color).toBe('#338dff');
 		expect(datasetState.getById('qwen')?.name).toBe('Qwen3.8 27B');
 		expect(datasetState.getById('qwen')?.color).toBe('#615ced');
+		expect(datasetState.getById('haiku')?.name).toBe('Claude Haiku 5.5');
+		expect(datasetState.getById('haiku')?.color).toBe('#d97757');
+		expect(datasetState.getById('haiku')?.logo).toBe('/logo/Claude_logo.svg');
 	});
 
 	it('returns undefined for unknown id', () => {

@@ -1,19 +1,25 @@
 {
   "schema_version": "2.1.0",
   "analysis_version": "v2",
-  "generated": "2026-08-25T13:05:13.659135+00:00",
+  "generated": "2026-10-27T19:36:22.874321+00:00",
   "source": {
     "repository": "fmadore/islam-west-africa-collection",
-    "revision": "7f54961554d7550bedb886648dec14fb953bfa43"
+    "revision": "af70646f64674d600d957fd33557368eedd53cbb"
+  },
+  "environment": {
+    "requirements_lock": {
+      "file": "requirements.lock",
+      "sha256": "496e064a379404b8d4bf240f0767302518faec14fe22333a65b74a5b428c60eb"
+    }
   },
   "files": {
     "iwac_articles_base.json": {
-      "bytes": 4002241,
-      "sha256": "4e20dd0dd8ce6961a5aebfdc8cace3eacae11a5fb9d67cf7a6d09a00f53ae1c6"
+      "bytes": 3925334,
+      "sha256": "9e0ffb5299e68eb681c3d356a14063a5794c2cc69c297e88893df31578748870"
     },
     "iwac_sentiment_luna.json": {
-      "bytes": 1631607,
-      "sha256": "5f487890aa20a6bce48c30cee7b0bdfe5ba34e87f12e7c03f8a6057b09b49ab8"
+      "bytes": 1631486,
+      "sha256": "16dffea4c9ce243091d955345dcc4ac3f9bb830d92372b26fc63e49755d53328"
     },
     "iwac_justifications_luna_00.json": {
       "bytes": 269044,
@@ -124,8 +130,8 @@
       "sha256": "a50901ea5dab5df8dc184d5172d9565729f5c60431791eaa4eba2b276f1e31b0"
     },
     "iwac_justifications_luna_27.json": {
-      "bytes": 265132,
-      "sha256": "eb7d2c4a7171ce98f5311bd7777c0640415e2ff609ece7e225036f0cbc841cf5"
+      "bytes": 264991,
+      "sha256": "fca68ee0d10059163d514bbecf43385fd35359334c1faf5b09e76227581c0511"
     },
     "iwac_justifications_luna_28.json": {
       "bytes": 262933,
@@ -144,8 +150,8 @@
       "sha256": "598fd531764df1e035a8ffe20f6458bb119a292b94ec3e9f5f4f1c0467975a93"
     },
     "iwac_sentiment_mistral-small.json": {
-      "bytes": 1650495,
-      "sha256": "896778373bf99558661337a24e731163a81734452b617cfd2fa843a42d1174ef"
+      "bytes": 1650374,
+      "sha256": "8a22fde811f9d8976c09490eaf5fbea44d51b52039baaa6c2d370e409bf64ca6"
     },
     "iwac_justifications_mistral-small_00.json": {
       "bytes": 273973,
@@ -256,8 +262,8 @@
       "sha256": "fcc219601a2c71aab20f894b7a81567e941f19f03c5054401759d69d97f6c2ed"
     },
     "iwac_justifications_mistral-small_27.json": {
-      "bytes": 271007,
-      "sha256": "c1b24074d5881572d4238cb047f0f6ad6b61905c0f11e34e4f5c2d5e9d2a4894"
+      "bytes": 270866,
+      "sha256": "50fe789f372d5bc78d5b993d29261959c38dbcdaeca8d54718ebb46954419b31"
     },
     "iwac_justifications_mistral-small_28.json": {
       "bytes": 267054,
@@ -276,8 +282,8 @@
       "sha256": "0eeba3042bded1dd52dcd7d485fdbfdf5bf83c616d1b613bdaa9950ead46c68d"
     },
     "iwac_sentiment_deepseek.json": {
-      "bytes": 1637381,
-      "sha256": "b963784791091d96040e9574994a77b3154dad667b6a8daa4959c95a322f65b9"
+      "bytes": 1637260,
+      "sha256": "d29d9f332b28c4af995994e859468046b9a78b6d9a5254cbb82d3e42da711bfb"
     },
     "iwac_justifications_deepseek_00.json": {
       "bytes": 329382,
@@ -388,8 +394,8 @@
       "sha256": "b79e4b50e213686cf7cac3f58580652ed9975657c2fd29d9daf498ce2a732f7a"
     },
     "iwac_justifications_deepseek_27.json": {
-      "bytes": 328300,
-      "sha256": "d306a2b3424706dfeb75875e6f01c239c09f239f55e76970a76826ef9c3ad8e2"
+      "bytes": 328159,
+      "sha256": "807ee87a34c95caba23bd1985c09ff774e86492b2e92a94c4606aaa9233a3cef"
     },
     "iwac_justifications_deepseek_28.json": {
       "bytes": 326270,
@@ -408,8 +414,8 @@
       "sha256": "48ad3cd17d28b568cb5c079ec94814d124b1980a036d32ffbfa5f7c903bd4096"
     },
     "iwac_sentiment_gemma.json": {
-      "bytes": 1626718,
-      "sha256": "467ff1b5bfa17702b7b8b71834971a3bbe0f0a6387bdf069697aff71900972a9"
+      "bytes": 1626597,
+      "sha256": "914185968cc787bfad7cb255a890b04d50a7078d5500d08a4d306a3f703a62b3"
     },
     "iwac_justifications_gemma_00.json": {
       "bytes": 222646,
@@ -520,8 +526,8 @@
       "sha256": "f89dc7f2d8b37eb193d25fcc0df3b657dfaa046fee32df350167914f443ca6fc"
     },
     "iwac_justifications_gemma_27.json": {
-      "bytes": 219240,
-      "sha256": "1f5e815ab057da37c1bb9742056bf6d8af43b9f62dc4b63831033cd9044c2532"
+      "bytes": 219099,
+      "sha256": "fc4d3fb127b0b4ab823bcd9b795e2dfaf841e075729067464d420fd33689f798"
     },
     "iwac_justifications_gemma_28.json": {
       "bytes": 216109,
@@ -540,8 +546,8 @@
       "sha256": "ee416c97a7889a8117948a5b51dc71e56db04e1873b5db26f6b9d403456c7b9c"
     },
     "iwac_sentiment_qwen.json": {
-      "bytes": 1623282,
-      "sha256": "a4e7937d81fdad79363134777a67dc3dc85e7fe0f07eb369d7f3902113074e9f"
+      "bytes": 1623161,
+      "sha256": "1282cb3d7ba288d9f3863fe4c4062ea1c769ff832cb91e4735899a50dd83c20a"
     },
     "iwac_justifications_qwen_00.json": {
       "bytes": 405610,
@@ -652,8 +658,8 @@
       "sha256": "8384cfc1964c01a65b78148f68906b6f3b7e675f3db4251ecebdd38e9d9127a5"
     },
     "iwac_justifications_qwen_27.json": {
-      "bytes": 394823,
-      "sha256": "2f5cc617ca238810e42542de20484d360aa104b435004ad1f9e13688be1128de"
+      "bytes": 394682,
+      "sha256": "d7348553923ea3db24cafea743c8bc7601d836a55b7a1df05acc94ab53ae3d29"
     },
     "iwac_justifications_qwen_28.json": {
       "bytes": 389081,
@@ -670,6 +676,138 @@
     "iwac_justifications_qwen_31.json": {
       "bytes": 398107,
       "sha256": "5d769f0abc5b2d8db230eed32c9f2cc0e6cdd9744dff404225c365345b33ad16"
+    },
+    "iwac_sentiment_haiku.json": {
+      "bytes": 1629982,
+      "sha256": "f3860a14800c84a7df1cf4323728a706ee968cb72a128bf3cb63fe442cba0313"
+    },
+    "iwac_justifications_haiku_00.json": {
+      "bytes": 300344,
+      "sha256": "dd8388dd5901d4ff20c89cca1e3d2579b6d43e9a5c4c40991b88f6074f0e6afe"
+    },
+    "iwac_justifications_haiku_01.json": {
+      "bytes": 300164,
+      "sha256": "9d581a0bb13796316894c0f7024a5e7127fe1b7c21c399979095b12184e45256"
+    },
+    "iwac_justifications_haiku_02.json": {
+      "bytes": 295708,
+      "sha256": "75de1a94d7028b1a164a364f247d1224bfc590df9436f006e8527f774e2561db"
+    },
+    "iwac_justifications_haiku_03.json": {
+      "bytes": 294175,
+      "sha256": "ae1134c239c2e02da0e50c874f3bec54daeb83b5e1df691e5b51a89ab8681eb5"
+    },
+    "iwac_justifications_haiku_04.json": {
+      "bytes": 278999,
+      "sha256": "9265f11ed94abcfd347847ac81274d711501de1ddc07a716c5f73424ff935a17"
+    },
+    "iwac_justifications_haiku_05.json": {
+      "bytes": 274073,
+      "sha256": "47087bdafc359a6bfa4bfbbe649a17f68c8e2b69668d5532ef07e2f144b0f68d"
+    },
+    "iwac_justifications_haiku_06.json": {
+      "bytes": 294399,
+      "sha256": "6909c68ea2a06657eba8207eeeaa12293489e28ceaad5c12dace9455494aa6bf"
+    },
+    "iwac_justifications_haiku_07.json": {
+      "bytes": 289718,
+      "sha256": "f83276daac65db758c2a6457d8a26c4e0c0e7160475c91dfc06ee0b9c28e066d"
+    },
+    "iwac_justifications_haiku_08.json": {
+      "bytes": 296507,
+      "sha256": "ba7062e67ff9f96e71dcb41443d76caad9e7b1f9e02c88ff23877ba446ffac33"
+    },
+    "iwac_justifications_haiku_09.json": {
+      "bytes": 291326,
+      "sha256": "eec12b45df22d06767ab43a29291f3379fbc8e30d7175d233c40e241a2c9d5b9"
+    },
+    "iwac_justifications_haiku_10.json": {
+      "bytes": 295572,
+      "sha256": "0eec0c0fbb5c1c614b06816a48efcf1409ea2a1219c2701cfa12467e8cc4b117"
+    },
+    "iwac_justifications_haiku_11.json": {
+      "bytes": 290754,
+      "sha256": "0d71f434539711177a508d263edd166edafbe3404d82c49666ff019a21436d2d"
+    },
+    "iwac_justifications_haiku_12.json": {
+      "bytes": 294862,
+      "sha256": "1ffcc92a7da0ebabc6abc0df0eba1aa8c5552a125329a8da7389ee6b03f50f3f"
+    },
+    "iwac_justifications_haiku_13.json": {
+      "bytes": 289389,
+      "sha256": "764bfe070c8fb4a91f7cc4c9682d6e1de3070453f5d87acc5573a105677ce5bf"
+    },
+    "iwac_justifications_haiku_14.json": {
+      "bytes": 299384,
+      "sha256": "b600da94b38aa2d89b9b5b1095429fa883845afe875befd165cfee1688c72152"
+    },
+    "iwac_justifications_haiku_15.json": {
+      "bytes": 290068,
+      "sha256": "17a676edb3bc80fde705297d14280d383b330b3cf7b3949a357e23b3c0665229"
+    },
+    "iwac_justifications_haiku_16.json": {
+      "bytes": 301215,
+      "sha256": "c818f57969e2a0cc0b41ef2c0f5a445ce2ced223803d8be51d506b95f7587a53"
+    },
+    "iwac_justifications_haiku_17.json": {
+      "bytes": 294495,
+      "sha256": "8c99d8341f53b924b604f324ead3ea60336a99a3dae9d772bced7869f2a33668"
+    },
+    "iwac_justifications_haiku_18.json": {
+      "bytes": 292305,
+      "sha256": "635026e5ece78e22d5c212821eabe0a0e839cae852905824e6a39dd9bce2b754"
+    },
+    "iwac_justifications_haiku_19.json": {
+      "bytes": 296163,
+      "sha256": "bbd91059be558a75d9aca989414a7a85ff8ee20b4ab3d3f6744b0992a8c95c6b"
+    },
+    "iwac_justifications_haiku_20.json": {
+      "bytes": 296141,
+      "sha256": "437e1e5f3b45d4783fed426d2dbd2d6de162a8bb0ecf22563347a70bdccf856b"
+    },
+    "iwac_justifications_haiku_21.json": {
+      "bytes": 297900,
+      "sha256": "9c1eaf3ba0c3f74f0d20d0cdd125c8aee604620697ae9621ef6666a8bb036186"
+    },
+    "iwac_justifications_haiku_22.json": {
+      "bytes": 299564,
+      "sha256": "92675cb082ed1653effea223c13d38b1931d77290de48972c13f3bbf40d85e24"
+    },
+    "iwac_justifications_haiku_23.json": {
+      "bytes": 290921,
+      "sha256": "20a45a1f018af243b64398a94c120b56d0971de53402ac6f75d83d6656327fbc"
+    },
+    "iwac_justifications_haiku_24.json": {
+      "bytes": 300296,
+      "sha256": "63ebf6542522e2e338c41c24a8db8e89bd385bb623f0c99104846e62c3563cdc"
+    },
+    "iwac_justifications_haiku_25.json": {
+      "bytes": 304148,
+      "sha256": "bde774d54de275932bbfa83246262c775e328c0c23f056fb61b0d91658171a02"
+    },
+    "iwac_justifications_haiku_26.json": {
+      "bytes": 287680,
+      "sha256": "03d975d9ba830d1157ddc690ede91846e16e2a3bff0c74038e0561f6421309f7"
+    },
+    "iwac_justifications_haiku_27.json": {
+      "bytes": 296031,
+      "sha256": "b11e48c9a9f74219347f9f2ac5cf6fcc11dbae2101dc1e47fd5cd23b4a9ff469"
+    },
+    "iwac_justifications_haiku_28.json": {
+      "bytes": 293173,
+      "sha256": "c1100dc67f0213d1ab3cb0ce8ceaafd8bf799ad88bfd4746540515062583fe97"
+    },
+    "iwac_justifications_haiku_29.json": {
+      "bytes": 294181,
+      "sha256": "851877f32b8fff83813965b0efc527b8820cafce55f380ded2d074c8cb152011"
+    },
+    "iwac_justifications_haiku_30.json": {
+      "bytes": 297379,
+      "sha256": "910e7782744e1b611f26e936a63255138ed0f1f1806b9455ee7d1996b0392100"
+    },
+    "iwac_justifications_haiku_31.json": {
+      "bytes": 298397,
+      "sha256": "b9ce0b945717aa51fa964c12404972cf4f3be48d19f01b306da6999b5b9c5dc2"
     }
   }
 }

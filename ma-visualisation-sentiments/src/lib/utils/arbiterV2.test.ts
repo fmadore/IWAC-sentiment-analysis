@@ -16,7 +16,7 @@ import {
 	matchesArbiterScore,
 	resolvePreference
 } from './arbiterV2';
-import { SENTIMENT_CONTRACT_V2, datasetIdsOf } from '$lib/domain/sentimentContract';
+import { ARBITER_PANEL_IDS, SENTIMENT_CONTRACT_V2 } from '$lib/domain/sentimentContract';
 import { ARBITER_BLIND_LABELS } from '$lib/types/data';
 import type {
 	ArbiterBlindLabel,
@@ -27,7 +27,8 @@ import type {
 	SentimentAnalysis
 } from '$lib/types/data';
 
-const MODELS = datasetIdsOf('v2') as DatasetId[];
+// The arbiter's panel, not the generation's: Haiku is recused.
+const MODELS = [...ARBITER_PANEL_IDS] as DatasetId[];
 
 /** Rotated by two, so label "a" is the third model in contract order. */
 const PERMUTATION = Object.fromEntries(

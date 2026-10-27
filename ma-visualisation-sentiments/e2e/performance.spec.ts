@@ -5,6 +5,17 @@ import { readFileSync } from 'node:fs';
 const manifest = JSON.parse(readFileSync('.svelte-kit/output/client/.vite/manifest.json', 'utf8'));
 const chartChunk = manifest['src/lib/components/views/ChartViews.svelte'].file;
 const mapChunk = manifest['src/lib/components/viz/SentimentMap.svelte'].file;
+// Every model of the current panel is prefetched; read the count from the
+// contract so a growing panel does not read as a budget regression.
+const panelSize = Object.keys(
+	JSON.parse(readFileSync('src/lib/data/sentiment-v2.json', 'utf8')).models
+).length;
+// Raw data budget: a fixed allowance for the base metadata and view payloads,
+// plus one score file (~1.6 MiB raw) per prefetched model. At five models this
+// is exactly the 13 / 14 MiB the budget used to state as a literal.
+const SCORE_FILE_KIB = 1.6 * 1024;
+const dataBudgetKiB = (view: string) =>
+	(view === 'map' ? 6 : 5) * 1024 + panelSize * SCORE_FILE_KIB;
 
 // Count actual production requests, including dynamic/transitive modules.
 // Gzip normalizes preview (uncompressed) and hosted transfer measurements.
@@ -36,7 +47,7 @@ for (const [view, jsBudgetKiB] of [
 			.poll(
 				() => [...requests.keys()].filter((url) => /iwac_sentiment_[^/]+\.json$/.test(url)).length
 			)
-			.toBe(5);
+			.toBe(panelSize);
 		page.off('response', recordResponse);
 		const measured = await Promise.all(
 			[...requests].map(async ([url, bytes]) => ({ url, ...(await bytes) }))
@@ -58,7 +69,7 @@ for (const [view, jsBudgetKiB] of [
 			contentType: 'application/json'
 		});
 		expect(report.jsGzipKiB).toBeLessThan(jsBudgetKiB);
-		expect(report.dataRawKiB).toBeLessThan((view === 'map' ? 14 : 13) * 1024);
+		expect(report.dataRawKiB).toBeLessThan(dataBudgetKiB(view));
 		expect(js.some(({ url }) => url.endsWith(chartChunk))).toBe(view === 'charts');
 		expect(js.some(({ url }) => url.endsWith(mapChunk))).toBe(view === 'map');
 	});

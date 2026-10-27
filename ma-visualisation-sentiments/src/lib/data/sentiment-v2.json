@@ -1,7 +1,7 @@
 {
 	"schemaVersion": "2.1.0",
 	"analysisVersion": "v2",
-	"description": "Generation-2 five-model IWAC sentiment-analysis contract. Polarity and centrality scales are identical to v1; subjectivity is stored upstream as an ordinal label and is mapped to the shared 1-5 rank at generation time. Qwen's coverage is deliberately 200 articles short of the rest of the panel (a retired gap, not a failed run: 251 null rows, less the 51 articles no model annotates), so its scores carry legitimate nulls on every dimension.",
+	"description": "Generation-2 six-model IWAC sentiment-analysis contract. Polarity and centrality scales are identical to v1; subjectivity is stored upstream as an ordinal label and is mapped to the shared 1-5 rank at generation time. Qwen's coverage is deliberately 200 articles short of the rest of the panel (a retired gap, not a failed run: 251 null rows, less the 51 articles no model annotates), so its scores carry legitimate nulls on every dimension. Claude Haiku 5.5 joined the panel on 2026-10-22 without a pilot; it shares a developer with the arbiter, which is why `arbiter.recusal` keeps its analyses away from the judge.",
 	"models": {
 		"luna": {
 			"displayName": "GPT-5.6 Luna",
@@ -27,6 +27,11 @@
 			"displayName": "Qwen3.8 27B",
 			"analysisModel": "Qwen3.8 27B",
 			"hfPrefixes": ["qwen3_8_27b"]
+		},
+		"haiku": {
+			"displayName": "Claude Haiku 5.5",
+			"analysisModel": "Claude Haiku 5.5",
+			"hfPrefixes": ["claude_haiku_5_5"]
 		}
 	},
 	"pairs": [
@@ -34,12 +39,17 @@
 		{ "id": "luna-deepseek", "models": ["luna", "deepseek"] },
 		{ "id": "luna-gemma", "models": ["luna", "gemma"] },
 		{ "id": "luna-qwen", "models": ["luna", "qwen"] },
+		{ "id": "luna-haiku", "models": ["luna", "haiku"] },
 		{ "id": "mistral-small-deepseek", "models": ["mistral-small", "deepseek"] },
 		{ "id": "mistral-small-gemma", "models": ["mistral-small", "gemma"] },
 		{ "id": "mistral-small-qwen", "models": ["mistral-small", "qwen"] },
+		{ "id": "mistral-small-haiku", "models": ["mistral-small", "haiku"] },
 		{ "id": "deepseek-gemma", "models": ["deepseek", "gemma"] },
 		{ "id": "deepseek-qwen", "models": ["deepseek", "qwen"] },
-		{ "id": "gemma-qwen", "models": ["gemma", "qwen"] }
+		{ "id": "deepseek-haiku", "models": ["deepseek", "haiku"] },
+		{ "id": "gemma-qwen", "models": ["gemma", "qwen"] },
+		{ "id": "gemma-haiku", "models": ["gemma", "haiku"] },
+		{ "id": "qwen-haiku", "models": ["qwen", "haiku"] }
 	],
 	"fields": {
 		"scores": ["centralite_islam_musulmans", "subjectivite_score", "polarite"],
@@ -101,6 +111,10 @@
 		"arbiterModel": "claude-opus-5",
 		"cacheSchemaVersion": 1,
 		"mode": "panel",
+		"recusal": {
+			"models": ["haiku"],
+			"description": "Panel members from the arbiter's own developer are never shown to it. Blind labels hide a model's name but not its style, and LLM judges measurably favour their own and their family's output, so a same-developer analysis would make any verdict involving it uninterpretable. The arbiter's panel is every other model: selection, prompt, blind labels and fingerprints are computed over it alone, so recusing a model neither adds articles to the frame nor changes a published verdict. A recused model's ratings are compared with the verdicts afterwards, never fed into them."
+		},
 		"eligibility": {
 			"rule": "spread-or-valence-flip",
 			"description": "What is worth paying to arbitrate, deliberately separate from `discrepancy.threeWaySpread`, which is what the dashboard flags to a reader. A spread of 3 on the 1-5 polarity scale already implies one model is positive and another negative, so the spread rule catches only the widest reversals; `valenceFlip` adds the rest, where one model answers Positif and another Négatif two ranks apart. Both rules read the same comparable rows: one non-comparable polarity or centrality still excludes the article.",

@@ -91,7 +91,7 @@ function article(id: number, model: DatasetId): Article {
 
 it.each([
 	['v1', 3],
-	['v2', 10]
+	['v2', 15]
 ] as const)('enumerates the %s contract pairs without splitting model ids', (generation, count) => {
 	const models = datasetIdsOf(generation);
 	const datasets = Object.fromEntries(

@@ -94,8 +94,11 @@ def find_three_way_conflicts(
     `valence_flip` is stored beside `spread` rather than inside it: the spread
     dict is hashed into the cache fingerprint, and a row's identity must not
     depend on which rule happened to select it.
+
+    The panel is the arbiter's, not the generation's: a recused model's ratings
+    neither put an article in the frame nor reach the judge.
     """
-    model_ids = list(contract.model_names)
+    model_ids = list(contract.arbiter_model_ids)
     threshold = resolve_threshold(threshold, contract)
     selected: list[dict] = []
 

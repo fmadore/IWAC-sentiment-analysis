@@ -37,12 +37,17 @@ export const MODEL_PAIR_IDS_V2 = [
 	'luna-deepseek',
 	'luna-gemma',
 	'luna-qwen',
+	'luna-haiku',
 	'mistral-small-deepseek',
 	'mistral-small-gemma',
 	'mistral-small-qwen',
+	'mistral-small-haiku',
 	'deepseek-gemma',
 	'deepseek-qwen',
-	'gemma-qwen'
+	'deepseek-haiku',
+	'gemma-qwen',
+	'gemma-haiku',
+	'qwen-haiku'
 ] as const;
 export type ModelPairV1 = (typeof MODEL_PAIR_IDS_V1)[number];
 export type ModelPairV2 = (typeof MODEL_PAIR_IDS_V2)[number];
@@ -221,6 +226,28 @@ export function modelDisplayName(id: DatasetId): string {
 	return models[id]?.displayName ?? id;
 }
 
+/**
+ * The v2 models the panel arbiter reads, in contract order.
+ *
+ * Not the whole panel: a model from the judge's own developer is recused
+ * (`arbiter.recusal` in the contract). Claude Haiku 5.5 and the judge, Claude
+ * Opus 5, are both Anthropic's, and blind labels hide a name but not a house
+ * style. Anything that asks what the arbiter was shown — the blind
+ * permutation, why an article was selected — reads this list; anything that
+ * asks how the panel rated an article reads `datasetIdsOf('v2')`.
+ */
+export const ARBITER_RECUSED_IDS = Object.freeze([
+	...contractV2.arbiter.recusal.models
+] as DatasetIdV2[]);
+export const ARBITER_PANEL_IDS = Object.freeze(
+	DATASET_IDS_V2.filter((id) => !ARBITER_RECUSED_IDS.includes(id))
+);
+
+/** Whether the panel arbiter never saw this model's analyses. */
+export function isArbiterRecused(id: DatasetId): boolean {
+	return (ARBITER_RECUSED_IDS as readonly DatasetId[]).includes(id);
+}
+
 /** The exact model that produced an analysis, for methodology and citations. */
 export function analysisModelName(id: DatasetId): string {
 	const models = SENTIMENT_CONTRACTS[generationOf(id)].models as Record<
@@ -259,6 +286,13 @@ for (const [pair, models] of Object.entries(PAIR_MODELS)) {
 	if (new Set(models.map(generationOf)).size !== 1) {
 		throw new Error(`Pair ${pair} mixes analysis generations`);
 	}
+}
+
+if (!ARBITER_RECUSED_IDS.every((id) => DATASET_IDS_V2.includes(id))) {
+	throw new Error('The v2 arbiter recuses a model the contract does not declare');
+}
+if (ARBITER_PANEL_IDS.length < 2) {
+	throw new Error('The v2 arbiter needs at least two unrecused models');
 }
 
 // Ids must not collide, because the generation is derived from them.

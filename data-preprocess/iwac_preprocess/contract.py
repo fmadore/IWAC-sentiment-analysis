@@ -89,6 +89,25 @@ class SentimentContract:
         )
 
         self.arbiter = dict(contract["arbiter"])
+        # The models the arbiter reads. A recused model (one from the judge's own
+        # developer) stays a full member of the panel everywhere else — pairs,
+        # agreement, discrepancy views — but never reaches the judge: selection,
+        # prompt, blind labels and fingerprints are all computed without it.
+        recused = tuple((contract["arbiter"].get("recusal") or {}).get("models", ()))
+        unknown_recused = [model_id for model_id in recused if model_id not in self.model_names]
+        if unknown_recused:
+            raise ValueError(
+                f"The {self.analysis_version} arbiter recuses unknown model(s): "
+                + ", ".join(unknown_recused)
+            )
+        self.arbiter_recused_ids = recused
+        self.arbiter_model_ids = [
+            model_id for model_id in self.model_names if model_id not in recused
+        ]
+        if len(self.arbiter_model_ids) < 2:
+            raise ValueError(
+                f"The {self.analysis_version} arbiter needs at least two unrecused models"
+            )
         # What is worth *paying* to arbitrate, which is not what the dashboard
         # calls a significant disagreement. Keeping the two apart is the whole
         # point of the separate key: widening the arbiter's frame must not move

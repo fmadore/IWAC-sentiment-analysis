@@ -8,7 +8,7 @@ import type {
 } from '$lib/types/data';
 import { ARBITER_BLIND_LABELS } from '$lib/types/data';
 import {
-	datasetIdsOf,
+	ARBITER_PANEL_IDS,
 	generationOf,
 	isCentralityValue,
 	isDatasetId,
@@ -256,7 +256,8 @@ export function parseArbiterEvaluationData(
  * Parse the generation-2 panel arbiter file.
  *
  * The load-bearing check is the blind permutation: it must be a bijection from
- * the anonymised labels onto the contract's models. Every verdict in the file
+ * the anonymised labels onto the models the arbiter reads — the v2 panel less
+ * any model the contract recuses (see `ARBITER_PANEL_IDS`). Every verdict in the file
  * is expressed in labels, so a permutation that is missing a label, repeats a
  * model, or names a model from another generation would silently attribute
  * verdicts to the wrong model rather than fail. That check is also what keeps
@@ -283,18 +284,18 @@ export function parseArbiterV2EvaluationData(data: unknown): ArbiterV2Evaluation
 		throw new Error('Panel arbiter file must match the v2 sentiment contract');
 	}
 
-	const expectedModels = datasetIdsOf('v2');
+	const expectedModels: readonly DatasetId[] = ARBITER_PANEL_IDS;
 	const models = metadata.models;
 	if (
 		!Array.isArray(models) ||
 		models.length !== expectedModels.length ||
 		models.some((model, index) => model !== expectedModels[index])
 	) {
-		throw new Error('Panel arbiter metadata does not list the v2 models in contract order');
+		throw new Error('Panel arbiter metadata does not list the arbiter panel in contract order');
 	}
 
 	if (ARBITER_BLIND_LABELS.length !== expectedModels.length) {
-		throw new Error('The blind labels and the v2 model list are different lengths');
+		throw new Error('The blind labels and the arbiter panel are different lengths');
 	}
 
 	const permutation = requireRecord(metadata.blind_permutation, 'Panel arbiter blind_permutation');
@@ -303,7 +304,7 @@ export function parseArbiterV2EvaluationData(data: unknown): ArbiterV2Evaluation
 		assigned.some((model) => !isDatasetId(model) || !expectedModels.includes(model)) ||
 		new Set(assigned).size !== expectedModels.length
 	) {
-		throw new Error('Panel arbiter blind_permutation must be a bijection over the v2 models');
+		throw new Error('Panel arbiter blind_permutation must be a bijection over the arbiter panel');
 	}
 
 	if (!Array.isArray(root.evaluations)) {

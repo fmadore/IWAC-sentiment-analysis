@@ -1,19 +1,25 @@
 {
   "schema_version": "1.0.0",
   "analysis_version": "v1",
-  "generated": "2026-08-25T13:03:51.052734+00:00",
+  "generated": "2026-10-27T19:35:07.640546+00:00",
   "source": {
     "repository": "fmadore/islam-west-africa-collection",
-    "revision": "7f54961554d7550bedb886648dec14fb953bfa43"
+    "revision": "af70646f64674d600d957fd33557368eedd53cbb"
+  },
+  "environment": {
+    "requirements_lock": {
+      "file": "requirements.lock",
+      "sha256": "496e064a379404b8d4bf240f0767302518faec14fe22333a65b74a5b428c60eb"
+    }
   },
   "files": {
     "iwac_articles_base.json": {
-      "bytes": 4002241,
-      "sha256": "4e20dd0dd8ce6961a5aebfdc8cace3eacae11a5fb9d67cf7a6d09a00f53ae1c6"
+      "bytes": 3925334,
+      "sha256": "9e0ffb5299e68eb681c3d356a14063a5794c2cc69c297e88893df31578748870"
     },
     "iwac_sentiment_chatgpt.json": {
-      "bytes": 1634059,
-      "sha256": "8c41cbfa1a7fa39a13dbfadf3a68cc8a8f8d888a2a2f99fc2def633be5c03820"
+      "bytes": 1633938,
+      "sha256": "4a3ac09eaf135d87e3e86a1b464b691ed4d4ac1ea7f6decf38dc4e5c452fa6ad"
     },
     "iwac_justifications_chatgpt_00.json": {
       "bytes": 239309,
@@ -124,8 +130,8 @@
       "sha256": "acc7b936fb66cff7e2ec6104e923f992495b6d13682dea2d505f35c355c15684"
     },
     "iwac_justifications_chatgpt_27.json": {
-      "bytes": 234913,
-      "sha256": "6aba088b4f87340d607d05553e7b779f5fedb91f5598723369f82e13d14021ca"
+      "bytes": 234772,
+      "sha256": "e3180fd7eb2c35b1becae24b131964a3a5e5ebeeddac4762b2456e25ee0a0a10"
     },
     "iwac_justifications_chatgpt_28.json": {
       "bytes": 235895,
@@ -144,8 +150,8 @@
       "sha256": "7e884170a9c6b88ad6cde495aab6f93c3481d8c08de8697fe353dea3d8082330"
     },
     "iwac_sentiment_gemini.json": {
-      "bytes": 1637882,
-      "sha256": "44a8c78b4a2e4cab552b15ca1a91c5f6c7d789f93a7ff6cef40ef2eec8805514"
+      "bytes": 1637761,
+      "sha256": "39758052d4c9a27b7bf78e8eed6c06960bb639ada757b415e17e373e17850919"
     },
     "iwac_justifications_gemini_00.json": {
       "bytes": 247268,
@@ -256,8 +262,8 @@
       "sha256": "2fe75eca62f8f9e8b5ef91deddc206d3af3d9137a07f539c39f0bbf215ec56dd"
     },
     "iwac_justifications_gemini_27.json": {
-      "bytes": 242008,
-      "sha256": "a854038edea8d23d18f06fa82ec87ace65103a4c79fbaac3fa729735314ebbba"
+      "bytes": 241867,
+      "sha256": "ac0f6e76e55526f71887ee82fb0fe3b21fcfeb6ddf8cbc7497bb8c1b5da23127"
     },
     "iwac_justifications_gemini_28.json": {
       "bytes": 241418,
@@ -276,8 +282,8 @@
       "sha256": "bc72db09df7b302b43b71372c77a40ce77ac11b4155e17bc44063a2efc6d55d0"
     },
     "iwac_sentiment_mistral.json": {
-      "bytes": 1597172,
-      "sha256": "e442a13a4d19512b94071ef808c884c342f9be6a72c01ecbd79be5f6eccb07e7"
+      "bytes": 1597051,
+      "sha256": "d421d3dcdb0effeeb1137a227b26ad8341aa2eac9505273abcdf5cb5db18cfd4"
     },
     "iwac_justifications_mistral_00.json": {
       "bytes": 422467,
@@ -388,8 +394,8 @@
       "sha256": "954e823f4d98ce1172a9ec52ff7406c04b4315424e1206ed5fe0f60bbc1f633d"
     },
     "iwac_justifications_mistral_27.json": {
-      "bytes": 421220,
-      "sha256": "90ea65c6aa33caab79863da38908dd28d511b9126633b8ec28acd619c32df69e"
+      "bytes": 421079,
+      "sha256": "a5c7908429283439ee378d2775c6c86cbebb45ee646ae3520db5a064db996993"
     },
     "iwac_justifications_mistral_28.json": {
       "bytes": 417997,

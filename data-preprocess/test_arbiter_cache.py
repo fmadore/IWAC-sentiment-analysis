@@ -108,14 +108,15 @@ def test_v1_fingerprint_payload_is_frozen():
 
 # --- v2 panel ----------------------------------------------------------------
 
-# One analysis per contract model: the fingerprint keys them by model id, so a
-# panel that grows has to change the digest rather than hash a subset of itself.
+# One analysis per model the arbiter reads: the fingerprint keys them by model
+# id, so a panel that grows has to change the digest rather than hash a subset
+# of itself. A recused model is not part of that panel and never hashed.
 PANEL_POLARITIES = ["Neutre", "Négatif", "Très négatif", "Positif", "Très positif"]
 
 
 def three_way_article(article_id: str, polarity: str = "Positif") -> dict:
-    """One selected article, with an analysis from every generation-2 model."""
-    model_ids = list(CONTRACT_V2.model_names)
+    """One selected article, with an analysis from every model the arbiter reads."""
+    model_ids = list(CONTRACT_V2.arbiter_model_ids)
     analyses = {
         model_id: {"polarite": PANEL_POLARITIES[index % len(PANEL_POLARITIES)]}
         for index, model_id in enumerate(model_ids)
@@ -131,9 +132,13 @@ def three_way_article(article_id: str, polarity: str = "Positif") -> dict:
     }
 
 
-def test_the_panel_fingerprint_covers_every_contract_model():
-    assert set(three_way_article("1")["analyses"]) == set(CONTRACT_V2.model_names)
-    assert len(CONTRACT_V2.model_names) == 5
+def test_the_panel_fingerprint_covers_every_judged_model_and_no_recused_one():
+    analysed = set(three_way_article("1")["analyses"])
+    assert analysed == set(CONTRACT_V2.arbiter_model_ids)
+    # Five: the panel the published run judged. Haiku, the sixth member, shares
+    # the judge's developer and is recused, so adding it changed no digest.
+    assert len(analysed) == 5
+    assert analysed.isdisjoint(CONTRACT_V2.arbiter_recused_ids)
 
 
 V2_OPTIONS = {

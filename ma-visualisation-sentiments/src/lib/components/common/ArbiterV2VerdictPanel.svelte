@@ -16,6 +16,12 @@
   arbiter's own — the comparison the arbiter was asked to make, and the only
   thing that makes "several are equally close" legible at a glance.
 
+  A recused model (one from the judge's own developer, see `arbiter.recusal`
+  in the contract) closes each list. It has no letter because the judge never
+  saw it; its rating is set beside the verdict afterwards, with the same
+  equals mark, so a reader can check it against a judgement it could not have
+  swayed. It can never carry the preferred tick.
+
   Shared by the arbiter view's modal and by the comparison detail for a
   generation-2 pair, which is why it takes a joined row and a note rather
   than reading the pair from the store.
@@ -32,6 +38,7 @@
 		justificationsOf
 	} from '$lib/stores';
 	import { SentimentBadge } from '$lib/components/common';
+	import { ARBITER_RECUSED_IDS } from '$lib/domain/sentimentContract';
 	import {
 		ARBITER_V2_DIMENSIONS,
 		analysisValue,
@@ -59,8 +66,19 @@
 	const legend = $derived(arbiterV2Legend.current);
 	const arbiter = $derived(row.evaluation.arbiter);
 
+	/** Panel members the judge never read, compared with its verdict afterwards. */
+	const recused = $derived(
+		ARBITER_RECUSED_IDS.map((modelId) => ({
+			modelId,
+			name: datasetState.getById(modelId)?.name ?? modelId
+		}))
+	);
+
 	/** Every panel dataset has landed, so a missing rating means "not rated". */
-	const panelLoaded = $derived(legend.every((entry) => entry.modelId in row.analyses));
+	const panelLoaded = $derived(
+		legend.every((entry) => entry.modelId in row.analyses) &&
+			recused.every((entry) => entry.modelId in row.analyses)
+	);
 
 	function modelColor(modelId: DatasetId): string {
 		return datasetState.getById(modelId)?.color ?? 'var(--sentiment-arbiter)';
@@ -103,7 +121,7 @@
 		loadingReasoning = true;
 		try {
 			await Promise.all(
-				legend.map((entry) =>
+				[...legend, ...recused].map((entry) =>
 					loadJustifications(entry.modelId, fetch, [row.articleId]).catch((error) =>
 						console.error(`Failed to load ${entry.modelId} justification:`, error)
 					)
@@ -146,6 +164,14 @@
 			{/each}
 		</ul>
 		<p class="legend-note">{$t.arbiterV2.panelLegendNote}</p>
+		{#if recused.length}
+			<p class="legend-note">
+				{$t.arbiterV2.recusedLegendNote.replace(
+					'{models}',
+					recused.map((entry) => entry.name).join(', ')
+				)}
+			</p>
+		{/if}
 	</div>
 
 	<!-- Overall verdict -->
@@ -238,6 +264,34 @@
 							{/if}
 						</li>
 					{/each}
+					{#each recused as entry (entry.modelId)}
+						{@const loaded = entry.modelId in row.analyses}
+						{@const value = analysisValue(row.analyses[entry.modelId], dimension)}
+						{@const match = matchesArbiterScore(value, verdict.score, dimension)}
+						<li
+							class="panel-chip panel-chip-recused"
+							data-match={match}
+							style="--model-color: {modelColor(entry.modelId)}"
+						>
+							<span class="chip-letter" aria-hidden="true">–</span>
+							<span class="chip-model">{entry.name}</span>
+							<span class="chip-recused" title={$t.arbiterV2.recusedTitle}>
+								{$t.arbiterV2.recused}
+							</span>
+							{#if !loaded}
+								<span class="chip-pending">{$t.arbiterV2.panelLoading}</span>
+							{:else if value === null}
+								<span class="chip-unrated">{$t.arbiterV2.notRated}</span>
+							{:else}
+								<SentimentBadge type={dimension} {value} size="sm" />
+							{/if}
+							{#if match}
+								<span class="chip-mark chip-mark-match" title={$t.arbiterV2.matchesArbiter}>
+									<EqualIcon size={12} />
+								</span>
+							{/if}
+						</li>
+					{/each}
 				</ul>
 
 				<div class="field">
@@ -251,12 +305,17 @@
 
 				{#if viewOptionsState.reasoning}
 					<ul class="model-reasons">
-						{#each legend as entry (entry.label)}
+						{#each [...legend, ...recused] as entry (entry.modelId)}
 							{@const prose = justificationsOf(row.analyses[entry.modelId])[dimension]}
 							<li class="model-reason" style="--model-color: {modelColor(entry.modelId)}">
 								<span class="model-reason-head">
-									<span class="chip-letter">{entry.label.toUpperCase()}</span>
+									<span class="chip-letter" aria-hidden={'label' in entry ? undefined : 'true'}>
+										{'label' in entry ? entry.label.toUpperCase() : '–'}
+									</span>
 									<span class="chip-model">{entry.name}</span>
+									{#if !('label' in entry)}
+										<span class="chip-recused">{$t.arbiterV2.recused}</span>
+									{/if}
 								</span>
 								{#if prose}
 									<blockquote class="justification">{prose}</blockquote>
@@ -595,6 +654,21 @@
 		color: var(--text-secondary);
 		overflow: hidden;
 		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	/* The judge never read this analysis: a dashed edge instead of a solid one,
+	   and a muted letter slot, so it never passes for one of the labelled five. */
+	.panel-chip-recused {
+		border-style: dashed;
+	}
+
+	.chip-recused {
+		font-family: var(--font-mono);
+		font-size: var(--font-size-eyebrow);
+		letter-spacing: var(--tracking-wider);
+		text-transform: uppercase;
+		color: var(--text-muted);
 		white-space: nowrap;
 	}
 

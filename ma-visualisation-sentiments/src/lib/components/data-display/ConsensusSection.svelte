@@ -9,8 +9,8 @@
   have put it near 700 — the shape AnalysisInfo.svelte is a warning about.
 
   Nothing here counts the models: every chart takes `models` or `models.length`,
-  so the section served a three-model panel and now serves a five-model one
-  unchanged.
+  so the section served a three-model panel, then a five-model one, and now
+  a six-model one, unchanged.
 
   Owns the declined-ratings setting because every chart below has to answer to
   the same one; the dimension comes from the parent's selector, which governs

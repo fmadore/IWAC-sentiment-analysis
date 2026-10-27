@@ -213,12 +213,12 @@ export interface DissentOutcome {
  *
  * `majority` requires exactly one model to hold a value alone while all the
  * others share one — with three raters that is the familiar 2-1 split, with
- * five it is 4-1. Anything else is `split`, which keeps the "who breaks ranks"
+ * six it is 5-1. Anything else is `split`, which keeps the "who breaks ranks"
  * reading honest instead of naming a dissenter that a 3-2 split does not have.
  *
  * That makes `split` mean different things at different panel sizes, and the UI
  * copy has to follow: with three raters it is exactly "all three differ", while
- * with five it also absorbs 3-2 and 2-2-1. Hence the labels are "one against
+ * with six it also absorbs 4-2, 3-3 and 3-2-1. Hence the labels are "one against
  * the rest" and "divided several ways" rather than "two against one" and "all
  * three differ" — the same two buckets, named for what they actually hold.
  */
@@ -471,7 +471,7 @@ export { pearson };
  * 2-D projection at all. `barycentric` therefore returns null for any share
  * vector that is not exactly `TRIANGLE_CORNERS.length` long, and the caller
  * (`DissentProfileChart`) does not offer the mode unless the generation on
- * screen has exactly three models. The five-model panel reads the same
+ * screen has exactly three models. The six-model panel reads the same
  * decomposition off the stacked bars, which have no such limit.
  *
  * A title sits at a corner when one model does all the breaking of ranks there,

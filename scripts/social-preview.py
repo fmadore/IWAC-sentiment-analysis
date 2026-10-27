@@ -113,7 +113,7 @@ CARD_LABELS = {
 }
 
 # Spelled out for the subtitle, which reads as prose rather than as data. The
-# panel is three models on v1 and five on v2, and the card is rendered for both,
+# panel is three models on v1 and six on v2, and the card is rendered for both,
 # so the count cannot be written into the string.
 NUMBER_WORDS = {2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven"}
 

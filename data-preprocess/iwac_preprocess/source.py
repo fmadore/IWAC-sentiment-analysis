@@ -335,24 +335,40 @@ def get_base_article_ids(output_dir: str | None = None) -> set[str]:
 
 
 def restrict_to_base_articles(
-    records: list[dict], base_ids: set[str], logger: logging.Logger
+    records: list[dict],
+    base_ids: set[str],
+    logger: logging.Logger,
+    *,
+    drop_vanished: bool = False,
 ) -> list[dict]:
     """Drop live articles the sentiment panel never processed.
 
     The Hugging Face corpus keeps growing, but a panel run is a discrete event:
-    articles ingested after it carry no scores at all. Counting them would put
-    a corpus-wide denominator beside annotation-scoped numerators, which is the
-    same half-updated state ``assert_base_matches`` refuses in ``data-fetch``.
-    Here the extra rows are genuinely out of frame rather than a drifted
-    snapshot, so they are excluded and reported instead of aborting the run.
+    articles ingested after it carry no scores, or scores from only part of the
+    panel (Claude Haiku 5.5 annotated the 4,367 Burkina Faso articles added in
+    October 2026; nobody else did). Counting them would put a corpus-wide
+    denominator beside annotation-scoped numerators, or compare one model's
+    reading of a corpus against the others' reading of a smaller one. Here the
+    extra rows are genuinely out of frame rather than a drifted snapshot, so
+    they are excluded and reported instead of aborting the run.
 
     An article present in the base but absent from the live corpus is the
     opposite problem — the published metadata would reference a row nothing can
-    supply — so that still fails loudly.
+    supply — so that still fails loudly, unless ``drop_vanished`` is set. Only a
+    ``data-fetch --generation v1`` run sets it: that run owns the shared base, so
+    reconciling a deletion upstream is precisely the deliberate decision it
+    exists to make.
     """
     live_ids = {str(record.get("o:id")) for record in records}
     vanished = base_ids - live_ids
-    if vanished:
+    if vanished and drop_vanished:
+        logger.warning(
+            "Dropping %d article(s) deleted upstream from %s: %s",
+            len(vanished),
+            BASE_FILENAME,
+            ", ".join(sorted(vanished)),
+        )
+    elif vanished:
         sample = sorted(vanished)[:5]
         raise SystemExit(
             f"{len(vanished)} article(s) in {BASE_FILENAME} are gone from the Hugging "

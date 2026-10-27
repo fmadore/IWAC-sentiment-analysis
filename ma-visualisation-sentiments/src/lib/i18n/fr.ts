@@ -425,7 +425,7 @@ export const fr: Translations = {
 		dissentStacked: 'Par journal',
 		dissentTernary: 'Triangle',
 		dissentTernaryNote:
-			'Un point par journal, placé selon le modèle qui s’y démarque le plus souvent. Un point à un sommet signifie que ce modèle assume tout le désaccord, un point au centre que les trois se le partagent également. La taille indique le nombre d’articles. Les titres où aucun modèle ne s’est jamais démarqué seul n’ont pas de position et ne sont pas tracés. Un triangle n’ayant que trois sommets, cette vue n’est proposée que pour l’archive à trois modèles ; le panel à cinq modèles se lit sur les barres empilées.',
+			'Un point par journal, placé selon le modèle qui s’y démarque le plus souvent. Un point à un sommet signifie que ce modèle assume tout le désaccord, un point au centre que les trois se le partagent également. La taille indique le nombre d’articles. Les titres où aucun modèle ne s’est jamais démarqué seul n’ont pas de position et ne sont pas tracés. Un triangle n’ayant que trois sommets, cette vue n’est proposée que pour l’archive à trois modèles ; le panel actuel se lit sur les barres empilées.',
 		dissentsAlone: 'se démarque seul',
 		dissentShare: 'Part des partages',
 
@@ -654,15 +654,17 @@ export const fr: Translations = {
 	// iwac-ai-pipelines/AI_sentiment_analysis/sentiment_prompt.md
 	analysisV2: {
 		config: [
-			'Analyse du corpus : 3–5 août 2026 pour GPT-5.6 Luna, Mistral Small 4 et DeepSeek v4 Flash ; 14–15 août pour Gemma 4 31B ; 17–24 août pour Qwen3.8 27B',
-			"Effort de raisonnement : moyen pour GPT-5.6 Luna et Qwen3.8 27B, les deux seuls dont le réglage a pu être vérifié ; élevé pour Mistral Small 4 et DeepSeek v4 Flash, dont les API n'offrent aucun niveau intermédiaire ; nominalement moyen pour Gemma 4 31B, dont la route OpenRouter rend le moyen et l'élevé indiscernables",
-			'Où chaque modèle a tourné : chez son concepteur, sauf Gemma 4 31B et DeepSeek v4 Flash, servis via OpenRouter, et Qwen3.8 27B, auto-hébergé avec vLLM sur le cluster Festus de l’université de Bayreuth',
+			'Analyse du corpus : 3–5 août 2026 pour GPT-5.6 Luna, Mistral Small 4 et DeepSeek v4 Flash ; 14–15 août pour Gemma 4 31B ; 17–24 août pour Qwen3.8 27B ; 23 octobre pour Claude Haiku 5.5',
+			"Effort de raisonnement : moyen pour GPT-5.6 Luna, Qwen3.8 27B et Claude Haiku 5.5, les trois dont le réglage a pu être vérifié comme un véritable échelon intermédiaire ; élevé pour Mistral Small 4 et DeepSeek v4 Flash, dont les API n'offrent aucun niveau intermédiaire ; nominalement moyen pour Gemma 4 31B, dont la route OpenRouter rend le moyen et l'élevé indiscernables",
+			'Où chaque modèle a tourné : chez son concepteur — OpenAI, Mistral ou Anthropic —, sauf Gemma 4 31B et DeepSeek v4 Flash, servis via OpenRouter, et Qwen3.8 27B, auto-hébergé avec vLLM sur le cluster Festus de l’université de Bayreuth',
+			'Claude Haiku 5.5 a rejoint le panel le 22 octobre 2026 sans pilote, sur décision du responsable de la collection : aucun chiffre de pilote n’existe donc pour son accord avec les autres modèles ni pour sa constance avec lui-même',
 			'Remerciement de financement que le centre exploitant ce cluster exige de toute publication rendant compte de travaux qui y ont été menés, et qu’il dit obligatoire : « Calculations were performed using the festus-cluster of the Bayreuth Centre for High Performance Computing (https://www.bzhpc.uni-bayreuth.de), funded by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) - 523317330. »',
 			'Température : non définie par le pipeline — chaque modèle tourne à la valeur par défaut de son hôte',
 			'Format de sortie : JSON structuré validé par un schéma Pydantic',
 			'Un cache reprenable, un enregistrement par article et par modèle ; seuls les appels réussis y sont conservés',
 			'Gestion des erreurs : jusqu’à trois tentatives par appel, avec une attente croissante entre elles et un délai maximal par modèle',
-			'Couverture : 12 298 des 12 349 articles portent les annotations de tous les modèles. Les 51 articles qui ne sont ni en français ni en anglais sont écartés à dessein, le prompt étant en français',
+			'Couverture : 12 298 des 12 348 articles portent les annotations de GPT-5.6 Luna, Mistral Small 4, DeepSeek v4 Flash et Gemma 4 31B. Les 50 articles qui ne sont ni en français ni en anglais sont écartés à dessein, le prompt étant en français',
+			'Claude Haiku 5.5 s’arrête 47 articles plus tôt : son passage d’octobre n’a trouvé aucun texte pour 47 articles en français que les autres avaient lus en août, et les a sautés. Contrairement au manque ci-dessous, celui-ci a une cause mécanique',
 			'Qwen3.8 27B s’arrête 200 articles plus tôt : il les a refusés au fil d’un passage complet et de trois séries de reprises. Ce manque est définitif, et il n’est pas aléatoire — il frappe surtout les articles où l’islam est périphérique, si bien que tout chiffre calculé sur les seuls articles évalués par tous penche vers une matière où l’islam est central',
 			'Empreinte du prompt d14ace9ac192, enregistrée avec chaque résultat mis en cache'
 		],
@@ -984,7 +986,7 @@ export const fr: Translations = {
 		overallVerdicts: 'Verdicts globaux',
 		overallVerdictsNote: 'Un verdict par article, sur les trois dimensions à la fois',
 		dimensionTieNote:
-			'Le chiffre principal est le verdict global — un par article, toutes dimensions pesées ensemble. C’est lui qu’il faut lire, plutôt que le décompte par dimension affiché à côté : sur un panel de cinq, quand trois ou quatre analyses rejoignent la note propre de l’arbitre, « plusieurs se valent » est la réponse juste, si bien que les décomptes par dimension restent bas pour tous les modèles et ne permettent pas de les départager.',
+			'Le chiffre principal est le verdict global — un par article, toutes dimensions pesées ensemble. C’est lui qu’il faut lire, plutôt que le décompte par dimension affiché à côté : avec cinq analyses sous les yeux de l’arbitre, quand trois ou quatre d’entre elles rejoignent la note propre de l’arbitre, « plusieurs se valent » est la réponse juste, si bien que les décomptes par dimension restent bas pour tous les modèles et ne permettent pas de les départager.',
 		byDimension: 'Verdicts par dimension',
 		confidenceDistribution: 'Répartition de la confiance',
 		blindLabel: 'Présentée comme',
@@ -993,7 +995,7 @@ export const fr: Translations = {
 		centrality: 'Centralité',
 		evaluatedArticles: 'Articles examinés',
 		evaluatedArticlesSubtitle:
-			'Tous les articles que l’arbitre a lus, désaccord le plus large en premier. Ouvrez une ligne pour voir l’article, les cinq notes du panel et le raisonnement de l’arbitre.',
+			'Tous les articles que l’arbitre a lus, désaccord le plus large en premier. Ouvrez une ligne pour voir l’article, les notes soumises à l’arbitre, la note du modèle récusé et le raisonnement de l’arbitre.',
 		viewArticleDetails: 'Voir l’article et le verdict',
 		articleWithVerdict: 'Article avec le verdict du panel',
 		noEvaluatedArticles: 'Aucun article examiné à afficher',
@@ -1006,15 +1008,20 @@ export const fr: Translations = {
 		preferredAnalysis: 'Préférée par l’arbitre',
 		notRated: 'Non notée',
 		panelLoading: 'Chargement du reste du panel…',
+		recused: 'Récusé',
+		recusedTitle:
+			'Jamais soumis à l’arbitre, qui vient du même concepteur. Sa note est placée à côté du verdict après coup.',
+		recusedLegendNote:
+			'{models} fait aussi partie du panel, mais n’a jamais été soumis à l’arbitre, qui vient du même concepteur. Il n’a pas de lettre ; sa note est placée à côté du verdict après coup, pour qu’on puisse la confronter à un jugement qu’elle n’a pas pu infléchir.',
 		showModelsReasoning: 'Afficher le raisonnement des modèles',
 		hideModelsReasoning: 'Masquer le raisonnement des modèles',
 		modelsReasoningLoading: 'Chargement du raisonnement des modèles…',
 		comparisonNote:
-			'L’arbitre du panel a pesé les cinq analyses de cet article à la fois, et non seulement les deux comparées ici.',
+			'L’arbitre du panel a pesé à la fois toutes les analyses qui lui ont été soumises, et non seulement les deux comparées ici.',
 		notArbitrated: 'L’arbitre du panel n’a pas examiné cet article.',
 		whyReviewed: 'Pourquoi cet article a été examiné',
 		whyReviewedNote:
-			'Écart entre les cinq notes du panel sur chaque échelle, en échelons. Un renversement de sens sur la polarité — un modèle lisant la couverture comme favorable, un autre comme hostile — est ce qui a placé l’article devant l’arbitre.',
+			'Écart entre les notes soumises à l’arbitre sur chaque échelle, en échelons. Un renversement de sens sur la polarité — un modèle lisant la couverture comme favorable, un autre comme hostile — est ce qui a placé l’article devant l’arbitre.',
 		valenceFlipTag: 'Positif contre négatif',
 		samplingFrameNoteSpread:
 			'L’arbitre n’a pas examiné tout le corpus. Il a examiné les articles où les notes du panel étaient les plus éloignées sur au moins une dimension : chaque pourcentage ci-dessous ne vaut donc que là où un tel désaccord existe déjà. Aucun ne mesure quel modèle est meilleur sur l’ensemble du corpus.',
@@ -1042,7 +1049,7 @@ export const fr: Translations = {
 			'Un article est retenu lorsqu’au moins un modèle lit la couverture comme positive et un autre comme négative : un désaccord sur le sens de la couverture, non sur son intensité. Ce critère va délibérément plus loin que le seuil du tableau de bord pour signaler une discordance : le renversement le plus fréquent de tous, un modèle répondant Positif là où un autre répond Négatif, ne représente que deux rangs d’écart, et aucun seuil assez élevé pour avoir du sens ne peut le retenir. Les articles où un modèle indique que la tâche ne s’applique pas — ou, pour Qwen3.8 27B, n’a jamais rendu de réponse — sont écartés plutôt que comptés comme un désaccord maximal.',
 		whyPolarity: 'Pourquoi la polarité, et pas la centralité',
 		whyPolarityDesc:
-			'Le panel s’accorde bien davantage sur la centralité que sur la polarité : les cinq modèles donnent la même note de centralité sur 63,7 % des articles, contre 33,0 % pour la polarité. Payer un juge pour trancher la centralité reviendrait surtout à acheter des verdicts sur des questions que le panel règle déjà seul et de façon constante. C’est aussi la dimension où Mistral Small 4 s’écarte le plus des quatre autres : une sélection menée sur la centralité se remplit d’articles où un seul modèle tient tête au reste du panel. Choisir sur la polarité retient à la fois la dimension sur laquelle porte la question de recherche et celle que le panel trouve la plus difficile.',
+			'Le panel s’accorde bien davantage sur la centralité que sur la polarité : les cinq modèles que lit l’arbitre donnent la même note de centralité sur 63,7 % des articles, contre 33,0 % pour la polarité. Payer un juge pour trancher la centralité reviendrait surtout à acheter des verdicts sur des questions que le panel règle déjà seul et de façon constante. C’est aussi la dimension où Mistral Small 4 s’écarte le plus des quatre autres : une sélection menée sur la centralité se remplit d’articles où un seul modèle tient tête au reste du panel. Choisir sur la polarité retient à la fois la dimension sur laquelle porte la question de recherche et celle que le panel trouve la plus difficile.',
 		randomOrder: 'L’ordre est retiré au sort à chaque article',
 		randomOrderDesc:
 			'Les analyses sont anonymisées de A à E par un tirage unique, fixé pour toute la campagne, si bien qu’une lettre désigne toujours le même modèle. L’ordre dans lequel les blocs sont présentés est ensuite retiré au sort pour chaque article. Sans ce second tirage, un modèle occuperait la première position sur tous les articles, et la tendance d’un juge à privilégier ce qu’il lit en premier serait impossible à distinguer d’une véritable préférence pour ce modèle. Vérifié après la campagne : la position à laquelle l’analyse retenue avait été présentée ne se distingue pas du hasard une fois le placement pris en compte (χ² de 5,3 à 4 degrés de liberté, sur les 231 verdicts désignant un seul modèle).',
@@ -1052,6 +1059,9 @@ export const fr: Translations = {
 		noiseCaveat: 'Une part du désaccord est du bruit',
 		noiseCaveatDesc:
 			'Ce sont des annotations uniques, et les modèles ne se reproduisent pas complètement eux-mêmes : relancé sur le même article, un modèle rend la même polarité 70 à 80 % du temps. Une part de tout désaccord relève donc d’un tirage différent plutôt que d’une lecture différente, et aucun arbitre ne peut distinguer les deux. C’est la raison pour laquelle la sélection porte sur les renversements de sens, qu’un nouveau tirage produira rarement, plutôt que sur les écarts d’un seul rang.',
+		recusal: 'Récusation',
+		recusalDesc:
+			'Claude Haiku 5.5 a rejoint le panel après le passage de l’arbitre, et il vient d’Anthropic, tout comme l’arbitre. Des étiquettes anonymes cachent le nom d’un modèle, pas son style, et les juges IA favorisent de façon mesurable leurs propres productions et celles des modèles qui leur sont apparentés : Claude Haiku 5.5 n’est donc jamais soumis à l’arbitre, et la sélection, le prompt et les lettres portent sur les cinq autres. Ses notes sont confrontées aux verdicts après coup. Sur les 301 articles examinés, sa polarité coïncide avec celle de l’arbitre dans 192 cas, à l’intérieur de la fourchette de 190 à 205 des quatre modèles autres que Mistral Small 4 — aucun signe d’une lecture que partageraient les deux modèles d’Anthropic. Ce que la récusation ne permet pas, c’est de peser les désaccords propres à Claude Haiku 5.5 : les 45 renversements de sens qui n’existent que par lui restent hors du cadre, et les trancher demanderait un juge d’un autre concepteur.',
 		fullText: 'Le texte intégral de l’article',
 		fullTextDesc:
 			'L’arbitre lit l’article depuis le miroir privé de la collection, où le texte est complet. L’arbitre v1 lisait la version publique, qui masque le texte d’une part importante des articles : certains verdicts v1 ont donc été rendus sans l’article sous les yeux du juge.',
@@ -1115,15 +1125,15 @@ export const fr: Translations = {
 		siteTitle: 'Analyse de sentiments IWAC',
 		comparisonTitle: 'Comparaison de modèles IA',
 		comparisonDescription:
-			"Comparez la façon dont GPT-5.6 Luna, Mistral Small 4, DeepSeek v4 Flash, Gemma 4 31B et Qwen3.8 27B ont noté les mêmes articles de la Collection Islam Afrique de l'Ouest, et voyez où leurs lectures de la couverture de presse se séparent.",
+			"Comparez la façon dont GPT-5.6 Luna, Mistral Small 4, DeepSeek v4 Flash, Gemma 4 31B, Qwen3.8 27B et Claude Haiku 5.5 ont noté les mêmes articles de la Collection Islam Afrique de l'Ouest, et voyez où leurs lectures de la couverture de presse se séparent.",
 		comparisonKeywords:
-			'comparaison IA, GPT-5.6 Luna vs Mistral Small 4 vs DeepSeek vs Gemma vs Qwen, comparaison de modèles, analyse de sentiments, IWAC, évaluation IA',
+			'comparaison IA, GPT-5.6 Luna vs Mistral Small 4 vs DeepSeek vs Gemma vs Qwen vs Claude Haiku, comparaison de modèles, analyse de sentiments, IWAC, évaluation IA',
 		viewDescriptionPrefix: 'Explorez ',
 		viewDescriptionSuffix:
 			" dans les annotations de sentiment produites par IA sur la Collection Islam Afrique de l'Ouest, un corpus de presse ouest-africaine francophone consacré à l'islam et aux musulmans.",
 		baseKeywords: "analyse de sentiments, IWAC, Islam Afrique de l'Ouest, visualisation de données",
 		ogImageAlt:
-			'Analyse de sentiments IWAC — distributions de polarité de GPT-5.6 Luna, Mistral Small 4, DeepSeek v4 Flash, Gemma 4 31B et Qwen3.8 27B sur 12 298 articles de presse ouest-africaine francophone',
+			'Analyse de sentiments IWAC — distributions de polarité de GPT-5.6 Luna, Mistral Small 4, DeepSeek v4 Flash, Gemma 4 31B, Qwen3.8 27B et Claude Haiku 5.5 sur 12 348 articles de presse ouest-africaine francophone',
 		views: {
 			charts: {
 				title: 'Graphiques et distributions',

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { computeArbiterV2Statistics } from './arbiterV2.svelte';
 import { parseArbiterV2EvaluationData } from '$lib/data/validation';
-import { SENTIMENT_CONTRACT_V2, datasetIdsOf } from '$lib/domain/sentimentContract';
+import { ARBITER_PANEL_IDS, SENTIMENT_CONTRACT_V2 } from '$lib/domain/sentimentContract';
 import { ARBITER_BLIND_LABELS } from '$lib/types/data';
 import type {
 	ArbiterBlindLabel,
@@ -10,7 +10,8 @@ import type {
 	DatasetId
 } from '$lib/types/data';
 
-const MODELS = datasetIdsOf('v2') as DatasetId[];
+// The arbiter's panel, not the generation's: Haiku is recused.
+const MODELS = [...ARBITER_PANEL_IDS] as DatasetId[];
 
 /**
  * The permutation is deliberately *not* the identity: every test below would
