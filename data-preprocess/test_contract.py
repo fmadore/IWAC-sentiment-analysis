@@ -204,6 +204,7 @@ def test_the_arbiter_never_reads_a_recused_model():
     The judge (Claude Opus 5) and Haiku share a developer, so the arbiter's
     panel is every other model: exactly the five the published run judged.
     """
+    assert CONTRACT_V2.arbiter_developer == "anthropic"
     assert CONTRACT_V2.arbiter_recused_ids == ("haiku",)
     assert CONTRACT_V2.arbiter_model_ids == ["luna", "mistral-small", "deepseek", "gemma", "qwen"]
     assert "haiku" in CONTRACT_V2.model_names
@@ -212,16 +213,56 @@ def test_the_arbiter_never_reads_a_recused_model():
     assert CONTRACT_V1.arbiter_model_ids == list(CONTRACT_V1.model_names)
 
 
-def test_a_recusal_naming_an_unknown_model_is_rejected():
+def test_the_recused_set_is_derived_from_the_judge_developer_not_listed():
+    """A second judge recuses its own developer's member without a contract edit."""
+    assert "models" not in CONTRACT_V2.arbiter["recusal"]
+    assert CONTRACT_V2.recused_for("google") == ("gemma",)
+    assert CONTRACT_V2.recused_for("openai") == ("luna",)
+    assert CONTRACT_V2.panel_for("google") == ["luna", "mistral-small", "deepseek", "qwen", "haiku"]
+    # Every frontier developer has exactly one member, so every judge reads five.
+    for developer in CONTRACT_V2.developers:
+        assert len(CONTRACT_V2.recused_for(developer)) == 1
+        assert len(CONTRACT_V2.panel_for(developer)) == 5
+
+
+def test_every_v2_model_names_a_registered_developer():
+    assert set(CONTRACT_V2.model_developers) == set(CONTRACT_V2.model_names)
+    assert set(CONTRACT_V2.model_developers.values()) <= set(CONTRACT_V2.developers)
+
+
+def test_a_judge_from_an_unregistered_developer_is_refused_rather_than_recusing_nobody():
+    """A typo must fail: matching no member would let the judge read its own model."""
+    with pytest.raises(ValueError, match="Unknown judge developer"):
+        CONTRACT_V2.recused_for("gogle")
+    with pytest.raises(ValueError, match="Unknown judge developer"):
+        CONTRACT_V2.panel_for(None)
+
+
+def test_a_published_judge_from_an_unregistered_developer_is_rejected():
     contract = json.loads(json.dumps(CONTRACT_V2.contract))
-    contract["arbiter"]["recusal"] = {"models": ["claude"]}
-    with pytest.raises(ValueError, match="recuses unknown model"):
+    contract["arbiter"]["developer"] = "claude"
+    with pytest.raises(ValueError, match="Unknown judge developer"):
+        type(CONTRACT_V2)(contract, "v2")
+
+
+def test_a_model_without_a_registered_developer_is_rejected():
+    contract = json.loads(json.dumps(CONTRACT_V2.contract))
+    del contract["models"]["qwen"]["developer"]
+    with pytest.raises(ValueError, match="registered developer on every model"):
+        type(CONTRACT_V2)(contract, "v2")
+
+
+def test_an_unknown_recusal_rule_is_rejected():
+    contract = json.loads(json.dumps(CONTRACT_V2.contract))
+    contract["arbiter"]["recusal"] = {"rule": "same-family"}
+    with pytest.raises(ValueError, match="Unknown v2 recusal rule"):
         type(CONTRACT_V2)(contract, "v2")
 
 
 def test_a_recusal_leaving_fewer_than_two_judged_models_is_rejected():
     contract = json.loads(json.dumps(CONTRACT_V2.contract))
-    contract["arbiter"]["recusal"] = {"models": list(contract["models"])[1:]}
+    for model in list(contract["models"].values())[1:]:
+        model["developer"] = "anthropic"
     with pytest.raises(ValueError, match="at least two unrecused models"):
         type(CONTRACT_V2)(contract, "v2")
 

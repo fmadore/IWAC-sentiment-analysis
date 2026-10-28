@@ -226,8 +226,29 @@ export function modelDisplayName(id: DatasetId): string {
 	return models[id]?.displayName ?? id;
 }
 
+/** A developer id from the v2 contract's registry (`developers`). */
+export type DeveloperId = keyof typeof contractV2.developers;
+export const DEVELOPER_IDS = Object.freeze(Object.keys(contractV2.developers) as DeveloperId[]);
+
 /**
- * The v2 models the panel arbiter reads, in contract order.
+ * The v2 models a judge from `developer` must never read, in contract order.
+ *
+ * Derived from the contract's `developer` fields under `arbiter.recusal.rule`,
+ * never listed, so a second judge from another developer recuses its own
+ * member without a contract edit. Mirrors `SentimentContract.recused_for`.
+ */
+export function recusedFor(developer: DeveloperId): readonly DatasetIdV2[] {
+	return DATASET_IDS_V2.filter((id) => contractV2.models[id].developer === developer);
+}
+
+/** The v2 models a judge from `developer` reads, in contract order. */
+export function arbiterPanelFor(developer: DeveloperId): readonly DatasetIdV2[] {
+	const recused = recusedFor(developer);
+	return DATASET_IDS_V2.filter((id) => !recused.includes(id));
+}
+
+/**
+ * The v2 models the published panel arbiter reads, in contract order.
  *
  * Not the whole panel: a model from the judge's own developer is recused
  * (`arbiter.recusal` in the contract). Claude Haiku 5.5 and the judge, Claude
@@ -236,12 +257,9 @@ export function modelDisplayName(id: DatasetId): string {
  * permutation, why an article was selected — reads this list; anything that
  * asks how the panel rated an article reads `datasetIdsOf('v2')`.
  */
-export const ARBITER_RECUSED_IDS = Object.freeze([
-	...contractV2.arbiter.recusal.models
-] as DatasetIdV2[]);
-export const ARBITER_PANEL_IDS = Object.freeze(
-	DATASET_IDS_V2.filter((id) => !ARBITER_RECUSED_IDS.includes(id))
-);
+export const ARBITER_DEVELOPER = contractV2.arbiter.developer as DeveloperId;
+export const ARBITER_RECUSED_IDS = Object.freeze([...recusedFor(ARBITER_DEVELOPER)]);
+export const ARBITER_PANEL_IDS = Object.freeze([...arbiterPanelFor(ARBITER_DEVELOPER)]);
 
 /** Whether the panel arbiter never saw this model's analyses. */
 export function isArbiterRecused(id: DatasetId): boolean {
@@ -288,8 +306,20 @@ for (const [pair, models] of Object.entries(PAIR_MODELS)) {
 	}
 }
 
-if (!ARBITER_RECUSED_IDS.every((id) => DATASET_IDS_V2.includes(id))) {
-	throw new Error('The v2 arbiter recuses a model the contract does not declare');
+// A developer outside the registry would match no member and recuse nobody,
+// silently letting a judge read its own model.
+if (contractV2.arbiter.recusal.rule !== 'same-developer') {
+	throw new Error(`Unknown v2 recusal rule ${contractV2.arbiter.recusal.rule}`);
+}
+if (!DEVELOPER_IDS.includes(ARBITER_DEVELOPER)) {
+	throw new Error('The v2 arbiter names a developer the contract does not register');
+}
+if (
+	!DATASET_IDS_V2.every((id) =>
+		DEVELOPER_IDS.includes(contractV2.models[id].developer as DeveloperId)
+	)
+) {
+	throw new Error('A v2 model names a developer the contract does not register');
 }
 if (ARBITER_PANEL_IDS.length < 2) {
 	throw new Error('The v2 arbiter needs at least two unrecused models');

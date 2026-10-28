@@ -176,6 +176,70 @@ def test_three_way_fingerprint_changes_with_an_analysis():
     assert baseline != changed
 
 
+# --- v2 regression pin -------------------------------------------------------
+# The published Claude Opus 5 file stores fingerprints over the five-model panel
+# it judged. Deriving the recusal from the judge's developer (rather than listing
+# Haiku) and adding a second judge must not move a single one of them: the
+# contract's schema, prompt and cache versions and the arbiter's panel all feed
+# this digest, which was computed before that change and is pinned here.
+
+PINNED_V2_ARTICLE = {
+    "o:id": "4242",
+    "o:title": "Titre de référence",
+    "OCR": "Texte intégral de référence.",
+    "analyses": {
+        "luna": {
+            "polarite": "Positif",
+            "subjectivite_score": 2,
+            "centralite_islam_musulmans": "Central",
+        },
+        "mistral-small": {
+            "polarite": "Négatif",
+            "subjectivite_score": 4,
+            "centralite_islam_musulmans": "Très central",
+        },
+        "deepseek": {
+            "polarite": "Neutre",
+            "subjectivite_score": 3,
+            "centralite_islam_musulmans": "Central",
+        },
+        "gemma": {
+            "polarite": "Positif",
+            "subjectivite_score": 2,
+            "centralite_islam_musulmans": "Secondaire",
+        },
+        "qwen": {
+            "polarite": "Très positif",
+            "subjectivite_score": None,
+            "centralite_islam_musulmans": "Central",
+        },
+    },
+    "spread": {
+        "polarity_spread": 3,
+        "subjectivity_spread": 0,
+        "centrality_spread": 2,
+        "total_spread": 5,
+        "has_significant_spread": True,
+    },
+}
+PINNED_V2_DIGEST = "36170c153695d1bbc909aa07bdd16013f873a823beacfe5b3c71fdb201c83824"
+
+
+def test_the_published_panel_fingerprint_is_frozen():
+    assert set(PINNED_V2_ARTICLE["analyses"]) == set(CONTRACT_V2.arbiter_model_ids)
+    assert (
+        three_way_cache_fingerprint(
+            PINNED_V2_ARTICLE,
+            arbiter_model="claude-opus-5",
+            source_revision="deadbeef",
+            text_revision="cafef00d",
+            max_input_chars=15_000,
+            contract=CONTRACT_V2,
+        )
+        == PINNED_V2_DIGEST
+    )
+
+
 def test_the_panel_fingerprint_reads_its_mode_from_the_contract():
     """The mode separates this digest from the pairwise one; it is not a literal."""
     renamed = SimpleNamespace(
