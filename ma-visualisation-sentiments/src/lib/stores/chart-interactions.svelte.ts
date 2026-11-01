@@ -1,5 +1,5 @@
-import { unique } from '$lib/utils/collections';
-import type { ViewId } from '$lib/types/data';
+import { unique } from '#lib/utils/collections.js';
+import type { ViewId } from '#lib/types/data.js';
 
 export interface ChartInteraction {
 	/** Legend positions stay stable when translated labels change. */

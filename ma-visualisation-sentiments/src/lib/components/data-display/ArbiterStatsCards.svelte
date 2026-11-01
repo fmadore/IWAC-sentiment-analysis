@@ -5,11 +5,12 @@
   Shows total evaluations, model preferences, and agreement rates.
 -->
 <script lang="ts">
-	import type { ArbiterStatistics } from '$lib/stores';
-	import { dec, num, pct } from '$lib/i18n/utils';
-	import { datasetState } from '$lib/stores';
-	import { t } from '$lib/i18n';
-	import { base } from '$app/paths';
+	import type { ArbiterStatistics } from '#lib/stores/index.js';
+	import { dec, num, pct } from '#lib/i18n/utils.js';
+	import { datasetState } from '#lib/stores/index.js';
+	import { t } from '#lib/i18n/index.js';
+	import { asset } from '$app/paths';
+	import type { AssetPath } from '$app/types';
 	import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
 	import ScaleIcon from '@lucide/svelte/icons/scale';
 	import CheckCircle2Icon from '@lucide/svelte/icons/check-circle-2';
@@ -23,7 +24,7 @@
 	let { stats, modelAName, modelBName }: ArbiterStatsCardsProps = $props();
 
 	// Get model logo from datasets
-	function getModelLogo(modelName: string): string | null {
+	function getModelLogo(modelName: string): AssetPath | null {
 		const dataset = datasetState.available.find((d) => d.name === modelName);
 		return dataset?.logo ?? null;
 	}
@@ -62,7 +63,7 @@
 	<div class="stat-card">
 		<div class="stat-icon model-a">
 			{#if modelALogo}
-				<img src="{base}{modelALogo}" alt={modelAName} class="model-logo" />
+				<img src={asset(modelALogo)} alt={modelAName} class="model-logo" />
 			{/if}
 		</div>
 		<div class="stat-content">
@@ -76,7 +77,7 @@
 	<div class="stat-card">
 		<div class="stat-icon model-b">
 			{#if modelBLogo}
-				<img src="{base}{modelBLogo}" alt={modelBName} class="model-logo" />
+				<img src={asset(modelBLogo)} alt={modelBName} class="model-logo" />
 			{/if}
 		</div>
 		<div class="stat-content">
@@ -116,7 +117,7 @@
 	{@const leadingLogo = getModelLogo(leadingModel)}
 	<div class="lead-indicator mt-4">
 		{#if leadingLogo}
-			<img src="{base}{leadingLogo}" alt={leadingModel} class="lead-logo" />
+			<img src={asset(leadingLogo)} alt={leadingModel} class="lead-logo" />
 		{/if}
 		<span class="lead-text">
 			<strong>{leadingModel}</strong> leads by <strong>{leadPercentage}%</strong> in overall preferences
@@ -138,7 +139,7 @@
 			<div class="comparison-labels">
 				<div class="model-label model-a-label">
 					{#if modelALogo}
-						<img src="{base}{modelALogo}" alt={modelAName} class="comparison-logo" />
+						<img src={asset(modelALogo)} alt={modelAName} class="comparison-logo" />
 					{/if}
 					<span>{modelAName}</span>
 					<strong>{$pct(modelAPercent / 100, 1)}</strong>
@@ -147,7 +148,7 @@
 					<strong>{$pct(modelBPercent / 100, 1)}</strong>
 					<span>{modelBName}</span>
 					{#if modelBLogo}
-						<img src="{base}{modelBLogo}" alt={modelBName} class="comparison-logo" />
+						<img src={asset(modelBLogo)} alt={modelBName} class="comparison-logo" />
 					{/if}
 				</div>
 			</div>

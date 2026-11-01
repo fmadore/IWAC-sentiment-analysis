@@ -3,14 +3,14 @@
  *
  * One keyword-analysis payload per model, loaded when the Extremes view needs
  * it. Loading, dedup and failure are the shared resource's (see
- * `$lib/data/resource.svelte.ts`): a failed load is an `error` the view shows
+ * `#lib/data/resource.svelte.ts`): a failed load is an `error` the view shows
  * with a Retry action, never a `null` that reads as "still loading" forever.
  */
 
-import type { ExtremeAnalysisData } from '$lib/types/extremeAnalysis';
-import type { DatasetId } from '$lib/types/data';
-import { loadExtremeAnalysisData, filterExtremeAnalysisData } from '$lib/utils/extremeAnalysis';
-import { createResource, type ResourceState } from '$lib/data/resource.svelte';
+import type { ExtremeAnalysisData } from '#lib/types/extremeAnalysis.js';
+import type { DatasetId } from '#lib/types/data.js';
+import { loadExtremeAnalysisData, filterExtremeAnalysisData } from '#lib/utils/extremeAnalysis.js';
+import { createResource, type ResourceState } from '#lib/data/resource.svelte.js';
 import { datasetState } from './datasets.svelte';
 import { filterState } from './filters.svelte';
 

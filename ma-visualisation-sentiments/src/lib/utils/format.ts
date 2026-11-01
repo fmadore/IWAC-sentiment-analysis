@@ -4,9 +4,9 @@
  * Consolidates duplicated formatting functions from across the component tree.
  */
 
-import type { Article } from '$lib/types/data';
+import type { Article } from '#lib/types/data.js';
 
-// Dates are formatted by the `fmtDate` store in `$lib/i18n/utils`, beside the
+// Dates are formatted by the `fmtDate` store in `#lib/i18n/utils`, beside the
 // number formatters: a plain function here read the language with a one-shot
 // `get()`, which no template re-runs on a language switch.
 

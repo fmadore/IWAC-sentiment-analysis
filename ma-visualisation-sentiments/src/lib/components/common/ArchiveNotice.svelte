@@ -10,12 +10,12 @@
   unconditionally by the page.
 -->
 <script lang="ts">
-	import { datasetState, uiState } from '$lib/stores';
-	import { updateURL } from '$lib/stores/url';
-	import { t } from '$lib/i18n';
+	import { datasetState, uiState } from '#lib/stores/index.js';
+	import { updateURL } from '#lib/stores/url/index.js';
+	import { t } from '#lib/i18n/index.js';
 	import ArchiveIcon from '@lucide/svelte/icons/archive';
 	import ArrowRightIcon from '@lucide/svelte/icons/arrow-right';
-	import { CURRENT_GENERATION } from '$lib/domain/sentimentContract';
+	import { CURRENT_GENERATION } from '#lib/domain/sentimentContract.js';
 
 	function returnToCurrent() {
 		datasetState.setGeneration(CURRENT_GENERATION);

@@ -22,8 +22,8 @@
   </FullScreenModal>
 -->
 <script lang="ts">
-	import CopyLinkButton from '$lib/components/ui/CopyLinkButton.svelte';
-	import { t } from '$lib/i18n';
+	import CopyLinkButton from '#lib/components/ui/CopyLinkButton.svelte';
+	import { t } from '#lib/i18n/index.js';
 	import type { Snippet } from 'svelte';
 	import XIcon from '@lucide/svelte/icons/x';
 	import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';

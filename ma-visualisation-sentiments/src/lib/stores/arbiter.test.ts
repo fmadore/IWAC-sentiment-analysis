@@ -7,7 +7,7 @@
  * - Statistics computation correctly swaps counts when needed
  */
 import { describe, it, expect, vi } from 'vitest';
-import { getModelsFromPair, type ArbiterEvaluationData } from '$lib/types/data';
+import { getModelsFromPair, type ArbiterEvaluationData } from '#lib/types/data.js';
 import {
 	arbiterEvaluations,
 	computeArbiterStatistics,

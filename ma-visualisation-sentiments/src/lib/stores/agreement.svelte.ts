@@ -9,10 +9,10 @@
  * files the charts already use.
  */
 
-import type { Article, DatasetId, ModelPair } from '$lib/types/data';
-import { getModelsFromPair } from '$lib/types/data';
-import { datasetIdsOf } from '$lib/domain/sentimentContract';
-import { fleissKappa, type FleissResult } from '$lib/utils/agreement';
+import type { Article, DatasetId, ModelPair } from '#lib/types/data.js';
+import { getModelsFromPair } from '#lib/types/data.js';
+import { datasetIdsOf } from '#lib/domain/sentimentContract.js';
+import { fleissKappa, type FleissResult } from '#lib/utils/agreement.js';
 import {
 	AGREEMENT_DIMENSIONS,
 	DIMENSION_CATEGORIES,
@@ -21,22 +21,22 @@ import {
 	computeMarginals,
 	type AgreementDimension,
 	type ModelMarginals
-} from '$lib/utils/agreementData';
-import { buildConsensusRows, type ConsensusRow } from '$lib/utils/consensus';
+} from '#lib/utils/agreementData.js';
+import { buildConsensusRows, type ConsensusRow } from '#lib/utils/consensus.js';
 import {
 	summarizeAgreement,
 	summarizeModelPairs,
 	type DimensionAgreement,
 	type PairAgreementSummary
-} from '$lib/utils/agreementMetrics';
-export type { DimensionAgreement } from '$lib/utils/agreementMetrics';
+} from '#lib/utils/agreementMetrics.js';
+export type { DimensionAgreement } from '#lib/utils/agreementMetrics.js';
 // Leaf stores imported directly — importing from './index' would create a
 // cycle (the barrel re-exports this module). Same convention as url/* and
 // arbiter.svelte.
 import { articleState } from './articles.svelte';
 import { datasetState } from './datasets.svelte';
 import { filterState } from './filters.svelte';
-import { getJournalName } from '$lib/utils/format';
+import { getJournalName } from '#lib/utils/format.js';
 
 /**
  * Apply the active country/journal filters to a dataset.

@@ -5,9 +5,9 @@
  * Provides clean import paths throughout the application.
  *
  * Usage:
- * import { FilterCard, SentimentBadge, SentimentChart } from '$lib/components';
- * import { CountryFilter, PolarityFilter } from '$lib/components/filters';
- * import { ArticleTable, ArticleDetail } from '$lib/components/data-display';
+ * import { FilterCard, SentimentBadge, SentimentChart } from '#lib/components/index.js';
+ * import { CountryFilter, PolarityFilter } from '#lib/components/filters/index.js';
+ * import { ArticleTable, ArticleDetail } from '#lib/components/data-display/index.js';
  */
 
 // Common - Base reusable components

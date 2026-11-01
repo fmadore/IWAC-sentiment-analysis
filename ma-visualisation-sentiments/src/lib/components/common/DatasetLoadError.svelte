@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { t } from '$lib/i18n';
-	import { datasetState } from '$lib/stores/datasets.svelte';
-	import { loadSpecificDataset } from '$lib/stores/articles.svelte';
-	import type { DatasetId } from '$lib/types/data';
+	import { t } from '#lib/i18n/index.js';
+	import { datasetState } from '#lib/stores/datasets.svelte.js';
+	import { loadSpecificDataset } from '#lib/stores/articles.svelte.js';
+	import type { DatasetId } from '#lib/types/data.js';
 	let { ids }: { ids: readonly DatasetId[] } = $props();
 	let retrying = $state(false);
 	async function retry() {

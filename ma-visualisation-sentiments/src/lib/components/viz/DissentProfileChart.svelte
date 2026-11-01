@@ -30,23 +30,23 @@
   — `setOption` merges by default and would otherwise leave the old series behind.
 -->
 <script lang="ts">
-	import { viewOptionsState } from '$lib/stores/view-options.svelte';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import Chart from './CitableChart.svelte';
-	import { num, pct } from '$lib/i18n/utils';
-	import { init } from '$lib/utils/echartsSetup';
+	import { num, pct } from '#lib/i18n/utils.js';
+	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	import { t } from '$lib/i18n';
-	import { getModelDisplayNames } from '$lib/utils/format';
+	import { t } from '#lib/i18n/index.js';
+	import { getModelDisplayNames } from '#lib/utils/format.js';
 	import {
 		tooltipFooterRow,
 		tooltipHeader,
 		tooltipPanel,
 		tooltipSeriesRow
-	} from '$lib/utils/chartFormatters';
-	import { datasetState } from '$lib/stores';
+	} from '#lib/utils/chartFormatters.js';
+	import { datasetState } from '#lib/stores/index.js';
 	import {
 		barycentric,
 		rankNewspaperDisagreement,
@@ -54,7 +54,7 @@
 		type AgreementDimension,
 		type ConsensusRow,
 		type NewspaperDisagreement
-	} from '$lib/utils/consensus';
+	} from '#lib/utils/consensus.js';
 	import ChartTypeToggle from './ChartTypeToggle.svelte';
 	import {
 		seriesColorPalette,
@@ -66,7 +66,7 @@
 		getAxisLabelStyle,
 		getSplitLineStyle,
 		getEmphasisConfig
-	} from '$lib/utils/chartTheme';
+	} from '#lib/utils/chartTheme.js';
 	import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
 	import TriangleIcon from '@lucide/svelte/icons/triangle';
 

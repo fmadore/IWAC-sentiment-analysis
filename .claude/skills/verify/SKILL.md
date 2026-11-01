@@ -20,7 +20,7 @@ npm run lint && npm run check && npm run test:run
 ```
 
 Then, **only if you touched `src/`, `static/`, `scripts/`, `deploy.config.js`,
-`svelte.config.js` or `vite.config.ts`**, add:
+or `vite.config.ts`**, add:
 
 ```bash
 npm run build

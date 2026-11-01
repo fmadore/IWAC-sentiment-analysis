@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { MediaQuery } from 'svelte/reactivity';
-	import { t } from '$lib/i18n';
-	import { uiState } from '$lib/stores';
-	import { LanguageSwitcher, DatasetPicker } from '$lib/components/ui';
-	import Drawer from '$lib/components/common/Drawer.svelte';
+	import { t } from '#lib/i18n/index.js';
+	import { uiState } from '#lib/stores/index.js';
+	import { LanguageSwitcher, DatasetPicker } from '#lib/components/ui/index.js';
+	import Drawer from '#lib/components/common/Drawer.svelte';
 	import { NAV_ITEMS } from './navItems';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
-	import { hasSingleModelPicker, type ViewId } from '$lib/types/data';
+	import { hasSingleModelPicker, type ViewId } from '#lib/types/data.js';
 
 	// Default expanded on wider desktops where the labels fit and where the
 	// flame/gavel/git-compare icons aren't self-explanatory to a researcher.

@@ -6,20 +6,23 @@
   supply the dimension configuration (buckets, colors, labels).
 -->
 <script lang="ts">
-	import { viewOptionsState } from '$lib/stores/view-options.svelte';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
 	import Chart from './CitableChart.svelte';
-	import { init } from '$lib/utils/echartsSetup';
+	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	import { articleState } from '$lib/stores';
-	import type { Article } from '$lib/types/data';
-	import { t, currentLanguage } from '$lib/i18n';
-	import { formatNumber } from '$lib/i18n/utils';
+	import { articleState } from '#lib/stores/index.js';
+	import type { Article } from '#lib/types/data.js';
+	import { t, currentLanguage } from '#lib/i18n/index.js';
+	import { formatNumber } from '#lib/i18n/utils.js';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import ChartTypeToggle from './ChartTypeToggle.svelte';
-	import { createTrendTooltipFormatter } from '$lib/utils/chartFormatters';
-	import { aggregateByYearAndDimension, computeDimensionShares } from '$lib/utils/chartAggregators';
+	import { createTrendTooltipFormatter } from '#lib/utils/chartFormatters.js';
+	import {
+		aggregateByYearAndDimension,
+		computeDimensionShares
+	} from '#lib/utils/chartAggregators.js';
 	import HashIcon from '@lucide/svelte/icons/hash';
 	import PercentIcon from '@lucide/svelte/icons/percent';
 
@@ -37,7 +40,7 @@
 		getDataZoomConfig,
 		getLineSeriesStyle,
 		getEmphasisConfig
-	} from '$lib/utils/chartTheme';
+	} from '#lib/utils/chartTheme.js';
 
 	interface TrendsChartProps {
 		stateKey: 'polarityTrend' | 'subjectivityTrend';

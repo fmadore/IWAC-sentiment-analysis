@@ -9,10 +9,10 @@
   This creates a natural filtering flow: Country → Journal → Sentiment criteria
 -->
 <script lang="ts">
-	import { articleState, filterState } from '$lib/stores';
-	import { t, currentLanguage } from '$lib/i18n';
-	import { FilterCard, FilterChip } from '$lib/components/common';
-	import type { Article } from '$lib/types/data';
+	import { articleState, filterState } from '#lib/stores/index.js';
+	import { t, currentLanguage } from '#lib/i18n/index.js';
+	import { FilterCard, FilterChip } from '#lib/components/common/index.js';
+	import type { Article } from '#lib/types/data.js';
 
 	// Country name translations
 	const countryTranslations: Record<string, Record<string, string>> = {

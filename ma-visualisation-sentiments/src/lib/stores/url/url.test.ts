@@ -7,10 +7,10 @@
  * - parseURLState correctly parses URL parameters
  */
 import { describe, it, expect } from 'vitest';
-import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
-import { buildURLSearchParams } from '$lib/stores/url/builder.svelte';
-import { parseURLState } from '$lib/stores/url/parser.svelte';
-import type { URLState } from '$lib/stores/url/types';
+import { NOT_ANNOTATED } from '#lib/domain/sentimentContract.js';
+import { buildURLSearchParams } from '#lib/stores/url/builder.svelte.js';
+import { parseURLState } from '#lib/stores/url/parser.svelte.js';
+import type { URLState } from '#lib/stores/url/types.js';
 
 describe('reproducible analysis settings', () => {
 	it.each([{ dimensions: ['polarity'] }, { dimensions: [] }] as {

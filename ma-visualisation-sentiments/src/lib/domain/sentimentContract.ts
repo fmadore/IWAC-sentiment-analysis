@@ -1,5 +1,5 @@
-import contractV1 from '$lib/data/sentiment-v1.json';
-import contractV2 from '$lib/data/sentiment-v2.json';
+import contractV1 from '#lib/data/sentiment-v1.json';
+import contractV2 from '#lib/data/sentiment-v2.json';
 
 /**
  * Two analysis generations are published side by side. v2 is the showcased

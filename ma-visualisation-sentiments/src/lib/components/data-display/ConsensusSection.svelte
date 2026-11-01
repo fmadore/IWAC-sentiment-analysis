@@ -17,25 +17,25 @@
   both scopes.
 -->
 <script lang="ts">
-	import { analysisState } from '$lib/stores/analysis.svelte';
-	import { datasetState } from '$lib/stores/datasets.svelte';
-	import { consensusRows, consensusModels } from '$lib/stores';
-	import { dec, num, pct } from '$lib/i18n/utils';
-	import type { AgreementDimension } from '$lib/stores/agreement.svelte';
-	import { AGREEMENT_DIMENSIONS } from '$lib/stores/agreement.svelte';
-	import { profileDissent, usableValues } from '$lib/utils/consensus';
-	import { t } from '$lib/i18n';
-	import { StatCard, StatCardGrid, SectionHead } from '$lib/components/common';
-	import ChartCard from '$lib/components/ui/ChartCard.svelte';
-	import ChartTypeToggle from '$lib/components/viz/ChartTypeToggle.svelte';
-	import LabelPatternExplorer from '$lib/components/viz/LabelPatternExplorer.svelte';
+	import { analysisState } from '#lib/stores/analysis.svelte.js';
+	import { datasetState } from '#lib/stores/datasets.svelte.js';
+	import { consensusRows, consensusModels } from '#lib/stores/index.js';
+	import { dec, num, pct } from '#lib/i18n/utils.js';
+	import type { AgreementDimension } from '#lib/stores/agreement.svelte.js';
+	import { AGREEMENT_DIMENSIONS } from '#lib/stores/agreement.svelte.js';
+	import { profileDissent, usableValues } from '#lib/utils/consensus.js';
+	import { t } from '#lib/i18n/index.js';
+	import { StatCard, StatCardGrid, SectionHead } from '#lib/components/common/index.js';
+	import ChartCard from '#lib/components/ui/ChartCard.svelte';
+	import ChartTypeToggle from '#lib/components/viz/ChartTypeToggle.svelte';
+	import LabelPatternExplorer from '#lib/components/viz/LabelPatternExplorer.svelte';
 	import {
 		NewspaperDisagreementChart,
 		DissentProfileChart,
 		DirectionalDissentChart,
 		LabelFlowChart,
 		ConsensusScatterChart
-	} from '$lib/components/viz';
+	} from '#lib/components/viz/index.js';
 	import UsersIcon from '@lucide/svelte/icons/users';
 	import UserMinusIcon from '@lucide/svelte/icons/user-minus';
 	import ShuffleIcon from '@lucide/svelte/icons/shuffle';

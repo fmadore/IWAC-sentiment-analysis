@@ -1,15 +1,15 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render } from '@testing-library/svelte';
 import { tick } from 'svelte';
-import type { Article, DatasetId, LoadState } from '$lib/types/data';
-import { datasetIdsOf } from '$lib/domain/sentimentContract';
-import { currentLanguage, loadCatalogue } from '$lib/i18n';
-import { defaultViewOptions, viewOptionsState } from '$lib/stores/view-options.svelte';
-import { uiState } from '$lib/stores/ui.svelte';
+import type { Article, DatasetId, LoadState } from '#lib/types/data.js';
+import { datasetIdsOf } from '#lib/domain/sentimentContract.js';
+import { currentLanguage, loadCatalogue } from '#lib/i18n/index.js';
+import { defaultViewOptions, viewOptionsState } from '#lib/stores/view-options.svelte.js';
+import { uiState } from '#lib/stores/ui.svelte.js';
 import {
 	chartInteractionsState,
 	parseChartInteractions
-} from '$lib/stores/chart-interactions.svelte';
+} from '#lib/stores/chart-interactions.svelte.js';
 import HistoricalModelTrends from './HistoricalModelTrends.svelte';
 
 const mocks = vi.hoisted(() => ({
@@ -23,13 +23,13 @@ const mocks = vi.hoisted(() => ({
 		getById: (id: string) => ({ name: id })
 	}
 }));
-vi.mock('$lib/stores/articles.svelte', () => ({
+vi.mock('#lib/stores/articles.svelte.js', () => ({
 	articleState: mocks.articleState,
 	loadSpecificDataset: vi.fn(async () => {})
 }));
-vi.mock('$lib/stores/filters.svelte', () => ({ filterState: mocks.filterState }));
-vi.mock('$lib/stores/datasets.svelte', () => ({ datasetState: mocks.datasetState }));
-vi.mock('$lib/utils/echartsSetup', () => ({ init: vi.fn() }));
+vi.mock('#lib/stores/filters.svelte.js', () => ({ filterState: mocks.filterState }));
+vi.mock('#lib/stores/datasets.svelte.js', () => ({ datasetState: mocks.datasetState }));
+vi.mock('#lib/utils/echartsSetup.js', () => ({ init: vi.fn() }));
 vi.mock('svelte-echarts', async () => ({
 	Chart: (await import('../../../mocks/interactive-chart-stub.svelte')).default
 }));

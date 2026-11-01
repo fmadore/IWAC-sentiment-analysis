@@ -14,8 +14,8 @@ import type {
 	DiscrepancyFilter,
 	PolarityValue,
 	SubjectivityScore
-} from '$lib/types/data';
-import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
+} from '#lib/types/data.js';
+import { NOT_ANNOTATED } from '#lib/domain/sentimentContract.js';
 import {
 	filterArticles,
 	computeAvailableJournals,

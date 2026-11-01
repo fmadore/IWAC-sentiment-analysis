@@ -4,7 +4,7 @@
  * These strings are moved verbatim from AnalysisInfo.svelte and
  * ArbiterMethodology.svelte — do not rewrite them.
  */
-import type { Language } from '$lib/i18n';
+import type { Language } from '#lib/i18n/index.js';
 
 /**
  * Full sentiment-analysis prompt shown in the AnalysisInfo prompt modal.

@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { viewOptionsState } from '$lib/stores/view-options.svelte';
-	import { MODELS } from '$lib/data/modelMethodology';
-	import { t, currentLanguage } from '$lib/i18n';
-	import { num } from '$lib/i18n/utils';
-	import { datasetState, articleState, uiState } from '$lib/stores';
-	import { updateURL } from '$lib/stores/url';
-	import { ARCHIVED_GENERATION, generationOf } from '$lib/domain/sentimentContract';
-	import { AccordionItem, PromptModal } from '$lib/components/common';
-	import CollapsibleMethodologyCard from '$lib/components/common/CollapsibleMethodologyCard.svelte';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
+	import { MODELS } from '#lib/data/modelMethodology.js';
+	import { t, currentLanguage } from '#lib/i18n/index.js';
+	import { num } from '#lib/i18n/utils.js';
+	import { datasetState, articleState, uiState } from '#lib/stores/index.js';
+	import { updateURL } from '#lib/stores/url/index.js';
+	import { ARCHIVED_GENERATION, generationOf } from '#lib/domain/sentimentContract.js';
+	import { AccordionItem, PromptModal } from '#lib/components/common/index.js';
+	import CollapsibleMethodologyCard from '#lib/components/common/CollapsibleMethodologyCard.svelte';
 	import SentimentScaleList, {
 		type ScaleItem
-	} from '$lib/components/common/SentimentScaleList.svelte';
-	import { loadPromptTexts, promptTexts } from '$lib/data/promptTexts.svelte';
-	import { base } from '$app/paths';
-	import { createAccordion } from '$lib/utils/accordion.svelte';
+	} from '#lib/components/common/SentimentScaleList.svelte';
+	import { loadPromptTexts, promptTexts } from '#lib/data/promptTexts.svelte.js';
+	import { asset } from '$app/paths';
+	import { createAccordion } from '#lib/utils/accordion.svelte.js';
 
 	const accordion = createAccordion();
 
@@ -296,7 +296,7 @@
 							{#each generationModels as model (model.id)}
 								<div class="model-card">
 									<div class="model-header">
-										<img src="{base}{model.logo}" alt={model.logoAlt} class="model-logo" />
+										<img src={asset(model.logo)} alt={model.logoAlt} class="model-logo" />
 										<span class="model-name">{model.cardName}</span>
 									</div>
 									<p class="model-description">{model.cardDescription[$currentLanguage]}</p>

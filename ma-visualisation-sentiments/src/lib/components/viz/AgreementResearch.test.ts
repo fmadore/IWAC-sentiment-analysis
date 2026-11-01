@@ -1,16 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render } from '@testing-library/svelte';
 import { tick } from 'svelte';
-import { datasetIdsOf } from '$lib/domain/sentimentContract';
-import type { Article, DatasetId } from '$lib/types/data';
-import { articleState } from '$lib/stores/articles.svelte';
-import { datasetState } from '$lib/stores/datasets.svelte';
-import { analysisState } from '$lib/stores/analysis.svelte';
-import { viewOptionsState } from '$lib/stores/view-options.svelte';
-import { applyURLState } from '$lib/stores/url/actions.svelte';
-import { buildURLSearchParams, getCurrentState, parseURLState } from '$lib/stores/url';
-import { currentLanguage, loadCatalogue } from '$lib/i18n';
-import { buildConsensusRows } from '$lib/utils/consensus';
+import { datasetIdsOf } from '#lib/domain/sentimentContract.js';
+import type { Article, DatasetId } from '#lib/types/data.js';
+import { articleState } from '#lib/stores/articles.svelte.js';
+import { datasetState } from '#lib/stores/datasets.svelte.js';
+import { analysisState } from '#lib/stores/analysis.svelte.js';
+import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
+import { applyURLState } from '#lib/stores/url/actions.svelte.js';
+import { buildURLSearchParams, getCurrentState, parseURLState } from '#lib/stores/url/index.js';
+import { currentLanguage, loadCatalogue } from '#lib/i18n/index.js';
+import { buildConsensusRows } from '#lib/utils/consensus.js';
 import ModelAgreementOverview from './ModelAgreementOverview.svelte';
 import LabelPatternExplorer from './LabelPatternExplorer.svelte';
 

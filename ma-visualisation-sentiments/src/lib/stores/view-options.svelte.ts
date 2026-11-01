@@ -1,5 +1,6 @@
-import type { ViewId } from '$lib/types/data';
-import { GENERATION_IDS, datasetIdsOf } from '$lib/domain/sentimentContract';
+import type { ReadonlyURLSearchParams } from '$app/state';
+import type { ViewId } from '#lib/types/data.js';
+import { GENERATION_IDS, datasetIdsOf } from '#lib/domain/sentimentContract.js';
 
 const PANEL_SIZES = GENERATION_IDS.map((generation) => datasetIdsOf(generation).length);
 
@@ -153,7 +154,7 @@ export function optionApplies(key: ViewOptionKey, view: ViewId | undefined): boo
 }
 
 export function parseViewOptions(
-	params: URLSearchParams,
+	params: ReadonlyURLSearchParams,
 	view: ViewId | undefined
 ): Partial<ViewOptions> {
 	const entries = VIEW_OPTION_KEYS.flatMap((key) => {

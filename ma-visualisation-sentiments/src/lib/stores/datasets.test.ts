@@ -7,7 +7,7 @@
  * - getById / current helpers
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { datasetState } from '$lib/stores/datasets.svelte';
+import { datasetState } from '#lib/stores/datasets.svelte.js';
 
 beforeEach(() => {
 	datasetState.selected = 'chatgpt';
@@ -249,7 +249,7 @@ describe('datasetState.getById', () => {
 		expect(datasetState.getById('qwen')?.color).toBe('#615ced');
 		expect(datasetState.getById('haiku')?.name).toBe('Claude Haiku 5.5');
 		expect(datasetState.getById('haiku')?.color).toBe('#d97757');
-		expect(datasetState.getById('haiku')?.logo).toBe('/logo/Claude_logo.svg');
+		expect(datasetState.getById('haiku')?.logo).toBe('logo/Claude_logo.svg');
 	});
 
 	it('returns undefined for unknown id', () => {

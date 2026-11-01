@@ -3,7 +3,7 @@
  * Global setup for all tests
  */
 import '@testing-library/svelte/vitest';
-import { loadCatalogue } from '$lib/i18n';
+import { loadCatalogue } from '#lib/i18n/index.js';
 
 /**
  * The English catalogue is loaded on demand in the app. Tests switch language

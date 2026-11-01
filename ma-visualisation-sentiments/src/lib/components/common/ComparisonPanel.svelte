@@ -5,8 +5,8 @@
   Used in ComparisonDetail to display centrality, polarity, and subjectivity comparisons.
 -->
 <script lang="ts">
-	import { SentimentBadge } from '$lib/components/common';
-	import { t } from '$lib/i18n';
+	import { SentimentBadge } from '#lib/components/common/index.js';
+	import { t } from '#lib/i18n/index.js';
 
 	interface ComparisonPanelProps {
 		dimension: 'polarity' | 'subjectivity' | 'centrality';

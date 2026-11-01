@@ -1,21 +1,21 @@
 <script lang="ts">
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import Chart from './CitableChart.svelte';
-	import { init } from '$lib/utils/echartsSetup';
+	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	import { articleState } from '$lib/stores';
-	import { viewOptionsState } from '$lib/stores/view-options.svelte';
-	import { t, currentLanguage } from '$lib/i18n';
-	import { dec, num, translateSentimentValue } from '$lib/i18n/utils';
+	import { articleState } from '#lib/stores/index.js';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
+	import { t, currentLanguage } from '#lib/i18n/index.js';
+	import { dec, num, translateSentimentValue } from '#lib/i18n/utils.js';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
 	import {
 		aggregateCentralityHeatmap,
 		HEATMAP_CENTRALITY_VALUES,
 		HEATMAP_CENTRALITY_MIN,
 		HEATMAP_CENTRALITY_MAX
-	} from '$lib/utils/centralityHeatmap';
+	} from '#lib/utils/centralityHeatmap.js';
 
 	// Import centralized chart theme
 	import {
@@ -26,7 +26,7 @@
 		getAxisLabelStyle,
 		getVisualMapConfig,
 		chartColors
-	} from '$lib/utils/chartTheme';
+	} from '#lib/utils/chartTheme.js';
 
 	const heatmapColors = HEATMAP_CENTRALITY_VALUES.map((label) => centralityColors[label]);
 	const centralityLabels = $derived(

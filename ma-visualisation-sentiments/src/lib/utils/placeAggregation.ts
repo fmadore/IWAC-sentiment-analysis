@@ -18,8 +18,8 @@ import type {
 	Place,
 	PlacesPayload,
 	PolarityValue
-} from '$lib/types/data';
-import { CENTRALITY_ORDER, POLARITY_ORDER } from '$lib/types/data';
+} from '#lib/types/data.js';
+import { CENTRALITY_ORDER, POLARITY_ORDER } from '#lib/types/data.js';
 import type { AgreementDimension } from './agreementData';
 import { AGREEMENT_DIMENSIONS } from './agreementData';
 

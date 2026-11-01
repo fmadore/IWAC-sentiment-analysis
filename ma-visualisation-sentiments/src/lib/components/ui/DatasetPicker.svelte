@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { datasetState } from '$lib/stores';
-	import { t } from '$lib/i18n';
-	import { base } from '$app/paths';
-	import { DropdownMenu } from '$lib/components/common';
-	import { isDatasetId } from '$lib/domain/sentimentContract';
+	import { datasetState } from '#lib/stores/index.js';
+	import { t } from '#lib/i18n/index.js';
+	import { asset } from '$app/paths';
+	import type { AssetPath } from '$app/types';
+	import { DropdownMenu } from '#lib/components/common/index.js';
+	import { isDatasetId } from '#lib/domain/sentimentContract.js';
 
 	let currentDataset = $derived(datasetState.available.find((d) => d.id === datasetState.selected));
 
@@ -38,11 +39,7 @@
 >
 	{#snippet trigger()}
 		{#if currentDataset?.logo}
-			<img
-				src="{base}{currentDataset.logo}"
-				alt="{currentDataset.name} logo"
-				class="dataset-logo"
-			/>
+			<img src={asset(currentDataset.logo)} alt="{currentDataset.name} logo" class="dataset-logo" />
 		{/if}
 		<span class="picker-label">
 			{currentDataset?.name || 'Select Dataset'}
@@ -51,7 +48,11 @@
 
 	{#snippet itemRenderer({ item, isSelected })}
 		{#if item.data?.logo}
-			<img src="{base}{item.data.logo}" alt="{item.label} logo" class="dataset-logo menu-logo" />
+			<img
+				src={asset(item.data.logo as AssetPath)}
+				alt="{item.label} logo"
+				class="dataset-logo menu-logo"
+			/>
 		{:else if item.data?.icon}
 			<span class="dataset-icon">{item.data.icon}</span>
 		{/if}

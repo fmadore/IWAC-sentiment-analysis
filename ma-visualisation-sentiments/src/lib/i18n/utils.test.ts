@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
-import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
+import { NOT_ANNOTATED } from '#lib/domain/sentimentContract.js';
 import { currentLanguage } from './index';
 import {
 	fmtDate,

@@ -6,12 +6,12 @@
 -->
 <script lang="ts">
 	import Chart from './CitableChart.svelte';
-	import { init } from '$lib/utils/echartsSetup';
+	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
 	import { innerWidth } from 'svelte/reactivity/window';
 
-	import { arbiterEvaluations, arbiterModelAIsFirst } from '$lib/stores';
-	import { t } from '$lib/i18n';
+	import { arbiterEvaluations, arbiterModelAIsFirst } from '#lib/stores/index.js';
+	import { t } from '#lib/i18n/index.js';
 	import {
 		getTooltipConfig,
 		getLegendConfig,
@@ -21,7 +21,7 @@
 		getSplitLineStyle,
 		getStaggeredAnimationDelay,
 		arbiterVerdictColors
-	} from '$lib/utils/chartTheme';
+	} from '#lib/utils/chartTheme.js';
 
 	interface ArbiterDimensionChartProps {
 		modelAName: string;

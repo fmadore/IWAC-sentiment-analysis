@@ -6,9 +6,9 @@
   component with an extreme-accent top border.
 -->
 <script lang="ts">
-	import { t } from '$lib/i18n';
-	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
-	import { FilterCard } from '$lib/components/common';
+	import { t } from '#lib/i18n/index.js';
+	import type { ExtremeCategory, KeywordType } from '#lib/types/extremeAnalysis.js';
+	import { FilterCard } from '#lib/components/common/index.js';
 	import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
 
 	// Props

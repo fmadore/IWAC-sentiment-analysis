@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { datasetState, uiState } from '$lib/stores';
-	import type { ModelPair, DatasetOption } from '$lib/types/data';
-	import { getModelsFromPair } from '$lib/types/data';
-	import { t } from '$lib/i18n';
-	import { base } from '$app/paths';
-	import { updateURL } from '$lib/stores/url';
+	import { datasetState, uiState } from '#lib/stores/index.js';
+	import type { ModelPair, DatasetOption } from '#lib/types/data.js';
+	import { getModelsFromPair } from '#lib/types/data.js';
+	import { t } from '#lib/i18n/index.js';
+	import { asset } from '$app/paths';
+	import type { AssetPath } from '$app/types';
+	import { updateURL } from '#lib/stores/url/index.js';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import { tick } from 'svelte';
 
@@ -38,11 +39,14 @@
 	}
 
 	// Get logos for a pair - now takes datasets as parameter
-	function getLogosForPair(pair: ModelPair, datasets: DatasetOption[]): [string, string] {
+	function getLogosForPair(
+		pair: ModelPair,
+		datasets: DatasetOption[]
+	): [AssetPath | undefined, AssetPath | undefined] {
 		const [modelAId, modelBId] = getModelsFromPair(pair);
 		const modelA = getDatasetInfo(modelAId, datasets);
 		const modelB = getDatasetInfo(modelBId, datasets);
-		return [modelA?.logo || '', modelB?.logo || ''];
+		return [modelA?.logo, modelB?.logo];
 	}
 
 	// Derived current logos for the selected pair
@@ -109,7 +113,7 @@
 		<div class="selected-pair">
 			{#each currentLogos as logo, i (i)}
 				{#if logo}
-					<img src="{base}{logo}" alt="" class="pair-logo" />
+					<img src={asset(logo)} alt="" class="pair-logo" />
 				{/if}
 				{#if i === 0}
 					<span class="vs-label">vs</span>
@@ -137,10 +141,10 @@
 					     smaller type. -->
 					<div class="pair-logos">
 						{#if logoA}
-							<img src="{base}{logoA}" alt="" class="pair-logo-sm" />
+							<img src={asset(logoA)} alt="" class="pair-logo-sm" />
 						{/if}
 						{#if logoB}
-							<img src="{base}{logoB}" alt="" class="pair-logo-sm" />
+							<img src={asset(logoB)} alt="" class="pair-logo-sm" />
 						{/if}
 					</div>
 					<span class="pair-label">{getPairLabel(pairId)}</span>

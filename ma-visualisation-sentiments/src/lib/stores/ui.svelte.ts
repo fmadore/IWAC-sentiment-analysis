@@ -5,7 +5,7 @@
  * Provides both modern $state-based API and legacy store compatibility.
  */
 
-import { VIEW_IDS, type ViewId } from '$lib/types/data';
+import { VIEW_IDS, type ViewId } from '#lib/types/data.js';
 
 // ============================================
 // Svelte 5 Runes State
