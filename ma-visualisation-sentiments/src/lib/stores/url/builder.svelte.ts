@@ -4,11 +4,11 @@
  * Converts application state to URL search parameters.
  */
 
-import { LANGUAGES } from '$lib/i18n';
-import { unique } from '$lib/utils/collections';
+import { LANGUAGES } from '#lib/i18n/index.js';
+import { unique } from '#lib/utils/collections.js';
 import { VALID_VIEWS, VALID_DATASETS, VALID_PAIRS, URL_PARAMS } from './constants';
 import type { URLState } from './types';
-import { TOTAL_DISCREPANCY_MAXIMUM } from '$lib/domain/sentimentContract';
+import { TOTAL_DISCREPANCY_MAXIMUM } from '#lib/domain/sentimentContract.js';
 import { VIEW_OPTIONS, VIEW_OPTION_KEYS, optionApplies } from '../view-options.svelte';
 
 /**

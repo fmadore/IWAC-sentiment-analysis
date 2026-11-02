@@ -14,20 +14,20 @@
   <ArbiterMethodology />
 -->
 <script lang="ts">
-	import { viewOptionsState } from '$lib/stores/view-options.svelte';
-	import { t } from '$lib/i18n';
-	import { AccordionItem, PromptModal } from '$lib/components/common';
-	import CollapsibleMethodologyCard from '$lib/components/common/CollapsibleMethodologyCard.svelte';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
+	import { t } from '#lib/i18n/index.js';
+	import { AccordionItem, PromptModal } from '#lib/components/common/index.js';
+	import CollapsibleMethodologyCard from '#lib/components/common/CollapsibleMethodologyCard.svelte';
 	import SentimentScaleList, {
 		type ScaleItem
-	} from '$lib/components/common/SentimentScaleList.svelte';
-	import { loadPromptTexts, promptTexts } from '$lib/data/promptTexts.svelte';
-	import { createAccordion } from '$lib/utils/accordion.svelte';
+	} from '#lib/components/common/SentimentScaleList.svelte';
+	import { loadPromptTexts, promptTexts } from '#lib/data/promptTexts.svelte.js';
+	import { createAccordion } from '#lib/utils/accordion.svelte.js';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import EyeOffIcon from '@lucide/svelte/icons/eye-off';
 	import ScaleIcon from '@lucide/svelte/icons/scale';
 	import BrainIcon from '@lucide/svelte/icons/brain';
-	import { base } from '$app/paths';
+	import { asset } from '$app/paths';
 
 	// State for accordion sections
 	const accordion = createAccordion();
@@ -169,7 +169,7 @@
 		>
 			<div class="model-card-single">
 				<div class="model-header">
-					<img src="{base}/logo/Gemini_logo.svg" alt="Gemini Logo" class="model-logo" />
+					<img src={asset('logo/Gemini_logo.svg')} alt="Gemini Logo" class="model-logo" />
 					<div>
 						<h4 class="model-name">Gemini 3 Pro</h4>
 						<span class="model-badge gemini">{$t.arbiter.arbiterRole}</span>

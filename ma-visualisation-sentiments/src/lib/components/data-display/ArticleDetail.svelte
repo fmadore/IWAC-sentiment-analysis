@@ -1,14 +1,14 @@
 <script lang="ts">
-	import type { Article } from '$lib/types/data';
-	import { getJournalName } from '$lib/utils/format';
-	import { getArticleUrl } from '$lib/utils/format';
-	import { t } from '$lib/i18n';
-	import { fmtDate } from '$lib/i18n/utils';
-	import { SentimentBadge } from '$lib/components/common';
-	import EmptyState from '$lib/components/common/EmptyState.svelte';
-	import IIIFViewer from '$lib/components/viz/IIIFViewer.svelte';
+	import type { Article } from '#lib/types/data.js';
+	import { getJournalName } from '#lib/utils/format.js';
+	import { getArticleUrl } from '#lib/utils/format.js';
+	import { t } from '#lib/i18n/index.js';
+	import { fmtDate } from '#lib/i18n/utils.js';
+	import { SentimentBadge } from '#lib/components/common/index.js';
+	import EmptyState from '#lib/components/common/EmptyState.svelte';
+	import IIIFViewer from '#lib/components/viz/IIIFViewer.svelte';
 	import { untrack } from 'svelte';
-	import { loadJustifications, justificationsOf } from '$lib/stores';
+	import { loadJustifications, justificationsOf } from '#lib/stores/index.js';
 
 	let { article }: { article: Article | null } = $props();
 

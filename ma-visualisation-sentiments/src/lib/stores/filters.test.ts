@@ -8,8 +8,8 @@
  * - hasActiveFilters computation
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { filterState } from '$lib/stores/filters.svelte';
-import type { DiscrepancyFilter } from '$lib/types/data';
+import { filterState } from '#lib/stores/filters.svelte.js';
+import type { DiscrepancyFilter } from '#lib/types/data.js';
 
 beforeEach(() => {
 	filterState.clearAll();

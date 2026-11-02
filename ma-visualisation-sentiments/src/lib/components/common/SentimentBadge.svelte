@@ -11,10 +11,10 @@
   <SentimentBadge type="centrality" value="Central" />
 -->
 <script lang="ts">
-	import { currentLanguage } from '$lib/i18n';
-	import { translateSentimentValue, translateSubjectivityScore } from '$lib/i18n/utils';
-	import { NOT_ANNOTATED } from '$lib/domain/sentimentContract';
-	import { sentimentAttributes, type SentimentFamily } from '$lib/utils/sentimentTokens';
+	import { currentLanguage } from '#lib/i18n/index.js';
+	import { translateSentimentValue, translateSubjectivityScore } from '#lib/i18n/utils.js';
+	import { NOT_ANNOTATED } from '#lib/domain/sentimentContract.js';
+	import { sentimentAttributes, type SentimentFamily } from '#lib/utils/sentimentTokens.js';
 
 	type BadgeSize = 'sm' | 'md' | 'lg';
 

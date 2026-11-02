@@ -11,8 +11,8 @@
   meets, so a static copy there would outrank everything below.
 -->
 <script lang="ts">
-	import { t, currentLanguage } from '$lib/i18n';
-	import { getCurrentState, buildURLSearchParams } from '$lib/stores/url';
+	import { t, currentLanguage } from '#lib/i18n/index.js';
+	import { getCurrentState, buildURLSearchParams } from '#lib/stores/url/index.js';
 
 	let { view = 'charts', comparisonMode = false }: { view?: string; comparisonMode?: boolean } =
 		$props();

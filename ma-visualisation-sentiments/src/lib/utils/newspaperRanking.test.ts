@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Article, PolarityValue } from '$lib/types/data';
+import type { Article, PolarityValue } from '#lib/types/data.js';
 import {
 	getMeasureValue,
 	rankNewspapers,

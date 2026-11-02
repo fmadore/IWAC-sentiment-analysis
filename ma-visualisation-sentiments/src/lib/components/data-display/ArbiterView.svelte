@@ -13,9 +13,9 @@
   - Filterable and interactive
 -->
 <script lang="ts">
-	import DetailLinkNotice from '$lib/components/common/DetailLinkNotice.svelte';
-	import { arbiterSelectionState, viewOptionsState } from '$lib/stores/view-options.svelte';
-	import { getArbiterForArticle } from '$lib/stores/arbiter.svelte';
+	import DetailLinkNotice from '#lib/components/common/DetailLinkNotice.svelte';
+	import { arbiterSelectionState, viewOptionsState } from '#lib/stores/view-options.svelte.js';
+	import { getArbiterForArticle } from '#lib/stores/arbiter.svelte.js';
 	import {
 		arbiterEvaluations,
 		arbiterLoadState,
@@ -23,13 +23,13 @@
 		retryArbiterEvaluations,
 		datasetState,
 		articleState
-	} from '$lib/stores';
-	import ResourceLoadError from '$lib/components/common/ResourceLoadError.svelte';
-	import { getPairModelNames, getModelsFromPair } from '$lib/types/data';
-	import { t } from '$lib/i18n';
-	import { ChartCard } from '$lib/components/ui';
-	import Spinner from '$lib/components/common/Spinner.svelte';
-	import ModelPairPicker from '$lib/components/ui/ModelPairPicker.svelte';
+	} from '#lib/stores/index.js';
+	import ResourceLoadError from '#lib/components/common/ResourceLoadError.svelte';
+	import { getPairModelNames, getModelsFromPair } from '#lib/types/data.js';
+	import { t } from '#lib/i18n/index.js';
+	import { ChartCard } from '#lib/components/ui/index.js';
+	import Spinner from '#lib/components/common/Spinner.svelte';
+	import ModelPairPicker from '#lib/components/ui/ModelPairPicker.svelte';
 	import ArbiterStatsCards from './ArbiterStatsCards.svelte';
 	import ArbiterCoverage from './ArbiterCoverage.svelte';
 	import ArbiterArticleTable from './ArbiterArticleTable.svelte';
@@ -37,8 +37,8 @@
 		ArbiterVerdictChart,
 		ArbiterDimensionChart,
 		ArbiterConfidenceChart
-	} from '$lib/components/viz';
-	import { ArbiterArticleDetailModal } from '$lib/components/common';
+	} from '#lib/components/viz/index.js';
+	import { ArbiterArticleDetailModal } from '#lib/components/common/index.js';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import TableIcon from '@lucide/svelte/icons/table';
 	import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';

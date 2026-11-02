@@ -18,16 +18,16 @@
 -->
 <script lang="ts">
 	import ViewLoadError from '../common/ViewLoadError.svelte';
-	import type { Article, ViewId } from '$lib/types/data';
-	import { num } from '$lib/i18n/utils';
-	import type { ExtremeCategory, KeywordType } from '$lib/types/extremeAnalysis';
-	import { t } from '$lib/i18n';
-	import { datasetState, articleState } from '$lib/stores';
-	import { getModelDisplayName } from '$lib/utils/format';
+	import type { Article, ViewId } from '#lib/types/data.js';
+	import { num } from '#lib/i18n/utils.js';
+	import type { ExtremeCategory, KeywordType } from '#lib/types/extremeAnalysis.js';
+	import { t } from '#lib/i18n/index.js';
+	import { datasetState, articleState } from '#lib/stores/index.js';
+	import { getModelDisplayName } from '#lib/utils/format.js';
 
 	// UI
-	import { CSVExportButton, ChartCard } from '$lib/components/ui';
-	import LoadingState from '$lib/components/common/LoadingState.svelte';
+	import { CSVExportButton, ChartCard } from '#lib/components/ui/index.js';
+	import LoadingState from '#lib/components/common/LoadingState.svelte';
 
 	/**
 	 * The map is the one view with a heavyweight dependency: MapLibre GL is
@@ -36,34 +36,34 @@
 	 * for it, so it is pulled in on first visit to `?view=map` and the promise
 	 * memoized so switching away and back doesn't re-suspend.
 	 */
-	let mapModulePromise: Promise<typeof import('$lib/components/viz/SentimentMap.svelte')> | null =
+	let mapModulePromise: Promise<typeof import('#lib/components/viz/SentimentMap.svelte')> | null =
 		null;
 
 	function loadMapModule() {
-		mapModulePromise ??= import('$lib/components/viz/SentimentMap.svelte').catch((error) => {
+		mapModulePromise ??= import('#lib/components/viz/SentimentMap.svelte').catch((error) => {
 			mapModulePromise = null;
 			throw error;
 		});
 		return mapModulePromise;
 	}
 
-	let chartModulePromise: Promise<typeof import('$lib/components/views/ChartViews.svelte')> | null =
+	let chartModulePromise: Promise<typeof import('#lib/components/views/ChartViews.svelte')> | null =
 		null;
 	const chartViews = () =>
-		(chartModulePromise ??= import('$lib/components/views/ChartViews.svelte').catch((error) => {
+		(chartModulePromise ??= import('#lib/components/views/ChartViews.svelte').catch((error) => {
 			chartModulePromise = null;
 			throw error;
 		}));
-	const tableView = () => import('$lib/components/data-display/ArticleTable.svelte');
-	const comparisonView = () => import('$lib/components/data-display/ComparisonView.svelte');
-	const agreementView = () => import('$lib/components/data-display/AgreementView.svelte');
-	const extremeView = () => import('$lib/components/views/ExtremeViewContent.svelte');
+	const tableView = () => import('#lib/components/data-display/ArticleTable.svelte');
+	const comparisonView = () => import('#lib/components/data-display/ComparisonView.svelte');
+	const agreementView = () => import('#lib/components/data-display/AgreementView.svelte');
+	const extremeView = () => import('#lib/components/views/ExtremeViewContent.svelte');
 	// Two arbiter views, selected by generation rather than branched inside one
 	// component: the v1 view is pairwise all the way down (pair picker,
 	// `model_a_is_first`, two-way percentages) and has to stay stable for the
 	// archive, while v2 asks one panel-wide question per article.
-	const arbiterView = () => import('$lib/components/data-display/ArbiterView.svelte');
-	const arbiterV2View = () => import('$lib/components/data-display/ArbiterV2View.svelte');
+	const arbiterView = () => import('#lib/components/data-display/ArbiterView.svelte');
+	const arbiterV2View = () => import('#lib/components/data-display/ArbiterV2View.svelte');
 
 	interface ViewContentProps {
 		/** Currently active view */

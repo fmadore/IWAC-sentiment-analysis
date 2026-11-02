@@ -14,7 +14,7 @@
   <LoadingState message={$t.messages.loadingData} />
 -->
 <script lang="ts">
-	import { t } from '$lib/i18n';
+	import { t } from '#lib/i18n/index.js';
 	import Spinner from './Spinner.svelte';
 
 	interface LoadingStateProps {

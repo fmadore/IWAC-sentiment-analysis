@@ -2,8 +2,8 @@
 	import { SvelteURL } from 'svelte/reactivity';
 	import CheckIcon from '@lucide/svelte/icons/check';
 	import LinkIcon from '@lucide/svelte/icons/link';
-	import { t } from '$lib/i18n';
-	import { buildURLSearchParams, getCurrentState } from '$lib/stores/url';
+	import { t } from '#lib/i18n/index.js';
+	import { buildURLSearchParams, getCurrentState } from '#lib/stores/url/index.js';
 	import { resolve } from '$app/paths';
 	let status = $state<'idle' | 'copied' | 'failed'>('idle');
 	async function copyLink() {

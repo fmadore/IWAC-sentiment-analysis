@@ -5,20 +5,20 @@
  * it is a single point of failure for two views. These tests exercise the
  * paths that do not need a canvas — the empty state, the toolbar, the aria
  * wiring and the count/share toggle — against the REAL stores rather than a
- * mocked barrel: mocking `$lib/stores` would have to stub every store any
+ * mocked barrel: mocking `#lib/stores` would have to stub every store any
  * child component happens to touch, and would stop testing the wiring that
  * actually breaks. Only the ECharts body is stubbed, since it needs a canvas
  * jsdom cannot provide; the rendering itself is covered by the browser pass.
  */
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/svelte';
-import type { Article } from '$lib/types/data';
+import type { Article } from '#lib/types/data.js';
 
 vi.mock('svelte-echarts', async () => ({
 	Chart: (await import('../../../mocks/echarts-chart-stub.svelte')).default
 }));
 
-import { articleState, datasetState } from '$lib/stores';
+import { articleState, datasetState } from '#lib/stores/index.js';
 import TrendsChart from './TrendsChart.svelte';
 
 function article(id: number, year: string, polarite: string): Article {

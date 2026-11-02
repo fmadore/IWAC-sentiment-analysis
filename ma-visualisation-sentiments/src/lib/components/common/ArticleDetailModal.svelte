@@ -12,10 +12,10 @@
   />
 -->
 <script lang="ts">
-	import type { Article } from '$lib/types/data';
-	import { t } from '$lib/i18n';
-	import ArticleDetail from '$lib/components/data-display/ArticleDetail.svelte';
-	import { getJournalName } from '$lib/utils/format';
+	import type { Article } from '#lib/types/data.js';
+	import { t } from '#lib/i18n/index.js';
+	import ArticleDetail from '#lib/components/data-display/ArticleDetail.svelte';
+	import { getJournalName } from '#lib/utils/format.js';
 	import FullScreenModal from './FullScreenModal.svelte';
 	import NewspaperIcon from '@lucide/svelte/icons/newspaper';
 

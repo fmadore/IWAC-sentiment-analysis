@@ -6,7 +6,7 @@ import type {
 	PlacesPayload,
 	PolarityValue,
 	SubjectivityScore
-} from '$lib/types/data';
+} from '#lib/types/data.js';
 
 const PAYLOAD: PlacesPayload = {
 	places: [

@@ -21,9 +21,9 @@
   whatever the interface happened to be displaying.
 -->
 <script lang="ts">
-	import { t } from '$lib/i18n';
-	import { num, dec, pct } from '$lib/i18n/utils';
-	import { toCSV, downloadCSVFile } from '$lib/utils/csv';
+	import { t } from '#lib/i18n/index.js';
+	import { num, dec, pct } from '#lib/i18n/utils.js';
+	import { toCSV, downloadCSVFile } from '#lib/utils/csv.js';
 	import TableIcon from '@lucide/svelte/icons/table';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import DownloadIcon from '@lucide/svelte/icons/download';

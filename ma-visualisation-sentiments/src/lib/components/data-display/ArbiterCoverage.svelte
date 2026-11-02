@@ -15,8 +15,8 @@
   them (.impeccable.md, principle 3: methodology must be visible).
 -->
 <script lang="ts">
-	import { t } from '$lib/i18n';
-	import { num, pct } from '$lib/i18n/utils';
+	import { t } from '#lib/i18n/index.js';
+	import { num, pct } from '#lib/i18n/utils.js';
 	import InfoIcon from '@lucide/svelte/icons/info';
 
 	interface ArbiterCoverageProps {

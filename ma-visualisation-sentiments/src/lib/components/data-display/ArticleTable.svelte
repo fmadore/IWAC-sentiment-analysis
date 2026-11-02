@@ -1,18 +1,18 @@
 <script lang="ts">
-	import { viewOptionsState, paginationURLState } from '$lib/stores/view-options.svelte';
-	import { articleState } from '$lib/stores';
-	import { num, fmtDate } from '$lib/i18n/utils';
-	import { POLARITY_ORDER, CENTRALITY_ORDER, type Article } from '$lib/types/data';
-	import { getJournalName } from '$lib/utils/format';
-	import { t } from '$lib/i18n';
-	import { DatasetBadge } from '$lib/components/ui';
-	import { SentimentBadge } from '$lib/components/common';
-	import { updateURL } from '$lib/stores/url';
+	import { viewOptionsState, paginationURLState } from '#lib/stores/view-options.svelte.js';
+	import { articleState } from '#lib/stores/index.js';
+	import { num, fmtDate } from '#lib/i18n/utils.js';
+	import { POLARITY_ORDER, CENTRALITY_ORDER, type Article } from '#lib/types/data.js';
+	import { getJournalName } from '#lib/utils/format.js';
+	import { t } from '#lib/i18n/index.js';
+	import { DatasetBadge } from '#lib/components/ui/index.js';
+	import { SentimentBadge } from '#lib/components/common/index.js';
+	import { updateURL } from '#lib/stores/url/index.js';
 	import { innerWidth } from 'svelte/reactivity/window';
-	import { createPagination } from '$lib/utils/pagination.svelte';
-	import { nextSort } from '$lib/utils/sorting';
-	import SortableHeader from '$lib/components/common/SortableHeader.svelte';
-	import PaginationControls from '$lib/components/common/PaginationControls.svelte';
+	import { createPagination } from '#lib/utils/pagination.svelte.js';
+	import { nextSort } from '#lib/utils/sorting.js';
+	import SortableHeader from '#lib/components/common/SortableHeader.svelte';
+	import PaginationControls from '#lib/components/common/PaginationControls.svelte';
 
 	// Props - for event dispatching
 	let {
