@@ -170,7 +170,7 @@ jobs:
             data-preprocess/requirements-dev.lock
 
       - name: Install dependencies
-        run: pip install --require-hashes -r data-preprocess/requirements-dev.lock
+        run: python -m pip install --require-hashes -r data-preprocess/requirements-dev.lock
 
       - name: Run all preprocessing and checked-in data tests
         run: python -m pytest data-preprocess -q
