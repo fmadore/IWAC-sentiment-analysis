@@ -12,20 +12,30 @@
 
   Drawn as a dot plot rather than bars: bars imply a magnitude measured from
   zero, and on the 1-5 subjectivity/centrality scales zero is not on the axis.
+
+  Two families of measure. The means of ordinal codes (the default) treat the
+  steps of the scale as equal distances; the share measures (positive,
+  negative, net) do not. Whiskers read `low`/`high`, so the asymmetric Wilson
+  interval of a share is drawn as computed. The reading note under the chart
+  says what no interval can: order within overlapping intervals is not
+  interpretable, and the order is one model's.
 -->
 <script lang="ts">
 	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
 	import Chart from './CitableChart.svelte';
-	import { dec, num } from '#lib/i18n/utils.js';
+	import { dec, num, pct } from '#lib/i18n/utils.js';
 	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
-	import { innerWidth } from 'svelte/reactivity/window';
+	import { isCompactWidth } from '#lib/utils/viewport.svelte.js';
+	import { useChartCardHeading } from '#lib/components/ui/chartCardHeading.svelte.js';
+	import ChartHeading from './ChartHeading.svelte';
 
 	import { articleState } from '#lib/stores/index.js';
 	import { t } from '#lib/i18n/index.js';
 	import {
 		rankNewspapers,
 		countExcludedNewspapers,
+		isProportionMeasure,
 		MEASURE_SCALES,
 		type RankingMeasure
 	} from '#lib/utils/newspaperRanking.js';
@@ -37,7 +47,6 @@
 		subjectivityColors,
 		centralityColors,
 		chartColors,
-		getTitleStyle,
 		getTooltipConfig,
 		getAxisLineStyle,
 		getAxisLabelStyle,
@@ -46,6 +55,9 @@
 	import SmileIcon from '@lucide/svelte/icons/smile';
 	import PenLineIcon from '@lucide/svelte/icons/pen-line';
 	import CrosshairIcon from '@lucide/svelte/icons/crosshair';
+	import PlusIcon from '@lucide/svelte/icons/plus';
+	import MinusIcon from '@lucide/svelte/icons/minus';
+	import ScaleIcon from '@lucide/svelte/icons/scale';
 
 	interface NewspaperRankingChartProps {
 		/** Minimum rated articles for a newspaper to be plotted. */
@@ -54,13 +66,29 @@
 
 	let { minArticles = 30 }: NewspaperRankingChartProps = $props();
 
-	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
+	// Compact layout follows the chart's own width, not the window's.
+	let containerWidth = $state<number>();
+	let isMobile = $derived(isCompactWidth(containerWidth));
 
 	let measureOptions = $derived([
 		{ value: 'polarity', label: $t.filters.polarity, icon: SmileIcon },
 		{ value: 'subjectivity', label: $t.filters.subjectivity, icon: PenLineIcon },
 		{ value: 'centrality', label: $t.filters.centrality, icon: CrosshairIcon }
 	]);
+	let shareOptions = $derived([
+		{ value: 'positive', label: $t.ranking.positiveShare, icon: PlusIcon },
+		{ value: 'negative', label: $t.ranking.negativeShare, icon: MinusIcon },
+		{ value: 'net', label: $t.ranking.netShare, icon: ScaleIcon }
+	]);
+	let isShare = $derived(isProportionMeasure(viewOptionsState.rankingMeasure));
+	let valueFormat = $derived(
+		isShare ? { format: 'percent' as const, digits: 1 } : { format: 'decimal' as const, digits: 3 }
+	);
+
+	/** A value on the selected measure, as the reader should see it. */
+	function formatValue(value: number, digits: number): string {
+		return isShare ? $pct(value, 1) : $dec(value, digits);
+	}
 
 	let ranks = $derived(
 		rankNewspapers(articleState.filtered, viewOptionsState.rankingMeasure, minArticles)
@@ -71,7 +99,17 @@
 
 	/** Colour a point by where its mean sits on the selected measure's own scale. */
 	function pointColor(mean: number): string {
-		if (viewOptionsState.rankingMeasure === 'polarity') {
+		const measure = viewOptionsState.rankingMeasure;
+		if (measure === 'positive') return polarityColors['Positif'];
+		if (measure === 'negative') return polarityColors['Négatif'];
+		if (measure === 'net') {
+			if (mean <= -0.5) return polarityColors['Très négatif'];
+			if (mean < -0.1) return polarityColors['Négatif'];
+			if (mean <= 0.1) return polarityColors['Neutre'];
+			if (mean < 0.5) return polarityColors['Positif'];
+			return polarityColors['Très positif'];
+		}
+		if (measure === 'polarity') {
 			if (mean <= -1) return polarityColors['Très négatif'];
 			if (mean < -0.2) return polarityColors['Négatif'];
 			if (mean <= 0.2) return polarityColors['Neutre'];
@@ -92,33 +130,38 @@
 		][step - 1];
 	}
 
+	const measureLabel = $derived(
+		{
+			polarity: $t.ranking.netPolarity,
+			subjectivity: $t.ranking.meanSubjectivity,
+			centrality: $t.ranking.meanCentrality,
+			positive: $t.ranking.positiveShare,
+			negative: $t.ranking.negativeShare,
+			net: $t.ranking.netShare
+		}[viewOptionsState.rankingMeasure]
+	);
+	const headingTitle = $derived(`${$t.ranking.chartTitle} — ${measureLabel}`);
+	const headingSubtitle = $derived(
+		(isShare ? $t.ranking.proportionSubtitle : $t.ranking.chartSubtitle).replace(
+			'{min}',
+			String(minArticles)
+		)
+	);
+	const heading = useChartCardHeading(() => ({ title: headingTitle, subtitle: headingSubtitle }));
+
 	let options = $derived.by(() => {
 		const currentT = $t;
 		const scale = MEASURE_SCALES[viewOptionsState.rankingMeasure];
 		const names = ranks.map((r) => r.newspaper);
-
-		const measureLabel = {
-			polarity: currentT.ranking.netPolarity,
-			subjectivity: currentT.ranking.meanSubjectivity,
-			centrality: currentT.ranking.meanCentrality
-		}[viewOptionsState.rankingMeasure];
+		const axisLabel = {
+			...getAxisLabelStyle(isMobile),
+			formatter: (value: number) => (isShare ? $pct(value, 0) : String(value))
+		};
 
 		const tooltipConfig = getTooltipConfig(isMobile);
 
 		return {
 			backgroundColor: 'transparent',
-			title: {
-				text: `${currentT.ranking.chartTitle} — ${measureLabel}`,
-				subtext: currentT.ranking.chartSubtitle.replace('{min}', String(minArticles)),
-				left: 'center',
-				top: '1%',
-				textStyle: getTitleStyle(isMobile),
-				subtextStyle: {
-					color: chartColors.text.secondary,
-					fontSize: isMobile ? 10 : 12,
-					fontFamily: '"JetBrains Mono", ui-monospace, monospace'
-				}
-			},
 			tooltip: {
 				...tooltipConfig,
 				trigger: 'item',
@@ -127,13 +170,13 @@
 					const rank = ranks[p.dataIndex ?? 0];
 					if (!rank) return '';
 
-					const low = $dec(rank.mean - rank.confidence, 2);
-					const high = $dec(rank.mean + rank.confidence, 2);
+					const low = formatValue(rank.low, 3);
+					const high = formatValue(rank.high, 3);
 
 					return `<div style="min-width:230px;">
 						<div style="font-weight:600;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid ${chartColors.border.light};">${rank.newspaper}</div>
 						<div style="display:flex;justify-content:space-between;padding:2px 0;">
-							<span>${measureLabel}:</span><strong>${$dec(rank.mean, 3)}</strong>
+							<span>${measureLabel}:</span><strong>${formatValue(rank.mean, 3)}</strong>
 						</div>
 						<div style="display:flex;justify-content:space-between;padding:2px 0;">
 							<span>${currentT.ranking.confidenceInterval}:</span><strong>${low} – ${high}</strong>
@@ -145,7 +188,7 @@
 				}
 			},
 			grid: {
-				top: isMobile ? 96 : 104,
+				top: isMobile ? 36 : 28,
 				bottom: isMobile ? 40 : 44,
 				left: '2%',
 				right: isMobile ? '8%' : '6%',
@@ -159,7 +202,7 @@
 					type: 'value',
 					min: scale.min,
 					max: scale.max,
-					axisLabel: getAxisLabelStyle(isMobile),
+					axisLabel,
 					axisLine: getAxisLineStyle(),
 					splitLine: getSplitLineStyle()
 				},
@@ -168,7 +211,7 @@
 					position: 'top',
 					min: scale.min,
 					max: scale.max,
-					axisLabel: getAxisLabelStyle(isMobile),
+					axisLabel,
 					axisLine: getAxisLineStyle(),
 					splitLine: { show: false }
 				}
@@ -198,11 +241,11 @@
 						}
 					) => {
 						const rank = ranks[params.dataIndex];
-						if (!rank || rank.confidence === 0) return { type: 'group', children: [] };
+						if (!rank || rank.high - rank.low === 0) return { type: 'group', children: [] };
 
 						const y = api.coord([0, params.dataIndex])[1];
-						const left = api.coord([rank.mean - rank.confidence, params.dataIndex])[0];
-						const right = api.coord([rank.mean + rank.confidence, params.dataIndex])[0];
+						const left = api.coord([rank.low, params.dataIndex])[0];
+						const right = api.coord([rank.high, params.dataIndex])[0];
 						const cap = 4;
 
 						const stroke = { stroke: chartColors.text.faint, lineWidth: 1 };
@@ -236,7 +279,8 @@
 						itemStyle: { color: pointColor(r.mean) }
 					})),
 					// Reference line at the scale's midpoint — the reader needs to know
-					// where "neither favourable nor unfavourable" actually is.
+					// where "neither favourable nor unfavourable" actually is. A one-sided
+					// share has no such point, so it draws none.
 					markLine: {
 						silent: true,
 						symbol: 'none',
@@ -248,7 +292,11 @@
 							fontFamily: '"JetBrains Mono", ui-monospace, monospace',
 							fontSize: 10
 						},
-						data: [{ xAxis: scale.neutral }]
+						data:
+							viewOptionsState.rankingMeasure === 'positive' ||
+							viewOptionsState.rankingMeasure === 'negative'
+								? []
+								: [{ xAxis: scale.neutral }]
 					},
 					z: 2
 				}
@@ -257,9 +305,12 @@
 	});
 
 	// Height scales with the number of titles so rows never crush together.
-	let chartHeight = $derived(Math.max(320, ranks.length * (isMobile ? 20 : 24) + 140));
+	let chartHeight = $derived(Math.max(280, ranks.length * (isMobile ? 20 : 24) + 72));
 </script>
 
+{#if !heading.inCard}
+	<ChartHeading title={headingTitle} subtitle={headingSubtitle} />
+{/if}
 {#if ranks.length > 0}
 	<div class="chart-toolbar">
 		<DatasetBadge size="sm" />
@@ -269,11 +320,18 @@
 			onChange={(value) => (viewOptionsState.rankingMeasure = value as RankingMeasure)}
 			ariaLabel={$t.ranking.chartTitle}
 		/>
+		<ChartTypeToggle
+			options={shareOptions}
+			value={viewOptionsState.rankingMeasure}
+			onChange={(value) => (viewOptionsState.rankingMeasure = value as RankingMeasure)}
+			ariaLabel={`${$t.ranking.chartTitle} — ${$t.ranking.measureGroup}`}
+		/>
 	</div>
 
 	<div
 		style="height: {chartHeight}px; position: relative;"
 		class="chart-container"
+		bind:clientWidth={containerWidth}
 		role="img"
 		aria-label={$t.ranking.chartTitle}
 	>
@@ -283,23 +341,19 @@
 	<ChartDataTable
 		columns={[
 			{ label: $t.chartData.newspaper },
-			{ label: $t.chartData.mean, format: 'decimal', digits: 3 },
-			{ label: $t.chartData.ciLow, format: 'decimal', digits: 3 },
-			{ label: $t.chartData.ciHigh, format: 'decimal', digits: 3 },
+			{ label: $t.chartData.mean, ...valueFormat },
+			{ label: $t.chartData.ciLow, ...valueFormat },
+			{ label: $t.chartData.ciHigh, ...valueFormat },
 			{ label: $t.chartData.articles, format: 'integer' }
 		]}
 		rows={[...ranks]
 			.reverse()
-			.map((rank) => [
-				rank.newspaper,
-				rank.mean,
-				rank.mean - rank.confidence,
-				rank.mean + rank.confidence,
-				rank.n
-			])}
+			.map((rank) => [rank.newspaper, rank.mean, rank.low, rank.high, rank.n])}
 		filenamePrefix="iwac-newspaper-ranking"
 		caption={$t.chartData.rankingCaption}
 	/>
+
+	<p class="chart-note">{$t.ranking.readingNote}</p>
 
 	{#if excluded > 0}
 		<p class="chart-note">

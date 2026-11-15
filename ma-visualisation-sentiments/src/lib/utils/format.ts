@@ -5,6 +5,7 @@
  */
 
 import type { Article } from '#lib/types/data.js';
+import { translate } from '#lib/i18n/index.js';
 
 // Dates are formatted by the `fmtDate` store in `#lib/i18n/utils`, beside the
 // number formatters: a plain function here read the language with a one-shot
@@ -45,7 +46,11 @@ export function getModelDisplayNames(
 
 /**
  * Get the journal name for an article consistently across the app.
+ *
+ * The fallback for a record with no newspaper is the catalogue's label in the
+ * active language, read once (no current record lacks one, so no filter value
+ * or URL depends on it).
  */
 export function getJournalName(article: Article): string {
-	return article.journal_source || article.Newspaper || 'Inconnu';
+	return article.journal_source || article.Newspaper || translate('table.unknownJournal');
 }

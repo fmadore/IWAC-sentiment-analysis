@@ -23,14 +23,18 @@ from iwac_preprocess.arbiter_judges import (
     GEMINI_4_ARGON,
     JUDGES,
     PAID_PROVIDERS,
+    PROVIDER_GOOGLE,
     TIER_FLEX,
-    JudgeUsage,
+    ArbiterUsage,
     Rates,
     estimate_judge_cost,
+    judge_panel,
 )
 from iwac_preprocess.arbiter_selection import (
     FLIP_NEGATIVE,
     FLIP_POSITIVE,
+    FrameSummary,
+    classify_frame,
     find_three_way_conflicts,
     flip_dissenters,
     project_to_panel,
@@ -60,7 +64,7 @@ def load_module(filename: str, name: str):
 second = load_module("arbiter-evaluation-v2-second-judge.py", "iwac_arbiter_second_judge")
 JUDGE = GEMINI_4_ARGON
 FRAME = list(CONTRACT_V2.model_names)
-PANEL = second.judge_panel(JUDGE)
+PANEL = judge_panel(JUDGE)
 PERMUTATION = dict(zip(arbiter_prompt.BLIND_LABELS, PANEL, strict=True))
 
 
@@ -114,7 +118,7 @@ def test_the_judge_reads_the_generation_minus_its_own_developer():
 
 @pytest.mark.parametrize("judge", list(JUDGES.values()), ids=list(JUDGES))
 def test_every_registered_judge_recuses_exactly_its_own_developer(judge):
-    panel = second.judge_panel(judge)
+    panel = judge_panel(judge)
     recused = CONTRACT_V2.recused_for(judge.developer)
     assert recused and set(recused).isdisjoint(panel)
     assert all(CONTRACT_V2.model_developers[model_id] == judge.developer for model_id in recused)
@@ -130,13 +134,14 @@ def test_a_judge_whose_panel_does_not_fill_the_labels_is_refused():
     widened = type(CONTRACT_V2)(contract, "v2")
     stranger = SimpleNamespace(developer="xai", display_name="Grok")
     with pytest.raises(ValueError, match="present exactly 5"):
-        second.judge_panel(stranger, widened)
+        judge_panel(stranger, widened)
 
 
 def test_the_second_judge_reuses_the_published_prompt_and_schema():
     """Shared, not copied: the two judges' verdicts must compare field by field."""
     opus = load_module("arbiter-evaluation-v2.py", "iwac_arbiter_evaluation_v2_for_second")
-    assert second.SYSTEM_INSTRUCTION is arbiter_prompt.SYSTEM_INSTRUCTION
+    assert second.system_instruction is arbiter_prompt.system_instruction
+    assert opus.system_instruction is arbiter_prompt.system_instruction
     assert second.create_arbiter_prompt is arbiter_prompt.create_arbiter_prompt
     assert second.ArbiterResponseV2 is arbiter_schema.ArbiterResponseV2
     assert opus.ArbiterResponseV2 is arbiter_schema.ArbiterResponseV2
@@ -163,10 +168,10 @@ def test_the_six_model_frame_splits_off_the_flips_only_the_recused_member_create
         record(3, {"haiku": "Positif", "luna": "Négatif"}),
         record(4, {}),  # no flip anywhere
     ]
-    rows, recused_only, summary = second.classify_frame(frame_rows(records))
+    rows, recused_only, summary = classify_frame(frame_rows(records))
     assert [str(row["o:id"]) for row in rows] == ["1", "2", "3"]
     assert [str(row["o:id"]) for row in recused_only] == ["1", "3"]
-    assert summary == second.FrameSummary(
+    assert summary == FrameSummary(
         frame=3,
         in_published_frame=1,
         recused_only=2,
@@ -380,7 +385,7 @@ def test_a_valid_response_is_stored_with_subjectivity_as_the_shared_rank():
 
 
 def test_a_truncated_interaction_is_a_failure_and_still_billed():
-    spent = JudgeUsage()
+    spent = ArbiterUsage(PROVIDER_GOOGLE)
     result = evaluate(FakeClient(interaction(status="incomplete")), usage=spent)
     assert result.outcome == second.OUTCOME_TRUNCATED
     assert spent.calls == 1 and spent.usd > 0
@@ -449,23 +454,24 @@ def test_the_estimate_counts_every_call_and_brackets_the_output():
 
 def test_usage_bills_thinking_once_whether_or_not_it_is_reported_apart():
     rates = Rates(input=1.0, output=1.0, cached_input=0.0)
-    with_total, without_total = JudgeUsage(), JudgeUsage()
+    with_total, without_total = ArbiterUsage(PROVIDER_GOOGLE), ArbiterUsage(PROVIDER_GOOGLE)
     with_total.add_gemini(usage(), rates)
     without_total.add_gemini(usage(total_tokens=None), rates)
     assert with_total.generated_tokens == without_total.generated_tokens == 1600
-    cached = JudgeUsage()
+    cached = ArbiterUsage(PROVIDER_GOOGLE)
     cached.add_gemini(usage(total_cached_tokens=5000), Rates(1.0, 0.0, 0.0))
     assert cached.usd == pytest.approx(2000 / 1_000_000)
 
 
 def test_usage_resumes_from_the_recorded_metadata():
-    spent = JudgeUsage()
+    spent = ArbiterUsage(PROVIDER_GOOGLE)
     spent.add_gemini(usage(), JUDGE.rates_on(date(2026, 11, 1)))
-    resumed = JudgeUsage.from_metadata(spent.as_metadata())
+    resumed = ArbiterUsage.from_metadata(spent.as_metadata(), PROVIDER_GOOGLE)
     assert resumed.calls == 1
     assert resumed.usd == pytest.approx(round(spent.usd, 2))
-    assert JudgeUsage.from_metadata(None).calls == 0
-    assert JudgeUsage().as_metadata() == {}
+    assert resumed.as_metadata() == spent.as_metadata()
+    assert ArbiterUsage.from_metadata(None, PROVIDER_GOOGLE).calls == 0
+    assert ArbiterUsage(PROVIDER_GOOGLE).as_metadata() == {}
 
 
 # ---------------------------------------------------------------------------
@@ -546,20 +552,21 @@ STUB_RECORDS = [
 
 @pytest.fixture
 def stub_pipeline(monkeypatch, tmp_path):
-    monkeypatch.setattr(second, "load_iwac_dataset", lambda contract: _frame(STUB_RECORDS))
     monkeypatch.setattr(
-        second, "get_base_article_ids", lambda: {str(row["o:id"]) for row in STUB_RECORDS}
+        second,
+        "load_dataset_records",
+        lambda revision=None: (list(STUB_RECORDS), revision or "rev-scores"),
     )
     monkeypatch.setattr(
         second,
-        "load_iwac_full_text",
-        lambda: {"1": "Texte un.", "2": "Texte deux.", "3": "Texte trois."},
+        "load_article_texts",
+        lambda revision=None: (
+            {"1": "Texte un.", "2": "Texte deux.", "3": "Texte trois."},
+            revision or "rev-text",
+        ),
     )
     monkeypatch.setattr(second, "get_webapp_data_dir", lambda: str(tmp_path))
     monkeypatch.setattr(second, "get_staging_dir", lambda: str(tmp_path / ".staging"))
-    monkeypatch.setattr(
-        second, "get_source_revision", lambda repo=None: "rev-scores" if repo else None
-    )
 
     def refuse_client(api_key):
         raise AssertionError("no client may be constructed without an explicit paid run")
@@ -567,12 +574,6 @@ def stub_pipeline(monkeypatch, tmp_path):
     monkeypatch.setitem(second.CLIENT_FACTORIES, "google", refuse_client)
     monkeypatch.setenv("GOOGLE_API_KEY", "test-key")
     return tmp_path
-
-
-def _frame(records):
-    import pandas as pd
-
-    return pd.DataFrame(records)
 
 
 def output_of(tmp_path: Path) -> dict:
@@ -605,7 +606,7 @@ def test_a_judge_without_an_adapter_is_refused_before_anything_loads(stub_pipeli
     def no_loading(*args, **kwargs):
         raise AssertionError("refused runs must not load the corpus")
 
-    monkeypatch.setattr(second, "load_iwac_dataset", no_loading)
+    monkeypatch.setattr(second, "load_dataset_records", no_loading)
     assert second.main(["--judge", "gpt-6-astra", "--yes"]) == 2
 
 

@@ -2,13 +2,18 @@ import type {
 	ArbiterBlindLabel,
 	ArbiterEvaluationData,
 	ArbiterV2EvaluationData,
+	ArbiterV2Judge,
 	PlacesPayload,
-	SentimentAnalysis,
-	SubjectivityScore
+	SentimentAnalysis
 } from '#lib/types/data.js';
 import { ARBITER_BLIND_LABELS } from '#lib/types/data.js';
 import {
+	ARBITER_DEVELOPER,
 	ARBITER_PANEL_IDS,
+	DEVELOPER_IDS,
+	arbiterPanelFor,
+	recusedFor,
+	type DeveloperId,
 	generationOf,
 	isCentralityValue,
 	isDatasetId,
@@ -267,8 +272,18 @@ export function parseArbiterEvaluationData(
  * The expected mode is read from the contract, never written as a literal —
  * it has already changed once (three-model → panel), and a literal here would
  * reject the very file the contract describes.
+ *
+ * `judge` selects whose panel the file must list. The published run's is the
+ * contract arbiter's (`ARBITER_PANEL_IDS`). A second judge's file names its own
+ * developer, which must be registered; its panel is then derived from that
+ * developer exactly as the Python validator does (`panel_for` /
+ * `recused_for`), never read from a list — a file that listed its own
+ * developer's model would be the unrecused reading recusal exists to prevent.
  */
-export function parseArbiterV2EvaluationData(data: unknown): ArbiterV2EvaluationData {
+export function parseArbiterV2EvaluationData(
+	data: unknown,
+	judge: ArbiterV2Judge = 'published'
+): ArbiterV2EvaluationData {
 	const root = requireRecord(data, 'Panel arbiter file');
 	const metadata = requireRecord(root.metadata, 'Panel arbiter metadata');
 
@@ -279,12 +294,14 @@ export function parseArbiterV2EvaluationData(data: unknown): ArbiterV2Evaluation
 		metadata.contract_schema_version !== SENTIMENT_CONTRACT_V2.schemaVersion ||
 		metadata.analysis_version !== SENTIMENT_CONTRACT_V2.analysisVersion ||
 		metadata.cache_schema_version !== SENTIMENT_CONTRACT_V2.arbiter.cacheSchemaVersion ||
-		metadata.prompt_version !== SENTIMENT_CONTRACT_V2.arbiter.promptVersion
+		typeof metadata.prompt_version !== 'string' ||
+		!acceptedArbiterPromptVersions().includes(metadata.prompt_version)
 	) {
 		throw new Error('Panel arbiter file must match the v2 sentiment contract');
 	}
 
-	const expectedModels: readonly DatasetId[] = ARBITER_PANEL_IDS;
+	const expectedModels: readonly DatasetId[] =
+		judge === 'published' ? ARBITER_PANEL_IDS : secondJudgePanel(metadata);
 	const models = metadata.models;
 	if (
 		!Array.isArray(models) ||
@@ -327,7 +344,42 @@ export function parseArbiterV2EvaluationData(data: unknown): ArbiterV2Evaluation
 	return root as unknown as ArbiterV2EvaluationData;
 }
 
-export function normalizeSubjectivityScore(value: unknown): SubjectivityScore | null {
-	const numberValue = typeof value === 'string' ? Number(value) : value;
-	return isSubjectivityScore(numberValue) ? numberValue : null;
+/**
+ * Prompt versions a panel arbiter file may carry: the contract's
+ * `acceptedPromptVersions` when it lists them, else its single `promptVersion`.
+ * A new default prompt must not reject the published run made under the
+ * previous one, whose fingerprints stay valid for that version.
+ */
+function acceptedArbiterPromptVersions(): readonly string[] {
+	const arbiter = SENTIMENT_CONTRACT_V2.arbiter as {
+		promptVersion: string;
+		acceptedPromptVersions?: readonly string[];
+	};
+	return arbiter.acceptedPromptVersions ?? [arbiter.promptVersion];
+}
+
+/**
+ * The panel a second judge's file must list, derived from the developer it
+ * names. Rejects an unregistered developer, the published arbiter's own
+ * developer (that run is the published file, not a second judge), and a file
+ * whose recorded recusal is not exactly its developer's members.
+ */
+function secondJudgePanel(metadata: UnknownRecord): readonly DatasetId[] {
+	const developer = metadata.arbiter_developer;
+	if (typeof developer !== 'string' || !(DEVELOPER_IDS as readonly string[]).includes(developer)) {
+		throw new Error('Second judge file must name a registered arbiter_developer');
+	}
+	if (developer === ARBITER_DEVELOPER) {
+		throw new Error('Second judge must come from another developer than the published arbiter');
+	}
+	const recused = recusedFor(developer as DeveloperId);
+	const recorded = metadata.recused_models;
+	if (
+		!Array.isArray(recorded) ||
+		recorded.length !== recused.length ||
+		recorded.some((model, index) => model !== recused[index])
+	) {
+		throw new Error(`Second judge from ${developer} does not record its own developer's recusal`);
+	}
+	return arbiterPanelFor(developer as DeveloperId);
 }

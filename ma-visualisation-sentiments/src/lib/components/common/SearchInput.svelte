@@ -114,8 +114,10 @@
 		padding-right: var(--space-8);
 	}
 
+	/* --text-muted, not --text-subtle: a placeholder is text the reader has
+	   to make out (subtle is 4.4:1 over the card, just under AA). */
 	.search-input::placeholder {
-		color: var(--text-subtle);
+		color: var(--text-muted);
 	}
 
 	.search-input:hover {
@@ -124,7 +126,6 @@
 	}
 
 	.search-input:focus {
-		outline: none;
 		border-color: var(--color-primary-500);
 		background: var(--surface-hover);
 		box-shadow: var(--ring-focus);

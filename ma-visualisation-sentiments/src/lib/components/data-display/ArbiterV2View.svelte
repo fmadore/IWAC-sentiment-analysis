@@ -16,7 +16,12 @@
 <script lang="ts">
 	import DetailLinkNotice from '#lib/components/common/DetailLinkNotice.svelte';
 	import { arbiterSelectionState } from '#lib/stores/view-options.svelte.js';
-	import { num } from '#lib/i18n/utils.js';
+	import { dec, num, pct } from '#lib/i18n/utils.js';
+	import { untrack } from 'svelte';
+	import { loadSecondJudges, secondJudgeEvaluations } from '#lib/stores/arbiterV2.svelte.js';
+	import { SENTIMENT_CONTRACT_V2 } from '#lib/domain/sentimentContract.js';
+	import { compareJudges } from '#lib/utils/arbiterV2.js';
+	import ShareBar, { type ShareSegment } from '#lib/components/common/ShareBar.svelte';
 	import {
 		arbiterV2Evaluations,
 		arbiterV2Legend,
@@ -28,9 +33,8 @@
 		datasetState,
 		type ArbiterV2Dimension
 	} from '#lib/stores/index.js';
-	import type { ArbiterV2Preference } from '#lib/types/data.js';
 	import { t } from '#lib/i18n/index.js';
-	import { ChartCard } from '#lib/components/ui/index.js';
+	import ChartCard from '#lib/components/ui/ChartCard.svelte';
 	import Spinner from '#lib/components/common/Spinner.svelte';
 	import ResourceLoadError from '#lib/components/common/ResourceLoadError.svelte';
 	import ArbiterV2ArticleDetailModal from '#lib/components/common/ArbiterV2ArticleDetailModal.svelte';
@@ -40,7 +44,7 @@
 	import ArbiterV2ArticleTable from './ArbiterV2ArticleTable.svelte';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import TableIcon from '@lucide/svelte/icons/table';
-	import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
+	import EmptyState from '#lib/components/common/EmptyState.svelte';
 
 	const stats = $derived(arbiterV2Statistics.current);
 	const data = $derived(arbiterV2Evaluations.current);
@@ -88,18 +92,66 @@
 		rows.find((row) => row.articleId === arbiterSelectionState.articleId) ?? null
 	);
 
-	function verdictColor(preference: ArbiterV2Preference): string {
-		if (preference === 'multiple' || preference === 'none') return 'var(--text-muted)';
-		const modelId = data?.metadata.blind_permutation[preference];
-		return (
-			datasetState.available.find((dataset) => dataset.id === modelId)?.color ??
-			'var(--sentiment-arbiter)'
-		);
-	}
-
 	function dimensionName(dimension: ArbiterV2Dimension): string {
 		return $t.arbiterV2[dimension];
 	}
+
+	/** Per-dimension verdicts as bar segments: one per model, then the two non-answers. */
+	function dimensionSegments(breakdown: (typeof stats.dimensions)[number]): ShareSegment[] {
+		return [
+			...stats.models.map((model) => ({
+				key: model.modelId,
+				label: `${model.name} (${model.label.toUpperCase()})`,
+				count: breakdown.byModel[model.modelId] ?? 0,
+				color: datasetState.getById(model.modelId)?.color
+			})),
+			{
+				key: 'multiple',
+				label: $t.arbiterV2.multiple,
+				count: breakdown.multiple,
+				pattern: 'hatch' as const
+			},
+			{ key: 'none', label: $t.arbiterV2.none, count: breakdown.none, pattern: 'hatch' as const }
+		];
+	}
+
+	const confidenceSegments = $derived<ShareSegment[]>([
+		{
+			key: 'high',
+			label: getConfidenceLabel('high', $t),
+			count: stats.confidence.high,
+			color: 'var(--sentiment-arbiter)'
+		},
+		{
+			key: 'medium',
+			label: getConfidenceLabel('medium', $t),
+			count: stats.confidence.medium,
+			color: 'var(--sentiment-arbiter-light)'
+		},
+		{
+			key: 'low',
+			label: getConfidenceLabel('low', $t),
+			count: stats.confidence.low,
+			pattern: 'hatch'
+		}
+	]);
+
+	// The second judge is optional and unpublished until it runs: request it
+	// once the published file is in, and show nothing when it 404s.
+	$effect(() => {
+		if (hasData) untrack(() => loadSecondJudges(fetch));
+	});
+	const secondJudge = $derived(secondJudgeEvaluations.current);
+	const judgeComparison = $derived(compareJudges(data, secondJudge));
+	const secondJudgeNote = $derived.by(() => {
+		if (!secondJudge || judgeComparison.sharedArticles === 0) return '';
+		const developer = secondJudge.metadata.arbiter_developer ?? '';
+		const developers = SENTIMENT_CONTRACT_V2.developers as Record<string, { displayName: string }>;
+		return $t.arbiterV2.secondJudgeNote
+			.replace('{judge}', secondJudge.metadata.arbiter_name ?? secondJudge.metadata.arbiter_model)
+			.replace('{developer}', developers[developer]?.displayName ?? developer)
+			.replace('{shared}', $num(judgeComparison.sharedArticles));
+	});
 
 	// Loading is the page's: `+page.svelte` requests the arbiter file and the
 	// whole panel's scores whenever this view is on screen.
@@ -140,7 +192,7 @@
 		</div>
 
 		<div class="mb-6">
-			<ArbiterV2StatsCards {stats} />
+			<ArbiterV2StatsCards {stats} {rows} {data} {corpusTotal} />
 		</div>
 
 		<div class="panels-grid mb-6">
@@ -148,37 +200,12 @@
 				<h2 class="panel-title">{$t.arbiterV2.byDimension}</h2>
 				<div class="dimension-list">
 					{#each stats.dimensions as breakdown (breakdown.dimension)}
-						{@const total =
-							stats.models.reduce(
-								(sum, model) => sum + (breakdown.byModel[model.modelId] ?? 0),
-								0
-							) +
-							breakdown.multiple +
-							breakdown.none}
 						<div class="dimension-row">
 							<span class="dimension-name">{dimensionName(breakdown.dimension)}</span>
-							<div class="dimension-bar">
-								{#each stats.models as model (model.modelId)}
-									{@const count = breakdown.byModel[model.modelId] ?? 0}
-									{#if count > 0}
-										<div
-											class="bar-segment"
-											style="width: {(count / total) * 100}%; background: {verdictColor(
-												model.label
-											)}"
-											title="{model.name}: {count}"
-										></div>
-									{/if}
-								{/each}
-								{#if breakdown.multiple + breakdown.none > 0}
-									<div
-										class="bar-segment tie-segment"
-										style="width: {((breakdown.multiple + breakdown.none) / total) * 100}%"
-										title="{$t.arbiterV2.multiple} / {$t.arbiterV2.none}: {breakdown.multiple +
-											breakdown.none}"
-									></div>
-								{/if}
-							</div>
+							<ShareBar
+								segments={dimensionSegments(breakdown)}
+								label={dimensionName(breakdown.dimension)}
+							/>
 						</div>
 					{/each}
 				</div>
@@ -186,26 +213,58 @@
 
 			<ChartCard variant="arbiter">
 				<h2 class="panel-title">{$t.arbiterV2.confidenceDistribution}</h2>
-				<div class="dimension-list">
-					{#each ['high', 'medium', 'low'] as const as level (level)}
-						{@const count = stats.confidence[level]}
-						<div class="dimension-row">
-							<span class="dimension-name">{getConfidenceLabel(level, $t)}</span>
-							<div class="dimension-bar">
-								<div
-									class="bar-segment confidence-segment"
-									data-level={level}
-									style="width: {stats.totalEvaluated > 0
-										? (count / stats.totalEvaluated) * 100
-										: 0}%"
-								></div>
-							</div>
-							<span class="dimension-count">{$num(count)}</span>
-						</div>
-					{/each}
-				</div>
+				<ShareBar
+					segments={confidenceSegments}
+					total={stats.totalEvaluated}
+					label={$t.arbiterV2.confidenceDistribution}
+				/>
 			</ChartCard>
 		</div>
+
+		{#if secondJudgeNote}
+			<ChartCard variant="arbiter">
+				<h2 class="panel-title">{$t.arbiterV2.secondJudgeTitle}</h2>
+				<p class="section-lede">{secondJudgeNote}</p>
+				<div class="judge-scroll">
+					<table class="judge-table">
+						<caption class="judge-caption">{$t.arbiterV2.secondJudgeTitle}</caption>
+						<thead>
+							<tr>
+								<th scope="col">{$t.arbiterV2.judgeDimension}</th>
+								<th scope="col">{$t.arbiterV2.judgeShared}</th>
+								<th scope="col">{$t.arbiterV2.exactMatch}</th>
+								<th scope="col">{$t.arbiterV2.withinOne}</th>
+								<th scope="col">{$t.arbiterV2.judgeKappa}</th>
+							</tr>
+						</thead>
+						<tbody>
+							{#each judgeComparison.dimensions as row (row.dimension)}
+								<tr>
+									<th scope="row">{dimensionName(row.dimension)}</th>
+									<td>{$num(row.shared)}</td>
+									<td>
+										{row.exact.n > 0 ? $pct(row.exact.share ?? 0, 1) : '—'}
+										{#if row.exact.n > 0}
+											<span class="judge-ci">
+												{$t.arbiterV2.interval}
+												{$pct(row.exact.low, 1)}–{$pct(row.exact.high, 1)}
+											</span>
+										{/if}
+									</td>
+									<td>
+										{row.withinOne.n > 0 ? $pct(row.withinOne.share ?? 0, 1) : '—'}
+										{#if row.withinOne.n > 0 && row.withinOne.n !== row.shared}
+											<span class="judge-ci">n {$num(row.withinOne.n)}</span>
+										{/if}
+									</td>
+									<td>{row.kappa === null ? '—' : $dec(row.kappa, 2)}</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			</ChartCard>
+		{/if}
 
 		<section class="evaluated-articles-section mt-8">
 			<div class="section-header mb-4">
@@ -223,13 +282,7 @@
 			/>
 		</section>
 	{:else}
-		<ChartCard>
-			<div class="empty-state flex flex-col items-center justify-center py-16 text-center">
-				<span class="empty-icon mb-4"><AlertCircleIcon size={48} /></span>
-				<h2 class="panel-title mb-2">{$t.arbiterV2.noData}</h2>
-				<p class="empty-body">{$t.arbiterV2.noDataDescription}</p>
-			</div>
-		</ChartCard>
+		<EmptyState title={$t.arbiterV2.noData} lede={$t.arbiterV2.noDataDescription} />
 	{/if}
 </div>
 
@@ -263,7 +316,8 @@
 
 	.arbiter-title {
 		font-family: var(--font-display);
-		font-size: clamp(1.75rem, 1.4rem + 1.5vw, 2.5rem);
+		/* 26 → 34px, between two steps of the type scale. */
+		font-size: clamp(var(--font-size-2xl), calc(var(--font-size-xl) + 1.5vw), var(--font-size-3xl));
 		font-weight: 600;
 		line-height: 1.05;
 		color: var(--text-primary);
@@ -315,38 +369,48 @@
 		color: var(--text-muted);
 	}
 
-	.dimension-count {
-		font-size: var(--font-size-xs);
+	.judge-scroll {
+		overflow-x: auto;
+		margin-top: var(--space-3);
+	}
+
+	.judge-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: var(--font-size-sm);
 		font-variant-numeric: tabular-nums;
+	}
+
+	.judge-table th,
+	.judge-table td {
+		padding: var(--space-2) var(--space-3);
+		border-bottom: 1px solid var(--border-subtle);
+		text-align: left;
+		color: var(--text-secondary);
+	}
+
+	.judge-table thead th {
+		font-family: var(--font-mono);
+		font-size: var(--font-size-eyebrow);
+		letter-spacing: var(--tracking-widest);
+		text-transform: uppercase;
 		color: var(--text-muted);
+		background: var(--surface-card-elevated);
 	}
 
-	.dimension-bar {
-		display: flex;
-		height: var(--size-icon-md);
-		background: var(--surface-muted);
+	.judge-caption {
+		position: absolute;
+		width: 1px;
+		height: 1px;
 		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
 	}
 
-	.bar-segment {
-		height: 100%;
-	}
-
-	.tie-segment {
-		background: var(--surface-muted);
-		border-left: 1px solid var(--border-subtle);
-	}
-
-	.confidence-segment {
-		background: var(--sentiment-arbiter);
-	}
-
-	.confidence-segment[data-level='medium'] {
-		background: var(--sentiment-arbiter-light);
-	}
-
-	.confidence-segment[data-level='low'] {
-		background: var(--border-default);
+	.judge-ci {
+		display: block;
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
 	}
 
 	.evaluated-articles-section {
@@ -384,21 +448,9 @@
 		color: var(--text-secondary);
 	}
 
-	.empty-icon {
-		display: inline-flex;
-		align-items: center;
-		color: var(--text-subtle);
-	}
-
-	.empty-body {
-		max-width: 34rem;
-		color: var(--text-muted);
-		line-height: var(--line-height-relaxed);
-	}
-
 	@media (min-width: 640px) {
 		.dimension-row {
-			grid-template-columns: 10rem 1fr auto;
+			grid-template-columns: 10rem 1fr;
 			gap: var(--space-4);
 		}
 	}

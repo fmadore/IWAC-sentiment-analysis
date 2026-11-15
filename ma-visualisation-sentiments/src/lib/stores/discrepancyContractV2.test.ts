@@ -11,7 +11,7 @@ import subjectivityFixtures from '#lib/data/subjectivity-labels-v2-fixtures.json
 import type { SentimentAnalysis } from '#lib/types/data.js';
 import {
 	calculateDiscrepancies,
-	calculateThreeWaySpread,
+	calculatePanelSpread,
 	hasPolarityValenceFlip,
 	isArbiterEligible
 } from './derivations';
@@ -53,7 +53,7 @@ describe('shared v2 pairwise discrepancy contract', () => {
 describe('shared three-way spread contract', () => {
 	for (const fixture of fixtures.threeWay) {
 		it(fixture.name, () => {
-			expect(calculateThreeWaySpread(fixture.analyses.map(fullAnalysis))).toEqual({
+			expect(calculatePanelSpread(fixture.analyses.map(fullAnalysis))).toEqual({
 				polaritySpread: fixture.expected.polarity,
 				subjectivitySpread: fixture.expected.subjectivity,
 				centralitySpread: fixture.expected.centrality,
@@ -79,11 +79,11 @@ describe('shared three-way spread contract', () => {
 				centralite_islam_musulmans: 'Central'
 			} as FixtureAnalysis)
 		);
-		expect(calculateThreeWaySpread(ladder).polaritySpread).toBe(2);
+		expect(calculatePanelSpread(ladder).polaritySpread).toBe(2);
 	});
 
 	it('excludes a row when a model is missing entirely', () => {
-		expect(calculateThreeWaySpread([null, null, null]).isComparable).toBe(false);
+		expect(calculatePanelSpread([null, null, null]).isComparable).toBe(false);
 	});
 });
 
@@ -93,7 +93,7 @@ describe('shared arbiter eligibility contract', () => {
 			const analyses = fixture.analyses.map(fullAnalysis);
 			expect(hasPolarityValenceFlip(analyses)).toBe(fixture.expected.flip);
 			expect(isArbiterEligible(analyses)).toBe(fixture.expected.arbiterEligible);
-			expect(calculateThreeWaySpread(analyses).hasSignificantSpread).toBe(
+			expect(calculatePanelSpread(analyses).hasSignificantSpread).toBe(
 				fixture.expected.significantSpread
 			);
 		});
@@ -105,7 +105,7 @@ describe('shared arbiter eligibility contract', () => {
 		const flipOnly = ['Positif', 'Négatif', 'Neutre', 'Neutre', 'Neutre'].map((polarite) =>
 			fullAnalysis({ polarite, centralite_islam_musulmans: 'Central', subjectivite_score: 3 })
 		);
-		expect(calculateThreeWaySpread(flipOnly).hasSignificantSpread).toBe(false);
+		expect(calculatePanelSpread(flipOnly).hasSignificantSpread).toBe(false);
 		expect(isArbiterEligible(flipOnly)).toBe(true);
 	});
 

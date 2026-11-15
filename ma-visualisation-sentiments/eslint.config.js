@@ -9,7 +9,10 @@ import { loadConfig } from '@sveltejs/load-config';
 
 // Svelte options now live in the `sveltekit()` plugin call in vite.config.ts.
 const appRoot = fileURLToPath(new URL('.', import.meta.url));
-const svelteConfig = (await loadConfig(appRoot, { traverse: false }))?.config;
+const loadedSvelteConfig = await loadConfig(appRoot, { traverse: false });
+// A config that fails to load must not silently lint with no Svelte options.
+if (loadedSvelteConfig && 'error' in loadedSvelteConfig) throw loadedSvelteConfig.error;
+const svelteConfig = loadedSvelteConfig?.config;
 
 const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));
 

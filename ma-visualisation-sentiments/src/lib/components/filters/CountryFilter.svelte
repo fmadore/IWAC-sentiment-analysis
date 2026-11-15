@@ -9,10 +9,10 @@
   This creates a natural filtering flow: Country → Journal → Sentiment criteria
 -->
 <script lang="ts">
-	import { articleState, filterState } from '#lib/stores/index.js';
+	import { articleState, datasetState, filterState } from '#lib/stores/index.js';
 	import { t, currentLanguage } from '#lib/i18n/index.js';
-	import { FilterCard, FilterChip } from '#lib/components/common/index.js';
-	import type { Article } from '#lib/types/data.js';
+	import FilterCard from '#lib/components/common/FilterCard.svelte';
+	import FilterChip from '#lib/components/common/FilterChip.svelte';
 
 	// Country name translations
 	const countryTranslations: Record<string, Record<string, string>> = {
@@ -31,10 +31,17 @@
 
 	// Variables locales
 	let selectedCountries = $derived(filterState.countries);
+	// Every dataset is joined to the same article base, so while the selected
+	// one is still loading any loaded dataset lists the same countries.
+	let sourceArticles = $derived(
+		articleState.datasets[datasetState.selected] ??
+			Object.values(articleState.datasets).find((articles) => articles.length > 0) ??
+			[]
+	);
 	let countries = $derived(
 		[
 			...new Set(
-				(articleState.current as Article[])
+				sourceArticles
 					.map((article) => article.Country)
 					.filter((country): country is string => !!country)
 			)

@@ -7,7 +7,22 @@
  * - getById / current helpers
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { datasetState } from '#lib/stores/datasets.svelte.js';
+import { readFileSync } from 'node:fs';
+import {
+	datasetState,
+	modelBrandColor,
+	modelLogo,
+	modelName,
+	modelSeriesColor
+} from '#lib/stores/datasets.svelte.js';
+import {
+	DATASET_IDS,
+	GENERATION_IDS,
+	datasetIdsOf,
+	modelDisplayName
+} from '#lib/domain/sentimentContract.js';
+import { polarityColors, seriesColorPalette } from '#lib/utils/chartTheme.js';
+import { MODELS } from '#lib/data/modelMethodology.js';
 
 beforeEach(() => {
 	datasetState.selected = 'chatgpt';
@@ -16,19 +31,10 @@ beforeEach(() => {
 });
 
 describe('datasetState.available', () => {
-	it('contains both generations', () => {
-		expect(datasetState.available).toHaveLength(9);
-		expect(datasetState.available.map((d) => d.id)).toEqual([
-			'chatgpt',
-			'gemini',
-			'mistral',
-			'luna',
-			'mistral-small',
-			'deepseek',
-			'gemma',
-			'qwen',
-			'haiku'
-		]);
+	it('covers the model ids of every generation exactly, in contract order', () => {
+		// Read from the contract rather than a literal list, so a panel change is
+		// one contract edit and this test follows it.
+		expect(datasetState.available.map((d) => d.id)).toEqual([...DATASET_IDS]);
 	});
 
 	it('has correct structure for each dataset', () => {
@@ -221,39 +227,85 @@ describe('datasetState.pair', () => {
 });
 
 describe('datasetState.getById', () => {
-	it('returns ChatGPT dataset', () => {
+	it('returns a model by id', () => {
 		const dataset = datasetState.getById('chatgpt');
 		expect(dataset?.name).toBe('ChatGPT');
-		expect(dataset?.color).toBe('#10a37f');
-	});
-
-	it('returns Gemini dataset', () => {
-		const dataset = datasetState.getById('gemini');
-		expect(dataset?.name).toBe('Gemini');
-		expect(dataset?.color).toBe('#8e75b2');
-	});
-
-	it('returns Mistral dataset', () => {
-		const dataset = datasetState.getById('mistral');
-		expect(dataset?.name).toBe('Mistral');
-		expect(dataset?.color).toBe('#F54E42');
-	});
-
-	it('returns the models added to the v2 panel', () => {
-		// Their brand colours are duplicated from app.css because chart and logo
-		// code cannot read custom properties; pinning them here is what catches a
-		// half-finished edit that changed one copy.
-		expect(datasetState.getById('gemma')?.name).toBe('Gemma 4 31B');
-		expect(datasetState.getById('gemma')?.color).toBe('#338dff');
-		expect(datasetState.getById('qwen')?.name).toBe('Qwen3.8 27B');
-		expect(datasetState.getById('qwen')?.color).toBe('#615ced');
-		expect(datasetState.getById('haiku')?.name).toBe('Claude Haiku 5.5');
-		expect(datasetState.getById('haiku')?.color).toBe('#d97757');
+		expect(dataset?.generation).toBe('v1');
 		expect(datasetState.getById('haiku')?.logo).toBe('logo/Claude_logo.svg');
 	});
 
 	it('returns undefined for unknown id', () => {
 		expect(datasetState.getById('unknown')).toBeUndefined();
+	});
+});
+
+describe('model registries', () => {
+	it('the methodology registry covers each generation exactly', () => {
+		for (const generation of GENERATION_IDS) {
+			const ids = MODELS.filter((model) => datasetIdsOf(generation).includes(model.id)).map(
+				(model) => model.id
+			);
+			expect(ids).toEqual([...datasetIdsOf(generation)]);
+		}
+		expect(MODELS).toHaveLength(DATASET_IDS.length);
+	});
+
+	it('takes logos from one registry', () => {
+		for (const model of MODELS) {
+			expect(model.logo).toBe(modelLogo(model.id));
+			expect(datasetState.getById(model.id)?.logo).toBe(model.logo);
+		}
+	});
+
+	it('names come from the contract: short for the stores, long on request', () => {
+		expect(datasetState.getById('mistral-small')?.name).toBe('Mistral Small 4');
+		expect(modelName('mistral-small')).toBe('Mistral Small 4');
+		expect(modelName('mistral-small', 'long')).toBe('Mistral Small 4 (2603)');
+		// The contract function keeps its historical default: the long name.
+		expect(modelDisplayName('mistral-small')).toBe('Mistral Small 4 (2603)');
+		for (const id of DATASET_IDS) {
+			expect(datasetState.getById(id)?.name).toBe(modelDisplayName(id, 'short'));
+		}
+	});
+});
+
+describe('model colours', () => {
+	it('colours each model from the categorical palette by its index in its generation', () => {
+		for (const generation of GENERATION_IDS) {
+			datasetIdsOf(generation).forEach((id, index) => {
+				expect(modelSeriesColor(id)).toBe(seriesColorPalette[index]);
+				expect(datasetState.getById(id)?.color).toBe(seriesColorPalette[index]);
+			});
+		}
+	});
+
+	it('gives every member of a generation a distinct colour, none of them a polarity hue', () => {
+		const polarity = new Set(Object.values(polarityColors).map((hex) => hex.toLowerCase()));
+		for (const generation of GENERATION_IDS) {
+			const colours = datasetIdsOf(generation).map((id) => modelSeriesColor(id).toLowerCase());
+			expect(new Set(colours).size).toBe(colours.length);
+			expect(colours.filter((colour) => polarity.has(colour))).toEqual([]);
+		}
+	});
+
+	it('keeps brand colours equal to the --brand-* tokens they duplicate', () => {
+		// Logo code cannot read custom properties, so the hex is duplicated;
+		// this is what catches a half-finished edit that changed one copy.
+		const tokens = readFileSync('src/lib/styles/tokens.css', 'utf8');
+		const brandToken = (name: string) =>
+			new RegExp(String.raw`--brand-${name}:\s*(#[0-9a-fA-F]{6})`).exec(tokens)?.[1]?.toLowerCase();
+		const tokenFor = {
+			'mistral-small': 'mistral',
+			mistral: 'mistral',
+			deepseek: 'deepseek',
+			gemma: 'gemma',
+			qwen: 'qwen',
+			haiku: 'claude'
+		} as const;
+		for (const [id, token] of Object.entries(tokenFor)) {
+			expect(modelBrandColor(id as keyof typeof tokenFor)).toMatch(/^#[0-9a-fA-F]{6}$/);
+			expect(modelBrandColor(id as keyof typeof tokenFor).toLowerCase()).toBe(brandToken(token));
+		}
 	});
 });
 

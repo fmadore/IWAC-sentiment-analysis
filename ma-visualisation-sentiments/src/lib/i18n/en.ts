@@ -17,7 +17,7 @@ export const en = {
 		intro:
 			'Compare the panel on the same collected articles. These shares describe model annotations of this collection, not public opinion or all newspaper output.',
 		corpusFilters:
-			'Country and newspaper filters apply here. Sentiment filters above apply only to the single-model charts; selecting on one model’s labels would bias this comparison.',
+			'Country and newspaper filters apply here. Sentiment filters in the filter panel apply only to the single-model charts; selecting on one model’s labels would bias this comparison.',
 		negative: 'Negative polarity share',
 		central: 'Central or very central share',
 		subjective: 'Rather or very subjective share',
@@ -42,8 +42,6 @@ export const en = {
 		minimumNote:
 			'Gaps indicate no applicable ratings or fewer articles than the chosen minimum. A zero share is a measured value.',
 		range: 'Model range',
-		rangeNote:
-			'The data table includes the minimum and maximum model share. This is a descriptive model range, not a confidence interval.',
 		unknown: 'Country not recorded',
 		model: 'Model',
 		collected: 'Collected articles',
@@ -67,7 +65,76 @@ export const en = {
 		nameOrder: 'Name',
 		filterNewspaper: 'Filter to this newspaper',
 		timelinePage: 'Newspapers {start}–{end} of {total}',
-		timelineLegend: 'Collected articles per cell'
+		timelineLegend: 'Collected articles per cell',
+		panelSeries: 'Panel series',
+		panelNone: 'Models only',
+		panelMajority: 'Panel majority in category',
+		panelAny: 'Any model in category',
+		panelMajorityName: 'Panel majority',
+		panelAnyName: 'Any model',
+		panelNote:
+			'Panel series count each article once: “panel majority” when more than half the panel places it in the category, “any model” when at least one does. Both use only articles every model rated on this dimension, whichever cohort is selected.',
+		intervalLow: 'Wilson 95% lower bound',
+		intervalHigh: 'Wilson 95% upper bound',
+		lowSample: 'Fewer than {min} articles',
+		lowSampleNote:
+			'Hollow, faded points rest on fewer than {min} articles, where one article moves a share by more than three percentage points. The Wilson 95% intervals in the tooltip and the data table show how far each share could plausibly lie.'
+	},
+
+	reliability: {
+		ordinalAlpha: 'Ordinal α',
+		nominalAlpha: 'Nominal α',
+		alphaDetail: 'Krippendorff’s ordinal α · {count} articles',
+		alphaHelp:
+			'Krippendorff’s alpha over every article that at least two models rated: a missing rating leaves the article in with fewer raters rather than removing it. The ordinal form gives partial credit to nearby ratings, scaled by how often each point of the scale is used. 1 is perfect agreement; 0 is what chance alone would produce.',
+		alphaPolarityNote:
+			'Polarity: ordinal alpha uses the five rated levels and leaves out “Not applicable”, as weighted κ does; nominal alpha and Fleiss’ κ keep it as a category.',
+		completeCaseTitle: 'Fleiss’ κ, complete cases',
+		fleissDetail: 'Complete cases · {count} articles',
+		materialMissing: 'Without {model}: Fleiss’ κ {value} over {count} articles.',
+		archiveAlphaNote:
+			'Archive: Fleiss’ κ remains the published panel statistic. Krippendorff’s α is shown as an additional figure and changes none of the archived numbers.',
+		looTitle: 'Leaving one model out',
+		looNote:
+			'A panel coefficient is a property of which models were chosen; the uncertainty from sampling articles is small by comparison.',
+		looModel: 'Model left out',
+		looAll: 'None (whole panel)',
+		looArticles: 'Articles',
+		applicabilityTitle: 'Is the article about Islam at all?',
+		applicabilityLede:
+			'Each model’s verdict reduced to addressed or not addressed: a “Not applicable” polarity or a “Not addressed” centrality counts as not addressed, any other pair of ratings as addressed. A missing rating is neither and is left out. The flags and the arbiter set aside articles with a not-addressed verdict by a documented rule; this measures what that rule sets aside.',
+		applicabilityAlpha: 'Panel α',
+		applicabilityAlphaDetail: 'Nominal α · {count} articles with two or more verdicts',
+		applicabilityMixed: 'Split verdicts',
+		applicabilityMixedDetail: '{count} of {total} articles: some models say addressed, others not',
+		applicabilityAllAddressed: 'Addressed for every model',
+		applicabilityAllNotAddressed: 'Not addressed for every model',
+		applicabilityShareDetail: 'Share of {total} articles with two or more verdicts',
+		applicabilityDisagreements: 'Opposite verdicts',
+		applicabilityAddressed: 'Addressed',
+		applicabilityNotAddressed: 'Not addressed',
+		applicabilityMissing: 'No rating',
+		applicabilityModels: 'Verdicts by model',
+		chanceWithinOne: 'Chance: {value} · {count} articles compared',
+		chanceWithinOneHelp:
+			'Share of articles where the two labels are identical or one position apart. Chance is the share two independent models with these same label distributions would reach. When most ratings sit in three neighbouring categories it is already high, so this measure barely separates one pair from another.',
+		flagsTitle: 'What gets an article flagged',
+		flagsLede:
+			'Articles the dashboard flags because the panel’s ratings span {threshold} or more steps on at least one dimension, broken down by the dimension that reached it. The rule itself is unchanged.',
+		flagsFlagged: 'Flagged articles',
+		flagsDetail: '{count} of {total} comparable articles',
+		flagsBy: 'Flagged, by dimension',
+		flagsSubjectivityOnly: 'By subjectivity alone',
+		flagsSubjectivityNote:
+			'Subjectivity is the least consistently scaled of the three dimensions, so a flag raised by subjectivity alone says more about how the models use that scale than about a disagreement over substance.',
+		conflictBreakdownTitle: 'What makes a disagreement sharp',
+		totalDifferenceCaveat:
+			'The total adds steps from three scales that are not commensurate, so it ranks articles; it does not measure how far apart two readings are.',
+		correlationInterval: '95% interval',
+		correlationIntervalNote:
+			'The interval uses the Fisher z transformation with the Fieller–Hartley–Pearson variance for rank correlations. At this sample size any visible correlation has a p-value of practically zero, so the interval and n are the informative figures.',
+		patternRank: 'Pattern {rank}',
+		methodCategorical: 'Unweighted, every category'
 	},
 
 	agreementResearch: {
@@ -141,7 +208,7 @@ export const en = {
 		byJournal: 'By newspaper',
 		other: 'Other newspapers',
 		topJournals:
-			'Six largest newspapers; the rest are grouped as Other. The table includes every newspaper.',
+			'One bar per newspaper, each scaled to 100% of its own rated articles (n beside its name), so profiles compare whatever a newspaper’s size. The ten largest are shown; the rest are pooled as Other. The table gives every newspaper’s raw counts.',
 		count: 'Articles',
 		share: 'Share (%)',
 		year: 'Year',
@@ -166,10 +233,21 @@ export const en = {
 			'Articles that {a} and {b} rated differently on at least one dimension, by any margin.',
 		significantHelp: 'Articles where {a} and {b} are at least three steps apart on a dimension.',
 		scope: 'Grouping',
-		context: 'Download analysis context'
+		openMenu: 'Open menu',
+		selectPlaceholder: 'Select…',
+		back: 'Back',
+		backToDashboard: 'Back to the dashboard',
+		rangeMinimum: 'Minimum value',
+		rangeMaximum: 'Maximum value',
+		differenceMinimum: 'Smallest difference',
+		differenceMaximum: 'Largest difference',
+		zoomIn: 'Zoom in',
+		zoomOut: 'Zoom out',
+		zoomReset: 'Reset zoom'
 	},
 	// App header and branding
 	appTitle: 'IWAC Sentiment Analysis',
+	skipToContent: 'Skip to content',
 	appSubtitle: 'Islam West Africa Collection – data visualisation and exploration',
 	enterFullscreen: 'Enter fullscreen',
 	exitFullscreen: 'Exit fullscreen',
@@ -177,15 +255,14 @@ export const en = {
 	language: 'Language',
 
 	// Navigation
+	/* View names: sidebar entries and, for most views, the view's H1. */
 	nav: {
-		/* Section heading over the view list in the mobile drawer. */
-		views: 'Views',
-		charts: 'Charts',
+		charts: 'Distributions',
 		trends: 'Trends',
-		distribution: 'Distribution',
+		distribution: 'Polarity × subjectivity',
 		volume: 'Volume',
-		heatmap: 'Heatmap',
-		table: 'Table',
+		heatmap: 'Centrality by country',
+		table: 'Articles',
 		comparison: 'Comparison',
 		seasonality: 'Seasonality',
 		ranking: 'Newspapers',
@@ -202,7 +279,102 @@ export const en = {
 	viewMeta: {
 		model: 'Model',
 		sample: 'Sample',
-		rated: 'Rated'
+		rated: 'Rated',
+		/* Shown under the eyebrow rule when the selected model left more than 1%
+		   of the corpus unrated. */
+		unratedCaveat:
+			'This model left {count} articles unrated ({share} of the corpus). They are not a random subset, so its figures describe the articles it rated rather than the whole corpus.',
+		unratedCaveatLink: 'See the methodology'
+	},
+
+	/* The three sidebar sections; also the eyebrow above each view title. */
+	navGroups: {
+		corpus: 'Corpus',
+		model: 'One model’s reading',
+		panel: 'Between models'
+	},
+
+	/* The standing introduction above each view. */
+	intro: {
+		label: 'About this dashboard',
+		title: 'Several machine readings of one press corpus',
+		body: 'A panel of {models} language models rated the {articles} press articles of this corpus on three dimensions: polarity, subjectivity, and how central Islam and Muslims are to each article.',
+		bodyNoCount:
+			'A panel of {models} language models rated the press articles of this corpus on three dimensions: polarity, subjectivity, and how central Islam and Muslims are to each article.',
+		caveat:
+			'No model is the ground truth, and no human-coded reference sample exists yet. Agreement between the models therefore measures their consistency, not their accuracy.',
+		agreementLink: 'Where the models agree and disagree',
+		dismiss: 'Hide this introduction'
+	},
+
+	/* The site footer: citation and provenance. */
+	footer: {
+		cite: 'How to cite',
+		softwareTag: 'software',
+		citeNote:
+			'For a publication, cite the versioned deposit together with the analysis link and your access date.',
+		version: 'Version',
+		data: 'Data',
+		currentAnalysis: 'current analysis (v2)',
+		archivedAnalysis: 'archived analysis (v1)',
+		generated: 'generated {date}',
+		sourceRevision: 'source revision {revision}',
+		release: 'release {release}',
+		provenanceLoading: 'Loading data provenance…',
+		provenanceUnavailable: 'Data provenance could not be loaded.',
+		licence: 'Licence',
+		licenceText: 'Software under the MIT licence; source dataset under CC BY-NC-SA 4.0.',
+		repository: 'Source code (GitHub)',
+		dataset: 'Dataset (Hugging Face)',
+		acknowledgements: 'Acknowledgements',
+		acknowledgementText:
+			'Calculations were performed using the festus-cluster of the Bayreuth Centre for High Performance Computing (https://www.bzhpc.uni-bayreuth.de), funded by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) - 523317330.'
+	},
+
+	/* The model-pair picker on the comparison, agreement and archived arbiter views. */
+	pairPicker: {
+		first: 'First model',
+		second: 'Second model'
+	},
+
+	/* The whole panel's ratings in an article's detail. */
+	panelRatings: {
+		title: 'The whole panel',
+		note: 'Every model of this analysis rated the same article. The selected model is highlighted; none of them is a reference reading.',
+		selected: 'Selected',
+		modelReading: 'Reading by {model}'
+	},
+
+	/* Methodology card copy that used to be inlined per language. */
+	analysisInfo: {
+		collectionName: 'Islam West Africa Collection',
+		collectionAcronym: 'IWAC',
+		listAnd: ' and ',
+		panelReadSame:
+			'Every model in the panel read the same articles, so their answers can be set side by side:',
+		panelSwitch:
+			'Choose the models with the selectors in this view. The Agreement view sets the whole panel side by side.',
+		ratingsFrom: 'The ratings on screen come from ',
+		independentReading:
+			'Every model reads the same articles independently, with no sight of the others’ answers',
+		differencesAfterwards:
+			'Differences between the models are computed afterwards, dimension by dimension',
+		samePrompt:
+			'Every model receives the same prompt, so the comparison measures the models rather than their instructions:',
+		identicalPrompt:
+			'The prompt is identical for every model, so nothing in the instructions favours one of them',
+		readingComparison: 'Reading the comparison',
+		comparisonCaveats: [
+			'Differences between models can come from their training data, their architecture and the way they were tuned, and need not mean that one is more accurate',
+			'No model is a ground truth. Where two of them disagree, the article is worth reading yourself',
+			'These comparisons are most useful for spotting patterns across the corpus, and least useful as a verdict on any single article'
+		],
+		promptTitle: 'The full analysis prompt',
+		translationNoteLabel: 'Note:',
+		translationNote:
+			'this is a translation of the prompt. The models were instructed in French, because the corpus is in French.',
+		docs: 'Docs →',
+		promptFingerprint: 'Prompt fingerprint {fingerprint}, recorded with every cached result.'
 	},
 
 	// Filters
@@ -220,10 +392,6 @@ export const en = {
 		searchJournals: 'Search newspapers…',
 		showingJournals: 'Showing',
 		of: 'of',
-		selectedCountries: 'Selected countries',
-		selectedJournals: 'Selected newspapers',
-		selectedPolarities: 'Selected polarities',
-		selectedCentralities: 'Selected centrality levels',
 		subjectivityScore: 'Subjectivity score',
 		ratherObjective: 'Rather objective',
 		mixedSubjectivity: 'Mixed',
@@ -274,7 +442,7 @@ export const en = {
 		subtitle:
 			'Newspapers ranked by their average rating on the dimension you choose. The 95% confidence intervals describe within-sample uncertainty in those model ratings. They do not account for archival selection, missing articles or annotation error; this collection is not a random sample of all newspaper output.',
 		chartTitle: 'Newspapers ranked',
-		chartSubtitle: 'Mean with 95% CI · titles with at least {min} rated articles',
+		chartSubtitle: 'Mean with 95% CI · newspapers with at least {min} rated articles',
 		netPolarity: 'Net polarity',
 		meanSubjectivity: 'Mean subjectivity',
 		meanCentrality: 'Mean centrality',
@@ -282,7 +450,15 @@ export const en = {
 		neutralLine: 'neutral',
 		excludedNote:
 			'{count} newspapers left out: fewer than {min} rated articles. Their averages would be too uncertain to rank.',
-		noneAboveThreshold: 'No newspaper has at least {min} rated articles under the current filters.'
+		noneAboveThreshold: 'No newspaper has at least {min} rated articles under the current filters.',
+		positiveShare: 'Share positive',
+		negativeShare: 'Share negative',
+		netShare: 'Net share (positive − negative)',
+		proportionSubtitle:
+			'Share with 95% CI (Wilson; net: normal approximation) · newspapers with at least {min} rated articles',
+		measureGroup: 'Measure',
+		readingNote:
+			'Newspapers whose intervals overlap cannot be put in order: their order within the overlap is not interpretable. The ranking is also one model’s: the other models of this generation order the same newspapers differently. The mean measures treat the ordinal codes (−2 to +2, or 1 to 5) as evenly spaced measurements, which they are not; the share measures avoid that assumption.'
 	},
 
 	// Place map
@@ -296,10 +472,17 @@ export const en = {
 		legendSizeTitle: 'Articles mentioning',
 		legendColorTitle: 'Mean {dimension}',
 		legendUnscored: 'Not rated',
+		legendReliabilityTitle: 'Reliability of the colour',
+		legendReliable: 'Mean of {min} or more rated articles',
+		legendLowN: 'Fewer than {min}: faded',
+		keyboardNote:
+			'Hover a bubble to name it, click it for details. The bubbles cannot be reached by keyboard: the data table below lists every place with the same figures.',
 		caveat:
 			'A bubble counts articles that mention a place, not articles about it. Each article names about four places, so these totals add up to more than the number of articles. Colour is the rating the model gave the whole article on a 1–5 scale, averaged over the articles it actually rated on that dimension. For polarity, “Not applicable” means the article takes no position: it is left out of the average but still counts towards the size of the bubble. For centrality, “Not addressed” is a real bottom of the scale and is included. Places with no coordinates in the IWAC place list do not appear.',
 		noPlacesTitle: 'No mapped places',
-		noPlacesLede: 'No article in the current selection names a place with known coordinates.'
+		noPlacesLede: 'No article in the current selection names a place with known coordinates.',
+		ordinalNote:
+			'These are means of ordinal ranks, not measured units. Faded bubbles rest on fewer than {min} rated articles, too few for their mean to say much; the popup and the data table give n for every place.'
 	},
 
 	// Hijri-calendar seasonality
@@ -314,6 +497,9 @@ export const en = {
 		calendarNote:
 			'Stored Umm al-Qura dates provide the IWAC chronology. A tabular civil conversion is used only when stored Hijri fields are unavailable. Neither calendar establishes the date of a locally observed religious event.',
 		undatedNote: '{count} articles left out: no full publication date.',
+		ordinalNote:
+			'Mean centrality is a mean of ordinal ranks (1–5), not a measured unit; n is the number of rated articles in each month. Hollow points rest on fewer than {min} rated articles.',
+		ratedArticles: 'Rated articles (n)',
 		months: {
 			muharram: 'Muharram',
 			safar: 'Safar',
@@ -334,44 +520,28 @@ export const en = {
 	agreement: {
 		title: 'Agreement',
 		subtitle:
-			'How the models relate to one another: where they converge, where they diverge, and whether a disagreement is a systematic offset or a genuine conflict.',
+			'How the models relate to one another: where they converge, where they diverge, and whether a disagreement is a systematic offset or a genuine difference of reading.',
 		dimensionSelector: 'Analysis dimension',
 		exactAgreement: 'Exact agreement',
 		exactAgreementHelp:
 			'Share of articles where both models chose the identical category. Not corrected for the agreement two models would reach by chance alone.',
 		adjacentAgreement: 'Within one step',
-		adjacentDetail: 'Identical or one category apart',
-		adjacentAgreementHelp:
-			'Share of articles where the two labels are identical or exactly one position apart on the scale.',
 		articlesCompared: 'articles compared',
 		kappa: 'Cohen’s κ',
 		kappaHelp:
 			'Agreement corrected for chance. 0 means no better than chance; 1 means perfect. It treats every disagreement as equally severe, so two models that rank articles the same way but sit one category apart still score poorly.',
 		weightedKappa: 'Weighted κ',
-		weightedKappaHelp:
-			'Quadratic-weighted kappa gives more credit to nearby ordinal ratings. Compare its sample size with the unweighted statistic; a higher weighted value alone does not establish a directional offset.',
-		fleissKappa: 'Fleiss’ κ',
 		fleissHelp:
-			'Fleiss’ kappa across every model of the panel at once, over articles every model rated.',
+			'Fleiss’ kappa over the articles every model rated. An article any model left unrated is dropped for all of them.',
 		panelTitle: 'The whole panel',
 		panelLede:
-			'Agreement across every model of the selected analysis at once, dimension by dimension. Only articles that every model rated are counted, so a model with thinner coverage narrows the base for all of them.',
+			'Agreement across every model of the selected analysis at once. Krippendorff’s alpha keeps every article that at least two models rated; Fleiss’ kappa keeps only the articles every model rated, so a model with thinner coverage narrows its base for all of them.',
 		matrixTitle: 'Agreement matrix',
 		rowsAre: 'Rows:',
 		columnsAre: 'Columns:',
 		ofRow: 'Of this row',
 		calibrationTitle: 'Model calibration',
 		calibrationSubtitle: 'How often each model uses each point on the scale',
-		systematicOffsetNote:
-			'Weighted agreement gives more credit to small differences. A higher weighted value alone does not establish a directional offset; inspect the matrix and the direction of the differences.',
-		strength: {
-			poor: 'Poor',
-			slight: 'Slight',
-			fair: 'Fair',
-			moderate: 'Moderate',
-			substantial: 'Substantial',
-			almostPerfect: 'Almost perfect'
-		},
 
 		// Panel-wide consensus section
 		scopeLabel: 'Comparison scope',
@@ -391,26 +561,26 @@ export const en = {
 		meanSpread: 'Mean spread',
 		meanSpreadHelp:
 			'Mean of (highest − lowest) across the models, counted in steps on the scale. Zero is unanimity; the maximum is the full width of the scale.',
-		declinedToggle: 'Declined ratings',
+		declinedToggle: '“Not applicable” answers',
 		declinedInclude: 'Included',
 		declinedExclude: 'Excluded',
 		declinedNote:
-			'{count} articles are left out because at least one model answered “Non applicable”. A refusal to rate sits below the bottom of the scale, so counting it as a rating makes a model that declined look like a model that disagreed. The effect is strongest on the titles whose articles are only marginally about Islam.',
+			'{count} articles are left out because at least one model answered “Not applicable”. That verdict sits below the bottom of the scale, so counting it as a rating makes a model that found no stance look like a model that disagreed. The effect is strongest on the newspapers whose articles are only marginally about Islam.',
 		declinedIncludedNote:
-			'Declined ratings are counted at the bottom of the scale. Titles with many of them will rank as highly disagreed, but the disagreement there is about whether the article concerns Islam at all, rather than about how favourable it is.',
+			'“Not applicable” answers are counted at the bottom of the scale. Newspapers with many of them will rank as highly disagreed, but the disagreement there is about whether the article concerns Islam at all, rather than about how favourable it is.',
 
 		disagreementTitle: 'Newspapers ranked by model disagreement',
 		disagreementSubtitle:
-			'Mean spread across the panel with 95% CI · titles with at least {min} rated articles',
+			'Mean spread across the panel with 95% CI · newspapers with at least {min} rated articles',
 		disagreementAxis: 'Steps on the scale between the highest and lowest model',
 		disagreementNote:
-			'The mirror of the Newspapers view: same titles, same threshold, but the axis measures how far apart the models are rather than what they say. A title can be unremarkable in sentiment and an outlier in disagreement.',
+			'The mirror of the Newspapers view: same newspapers, same threshold, but the axis measures how far apart the models are rather than what they say. A newspaper can be unremarkable in sentiment and an outlier in disagreement.',
 		spread: 'Mean spread',
 		unanimityRate: 'Unanimity',
-		declinedShare: 'Declined ratings',
+		declinedShare: '“Not applicable” share',
 		medianYear: 'Median year',
 		disagreementExcluded:
-			'{count} newspapers left out: fewer than {min} rated articles. Small titles read as more disagreed, so ranking them here would mislead.',
+			'{count} newspapers left out: fewer than {min} rated articles. Small newspapers read as more disagreed, so ranking them here would mislead.',
 		disagreementEmpty: 'No newspaper has at least {min} rated articles under the current filters.',
 
 		dissentTitle: 'Who breaks ranks',
@@ -419,9 +589,8 @@ export const en = {
 		dissentStacked: 'By newspaper',
 		dissentTernary: 'Triangle',
 		dissentTernaryNote:
-			'One point per newspaper, placed according to which model most often stands alone there. A point at a corner means that model does all the dissenting; a point at the centre means the three share it evenly. Size is the article count. Titles where no model ever stood alone have no position and are not drawn. A triangle has exactly three corners, so this view is offered only for the three-model archive; the current panel is read from the stacked bars instead.',
+			'One point per newspaper, placed according to which model most often stands alone there. A point at a corner means that model does all the dissenting; a point at the centre means the three share it evenly. Size is the article count. Newspapers where no model ever stood alone have no position and are not drawn. A triangle has exactly three corners, so this view is offered only for the three-model archive; the current panel is read from the stacked bars instead.',
 		dissentsAlone: 'dissents alone',
-		dissentShare: 'Share of splits',
 
 		directionTitle: 'Which way each model leans',
 		directionSubtitle:
@@ -441,7 +610,7 @@ export const en = {
 		scatterX: 'Consensus mean (the models averaged)',
 		scatterY: 'Mean spread across the panel',
 		scatterNote:
-			'Correlation between the two axes: r = {r}. A value near zero would mean disagreement is independent of how favourable a title’s coverage is; a strong value in either direction means the models argue hardest about one end of the scale, and the ranking above should be read with that in mind. The value differs between the two analysis generations and between the three dimensions.'
+			'Correlation between the two axes: r = {r}. A value near zero would mean disagreement is independent of how favourable a newspaper’s coverage is; a strong value in either direction means the models argue hardest about one end of the scale, and the ranking above should be read with that in mind. The value differs between the two analysis generations and between the three dimensions.'
 	},
 
 	// Per-chart data disclosure
@@ -464,23 +633,22 @@ export const en = {
 		matrixCaption: 'Cross-tabulation of the two models’ labels',
 		spread: 'Mean spread',
 		unanimity: 'Unanimity',
-		declined: 'Declined',
+		declined: '“Not applicable”',
 		medianYear: 'Median year',
 		disagreementCaption:
-			'Newspapers ranked by mean spread across the panel, with confidence intervals, unanimity and declined share'
+			'Newspapers ranked by mean spread across the panel, with confidence intervals, unanimity and “Not applicable” share'
 	},
 
 	// Chart titles and labels
 	charts: {
 		polarityDistribution: 'Polarity distribution',
 		subjectivityDistribution: 'Subjectivity distribution',
+		centralityDistribution: 'Centrality distribution',
 		sentimentTrends: 'Sentiment trends',
 		subjectivityTrends: 'Subjectivity trends',
 		volumeByCountry: 'Article volume by country',
 		centralityHeatmap: 'Centrality heatmap',
 		articlesAnalyzed: 'articles analysed',
-		globalDistribution: 'Overall distribution',
-		byJournal: 'by newspaper',
 		byYear: 'by year',
 		stackedAreas: 'Stacked areas',
 		lines: 'Lines',
@@ -494,6 +662,9 @@ export const en = {
 
 	// Trends view
 	trends: {
+		lowSampleBand: 'n < {min}',
+		lowSampleNote:
+			'In share mode, shaded years rest on fewer than {min} rated articles: one article moves their bands by more than three percentage points. The tooltip gives each year’s n.',
 		subtitle: 'How the ratings change over the years, for the corpus and for each newspaper.'
 	},
 
@@ -531,29 +702,36 @@ export const en = {
 	// Table
 	table: {
 		title: 'Articles',
-		country: 'Country',
-		journal: 'Newspaper',
 		date: 'Date',
 		polarity: 'Polarity',
 		subjectivity: 'Subjectivity',
 		centrality: 'Centrality',
-		viewDetails: 'View details',
-		sortBy: 'Sort by',
 		itemsPerPage: 'Items per page',
 		showingItems: 'Showing',
 		noFilteredArticles: 'No articles match the selected filters',
+		noFilteredArticlesHint: 'Change or clear the filters to list articles again.',
+		emptyHint: 'There is nothing to list for the current selection.',
 		articleTitle: 'Title',
-		subtitle: 'Browse every article, with its three ratings and the reason the model gave for each.'
+		subtitle:
+			'Browse every article, with its three ratings and the reason the model gave for each.',
+		searchTitles: 'Search titles',
+		searchResults: '{count} articles with “{query}” in the title',
+		searchNoResults: 'No title contains “{query}”',
+		searchNoResultsHint: 'Accents and capitals are ignored. Try a shorter or different word.',
+		searchScopeNote: 'The CSV export contains the articles listed here, search included.',
+		pageStatus: 'Page {page} of {pages}',
+		pagination: 'Pagination',
+		previousPage: 'Previous page',
+		nextPage: 'Next page',
+		layout: 'Layout',
+		sortDirectionAsc: 'Ascending order. Switch to descending',
+		sortDirectionDesc: 'Descending order. Switch to ascending',
+		untitled: 'Untitled article',
+		unknownJournal: 'Newspaper not recorded'
 	},
 
 	// Article details
 	article: {
-		metadata: 'Metadata',
-		analysis: 'Sentiment analysis',
-		polarityJustification: 'Reason for the polarity rating',
-		subjectivityJustification: 'Reason for the subjectivity rating',
-		centralityJustification: 'Reason for the centrality rating',
-		close: 'Close',
 		titleNotAvailable: 'Title not available',
 		publicationDate: 'Publication date',
 		linkToFullArticle: 'Link to full article',
@@ -665,15 +843,13 @@ export const en = {
 			'Reasoning effort: medium for GPT-5.6 Luna, Qwen3.8 27B and Claude Haiku 5.5, the three whose setting could be verified as a genuine middle step; high for Mistral Small 4 and DeepSeek v4 Flash, whose APIs offer no middle setting; nominally medium for Gemma 4 31B, whose OpenRouter route makes medium and high indistinguishable',
 			'Where each model ran: at its maker’s own API — OpenAI’s, Mistral’s or Anthropic’s — except Gemma 4 31B and DeepSeek v4 Flash, which were served through OpenRouter, and Qwen3.8 27B, self-hosted with vLLM on the University of Bayreuth’s Festus cluster',
 			'Claude Haiku 5.5 joined the panel on 22 October 2026 without a pilot, by the curator’s decision, so no pilot figure exists for its agreement with the other models or for its consistency with itself',
-			'Funding acknowledgement the centre that runs that cluster requires of any publication reporting work done on it, and states is mandatory: “Calculations were performed using the festus-cluster of the Bayreuth Centre for High Performance Computing (https://www.bzhpc.uni-bayreuth.de), funded by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) - 523317330.”',
 			'Temperature: not set by the pipeline — each model runs at its host’s default',
 			'Output format: structured JSON validated against a Pydantic schema',
 			'A resumable cache holding one record per article and model; only successful calls are kept',
 			'Error handling: up to three attempts per call, with a growing wait between them and a time limit per model',
 			'Coverage: 12,298 of the 12,348 articles carry annotations from GPT-5.6 Luna, Mistral Small 4, DeepSeek v4 Flash and Gemma 4 31B. The 50 that are not in French or English are skipped by design, because the prompt is French',
 			'Claude Haiku 5.5 stops 47 articles short of that: its October pass found no text for 47 French articles the others had read in August, and skipped them. Unlike the gap below, this one has a mechanical cause',
-			'Qwen3.8 27B stops 200 articles short of that, having declined them across a full pass and three further rounds of retries. That gap is permanent, and it is not missing at random: it falls disproportionately on articles where Islam is peripheral, so any figure computed only on articles every model rated leans towards material where Islam is central',
-			'Prompt fingerprint d14ace9ac192, recorded with every cached result'
+			'Qwen3.8 27B stops 200 articles short of that, having declined them across a full pass and three further rounds of retries. That gap is permanent, and it is not missing at random: it falls disproportionately on articles where Islam is peripheral, so any figure computed only on articles every model rated leans towards material where Islam is central'
 		],
 		promptFeatures: [
 			'Casts the model as an expert on representations of Islam and Muslims in the Francophone West African press',
@@ -752,20 +928,10 @@ export const en = {
 
 	// Common
 	common: {
-		yes: 'Yes',
-		no: 'No',
 		close: 'Close',
-		save: 'Save',
-		delete: 'Delete',
-		view: 'View',
-		search: 'Search',
-		filter: 'Filter',
-		clear: 'Clear',
 		all: 'All',
-		none: 'None',
 		total: 'Total',
 		articles: 'articles',
-		article: 'article',
 		viewMore: 'View more',
 		viewLess: 'Back to list',
 		previous: 'Previous',
@@ -790,6 +956,8 @@ export const en = {
 		archivedTitle: 'You are viewing the archived 2026 analysis (v1).',
 		archivedDescription:
 			'GPT-5 mini, Gemini 3 Flash preview and Ministral 14B, rated under the first prompt. Kept online so that published figures and citations stay reproducible.',
+		archivedConfound:
+			'The prompt was rewritten between the two analyses, so a difference between them confounds the change of models with the change of prompt.',
 		backToCurrent: 'Back to the current analysis',
 		archiveLinkLabel: 'View the archived v1 analysis',
 		archiveLinkDescription:
@@ -807,8 +975,8 @@ export const en = {
 		filterByDiscrepancy: 'Filter by difference',
 		differenceRange: 'Difference range',
 		quickFilters: 'Quick filters',
-		pointDifference: 'point difference',
-		pointsDifference: 'points difference',
+		pointDifference: 'step apart',
+		pointsDifference: 'steps apart',
 		compareDimensions: 'Compare dimensions',
 		polarity: 'Polarity',
 		subjectivity: 'Subjectivity',
@@ -822,16 +990,12 @@ export const en = {
 		articlesAnalyzed: 'Articles compared',
 		highConflicts: 'Sharp disagreements',
 		significantDifferences: 'Three or more steps apart',
-		significantDifferencesExplanation:
-			'Articles where the two models are at least 3 steps apart on polarity, subjectivity or centrality. On scales this short, a gap that wide means the two readings have little in common.',
-		totalDiscrepanciesExplanation:
-			'Number of articles the two models rated differently on at least one dimension, by any margin.',
 		averageDiscrepancyExplanation:
 			'The average gap between the two models per article, added up across the three dimensions (polarity + subjectivity + centrality) and counted in steps on the scale.',
 		breakdownByDimension: 'Breakdown by dimension',
 		enableComparisonMode: 'Enable comparison mode',
 		enableComparisonDescription:
-			'Use the model picker in the header to choose the two models you want to set side by side.',
+			'Choose the two models to set side by side with the “First model” and “Second model” selectors at the top of this view.',
 		noDiscrepancies: 'No differences found',
 		adjustFilters: 'Try widening the filters to see articles the two models rate differently.',
 		excludeNonApplicable: 'Exclude “Not applicable” articles',
@@ -846,9 +1010,7 @@ export const en = {
 		// Model pair picker. Pair labels are built from the model names in the
 		// contract registry, so only the joining word is translated.
 		selectModelPair: 'Select models to compare',
-		versus: 'vs',
-		modelALabel: 'Model A',
-		modelBLabel: 'Model B'
+		versus: 'vs'
 	},
 
 	// Arbiter
@@ -904,7 +1066,6 @@ export const en = {
 		subjectivity: 'Subjectivity',
 		centrality: 'Centrality',
 		allDimensions: 'All dimensions',
-		selectModelPair: 'Select model pair',
 		noDataForPair: 'No arbiter data available for this model pair',
 		runScript: 'No verdicts have been published for this pair.',
 		filterByDimension: 'Filter by dimension',
@@ -923,7 +1084,7 @@ export const en = {
 		howItWorks: 'How it works',
 		selectionProcess: 'How articles were chosen',
 		selectionProcessDesc:
-			'An article goes to the arbiter when the two models are at least 3 points apart on any one of the three dimensions.',
+			'An article goes to the arbiter when the two models are at least 3 steps apart on any one of the three dimensions.',
 		blindAssignment: 'Blind assignment',
 		blindAssignmentDesc:
 			'For each model pair, one model is assigned at random as “Model A” and the other as “Model B”. The assignment holds for every article in the pair, so nothing about the order can favour one of them.',
@@ -964,6 +1125,7 @@ export const en = {
 		headToHead: 'Head to head',
 		excludingTies: '(ties and “neither” excluded)',
 		wins: 'in its favour',
+		leadNote: '{model} leads the overall preferences by {points} percentage points',
 		// Evaluated articles table
 		evaluatedArticles: 'Articles reviewed',
 		evaluatedArticlesSubtitle: 'The articles the arbiter read, and what it decided about each',
@@ -985,14 +1147,34 @@ export const en = {
 		samplingFrameNote:
 			'The arbiter did not review the whole corpus. It reviewed the articles where the panel contradicts itself about whether the coverage is favourable or hostile, so every percentage below holds only where such a disagreement already exists. None of them measures which model is better across the corpus as a whole.',
 		articlesEvaluated: 'articles reviewed',
-		dimensionVerdicts: 'dimension verdicts',
-		preferred: 'preferred',
 		multiple: 'Several equally close',
 		none: 'None close',
-		overallVerdicts: 'Overall verdicts',
 		overallVerdictsNote: 'One verdict per article, across all three dimensions at once',
 		dimensionTieNote:
-			'The headline figure is the overall verdict — one per article, weighing all three dimensions together. Read it rather than the per-dimension tally beside it: with five analyses in front of the arbiter, when three or four of them match the arbiter’s own rating, “several are equally close” is the accurate answer, so the per-dimension counts stay low for every model and cannot separate them.',
+			'Why the headline is a match rate and not a count of wins: the arbiter names a single closest analysis only when one stands out. When several equal its own rating it says so, and the overall winner then turns on small differences between analyses that agree with it equally often. Comparing each model’s rating with the arbiter’s own rating uses every reviewed article and every dimension.',
+		matchRatesTitle: 'How often each model gives the arbiter’s own rating',
+		matchRatesNote:
+			'Share of the reviewed articles where the model’s rating is the same label as the arbiter’s, with a Wilson 95% interval and the number of articles compared (n). “Within one step” counts ratings at most one step apart, over articles where both ratings sit on the scale. Like every figure here, these hold only for the reviewed articles, not the corpus.',
+		matchModel: 'Model',
+		exactMatch: 'Same rating',
+		withinOne: 'Within one step',
+		interval: '95% CI',
+		recusedRow: 'not judged: recused',
+		recusedRowNote:
+			'{models} was never shown to the arbiter. Its rating is set beside the verdicts afterwards, as a comparison, not as a judged analysis.',
+		winnerTallyTitle: 'Overall winner tally',
+		winnerTallyNote:
+			'Secondary. Which single analysis the arbiter named best overall, with “several equally close” and “none close” for the rest. Models that give the arbiter’s own polarity about equally often are named winner very different numbers of times, so this tally follows the judge’s tie-breaks — mostly closeness on subjectivity — rather than ranking the models.',
+		loneDissenterNote:
+			'{model} is the only model on its side of the neutral line in {count} of the {total} reviewed articles ({negative} of them as the only negative reading); no other model is alone in more than {next}. The frame is therefore largely one model’s dissents, and the rates above partly measure how often a dissent was upheld.',
+		frameShareNote:
+			'The reviewed articles are {share} of the corpus ({evaluated} of {corpus}). The arbiter rated {subjective} of them ({subjectiveShare}) as rather or very subjective: the frame is mostly opinion writing.',
+		secondJudgeTitle: 'A second judge',
+		secondJudgeNote:
+			'{judge} ({developer}) also judged {shared} of these articles, reading its own panel without its developer’s model. The two judges are compared on their own ratings only. Their preferred analyses are not compared: each judge saw a different panel under its own letters.',
+		judgeDimension: 'Dimension',
+		judgeShared: 'Articles',
+		judgeKappa: 'Cohen’s κ',
 		byDimension: 'Verdicts by dimension',
 		confidenceDistribution: 'Confidence distribution',
 		blindLabel: 'Shown as',
@@ -1005,11 +1187,9 @@ export const en = {
 		viewArticleDetails: 'View the article and the verdict',
 		articleWithVerdict: 'Article with panel verdict',
 		noEvaluatedArticles: 'No reviewed articles to show',
-		severalOrNone: 'Several / none',
 		panelLegend: 'Which analysis was which',
 		panelLegendNote:
 			'The arbiter names the analyses by these letters in its reasoning. The letters were assigned once for the whole run; the order the analyses were shown in was shuffled for each article.',
-		panelRatings: 'The panel’s ratings',
 		matchesArbiter: 'Same rating as the arbiter',
 		preferredAnalysis: 'Preferred by the arbiter',
 		notRated: 'Not rated',
@@ -1024,7 +1204,6 @@ export const en = {
 		modelsReasoningLoading: 'Loading the models’ reasoning…',
 		comparisonNote:
 			'The panel arbiter weighed every analysis it was shown at once, not only the two compared here.',
-		notArbitrated: 'The panel arbiter did not review this article.',
 		whyReviewed: 'Why this article was reviewed',
 		whyReviewedNote:
 			'How far apart the ratings shown to the arbiter sit on each scale, in steps. A reversal of direction on polarity — one model reading the coverage as favourable, another as hostile — is what put the article in front of the arbiter.',
@@ -1037,56 +1216,60 @@ export const en = {
 		arbiterScore: 'Arbiter’s own rating',
 		verdict: 'Verdict',
 		confidence: 'Confidence',
-		showReasoning: 'Show reasoning',
-		hideReasoning: 'Hide reasoning',
 		noData: 'No panel arbiter verdicts yet',
 		noDataDescription:
-			'This build does not include the panel arbiter file. The run is paid and launched by hand — see the README for how to produce it.',
+			'This version of the dashboard does not include the panel arbiter’s verdicts. They come from a paid run launched by hand, so this view stays empty until one has been published.',
 		loading: 'Loading arbiter data…',
 		// Methodology
 		methodologyTitle: 'How the panel arbiter works',
 		methodologySubtitle: 'One judge compares every generation-2 analysis at once',
 		blindEvaluation: 'Blind review',
 		blindEvaluationDesc:
-			'The analyses are anonymised as A to E by a single random shuffle, fixed for the whole run.',
+			'The analyses are anonymised as {firstLabel} to {lastLabel} by a single random shuffle, fixed for the whole run.',
 		selectionProcess: 'How articles were chosen',
 		selectionProcessDesc:
-			'An article qualifies when at least one model reads the coverage as positive and another reads it as negative — a disagreement about the direction of the coverage, not its degree. This deliberately reaches further than the dashboard’s own threshold for a significant discrepancy: the commonest reversal of all, one model answering Positif where another answers Négatif, sits only two ranks apart, and no threshold high enough to be meaningful can select it. Articles where any model reports that the task does not apply — or, for Qwen3.8 27B, never returned an answer at all — are left out rather than counted as a maximal disagreement.',
+			'An article qualifies when at least one model reads the coverage as positive and another reads it as negative — a disagreement about the direction of the coverage, not its degree. This deliberately reaches further than the dashboard’s own threshold for flagging a disagreement: the commonest reversal of all, one model answering Positif where another answers Négatif, sits only two ranks apart, and no threshold high enough to be meaningful can select it. Articles where any model reports that the task does not apply — or, for Qwen3.8 27B, never returned an answer at all — are left out rather than counted as a maximal disagreement.',
 		whyPolarity: 'Why polarity, and not centrality',
 		whyPolarityDesc:
-			'The panel agrees far more about centrality than about polarity: all five models the arbiter reads give the same centrality rating on 63.7% of articles, against 33.0% for polarity. Paying a judge to settle centrality would mostly buy verdicts on questions the panel already answers consistently on its own. It is also the dimension where Mistral Small 4 diverges most from the other four, so a centrality-led selection fills up with one model standing alone against the rest. Choosing on polarity keeps both the dimension the research question turns on and the one the panel finds hardest.',
+			'The panel agrees far more about centrality than about polarity: all {models} models the arbiter reads give the same centrality rating on {centrality} of the articles they all rated, against {polarity} for polarity, leaving aside “Not applicable” answers. Paying a judge to settle centrality would mostly buy verdicts on questions the panel already answers consistently on its own. It is also the dimension where Mistral Small 4 diverges most from the others, so a centrality-led selection fills up with one model standing alone against the rest. Choosing on polarity keeps both the dimension the research question turns on and the one the panel finds hardest.',
 		randomOrder: 'The order is shuffled per article',
 		randomOrderDesc:
-			'The analyses are anonymised as A to E by a single shuffle fixed for the whole run, so a label always means the same model. The order the blocks are laid out in is then shuffled again for each article. Without that second shuffle one model would hold the first position on every article, and a judge’s tendency to favour what it reads first would be impossible to tell apart from a genuine preference for that model. Checked after the run: the position in which the winning analysis had been shown is indistinguishable from chance once the seating is accounted for (χ² of 5.3 on 4 degrees of freedom, over the 231 verdicts that named a single model).',
+			'The analyses are anonymised as {firstLabel} to {lastLabel} by a single shuffle fixed for the whole run, so a label always means the same model. The order the blocks are laid out in is then shuffled again for each article. Without that second shuffle one model would hold the first position on every article, and a judge’s tendency to favour what it reads first would be impossible to tell apart from a genuine preference for that model. Over the 231 verdicts naming a single model, the winning analysis sat first in only 30. Against an even split that is χ² = 8.9 on 4 degrees of freedom (p = 0.06); allowing for which model happened to sit where, χ² = 3.8 (permutation p = 0.33). Neither is significant, but the check has little power.',
 		frameCaveat: 'What the sample mostly contains',
 		frameCaveatDesc:
-			'Selecting on reversals of direction does not make the sample balanced across models. In 189 of the 301 articles, Mistral Small 4 stands alone on one side of the neutral line while the four others stand on the other — in 162 of them it is the one reading the coverage as negative. A strict one-against-four split, where the four carry exactly the same label, is rarer: 56 articles. The arbiter’s own polarity rating coincides with Mistral Small 4’s in 37 articles, against 190 to 205 for each of the other four. Much of what the verdicts document is therefore one model’s calibration on polarity, and the head-to-head shares should be read with that in mind.',
+			'Selecting on reversals of direction does not make the sample balanced across models. In {count} of the {total} articles, {dissenter} stands alone on one side of the neutral line while the others stand on the other — in {negative} of them it is the one reading the coverage as negative. A strict split of one against the rest, where the other {rest} carry exactly the same label, is rarer: {strict} articles. The arbiter’s own polarity rating coincides with {dissenter}’s in {match} articles, against {othersLow} to {othersHigh} for each of the others. Much of what the verdicts document is therefore one model’s calibration on polarity, and the head-to-head shares should be read with that in mind.',
 		noiseCaveat: 'Some of the disagreement is noise',
 		noiseCaveatDesc:
-			'These are single annotations, and the models do not fully reproduce themselves: run again on the same article, a model returns the same polarity 70–80% of the time. Part of any disagreement is therefore a different draw rather than a different reading, and no arbiter can tell the two apart. That is the reason for selecting on reversals of direction, which a re-draw is unlikely to produce, instead of one-step differences.',
+			'These are single annotations, and the models do not fully reproduce themselves: in informal re-runs on the same articles during the pilot, a model returned the same polarity 70–80% of the time. Part of any disagreement is therefore a different draw rather than a different reading, and no arbiter can tell the two apart. That is the reason for selecting on reversals of direction, which a re-draw is unlikely to produce, instead of one-step differences.',
 		recusal: 'Recusal',
 		recusalDesc:
-			'Claude Haiku 5.5 joined the panel after the arbiter had run, and it comes from Anthropic, as the arbiter does. Anonymous labels hide a model’s name but not its style, and AI judges measurably favour their own output and that of related models, so Claude Haiku 5.5 is never shown to the arbiter: the selection, the prompt and the letters cover the other five. Its ratings are compared with the verdicts afterwards. On the 301 articles reviewed, its polarity coincides with the arbiter’s in 192, inside the 190 to 205 of the four models other than Mistral Small 4 — no sign of a reading the two Anthropic models share. What recusal cannot do is weigh Claude Haiku 5.5’s own dissents: the 45 reversals of direction that exist only because of it are outside the frame, and settling them would take a judge from another developer.',
+			'{recused} joined the panel after the arbiter had run, and it comes from Anthropic, as the arbiter does. Anonymous labels hide a model’s name but not its style, and AI judges measurably favour their own output and that of related models, so {recused} is never shown to the arbiter: the selection, the prompt and the letters cover the others. Its ratings are compared with the verdicts afterwards. On the {total} articles reviewed, its polarity coincides with the arbiter’s in {match}, against {othersLow} to {othersHigh} for the models other than {dissenter} — no sign of a reading the two Anthropic models share. What recusal cannot do is weigh {recused}’s own dissents: the {flips} reversals of direction that exist only because of it are outside the frame, and settling them would take a judge from another developer.',
+		caveatFiguresPending:
+			'The figures for this caveat are computed from the published verdicts and the panel’s ratings; they appear once the ratings have loaded.',
 		fullText: 'The full article text',
 		fullTextDesc:
 			'The arbiter reads the article from the private mirror of the collection, where the text is complete. The v1 arbiter read the public version, which masks the text of a large share of articles, so some v1 verdicts were reached without the article in front of the judge.',
 		independentVerdict: 'Independent verdict',
-		independentVerdictDesc: 'The arbiter rates the article itself before comparing the analyses.',
+		independentVerdictDesc:
+			'The arbiter is instructed to rate the article itself before comparing the analyses. It sees the analyses in the same request, so its own rating is not formed independently of them.',
 		reasoningEffort: 'Reasoning effort',
 		reasoningEffortDesc:
 			'Claude Opus 5 thinks adaptively, so the run sets an effort level rather than a token budget. That setting is also what the run costs.',
 		howItWorks: 'How it works',
 		step1: 'It reads the full text of the article',
-		step2: 'It rates polarity, subjectivity and centrality on its own',
-		step3: 'It compares the anonymised analyses against its own rating',
+		step2: 'It is instructed to rate polarity, subjectivity and centrality on its own first',
+		step3:
+			'It compares the anonymised analyses, which it sees in the same request, with that rating',
 		step4:
 			'It names the most accurate analysis per dimension, or says that several tie or that none is right',
 		arbiterModel: 'Arbiter model',
 		arbiterModelDesc:
-			'Claude Opus 5 judges every analysis of an article in a single call, so its verdicts hold together in a way that ten separate pairwise runs could not.',
+			'Claude Opus 5 judges every analysis of an article in a single call, so its verdicts hold together in a way that {pairs} separate pairwise runs could not.',
 		viewPrompt: 'View the prompt',
 		promptExplanation:
 			'The French system instruction and user prompt sent to the arbiter, word for word.',
+		promptVersionCaveat:
+			'The published verdicts were judged under prompt v2.2.0, which gave the arbiter a shorter scale reference than the codebook the annotating models followed, and one rule that differed: it counted a mention by proper name alone as Marginal, where the codebook says a religion guessable only from a name does not count.',
 		viewFullPrompt: 'View the full prompt',
 		arbiterPrompt: 'Panel arbiter prompt',
 		systemInstruction: 'System instruction',
@@ -1107,6 +1290,18 @@ export const en = {
 		subjectKeywords: 'Subjects',
 		spatialKeywords: 'Places',
 		noData: 'No data available for this selection',
+		distinctiveKeywords: 'Most distinctive keywords',
+		categorySize: '{category}: {count} articles, {share} of {total}',
+		shareOfCorpus: 'Share of articles',
+		oppositeCount: 'Articles in “{category}”',
+		distinctiveScore: 'Distinctiveness (z)',
+		ranking: 'Ranking',
+		rankingCount: 'Frequency',
+		rankingDistinctive: 'Distinctive',
+		countNote:
+			'Raw counts: how many articles in this category carry each keyword. The commonest subjects of the whole corpus rank first in every category, so compare categories with the Distinctive ranking.',
+		distinctiveNote:
+			'Ranked by a log-odds ratio with an informative Dirichlet prior (Monroe, Colaresi & Quinn 2008), contrasting this category with its opposite pole, “{opposite}”. A high score means the keyword is over-represented here relative to the other pole; only keywords carried by at least five articles in this category are ranked. Shares are of the whole corpus, or under country/newspaper filters of the matching articles that fall in at least one category.',
 		categories: {
 			subjectivityHigh: 'High subjectivity (4–5)',
 			subjectivityLow: 'Low subjectivity (1–2)',

@@ -43,20 +43,17 @@
 	--font-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 	--font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 
-	/* Legacy alias kept for anything reading --base-font-family. */
-	--base-font-family: var(--font-sans);
-	--heading-font-family: var(--font-display);
-
 	/* ==========================================================================
 	   MOTION
 	   ========================================================================== */
-	--timing-instant: 80ms;
 	--timing-fast: 150ms;
 	--timing-normal: 220ms;
 	--timing-slow: 320ms;
 	--easing-default: cubic-bezier(0.32, 0.72, 0, 1); /* out-expo */
-	--easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
-	--easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+	/* Loops, not transitions: slower than any step above on purpose. A spinner
+	   faster than ~0.8s reads as agitation; a skeleton pulse needs ~1.5s. */
+	--timing-spin: 0.9s;
+	--timing-pulse: 1.6s;
 
 	/* ==========================================================================
 	   SENTIMENT PALETTES — perceptually-uniform OKLCH ramps
@@ -153,6 +150,16 @@
 		var(--sentiment-not-annotated) 30%,
 		transparent
 	);
+
+	/* Text drawn in a ramp colour on its own -bg tint (selected chips, scale
+	   chips, badges) is mixed toward --text-primary by this weight. The ramps
+	   themselves stay as they are — the chart palette test pins them — but the
+	   dark steps are illegible as text: on its own 18% tint over a card,
+	   `Non abordé` measured 1.9:1, `Marginal` 2.8:1, `Non applicable` 3.2:1,
+	   `Très négatif` 3.7:1. At 60% the worst case (`Non abordé`) is 4.8:1 and
+	   every other value clears 5.8:1. Components read `--sentiment-text`, which
+	   components.css derives from the element's own --sentiment-fg. */
+	--sentiment-text-weight: 60%;
 
 	/* --- Subjectivity (Score 1→5, sequential cool→warm by lightness) --- */
 	--sentiment-subjectivity-1: oklch(0.72 0.06 220); /* objective: cool, calm */
@@ -319,7 +326,6 @@
 	--sentiment-comparison: oklch(0.7 0.08 240);
 	--sentiment-comparison-light: oklch(0.78 0.06 240);
 	--sentiment-comparison-accent: oklch(0.74 0.12 320);
-	--sentiment-comparison-secondary: oklch(0.72 0.07 215);
 	--sentiment-comparison-bg: color-mix(in oklab, var(--sentiment-comparison) 14%, transparent);
 	--sentiment-comparison-border: color-mix(in oklab, var(--sentiment-comparison) 30%, transparent);
 
@@ -333,7 +339,6 @@
 	/* --- Extreme: reuses subjectivity-5 (warm/loud) so 'extreme' reads as
 	   intensity, not a separate brand --- */
 	--sentiment-extreme: var(--sentiment-subjectivity-5);
-	--sentiment-extreme-light: var(--sentiment-subjectivity-4);
 	--sentiment-extreme-accent: var(--sentiment-subjectivity-3);
 	--sentiment-extreme-bg: var(--sentiment-subjectivity-5-bg);
 	--sentiment-extreme-border: var(--sentiment-subjectivity-5-border);
@@ -363,7 +368,6 @@
 	--surface-card-elevated: oklch(0.235 0.015 260);
 	/* Nested panel inside a card */
 	--surface-nested: oklch(0.175 0.011 260);
-	--surface-nested-hover: oklch(0.195 0.012 260);
 
 	/* --- Border States --- */
 	--border-subtle: color-mix(in oklab, var(--color-surface-50) 8%, transparent);
@@ -381,11 +385,13 @@
 	--text-on-light: oklch(0.18 0.014 260); /* For text on light/bright backgrounds */
 	--text-primary: oklch(0.97 0.005 260);
 	--text-secondary: color-mix(in oklab, var(--text-primary) 84%, transparent);
-	--text-muted: color-mix(in oklab, var(--text-primary) 64%, transparent); /* AA floor for body */
-	/* ~3:1 — decorative rules, dividers, icon strokes beside a real label.
-	   NOT for text a reader has to make out on its own. */
+	/* 7.3:1 over a card — the floor for any text a reader has to make out,
+	   placeholders included. */
+	--text-muted: color-mix(in oklab, var(--text-primary) 64%, transparent);
+	/* 4.4:1 over a card: just under AA, so decorative rules, dividers and icon
+	   strokes beside a real label only. NOT text — not even a placeholder. */
 	--text-subtle: color-mix(in oklab, var(--text-primary) 46%, transparent);
-	/* ~2:1 — the disabled state of a control, and nothing else. Never a label. */
+	/* 2.6:1 — the disabled state of a control, and nothing else. Never a label. */
 	--text-disabled: color-mix(in oklab, var(--text-primary) 30%, transparent);
 	/* Decorative marks that must recede almost completely — the pull-quote
 	   glyph, empty-state iconography. Never text. Opaque rather than alpha so
@@ -500,6 +506,8 @@
 	/* --- Print — the one light-background context this app has. --- */
 	--print-surface: white;
 	--print-border: #ccc;
+	--print-text: #111;
+	--print-text-muted: #444;
 
 	/* --- Prose width — caps body paragraphs at a comfortable read --- */
 	--prose-width: 65ch;
@@ -602,7 +610,6 @@
 	--font-weight-medium: 500;
 	--font-weight-semibold: 600;
 	--font-weight-bold: 700;
-	--font-weight-black: 800;
 
 	/* --- Line Heights --- */
 	--line-height-tight: 1.15;
@@ -620,7 +627,6 @@
 	--tracking-widest: 0.14em; /* masthead eyebrows — the loosest step there is */
 
 	/* --- Icon Size Scale --- */
-	--size-icon-xs: 0.875rem; /* 14px */
 	--size-icon-sm: 1rem; /* 16px */
 	--size-icon-md: 1.25rem; /* 20px */
 	--size-icon-lg: 1.5rem; /* 24px */
@@ -663,16 +669,9 @@
 	--z-tooltip: 900;
 
 	/* --- Shadow/Elevation Scale (refined, more natural) --- */
-	--shadow-xs: 0 1px 2px color-mix(in oklab, black 18%, transparent);
-	--shadow-sm:
-		0 1px 2px color-mix(in oklab, black 12%, transparent),
-		0 2px 6px color-mix(in oklab, black 10%, transparent);
 	--shadow-md:
 		0 2px 4px color-mix(in oklab, black 12%, transparent),
 		0 8px 20px color-mix(in oklab, black 18%, transparent);
-	--shadow-lg:
-		0 4px 8px color-mix(in oklab, black 14%, transparent),
-		0 16px 40px color-mix(in oklab, black 22%, transparent);
 	--shadow-xl:
 		0 8px 16px color-mix(in oklab, black 18%, transparent),
 		0 32px 64px color-mix(in oklab, black 28%, transparent);
@@ -708,9 +707,27 @@
 		-1px 0 0 color-mix(in oklab, black 30%, transparent),
 		-8px 0 32px color-mix(in oklab, black 30%, transparent);
 
-	/* Focus ring — uses the editorial accent (warm amber) */
+	/* Scrims and control shadows. Black is a colour like any other here: it
+	   lives in the token layer so components never spell it. */
+	--scrim: color-mix(in oklab, black 65%, transparent);
+	--scrim-strong: color-mix(in oklab, black 70%, transparent);
+	--shadow-control-thumb: 0 2px 8px color-mix(in oklab, black 30%, transparent);
+	--shadow-control-knob: 0 2px 4px color-mix(in oklab, black 20%, transparent);
+	/* The edge shadow of a sideways-scrollable block (.table-container,
+	   .scroll-shadow-x). */
+	--scroll-shadow-ink: color-mix(in oklab, black 28%, transparent);
+
+	/* Focus indicator — a real outline, not a shadow. The old ring was a 3px
+	   amber box-shadow at 38% with `outline: none`: 2.3:1 against a card, and
+	   gone entirely in forced-colors mode, which drops box-shadows. Solid Wire
+	   Amber measures 8.8:1 on a card, 9.6:1 on the backdrop, 8.2:1 on an
+	   elevated card and 6.7:1 on a hovered control. The 2px offset keeps it
+	   clear of the control's own border. --ring-focus survives as an optional
+	   decorative halo only; it must never be the sole indicator. */
+	--focus-outline-color: var(--accent);
+	--focus-outline: 2px solid var(--focus-outline-color);
+	--focus-outline-offset: 2px;
 	--ring-focus: 0 0 0 3px color-mix(in oklab, var(--accent) 38%, transparent);
-	--ring-focus-error: 0 0 0 3px color-mix(in oklab, var(--color-error-500) 35%, transparent);
 
 	/* Force dark scheme for this app */
 	color-scheme: dark;

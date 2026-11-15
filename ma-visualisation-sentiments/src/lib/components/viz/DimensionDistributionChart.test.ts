@@ -33,6 +33,7 @@ it('presentation changes reuse the corpus aggregate and retain readable values',
 		getColor: () => '#aaaaaa',
 		title: 'Distribution',
 		seriesName: 'Polarity',
+		dimension: 'polarity',
 		seriesIdPrefix: 'test',
 		ariaLabel: 'Distribution'
 	});

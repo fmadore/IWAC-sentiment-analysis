@@ -9,6 +9,10 @@
 	import MaximizeIcon from '@lucide/svelte/icons/maximize';
 	import MinimizeIcon from '@lucide/svelte/icons/minimize';
 	import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
+	import ZoomInIcon from '@lucide/svelte/icons/zoom-in';
+	import ZoomOutIcon from '@lucide/svelte/icons/zoom-out';
+	import RotateCcwIcon from '@lucide/svelte/icons/rotate-ccw';
+	import Spinner from '#lib/components/common/Spinner.svelte';
 
 	interface IIIFViewerProps {
 		manifestUrl: string;
@@ -149,6 +153,21 @@
 		viewOptionsState.scanPage = page + 1;
 	}
 
+	// OpenSeadragon's own zoom controls are image sprites in a style this app
+	// does not use, so they stay off and these buttons drive the viewport.
+	// Without them zoom was reachable only by wheel or pinch — no keyboard
+	// path and nothing to discover on a trackpad-less desktop.
+	function zoomBy(factor: number) {
+		const viewport = viewer?.viewport;
+		if (!viewport) return;
+		viewport.zoomBy(factor);
+		viewport.applyConstraints();
+	}
+
+	function resetZoom() {
+		viewer?.viewport?.goHome();
+	}
+
 	function toggleExpanded() {
 		expanded = !expanded;
 		// Fit only the viewer that requested this resize, if it is still mounted.
@@ -165,8 +184,8 @@
 	<div class="iiif-viewer-wrapper" data-expanded={expanded}>
 		{#if loading}
 			<div class="viewer-placeholder">
-				<div class="viewer-spinner"></div>
-				<p class="viewer-note">{$t.messages.loading ?? 'Loading...'}</p>
+				<Spinner size="xl" decorative --spinner-accent="var(--color-primary-400)" />
+				<p class="viewer-note" role="status">{$t.messages.loading}</p>
 			</div>
 		{:else if error}
 			<div class="viewer-placeholder">
@@ -178,8 +197,8 @@
 						rel="noopener noreferrer"
 						class="viewer-fallback-link"
 					>
-						{$t.article.consultOriginalArticle ?? 'View original article'}
-						<ExternalLinkIcon size={14} />
+						{$t.article.consultOriginalArticle}
+						<ExternalLinkIcon size={14} aria-hidden="true" />
 					</a>
 				{/if}
 			</div>
@@ -189,26 +208,61 @@
 				{#if totalPages > 1}
 					<div class="page-nav">
 						<button
+							type="button"
 							class="viewer-btn"
 							onclick={() => goToPage(currentPage - 1)}
 							disabled={currentPage === 0}
 							aria-label={$t.common.previous}
 						>
-							<ChevronLeftIcon size={16} />
+							<ChevronLeftIcon size={18} aria-hidden="true" />
 						</button>
 						<span class="page-indicator">{currentPage + 1} / {totalPages}</span>
 						<button
+							type="button"
 							class="viewer-btn"
 							onclick={() => goToPage(currentPage + 1)}
 							disabled={currentPage === totalPages - 1}
 							aria-label={$t.common.next}
 						>
-							<ChevronRightIcon size={16} />
+							<ChevronRightIcon size={18} aria-hidden="true" />
 						</button>
 					</div>
 				{/if}
 				<div class="toolbar-actions">
-					<button class="viewer-btn" onclick={toggleExpanded} aria-label={$t.audit.expandViewer}>
+					<button
+						type="button"
+						class="viewer-btn"
+						onclick={() => zoomBy(1.5)}
+						aria-label={$t.audit.zoomIn}
+						title={$t.audit.zoomIn}
+					>
+						<ZoomInIcon size={18} aria-hidden="true" />
+					</button>
+					<button
+						type="button"
+						class="viewer-btn"
+						onclick={() => zoomBy(1 / 1.5)}
+						aria-label={$t.audit.zoomOut}
+						title={$t.audit.zoomOut}
+					>
+						<ZoomOutIcon size={18} aria-hidden="true" />
+					</button>
+					<button
+						type="button"
+						class="viewer-btn"
+						onclick={resetZoom}
+						aria-label={$t.audit.zoomReset}
+						title={$t.audit.zoomReset}
+					>
+						<RotateCcwIcon size={18} aria-hidden="true" />
+					</button>
+					<button
+						type="button"
+						class="viewer-btn"
+						onclick={toggleExpanded}
+						aria-label={$t.audit.expandViewer}
+						aria-pressed={expanded}
+					>
 						{#if expanded}
 							<MinimizeIcon size={16} />
 						{:else}
@@ -249,6 +303,8 @@
 		z-index: var(--z-tooltip);
 		border-radius: var(--radius-panel);
 		box-shadow: var(--shadow-xl);
+		display: flex;
+		flex-direction: column;
 	}
 
 	.osd-container {
@@ -257,8 +313,11 @@
 		cursor: grab;
 	}
 
+	/* Fills whatever the toolbar leaves, whatever the toolbar's height. */
 	.iiif-viewer-wrapper[data-expanded='true'] .osd-container {
-		height: calc(100% - 44px);
+		flex: 1;
+		height: auto;
+		min-height: 0;
 	}
 
 	.viewer-placeholder {
@@ -268,21 +327,6 @@
 		justify-content: center;
 		gap: var(--space-3);
 		height: 200px;
-	}
-
-	.viewer-spinner {
-		width: var(--size-icon-xl);
-		height: var(--size-icon-xl);
-		border: 2px solid var(--border-hover);
-		border-top-color: var(--color-primary-400);
-		border-radius: var(--radius-circle);
-		animation: spin 0.8s linear infinite;
-	}
-
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
 	}
 
 	.viewer-toolbar {
@@ -319,8 +363,9 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: var(--size-control-sm);
-		height: var(--size-control-sm);
+		/* 40px: the touch-target floor (DESIGN.md, Accessibility floors). */
+		width: var(--size-control-lg);
+		height: var(--size-control-lg);
 		border-radius: var(--radius-hairline);
 		border: none;
 		background: var(--surface-subtle);
@@ -359,10 +404,6 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.viewer-spinner {
-			animation: none;
-		}
-
 		.viewer-btn {
 			transition: none;
 		}

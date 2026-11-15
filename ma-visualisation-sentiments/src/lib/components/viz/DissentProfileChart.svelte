@@ -36,7 +36,9 @@
 	import { num, pct } from '#lib/i18n/utils.js';
 	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
-	import { innerWidth } from 'svelte/reactivity/window';
+	import { isCompactWidth } from '#lib/utils/viewport.svelte.js';
+	import { useChartCardHeading } from '#lib/components/ui/chartCardHeading.svelte.js';
+	import ChartHeading from './ChartHeading.svelte';
 
 	import { t } from '#lib/i18n/index.js';
 	import { getModelDisplayNames } from '#lib/utils/format.js';
@@ -47,6 +49,8 @@
 		tooltipSeriesRow
 	} from '#lib/utils/chartFormatters.js';
 	import { datasetState } from '#lib/stores/index.js';
+	import { modelSeriesColor } from '#lib/stores/datasets.svelte.js';
+	import type { DatasetId } from '#lib/types/data.js';
 	import {
 		barycentric,
 		rankNewspaperDisagreement,
@@ -57,9 +61,7 @@
 	} from '#lib/utils/consensus.js';
 	import ChartTypeToggle from './ChartTypeToggle.svelte';
 	import {
-		seriesColorPalette,
 		chartColors,
-		getTitleStyle,
 		getTooltipConfig,
 		getLegendConfig,
 		getAxisLineStyle,
@@ -86,7 +88,9 @@
 		minArticles = 30
 	}: DissentProfileChartProps = $props();
 
-	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
+	// Compact layout follows the chart's own width, not the window's.
+	let containerWidth = $state<number>();
+	let isMobile = $derived(isCompactWidth(containerWidth));
 
 	/** One corner per model, or no triangle at all. See the header comment. */
 	let supportsTernary = $derived(models.length === TRIANGLE_CORNERS.length);
@@ -113,9 +117,13 @@
 	 * are the polarity ramp's hues, and a model series wearing them next to a
 	 * sentiment chart reads as a claim about sentiment.
 	 */
-	let modelColors = $derived(
-		models.map((_, index) => seriesColorPalette[index % seriesColorPalette.length])
-	);
+	// `modelSeriesColor` is the single source, so a model keeps its colour in every chart.
+	let modelColors = $derived(models.map((id) => modelSeriesColor(id as DatasetId)));
+
+	const heading = useChartCardHeading(() => ({
+		title: $t.agreement.dissentTitle,
+		subtitle: $t.agreement.dissentSubtitle
+	}));
 
 	let ranked = $derived(
 		rankNewspaperDisagreement(rows, dimension, models.length, { includeDeclined, minArticles })
@@ -158,18 +166,6 @@
 
 		return {
 			backgroundColor: 'transparent',
-			title: {
-				text: currentT.agreement.dissentTitle,
-				subtext: currentT.agreement.dissentSubtitle,
-				left: 'center',
-				top: '1%',
-				textStyle: getTitleStyle(isMobile),
-				subtextStyle: {
-					color: chartColors.text.secondary,
-					fontSize: isMobile ? 10 : 12,
-					fontFamily: '"JetBrains Mono", ui-monospace, monospace'
-				}
-			},
 			tooltip: {
 				...getTooltipConfig(isMobile),
 				trigger: 'axis',
@@ -201,10 +197,10 @@
 			legend: {
 				...getLegendConfig(isMobile),
 				data: seriesNames,
-				top: isMobile ? '12%' : '9%'
+				top: 0
 			},
 			grid: {
-				top: isMobile ? 150 : 130,
+				top: isMobile ? 90 : 60,
 				bottom: 40,
 				left: '2%',
 				right: isMobile ? '6%' : '4%',
@@ -265,7 +261,7 @@
 	 */
 	function geometry(width: number, height: number) {
 		const margin = isMobile ? 48 : 64;
-		const top = isMobile ? 110 : 96;
+		const top = isMobile ? 40 : 32;
 		const usableWidth = Math.max(1, width - margin * 2);
 		const usableHeight = Math.max(1, height - top - margin);
 		const side = Math.min(usableWidth, usableHeight / (Math.sqrt(3) / 2));
@@ -291,18 +287,6 @@
 
 		return {
 			backgroundColor: 'transparent',
-			title: {
-				text: currentT.agreement.dissentTitle,
-				subtext: currentT.agreement.dissentSubtitle,
-				left: 'center',
-				top: '1%',
-				textStyle: getTitleStyle(isMobile),
-				subtextStyle: {
-					color: chartColors.text.secondary,
-					fontSize: isMobile ? 10 : 12,
-					fontFamily: '"JetBrains Mono", ui-monospace, monospace'
-				}
-			},
 			tooltip: {
 				...getTooltipConfig(isMobile),
 				trigger: 'item',
@@ -447,16 +431,18 @@
 
 	let chartHeight = $derived(
 		activeMode === 'stacked'
-			? Math.max(360, byDissent.length * (isMobile ? 20 : 24) + 170)
+			? Math.max(320, byDissent.length * (isMobile ? 20 : 24) + 110)
 			: isMobile
 				? 420
 				: 560
 	);
 </script>
 
+{#if !heading.inCard}
+	<ChartHeading title={$t.agreement.dissentTitle} subtitle={$t.agreement.dissentSubtitle} />
+{/if}
 {#if ranked.length > 0}
 	<div class="chart-toolbar">
-		<span class="toolbar-label">{$t.agreement.dissentTitle}</span>
 		{#if supportsTernary}
 			<ChartTypeToggle
 				options={modeOptions}
@@ -475,6 +461,7 @@
 		<div
 			style="height: {chartHeight}px; position: relative;"
 			class="chart-container"
+			bind:clientWidth={containerWidth}
 			role="img"
 			aria-label={$t.agreement.dissentTitle}
 		>

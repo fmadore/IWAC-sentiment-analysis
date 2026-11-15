@@ -17,7 +17,16 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from iwac_preprocess import CONTRACT_V2, arbiter_prompt, arbiter_selection
+from iwac_preprocess import (
+    CONTRACT_V2,
+    arbiter_judges,
+    arbiter_lifecycle,
+    arbiter_prompt,
+    arbiter_schema,
+    arbiter_selection,
+)
+from iwac_preprocess.arbiter_judges import PROVIDER_ANTHROPIC, ArbiterUsage
+from iwac_preprocess.arbiter_selection import RULE_SPREAD, SPREAD_KEYS, ThresholdError
 from pydantic import ValidationError
 
 
@@ -177,7 +186,7 @@ def test_dimensions_narrows_which_disagreements_are_worth_arbitrating():
     selected whatever dimensions are named, which is the next test.
     """
     records = [subjectivity_only_conflict(1), polarity_conflict(2)]
-    spread = {"rule": arbiter.RULE_SPREAD}
+    spread = {"rule": RULE_SPREAD}
 
     everything = arbiter.find_three_way_conflicts(records, **spread)
     assert {str(a["o:id"]) for a in everything} == {"1", "2"}
@@ -217,7 +226,7 @@ def test_the_union_rule_adds_flips_the_spread_rule_cannot_reach():
             MODEL_IDS[4]: ("Neutre", "Mixte", "Central"),
         },
     )
-    assert arbiter.find_three_way_conflicts([flip_only], rule=arbiter.RULE_SPREAD) == []
+    assert arbiter.find_three_way_conflicts([flip_only], rule=RULE_SPREAD) == []
 
     selected = arbiter.find_three_way_conflicts([flip_only], rule=arbiter.RULE_UNION)
     assert len(selected) == 1
@@ -248,14 +257,14 @@ def test_threshold_can_be_raised():
     # Positif (4) .. Très négatif (1) is a spread of exactly 3, so a threshold
     # of 4 must drop it.
     records = [polarity_conflict(1)]
-    spread = {"rule": arbiter.RULE_SPREAD}
+    spread = {"rule": RULE_SPREAD}
     assert len(arbiter.find_three_way_conflicts(records, threshold=3, **spread)) == 1
     assert arbiter.find_three_way_conflicts(records, threshold=4, **spread) == []
 
 
 def test_threshold_cannot_be_lowered_below_the_contract():
     """A looser run would write a file validate_generated_data rejects."""
-    with pytest.raises(SystemExit, match="looser than"):
+    with pytest.raises(ThresholdError, match="looser than"):
         arbiter.resolve_threshold(2)
     assert arbiter.resolve_threshold(None) == CONTRACT_V2.significant_spread_threshold
     assert arbiter.resolve_threshold(4) == 4
@@ -268,13 +277,13 @@ def test_threshold_cannot_be_lowered_below_the_contract():
 
 def articles_with_spread(pairs: list[tuple[str, int]], dimension: str = "polarity") -> list[dict]:
     """Articles carrying their whole disagreement on one dimension."""
-    spreads = dict.fromkeys(arbiter.SPREAD_KEYS.values(), 0)
+    spreads = dict.fromkeys(SPREAD_KEYS.values(), 0)
     return [
         {
             "o:id": article_id,
             "spread": {
                 **spreads,
-                arbiter.SPREAD_KEYS[dimension]: total,
+                SPREAD_KEYS[dimension]: total,
                 "total_spread": total,
             },
         }
@@ -323,12 +332,15 @@ def test_no_limit_and_a_limit_above_the_count_keep_everything_in_corpus_order():
 
 def test_there_is_one_blind_label_per_panel_model():
     assert len(arbiter.BLIND_LABELS) == len(MODEL_IDS)
-    assert arbiter.PREFERENCE_VALUES == (*arbiter.BLIND_LABELS, "multiple", "none")
+    assert arbiter_schema.PREFERENCE_VALUES == (*arbiter.BLIND_LABELS, "multiple", "none")
 
 
 def test_a_stored_permutation_is_reused_verbatim():
     stored = {"blind_permutation": rotated_permutation()}
-    assert arbiter.resolve_blind_permutation(stored, MODEL_IDS) == stored["blind_permutation"]
+    assert (
+        arbiter_lifecycle.resolve_blind_permutation(stored, MODEL_IDS)
+        == stored["blind_permutation"]
+    )
 
 
 def test_a_malformed_or_stale_permutation_is_redrawn():
@@ -341,7 +353,7 @@ def test_a_malformed_or_stale_permutation_is_redrawn():
         {"blind_permutation": duplicated},
         {"blind_permutation": foreign},
     ):
-        drawn = arbiter.resolve_blind_permutation(metadata, MODEL_IDS)
+        drawn = arbiter_lifecycle.resolve_blind_permutation(metadata, MODEL_IDS)
         assert set(drawn) == set(arbiter.BLIND_LABELS)
         assert sorted(drawn.values()) == sorted(MODEL_IDS)
 
@@ -349,9 +361,9 @@ def test_a_malformed_or_stale_permutation_is_redrawn():
 def test_a_panel_that_does_not_fill_the_labels_is_refused_with_a_readable_error():
     """`zip(..., strict=True)` fails here cryptically; the panel size is the bug."""
     with pytest.raises(ValueError, match="bijection"):
-        arbiter.resolve_blind_permutation({}, MODEL_IDS[:-1])
+        arbiter_lifecycle.resolve_blind_permutation({}, MODEL_IDS[:-1])
     with pytest.raises(ValueError, match="bijection"):
-        arbiter.resolve_blind_permutation({}, [*MODEL_IDS, "sixth-model"])
+        arbiter_lifecycle.resolve_blind_permutation({}, [*MODEL_IDS, "sixth-model"])
 
 
 # ---------------------------------------------------------------------------
@@ -408,7 +420,8 @@ def test_prompt_order_varies_by_article_so_position_bias_is_not_a_model_effect()
     and no comparison could ever separate the two effects.
     """
     orders = {
-        article_id: arbiter.display_order(article_id) for article_id in ("1", "2", "3", "4", "5")
+        article_id: arbiter_prompt.display_order(article_id)
+        for article_id in ("1", "2", "3", "4", "5")
     }
     assert any(order != list(arbiter.BLIND_LABELS) for order in orders.values())
     assert len({tuple(order) for order in orders.values()}) > 1
@@ -417,7 +430,7 @@ def test_prompt_order_varies_by_article_so_position_bias_is_not_a_model_effect()
 
 
 def test_prompt_order_is_stable_for_one_article_so_a_rerun_reproduces_it():
-    assert arbiter.display_order("2231") == arbiter.display_order("2231")
+    assert arbiter_prompt.display_order("2231") == arbiter_prompt.display_order("2231")
 
 
 def test_prompt_says_so_when_the_article_text_is_cut():
@@ -666,7 +679,7 @@ def test_the_system_prefix_is_sent_as_one_cached_block():
     assert sent["system"] == [
         {
             "type": "text",
-            "text": arbiter.SYSTEM_INSTRUCTION,
+            "text": arbiter_prompt.SYSTEM_INSTRUCTION,
             "cache_control": {"type": "ephemeral"},
         }
     ]
@@ -675,26 +688,27 @@ def test_the_system_prefix_is_sent_as_one_cached_block():
 def test_the_estimate_prices_the_cached_prefix_once():
     """A run that ignored the cache would quote a third more input than it costs."""
     articles = [prompt_article() for _ in range(10)]
-    estimate = arbiter.estimate_cost(articles, PERMUTATION, "medium")
+    estimate = arbiter_judges.estimate_panel_cost(articles, PERMUTATION, "medium")
 
     assert estimate["billable_input_tokens"] < estimate["input_tokens"]
     assert estimate["cache_saving_usd"] > 0
     # One write plus nine reads, never ten full copies. The prefix is the
     # measured one — schema included — not just the system instruction, which is
     # what the run's `cache_read_input_tokens` showed it to be.
-    prefix = arbiter.CACHED_PREFIX_TOKENS
-    assert prefix > len(arbiter.SYSTEM_INSTRUCTION) / arbiter.ESTIMATE_CHARS_PER_TOKEN
+    prefix = arbiter_judges.CACHED_PREFIX_TOKENS
+    published = arbiter_prompt.SYSTEM_INSTRUCTIONS[arbiter_prompt.PROMPT_V2_2_0]
+    assert prefix > len(published) / arbiter_judges.ESTIMATE_CHARS_PER_TOKEN
     saved = estimate["input_tokens"] - estimate["billable_input_tokens"]
     assert saved == pytest.approx(
         10 * prefix
-        - prefix * arbiter.CACHE_WRITE_MULTIPLIER
-        - 9 * prefix * arbiter.CACHE_READ_MULTIPLIER,
+        - prefix * arbiter_judges.CACHE_WRITE_MULTIPLIER
+        - 9 * prefix * arbiter_judges.CACHE_READ_MULTIPLIER,
         rel=0.01,
     )
 
 
 def test_the_estimate_handles_an_empty_selection():
-    assert arbiter.estimate_cost([], {}, "medium")["usd"] == 0
+    assert arbiter_judges.estimate_panel_cost([], {}, "medium")["usd"] == 0
 
 
 def test_usage_is_recorded_so_the_estimate_can_be_checked_against_reality():
@@ -710,7 +724,7 @@ def test_usage_is_recorded_so_the_estimate_can_be_checked_against_reality():
         cache_read_input_tokens=0,
     )
     client = StubClient(message(valid_response(), usage=usage))
-    totals = arbiter.UsageTotals()
+    totals = ArbiterUsage(PROVIDER_ANTHROPIC)
     arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION, usage=totals)
 
     assert totals.calls == 1
@@ -728,7 +742,7 @@ def test_a_failed_call_is_still_billed_and_still_counted():
         cache_read_input_tokens=1463,
     )
     client = StubClient(message(valid_response(), stop_reason="refusal", usage=usage))
-    totals = arbiter.UsageTotals()
+    totals = ArbiterUsage(PROVIDER_ANTHROPIC)
     result = arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION, usage=totals)
     assert result.analysis is None
     assert result.outcome == arbiter.OUTCOME_REFUSED
@@ -737,7 +751,7 @@ def test_a_failed_call_is_still_billed_and_still_counted():
 
 
 def test_usage_metadata_is_empty_when_nothing_was_spent():
-    assert arbiter.UsageTotals().as_metadata() == {}
+    assert ArbiterUsage(PROVIDER_ANTHROPIC).as_metadata() == {}
 
 
 def test_a_schema_violation_is_not_retried():
@@ -781,6 +795,19 @@ def test_an_article_without_text_is_never_sent():
 # ---------------------------------------------------------------------------
 
 
+# Upstream HEAD as the stub sources see it; a test moves it to simulate new
+# commits on Hugging Face. A requested revision is honoured as asked.
+SOURCES = {"scores_head": "rev-scores", "text_head": "rev-text"}
+
+
+def served(revision, head):
+    return head if revision in (None, "main") else revision
+
+
+def stub_texts(texts: dict[str, str]):
+    return lambda revision=None: (dict(texts), served(revision, SOURCES["text_head"]))
+
+
 @pytest.fixture
 def stub_pipeline(monkeypatch, tmp_path):
     records = [
@@ -788,15 +815,24 @@ def stub_pipeline(monkeypatch, tmp_path):
         record(2, spread_of(PANEL_FULL_FLIP)),
         record(3, spread_of(["Neutre"] * len(MODEL_IDS))),  # not eligible
     ]
-    monkeypatch.setattr(arbiter, "load_dataset_records", lambda *a, **k: records)
+    monkeypatch.setitem(SOURCES, "scores_head", "rev-scores")
+    monkeypatch.setitem(SOURCES, "text_head", "rev-text")
+    requested: list = []
     monkeypatch.setattr(
-        arbiter, "load_iwac_full_text", lambda: {"1": "Texte un.", "2": "Texte deux."}
+        arbiter,
+        "load_dataset_records",
+        lambda revision=None: (
+            requested.append(revision) or list(records),
+            served(revision, SOURCES["scores_head"]),
+        ),
+    )
+    monkeypatch.setattr(
+        arbiter, "load_article_texts", stub_texts({"1": "Texte un.", "2": "Texte deux."})
     )
     monkeypatch.setattr(arbiter, "get_webapp_data_dir", lambda: str(tmp_path))
     monkeypatch.setattr(arbiter, "get_staging_dir", lambda: str(tmp_path / ".staging"))
-    monkeypatch.setattr(
-        arbiter, "get_source_revision", lambda repo=None: "rev-scores" if repo else None
-    )
+    monkeypatch.delenv("IWAC_HF_REVISION", raising=False)
+    monkeypatch.delenv("IWAC_HF_FULL_REVISION", raising=False)
 
     def refuse_client(api_key):
         raise AssertionError("no client may be constructed without an explicit paid run")
@@ -847,11 +883,11 @@ def test_prune_cache_only_publishes_the_envelope_the_validator_expects(stub_pipe
     assert metadata["models"] == MODEL_IDS
     assert len(metadata["models"]) == 5
     assert metadata["arbiter_model"] == arbiter.ARBITER_MODEL
-    # The five-model prompt is not the three-model one, and v2.2.0 is not
-    # v2.1.0: the analyses are now laid out in a per-article order and the
-    # instruction says so. A cached verdict from older wording must not be
-    # adopted silently, which is what makes this literal worth spelling out.
-    assert metadata["prompt_version"] == CONTRACT_V2.arbiter["promptVersion"] == "v2.2.0"
+    # A new run defaults to v2.3.0, the codebook-parity prompt; the published
+    # 301 were judged under v2.2.0. The version is hashed into every
+    # fingerprint, so a cached verdict from other wording is never adopted
+    # silently, which is what makes this literal worth spelling out.
+    assert metadata["prompt_version"] == CONTRACT_V2.arbiter["promptVersion"] == "v2.3.0"
     assert metadata["contract_schema_version"] == CONTRACT_V2.schema_version
     assert metadata["analysis_version"] == "v2"
     assert sorted(metadata["blind_permutation"].values()) == sorted(MODEL_IDS)
@@ -880,7 +916,7 @@ def test_an_incremental_run_reuses_the_permutation_it_published(stub_pipeline):
 def test_missing_article_text_is_reported_and_the_article_is_dropped(
     stub_pipeline, monkeypatch, caplog
 ):
-    monkeypatch.setattr(arbiter, "load_iwac_full_text", lambda: {"1": "Texte un."})
+    monkeypatch.setattr(arbiter, "load_article_texts", stub_texts({"1": "Texte un."}))
     with caplog.at_level("INFO"):
         assert arbiter.main(["--prune-cache-only"]) == 0
     payload = json.loads((stub_pipeline / arbiter.OUTPUT_FILENAME).read_text(encoding="utf-8"))
@@ -916,13 +952,17 @@ def read_ts_template(name: str) -> str:
     return source[start:end].replace("\\`", "`")
 
 
-def test_the_published_system_instruction_is_the_one_that_is_sent():
+@pytest.mark.parametrize("version", arbiter_prompt.PROMPT_VERSIONS)
+def test_the_published_system_instruction_is_the_one_that_is_sent(version):
     """A methodology card that paraphrases the prompt is worse than none.
 
-    The card claims to show the exact instruction. Nothing else keeps the two
-    copies in step, and a drift is invisible in both languages.
+    The card claims to show the exact instruction, per version: the published
+    run's (v2.2.0) while its verdicts are on display, the current one after a
+    re-run. Nothing else keeps the copies in step, and a drift is invisible in
+    both languages.
     """
-    assert read_ts_template("ARBITER_SYSTEM_INSTRUCTION_V2") == arbiter.SYSTEM_INSTRUCTION
+    name = "ARBITER_SYSTEM_INSTRUCTION_V" + version.removeprefix("v").replace(".", "_")
+    assert read_ts_template(name) == arbiter_prompt.SYSTEM_INSTRUCTIONS[version]
 
 
 def test_the_published_user_template_matches_the_prompt_the_script_assembles():
@@ -942,22 +982,25 @@ def test_the_published_user_template_matches_the_prompt_the_script_assembles():
         assert stripped in rendered, f"template line not produced by the script: {stripped!r}"
 
 
-def test_main_returns_nonzero_when_the_source_cannot_be_loaded(monkeypatch):
-    def fail():
+def test_main_returns_nonzero_when_the_source_cannot_be_loaded(monkeypatch, tmp_path):
+    def fail(revision=None):
         raise OSError("offline")
 
     monkeypatch.setattr(arbiter, "load_dataset_records", fail)
+    monkeypatch.setattr(arbiter, "get_webapp_data_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(arbiter, "get_staging_dir", lambda: str(tmp_path / ".staging"))
     assert arbiter.main(["--dry-run"]) == 2
 
 
 def test_main_returns_nonzero_when_the_private_mirror_is_unavailable(monkeypatch, tmp_path):
-    monkeypatch.setattr(arbiter, "load_dataset_records", lambda *a, **k: [])
+    monkeypatch.setattr(arbiter, "load_dataset_records", lambda revision=None: ([], "rev"))
     monkeypatch.setattr(arbiter, "get_webapp_data_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(arbiter, "get_staging_dir", lambda: str(tmp_path / ".staging"))
 
-    def fail():
+    def fail(revision=None):
         raise RuntimeError("HF_TOKEN is required")
 
-    monkeypatch.setattr(arbiter, "load_iwac_full_text", fail)
+    monkeypatch.setattr(arbiter, "load_article_texts", fail)
     assert arbiter.main(["--dry-run"]) == 2
 
 
@@ -969,8 +1012,8 @@ def test_main_returns_nonzero_when_the_private_mirror_is_unavailable(monkeypatch
 def test_the_script_uses_the_selection_modules_vocabulary_not_a_copy():
     assert arbiter.RULES is arbiter_selection.RULES
     assert arbiter.DIMENSIONS is arbiter_selection.DIMENSIONS
-    assert arbiter.SPREAD_KEYS is arbiter_selection.SPREAD_KEYS
     assert arbiter.BLIND_LABELS is arbiter_prompt.BLIND_LABELS
+    assert arbiter.system_instruction is arbiter_prompt.system_instruction
 
 
 def test_an_unknown_rule_is_refused_rather_than_widened_to_the_union():
@@ -1026,7 +1069,10 @@ def test_a_run_that_spends_nothing_keeps_the_published_cost(stub_pipeline):
 
 
 def test_the_resumed_cost_is_the_published_figure():
-    assert arbiter.UsageTotals.from_metadata(PUBLISHED_USAGE).as_metadata() == PUBLISHED_USAGE
+    assert (
+        ArbiterUsage.from_metadata(PUBLISHED_USAGE, PROVIDER_ANTHROPIC).as_metadata()
+        == PUBLISHED_USAGE
+    )
 
 
 def paid_run(monkeypatch, outcomes: list) -> None:

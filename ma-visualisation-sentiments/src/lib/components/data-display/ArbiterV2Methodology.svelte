@@ -7,22 +7,53 @@
   reason ArbiterV2View is a sibling of ArbiterView: almost every claim differs.
   The v1 card describes a pairwise Gemini judge reading the public projection;
   this one describes a panel-wide Claude Opus 5 judge reading the unmasked
-  mirror. Merging them would mean a conditional on every sentence.
+  mirror. Merging them would mean a conditional on every sentence; they share
+  leaf components only (MethodologyKeyInfo, MethodologySection,
+  MethodologyScales, PromptBlocks).
 
   It says plainly that the v1 arbiter read partly-masked text. That is a real
   limitation of the archived generation, and a methodology card that omits it
   is not doing its job.
+
+  The figures in the caveats are computed from the loaded file and the panel's
+  ratings (`loneDissenters`, `strictLoneSplits`, `arbiterMatchRates`,
+  `recusedOnlyFlips`, `panelUnanimity`), and the letters, panel size and pair
+  count from the contract, never typed into the catalogue.
 -->
 <script lang="ts">
 	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
 	import { t } from '#lib/i18n/index.js';
-	import { AccordionItem, PromptModal } from '#lib/components/common/index.js';
+	import { num, pct } from '#lib/i18n/utils.js';
+	import AccordionItem from '#lib/components/common/AccordionItem.svelte';
+	import PromptModal from '#lib/components/common/PromptModal.svelte';
 	import CollapsibleMethodologyCard from '#lib/components/common/CollapsibleMethodologyCard.svelte';
-	import SentimentScaleList, {
-		type ScaleItem
-	} from '#lib/components/common/SentimentScaleList.svelte';
-	import { loadPromptTexts, promptTexts } from '#lib/data/promptTexts.svelte.js';
-	import { ARBITER_RECUSED_IDS, SENTIMENT_CONTRACT_V2 } from '#lib/domain/sentimentContract.js';
+	import MethodologyKeyInfo from '#lib/components/common/MethodologyKeyInfo.svelte';
+	import MethodologySection from '#lib/components/common/MethodologySection.svelte';
+	import MethodologyScales from '#lib/components/common/MethodologyScales.svelte';
+	import PromptBlocks from '#lib/components/common/PromptBlocks.svelte';
+	import {
+		ARBITER_PANEL_IDS,
+		ARBITER_RECUSED_IDS,
+		SENTIMENT_CONTRACT_V2,
+		SUBJECTIVITY_LABELS_V2,
+		datasetIdsOf
+	} from '#lib/domain/sentimentContract.js';
+	import {
+		arbiterV2Evaluations,
+		arbiterV2Rows,
+		arbiterV2Statistics,
+		articleState,
+		datasetState
+	} from '#lib/stores/index.js';
+	import { ARBITER_BLIND_LABELS, type DatasetId } from '#lib/types/data.js';
+	import {
+		arbiterMatchRates,
+		loneDissenters,
+		panelUnanimity,
+		recusedOnlyFlips,
+		strictLoneSplits
+	} from '#lib/utils/arbiterV2.js';
+	import { subjectivityScaleItems } from '#lib/utils/scaleItems.js';
 	import { createAccordion } from '#lib/utils/accordion.svelte.js';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import EyeOffIcon from '@lucide/svelte/icons/eye-off';
@@ -42,19 +73,34 @@
 	 */
 	const selectionRule = `polarity valence flip, or spread across the panel ≥ ${spreadThreshold}`;
 
-	const polarityItems: ScaleItem[] = $derived([
+	/**
+	 * What the judge was shown, from the contract: the arbiter panel is exactly
+	 * the models the published run read, one blind letter each.
+	 */
+	const judgedCount = ARBITER_PANEL_IDS.length;
+	const panelValues = {
+		firstLabel: ARBITER_BLIND_LABELS[0].toUpperCase(),
+		lastLabel: ARBITER_BLIND_LABELS[judgedCount - 1].toUpperCase()
+	};
+
+	const keyInfo = $derived([
 		{
-			variant: 'polarity-very-positive',
-			badge: 'Très positif',
-			description: $t.arbiter.polarityVeryPositive
+			icon: EyeOffIcon,
+			tone: 'blind' as const,
+			title: $t.arbiterV2.blindEvaluation,
+			description: fill($t.arbiterV2.blindEvaluationDesc, panelValues)
 		},
-		{ variant: 'polarity-positive', badge: 'Positif', description: $t.arbiter.polarityPositive },
-		{ variant: 'polarity-neutral', badge: 'Neutre', description: $t.arbiter.polarityNeutral },
-		{ variant: 'polarity-negative', badge: 'Négatif', description: $t.arbiter.polarityNegative },
 		{
-			variant: 'polarity-very-negative',
-			badge: 'Très négatif',
-			description: $t.arbiter.polarityVeryNegative
+			icon: FileTextIcon,
+			tone: 'arbiter' as const,
+			title: $t.arbiterV2.fullText,
+			description: $t.arbiterV2.fullTextDesc
+		},
+		{
+			icon: ScaleIcon,
+			tone: 'positive' as const,
+			title: $t.arbiterV2.independentVerdict,
+			description: $t.arbiterV2.independentVerdictDesc
 		}
 	]);
 
@@ -63,55 +109,127 @@
 	 * shows the wording the arbiter actually answered in. The 1-5 rank behind it
 	 * is an implementation detail of the data files.
 	 */
-	const subjectivityItems: ScaleItem[] = $derived([
-		{ variant: 'subjectivity-1', badge: 'Très objectif', description: $t.arbiter.subjectivity1 },
-		{
-			variant: 'subjectivity-2',
-			badge: 'Plutôt objectif',
-			description: $t.arbiter.subjectivity2
-		},
-		{ variant: 'subjectivity-3', badge: 'Mixte', description: $t.arbiter.subjectivity3 },
-		{
-			variant: 'subjectivity-4',
-			badge: 'Plutôt subjectif',
-			description: $t.arbiter.subjectivity4
-		},
-		{ variant: 'subjectivity-5', badge: 'Très subjectif', description: $t.arbiter.subjectivity5 }
-	]);
+	const subjectivityItems = $derived(
+		subjectivityScaleItems($t.arbiter, { badge: (step) => SUBJECTIVITY_LABELS_V2[step.value] })
+	);
 
-	const centralityItems: ScaleItem[] = $derived([
-		{
-			variant: 'centrality-very-central',
-			badge: 'Très central',
-			description: $t.arbiter.centralityVeryCentral
-		},
-		{ variant: 'centrality-central', badge: 'Central', description: $t.arbiter.centralityCentral },
-		{
-			variant: 'centrality-secondary',
-			badge: 'Secondaire',
-			description: $t.arbiter.centralitySecondary
-		},
-		{
-			variant: 'centrality-marginal',
-			badge: 'Marginal',
-			description: $t.arbiter.centralityMarginal
-		},
-		{
-			variant: 'centrality-not-addressed',
-			badge: 'Non abordé',
-			description: $t.arbiter.centralityNotAddressed
-		}
-	]);
-	// The prompt texts load only when the modal opens (see promptTexts.svelte.ts).
-	$effect(() => {
-		if (viewOptionsState.prompt) {
-			loadPromptTexts().catch((error) => console.error('Failed to load the prompt texts:', error));
-		}
+	/**
+	 * The prompt the published verdicts were judged under, not the contract's
+	 * default for new runs: the card shows what produced the file on screen. A
+	 * file without the field predates it and is the v2.2.0 run.
+	 */
+	const publishedPromptVersion = $derived(
+		arbiterV2Evaluations.current?.metadata.prompt_version ?? 'v2.2.0'
+	);
+	// v2.2.0 is the run whose scale reference was shorter than the codebook.
+	const showPromptCaveat = $derived(publishedPromptVersion === 'v2.2.0');
+
+	// ---- Caveat figures, from the loaded file ------------------------------
+
+	const rows = $derived(arbiterV2Rows.current);
+	const stats = $derived(arbiterV2Statistics.current);
+	/** The panel the judge read — `metadata.models`, not the generation. */
+	const judgedIds = $derived(stats.models.map((model) => model.modelId));
+	const recusedIds = $derived(
+		datasetIdsOf('v2').filter((id) => !(judgedIds as readonly DatasetId[]).includes(id))
+	);
+
+	function nameOf(modelId: DatasetId): string {
+		return (
+			stats.models.find((model) => model.modelId === modelId)?.name ??
+			datasetState.getById(modelId)?.name ??
+			modelId
+		);
+	}
+
+	const figures = $derived.by(() => {
+		const dissent = loneDissenters(rows, judgedIds);
+		const matches = arbiterMatchRates(rows, judgedIds);
+		const top = dissent.models[0];
+		if (dissent.compared === 0 || !top || !matches.every((match) => match.loaded)) return null;
+		const polarityMatches = (modelId: DatasetId) =>
+			matches.find((match) => match.modelId === modelId)?.dimensions.polarity.exact.successes ?? 0;
+		const others = judgedIds.filter((id) => id !== top.modelId).map((id) => polarityMatches(id));
+		if (others.length === 0) return null;
+		const recused = arbiterMatchRates(rows, recusedIds).find((match) => match.loaded);
+		return {
+			dissenter: nameOf(top.modelId),
+			strict: strictLoneSplits(rows, judgedIds, top.modelId) ?? 0,
+			count: top.total,
+			negative: top.negative,
+			total: dissent.compared,
+			match: polarityMatches(top.modelId),
+			othersLow: Math.min(...others),
+			othersHigh: Math.max(...others),
+			recused: recused
+				? {
+						name: nameOf(recused.modelId),
+						match: recused.dimensions.polarity.exact.successes,
+						flips: recusedOnlyFlips(articleState.datasets, datasetIdsOf('v2'), judgedIds)
+					}
+				: null
+		};
 	});
+
+	/** Unanimity over the judged panel, across the corpus, for the choice of polarity. */
+	const unanimity = $derived.by(() => {
+		const centrality = panelUnanimity(articleState.datasets, ARBITER_PANEL_IDS, 'centrality');
+		const polarity = panelUnanimity(articleState.datasets, ARBITER_PANEL_IDS, 'polarity');
+		if (centrality?.share == null || polarity?.share == null) return null;
+		return { centrality: centrality.share, polarity: polarity.share };
+	});
+
+	const whyPolarityText = $derived(
+		unanimity
+			? fill($t.arbiterV2.whyPolarityDesc, {
+					models: $num(judgedCount),
+					centrality: $pct(unanimity.centrality, 1),
+					polarity: $pct(unanimity.polarity, 1)
+				})
+			: $t.arbiterV2.caveatFiguresPending
+	);
+
+	function fill(template: string, values: Record<string, string>): string {
+		return Object.entries(values).reduce(
+			(text, [key, value]) => text.replaceAll(`{${key}}`, value),
+			template
+		);
+	}
+
+	const frameCaveatText = $derived(
+		figures
+			? fill($t.arbiterV2.frameCaveatDesc, {
+					dissenter: figures.dissenter,
+					count: $num(figures.count),
+					total: $num(figures.total),
+					negative: $num(figures.negative),
+					strict: $num(figures.strict),
+					rest: $num(judgedIds.length - 1),
+					match: $num(figures.match),
+					othersLow: $num(figures.othersLow),
+					othersHigh: $num(figures.othersHigh)
+				})
+			: $t.arbiterV2.caveatFiguresPending
+	);
+
+	const recusalText = $derived(
+		figures?.recused && figures.recused.flips !== null
+			? fill($t.arbiterV2.recusalDesc, {
+					recused: figures.recused.name,
+					flips: $num(figures.recused.flips),
+					dissenter: figures.dissenter,
+					total: $num(figures.total),
+					match: $num(figures.recused.match),
+					othersLow: $num(figures.othersLow),
+					othersHigh: $num(figures.othersHigh)
+				})
+			: $t.arbiterV2.caveatFiguresPending
+	);
 </script>
 
 <CollapsibleMethodologyCard
 	variant="arbiter"
+	openOnHash="methodology"
 	title={$t.arbiterV2.methodologyTitle}
 	subtitle={$t.arbiterV2.methodologySubtitle}
 >
@@ -121,29 +239,7 @@
 		</div>
 	{/snippet}
 
-	<div class="key-info-grid">
-		<div class="key-info-card">
-			<div class="key-info-icon blind"><EyeOffIcon size={20} /></div>
-			<div>
-				<h4 class="key-info-title">{$t.arbiterV2.blindEvaluation}</h4>
-				<p class="key-info-desc">{$t.arbiterV2.blindEvaluationDesc}</p>
-			</div>
-		</div>
-		<div class="key-info-card">
-			<div class="key-info-icon text"><FileTextIcon size={20} /></div>
-			<div>
-				<h4 class="key-info-title">{$t.arbiterV2.fullText}</h4>
-				<p class="key-info-desc">{$t.arbiterV2.fullTextDesc}</p>
-			</div>
-		</div>
-		<div class="key-info-card">
-			<div class="key-info-icon scale"><ScaleIcon size={20} /></div>
-			<div>
-				<h4 class="key-info-title">{$t.arbiterV2.independentVerdict}</h4>
-				<p class="key-info-desc">{$t.arbiterV2.independentVerdictDesc}</p>
-			</div>
-		</div>
-	</div>
+	<MethodologyKeyInfo items={keyInfo} />
 
 	<div class="accordion-container">
 		<AccordionItem
@@ -152,49 +248,36 @@
 			onToggle={() => accordion.toggle('how-it-works')}
 		>
 			<div class="methodology-content">
-				<div class="methodology-section">
-					<h4 class="section-title">{$t.arbiterV2.selectionProcess}</h4>
-					<p class="section-text">{$t.arbiterV2.selectionProcessDesc}</p>
-				</div>
-				<div class="methodology-section">
-					<h4 class="section-title">{$t.arbiterV2.whyPolarity}</h4>
-					<p class="section-text">{$t.arbiterV2.whyPolarityDesc}</p>
-				</div>
-				<div class="methodology-section">
-					<h4 class="section-title">{$t.arbiterV2.frameCaveat}</h4>
-					<p class="section-text">{$t.arbiterV2.frameCaveatDesc}</p>
-				</div>
+				<MethodologySection
+					title={$t.arbiterV2.selectionProcess}
+					text={$t.arbiterV2.selectionProcessDesc}
+				/>
+				<MethodologySection title={$t.arbiterV2.whyPolarity} text={whyPolarityText} />
+				<MethodologySection title={$t.arbiterV2.frameCaveat} text={frameCaveatText} />
 				{#if ARBITER_RECUSED_IDS.length}
-					<div class="methodology-section">
-						<h4 class="section-title">{$t.arbiterV2.recusal}</h4>
-						<p class="section-text">{$t.arbiterV2.recusalDesc}</p>
-					</div>
+					<MethodologySection title={$t.arbiterV2.recusal} text={recusalText} />
 				{/if}
-				<div class="methodology-section">
-					<h4 class="section-title">{$t.arbiterV2.blindEvaluation}</h4>
-					<p class="section-text">{$t.arbiterV2.blindEvaluationDesc}</p>
-				</div>
-				<div class="methodology-section">
-					<h4 class="section-title">{$t.arbiterV2.randomOrder}</h4>
-					<p class="section-text">{$t.arbiterV2.randomOrderDesc}</p>
-				</div>
-				<div class="methodology-section">
-					<h4 class="section-title">{$t.arbiterV2.noiseCaveat}</h4>
-					<p class="section-text">{$t.arbiterV2.noiseCaveatDesc}</p>
-				</div>
-				<div class="methodology-section">
-					<h4 class="section-title">{$t.arbiterV2.reasoningEffort}</h4>
-					<p class="section-text">{$t.arbiterV2.reasoningEffortDesc}</p>
-				</div>
-				<div class="methodology-section">
-					<h4 class="section-title">{$t.arbiterV2.howItWorks}</h4>
-					<ol class="process-list">
+				<MethodologySection
+					title={$t.arbiterV2.blindEvaluation}
+					text={fill($t.arbiterV2.blindEvaluationDesc, panelValues)}
+				/>
+				<MethodologySection
+					title={$t.arbiterV2.randomOrder}
+					text={fill($t.arbiterV2.randomOrderDesc, panelValues)}
+				/>
+				<MethodologySection title={$t.arbiterV2.noiseCaveat} text={$t.arbiterV2.noiseCaveatDesc} />
+				<MethodologySection
+					title={$t.arbiterV2.reasoningEffort}
+					text={$t.arbiterV2.reasoningEffortDesc}
+				/>
+				<MethodologySection title={$t.arbiterV2.howItWorks}>
+					<ol>
 						<li>{$t.arbiterV2.step1}</li>
 						<li>{$t.arbiterV2.step2}</li>
 						<li>{$t.arbiterV2.step3}</li>
 						<li>{$t.arbiterV2.step4}</li>
 					</ol>
-				</div>
+				</MethodologySection>
 			</div>
 		</AccordionItem>
 
@@ -211,7 +294,11 @@
 						<span class="model-badge">{$t.arbiterV2.arbiterRole}</span>
 					</div>
 				</div>
-				<p class="model-description">{$t.arbiterV2.arbiterModelDesc}</p>
+				<p class="model-description">
+					{fill($t.arbiterV2.arbiterModelDesc, {
+						pairs: $num((judgedCount * (judgedCount - 1)) / 2)
+					})}
+				</p>
 				<ul class="config-list">
 					<li><strong>Model:</strong> {arbiterModel}</li>
 					<li><strong>Mode:</strong> {SENTIMENT_CONTRACT_V2.arbiter.mode}</li>
@@ -226,20 +313,7 @@
 			open={accordion.isOpen('scales')}
 			onToggle={() => accordion.toggle('scales')}
 		>
-			<div class="scales-content">
-				<div class="scale-section">
-					<h4 class="section-title">{$t.filters.polarity}</h4>
-					<SentimentScaleList variant="chip" chipKind="sentiment" items={polarityItems} />
-				</div>
-				<div class="scale-section">
-					<h4 class="section-title">{$t.filters.subjectivity}</h4>
-					<SentimentScaleList variant="chip" chipKind="sentiment" items={subjectivityItems} />
-				</div>
-				<div class="scale-section">
-					<h4 class="section-title">{$t.filters.centrality}</h4>
-					<SentimentScaleList variant="chip" chipKind="centrality" items={centralityItems} />
-				</div>
-			</div>
+			<MethodologyScales {subjectivityItems} subjectivityChip="sentiment" />
 		</AccordionItem>
 
 		<AccordionItem
@@ -248,8 +322,11 @@
 			onToggle={() => accordion.toggle('prompt')}
 		>
 			<div class="prompt-section">
-				<p class="section-text">{$t.arbiterV2.promptExplanation}</p>
-				<button class="prompt-btn" onclick={() => (viewOptionsState.prompt = true)}>
+				<p class="prompt-text">{$t.arbiterV2.promptExplanation}</p>
+				{#if showPromptCaveat}
+					<p class="prompt-text">{$t.arbiterV2.promptVersionCaveat}</p>
+				{/if}
+				<button type="button" class="prompt-btn" onclick={() => (viewOptionsState.prompt = true)}>
 					{$t.arbiterV2.viewFullPrompt}
 				</button>
 			</div>
@@ -263,23 +340,15 @@
 		{$t.arbiterV2.arbiterPrompt}
 	{/snippet}
 
-	{#if promptTexts.current}
-		<div class="prompt-section-header">
-			<h4>{$t.arbiterV2.systemInstruction}</h4>
-		</div>
-		<div class="prompt-code-container">
-			<pre class="prompt-code">{promptTexts.current.ARBITER_SYSTEM_INSTRUCTION_V2}</pre>
-		</div>
-
-		<div class="prompt-section-header">
-			<h4>{$t.arbiterV2.userPromptTemplate}</h4>
-		</div>
-		<div class="prompt-code-container">
-			<pre class="prompt-code">{promptTexts.current.ARBITER_USER_PROMPT_TEMPLATE_V2}</pre>
-		</div>
-	{:else}
-		<p class="prompt-loading" role="status">{$t.messages.loading}</p>
-	{/if}
+	<PromptBlocks
+		blocks={(texts) => [
+			{
+				title: $t.arbiterV2.systemInstruction,
+				body: texts.arbiterSystemInstructionV2(publishedPromptVersion)
+			},
+			{ title: $t.arbiterV2.userPromptTemplate, body: texts.ARBITER_USER_PROMPT_TEMPLATE_V2 }
+		]}
+	/>
 </PromptModal>
 
 <style>
@@ -294,62 +363,10 @@
 		border: 1px solid var(--sentiment-arbiter-border);
 	}
 
-	.key-info-grid {
-		display: grid;
-		grid-template-columns: 1fr;
-		gap: var(--space-4);
-		margin-bottom: var(--space-6);
-	}
-
-	.key-info-card {
-		display: flex;
-		align-items: flex-start;
-		gap: var(--space-3);
-		padding: var(--space-4);
-		background: var(--surface-nested);
-		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-panel);
-	}
-
-	.key-info-icon {
-		display: flex;
+	.arbiter-glyph {
+		display: inline-flex;
 		align-items: center;
-		justify-content: center;
-		width: var(--size-control-lg);
-		height: var(--size-control-lg);
-		border-radius: var(--radius-panel);
-		flex-shrink: 0;
-	}
-
-	.key-info-icon.blind {
-		background: var(--sentiment-subjectivity-3-bg);
-		border: 1px solid var(--sentiment-subjectivity-3-border);
-		color: var(--sentiment-subjectivity-3);
-	}
-
-	.key-info-icon.text {
-		background: var(--sentiment-arbiter-bg);
-		border: 1px solid var(--sentiment-arbiter-border);
 		color: var(--sentiment-arbiter);
-	}
-
-	.key-info-icon.scale {
-		background: var(--sentiment-polarity-very-positive-bg);
-		border: 1px solid var(--sentiment-polarity-very-positive-border);
-		color: var(--sentiment-polarity-positive);
-	}
-
-	.key-info-title {
-		font-size: var(--font-size-base);
-		font-weight: var(--font-weight-semibold);
-		color: var(--text-primary);
-		margin-bottom: var(--space-1);
-	}
-
-	.key-info-desc {
-		font-size: var(--font-size-xs);
-		color: var(--text-muted);
-		line-height: var(--line-height-snug);
 	}
 
 	.accordion-container {
@@ -366,52 +383,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-4);
-	}
-
-	.methodology-section {
-		padding: var(--space-3);
-		background: var(--surface-nested);
-		border-radius: var(--radius-panel);
-	}
-
-	.section-title {
-		font-size: var(--font-size-base);
-		font-weight: var(--font-weight-semibold);
-		color: var(--sentiment-arbiter);
-		margin-bottom: var(--space-2);
-	}
-
-	.section-text {
-		font-size: var(--font-size-sm);
-		color: var(--text-secondary);
-		line-height: var(--line-height-relaxed);
-		max-width: var(--prose-width);
-	}
-
-	.process-list {
-		list-style: decimal;
-		padding-left: var(--space-5);
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-2);
-	}
-
-	.process-list li {
-		font-size: var(--font-size-sm);
-		color: var(--text-secondary);
-		line-height: var(--line-height-snug);
-	}
-
-	.config-list {
-		list-style: disc;
-		padding-left: var(--space-5);
-		margin-top: var(--space-3);
-	}
-
-	.config-list li {
-		font-size: var(--font-size-sm);
-		color: var(--text-secondary);
-		line-height: var(--line-height-relaxed);
 	}
 
 	.model-card-single {
@@ -456,24 +427,28 @@
 		border: 1px solid var(--sentiment-arbiter-border);
 	}
 
-	.model-description {
+	.model-description,
+	.prompt-text {
 		font-size: var(--font-size-sm);
 		color: var(--text-secondary);
-		line-height: var(--line-height-normal);
-		margin-bottom: var(--space-3);
+		line-height: var(--line-height-relaxed);
 		max-width: var(--prose-width);
 	}
 
-	.scales-content {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-5);
+	.model-description {
+		margin-bottom: var(--space-3);
 	}
 
-	.scale-section {
-		padding: var(--space-3);
-		background: var(--surface-nested);
-		border-radius: var(--radius-panel);
+	.config-list {
+		list-style: disc;
+		padding-left: var(--space-5);
+		margin-top: var(--space-3);
+	}
+
+	.config-list li {
+		font-size: var(--font-size-sm);
+		color: var(--text-secondary);
+		line-height: var(--line-height-relaxed);
 	}
 
 	.prompt-section {
@@ -501,56 +476,6 @@
 	.prompt-btn:hover {
 		background: color-mix(in oklab, var(--sentiment-arbiter) 20%, transparent);
 		border-color: var(--sentiment-arbiter);
-	}
-
-	.prompt-section-header {
-		margin-bottom: var(--space-3);
-	}
-
-	.prompt-section-header h4 {
-		font-size: var(--font-size-base);
-		font-weight: var(--font-weight-semibold);
-		color: var(--sentiment-arbiter);
-		text-transform: uppercase;
-		letter-spacing: var(--tracking-wider);
-	}
-
-	.prompt-section-header:not(:first-child) {
-		margin-top: var(--space-6);
-	}
-
-	.prompt-code-container {
-		background: color-mix(in oklab, var(--color-surface-950) 80%, transparent);
-		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-panel);
-		overflow: hidden;
-	}
-
-	.prompt-code {
-		padding: var(--space-4);
-		font-family: var(--font-mono);
-		font-size: var(--font-size-eyebrow);
-		line-height: var(--line-height-relaxed);
-		color: var(--text-secondary);
-		white-space: pre-wrap;
-		word-break: break-word;
-		overflow-x: auto;
-	}
-
-	.arbiter-glyph {
-		display: inline-flex;
-		align-items: center;
-		color: var(--sentiment-arbiter);
-	}
-
-	@media (min-width: 640px) {
-		.key-info-grid {
-			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-		}
-
-		.prompt-code {
-			font-size: var(--font-size-xs);
-		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {

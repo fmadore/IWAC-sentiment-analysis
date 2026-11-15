@@ -63,3 +63,18 @@ def test_revision_resolved_once_per_repository(monkeypatch):
     assert source.resolve_source_revision("private", None) == "private-sha"
     assert calls == ["public", "private"]
     source.resolve_source_revision.cache_clear()
+
+
+def test_a_requested_revision_beats_the_environment_and_is_returned(monkeypatch):
+    """Resuming a published arbiter run asks for its recorded sha explicitly."""
+    monkeypatch.setenv("IWAC_HF_REVISION", "env-tag")
+    asked = []
+    monkeypatch.setattr(
+        source, "resolve_source_revision", lambda repo, requested: asked.append(requested) or "sha"
+    )
+    monkeypatch.setattr(source, "hf_hub_download", lambda **kw: "file.parquet")
+    monkeypatch.setattr(source.pd, "read_parquet", lambda p: pd.DataFrame({"id": [1]}))
+    result = source.load_source("articles", "file.parquet", revision="recorded-sha")
+    assert asked == ["recorded-sha"] and result.revision == "sha"
+    source.load_source("articles", "file.parquet")
+    assert asked[-1] == "env-tag"

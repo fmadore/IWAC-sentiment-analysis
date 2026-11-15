@@ -8,7 +8,8 @@
 	import Chart from './CitableChart.svelte';
 	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
-	import { innerWidth } from 'svelte/reactivity/window';
+	import { isCompactWidth } from '#lib/utils/viewport.svelte.js';
+	import ChartDataTable from '../common/ChartDataTable.svelte';
 
 	import { arbiterEvaluations, arbiterModelAIsFirst } from '#lib/stores/index.js';
 	import { t } from '#lib/i18n/index.js';
@@ -30,7 +31,8 @@
 
 	let { modelAName, modelBName }: ArbiterDimensionChartProps = $props();
 
-	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
+	let containerWidth = $state<number>();
+	let isMobile = $derived(isCompactWidth(containerWidth));
 
 	// Dimension labels
 	const dimensionLabels = $derived({
@@ -174,9 +176,27 @@
 	});
 </script>
 
-<div class="chart-container">
+<div
+	class="chart-container"
+	bind:clientWidth={containerWidth}
+	role="img"
+	aria-label={$t.arbiter.verdictsByDimension}
+>
 	<Chart chartId="arbiter-dimension-chart" {options} {init} />
 </div>
+
+<ChartDataTable
+	columns={[
+		{ label: $t.audit.category },
+		{ label: modelAName, format: 'integer' },
+		{ label: modelBName, format: 'integer' },
+		{ label: $t.arbiter.bothEqual, format: 'integer' },
+		{ label: $t.arbiter.neitherAccurate, format: 'integer' }
+	]}
+	rows={dimensionData.map((d) => [d.dimension, d.modelA, d.modelB, d.both, d.neither])}
+	caption={$t.arbiter.verdictsByDimension}
+	filenamePrefix="arbiter-verdicts-by-dimension"
+/>
 
 <style>
 	.chart-container {

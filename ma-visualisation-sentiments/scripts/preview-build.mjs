@@ -56,6 +56,24 @@ createServer(async (request, response) => {
 				.on('error', () => response.destroy())
 				.pipe(response);
 	} catch {
-		response.writeHead(404).end('Not found');
+		// GitHub Pages answers every miss with the artifact root's 404.html and a
+		// 404 status. Doing the same keeps the SPA redirect in that page reachable
+		// from the e2e suite; a plain "Not found" made it untestable.
+		const notFound = resolve(root, '404.html');
+		const file = await stat(notFound).catch(() => null);
+		if (!file?.isFile()) {
+			response.writeHead(404).end('Not found');
+			return;
+		}
+		response.writeHead(404, {
+			'Content-Type': 'text/html',
+			'Content-Length': file.size,
+			'Cache-Control': 'no-cache'
+		});
+		if (request.method === 'HEAD') response.end();
+		else
+			createReadStream(notFound)
+				.on('error', () => response.destroy())
+				.pipe(response);
 	}
 }).listen(port, host, () => console.log(`Built artifact: http://${host}:${port}`));

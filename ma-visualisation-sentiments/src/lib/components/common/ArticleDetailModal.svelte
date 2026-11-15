@@ -41,13 +41,23 @@
 		{open}
 		{onClose}
 		title={article['o:title'] ?? $t.article.titleNotAvailable}
+		titleLang={article['o:title'] ? 'fr' : undefined}
 		{subtitle}
 		accentVariant="primary"
 	>
 		{#snippet headerIcon()}
-			<NewspaperIcon size={20} class="text-primary-400" />
+			<!-- A Lucide `class` is a prop, not a scoped class: the colour lives on
+			     a real element and reaches the icon through currentColor. -->
+			<span class="header-icon"><NewspaperIcon size={20} /></span>
 		{/snippet}
 
 		<ArticleDetail {article} />
 	</FullScreenModal>
 {/if}
+
+<style>
+	.header-icon {
+		display: inline-flex;
+		color: var(--color-primary-400);
+	}
+</style>

@@ -27,6 +27,7 @@
 		type CSVExportJob,
 		type ExportProvenance
 	} from '#lib/utils/exportSnapshot.js';
+	import { getConfidenceLabel } from '#lib/utils/arbiter.js';
 	import CsvDownloadButton from './CsvDownloadButton.svelte';
 
 	// Get model names from current pair
@@ -45,19 +46,6 @@
 				return $t.arbiter.neitherAccurate;
 			default:
 				return verdict;
-		}
-	}
-
-	function translateConfidence(level: 'high' | 'medium' | 'low'): string {
-		switch (level) {
-			case 'high':
-				return $t.arbiter.confidenceHigh;
-			case 'medium':
-				return $t.arbiter.confidenceMedium;
-			case 'low':
-				return $t.arbiter.confidenceLow;
-			default:
-				return level;
 		}
 	}
 
@@ -126,7 +114,7 @@
 				...modelColumns(comparison?.modelA),
 				...modelColumns(comparison?.modelB),
 				translateVerdict(evaluation.arbiter.overall_winner),
-				translateConfidence(evaluation.arbiter.confidence_level),
+				getConfidenceLabel(evaluation.arbiter.confidence_level, $t),
 				...dimensionColumns(evaluation.arbiter.polarity),
 				...dimensionColumns(evaluation.arbiter.subjectivity),
 				...dimensionColumns(evaluation.arbiter.centrality),

@@ -13,21 +13,22 @@
 -->
 <script lang="ts">
 	import { viewOptionsState, paginationURLState } from '#lib/stores/view-options.svelte.js';
-	import { MediaQuery } from 'svelte/reactivity';
 	import { t } from '#lib/i18n/index.js';
-	import { num, fmtDate } from '#lib/i18n/utils.js';
+	import { fmtDate } from '#lib/i18n/utils.js';
 	import { datasetState } from '#lib/stores/index.js';
 	import type { ArbiterV2LegendEntry, ArbiterV2Row } from '#lib/utils/arbiterV2.js';
-	import {
-		CONFIDENCE_ORDER,
-		getConfidenceBadgeClass,
-		getConfidenceLabel
-	} from '#lib/utils/arbiter.js';
+	import { CONFIDENCE_ORDER } from '#lib/utils/arbiter.js';
 	import { createPagination } from '#lib/utils/pagination.svelte.js';
 	import PaginationControls from '#lib/components/common/PaginationControls.svelte';
 	import ArbiterV2CSVExportButton from '#lib/components/ui/ArbiterV2CSVExportButton.svelte';
-	import { nextSort } from '#lib/utils/sorting.js';
+	import { compareBy, dateKey, nextSort, titleKey, type SortValue } from '#lib/utils/sorting.js';
+	import { isCompact } from '#lib/utils/viewport.svelte.js';
 	import SortableHeader from '#lib/components/common/SortableHeader.svelte';
+	import TableControls from '#lib/components/common/TableControls.svelte';
+	import RowDetailButton from '#lib/components/common/RowDetailButton.svelte';
+	import ArticleCard from '#lib/components/common/ArticleCard.svelte';
+	import ConfidenceBadge from '#lib/components/common/ConfidenceBadge.svelte';
+	import EmptyState from '#lib/components/common/EmptyState.svelte';
 
 	interface ArbiterV2ArticleTableProps {
 		rows: ArbiterV2Row[];
@@ -38,11 +39,10 @@
 	let { rows, legend, onSelect }: ArbiterV2ArticleTableProps = $props();
 
 	/**
-	 * Four columns fit from the first breakpoint up; below it the rows become
-	 * cards. A declared breakpoint, read through MediaQuery, rather than a
-	 * viewport width read once at mount.
+	 * The columns fit from the first breakpoint up (the date joins them at
+	 * 1024px, in CSS); below it the rows become cards.
 	 */
-	const wide = new MediaQuery('min-width: 640px', false);
+	const wide = $derived(!isCompact());
 
 	type SortKey = 'spread' | 'date' | 'title' | 'verdict' | 'confidence';
 
@@ -61,37 +61,27 @@
 			: legend.length + 2;
 	}
 
+	function sortValue(row: ArbiterV2Row, column: SortKey): SortValue {
+		switch (column) {
+			case 'title':
+				return titleKey(row.title);
+			case 'date':
+				return dateKey(row.date);
+			case 'verdict':
+				return verdictWeight(row);
+			case 'confidence':
+				return CONFIDENCE_ORDER[row.evaluation.arbiter.confidence_level] ?? null;
+			case 'spread':
+			default:
+				return row.evaluation.spread.total_spread;
+		}
+	}
+
 	const sorted = $derived.by(() => {
-		const direction = viewOptionsState.panelOrder === 'asc' ? 1 : -1;
-		return [...rows].sort((a, b) => {
-			let valA: string | number;
-			let valB: string | number;
-			switch (viewOptionsState.panelSort) {
-				case 'title':
-					valA = a.title.toLowerCase();
-					valB = b.title.toLowerCase();
-					break;
-				case 'date':
-					valA = a.date ? new Date(a.date).getTime() : 0;
-					valB = b.date ? new Date(b.date).getTime() : 0;
-					break;
-				case 'verdict':
-					valA = verdictWeight(a);
-					valB = verdictWeight(b);
-					break;
-				case 'confidence':
-					valA = CONFIDENCE_ORDER[a.evaluation.arbiter.confidence_level] ?? 0;
-					valB = CONFIDENCE_ORDER[b.evaluation.arbiter.confidence_level] ?? 0;
-					break;
-				case 'spread':
-				default:
-					valA = a.evaluation.spread.total_spread;
-					valB = b.evaluation.spread.total_spread;
-					break;
-			}
-			if (valA === valB) return 0;
-			return (valA > valB ? 1 : -1) * direction;
-		});
+		const column = viewOptionsState.panelSort;
+		return [...rows].sort(
+			compareBy((row: ArbiterV2Row) => sortValue(row, column), viewOptionsState.panelOrder)
+		);
 	});
 
 	const pagination = createPagination({
@@ -99,7 +89,7 @@
 		totalItems: () => sorted.length,
 		initialItemsPerPage: 25,
 		itemsPerPageOptions: [10, 25, 50, 100],
-		maxVisiblePages: () => (wide.current ? 5 : 3)
+		maxVisiblePages: () => (wide ? 5 : 3)
 	});
 
 	const page = $derived(sorted.slice(pagination.startIndex, pagination.endIndex));
@@ -143,37 +133,33 @@
 		return row.title || `#${row.articleId}`;
 	}
 
-	function activate(event: KeyboardEvent, row: ArbiterV2Row) {
-		if (event.key === 'Enter' || event.key === ' ') {
-			event.preventDefault();
-			onSelect(row);
-		}
+	function detailLabel(row: ArbiterV2Row): string {
+		return `${$t.arbiterV2.viewArticleDetails}: ${rowTitle(row)}`;
 	}
 </script>
 
+{#snippet verdict(row: ArbiterV2Row)}
+	<span class="verdict">
+		<span class="verdict-swatch" style:background={winnerColor(row)}></span>
+		{winnerName(row)}
+	</span>
+{/snippet}
+
 {#if rows.length > 0}
-	<div class="controls">
-		<PaginationControls
+	<div class="mb-4">
+		<TableControls
 			{pagination}
-			showLabels={wide.current}
-			showItemsPerPage
+			total={sorted.length}
 			selectId="arbiter-v2-items-per-page"
+			showLabels={wide}
+			showPages={false}
+			accent="arbiter"
 		>
-			{#snippet resultsInfo()}
-				<div class="controls-lead">
-					<span class="results-info">
-						{$t.table.showingItems}
-						<strong>{$num(pagination.startIndex + 1)}–{$num(pagination.endIndex)}</strong>
-						{$t.common.of}
-						<strong>{$num(sorted.length)}</strong>
-					</span>
-					<ArbiterV2CSVExportButton {rows} {legend} />
-				</div>
-			{/snippet}
-		</PaginationControls>
+			{#snippet actions()}<ArbiterV2CSVExportButton {rows} {legend} />{/snippet}
+		</TableControls>
 	</div>
 
-	{#if wide.current}
+	{#if wide}
 		<div class="table-container arbiter-table-wrapper">
 			<table class="table">
 				<thead>
@@ -193,36 +179,21 @@
 				</thead>
 				<tbody>
 					{#each page as row (row.articleId)}
-						<tr
-							class="article-row"
-							onclick={() => onSelect(row)}
-							onkeydown={(event) => activate(event, row)}
-							role="button"
-							tabindex="0"
-							aria-label="{$t.arbiterV2.viewArticleDetails}: {rowTitle(row)}"
-						>
+						<!-- Mouse convenience; the title button is the accessible control. -->
+						<tr class="article-row" onclick={() => onSelect(row)}>
 							<td class="col-title">
-								<span class="row-title">{rowTitle(row)}</span>
+								<RowDetailButton label={detailLabel(row)} onclick={() => onSelect(row)} clamp
+									>{rowTitle(row)}</RowDetailButton
+								>
 								<span class="row-meta">{row.journal}</span>
 							</td>
 							<td class="col-date"><span class="row-meta">{$fmtDate(row.date)}</span></td>
 							<td class="text-center">
 								<span class="spread-value">{row.evaluation.spread.total_spread}</span>
 							</td>
-							<td>
-								<span class="verdict">
-									<span class="verdict-swatch" style="background: {winnerColor(row)}"></span>
-									{winnerName(row)}
-								</span>
-							</td>
+							<td>{@render verdict(row)}</td>
 							<td class="text-center">
-								<span
-									class="badge badge-sm {getConfidenceBadgeClass(
-										row.evaluation.arbiter.confidence_level
-									)}"
-								>
-									{getConfidenceLabel(row.evaluation.arbiter.confidence_level, $t)}
-								</span>
+								<ConfidenceBadge level={row.evaluation.arbiter.confidence_level} />
 							</td>
 						</tr>
 					{/each}
@@ -232,51 +203,36 @@
 	{:else}
 		<ul class="cards">
 			{#each page as row (row.articleId)}
-				<li>
-					<button
-						type="button"
-						class="card-row"
-						onclick={() => onSelect(row)}
-						aria-label="{$t.arbiterV2.viewArticleDetails}: {rowTitle(row)}"
-					>
-						<span class="row-title">{rowTitle(row)}</span>
-						<span class="row-meta">{row.journal} • {$fmtDate(row.date)}</span>
-						<span class="card-verdicts">
-							<span class="verdict">
-								<span class="verdict-swatch" style="background: {winnerColor(row)}"></span>
-								{winnerName(row)}
-							</span>
-							<span
-								class="badge badge-sm {getConfidenceBadgeClass(
-									row.evaluation.arbiter.confidence_level
-								)}"
-							>
-								{getConfidenceLabel(row.evaluation.arbiter.confidence_level, $t)}
-							</span>
-							<span class="card-spread">
-								{$t.arbiterV2.spread}
-								<strong>{row.evaluation.spread.total_spread}</strong>
-							</span>
+				<ArticleCard
+					title={rowTitle(row)}
+					label={detailLabel(row)}
+					meta="{row.journal} • {$fmtDate(row.date)}"
+					onselect={() => onSelect(row)}
+					accent="arbiter"
+				>
+					<span class="card-verdicts">
+						{@render verdict(row)}
+						<ConfidenceBadge level={row.evaluation.arbiter.confidence_level} />
+						<span class="card-spread">
+							{$t.arbiterV2.spread}
+							<strong>{row.evaluation.spread.total_spread}</strong>
 						</span>
-					</button>
-				</li>
+					</span>
+				</ArticleCard>
 			{/each}
 		</ul>
 	{/if}
 
 	{#if pagination.totalPages > 1}
 		<div class="pagination-bottom">
-			<PaginationControls {pagination} showLabels={wide.current} />
+			<PaginationControls {pagination} showLabels={wide} />
 		</div>
 	{/if}
 {:else}
-	<div class="empty-state">
-		<p class="empty-state-lede">{$t.arbiterV2.noEvaluatedArticles}</p>
-	</div>
+	<EmptyState title={$t.arbiterV2.noEvaluatedArticles} lede={$t.table.emptyHint} />
 {/if}
 
 <style>
-	.controls,
 	.pagination-bottom {
 		/* The active page marker takes the arbiter amber, as the v1 table does. */
 		--pagination-active-bg: var(--sentiment-arbiter);
@@ -286,29 +242,7 @@
 		background: var(--surface-subtle);
 		border: 1px solid var(--sentiment-arbiter-border);
 		padding: var(--space-3);
-		margin-bottom: var(--space-4);
-	}
-
-	.pagination-bottom {
 		margin: var(--space-4) 0 0;
-	}
-
-	.controls-lead {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: var(--space-3);
-	}
-
-	.results-info {
-		font-size: var(--font-size-sm);
-		color: var(--text-secondary);
-	}
-
-	.results-info strong {
-		color: var(--text-primary);
-		font-weight: var(--font-weight-semibold);
-		font-variant-numeric: tabular-nums;
 	}
 
 	.table-container {
@@ -330,7 +264,7 @@
 		position: sticky;
 		top: 0;
 		z-index: 1;
-		box-shadow: 0 1px 0 color-mix(in oklab, var(--color-surface-50) 15%, transparent);
+		box-shadow: 0 1px 0 var(--border-default);
 	}
 
 	.article-row {
@@ -345,16 +279,6 @@
 		max-width: 28rem;
 	}
 
-	.row-title {
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		line-clamp: 2;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-		font-weight: var(--font-weight-medium);
-		color: var(--text-primary);
-	}
-
 	.row-meta {
 		display: block;
 		font-size: var(--font-size-xs);
@@ -363,8 +287,9 @@
 
 	/* Header and cell hide and show together: the cell must never carry a
 	   second display rule that outranks this one, or the body rows gain a
-	   column the header lacks below the breakpoint. */
-	.col-date {
+	   column the header lacks below the breakpoint. The header cell is
+	   SortableHeader's, so both are reached through the table. */
+	table :global(.col-date) {
 		display: none;
 		white-space: nowrap;
 	}
@@ -394,20 +319,6 @@
 		flex-shrink: 0;
 	}
 
-	.badge {
-		font-family: var(--font-mono);
-		font-size: var(--font-size-eyebrow);
-		font-weight: 600;
-		letter-spacing: var(--tracking-wider);
-		border-radius: 0;
-		border: 1px solid var(--border-default);
-		white-space: nowrap;
-	}
-
-	.badge-sm {
-		padding: var(--space-0-5) var(--space-2);
-	}
-
 	/* ---- Cards, below 640px ---- */
 	.cards {
 		display: flex;
@@ -416,26 +327,6 @@
 		list-style: none;
 		margin: 0;
 		padding: 0;
-	}
-
-	.card-row {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-2);
-		width: 100%;
-		padding: var(--space-4);
-		background: var(--surface-card);
-		border: 1px solid var(--border-subtle);
-		text-align: left;
-		cursor: pointer;
-		transition:
-			background-color var(--timing-fast) var(--easing-default),
-			border-color var(--timing-fast) var(--easing-default);
-	}
-
-	.card-row:hover {
-		background: var(--surface-card-elevated);
-		border-color: var(--sentiment-arbiter-border);
 	}
 
 	.card-verdicts {
@@ -459,29 +350,9 @@
 		font-variant-numeric: tabular-nums;
 	}
 
-	.empty-state {
-		padding: var(--space-8);
-		text-align: center;
-		background: var(--sentiment-arbiter-bg);
-		border: 1px solid var(--sentiment-arbiter-border);
-	}
-
-	.empty-state-lede {
-		font-family: var(--font-sans);
-		font-size: var(--font-size-sm);
-		color: var(--text-muted);
-		margin: 0;
-	}
-
 	@media (min-width: 1024px) {
-		.col-date {
+		table :global(.col-date) {
 			display: table-cell;
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.card-row {
-			transition: none;
 		}
 	}
 </style>

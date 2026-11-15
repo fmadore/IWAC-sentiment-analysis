@@ -61,14 +61,50 @@
    Was .threshold-note / .breakdown-note / .chart-note in seven components,
    byte-identical in all of them — the same drift the three rules above fixed. */
 .chart-note {
-	font-family: var(--font-mono);
-	font-size: var(--font-size-eyebrow);
-	line-height: var(--line-height-relaxed);
-	color: var(--text-muted);
+	/* The caveats a reader needs to interpret the chart live here, so this is
+	   body text, not an eyebrow: small, compact, but at full text colour. It
+	   was 11px mono in --text-muted, the smallest and faintest type on the
+	   page carrying the most important sentence under each figure. */
+	font-family: var(--font-sans);
+	font-size: var(--font-size-sm);
+	line-height: var(--line-height-snug);
+	color: var(--text-secondary);
 	max-width: var(--prose-width);
 	margin: var(--space-3) auto 0;
 	padding-top: var(--space-3);
 	border-top: 1px dashed var(--border-subtle);
+}
+
+/* -----------------------------------------------------------------------------
+   Horizontal scroll affordance
+   The CSS-only scroll-shadow pair that .table-container paints, as a class of
+   its own for any wide block that scrolls sideways without being a .table
+   (the label-pattern table, the agreement matrix). Covers are `local`,
+   shadows `scroll`, so each edge's shadow disappears exactly when there is
+   nothing more that way. `--scroll-shadow-surface` must match the surface
+   the block sits on; it defaults to a card.
+   ----------------------------------------------------------------------------- */
+.scroll-shadow-x {
+	--scroll-shadow-surface: var(--surface-card);
+	overflow-x: auto;
+	background-color: var(--scroll-shadow-surface);
+	background-image:
+		linear-gradient(to right, var(--scroll-shadow-surface), transparent),
+		linear-gradient(to left, var(--scroll-shadow-surface), transparent),
+		radial-gradient(farthest-side at 0 50%, var(--scroll-shadow-ink), transparent),
+		radial-gradient(farthest-side at 100% 50%, var(--scroll-shadow-ink), transparent);
+	background-position:
+		0 0,
+		100% 0,
+		0 0,
+		100% 0;
+	background-repeat: no-repeat;
+	background-size:
+		2.5rem 100%,
+		2.5rem 100%,
+		0.875rem 100%,
+		0.875rem 100%;
+	background-attachment: local, local, scroll, scroll;
 }
 
 /* -----------------------------------------------------------------------------
@@ -94,16 +130,8 @@
 	background-image:
 		linear-gradient(to right, var(--surface-card), transparent),
 		linear-gradient(to left, var(--surface-card), transparent),
-		radial-gradient(
-			farthest-side at 0 50%,
-			color-mix(in oklab, black 28%, transparent),
-			transparent
-		),
-		radial-gradient(
-			farthest-side at 100% 50%,
-			color-mix(in oklab, black 28%, transparent),
-			transparent
-		);
+		radial-gradient(farthest-side at 0 50%, var(--scroll-shadow-ink), transparent),
+		radial-gradient(farthest-side at 100% 50%, var(--scroll-shadow-ink), transparent);
 	background-position:
 		0 0,
 		100% 0,
@@ -350,6 +378,22 @@
 	--sentiment-border: var(--sentiment-centrality-not-addressed-border);
 }
 
+/* --- Text in a ramp colour ---
+   Ramp colours are chart colours; as text on their own tint several fall
+   below 4.5:1. Every element that carries a resolver attribute also gets a
+   text colour mixed toward --text-primary (weight and measured ratios in
+   tokens.css). Declared here, on the same element as --sentiment-fg, so the
+   mix resolves against that element's own value. */
+[data-polarity],
+[data-subjectivity],
+[data-centrality] {
+	--sentiment-text: color-mix(
+		in oklab,
+		var(--sentiment-fg) var(--sentiment-text-weight),
+		var(--text-primary)
+	);
+}
+
 /* --- Discrepancy severity ---
    Same contract as the sentiment resolver above and the same rule: a component
    never maps a magnitude to a colour, it emits `data-discrepancy` from
@@ -487,7 +531,7 @@
 	border-radius: var(--radius-circle);
 	border: 2px solid var(--surface-active);
 	border-top-color: var(--color-primary-500);
-	animation: spin 0.9s linear infinite;
+	animation: spin var(--timing-spin) linear infinite;
 }
 
 @keyframes spin {
@@ -545,20 +589,49 @@
 /* -----------------------------------------------------------------------------
    Print Styles
    ----------------------------------------------------------------------------- */
+/* Paper is light. The text ladder is near-white by design, so a white body
+   with the screen text colours printed blank pages with cards floating on
+   them. Re-point the text tokens to dark ink for print, drop the chrome a
+   reader cannot use on paper, and leave charts on their own dark panel —
+   their colours are tuned for it and ECharts paints them as pixels anyway. */
 @media print {
-	.no-print {
+	:root {
+		--text-primary: var(--print-text);
+		--text-secondary: var(--print-text);
+		--text-muted: var(--print-text-muted);
+		--text-subtle: var(--print-text-muted);
+	}
+
+	.no-print,
+	.skip-link,
+	.app-header,
+	.drawer-panel,
+	.drawer-scrim,
+	nav,
+	.chart-toolbar,
+	[role='toolbar'] {
 		display: none !important;
 	}
 
 	body {
-		background: white;
+		background: var(--print-surface);
+		color: var(--print-text);
 	}
 
 	.card,
 	.preset-glass,
-	.preset-surface-card {
+	.preset-surface-card,
+	.chart-card,
+	.table-container {
 		background: var(--print-surface);
 		border: 1px solid var(--print-border);
 		box-shadow: none;
+		break-inside: avoid;
+	}
+
+	/* A chart keeps its dark plot area: its palette assumes it. */
+	.chart-container {
+		background: var(--app-bg);
+		print-color-adjust: exact;
 	}
 }

@@ -26,6 +26,7 @@
 </script>
 
 <DimensionDistributionChart
+	dimension="subjectivity"
 	frenchLabels={frenchSubjectivityLabels}
 	translatedLabels={subjectivityLabels}
 	getKey={(article) => {

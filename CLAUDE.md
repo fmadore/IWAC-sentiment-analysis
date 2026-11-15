@@ -43,9 +43,11 @@ it now reads the sizes from the contracts.
   between models. Agreement, prefetch and `loadAllDatasets` are already scoped;
   new cross-model features need the same treatment
 - **Qwen's coverage gap is deliberate, permanent and not missing at random.**
-  It carries 251 null polarity/centrality rows (the 51 no model annotates, plus
-  200 it declined across a full pass and three retry rounds) and 538 null
-  subjectivity. The missing rows concentrate on articles where Islam is
+  It carries 250 null polarity/centrality rows (the 50 no model annotates, plus
+  200 it declined across a full pass and three retry rounds) and 537 null
+  subjectivity, over 12,348 articles (`test_generated_data.py` pins every
+  model's null counts; the 251/51/538 quoted before article 78587 was deleted
+  are stale). The missing rows concentrate on articles where Islam is
   peripheral, so every complete-case statistic — Fleiss' κ, the consensus
   charts, arbiter eligibility — skews towards high-centrality material. Say so
   when reporting one; never present the gap as repairable
@@ -120,18 +122,46 @@ it now reads the sizes from the contracts.
   `Neutre` at 3 leave no other arrangement — so `--dimensions polarity` selects
   exactly the widest reversals and structurally cannot reach the two-rank ones.
   `--threshold` can only be raised, so no spread setting will ever find them
+- **The arbiter's headline is the per-dimension match rate, not the win
+  tally.** `arbiterMatchRates` asks how often each model gives the judge's own
+  rating, over every reviewed article; the overall-winner tally is secondary
+  because it follows the judge's tie-breaks. The figures in the methodology
+  caveats are computed from the file and the panel (`loneDissenters`,
+  `strictLoneSplits`, `recusedOnlyFlips`, `panelUnanimity`) and pinned in
+  `arbiterV2Headline.test.ts`; never type them into the catalogues
+- **Prompt versions are part of the fingerprint.** The contract's
+  `promptVersion` (v2.3.0) is the default for new runs; the published file was
+  judged under v2.2.0, which stays in `acceptedPromptVersions` so its verdicts
+  keep their fingerprints. The v2.3.0 prompt carries the annotators' codebook
+  verbatim, and `arbiter-codebook-fixtures.json` (read by both languages) fails
+  if the two drift. A run under another prompt replaces the public file only
+  when it holds at least as many verdicts, or with `--allow-shrink`; otherwise
+  it leaves the file and says what would be lost
+- **A resumed run reads the revisions recorded in the file it resumes**
+  (`plan_revisions`), not upstream HEAD; `--source-revision head` moves it.
+  Refused, invalid or truncated paid calls are remembered in the durable cache
+  and not billed again unless `--retry-failed`. The v1 arbiter writes nothing
+  and spends nothing without `--unfreeze`
 - **The blind labels are fixed for the run; the presentation order is not.**
   `display_order()` reshuffles the five blocks per article, seeded on the article
   id. Without it one model would sit first on every prompt and the judge's
   position bias would be indistinguishable from a preference for that model.
-  A test asserts the order varies across articles and is stable within one
+  A test asserts the order varies across articles and is stable within one.
+  The published run's position check (`arbiter-position-check.py`, offline) is
+  not significant either naively or allowing for the seating, but has little
+  power
 - A v1↔v2 difference **confounds model change with prompt change** (v2 asks for
   subjectivity as a label, drops the self-checklist, adds boundary rules). Say so
   when reporting one
 
 `--generation` is required on `data-fetch.py` and `extreme-analysis.py`,
 deliberately without a default: an unflagged re-run would rewrite the frozen v1
-files. A v2 run does not write `iwac_articles_base.json` at all; it fails loudly
+files. **Prefer `refresh-all.py`** (`iwac_preprocess.refresh`) for any refresh:
+it stages every generation's fetch, the extremes and the places in one stage,
+runs `validate_all` on the whole set and publishes once, where the separate
+commands pass through states that fail validation. It regenerates v1 and the
+base only with `--include-v1`, admits new articles only with `--include-v1
+--admit-new-articles`, and is tested with fake loaders (`test_refresh.py`). A v2 run does not write `iwac_articles_base.json` at all; it fails loudly
 if an article in it was deleted upstream.
 
 **The base is also the corpus, and it does not grow by itself.** Every run is
@@ -202,6 +232,11 @@ accents are part of the key:
   `None` would ship a complete set of well-formed files full of nulls
 - `chartTheme.ts` keys its lookups on these same French strings
 
+The agreement headline is **ordinal Krippendorff's α** (`utils/krippendorff.ts`),
+which keeps every article at least two models rated; Fleiss' κ is the
+complete-case secondary, so Qwen's gap narrows it and not α. Whether an
+article is about Islam at all (`Non applicable` / `Non abordé` against any
+rating) is a separate applicability statistic, never folded into either.
 Categorical agreement retains every present category. For v2 polarity only,
 weighted κ and within-one-step agreement use applicable ranks 1–5 and expose
 their own denominator; the archived v1 ordinal method stays unchanged. Keep
@@ -214,7 +249,7 @@ Python and TypeScript cannot drift.
 
 **A missing rating is not `Non applicable`.** `Non applicable` and `Non abordé`
 are verdicts a model returned; `null` is a rating it never produced — Qwen's
-declined rows, the 51 articles no model annotates, every missing subjectivity.
+declined rows, the 50 articles no model annotates, every missing subjectivity.
 The filter rail selects those through the `Non annoté` bucket (`NOT_ANNOTATED`
 in `sentimentContract.ts`), a filter value no file ever stores, and the badges
 and chips render it with the shared `not-annotated` slug. `filterArticles` used
@@ -239,8 +274,9 @@ averages, so the map answers to the shared filter rail; and
 `iwac_extreme_analysis_{model}.json` is normalized, denormalized at load in
 `utils/extremeAnalysis.ts`. `world-110m.geojson` is **written minified on
 purpose** and excluded in `.prettierignore` — pretty-printing costs ~700 kB of
-whitespace. Both map files are listed in `sw.js`'s `DATA_FILE_PREFIXES` so they
-land in the deploy-stable cache rather than the per-build one.
+whitespace. Every data file, the map files included, is served from
+`data/releases/<release>/` and cached by the worker's release rule in `sw.js`,
+which also evicts superseded releases.
 
 `placeAggregation` excludes `Non applicable` from its mean while still counting
 the article: it sorts to 0 in `POLARITY_ORDER` but means "no stance expressed",
@@ -265,8 +301,9 @@ What that comment does not cover:
 - The build intentionally emits no `.gz`/`.br` siblings: GitHub Pages handles
   transfer compression and duplicated files bloated the artifact.
   `check-build-artifact.mjs` rejects unstamped placeholders, precompressed
-  duplicates, missing nested files, initial JS over 300 KiB gzip, and anything
-  stray: hidden files, unknown directories under the deploy path, data outside
+  duplicates, missing nested files, initial JS over 300 KiB gzip, a shell
+  whose initial-JS list it cannot read, and anything stray: hidden files,
+  unknown top-level files or directories under the deploy path, data outside
   the published release. Everything in `static/` ships, which is why the data
   exports' lock and stages live in `.data-staging/`, never under `static/`
 
@@ -316,6 +353,13 @@ forces runes mode on `node_modules`: a Dependabot bump shipping a legacy
   trigger sits on, so only the _closed_ offset moves (`--drawer-offscreen`) and
   the shadow mirrors via `--elevation-drawer-mirrored`. Both become a static rail
   at 1024px (`enabled={false}`), and Drawer closes itself if disabled while open
+- **No URL parameter's name or default may change.** Links emit only
+  non-default values, so changing a default silently changes what every
+  existing link shows. New parameters go in `view-options.svelte.ts` and
+  `docs/citable-urls.md`
+- **`TEMPORARY_ALLOW` in `check-design-tokens.mjs` stays empty**, and the i18n
+  key check runs `--strict` in `npm run lint`: a catalogue key nothing reads
+  fails the build. A key reached by a computed name goes in its `DYNAMIC_KEYS`
 - Which views carry the shared filter rail is `VIEW_META` in `types/data.ts`,
   typed as a total `Record<ViewId, …>` so omitting a new view is a compile error.
   Ask `hasFilterRail(view)`; don't re-enumerate the list
@@ -395,6 +439,13 @@ Only request shards containing the selected row IDs.
 
 - **`vitest.config.ts` sets `resolve.conditions: ['browser']`** — without it
   Svelte 5 resolves its server build and `render()` throws
+- Vitest runs in **`node` by default**; only the `dom` project's globs
+  (components, stores, i18n, routes, a few utils) get jsdom. A test elsewhere that needs
+  a DOM fails with "document is not defined" until it starts with
+  `// @vitest-environment jsdom` or its path joins `DOM_TESTS`
+- `npm run check` is `svelte-check --fail-on-warnings` **and**
+  `tsc -p tsconfig.node.json` (the e2e specs and tool configs svelte-check never
+  sees): a warning fails it
 - `test-setup.ts` stubs `matchMedia`/`ResizeObserver`, which every chart needs via
   `svelte/reactivity/window`
 - **Stub `svelte-echarts` with `src/mocks/echarts-chart-stub.svelte`** — ECharts

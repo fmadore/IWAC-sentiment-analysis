@@ -117,6 +117,31 @@ export const seriesColorPalette = [
 	'#A0BC86' // sage
 ] as const;
 
+/**
+ * A non-colour channel for categorical bar series: one ECharts decal pattern
+ * per series position, the first left plain. Six model series in muted hues
+ * sit close enough that hue alone is not a reliable key (and not at all for
+ * a colour-blind reader); the pattern repeats in the legend swatch, so a bar
+ * can be matched to its model by texture. Dark ink at low alpha so the
+ * pattern reads on every palette hue without hiding it.
+ */
+const DECAL_INK = 'rgba(0, 0, 0, 0.32)';
+const DECAL_SYMBOLS = ['none', 'rect', 'circle', 'triangle', 'diamond', 'line'] as const;
+export function seriesDecal(index: number) {
+	const symbol = DECAL_SYMBOLS[index % DECAL_SYMBOLS.length];
+	if (symbol === 'none') return undefined;
+	return symbol === 'line'
+		? {
+				symbol: 'rect',
+				symbolSize: 1,
+				color: DECAL_INK,
+				dashArrayX: [1, 0],
+				dashArrayY: [2, 5],
+				rotation: Math.PI / 4
+			}
+		: { symbol, symbolSize: 0.5, color: DECAL_INK, dashArrayX: 6, dashArrayY: 6 };
+}
+
 // =============================================================================
 // CHART STYLING CONSTANTS
 // Centralized values for consistent chart styling
@@ -370,16 +395,18 @@ export function getGridConfig(
 ) {
 	const { hasLegendTop = true, hasDataZoom = false, legendPosition = 'top' } = options || {};
 
+	// Titles live in the DOM (ChartCard's <h2>), not in the canvas, so the top
+	// margin only clears a top legend.
 	return {
 		left: isMobile ? '5%' : '3%',
 		right: isMobile ? '5%' : '4%',
 		top: isMobile
 			? hasLegendTop && legendPosition === 'top'
-				? '25%'
-				: '15%'
+				? '16%'
+				: '8%'
 			: hasLegendTop && legendPosition === 'top'
-				? '18%'
-				: '12%',
+				? '11%'
+				: '6%',
 		bottom: isMobile
 			? hasDataZoom
 				? '18%'

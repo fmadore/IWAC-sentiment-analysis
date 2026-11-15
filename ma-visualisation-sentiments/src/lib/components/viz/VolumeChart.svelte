@@ -8,7 +8,9 @@
 	import Chart from './CitableChart.svelte';
 	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
-	import { innerWidth } from 'svelte/reactivity/window';
+	import { isCompactWidth } from '#lib/utils/viewport.svelte.js';
+	import { useChartCardHeading } from '#lib/components/ui/chartCardHeading.svelte.js';
+	import ChartHeading from './ChartHeading.svelte';
 
 	import { articleState } from '#lib/stores/index.js';
 	import { t, currentLanguage } from '#lib/i18n/index.js';
@@ -23,7 +25,6 @@
 	// Import centralized chart theme
 	import {
 		seriesColorPalette,
-		getTitleStyle,
 		getTooltipConfig,
 		getLegendConfig,
 		getAxisLineStyle,
@@ -37,15 +38,23 @@
 		getUniversalTransitionConfig
 	} from '#lib/utils/chartTheme.js';
 
-	// Reactive window width for responsive behavior
-	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
+	// Compact layout follows the chart's own width, not the window's.
+	let containerWidth = $state<number>();
+	let isMobile = $derived(isCompactWidth(containerWidth));
 
 	const aggregate = $derived(aggregateByCountryAndYear(articleState.filtered));
+	const headingSubtitle = $derived(
+		`${formatNumber(aggregate.articlesAnalyzed, $currentLanguage)} ${$t.common.articles}`
+	);
+	const heading = useChartCardHeading(() => ({
+		title: $t.charts.volumeByCountry,
+		subtitle: headingSubtitle
+	}));
 	let options = $derived.by(() => {
 		const currentT = $t; // Capture current translations for reactive updates
 		const currentLang = $currentLanguage; // Capture current language for reactive updates
 
-		const { countryYearCounts, countries, years, articlesAnalyzed } = aggregate;
+		const { countryYearCounts, countries, years } = aggregate;
 
 		const series = countries.map((country, index) => {
 			const color = seriesColorPalette[index % seriesColorPalette.length];
@@ -66,7 +75,8 @@
 				data: years.map((year) => countryYearCounts[country][year] || 0),
 				color,
 				...lineStyle,
-				smooth: true
+				// Straight segments: a spline invents values between years that do not exist.
+				smooth: false
 			};
 		});
 
@@ -74,12 +84,6 @@
 
 		return {
 			backgroundColor: 'transparent',
-			title: {
-				text: `${currentT.charts.volumeByCountry} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.common.articles})`,
-				left: 'center',
-				top: '2%',
-				textStyle: getTitleStyle(isMobile)
-			},
 			tooltip: {
 				...tooltipConfig,
 				trigger: 'axis',
@@ -93,7 +97,7 @@
 			legend: {
 				...getLegendConfig(isMobile),
 				data: countries,
-				top: isMobile ? '12%' : '8%'
+				top: 0
 			},
 			grid: getGridConfig(isMobile, { hasLegendTop: true, hasDataZoom: true }),
 			xAxis: {
@@ -113,6 +117,9 @@
 	});
 </script>
 
+{#if !heading.inCard}
+	<ChartHeading title={$t.charts.volumeByCountry} subtitle={headingSubtitle} />
+{/if}
 {#if articleState.filtered.length > 0}
 	<div class="chart-toolbar">
 		<ChartTypeToggle
@@ -129,6 +136,7 @@
 	<div
 		style="height: {isMobile ? '400px' : '500px'}; position: relative;"
 		class="chart-container"
+		bind:clientWidth={containerWidth}
 		role="img"
 		aria-label={$t.charts.volumeByCountry}
 	>

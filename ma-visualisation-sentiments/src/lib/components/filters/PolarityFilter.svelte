@@ -10,7 +10,8 @@
 	import { t, currentLanguage } from '#lib/i18n/index.js';
 	import { translateSentimentValue } from '#lib/i18n/utils.js';
 	import { NOT_ANNOTATED } from '#lib/domain/sentimentContract.js';
-	import { FilterCard, FilterChip } from '#lib/components/common/index.js';
+	import FilterCard from '#lib/components/common/FilterCard.svelte';
+	import FilterChip from '#lib/components/common/FilterChip.svelte';
 
 	// French values (stored in data) with their FilterChip variants
 	const polarityOptions = [

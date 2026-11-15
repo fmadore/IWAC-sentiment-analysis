@@ -38,13 +38,20 @@ def _digest(payload: dict[str, Any]) -> str:
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
-def _contract_identity(contract: SentimentContract) -> dict[str, Any]:
-    """The version quadruple every fingerprint is bound to."""
+def _contract_identity(
+    contract: SentimentContract, prompt_version: str | None = None
+) -> dict[str, Any]:
+    """The version quadruple every fingerprint is bound to.
+
+    ``prompt_version`` defaults to the contract's current one. The panel
+    arbiter passes the version it actually sent, so a verdict judged under an
+    earlier, still-registered prompt keeps its original fingerprint.
+    """
     return {
         "contract_schema_version": contract.schema_version,
         "analysis_version": contract.analysis_version,
         "cache_schema_version": contract.arbiter["cacheSchemaVersion"],
-        "prompt_version": contract.arbiter["promptVersion"],
+        "prompt_version": prompt_version or contract.arbiter["promptVersion"],
     }
 
 
@@ -87,6 +94,7 @@ def three_way_cache_fingerprint(
     text_revision: str | None,
     max_input_chars: int,
     contract: SentimentContract,
+    prompt_version: str | None = None,
 ) -> str:
     """Hash the inputs of one **panel** (v2) arbiter evaluation.
 
@@ -102,11 +110,15 @@ def three_way_cache_fingerprint(
     Two revisions are recorded because the two halves of the input come from
     different repositories: the scores from the public projection, the article
     text from the private mirror.
+
+    ``prompt_version`` is the system instruction the judge was sent (default:
+    the contract's). It is part of the digest, so a verdict judged under one
+    prompt never answers for another.
     """
     analyses = dict(article.get("analyses") or {})
     return _digest(
         {
-            **_contract_identity(contract),
+            **_contract_identity(contract, prompt_version),
             "mode": contract.arbiter["mode"],
             "arbiter_model": arbiter_model,
             "source_revision": source_revision,
@@ -154,9 +166,9 @@ def reconcile_cached_evaluations(
     invalidated = 0
     adopted_legacy = 0
     for article_id, article in current_by_id.items():
-        evaluation = cached_by_id.get(article_id)
-        if evaluation is None:
+        if article_id not in cached_by_id:
             continue
+        evaluation = cached_by_id[article_id]
         expected = fingerprint(article)
         stored = evaluation.get("cache_fingerprint")
         if stored is None and adopt_legacy:

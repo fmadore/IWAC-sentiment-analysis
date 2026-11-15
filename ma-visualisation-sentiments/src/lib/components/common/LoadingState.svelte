@@ -5,7 +5,8 @@
   while data is being fetched. Helps prevent Cumulative Layout Shift (CLS).
   
   Features:
-  - Glass morphism styling consistent with design system
+  - One polite `role="status"` region carrying the message; the skeletons
+    are `aria-hidden` (they are layout reservation, not content)
   - Animated shimmer effect on skeletons
   - Configurable filter and content skeletons
   - Reduced motion support
@@ -42,25 +43,25 @@
 	let displayMessage = $derived(message ?? $t.messages.loadingData);
 </script>
 
-<div class="loading-container">
+<div class="loading-container" aria-busy="true">
 	<!-- Header skeleton to prevent CLS -->
 	{#if showHeader}
-		<div class="skeleton-item header-skeleton mb-4 sm:mb-6">
+		<div class="skeleton-item header-skeleton mb-4 sm:mb-6" aria-hidden="true">
 			<div class="skeleton-shimmer"></div>
 		</div>
 	{/if}
 
 	<!-- Loading message card -->
-	<div class="loading-message-card mb-4 sm:mb-6">
+	<div class="loading-message-card mb-4 sm:mb-6" role="status">
 		<div class="loading-icon">
-			<Spinner size="md" --spinner-accent="currentColor" />
+			<Spinner size="md" decorative --spinner-accent="currentColor" />
 		</div>
 		<span class="loading-text">{displayMessage}</span>
 	</div>
 
 	<!-- Reserve space for filters -->
 	{#if showFilters}
-		<div class="filters-skeleton mb-4 sm:mb-6">
+		<div class="filters-skeleton mb-4 sm:mb-6" aria-hidden="true">
 			<div class="grid grid-cols-2 lg:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
 				{#each Array(filterCount) as _, i (i)}
 					<div class="skeleton-item filter-skeleton" style="animation-delay: {i * 100}ms">
@@ -73,7 +74,7 @@
 
 	<!-- Reserve space for content -->
 	{#if showContent}
-		<div class="content-skeleton">
+		<div class="content-skeleton" aria-hidden="true">
 			<div class="skeleton-item content-skeleton-inner">
 				<div class="skeleton-shimmer"></div>
 			</div>
@@ -112,7 +113,7 @@
 
 	.filter-skeleton {
 		height: var(--size-control-xl);
-		animation: skeletonPulse 1.6s ease-in-out infinite;
+		animation: skeletonPulse var(--timing-pulse) ease-in-out infinite;
 	}
 
 	.content-skeleton-inner {
@@ -128,7 +129,7 @@
 		right: 0;
 		bottom: 0;
 		background: linear-gradient(90deg, transparent 0%, var(--surface-hover) 50%, transparent 100%);
-		animation: shimmer 1.6s infinite;
+		animation: shimmer var(--timing-pulse) infinite;
 	}
 
 	@keyframes shimmer {

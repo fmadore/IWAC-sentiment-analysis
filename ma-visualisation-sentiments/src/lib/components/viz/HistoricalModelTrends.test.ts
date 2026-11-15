@@ -99,13 +99,16 @@ it('keeps source-only cohorts, minimum gaps and raw denominators visible', async
 		'1',
 		'—',
 		'—',
+		'—',
+		'—',
 		'—'
 	]);
 	await fireEvent.change(getByRole('combobox', { name: 'Article cohort' }), {
 		target: { value: 'available' }
 	});
+	// Two articles is below the shared low-n floor: drawn, but as a hollow, faded point.
 	expect(options().series.find((series: { id: string }) => series.id === 'luna').data).toEqual([
-		100
+		{ value: 100, symbol: 'emptyCircle', itemStyle: { opacity: 0.45 } }
 	]);
 	expect(options().series.find((series: { id: string }) => series.id === 'qwen').data).toEqual([
 		null
@@ -145,5 +148,33 @@ it('discloses a failed panel model instead of drawing a partial comparison', () 
 	mocks.articleState.loadStates.qwen = { status: 'error', error: new Error('offline') };
 	const { getByRole, queryByTestId } = render(HistoricalModelTrends);
 	expect(getByRole('alert').textContent).toContain('qwen');
+	expect(queryByTestId('chart-options')).toBeNull();
+});
+
+it('adds a panel series with Wilson intervals in the table, and waits for the whole panel', async () => {
+	load((model) => [
+		article(1, 'Le Journal', 'Négatif'),
+		article(2, 'Le Journal', model === 'luna' ? 'Négatif' : 'Positif')
+	]);
+	viewOptionsState.historyPanel = 'majority';
+	const { getByTestId, getByRole } = render(HistoricalModelTrends);
+	const options = () => JSON.parse(getByTestId('chart-options').getAttribute('data-options')!);
+	const panel = options().series.find((series: { id: string }) => series.id === 'panel-majority');
+	// Article 1: every model negative; article 2: one of six. Majority share 50%.
+	expect(panel.data[0].value).toBe(50);
+	await fireEvent.click(getByRole('button', { name: 'Data' }));
+	const rows = [...getByRole('table').querySelectorAll('tbody tr')];
+	expect(rows).toHaveLength(models.length + 1);
+	const cells = [...rows[models.length].querySelectorAll('td')].map((cell) => cell.textContent);
+	expect(cells.slice(0, 4)).toEqual(['Panel majority', '2', '2', '1']);
+	// Wilson bounds for 1 of 2 bracket the 50% share.
+	expect(cells[5]).not.toBe('—');
+	expect(cells[6]).not.toBe('—');
+});
+
+it('does not compute the comparison while a panel model is still loading', () => {
+	load(() => [article(1, 'Journal', 'Positif')]);
+	mocks.articleState.loadStates.qwen = { status: 'loading' };
+	const { queryByTestId } = render(HistoricalModelTrends);
 	expect(queryByTestId('chart-options')).toBeNull();
 });

@@ -28,6 +28,7 @@
 	} from '#lib/utils/arbiterV2.js';
 	import { SUBJECTIVITY_LABELS_V2, type SubjectivityScore } from '#lib/domain/sentimentContract.js';
 	import type { ArbiterV2Preference } from '#lib/types/data.js';
+	import { getConfidenceLabel } from '#lib/utils/arbiter.js';
 	import CsvDownloadButton from './CsvDownloadButton.svelte';
 
 	interface ArbiterV2CSVExportButtonProps {
@@ -41,17 +42,6 @@
 		if (preference === 'multiple') return $t.arbiterV2.multiple;
 		if (preference === 'none') return $t.arbiterV2.none;
 		return legend.find((entry) => entry.label === preference)?.name ?? preference;
-	}
-
-	function confidenceName(level: 'high' | 'medium' | 'low'): string {
-		switch (level) {
-			case 'high':
-				return $t.arbiter.confidenceHigh;
-			case 'medium':
-				return $t.arbiter.confidenceMedium;
-			default:
-				return $t.arbiter.confidenceLow;
-		}
 	}
 
 	/** The arbiter answered subjectivity in the v2 wording; export that, not the rank. */
@@ -123,7 +113,7 @@
 				String(spread.centrality_spread),
 				String(spread.total_spread),
 				preferenceName(arbiter.overall_winner),
-				confidenceName(arbiter.confidence_level),
+				getConfidenceLabel(arbiter.confidence_level, $t),
 				...ARBITER_V2_DIMENSIONS.flatMap((dimension) => [
 					arbiterScore(dimension, arbiter[dimension].score),
 					arbiter[dimension].justification,

@@ -1,53 +1,111 @@
+<!--
+  ArticleTable
+
+  Every article of the selected model, sortable, searchable by title and
+  paginated. Below the 640px breakpoint the six columns no longer fit and the
+  rows become cards; the title is the row's detail button in both layouts.
+
+  The title search is the `tableSearch` URL parameter: accent- and
+  case-insensitive (« eglise » finds « Église »), debounced, back to page one
+  on every new query, with the match count announced politely. The CSV export in
+  the page header carries the same rows (`searchByTitle`), search included.
+-->
 <script lang="ts">
+	import { onDestroy, untrack } from 'svelte';
 	import { viewOptionsState, paginationURLState } from '#lib/stores/view-options.svelte.js';
 	import { articleState } from '#lib/stores/index.js';
 	import { num, fmtDate } from '#lib/i18n/utils.js';
 	import { POLARITY_ORDER, CENTRALITY_ORDER, type Article } from '#lib/types/data.js';
 	import { getJournalName } from '#lib/utils/format.js';
 	import { t } from '#lib/i18n/index.js';
-	import { DatasetBadge } from '#lib/components/ui/index.js';
-	import { SentimentBadge } from '#lib/components/common/index.js';
+	import DatasetBadge from '#lib/components/ui/DatasetBadge.svelte';
+	import SentimentBadge from '#lib/components/common/SentimentBadge.svelte';
 	import { updateURL } from '#lib/stores/url/index.js';
-	import { innerWidth } from 'svelte/reactivity/window';
 	import { createPagination } from '#lib/utils/pagination.svelte.js';
-	import { nextSort } from '#lib/utils/sorting.js';
+	import {
+		compareBy,
+		dateKey,
+		nextSort,
+		searchByTitle,
+		searchKey,
+		titleKey,
+		type SortValue
+	} from '#lib/utils/sorting.js';
+	import { isCompact } from '#lib/utils/viewport.svelte.js';
 	import SortableHeader from '#lib/components/common/SortableHeader.svelte';
 	import PaginationControls from '#lib/components/common/PaginationControls.svelte';
+	import TableControls from '#lib/components/common/TableControls.svelte';
+	import RowDetailButton from '#lib/components/common/RowDetailButton.svelte';
+	import ArticleCard from '#lib/components/common/ArticleCard.svelte';
+	import EmptyState from '#lib/components/common/EmptyState.svelte';
+	import SearchInput from '#lib/components/common/SearchInput.svelte';
 
-	// Props - for event dispatching
 	let {
 		onShowDetails
 	}: {
 		onShowDetails: (details: { article: Article; position: { x: number; y: number } }) => void;
 	} = $props();
 
-	// Reactive articles from store
-	let articles = $derived(articleState.filtered);
+	const articles = $derived(articleState.filtered);
 
-	// Reactive mobile detection using svelte/reactivity/window
-	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
+	/** Six columns fit from the first breakpoint up; below it, cards. */
+	const compact = $derived(isCompact());
 
-	// Variables pour le tri
-
-	// Référence pour le conteneur du tableau
 	let tableContainerRef = $state<HTMLElement | undefined>();
-
-	// Dispatcher is removed
 
 	function selectArticle(article: Article, event?: MouseEvent) {
 		articleState.selected = article;
-
-		// Update URL to include the selected article ID
 		updateURL();
-
-		// Notifier le parent de montrer les détails via callback prop
-		if (onShowDetails) {
-			onShowDetails({
-				article, // Ensure article is passed as per the prop type
-				position: { x: event?.clientX ?? 0, y: event?.clientY ?? 0 }
-			});
-		}
+		onShowDetails({
+			article,
+			position: { x: event?.clientX ?? 0, y: event?.clientY ?? 0 }
+		});
 	}
+
+	// ---- Title search -------------------------------------------------------
+
+	const SEARCH_DEBOUNCE_MS = 250;
+	let draft = $state(untrack(() => viewOptionsState.tableSearch));
+	let timer: ReturnType<typeof setTimeout> | undefined;
+
+	function onSearchInput(value: string) {
+		draft = value;
+		clearTimeout(timer);
+		timer = setTimeout(() => {
+			timer = undefined;
+			const next = value.trim() ? value : '';
+			if (next === viewOptionsState.tableSearch) return;
+			viewOptionsState.tableSearch = next;
+			pagination.currentPage = 1;
+		}, SEARCH_DEBOUNCE_MS);
+	}
+
+	// History navigation and shared links change the committed query; the box
+	// follows unless the reader is mid-way through typing a new one.
+	$effect(() => {
+		const committed = viewOptionsState.tableSearch;
+		untrack(() => {
+			if (timer === undefined && committed !== draft) draft = committed;
+		});
+	});
+
+	onDestroy(() => clearTimeout(timer));
+
+	const query = $derived(searchKey(viewOptionsState.tableSearch));
+
+	const searched = $derived(searchByTitle(articles, viewOptionsState.tableSearch));
+
+	const searchAnnouncement = $derived(
+		query
+			? searched.length > 0
+				? $t.table.searchResults
+						.replace('{count}', $num(searched.length))
+						.replace('{query}', viewOptionsState.tableSearch.trim())
+				: $t.table.searchNoResults.replace('{query}', viewOptionsState.tableSearch.trim())
+			: ''
+	);
+
+	// ---- Sorting ------------------------------------------------------------
 
 	type SortColumn = typeof viewOptionsState.tableSort;
 
@@ -71,259 +129,234 @@
 		{ key: 'subjectivite', label: $t.table.subjectivity }
 	]);
 
-	// Fonction pour trier les articles
-	const sortedArticles = $derived(
-		[...articles].sort((a, b) => {
-			let valA, valB;
-
-			// Extraction des valeurs selon la colonne
-			switch (viewOptionsState.tableSort) {
-				case 'titre':
-					valA = a['o:title'] || '';
-					valB = b['o:title'] || '';
-					break;
-				case 'journal':
-					valA = getJournalName(a);
-					valB = getJournalName(b);
-					break;
-				case 'date':
-					valA = a.publication_date ? new Date(a.publication_date).getTime() : 0;
-					valB = b.publication_date ? new Date(b.publication_date).getTime() : 0;
-					break;
-				case 'centralite': {
-					const centralA = a.sentiment_analysis?.centralite_islam_musulmans || 'Non abordé';
-					const centralB = b.sentiment_analysis?.centralite_islam_musulmans || 'Non abordé';
-					valA = CENTRALITY_ORDER[centralA as keyof typeof CENTRALITY_ORDER] || 0;
-					valB = CENTRALITY_ORDER[centralB as keyof typeof CENTRALITY_ORDER] || 0;
-					break;
-				}
-				case 'polarite': {
-					const polA = a.sentiment_analysis?.polarite || 'Non applicable';
-					const polB = b.sentiment_analysis?.polarite || 'Non applicable';
-					valA = POLARITY_ORDER[polA as keyof typeof POLARITY_ORDER] || 0;
-					valB = POLARITY_ORDER[polB as keyof typeof POLARITY_ORDER] || 0;
-					break;
-				}
-				case 'subjectivite':
-					valA = Number(a.sentiment_analysis?.subjectivite_score || 0);
-					valB = Number(b.sentiment_analysis?.subjectivite_score || 0);
-					break;
-				default:
-					return 0;
+	/** A missing rating sorts last, like a missing date; it is not a verdict. */
+	function sortValue(article: Article, column: SortColumn): SortValue {
+		const analysis = article.sentiment_analysis;
+		switch (column) {
+			case 'titre':
+				return titleKey(article['o:title']);
+			case 'journal':
+				return getJournalName(article);
+			case 'date':
+				return dateKey(article.publication_date);
+			case 'centralite': {
+				const value = analysis?.centralite_islam_musulmans;
+				return value ? (CENTRALITY_ORDER[value as keyof typeof CENTRALITY_ORDER] ?? 0) : null;
 			}
-
-			// Comparaison en fonction de la direction
-			if (viewOptionsState.tableOrder === 'asc') {
-				return valA > valB ? 1 : valA < valB ? -1 : 0;
-			} else {
-				return valA < valB ? 1 : valA > valB ? -1 : 0;
+			case 'polarite': {
+				const value = analysis?.polarite;
+				return value ? (POLARITY_ORDER[value as keyof typeof POLARITY_ORDER] ?? 0) : null;
 			}
-		})
-	);
-
-	// Fonction pour faire défiler vers le haut du tableau
-	function scrollToTop() {
-		if (tableContainerRef) {
-			tableContainerRef.scrollIntoView({
-				behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
-					? 'instant'
-					: 'smooth',
-				block: 'start'
-			});
+			case 'subjectivite': {
+				const value = analysis?.subjectivite_score;
+				return value === null || value === undefined ? null : Number(value);
+			}
 		}
 	}
 
-	// Pagination
+	const sortedArticles = $derived.by(() => {
+		const column = viewOptionsState.tableSort;
+		return [...searched].sort(
+			compareBy((article: Article) => sortValue(article, column), viewOptionsState.tableOrder)
+		);
+	});
+
+	function scrollToTop() {
+		tableContainerRef?.scrollIntoView({
+			behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+				? 'instant'
+				: 'smooth',
+			block: 'start'
+		});
+	}
+
 	const pagination = createPagination({
 		state: paginationURLState('table'),
-		totalItems: () => articles.length,
+		totalItems: () => searched.length,
 		initialItemsPerPage: 50,
 		itemsPerPageOptions: [25, 50, 100, 200],
-		maxVisiblePages: 7,
+		maxVisiblePages: () => (compact ? 3 : 7),
 		onPageChange: () => setTimeout(scrollToTop, 100)
 	});
 
 	const paginatedArticles = $derived(
 		sortedArticles.slice(pagination.startIndex, pagination.endIndex)
 	);
+
+	function detailLabel(article: Article): string {
+		return $t.audit.articleDetails.replace('{title}', article['o:title'] ?? '');
+	}
 </script>
 
+{#snippet badges(article: Article)}
+	<SentimentBadge
+		type="centrality"
+		value={article.sentiment_analysis?.centralite_islam_musulmans}
+		size="sm"
+	/>
+	<SentimentBadge type="polarity" value={article.sentiment_analysis?.polarite} size="sm" />
+	<SentimentBadge
+		type="subjectivity"
+		value={article.sentiment_analysis?.subjectivite_score}
+		size="sm"
+	/>
+{/snippet}
+
 {#if articles.length > 0}
-	<!-- Dataset badge -->
-	<div class="mb-4">
+	<div class="table-head mb-4">
 		<DatasetBadge size="sm" />
+		<div class="search-row">
+			<SearchInput
+				value={draft}
+				onchange={onSearchInput}
+				placeholder={$t.table.searchTitles}
+				showSearchIcon
+				size="sm"
+			/>
+			<p class="search-note">{$t.table.searchScopeNote}</p>
+		</div>
 	</div>
+	<p class="sr-only" aria-live="polite" aria-atomic="true">{searchAnnouncement}</p>
 
-	<!-- Informations et contrôles de pagination (en haut) -->
-	<div bind:this={tableContainerRef} class="pagination-info mb-4">
-		<PaginationControls {pagination} showLabels={false} showItemsPerPage selectId="items-per-page">
-			{#snippet resultsInfo()}
-				<span class="results-info">
-					{$t.table.showingItems}
-					{$num(pagination.startIndex + 1)}–{$num(pagination.endIndex)}
-					{$t.common.of}
-					{$num(articles.length)}
-					{$t.common.articles}
-				</span>
-			{/snippet}
-		</PaginationControls>
-	</div>
+	{#if searched.length > 0}
+		<div bind:this={tableContainerRef} class="mb-4">
+			<TableControls
+				{pagination}
+				total={searched.length}
+				totalNoun={$t.common.articles}
+				selectId="article-table-items-per-page"
+				showLabels={false}
+			/>
+		</div>
 
-	<!-- Mobile Card View -->
-	{#if isMobile}
-		<!-- Mobile Sort Controls -->
-		<div class="mobile-sort-controls mb-4 p-3 card variant-glass">
-			<div class="flex items-center gap-2">
-				<label for="mobile-sort-select" class="sort-label whitespace-nowrap"
+		{#if compact}
+			<div class="mobile-sort-controls mb-4">
+				<label for="article-table-sort" class="sort-label whitespace-nowrap"
 					>{$t.common.sortBy}:</label
 				>
 				<select
-					id="mobile-sort-select"
+					id="article-table-sort"
 					bind:value={viewOptionsState.tableSort}
 					onchange={() => (pagination.currentPage = 1)}
 					class="select select-sm flex-1"
 				>
-					<option value="titre">{$t.table.articleTitle}</option>
-					<option value="journal">{$t.filters.journal}</option>
-					<option value="date">{$t.table.date}</option>
-					<option value="centralite">{$t.table.centrality}</option>
-					<option value="polarite">{$t.table.polarity}</option>
-					<option value="subjectivite">{$t.table.subjectivity}</option>
+					{#each sortColumns as column (column.key)}
+						<option value={column.key}>{column.label}</option>
+					{/each}
 				</select>
 				<button
+					type="button"
 					class="sort-direction-btn"
 					onclick={() => {
 						viewOptionsState.tableOrder = viewOptionsState.tableOrder === 'asc' ? 'desc' : 'asc';
 						pagination.currentPage = 1;
 					}}
-					title={$t.table.sortBy}
+					aria-label={viewOptionsState.tableOrder === 'asc'
+						? $t.table.sortDirectionAsc
+						: $t.table.sortDirectionDesc}
 				>
-					{viewOptionsState.tableOrder === 'asc' ? '↑' : '↓'}
+					<span aria-hidden="true">{viewOptionsState.tableOrder === 'asc' ? '↑' : '↓'}</span>
 				</button>
 			</div>
-		</div>
 
-		<div class="mobile-cards space-y-3">
-			{#each paginatedArticles as article (article['o:id'])}
-				<button
-					class="mobile-card card variant-glass p-4 cursor-pointer w-full text-left border-0"
-					onclick={(event) => selectArticle(article, event)}
-					aria-label="{$t.table.viewDetails}: {article['o:title']}"
-				>
-					<div class="mb-2">
-						<h3 class="card-title line-clamp-2 mb-1">
-							{article['o:title']}
-						</h3>
-						<div class="card-meta flex items-center gap-2">
-							<span>{getJournalName(article)}</span>
-							<span>•</span>
-							<span>{$fmtDate(article.publication_date)}</span>
-						</div>
-					</div>
+			<ul class="card-list">
+				{#each paginatedArticles as article (article['o:id'])}
+					<ArticleCard
+						title={article['o:title'] ?? $t.table.untitled}
+						label={detailLabel(article)}
+						meta="{getJournalName(article)} • {$fmtDate(article.publication_date)}"
+						onselect={(event) => selectArticle(article, event)}
+					>
+						<div class="card-badges">{@render badges(article)}</div>
+					</ArticleCard>
+				{/each}
+			</ul>
+		{:else}
+			<div class="table-container">
+				<table class="table">
+					<thead>
+						<tr>
+							{#each sortColumns as column (column.key)}
+								<SortableHeader
+									label={column.label}
+									active={viewOptionsState.tableSort === column.key}
+									order={viewOptionsState.tableOrder}
+									onsort={() => sortBy(column.key)}
+								/>
+							{/each}
+						</tr>
+					</thead>
+					<tbody>
+						{#each paginatedArticles as article (article['o:id'])}
+							<!-- Mouse convenience; the title button is the accessible control. -->
+							<tr class="article-row" onclick={(event) => selectArticle(article, event)}>
+								<td class="article-title">
+									<RowDetailButton
+										label={detailLabel(article)}
+										onclick={(event) => selectArticle(article, event)}
+										>{article['o:title'] ?? $t.table.untitled}</RowDetailButton
+									>
+								</td>
+								<td>{getJournalName(article)}</td>
+								<td>{$fmtDate(article.publication_date)}</td>
+								<td>
+									<SentimentBadge
+										type="centrality"
+										value={article.sentiment_analysis?.centralite_islam_musulmans}
+									/>
+								</td>
+								<td>
+									<SentimentBadge type="polarity" value={article.sentiment_analysis?.polarite} />
+								</td>
+								<td>
+									<SentimentBadge
+										type="subjectivity"
+										value={article.sentiment_analysis?.subjectivite_score}
+									/>
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		{/if}
 
-					<div class="flex flex-wrap gap-2">
-						<SentimentBadge
-							type="centrality"
-							value={article.sentiment_analysis?.centralite_islam_musulmans}
-							size="sm"
-						/>
-						<SentimentBadge
-							type="polarity"
-							value={article.sentiment_analysis?.polarite}
-							size="sm"
-						/>
-						<SentimentBadge
-							type="subjectivity"
-							value={article.sentiment_analysis?.subjectivite_score}
-							size="sm"
-						/>
-					</div>
-				</button>
-			{/each}
+		<div class="pagination-bottom mt-4">
+			<PaginationControls {pagination} showPageNumbers={false} />
 		</div>
 	{:else}
-		<!-- Desktop Table View -->
-		<div class="table-container card variant-glass">
-			<table class="table">
-				<thead>
-					<tr class="bg-surface-800">
-						{#each sortColumns as column (column.key)}
-							<SortableHeader
-								label={column.label}
-								active={viewOptionsState.tableSort === column.key}
-								order={viewOptionsState.tableOrder}
-								onsort={() => sortBy(column.key)}
-							/>
-						{/each}
-					</tr>
-				</thead>
-				<tbody>
-					{#each paginatedArticles as article (article['o:id'])}
-						<tr class="article-row"
-							><td class="article-title"
-								><button
-									type="button"
-									class="row-detail-action"
-									onclick={() => selectArticle(article)}
-									aria-label={$t.audit.articleDetails.replace('{title}', article['o:title'] ?? '')}
-									>{article['o:title']}</button
-								></td
-							>
-							<td>{getJournalName(article)}</td>
-							<td>{$fmtDate(article.publication_date)}</td>
-							<td>
-								<SentimentBadge
-									type="centrality"
-									value={article.sentiment_analysis?.centralite_islam_musulmans}
-								/>
-							</td>
-							<td>
-								<SentimentBadge type="polarity" value={article.sentiment_analysis?.polarite} />
-							</td>
-							<td>
-								<SentimentBadge
-									type="subjectivity"
-									value={article.sentiment_analysis?.subjectivite_score}
-								/>
-							</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</div>
+		<EmptyState
+			title={$t.table.searchNoResults.replace('{query}', viewOptionsState.tableSearch.trim())}
+			lede={$t.table.searchNoResultsHint}
+		/>
 	{/if}
-
-	<!-- Navigation de pagination (en bas) -->
-	<div class="pagination-bottom mt-4">
-		<PaginationControls {pagination} showPageNumbers={false}>
-			{#snippet status()}
-				Page {pagination.currentPage} sur {pagination.totalPages}
-			{/snippet}
-		</PaginationControls>
-	</div>
 {:else}
-	<p class="empty-note text-center py-8">{$t.table.noFilteredArticles}</p>
+	<EmptyState title={$t.table.noFilteredArticles} lede={$t.table.noFilteredArticlesHint} />
 {/if}
 
 <style>
-	.row-detail-action {
-		background: transparent;
-		color: inherit;
-		border: 0;
-		padding: 0;
-		text-align: start;
-		font: inherit;
-		cursor: pointer;
-		text-decoration: underline;
-		text-underline-offset: 3px;
+	.table-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: var(--space-3);
 	}
-	.row-detail-action:focus-visible {
-		outline: 2px solid currentColor;
-		outline-offset: 2px;
+
+	.search-row {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+		width: 100%;
+		max-width: 24rem;
 	}
-	/* ==============================================
-     Table Container - Glass morphism wrapper
-     ============================================== */
+
+	.search-note {
+		margin: 0;
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
+	}
+
 	.table-container {
 		max-height: var(--height-chart-md);
 		overflow-y: auto;
@@ -342,166 +375,50 @@
 	   this table's rules reach them as `:global(th)` under its own `table`. */
 	table :global(th),
 	td {
-		padding: var(--space-2);
+		padding: var(--space-3) var(--space-4);
 		text-align: left;
 		border-bottom: 1px solid var(--border-subtle);
 	}
 
-	@media (min-width: 640px) {
-		table :global(th),
-		td {
-			padding: var(--space-3) var(--space-4);
-		}
+	/* Sticky header: typography and the opaque background are owned by the
+	   global `.table th` rule, which wins ties on source order. */
+	table :global(th) {
+		position: sticky;
+		top: 0;
+		z-index: 1;
+		box-shadow: 0 1px 0 var(--border-default);
 	}
 
-	/* ==============================================
-     Table Row Styles
-     ============================================== */
 	.article-row {
 		cursor: pointer;
 		transition: background-color var(--timing-fast) var(--easing-default);
 	}
 
 	.article-row:hover {
-		cursor: pointer;
 		background-color: color-mix(in oklab, var(--color-primary-500) 10%, transparent);
 	}
 
-	.article-title {
-		cursor: pointer;
-		transition: color var(--timing-fast) var(--easing-default);
-	}
-
-	.article-title:hover {
-		color: var(--color-primary-400);
-		text-decoration: underline;
-		font-weight: var(--font-weight-medium);
-	}
-
-	/* ==============================================
-     Sticky Table Headers
-     ============================================== */
-	table :global(th) {
-		position: sticky;
-		top: 0;
-		z-index: 1;
-		box-shadow: 0 1px 0 var(--border-default);
-		/* Header typography AND the opaque background are owned by the global
-		   `.table th` rule — that shorthand ties on specificity with this scoped
-		   rule and wins on source order, so setting a background here silently
-		   does nothing. */
-	}
-
-	/* ==============================================
-     Pagination Controls Section
-     ============================================== */
-	.pagination-info {
-		background: var(--surface-nested);
-		padding: var(--space-3);
-		border-radius: var(--radius-panel);
-		border: 1px solid var(--border-subtle);
-	}
-
 	.pagination-bottom {
-		background: color-mix(in oklab, var(--color-primary-500) 3%, transparent);
 		padding: var(--space-3) var(--space-4);
+		background: var(--surface-nested);
+		border: 1px solid var(--border-subtle);
 		border-radius: var(--radius-panel);
-		border: 1px solid color-mix(in oklab, var(--color-primary-500) 10%, transparent);
 	}
 
-	/* Select elements */
-	select {
-		cursor: pointer;
+	/* ---- Cards, below 640px ---- */
+	.mobile-sort-controls {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: var(--space-3);
+		background: var(--surface-nested);
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-panel);
 	}
 
-	/* The sort row is a pair, so it gets one control height. This row exists
-	   only below 768px — the width where a 29px compact select is hardest to
-	   hit, and the last place to be shrinking targets. */
+	/* The sort row exists only on a phone: the last place to shrink targets. */
 	.mobile-sort-controls select {
 		min-height: var(--size-control-lg);
-	}
-
-	/* Labels for form elements */
-	label {
-		cursor: pointer;
-	}
-
-	/* ==============================================
-     Mobile Sort Controls
-     ============================================== */
-	.mobile-sort-controls {
-		background: var(--surface-nested) !important;
-		border: 1px solid var(--border-subtle) !important;
-	}
-
-	/* ==============================================
-     Mobile Card Styles
-     ============================================== */
-	.mobile-cards {
-		max-height: var(--height-chart-lg);
-		overflow-y: auto;
-	}
-
-	.mobile-card {
-		cursor: pointer;
-		background: var(--surface-card) !important;
-		border: 1px solid var(--border-subtle) !important;
-		transition:
-			background-color var(--timing-fast) var(--easing-default),
-			border-color var(--timing-fast) var(--easing-default);
-	}
-
-	.mobile-card:hover {
-		background: var(--surface-card-hover) !important;
-		border-color: var(--border-hover) !important;
-	}
-
-	.line-clamp-2 {
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		line-clamp: 2;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-	}
-
-	/* ==============================================
-     Responsive Design
-     ============================================== */
-	@media (min-width: 640px) {
-		.pagination-info {
-			padding: var(--space-4);
-		}
-
-		.table-container {
-			max-height: var(--height-chart-lg);
-		}
-	}
-
-	/* ==============================================
-     Reduced Motion
-     ============================================== */
-	@media (prefers-reduced-motion: reduce) {
-		.article-row,
-		.article-title,
-		.mobile-card {
-			transition: none;
-		}
-
-		.mobile-card:hover {
-			transform: none;
-		}
-	}
-
-	/* ---- Text roles, replacing Tailwind colour utilities. ---- */
-	.results-info {
-		font-size: var(--font-size-xs);
-		color: var(--text-primary);
-	}
-
-	@media (min-width: 640px) {
-		.results-info {
-			font-size: var(--font-size-sm);
-		}
 	}
 
 	.sort-label {
@@ -509,27 +426,6 @@
 		color: var(--text-primary);
 	}
 
-	.card-title {
-		font-size: var(--font-size-sm);
-		font-weight: var(--font-weight-semibold);
-		color: var(--text-primary);
-	}
-
-	.card-meta {
-		font-size: var(--font-size-xs);
-		color: var(--text-muted);
-	}
-
-	.empty-note {
-		color: var(--text-primary);
-	}
-
-	/* Was a Skeleton v2 variant class no stylesheet here defines any more, so
-	   the sort-direction button rendered with no surface at all. */
-	/* Square, and the same height as the select it sits beside. It used to lean
-	   on `btn btn-sm` for its box; those are Skeleton class names and Skeleton
-	   is gone, so it had been rendering as a bare arrow glyph with a border
-	   drawn tight around it. */
 	.sort-direction-btn {
 		display: inline-flex;
 		align-items: center;
@@ -543,6 +439,7 @@
 		background: var(--surface-subtle);
 		border: 1px solid var(--border-default);
 		color: var(--text-secondary);
+		cursor: pointer;
 		transition:
 			background-color var(--timing-fast) var(--easing-default),
 			border-color var(--timing-fast) var(--easing-default);
@@ -554,11 +451,33 @@
 		color: var(--text-primary);
 	}
 
-	.mobile-card {
-		transition: background-color var(--timing-fast) var(--easing-default);
+	.card-list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
+		max-height: var(--height-chart-lg);
+		overflow-y: auto;
+		margin: 0;
+		padding: 0;
+		list-style: none;
 	}
 
-	.mobile-card:hover {
-		background: var(--surface-card-hover);
+	.card-badges {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+	}
+
+	@media (min-width: 640px) {
+		.table-container {
+			max-height: var(--height-chart-lg);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.article-row,
+		.sort-direction-btn {
+			transition: none;
+		}
 	}
 </style>

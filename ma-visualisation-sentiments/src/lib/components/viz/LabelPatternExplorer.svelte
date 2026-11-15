@@ -7,6 +7,7 @@
 		translateSubjectivityScore
 	} from '#lib/i18n/utils.js';
 	import { articleState } from '#lib/stores/articles.svelte.js';
+	import { panelSlice } from '#lib/stores/index.js';
 	import { datasetState } from '#lib/stores/datasets.svelte.js';
 	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
 	import { getModelDisplayNames, getJournalName } from '#lib/utils/format.js';
@@ -45,17 +46,26 @@
 		patterns.find((pattern) => pattern.key === viewOptionsState.labelPattern)
 	);
 	const scale = $derived(dimensionScale(dimension, true));
-	const byId = $derived(
-		new Map(
-			(articleState.datasets[datasetState.selected] ?? []).map((article) => [
-				String(article['o:id']),
-				article
-			])
-		)
-	);
+	/*
+	 * Article lookup through the shared panel join's id index: the selected
+	 * dataset is row-aligned with it (same article base), so no second id map
+	 * is built. The detail opens the selected model's own copy of the article.
+	 */
+	const lookup = $derived.by((): ((id: string) => Article | undefined) => {
+		const source = articleState.datasets[datasetState.selected] ?? [];
+		const join = panelSlice.current?.join;
+		if (join?.aligned && source.length === join.articles.length) {
+			return (id) => {
+				const index = join.indexById.get(id);
+				return index === undefined ? undefined : source[index];
+			};
+		}
+		const byId = new Map(source.map((article) => [String(article['o:id']), article]));
+		return (id) => byId.get(id);
+	});
 	const selectedArticles = $derived(
 		(selected?.articleIds ?? [])
-			.map((id) => byId.get(id))
+			.map((id) => lookup(id))
 			.filter((article): article is Article => article !== undefined)
 	);
 	const shownArticles = $derived(selectedArticles.slice(0, viewOptionsState.patternArticles));
@@ -108,7 +118,7 @@
 </p>
 
 {#if shown.length > 0}
-	<div class="pattern-table-wrap">
+	<div class="pattern-table-wrap scroll-shadow-x">
 		<table class="table pattern-table">
 			<caption class="sr-only">{$t.agreementResearch.patternsTitle}</caption>
 			<thead
@@ -121,7 +131,7 @@
 				</tr></thead
 			>
 			<tbody>
-				{#each shown as pattern (pattern.key)}
+				{#each shown as pattern, index (pattern.key)}
 					<tr data-selected={selected?.key === pattern.key}>
 						<th scope="row"
 							><button
@@ -133,7 +143,8 @@
 									'{pattern}',
 									pattern.values.map(label).join(' / ')
 								)}
-								onclick={() => selectPattern(pattern.key)}>{pattern.key}</button
+								onclick={() => selectPattern(pattern.key)}
+								>{$t.reliability.patternRank.replace('{rank}', $num(index + 1))}</button
 							></th
 						>
 						{#each pattern.values as value, index (index)}<td
@@ -191,9 +202,13 @@
 				.replace('{shown}', $num(shownArticles.length))
 				.replace('{total}', $num(selectedArticles.length))}
 		</p>
-		<div class="pattern-table-wrap">
+		<div class="pattern-table-wrap scroll-shadow-x">
 			<table class="table article-pattern-table">
-				<caption class="sr-only">{$t.agreementResearch.patternArticles} — {selected.key}</caption>
+				<caption class="sr-only"
+					>{$t.agreementResearch.patternArticles} — {selected.values
+						.map(label)
+						.join(' / ')}</caption
+				>
 				<thead
 					><tr
 						><th scope="col">{$t.agreementResearch.articleTitle}</th><th scope="col"

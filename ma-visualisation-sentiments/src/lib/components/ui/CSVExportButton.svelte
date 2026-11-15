@@ -11,6 +11,8 @@
 		type ExportProvenance
 	} from '#lib/utils/exportSnapshot.js';
 	import type { Article } from '#lib/types/data.js';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
+	import { searchByTitle } from '#lib/utils/sorting.js';
 	import CsvDownloadButton from './CsvDownloadButton.svelte';
 
 	function convertToCSV(
@@ -56,16 +58,23 @@
 		return toResearchCSV(headers, rows, provenance);
 	}
 
-	const articleCount = $derived(articleState.filtered.length);
+	// The rows the table lists: the filters, then its title search.
+	const searched = $derived(searchByTitle(articleState.filtered, viewOptionsState.tableSearch));
+	const isSearched = $derived(searched !== articleState.filtered);
+	const articleCount = $derived(searched.length);
 
 	function createExport(): CSVExportJob {
 		const dataset = datasetState.selected;
-		// Keep the row set fixed; raw article objects receive their prose in place.
-		const articles = [...articleState.filtered];
+		// Captured synchronously: the row set, model, language and URL stay as
+		// they were at the click; raw article objects receive their prose in place.
+		const articles = [...searched];
 		const ids = articles.map((article) => article['o:id']);
 		const language = $currentLanguage;
 		const labels = $t;
-		const provenance = captureExportProvenance([dataset], 'filtered_articles');
+		const provenance = captureExportProvenance(
+			[dataset],
+			isSearched ? 'searched_articles' : 'filtered_articles'
+		);
 		return {
 			prepare: () => loadJustifications(dataset, fetch, ids),
 			buildCsv: () => convertToCSV(articles, labels, language, provenance)
@@ -75,7 +84,7 @@
 
 <CsvDownloadButton
 	count={articleCount}
-	filenamePrefix="iwac-articles"
+	filenamePrefix={isSearched ? 'iwac-articles-search' : 'iwac-articles'}
 	variant="articles"
 	{createExport}
 />

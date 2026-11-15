@@ -7,8 +7,15 @@
  * the store module (agreement.svelte.ts) only wires these into runes.
  */
 
-import type { Article } from '#lib/types/data.js';
+import type { Article, SentimentAnalysis } from '#lib/types/data.js';
 import type { LabelPair } from './agreement';
+import { buildPanelJoin, type PanelJoin } from './panelJoin';
+import {
+	CENTRALITY_NON_COMPARABLE,
+	POLARITY_NON_COMPARABLE,
+	type CentralityValue,
+	type PolarityValue
+} from '#lib/domain/sentimentContract.js';
 
 /** The three analysis dimensions, with their ordered category scales. */
 export type AgreementDimension = 'polarity' | 'subjectivity' | 'centrality';
@@ -34,7 +41,14 @@ export const DIMENSION_CATEGORIES: Record<AgreementDimension, string[]> = {
 
 /** Read an article's label for a dimension, or null when it wasn't analysed. */
 export function getDimensionLabel(article: Article, dimension: AgreementDimension): string | null {
-	const analysis = article.sentiment_analysis;
+	return analysisLabel(article.sentiment_analysis, dimension);
+}
+
+/** The same read over a bare analysis, as the panel join stores them. */
+export function analysisLabel(
+	analysis: SentimentAnalysis | null | undefined,
+	dimension: AgreementDimension
+): string | null {
 	if (!analysis) return null;
 
 	switch (dimension) {
@@ -45,6 +59,72 @@ export function getDimensionLabel(article: Article, dimension: AgreementDimensio
 		case 'subjectivity':
 			return analysis.subjectivite_score == null ? null : String(analysis.subjectivite_score);
 	}
+}
+
+/**
+ * One label column per model and dimension, read once from the panel join:
+ * columns[dimension][m][i] is model m's label for row i, or null. Every
+ * agreement statistic then indexes these arrays rather than re-joining.
+ */
+export type LabelColumns = Record<AgreementDimension, (string | null)[][]>;
+
+export function buildLabelColumns(join: PanelJoin): LabelColumns {
+	return Object.fromEntries(
+		AGREEMENT_DIMENSIONS.map((dimension) => [
+			dimension,
+			join.analyses.map((column) => column.map((analysis) => analysisLabel(analysis, dimension)))
+		])
+	) as LabelColumns;
+}
+
+/**
+ * Two models' labels on the given rows, dropping any row either left
+ * unlabelled, so n is the genuine complete-case count.
+ */
+export function labelPairsAt(
+	columnA: readonly (string | null)[],
+	columnB: readonly (string | null)[],
+	rows: readonly number[]
+): LabelPair[] {
+	const pairs: LabelPair[] = [];
+	for (const i of rows) {
+		const a = columnA[i];
+		const b = columnB[i];
+		if (a === null || b === null) continue;
+		pairs.push({ a, b });
+	}
+	return pairs;
+}
+
+/** Every model's label on the given rows, complete cases only (see fleissKappa). */
+export function raterItemsAt(
+	columns: readonly (readonly (string | null)[])[],
+	rows: readonly number[]
+): string[][] {
+	const items: string[][] = [];
+	if (columns.length === 0) return items;
+	for (const i of rows) {
+		const labels: string[] = [];
+		let complete = true;
+		for (const column of columns) {
+			const label = column[i];
+			if (label === null) {
+				complete = false;
+				break;
+			}
+			labels.push(label);
+		}
+		if (complete) items.push(labels);
+	}
+	return items;
+}
+
+/** Every model's label on the given rows, missing ones kept as null (for alpha). */
+export function* unitsAt(
+	columns: readonly (readonly (string | null)[])[],
+	rows: readonly number[]
+): Generator<(string | null)[]> {
+	for (const i of rows) yield columns.map((column) => column[i]);
 }
 
 /**
@@ -59,21 +139,16 @@ export function buildLabelPairs(
 	articlesB: Article[],
 	dimension: AgreementDimension
 ): LabelPair[] {
-	const byIdB = new Map(articlesB.map((article) => [String(article['o:id']), article]));
-	const pairs: LabelPair[] = [];
-
-	for (const articleA of articlesA) {
-		const articleB = byIdB.get(String(articleA['o:id']));
-		if (!articleB) continue;
-
-		const a = getDimensionLabel(articleA, dimension);
-		const b = getDimensionLabel(articleB, dimension);
-		if (a === null || b === null) continue;
-
-		pairs.push({ a, b });
-	}
-
-	return pairs;
+	const join = buildPanelJoin({ a: articlesA, b: articlesB }, ['a', 'b']);
+	if (!join) return [];
+	const [columnA, columnB] = join.analyses.map((column) =>
+		column.map((analysis) => analysisLabel(analysis, dimension))
+	);
+	return labelPairsAt(
+		columnA,
+		columnB,
+		join.articles.map((_, i) => i)
+	);
 }
 
 /**
@@ -85,37 +160,48 @@ export function buildRaterItems(
 	modelIds: readonly string[],
 	dimension: AgreementDimension
 ): string[][] {
-	const [first, ...rest] = modelIds;
-	const firstArticles = datasets[first] ?? [];
-	if (firstArticles.length === 0) return [];
-
-	const restMaps = rest.map(
-		(id) => new Map((datasets[id] ?? []).map((article) => [String(article['o:id']), article]))
+	const join = buildPanelJoin(datasets, modelIds);
+	if (!join) return [];
+	const columns = join.analyses.map((column) =>
+		column.map((analysis) => analysisLabel(analysis, dimension))
 	);
+	return raterItemsAt(
+		columns,
+		join.articles.map((_, i) => i)
+	);
+}
 
-	const items: string[][] = [];
+/**
+ * Applicability: did the model treat the article as being about Islam at all?
+ *
+ * The binary beneath the three scales. A model that answers `Non applicable`
+ * (polarity) or `Non abordé` / `Non applicable` (centrality) says "not
+ * addressed" — the same non-comparable verdicts that remove a row from the
+ * discrepancy flags and the arbiter frame. Any other pair of ratings says
+ * "addressed". A missing rating is neither: null stays null, as everywhere
+ * else in the app, so a declined row never counts as a verdict either way.
+ */
+export const APPLICABILITY_CATEGORIES = ['addressed', 'not-addressed'] as const;
+export type ApplicabilityLabel = (typeof APPLICABILITY_CATEGORIES)[number];
 
-	for (const article of firstArticles) {
-		const labels: string[] = [];
-		const firstLabel = getDimensionLabel(article, dimension);
-		if (firstLabel === null) continue;
-		labels.push(firstLabel);
-
-		let complete = true;
-		for (const map of restMaps) {
-			const other = map.get(String(article['o:id']));
-			const label = other ? getDimensionLabel(other, dimension) : null;
-			if (label === null) {
-				complete = false;
-				break;
-			}
-			labels.push(label);
-		}
-
-		if (complete) items.push(labels);
+export function applicabilityLabel(
+	analysis: SentimentAnalysis | null | undefined
+): ApplicabilityLabel | null {
+	if (!analysis) return null;
+	const polarity = analysis.polarite;
+	const centrality = analysis.centralite_islam_musulmans;
+	if (
+		(polarity != null && POLARITY_NON_COMPARABLE.has(polarity as PolarityValue)) ||
+		(centrality != null && CENTRALITY_NON_COMPARABLE.has(centrality as CentralityValue))
+	) {
+		return 'not-addressed';
 	}
+	return polarity != null && centrality != null ? 'addressed' : null;
+}
 
-	return items;
+/** One applicability column per model, aligned with the panel join. */
+export function buildApplicabilityColumns(join: PanelJoin): (ApplicabilityLabel | null)[][] {
+	return join.analyses.map((column) => column.map(applicabilityLabel));
 }
 
 export interface ModelMarginals {
@@ -141,14 +227,29 @@ export function computeMarginals(
 	dimension: AgreementDimension,
 	modelId: string
 ): ModelMarginals {
+	return marginalsFromLabels(
+		articles.map((article) => getDimensionLabel(article, dimension)),
+		articles.map((_, i) => i),
+		dimension,
+		modelId
+	);
+}
+
+/** `computeMarginals` over one label column of the panel join, on the given rows. */
+export function marginalsFromLabels(
+	column: readonly (string | null)[],
+	rows: readonly number[],
+	dimension: AgreementDimension,
+	modelId: string
+): ModelMarginals {
 	const categories = DIMENSION_CATEGORIES[dimension];
 	const index = new Map(categories.map((category, i) => [category, i]));
 	const counts = new Array<number>(categories.length).fill(0);
 	let analyzed = 0;
 	let unanalyzed = 0;
 
-	for (const article of articles) {
-		const label = getDimensionLabel(article, dimension);
+	for (const i of rows) {
+		const label = column[i];
 		const position = label === null ? undefined : index.get(label);
 
 		if (position === undefined) {
@@ -165,6 +266,6 @@ export function computeMarginals(
 		counts,
 		percentages: counts.map((count) => (analyzed > 0 ? (count / analyzed) * 100 : 0)),
 		unanalyzed,
-		total: articles.length
+		total: rows.length
 	};
 }

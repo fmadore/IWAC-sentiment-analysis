@@ -24,7 +24,9 @@ import errno
 import json
 import os
 import shutil
+import sys
 import tempfile
+import time
 from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
@@ -35,6 +37,26 @@ from .serialization import safe_save_json, save_json
 JOURNAL = ".generation-pending.json"
 BACKUP = ".generation-backup"
 LOCK = ".iwac-generation.lock"
+# Windows refuses a rename while another process (an indexer, an antivirus scan,
+# a dev server watching static/) holds the destination open: a sharing
+# violation that clears within moments. Retry briefly rather than roll back a
+# whole validated generation over it.
+REPLACE_ATTEMPTS = 5
+REPLACE_BACKOFF_SECONDS = 0.2
+
+
+def _replace_with_retry(
+    source: Path, destination: Path, *, sleep: Callable[[float], None] = time.sleep
+) -> None:
+    """``os.replace`` with a short, bounded retry on ``PermissionError`` only."""
+    for attempt in range(1, REPLACE_ATTEMPTS + 1):
+        try:
+            os.replace(source, destination)
+            return
+        except PermissionError:
+            if attempt == REPLACE_ATTEMPTS:
+                raise
+            sleep(REPLACE_BACKOFF_SECONDS * attempt)
 
 
 def _safe_name(name: str) -> str:
@@ -89,7 +111,7 @@ def publish_generation(stage: Path, target: Path, names: list[str]) -> None:
     save_json({"files": entries}, target / JOURNAL)
     try:
         for name in names:
-            os.replace(stage / name, target / name)
+            _replace_with_retry(stage / name, target / name)
     except BaseException:
         recover_publication(target)
         raise
@@ -105,6 +127,8 @@ def _lock_windows(fd: int, *, blocking: bool) -> None:
     msvcrt reports contention as EACCES, and its blocking mode gives up after
     ten one-second attempts with EDEADLOCK, so a writer that must wait retries.
     """
+    if sys.platform != "win32":  # also tells a type checker msvcrt exists below
+        raise RuntimeError("msvcrt locking is Windows-only")
     import msvcrt
 
     while True:
@@ -134,7 +158,7 @@ def publication_lock(staging_dir: Path, *, blocking: bool = False) -> Iterator[N
         # it first — Windows locks are mandatory, so a second writer reading the
         # held byte failed with PermissionError before it could be refused.
         lock.seek(0)
-        if os.name == "nt":
+        if sys.platform == "win32":
             import msvcrt
 
             _lock_windows(lock.fileno(), blocking=blocking)
@@ -146,7 +170,7 @@ def publication_lock(staging_dir: Path, *, blocking: bool = False) -> Iterator[N
             yield
         finally:
             lock.seek(0)
-            if os.name == "nt":
+            if sys.platform == "win32":
                 msvcrt.locking(lock.fileno(), msvcrt.LK_UNLCK, 1)
             else:
                 fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
@@ -159,11 +183,16 @@ def staged_publication(
     """Lock, recover any interrupted publication, and yield an empty stage.
 
     The stage is a fresh directory inside ``staging_dir`` and is removed on the
-    way out, whether or not the caller published it.
+    way out, whether or not the caller published it. A cleanup failure is
+    ignored: on Windows a scanner can still hold a staged file after a
+    successful publish, and raising then would report a committed publication
+    as failed. A leftover ``stage-*`` directory is inert and never deployed.
     """
     with publication_lock(staging_dir, blocking=blocking):
         recover_publication(target)
-        with tempfile.TemporaryDirectory(prefix="stage-", dir=staging_dir) as stage:
+        with tempfile.TemporaryDirectory(
+            prefix="stage-", dir=staging_dir, ignore_cleanup_errors=True
+        ) as stage:
             yield Path(stage)
 
 

@@ -7,7 +7,7 @@ importable and tested without the network.
 from __future__ import annotations
 
 from collections import Counter
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 
 import pandas as pd
@@ -107,14 +107,25 @@ def build_place_edges(records: Iterable[dict], lookup: dict[str, int]) -> PlaceE
     return result
 
 
-def build_places_payload(place_records: dict[int, dict], edges: PlaceEdges) -> dict:
+def build_places_payload(
+    place_records: dict[int, dict],
+    edges: PlaceEdges,
+    source: Mapping[str, str | None] | None = None,
+) -> dict:
     """The published ``iwac_places.json`` shape.
 
     Only places something actually points at are shipped — the registry is
     otherwise ~20 dead entries the client would filter out on every render.
+    Edges are ordered by numeric article id rather than upstream row order, so
+    a reshuffled source parquet writes the same bytes. ``source`` is the
+    optional provenance block (``serialization.provenance_block``); files
+    written before it existed carry none.
     """
     cited = [record for pid, record in place_records.items() if edges.mentions[pid] > 0]
     return {
+        **({"source": dict(source)} if source is not None else {}),
         "places": sorted(cited, key=lambda place: place["id"]),
-        "articles": edges.edges,
+        "articles": {
+            article_id: edges.edges[article_id] for article_id in sorted(edges.edges, key=int)
+        },
     }

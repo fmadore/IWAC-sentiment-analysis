@@ -18,7 +18,7 @@ export const fr: Translations = {
 		intro:
 			'Comparez le panel sur les mêmes articles collectés. Ces proportions décrivent les annotations de cette collection, pas l’opinion publique ni l’ensemble de la production journalistique.',
 		corpusFilters:
-			'Les filtres de pays et de journaux s’appliquent ici. Les filtres de sentiments concernent uniquement les graphiques à un seul modèle ci-dessus ; sélectionner les articles selon un modèle biaiserait cette comparaison.',
+			'Les filtres de pays et de journaux s’appliquent ici. Les filtres de sentiments du panneau de filtres concernent uniquement les graphiques à un seul modèle ; sélectionner les articles selon un modèle biaiserait cette comparaison.',
 		negative: 'Part de polarité négative',
 		central: 'Part centrale ou très centrale',
 		subjective: 'Part plutôt ou très subjective',
@@ -43,8 +43,6 @@ export const fr: Translations = {
 		minimumNote:
 			'Les interruptions signalent l’absence d’annotations applicables ou un effectif inférieur au minimum choisi. Une proportion nulle est une valeur mesurée.',
 		range: 'Étendue entre modèles',
-		rangeNote:
-			'Le tableau indique les proportions minimale et maximale des modèles. Cette étendue est descriptive, ce n’est pas un intervalle de confiance.',
 		unknown: 'Pays non renseigné',
 		model: 'Modèle',
 		collected: 'Articles collectés',
@@ -69,7 +67,77 @@ export const fr: Translations = {
 		nameOrder: 'Nom',
 		filterNewspaper: 'Filtrer sur ce journal',
 		timelinePage: 'Journaux {start}–{end} sur {total}',
-		timelineLegend: 'Articles collectés par case'
+		timelineLegend: 'Articles collectés par case',
+		panelSeries: 'Séries du panel',
+		panelNone: 'Modèles seulement',
+		panelMajority: 'Majorité du panel dans la catégorie',
+		panelAny: 'Au moins un modèle dans la catégorie',
+		panelMajorityName: 'Majorité du panel',
+		panelAnyName: 'Au moins un modèle',
+		panelNote:
+			'Les séries du panel comptent chaque article une seule fois : « majorité du panel » lorsque plus de la moitié du panel le range dans la catégorie, « au moins un modèle » dès qu’un modèle le fait. Toutes deux ne retiennent que les articles notés par tous les modèles sur cette dimension, quelle que soit la cohorte choisie.',
+		intervalLow: 'Borne inférieure de Wilson à 95 %',
+		intervalHigh: 'Borne supérieure de Wilson à 95 %',
+		lowSample: 'Moins de {min} articles',
+		lowSampleNote:
+			'Les points creux et estompés reposent sur moins de {min} articles : un seul article y déplace une part de plus de trois points de pourcentage. Les intervalles de Wilson à 95 % de l’infobulle et du tableau de données indiquent jusqu’où chaque part peut vraisemblablement se situer.'
+	},
+
+	reliability: {
+		ordinalAlpha: 'α ordinal',
+		nominalAlpha: 'α nominal',
+		alphaDetail: 'α ordinal de Krippendorff · {count} articles',
+		alphaHelp:
+			'L’alpha de Krippendorff porte sur tout article noté par au moins deux modèles : une note absente laisse l’article dans le calcul avec moins d’évaluateurs au lieu de l’en retirer. La forme ordinale accorde un crédit partiel aux notes voisines, pondéré par la fréquence d’usage de chaque point de l’échelle. 1 correspond à un accord parfait ; 0 à ce que produirait le seul hasard.',
+		alphaPolarityNote:
+			'Polarité : l’alpha ordinal utilise les cinq niveaux notés et laisse de côté « Non applicable », comme le κ pondéré ; l’alpha nominal et le κ de Fleiss le conservent comme catégorie.',
+		completeCaseTitle: 'κ de Fleiss, cas complets',
+		fleissDetail: 'Cas complets · {count} articles',
+		materialMissing: 'Sans {model} : κ de Fleiss {value} sur {count} articles.',
+		archiveAlphaNote:
+			'Archive : le κ de Fleiss reste la statistique publiée pour le panel. L’α de Krippendorff s’affiche en complément et ne modifie aucun des chiffres archivés.',
+		looTitle: 'En retirant un modèle',
+		looNote:
+			'Un coefficient de panel dépend des modèles retenus ; l’incertitude due à l’échantillon d’articles est faible en comparaison.',
+		looModel: 'Modèle retiré',
+		looAll: 'Aucun (panel entier)',
+		looArticles: 'Articles',
+		applicabilityTitle: 'L’article porte-t-il sur l’islam ?',
+		applicabilityLede:
+			'Le verdict de chaque modèle réduit à « traité » ou « non traité » : une polarité « Non applicable » ou une centralité « Non abordé » vaut non traité, toute autre paire de notes vaut traité. Une note absente n’est ni l’un ni l’autre et reste hors du calcul. Les signalements de divergence et l’arbitre écartent les articles portant un verdict « non traité » selon une règle documentée ; cette mesure décrit ce que la règle met de côté.',
+		applicabilityAlpha: 'α du panel',
+		applicabilityAlphaDetail: 'α nominal · {count} articles avec au moins deux verdicts',
+		applicabilityMixed: 'Verdicts partagés',
+		applicabilityMixedDetail:
+			'{count} articles sur {total} : certains modèles disent traité, d’autres non',
+		applicabilityAllAddressed: 'Traité pour tous les modèles',
+		applicabilityAllNotAddressed: 'Non traité pour tous les modèles',
+		applicabilityShareDetail: 'Part des {total} articles avec au moins deux verdicts',
+		applicabilityDisagreements: 'Verdicts opposés',
+		applicabilityAddressed: 'Traité',
+		applicabilityNotAddressed: 'Non traité',
+		applicabilityMissing: 'Sans note',
+		applicabilityModels: 'Verdicts par modèle',
+		chanceWithinOne: 'Hasard : {value} · {count} articles comparés',
+		chanceWithinOneHelp:
+			'Part des articles où les deux étiquettes sont identiques ou distantes d’une position. Le hasard correspond à la part qu’atteindraient deux modèles indépendants ayant ces mêmes distributions d’étiquettes. Quand la plupart des notes se concentrent dans trois catégories voisines, il est déjà élevé : cette mesure distingue donc à peine une paire d’une autre.',
+		flagsTitle: 'Ce qui fait signaler un article',
+		flagsLede:
+			'Les articles que le tableau de bord signale parce que les notes du panel s’étendent sur {threshold} crans ou plus dans au moins une dimension, ventilés selon la dimension qui atteint ce seuil. La règle elle-même est inchangée.',
+		flagsFlagged: 'Articles signalés',
+		flagsDetail: '{count} sur {total} articles comparables',
+		flagsBy: 'Signalements par dimension',
+		flagsSubjectivityOnly: 'Par la seule subjectivité',
+		flagsSubjectivityNote:
+			'La subjectivité est la dimension dont l’échelle est appliquée de la façon la moins cohérente : un signalement dû à la seule subjectivité renseigne davantage sur l’usage de cette échelle par les modèles que sur un désaccord de fond.',
+		conflictBreakdownTitle: 'Ce qui rend un désaccord marqué',
+		totalDifferenceCaveat:
+			'Le total additionne des crans de trois échelles qui ne sont pas commensurables : il sert à classer les articles, non à mesurer l’écart entre deux lectures.',
+		correlationInterval: 'Intervalle à 95 %',
+		correlationIntervalNote:
+			'L’intervalle repose sur la transformation z de Fisher, avec la variance de Fieller, Hartley et Pearson pour les corrélations de rang. Avec un échantillon de cette taille, toute corrélation visible a une valeur p pratiquement nulle : l’intervalle et n sont les chiffres informatifs.',
+		patternRank: 'Configuration {rank}',
+		methodCategorical: 'Non pondéré, toutes catégories'
 	},
 
 	agreementResearch: {
@@ -143,7 +211,7 @@ export const fr: Translations = {
 		byJournal: 'Par journal',
 		other: 'Autres journaux',
 		topJournals:
-			'Les six journaux les plus représentés ; les autres sont regroupés. Le tableau inclut chaque journal.',
+			'Une barre par journal, ramenée à 100 % de ses propres articles notés (n à côté du titre) : les profils se comparent quelle que soit la taille du journal. Les dix plus représentés sont affichés, les autres sont regroupés. Le tableau donne les effectifs bruts de chaque journal.',
 		count: 'Articles',
 		share: 'Part (%)',
 		year: 'Année',
@@ -169,10 +237,21 @@ export const fr: Translations = {
 		significantHelp:
 			'Articles pour lesquels {a} et {b} diffèrent d’au moins trois crans sur une dimension.',
 		scope: 'Regroupement',
-		context: 'Télécharger le contexte d’analyse'
+		openMenu: 'Ouvrir le menu',
+		selectPlaceholder: 'Choisir…',
+		back: 'Retour',
+		backToDashboard: 'Retour au tableau de bord',
+		rangeMinimum: 'Valeur minimale',
+		rangeMaximum: 'Valeur maximale',
+		differenceMinimum: 'Écart minimal',
+		differenceMaximum: 'Écart maximal',
+		zoomIn: 'Zoom avant',
+		zoomOut: 'Zoom arrière',
+		zoomReset: 'Réinitialiser le zoom'
 	},
 	// App header and branding
 	appTitle: 'Analyse de sentiments CIAO',
+	skipToContent: 'Aller au contenu',
 	appSubtitle: "Collection Islam Afrique de l'Ouest – visualisation et exploration des données",
 	enterFullscreen: 'Passer en plein écran',
 	exitFullscreen: 'Quitter le mode plein écran',
@@ -180,15 +259,14 @@ export const fr: Translations = {
 	language: 'Langue',
 
 	// Navigation
+	/* Noms des vues : entrées de la barre latérale et, pour la plupart, le H1 de la vue. */
 	nav: {
-		/* Intitulé de section au-dessus de la liste des vues dans le tiroir mobile. */
-		views: 'Vues',
-		charts: 'Graphiques',
+		charts: 'Distributions',
 		trends: 'Tendances',
-		distribution: 'Distribution',
+		distribution: 'Polarité × subjectivité',
 		volume: 'Volume',
-		heatmap: 'Carte de chaleur',
-		table: 'Tableau',
+		heatmap: 'Centralité par pays',
+		table: 'Articles',
 		comparison: 'Comparaison',
 		seasonality: 'Saisonnalité',
 		ranking: 'Journaux',
@@ -205,7 +283,104 @@ export const fr: Translations = {
 	viewMeta: {
 		model: 'Modèle',
 		sample: 'Échantillon',
-		rated: 'Évalués'
+		rated: 'Évalués',
+		/* Affiché sous le filet lorsque le modèle choisi a laissé plus de 1 % du
+		   corpus sans note. */
+		unratedCaveat:
+			'Ce modèle a laissé {count} articles sans note ({share} du corpus). Ils ne forment pas un sous-ensemble aléatoire : ses chiffres décrivent les articles qu’il a notés plutôt que le corpus entier.',
+		unratedCaveatLink: 'Voir la méthodologie'
+	},
+
+	/* Les trois sections de la barre latérale ; aussi le surtitre de chaque vue. */
+	navGroups: {
+		corpus: 'Corpus',
+		model: 'Lecture d’un modèle',
+		panel: 'Entre modèles'
+	},
+
+	/* L'introduction permanente au-dessus de chaque vue. */
+	intro: {
+		label: 'À propos de ce tableau de bord',
+		title: 'Plusieurs lectures automatiques d’un même corpus de presse',
+		body: 'Un panel de {models} modèles de langage a noté les {articles} articles de presse de ce corpus selon trois dimensions : la polarité, la subjectivité et la place qu’occupent l’islam et les musulmans dans chaque article.',
+		bodyNoCount:
+			'Un panel de {models} modèles de langage a noté les articles de presse de ce corpus selon trois dimensions : la polarité, la subjectivité et la place qu’occupent l’islam et les musulmans dans chaque article.',
+		caveat:
+			'Aucun modèle ne fait office de vérité de référence, et il n’existe pas encore d’échantillon codé à la main. L’accord entre modèles mesure donc leur cohérence, non leur exactitude.',
+		agreementLink: 'Où les modèles s’accordent et divergent',
+		dismiss: 'Masquer cette introduction'
+	},
+
+	/* Le pied de page : citation et provenance. */
+	footer: {
+		cite: 'Comment citer',
+		softwareTag: 'logiciel',
+		citeNote:
+			'Dans une publication, citez le dépôt versionné avec le lien vers l’analyse et votre date de consultation.',
+		version: 'Version',
+		data: 'Données',
+		currentAnalysis: 'analyse actuelle (v2)',
+		archivedAnalysis: 'analyse archivée (v1)',
+		generated: 'générées le {date}',
+		sourceRevision: 'révision source {revision}',
+		release: 'publication {release}',
+		provenanceLoading: 'Chargement de la provenance des données…',
+		provenanceUnavailable: 'La provenance des données n’a pas pu être chargée.',
+		licence: 'Licence',
+		licenceText: 'Logiciel sous licence MIT ; jeu de données source sous CC BY-NC-SA 4.0.',
+		repository: 'Code source (GitHub)',
+		dataset: 'Jeu de données (Hugging Face)',
+		acknowledgements: 'Remerciements',
+		// Wording mandated by the computing centre, which publishes it in English only.
+		acknowledgementText:
+			'Les calculs ont été effectués sur le cluster festus du Bayreuth Centre for High Performance Computing (https://www.bzhpc.uni-bayreuth.de), financé par la Deutsche Forschungsgemeinschaft (DFG, Fondation allemande pour la recherche) - 523317330.'
+	},
+
+	/* Le sélecteur de paire de modèles (comparaison, accord, arbitre archivé). */
+	pairPicker: {
+		first: 'Premier modèle',
+		second: 'Second modèle'
+	},
+
+	/* Les notes de tout le panel dans le détail d'un article. */
+	panelRatings: {
+		title: 'Tout le panel',
+		note: 'Chaque modèle de cette analyse a noté le même article. Le modèle sélectionné est mis en évidence ; aucun ne constitue une lecture de référence.',
+		selected: 'Sélectionné',
+		modelReading: 'Lecture de {model}'
+	},
+
+	/* Textes de la carte méthodologique autrefois écrits en dur par langue. */
+	analysisInfo: {
+		collectionName: 'Collection Islam Afrique de l’Ouest',
+		collectionAcronym: 'CIAO',
+		listAnd: ' et ',
+		panelReadSame:
+			'Chaque modèle du panel a lu les mêmes articles, ce qui permet de placer leurs réponses côte à côte :',
+		panelSwitch:
+			'Choisissez les modèles avec les sélecteurs de cette vue. La vue Accord place tout le panel côte à côte.',
+		ratingsFrom: 'Les notes affichées viennent de ',
+		independentReading:
+			'Chaque modèle lit les mêmes articles de son côté, sans connaître les réponses des autres',
+		differencesAfterwards:
+			'Les écarts entre modèles sont calculés ensuite, dimension par dimension',
+		samePrompt:
+			'Chaque modèle reçoit le même prompt, de sorte que la comparaison mesure les modèles et non leurs instructions :',
+		identicalPrompt:
+			'Le prompt est identique pour tous les modèles, si bien que rien dans les instructions n’en favorise un',
+		readingComparison: 'Lire la comparaison',
+		comparisonCaveats: [
+			'Les écarts entre modèles peuvent tenir à leurs données d’entraînement, à leur architecture et à la façon dont ils ont été réglés, sans qu’aucun soit pour autant plus juste',
+			'Aucun modèle ne fait référence. Là où deux d’entre eux divergent, l’article mérite d’être lu',
+			'Ces comparaisons servent surtout à repérer des motifs à l’échelle du corpus, et fort peu à trancher sur un article isolé'
+		],
+		promptTitle: 'Le prompt d’analyse complet',
+		translationNoteLabel: '',
+		// Vide : le prompt original est en français, il n'y a rien à signaler.
+		translationNote: '',
+		docs: 'Documentation →',
+		promptFingerprint:
+			'Empreinte du prompt {fingerprint}, enregistrée avec chaque résultat mis en cache.'
 	},
 
 	// Filters
@@ -223,10 +398,6 @@ export const fr: Translations = {
 		searchJournals: 'Rechercher un journal…',
 		showingJournals: 'Affichage de',
 		of: 'sur',
-		selectedCountries: 'Pays sélectionnés',
-		selectedJournals: 'Journaux sélectionnés',
-		selectedPolarities: 'Polarités sélectionnées',
-		selectedCentralities: 'Niveaux de centralité sélectionnés',
 		subjectivityScore: 'Score de subjectivité',
 		ratherObjective: 'Plutôt objectif',
 		mixedSubjectivity: 'Mixte',
@@ -277,7 +448,7 @@ export const fr: Translations = {
 		subtitle:
 			'Journaux classés selon leur note moyenne sur la dimension choisie. Les intervalles de confiance à 95 % décrivent l’incertitude au sein de cet échantillon de notes. Ils ne prennent pas en compte la sélection archivistique, les articles manquants ni les erreurs d’annotation ; cette collection n’est pas un échantillon aléatoire de toute la production journalistique.',
 		chartTitle: 'Classement des journaux',
-		chartSubtitle: 'Moyenne et IC à 95 % · titres comptant au moins {min} articles évalués',
+		chartSubtitle: 'Moyenne et IC à 95 % · journaux comptant au moins {min} articles évalués',
 		netPolarity: 'Polarité nette',
 		meanSubjectivity: 'Subjectivité moyenne',
 		meanCentrality: 'Centralité moyenne',
@@ -286,7 +457,15 @@ export const fr: Translations = {
 		excludedNote:
 			'{count} journaux écartés : moins de {min} articles évalués. Leurs moyennes seraient trop incertaines pour être classées.',
 		noneAboveThreshold:
-			'Aucun journal ne compte au moins {min} articles évalués avec les filtres actuels.'
+			'Aucun journal ne compte au moins {min} articles évalués avec les filtres actuels.',
+		positiveShare: 'Part positive',
+		negativeShare: 'Part négative',
+		netShare: 'Part nette (positive − négative)',
+		proportionSubtitle:
+			'Part et IC à 95 % (Wilson ; part nette : approximation normale) · journaux comptant au moins {min} articles évalués',
+		measureGroup: 'Mesure',
+		readingNote:
+			'Les journaux dont les intervalles se chevauchent ne peuvent pas être ordonnés : leur ordre à l’intérieur du chevauchement n’est pas interprétable. Le classement est aussi celui d’un seul modèle : les autres modèles de cette génération ordonnent les mêmes titres autrement. Les mesures moyennes traitent les codes ordinaux (−2 à +2, ou 1 à 5) comme des mesures également espacées, ce qu’ils ne sont pas ; les mesures en parts évitent cette hypothèse.'
 	},
 
 	// Carte des lieux
@@ -300,11 +479,18 @@ export const fr: Translations = {
 		legendSizeTitle: 'Articles mentionnant',
 		legendColorTitle: '{dimension} moyenne',
 		legendUnscored: 'Non évalué',
+		legendReliabilityTitle: 'Fiabilité de la couleur',
+		legendReliable: 'Moyenne d’au moins {min} articles notés',
+		legendLowN: 'Moins de {min} : estompée',
+		keyboardNote:
+			'Survolez une bulle pour la nommer, cliquez pour le détail. Les bulles ne sont pas accessibles au clavier : le tableau de données ci-dessous recense chaque lieu avec les mêmes chiffres.',
 		caveat:
 			'Une bulle compte les articles qui mentionnent un lieu, et non ceux qui portent sur lui. Chaque article nomme environ quatre lieux, si bien que ces totaux dépassent le nombre d’articles. La couleur correspond à la note attribuée à l’article entier sur une échelle de 1 à 5, moyennée sur les articles que le modèle a effectivement évalués pour cette dimension. Pour la polarité, « Non applicable » signifie qu’aucune position n’est exprimée : la valeur sort de la moyenne mais compte toujours dans la taille de la bulle. Pour la centralité, « Non abordé » constitue un véritable bas d’échelle et reste inclus. Les lieux dépourvus de coordonnées dans le référentiel IWAC n’apparaissent pas.',
 		noPlacesTitle: 'Aucun lieu cartographié',
 		noPlacesLede:
-			'Aucun article de la sélection actuelle ne nomme un lieu dont les coordonnées sont connues.'
+			'Aucun article de la sélection actuelle ne nomme un lieu dont les coordonnées sont connues.',
+		ordinalNote:
+			'Ce sont des moyennes de rangs ordinaux, non des unités mesurées. Les bulles estompées reposent sur moins de {min} articles évalués, trop peu pour que leur moyenne dise grand-chose ; la fenêtre du lieu et le tableau de données donnent n pour chaque lieu.'
 	},
 
 	// Saisonnalité du calendrier hégirien
@@ -319,6 +505,9 @@ export const fr: Translations = {
 		calendarNote:
 			'Les dates enregistrées selon le calendrier Umm al-Qura constituent la chronologie de l’IWAC. La conversion tabulaire civile intervient uniquement en l’absence de champs hégiriens enregistrés. Aucun de ces calendriers n’établit la date d’une observance religieuse locale.',
 		undatedNote: '{count} articles écartés : date de publication incomplète.',
+		ordinalNote:
+			'La centralité moyenne est une moyenne de rangs ordinaux (1 à 5), non une unité mesurée ; n est le nombre d’articles évalués dans chaque mois. Les points creux reposent sur moins de {min} articles évalués.',
+		ratedArticles: 'Articles évalués (n)',
 		months: {
 			muharram: 'Mouharram',
 			safar: 'Safar',
@@ -339,44 +528,28 @@ export const fr: Translations = {
 	agreement: {
 		title: 'Accord',
 		subtitle:
-			'Comment les modèles se situent les uns par rapport aux autres : où ils convergent, où ils divergent, et si un désaccord relève d’un décalage systématique ou d’un conflit réel.',
+			'Comment les modèles se situent les uns par rapport aux autres : où ils convergent, où ils divergent, et si un désaccord relève d’un décalage systématique ou d’une véritable différence de lecture.',
 		dimensionSelector: 'Dimension d’analyse',
 		exactAgreement: 'Accord exact',
 		exactAgreementHelp:
 			'Proportion d’articles pour lesquels les deux modèles ont choisi la même catégorie. Cette valeur ne corrige pas l’accord que deux modèles atteindraient par simple hasard.',
 		adjacentAgreement: 'À un cran près',
-		adjacentDetail: 'Identique ou à une catégorie d’écart',
-		adjacentAgreementHelp:
-			'Proportion d’articles dont les deux étiquettes sont identiques ou séparées d’exactement une position sur l’échelle.',
 		articlesCompared: 'articles comparés',
 		kappa: 'κ de Cohen',
 		kappaHelp:
 			'Accord corrigé du hasard. 0 signifie pas mieux que le hasard, 1 signifie parfait. Tous les désaccords y pèsent autant, si bien que deux modèles qui classent les articles de la même façon mais restent à une catégorie d’écart obtiennent malgré tout un score faible.',
 		weightedKappa: 'κ pondéré',
-		weightedKappaHelp:
-			'Le kappa à pondération quadratique accorde davantage de crédit aux notes ordinales proches. Comparez son effectif à celui de l’accord non pondéré ; une valeur pondérée supérieure ne suffit pas à établir un décalage directionnel.',
-		fleissKappa: 'κ de Fleiss',
 		fleissHelp:
-			'Kappa de Fleiss sur tous les modèles du panel à la fois, pour les articles que tous ont évalués.',
+			'Le kappa de Fleiss sur les articles notés par tous les modèles. Un article laissé sans note par un seul modèle est écarté pour tous.',
 		panelTitle: 'L’ensemble du panel',
 		panelLede:
-			'L’accord entre tous les modèles de l’analyse retenue à la fois, dimension par dimension. Seuls comptent les articles que tous ont évalués : un modèle à la couverture plus étroite réduit donc la base de tous les autres.',
+			'L’accord entre tous les modèles de l’analyse retenue à la fois. L’alpha de Krippendorff conserve tout article noté par au moins deux modèles ; le kappa de Fleiss ne garde que les articles notés par tous les modèles, si bien qu’un modèle à la couverture plus mince réduit la base de tous les autres.',
 		matrixTitle: 'Matrice d’accord',
 		rowsAre: 'Lignes :',
 		columnsAre: 'Colonnes :',
 		ofRow: 'De cette ligne',
 		calibrationTitle: 'Calibration des modèles',
 		calibrationSubtitle: 'À quelle fréquence chaque modèle emploie chaque échelon',
-		systematicOffsetNote:
-			'L’accord pondéré accorde davantage de crédit aux petits écarts. Une valeur pondérée supérieure ne suffit pas à établir un décalage directionnel ; examinez la matrice et le sens des différences.',
-		strength: {
-			poor: 'Médiocre',
-			slight: 'Faible',
-			fair: 'Passable',
-			moderate: 'Modéré',
-			substantial: 'Important',
-			almostPerfect: 'Presque parfait'
-		},
 
 		// Section consensus sur l'ensemble du panel
 		scopeLabel: 'Portée de la comparaison',
@@ -397,26 +570,26 @@ export const fr: Translations = {
 		meanSpread: 'Écart moyen',
 		meanSpreadHelp:
 			'Moyenne de (maximum − minimum) entre les modèles, comptée en crans sur l’échelle. Zéro correspond à l’unanimité, le maximum à toute la largeur de l’échelle.',
-		declinedToggle: 'Notations refusées',
+		declinedToggle: 'Réponses « Non applicable »',
 		declinedInclude: 'Incluses',
 		declinedExclude: 'Exclues',
 		declinedNote:
-			'{count} articles sont écartés parce qu’au moins un modèle a répondu « Non applicable ». Un refus de noter se situe sous le bas de l’échelle : le compter comme une notation fait passer un modèle qui s’abstient pour un modèle en désaccord. L’effet se concentre sur les titres dont les articles ne portent que marginalement sur l’islam.',
+			'{count} articles sont écartés parce qu’au moins un modèle a répondu « Non applicable ». Ce verdict se situe sous le bas de l’échelle : le compter comme une notation fait passer un modèle qui n’a trouvé aucune prise de position pour un modèle en désaccord. L’effet se concentre sur les journaux dont les articles ne portent que marginalement sur l’islam.',
 		declinedIncludedNote:
-			'Les notations refusées sont comptées au bas de l’échelle. Les titres qui en comptent beaucoup apparaîtront comme très discutés, mais le désaccord porte alors sur le fait même que l’article concerne l’islam, plutôt que sur le caractère favorable de sa couverture.',
+			'Les réponses « Non applicable » sont comptées au bas de l’échelle. Les journaux qui en comptent beaucoup apparaîtront comme très discutés, mais le désaccord porte alors sur le fait même que l’article concerne l’islam, plutôt que sur le caractère favorable de sa couverture.',
 
 		disagreementTitle: 'Journaux classés par désaccord entre modèles',
 		disagreementSubtitle:
-			'Écart moyen sur le panel avec IC à 95 % · titres comptant au moins {min} articles évalués',
+			'Écart moyen sur le panel avec IC à 95 % · journaux comptant au moins {min} articles évalués',
 		disagreementAxis: 'Crans d’échelle entre le modèle le plus haut et le plus bas',
 		disagreementNote:
-			'Le miroir de la vue Journaux : mêmes titres, même seuil, mais l’axe mesure l’écart entre les modèles plutôt que ce qu’ils disent. Un titre peut être banal quant au sentiment et atypique quant au désaccord.',
+			'Le miroir de la vue Journaux : mêmes journaux, même seuil, mais l’axe mesure l’écart entre les modèles plutôt que ce qu’ils disent. Un journal peut être banal quant au sentiment et atypique quant au désaccord.',
 		spread: 'Écart moyen',
 		unanimityRate: 'Unanimité',
-		declinedShare: 'Notations refusées',
+		declinedShare: 'Part « Non applicable »',
 		medianYear: 'Année médiane',
 		disagreementExcluded:
-			'{count} journaux écartés : moins de {min} articles évalués. Les petits titres paraissent plus discutés, si bien que les classer ici induirait en erreur.',
+			'{count} journaux écartés : moins de {min} articles évalués. Les petits journaux paraissent plus discutés, si bien que les classer ici induirait en erreur.',
 		disagreementEmpty: 'Aucun journal n’atteint {min} articles évalués avec les filtres actuels.',
 
 		dissentTitle: 'Qui se démarque',
@@ -425,9 +598,8 @@ export const fr: Translations = {
 		dissentStacked: 'Par journal',
 		dissentTernary: 'Triangle',
 		dissentTernaryNote:
-			'Un point par journal, placé selon le modèle qui s’y démarque le plus souvent. Un point à un sommet signifie que ce modèle assume tout le désaccord, un point au centre que les trois se le partagent également. La taille indique le nombre d’articles. Les titres où aucun modèle ne s’est jamais démarqué seul n’ont pas de position et ne sont pas tracés. Un triangle n’ayant que trois sommets, cette vue n’est proposée que pour l’archive à trois modèles ; le panel actuel se lit sur les barres empilées.',
+			'Un point par journal, placé selon le modèle qui s’y démarque le plus souvent. Un point à un sommet signifie que ce modèle assume tout le désaccord, un point au centre que les trois se le partagent également. La taille indique le nombre d’articles. Les journaux où aucun modèle ne s’est jamais démarqué seul n’ont pas de position et ne sont pas tracés. Un triangle n’ayant que trois sommets, cette vue n’est proposée que pour l’archive à trois modèles ; le panel actuel se lit sur les barres empilées.',
 		dissentsAlone: 'se démarque seul',
-		dissentShare: 'Part des partages',
 
 		directionTitle: 'Dans quel sens penche chaque modèle',
 		directionSubtitle:
@@ -448,7 +620,7 @@ export const fr: Translations = {
 		scatterX: 'Moyenne du consensus (les modèles moyennés)',
 		scatterY: 'Écart moyen sur le panel',
 		scatterNote:
-			'Corrélation entre les deux axes : r = {r}. Une valeur proche de zéro signifierait que le désaccord ne dépend pas du caractère favorable de la couverture d’un titre. Une valeur forte, dans un sens ou dans l’autre, signifie que les modèles se disputent surtout un bout de l’échelle, et le classement ci-dessus doit alors se lire en conséquence. La valeur diffère selon la génération d’analyse et selon la dimension.'
+			'Corrélation entre les deux axes : r = {r}. Une valeur proche de zéro signifierait que le désaccord ne dépend pas du caractère favorable de la couverture d’un journal. Une valeur forte, dans un sens ou dans l’autre, signifie que les modèles se disputent surtout un bout de l’échelle, et le classement ci-dessus doit alors se lire en conséquence. La valeur diffère selon la génération d’analyse et selon la dimension.'
 	},
 
 	// Données sous-jacentes des graphiques
@@ -471,23 +643,22 @@ export const fr: Translations = {
 		matrixCaption: 'Tableau croisé des étiquettes des deux modèles',
 		spread: 'Écart moyen',
 		unanimity: 'Unanimité',
-		declined: 'Refusées',
+		declined: '« Non applicable »',
 		medianYear: 'Année médiane',
 		disagreementCaption:
-			'Journaux classés par écart moyen sur le panel, avec intervalles de confiance, unanimité et part de notations refusées'
+			'Journaux classés par écart moyen sur le panel, avec intervalles de confiance, unanimité et part de « Non applicable »'
 	},
 
 	// Chart titles and labels
 	charts: {
 		polarityDistribution: 'Distribution de la polarité',
 		subjectivityDistribution: 'Distribution de la subjectivité',
+		centralityDistribution: 'Distribution de la centralité',
 		sentimentTrends: 'Tendances des sentiments',
 		subjectivityTrends: 'Tendances de la subjectivité',
 		volumeByCountry: "Volume d'articles par pays",
 		centralityHeatmap: 'Carte de chaleur de la centralité',
 		articlesAnalyzed: 'articles analysés',
-		globalDistribution: 'Distribution d’ensemble',
-		byJournal: 'par journal',
 		byYear: 'par année',
 		stackedAreas: 'Aires empilées',
 		lines: 'Lignes',
@@ -501,6 +672,9 @@ export const fr: Translations = {
 
 	// Trends view
 	trends: {
+		lowSampleBand: 'n < {min}',
+		lowSampleNote:
+			'En mode part, les années ombrées reposent sur moins de {min} articles évalués : un seul article y déplace les bandes de plus de trois points de pourcentage. L’infobulle donne le n de chaque année.',
 		subtitle: 'Comment les notes évoluent au fil des années, pour le corpus et pour chaque journal.'
 	},
 
@@ -538,30 +712,38 @@ export const fr: Translations = {
 	// Table
 	table: {
 		title: 'Articles',
-		country: 'Pays',
-		journal: 'Journal',
 		date: 'Date',
 		polarity: 'Polarité',
 		subjectivity: 'Subjectivité',
 		centrality: 'Centralité',
-		viewDetails: 'Voir les détails',
-		sortBy: 'Trier par',
 		itemsPerPage: 'Éléments par page',
 		showingItems: 'Affichage de',
 		noFilteredArticles: 'Aucun article ne correspond aux filtres sélectionnés',
+		noFilteredArticlesHint:
+			'Modifiez ou effacez les filtres pour afficher de nouveau des articles.',
+		emptyHint: 'Il n’y a rien à afficher pour la sélection actuelle.',
 		articleTitle: 'Titre',
 		subtitle:
-			'Parcourez chaque article, avec ses trois notes et la raison que le modèle a donnée pour chacune.'
+			'Parcourez chaque article, avec ses trois notes et la raison que le modèle a donnée pour chacune.',
+		searchTitles: 'Rechercher dans les titres',
+		searchResults: '{count} articles dont le titre contient « {query} »',
+		searchNoResults: 'Aucun titre ne contient « {query} »',
+		searchNoResultsHint:
+			'Les accents et les majuscules sont ignorés. Essayez un mot plus court ou différent.',
+		searchScopeNote: 'L’export CSV contient les articles listés ici, recherche comprise.',
+		pageStatus: 'Page {page} sur {pages}',
+		pagination: 'Pagination',
+		previousPage: 'Page précédente',
+		nextPage: 'Page suivante',
+		layout: 'Affichage',
+		sortDirectionAsc: 'Ordre croissant. Passer à l’ordre décroissant',
+		sortDirectionDesc: 'Ordre décroissant. Passer à l’ordre croissant',
+		untitled: 'Article sans titre',
+		unknownJournal: 'Journal non renseigné'
 	},
 
 	// Article details
 	article: {
-		metadata: 'Métadonnées',
-		analysis: 'Analyse de sentiment',
-		polarityJustification: 'Raison de la note de polarité',
-		subjectivityJustification: 'Raison de la note de subjectivité',
-		centralityJustification: 'Raison de la note de centralité',
-		close: 'Fermer',
 		titleNotAvailable: 'Titre non disponible',
 		publicationDate: 'Date de publication',
 		linkToFullArticle: "Lien vers l'article complet",
@@ -658,15 +840,13 @@ export const fr: Translations = {
 			"Effort de raisonnement : moyen pour GPT-5.6 Luna, Qwen3.8 27B et Claude Haiku 5.5, les trois dont le réglage a pu être vérifié comme un véritable échelon intermédiaire ; élevé pour Mistral Small 4 et DeepSeek v4 Flash, dont les API n'offrent aucun niveau intermédiaire ; nominalement moyen pour Gemma 4 31B, dont la route OpenRouter rend le moyen et l'élevé indiscernables",
 			'Où chaque modèle a tourné : chez son concepteur — OpenAI, Mistral ou Anthropic —, sauf Gemma 4 31B et DeepSeek v4 Flash, servis via OpenRouter, et Qwen3.8 27B, auto-hébergé avec vLLM sur le cluster Festus de l’université de Bayreuth',
 			'Claude Haiku 5.5 a rejoint le panel le 22 octobre 2026 sans pilote, sur décision du responsable de la collection : aucun chiffre de pilote n’existe donc pour son accord avec les autres modèles ni pour sa constance avec lui-même',
-			'Remerciement de financement que le centre exploitant ce cluster exige de toute publication rendant compte de travaux qui y ont été menés, et qu’il dit obligatoire : « Calculations were performed using the festus-cluster of the Bayreuth Centre for High Performance Computing (https://www.bzhpc.uni-bayreuth.de), funded by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) - 523317330. »',
 			'Température : non définie par le pipeline — chaque modèle tourne à la valeur par défaut de son hôte',
 			'Format de sortie : JSON structuré validé par un schéma Pydantic',
 			'Un cache reprenable, un enregistrement par article et par modèle ; seuls les appels réussis y sont conservés',
 			'Gestion des erreurs : jusqu’à trois tentatives par appel, avec une attente croissante entre elles et un délai maximal par modèle',
 			'Couverture : 12 298 des 12 348 articles portent les annotations de GPT-5.6 Luna, Mistral Small 4, DeepSeek v4 Flash et Gemma 4 31B. Les 50 articles qui ne sont ni en français ni en anglais sont écartés à dessein, le prompt étant en français',
 			'Claude Haiku 5.5 s’arrête 47 articles plus tôt : son passage d’octobre n’a trouvé aucun texte pour 47 articles en français que les autres avaient lus en août, et les a sautés. Contrairement au manque ci-dessous, celui-ci a une cause mécanique',
-			'Qwen3.8 27B s’arrête 200 articles plus tôt : il les a refusés au fil d’un passage complet et de trois séries de reprises. Ce manque est définitif, et il n’est pas aléatoire — il frappe surtout les articles où l’islam est périphérique, si bien que tout chiffre calculé sur les seuls articles évalués par tous penche vers une matière où l’islam est central',
-			'Empreinte du prompt d14ace9ac192, enregistrée avec chaque résultat mis en cache'
+			'Qwen3.8 27B s’arrête 200 articles plus tôt : il les a refusés au fil d’un passage complet et de trois séries de reprises. Ce manque est définitif, et il n’est pas aléatoire — il frappe surtout les articles où l’islam est périphérique, si bien que tout chiffre calculé sur les seuls articles évalués par tous penche vers une matière où l’islam est central'
 		],
 		promptFeatures: [
 			"Attribue au modèle le rôle d'analyste expert des représentations de l'islam et des musulmans dans la presse ouest-africaine francophone",
@@ -746,20 +926,10 @@ export const fr: Translations = {
 
 	// Common
 	common: {
-		yes: 'Oui',
-		no: 'Non',
 		close: 'Fermer',
-		save: 'Enregistrer',
-		delete: 'Supprimer',
-		view: 'Voir',
-		search: 'Rechercher',
-		filter: 'Filtrer',
-		clear: 'Effacer',
 		all: 'Tout',
-		none: 'Aucun',
 		total: 'Total',
 		articles: 'articles',
-		article: 'article',
 		viewMore: 'Voir plus',
 		viewLess: 'Retour à la liste',
 		previous: 'Précédent',
@@ -784,6 +954,8 @@ export const fr: Translations = {
 		archivedTitle: "Vous consultez l'analyse archivée de 2026 (v1).",
 		archivedDescription:
 			'GPT-5 mini, Gemini 3 Flash preview et Ministral 14B, évalués avec le premier prompt. Conservée en ligne pour que les résultats publiés et les citations restent reproductibles.',
+		archivedConfound:
+			'Le prompt a été réécrit entre les deux analyses : un écart entre elles mêle donc le changement de modèles au changement de prompt.',
 		backToCurrent: "Revenir à l'analyse actuelle",
 		archiveLinkLabel: "Consulter l'analyse archivée v1",
 		archiveLinkDescription:
@@ -801,8 +973,8 @@ export const fr: Translations = {
 		filterByDiscrepancy: 'Filtrer par écart',
 		differenceRange: 'Plage d’écart',
 		quickFilters: 'Filtres rapides',
-		pointDifference: 'point d’écart',
-		pointsDifference: 'points d’écart',
+		pointDifference: 'cran d’écart',
+		pointsDifference: 'crans d’écart',
 		compareDimensions: 'Comparer les dimensions',
 		polarity: 'Polarité',
 		subjectivity: 'Subjectivité',
@@ -816,16 +988,12 @@ export const fr: Translations = {
 		articlesAnalyzed: 'Articles comparés',
 		highConflicts: 'Désaccords marqués',
 		significantDifferences: 'Au moins trois crans d’écart',
-		significantDifferencesExplanation:
-			'Articles où les deux modèles s’écartent d’au moins 3 crans sur la polarité, la subjectivité ou la centralité. Sur des échelles aussi courtes, un tel écart signale deux lectures sans grand rapport.',
-		totalDiscrepanciesExplanation:
-			'Nombre d’articles que les deux modèles ont notés différemment sur au moins une dimension, quel que soit l’écart.',
 		averageDiscrepancyExplanation:
 			'L’écart moyen entre les deux modèles par article, cumulé sur les trois dimensions (polarité + subjectivité + centralité) et compté en crans d’échelle.',
 		breakdownByDimension: 'Répartition par dimension',
 		enableComparisonMode: 'Activer le mode comparaison',
 		enableComparisonDescription:
-			'Utilisez le sélecteur de modèles dans l’en-tête pour choisir les deux modèles à placer côte à côte.',
+			'Choisissez les deux modèles à placer côte à côte avec les sélecteurs « Premier modèle » et « Second modèle » en haut de cette vue.',
 		noDiscrepancies: 'Aucun écart trouvé',
 		adjustFilters:
 			'Élargissez les filtres pour voir les articles que les deux modèles notent différemment.',
@@ -841,9 +1009,7 @@ export const fr: Translations = {
 		// Model pair picker. Pair labels are built from the model names in the
 		// contract registry, so only the joining word is translated.
 		selectModelPair: 'Sélectionner les modèles à comparer',
-		versus: 'vs',
-		modelALabel: 'Modèle A',
-		modelBLabel: 'Modèle B'
+		versus: 'vs'
 	},
 
 	// Arbiter
@@ -899,7 +1065,6 @@ export const fr: Translations = {
 		subjectivity: 'Subjectivité',
 		centrality: 'Centralité',
 		allDimensions: 'Toutes les dimensions',
-		selectModelPair: 'Sélectionner les modèles',
 		noDataForPair: "Pas de données d'arbitrage disponibles pour cette paire de modèles",
 		runScript: 'Aucun verdict n’a été publié pour cette paire.',
 		filterByDimension: 'Filtrer par dimension',
@@ -919,7 +1084,7 @@ export const fr: Translations = {
 		howItWorks: 'Fonctionnement',
 		selectionProcess: 'Comment les articles ont été retenus',
 		selectionProcessDesc:
-			'Un article part à l’arbitrage lorsque les deux modèles s’écartent d’au moins 3 points sur l’une des trois dimensions.',
+			'Un article part à l’arbitrage lorsque les deux modèles s’écartent d’au moins 3 crans sur l’une des trois dimensions.',
 		blindAssignment: 'Attribution à l’aveugle',
 		blindAssignmentDesc:
 			'Pour chaque paire, un modèle reçoit au hasard le nom « Modèle A » et l’autre « Modèle B ». L’attribution vaut pour tous les articles de la paire, si bien que l’ordre ne peut favoriser ni l’un ni l’autre.',
@@ -960,6 +1125,7 @@ export const fr: Translations = {
 		headToHead: 'Face à face',
 		excludingTies: '(hors égalités et « aucun proche »)',
 		wins: 'en sa faveur',
+		leadNote: '{model} mène les préférences globales de {points} points de pourcentage',
 		// Evaluated articles table
 		evaluatedArticles: 'Articles examinés',
 		evaluatedArticlesSubtitle: 'Les articles que l’arbitre a lus, et ce qu’il a décidé pour chacun',
@@ -979,14 +1145,34 @@ export const fr: Translations = {
 		samplingFrameNote:
 			'L’arbitre n’a pas examiné tout le corpus. Il a examiné les articles sur lesquels le panel se contredit quant au caractère favorable ou hostile de la couverture : chaque pourcentage ci-dessous ne vaut donc que là où un tel désaccord existe déjà. Aucun ne mesure quel modèle est meilleur sur l’ensemble du corpus.',
 		articlesEvaluated: 'articles examinés',
-		dimensionVerdicts: 'verdicts par dimension',
-		preferred: 'préféré',
 		multiple: 'Plusieurs aussi proches',
 		none: 'Aucune proche',
-		overallVerdicts: 'Verdicts globaux',
 		overallVerdictsNote: 'Un verdict par article, sur les trois dimensions à la fois',
 		dimensionTieNote:
-			'Le chiffre principal est le verdict global — un par article, toutes dimensions pesées ensemble. C’est lui qu’il faut lire, plutôt que le décompte par dimension affiché à côté : avec cinq analyses sous les yeux de l’arbitre, quand trois ou quatre d’entre elles rejoignent la note propre de l’arbitre, « plusieurs se valent » est la réponse juste, si bien que les décomptes par dimension restent bas pour tous les modèles et ne permettent pas de les départager.',
+			'Pourquoi le chiffre principal est un taux de concordance et non un nombre de victoires : l’arbitre ne désigne une seule analyse la plus proche que lorsqu’une se détache. Quand plusieurs rejoignent sa propre note, il le dit, et le gagnant global se joue alors sur de petits écarts entre des analyses qui concordent avec lui aussi souvent. Confronter la note de chaque modèle à celle de l’arbitre utilise chaque article examiné et chaque dimension.',
+		matchRatesTitle: 'À quelle fréquence chaque modèle donne la note de l’arbitre',
+		matchRatesNote:
+			'Part des articles examinés où la note du modèle est la même étiquette que celle de l’arbitre, avec un intervalle de Wilson à 95 % et le nombre d’articles comparés (n). « À un cran près » compte les notes distantes d’au plus un cran, sur les articles où les deux notes figurent sur l’échelle. Comme tous les chiffres de cette vue, ils ne valent que pour les articles examinés, non pour le corpus.',
+		matchModel: 'Modèle',
+		exactMatch: 'Même note',
+		withinOne: 'À un cran près',
+		interval: 'IC à 95 %',
+		recusedRow: 'non jugé : récusé',
+		recusedRowNote:
+			'{models} n’a jamais été soumis à l’arbitre. Sa note est placée à côté des verdicts après coup, comme point de comparaison, et non comme une analyse jugée.',
+		winnerTallyTitle: 'Décompte des gagnants globaux',
+		winnerTallyNote:
+			'Secondaire. L’analyse que l’arbitre a désignée comme la meilleure dans l’ensemble, avec « plusieurs aussi proches » et « aucune proche » pour le reste. Des modèles qui donnent la polarité de l’arbitre à peu près aussi souvent sont désignés gagnants un nombre de fois très différent : ce décompte suit les départages du juge — surtout la proximité en subjectivité — plutôt qu’il ne classe les modèles.',
+		loneDissenterNote:
+			'{model} est le seul modèle de son côté de la ligne neutre dans {count} des {total} articles examinés (dont {negative} comme seule lecture négative) ; aucun autre modèle n’est isolé dans plus de {next}. Le cadre se compose donc largement des désaccords d’un seul modèle, et les taux ci-dessus mesurent en partie la fréquence à laquelle un désaccord a été confirmé.',
+		frameShareNote:
+			'Les articles examinés représentent {share} du corpus ({evaluated} sur {corpus}). L’arbitre en a jugé {subjective} ({subjectiveShare}) plutôt ou très subjectifs : le cadre se compose surtout de textes d’opinion.',
+		secondJudgeTitle: 'Un second juge',
+		secondJudgeNote:
+			'{judge} ({developer}) a aussi jugé {shared} de ces articles, en lisant son propre panel, sans le modèle de son concepteur. Les deux juges ne sont comparés que sur leurs propres notes. Leurs analyses préférées ne le sont pas : chaque juge a vu un panel différent, sous ses propres lettres.',
+		judgeDimension: 'Dimension',
+		judgeShared: 'Articles',
+		judgeKappa: 'κ de Cohen',
 		byDimension: 'Verdicts par dimension',
 		confidenceDistribution: 'Répartition de la confiance',
 		blindLabel: 'Présentée comme',
@@ -999,11 +1185,9 @@ export const fr: Translations = {
 		viewArticleDetails: 'Voir l’article et le verdict',
 		articleWithVerdict: 'Article avec le verdict du panel',
 		noEvaluatedArticles: 'Aucun article examiné à afficher',
-		severalOrNone: 'Plusieurs / aucune',
 		panelLegend: 'Quelle analyse était laquelle',
 		panelLegendNote:
 			'Dans son raisonnement, l’arbitre désigne les analyses par ces lettres. Les lettres ont été attribuées une fois pour toute la campagne ; l’ordre de présentation des analyses a été retiré au sort pour chaque article.',
-		panelRatings: 'Les notes du panel',
 		matchesArbiter: 'Même note que l’arbitre',
 		preferredAnalysis: 'Préférée par l’arbitre',
 		notRated: 'Non notée',
@@ -1018,7 +1202,6 @@ export const fr: Translations = {
 		modelsReasoningLoading: 'Chargement du raisonnement des modèles…',
 		comparisonNote:
 			'L’arbitre du panel a pesé à la fois toutes les analyses qui lui ont été soumises, et non seulement les deux comparées ici.',
-		notArbitrated: 'L’arbitre du panel n’a pas examiné cet article.',
 		whyReviewed: 'Pourquoi cet article a été examiné',
 		whyReviewedNote:
 			'Écart entre les notes soumises à l’arbitre sur chaque échelle, en échelons. Un renversement de sens sur la polarité — un modèle lisant la couverture comme favorable, un autre comme hostile — est ce qui a placé l’article devant l’arbitre.',
@@ -1031,11 +1214,9 @@ export const fr: Translations = {
 		arbiterScore: 'Note propre de l’arbitre',
 		verdict: 'Verdict',
 		confidence: 'Confiance',
-		showReasoning: 'Afficher le raisonnement',
-		hideReasoning: 'Masquer le raisonnement',
 		noData: 'Pas encore de verdicts de l’arbitre du panel',
 		noDataDescription:
-			'Ce déploiement n’inclut pas le fichier de l’arbitre du panel. La campagne est payante et se lance à la main — voir le README pour la produire.',
+			'Cette version du tableau de bord n’inclut pas les verdicts de l’arbitre du panel. Ils proviennent d’une campagne payante lancée à la main : cette vue reste vide tant qu’aucune n’a été publiée.',
 		loading: "Chargement des données de l'arbitre…",
 		// Méthodologie
 		methodologyTitle: 'Comment fonctionne l’arbitre du panel',
@@ -1043,45 +1224,51 @@ export const fr: Translations = {
 			'Un seul juge compare toutes les analyses de la génération 2 en une seule fois',
 		blindEvaluation: 'Examen à l’aveugle',
 		blindEvaluationDesc:
-			'Les analyses sont anonymisées de A à E par un seul tirage aléatoire, fixé pour toute la campagne.',
+			'Les analyses sont anonymisées de {firstLabel} à {lastLabel} par un seul tirage aléatoire, fixé pour toute la campagne.',
 		selectionProcess: 'Comment les articles ont été retenus',
 		selectionProcessDesc:
 			'Un article est retenu lorsqu’au moins un modèle lit la couverture comme positive et un autre comme négative : un désaccord sur le sens de la couverture, non sur son intensité. Ce critère va délibérément plus loin que le seuil du tableau de bord pour signaler une discordance : le renversement le plus fréquent de tous, un modèle répondant Positif là où un autre répond Négatif, ne représente que deux rangs d’écart, et aucun seuil assez élevé pour avoir du sens ne peut le retenir. Les articles où un modèle indique que la tâche ne s’applique pas — ou, pour Qwen3.8 27B, n’a jamais rendu de réponse — sont écartés plutôt que comptés comme un désaccord maximal.',
 		whyPolarity: 'Pourquoi la polarité, et pas la centralité',
 		whyPolarityDesc:
-			'Le panel s’accorde bien davantage sur la centralité que sur la polarité : les cinq modèles que lit l’arbitre donnent la même note de centralité sur 63,7 % des articles, contre 33,0 % pour la polarité. Payer un juge pour trancher la centralité reviendrait surtout à acheter des verdicts sur des questions que le panel règle déjà seul et de façon constante. C’est aussi la dimension où Mistral Small 4 s’écarte le plus des quatre autres : une sélection menée sur la centralité se remplit d’articles où un seul modèle tient tête au reste du panel. Choisir sur la polarité retient à la fois la dimension sur laquelle porte la question de recherche et celle que le panel trouve la plus difficile.',
+			'Le panel s’accorde bien davantage sur la centralité que sur la polarité : les {models} modèles que lit l’arbitre donnent la même note de centralité sur {centrality} des articles qu’ils ont tous notés, contre {polarity} pour la polarité, réponses « Non applicable » mises à part. Payer un juge pour trancher la centralité reviendrait surtout à acheter des verdicts sur des questions que le panel règle déjà seul et de façon constante. C’est aussi la dimension où Mistral Small 4 s’écarte le plus des autres : une sélection menée sur la centralité se remplit d’articles où un seul modèle tient tête au reste du panel. Choisir sur la polarité retient à la fois la dimension sur laquelle porte la question de recherche et celle que le panel trouve la plus difficile.',
 		randomOrder: 'L’ordre est retiré au sort à chaque article',
 		randomOrderDesc:
-			'Les analyses sont anonymisées de A à E par un tirage unique, fixé pour toute la campagne, si bien qu’une lettre désigne toujours le même modèle. L’ordre dans lequel les blocs sont présentés est ensuite retiré au sort pour chaque article. Sans ce second tirage, un modèle occuperait la première position sur tous les articles, et la tendance d’un juge à privilégier ce qu’il lit en premier serait impossible à distinguer d’une véritable préférence pour ce modèle. Vérifié après la campagne : la position à laquelle l’analyse retenue avait été présentée ne se distingue pas du hasard une fois le placement pris en compte (χ² de 5,3 à 4 degrés de liberté, sur les 231 verdicts désignant un seul modèle).',
+			'Les analyses sont anonymisées de {firstLabel} à {lastLabel} par un tirage unique, fixé pour toute la campagne, si bien qu’une lettre désigne toujours le même modèle. L’ordre dans lequel les blocs sont présentés est ensuite retiré au sort pour chaque article. Sans ce second tirage, un modèle occuperait la première position sur tous les articles, et la tendance d’un juge à privilégier ce qu’il lit en premier serait impossible à distinguer d’une véritable préférence pour ce modèle. Sur les 231 verdicts désignant un seul modèle, l’analyse retenue n’occupait la première place que 30 fois : χ² = 8,9 à 4 degrés de liberté face à une répartition égale (p = 0,06) ; compte tenu du placement de chaque modèle, χ² = 3,8 (p de permutation = 0,33). Aucun n’est significatif, mais le test a peu de puissance.',
 		frameCaveat: 'Ce que contient surtout l’échantillon',
 		frameCaveatDesc:
-			'Retenir les renversements de sens ne rend pas l’échantillon équilibré entre les modèles. Dans 189 des 301 articles, Mistral Small 4 se tient seul d’un côté de la ligne neutre tandis que les quatre autres se tiennent de l’autre — dans 162 d’entre eux, c’est lui qui lit la couverture comme négative. Un partage strict à un contre quatre, où les quatre portent exactement la même étiquette, est plus rare : 56 articles. La note de polarité propre de l’arbitre coïncide avec celle de Mistral Small 4 dans 37 articles, contre 190 à 205 pour chacun des quatre autres. Une bonne part de ce que documentent les verdicts est donc le calibrage d’un seul modèle sur la polarité, et les parts en face-à-face se lisent en gardant cela à l’esprit.',
+			'Retenir les renversements de sens ne rend pas l’échantillon équilibré entre les modèles. Dans {count} des {total} articles, {dissenter} se tient seul d’un côté de la ligne neutre tandis que les autres se tiennent de l’autre — dans {negative} d’entre eux, c’est lui qui lit la couverture comme négative. Un partage strict d’un seul contre tous, où les {rest} autres portent exactement la même étiquette, est plus rare : {strict} articles. La note de polarité propre de l’arbitre coïncide avec celle de {dissenter} dans {match} articles, contre {othersLow} à {othersHigh} pour chacun des autres. Une bonne part de ce que documentent les verdicts est donc le calibrage d’un seul modèle sur la polarité, et les parts en face-à-face se lisent en gardant cela à l’esprit.',
 		noiseCaveat: 'Une part du désaccord est du bruit',
 		noiseCaveatDesc:
-			'Ce sont des annotations uniques, et les modèles ne se reproduisent pas complètement eux-mêmes : relancé sur le même article, un modèle rend la même polarité 70 à 80 % du temps. Une part de tout désaccord relève donc d’un tirage différent plutôt que d’une lecture différente, et aucun arbitre ne peut distinguer les deux. C’est la raison pour laquelle la sélection porte sur les renversements de sens, qu’un nouveau tirage produira rarement, plutôt que sur les écarts d’un seul rang.',
+			'Ce sont des annotations uniques, et les modèles ne se reproduisent pas complètement eux-mêmes : lors de relances informelles sur les mêmes articles pendant le pilote, un modèle rendait la même polarité 70 à 80 % du temps. Une part de tout désaccord relève donc d’un tirage différent plutôt que d’une lecture différente, et aucun arbitre ne peut distinguer les deux. C’est la raison pour laquelle la sélection porte sur les renversements de sens, qu’un nouveau tirage produira rarement, plutôt que sur les écarts d’un seul rang.',
 		recusal: 'Récusation',
 		recusalDesc:
-			'Claude Haiku 5.5 a rejoint le panel après le passage de l’arbitre, et il vient d’Anthropic, tout comme l’arbitre. Des étiquettes anonymes cachent le nom d’un modèle, pas son style, et les juges IA favorisent de façon mesurable leurs propres productions et celles des modèles qui leur sont apparentés : Claude Haiku 5.5 n’est donc jamais soumis à l’arbitre, et la sélection, le prompt et les lettres portent sur les cinq autres. Ses notes sont confrontées aux verdicts après coup. Sur les 301 articles examinés, sa polarité coïncide avec celle de l’arbitre dans 192 cas, à l’intérieur de la fourchette de 190 à 205 des quatre modèles autres que Mistral Small 4 — aucun signe d’une lecture que partageraient les deux modèles d’Anthropic. Ce que la récusation ne permet pas, c’est de peser les désaccords propres à Claude Haiku 5.5 : les 45 renversements de sens qui n’existent que par lui restent hors du cadre, et les trancher demanderait un juge d’un autre concepteur.',
+			'{recused} a rejoint le panel après le passage de l’arbitre, et il vient d’Anthropic, tout comme l’arbitre. Des étiquettes anonymes cachent le nom d’un modèle, pas son style, et les juges IA favorisent de façon mesurable leurs propres productions et celles des modèles qui leur sont apparentés : {recused} n’est donc jamais soumis à l’arbitre, et la sélection, le prompt et les lettres portent sur les autres. Ses notes sont confrontées aux verdicts après coup. Sur les {total} articles examinés, sa polarité coïncide avec celle de l’arbitre dans {match} cas, contre {othersLow} à {othersHigh} pour les modèles autres que {dissenter} — aucun signe d’une lecture que partageraient les deux modèles d’Anthropic. Ce que la récusation ne permet pas, c’est de peser les désaccords propres à {recused} : les {flips} renversements de sens qui n’existent que par lui restent hors du cadre, et les trancher demanderait un juge d’un autre concepteur.',
+		caveatFiguresPending:
+			'Les chiffres de cette mise en garde sont calculés à partir des verdicts publiés et des notes du panel ; ils s’affichent une fois les notes chargées.',
 		fullText: 'Le texte intégral de l’article',
 		fullTextDesc:
 			'L’arbitre lit l’article depuis le miroir privé de la collection, où le texte est complet. L’arbitre v1 lisait la version publique, qui masque le texte d’une part importante des articles : certains verdicts v1 ont donc été rendus sans l’article sous les yeux du juge.',
 		independentVerdict: 'Verdict indépendant',
-		independentVerdictDesc: "L'arbitre note lui-même l'article avant de comparer les analyses.",
+		independentVerdictDesc:
+			'L’arbitre a pour consigne de noter lui-même l’article avant de comparer les analyses. Il voit les analyses dans la même requête : sa propre note ne se forme donc pas indépendamment d’elles.',
 		reasoningEffort: 'Effort de raisonnement',
 		reasoningEffortDesc:
 			'Claude Opus 5 raisonne de façon adaptative : la campagne fixe donc un niveau d’effort plutôt qu’un budget de jetons. Ce réglage détermine aussi le coût.',
 		howItWorks: 'Fonctionnement',
 		step1: "Il lit le texte intégral de l'article",
-		step2: 'Il note lui-même la polarité, la subjectivité et la centralité',
-		step3: 'Il compare les analyses anonymisées à sa propre note',
+		step2:
+			'Il a pour consigne de noter d’abord lui-même la polarité, la subjectivité et la centralité',
+		step3: 'Il compare à cette note les analyses anonymisées, qu’il voit dans la même requête',
 		step4:
 			"Il désigne l'analyse la plus juste par dimension, ou indique que plusieurs se valent ou qu'aucune n'est juste",
 		arbiterModel: 'Modèle arbitre',
 		arbiterModelDesc:
-			'Claude Opus 5 juge toutes les analyses d’un article en un seul appel : ses verdicts se tiennent donc entre eux, ce que dix campagnes deux à deux ne pourraient pas garantir.',
+			'Claude Opus 5 juge toutes les analyses d’un article en un seul appel : ses verdicts se tiennent donc entre eux, ce que {pairs} campagnes deux à deux ne pourraient pas garantir.',
 		viewPrompt: 'Voir le prompt',
 		promptExplanation:
 			"L'instruction système et le prompt utilisateur exacts envoyés à l'arbitre, mot pour mot.",
+		promptVersionCaveat:
+			'Les verdicts publiés ont été rendus avec le prompt v2.2.0, qui donnait à l’arbitre une référence des échelles plus courte que le guide d’annotation suivi par les modèles, et une règle différente : il classait en « Marginal » une simple mention par nom propre, alors que le guide précise qu’une religion seulement devinable à partir d’un nom ne compte pas.',
 		viewFullPrompt: 'Voir le prompt complet',
 		arbiterPrompt: "Prompt de l'arbitre du panel",
 		systemInstruction: 'Instruction système',
@@ -1102,6 +1289,18 @@ export const fr: Translations = {
 		subjectKeywords: 'Sujets',
 		spatialKeywords: 'Lieux',
 		noData: 'Aucune donnée disponible pour cette sélection',
+		distinctiveKeywords: 'Mots-clés les plus distinctifs',
+		categorySize: '{category} : {count} articles, {share} de {total}',
+		shareOfCorpus: 'Part des articles',
+		oppositeCount: 'Articles « {category} »',
+		distinctiveScore: 'Spécificité (z)',
+		ranking: 'Classement',
+		rankingCount: 'Fréquence',
+		rankingDistinctive: 'Spécificité',
+		countNote:
+			'Effectifs bruts : nombre d’articles de cette catégorie portant chaque mot-clé. Les sujets les plus courants du corpus arrivent en tête dans toutes les catégories ; pour comparer les catégories, choisissez le classement par spécificité.',
+		distinctiveNote:
+			'Classement par rapport de cotes logarithmique avec a priori de Dirichlet informatif (Monroe, Colaresi et Quinn 2008), qui oppose cette catégorie au pôle opposé, « {opposite} ». Un score élevé signale un mot-clé surreprésenté ici par rapport à l’autre pôle ; seuls les mots-clés portés par au moins cinq articles de la catégorie sont classés. Les parts se rapportent à l’ensemble du corpus ou, sous filtre de pays ou de journal, aux articles correspondants qui relèvent d’au moins une catégorie.',
 		categories: {
 			subjectivityHigh: 'Subjectivité élevée (4–5)',
 			subjectivityLow: 'Subjectivité faible (1–2)',

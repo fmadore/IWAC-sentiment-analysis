@@ -2,7 +2,9 @@
 <script lang="ts">
 	import { articleState, filterState } from '#lib/stores/index.js';
 	import { t } from '#lib/i18n/index.js';
-	import { FilterCard, FilterChip, SearchInput } from '#lib/components/common/index.js';
+	import FilterCard from '#lib/components/common/FilterCard.svelte';
+	import FilterChip from '#lib/components/common/FilterChip.svelte';
+	import SearchInput from '#lib/components/common/SearchInput.svelte';
 
 	// Variables locales
 	let selectedJournals = $derived(filterState.journals);

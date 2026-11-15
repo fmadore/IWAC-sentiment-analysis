@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 
 test('opens the default visualisation and preserves a deep-linked view', async ({ page }) => {
 	await page.goto('?view=charts&dataset=chatgpt&lang=en');
-	await expect(page.getByRole('heading', { level: 1, name: 'Charts' })).toBeVisible();
+	await expect(page.getByRole('heading', { level: 1, name: 'Distributions' })).toBeVisible();
 	await expect(page.locator('[role="alert"]')).toHaveCount(0);
 
 	await page.goto('?view=comparison&compare=true&pair=chatgpt-gemini&diffMax=11&lang=en');
@@ -36,16 +36,17 @@ test('keeps comparison table cells in their columns', async ({ page }) => {
 	).toBe(true);
 });
 
-test('keeps the model-pair menu inside the page', async ({ page }) => {
+test('keeps the model-pair picker inside the page', async ({ page }) => {
 	await page.setViewportSize({ width: 1280, height: 900 });
 	await page.goto('?view=agreement&compare=true&pair=luna-mistral-small&lang=en');
 
-	const picker = page.locator('.model-pair-picker .picker-button');
+	// Two native selects, model names visible: no custom menu to overflow, so
+	// the picker itself must fit, at desktop and at phone width.
+	const picker = page.locator('.model-pair-picker');
 	await expect(picker).toBeVisible();
-	await picker.click();
-
-	const menu = page.locator('.model-pair-picker .dropdown-menu');
-	await expect(menu).toBeVisible();
+	await expect(page.getByLabel('First model', { exact: true })).toHaveValue('luna');
+	await expect(page.getByLabel('Second model', { exact: true })).toHaveValue('mistral-small');
+	const menu = picker;
 	const menuFitsPage = () =>
 		menu.evaluate((element) => {
 			const box = element.getBoundingClientRect();
@@ -71,7 +72,7 @@ test('shows a retryable error instead of pretending a failed corpus is empty', a
 
 test('representative page has no serious axe violations', async ({ page }) => {
 	await page.goto('?view=charts&dataset=gemini&lang=en');
-	await expect(page.getByRole('heading', { level: 1, name: 'Charts' })).toBeVisible();
+	await expect(page.getByRole('heading', { level: 1, name: 'Distributions' })).toBeVisible();
 	const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
 	const serious = results.violations.filter((violation) =>
 		['serious', 'critical'].includes(violation.impact ?? '')

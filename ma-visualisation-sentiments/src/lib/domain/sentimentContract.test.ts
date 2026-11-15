@@ -9,6 +9,7 @@
 import { describe, expect, it } from 'vitest';
 import { ARBITER_BLIND_LABELS } from '#lib/types/data.js';
 import shardFixtures from '#lib/data/justification-shard-fixtures.json';
+import recusalFixtures from '#lib/data/recusal-v2-fixtures.json';
 import {
 	ARBITER_DEVELOPER,
 	ARBITER_PANEL_IDS,
@@ -37,7 +38,8 @@ import {
 	justificationShard,
 	modelDisplayName,
 	pairIdsOf,
-	recusedFor
+	recusedFor,
+	type DeveloperId
 } from './sentimentContract';
 
 describe('generation registry', () => {
@@ -159,6 +161,23 @@ describe('panel completeness', () => {
 			expect(recusedFor(developer)).toHaveLength(1);
 			expect(arbiterPanelFor(developer)).toHaveLength(ARBITER_BLIND_LABELS.length);
 		}
+	});
+
+	it('matches the shared recusal fixture Python reads', () => {
+		// data-preprocess/test_contract_fixtures.py asserts the same cases.
+		for (const { developer, recused } of recusalFixtures.cases) {
+			expect(recusedFor(developer as DeveloperId)).toEqual(recused);
+		}
+		expect([...DEVELOPER_IDS].sort()).toEqual(
+			recusalFixtures.cases.map((entry) => entry.developer).sort()
+		);
+		for (const developer of recusalFixtures.unregistered) {
+			expect((DEVELOPER_IDS as readonly string[]).includes(developer)).toBe(false);
+		}
+		const { developer, panel } = recusalFixtures.publishedArbiter;
+		expect(ARBITER_DEVELOPER).toBe(developer);
+		expect([...ARBITER_PANEL_IDS]).toEqual(panel);
+		expect([...arbiterPanelFor(developer as DeveloperId)]).toEqual(panel);
 	});
 });
 

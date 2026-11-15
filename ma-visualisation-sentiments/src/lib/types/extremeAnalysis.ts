@@ -115,11 +115,6 @@ export type ExtremeCategory =
 export type KeywordType = 'subject' | 'spatial';
 
 /**
- * Facet type
- */
-export type FacetType = 'country' | 'newspaper';
-
-/**
  * Display configuration for extreme categories
  */
 export interface ExtremeCategoryConfig {

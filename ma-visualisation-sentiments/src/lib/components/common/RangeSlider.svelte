@@ -17,6 +17,8 @@
   />
 -->
 <script lang="ts">
+	import { t } from '#lib/i18n/index.js';
+
 	interface RangeSliderProps {
 		/** Minimum selectable value */
 		min: number;
@@ -32,7 +34,7 @@
 		onChange: (low: number, high: number) => void;
 		/** Called while a thumb is dragged (live preview) */
 		onInput?: (low: number, high: number) => void;
-		/** Accessible label for the low thumb */
+		/** Accessible label for the low thumb — must differ from the high one */
 		lowAriaLabel?: string;
 		/** Accessible label for the high thumb */
 		highAriaLabel?: string;
@@ -48,8 +50,8 @@
 		highValue,
 		onChange,
 		onInput,
-		lowAriaLabel = 'Minimum value',
-		highAriaLabel = 'Maximum value',
+		lowAriaLabel,
+		highAriaLabel,
 		showTickLabels = true
 	}: RangeSliderProps = $props();
 
@@ -66,13 +68,21 @@
 		return ((value - min) / (max - min)) * 100;
 	}
 
+	// The thumbs may meet but never cross: a low thumb dragged past the high
+	// one used to report low > high, an empty range the filter then applied.
+	// The input's own value is written back because `low`/`high` may not
+	// change (already at the limit), in which case nothing re-renders it.
 	function handleLowInput(event: Event) {
-		low = Number((event.currentTarget as HTMLInputElement).value);
+		const input = event.currentTarget as HTMLInputElement;
+		low = Math.min(Number(input.value), high);
+		input.value = String(low);
 		onInput?.(low, high);
 	}
 
 	function handleHighInput(event: Event) {
-		high = Number((event.currentTarget as HTMLInputElement).value);
+		const input = event.currentTarget as HTMLInputElement;
+		high = Math.max(Number(input.value), low);
+		input.value = String(high);
 		onInput?.(low, high);
 	}
 </script>
@@ -93,7 +103,7 @@
 		oninput={handleLowInput}
 		onchange={() => onChange(low, high)}
 		class="range-slider range-min"
-		aria-label={lowAriaLabel}
+		aria-label={lowAriaLabel ?? $t.audit.rangeMinimum}
 	/>
 	<input
 		type="range"
@@ -104,7 +114,7 @@
 		oninput={handleHighInput}
 		onchange={() => onChange(low, high)}
 		class="range-slider range-max"
-		aria-label={highAriaLabel}
+		aria-label={highAriaLabel ?? $t.audit.rangeMaximum}
 	/>
 
 	{#if showTickLabels}
@@ -172,7 +182,7 @@
 		border: 2px solid var(--range-accent);
 		cursor: pointer;
 		pointer-events: auto;
-		box-shadow: 0 2px 8px color-mix(in oklab, black 30%, transparent);
+		box-shadow: var(--shadow-control-thumb);
 		transition:
 			transform var(--timing-fast) var(--easing-default),
 			box-shadow var(--timing-fast) var(--easing-default);
@@ -191,7 +201,7 @@
 		border: 2px solid var(--range-accent);
 		cursor: pointer;
 		pointer-events: auto;
-		box-shadow: 0 2px 8px color-mix(in oklab, black 30%, transparent);
+		box-shadow: var(--shadow-control-thumb);
 		transition:
 			transform var(--timing-fast) var(--easing-default),
 			box-shadow var(--timing-fast) var(--easing-default);
@@ -202,16 +212,32 @@
 		box-shadow: 0 4px 12px color-mix(in oklab, var(--range-accent) 40%, transparent);
 	}
 
+	/* Both inputs span the whole track, so an outline on the input could not
+	   say which thumb has focus. The indicator goes on the thumb instead: a
+	   solid amber ring (8.8:1 on the card) separated by a backdrop-coloured
+	   gap. Forced-colors mode drops box-shadows, so there the input itself
+	   takes the system outline. */
 	.range-slider:focus-visible {
 		outline: none;
 	}
 
 	.range-slider:focus-visible::-webkit-slider-thumb {
-		box-shadow: var(--ring-focus);
+		box-shadow:
+			0 0 0 2px var(--surface-card),
+			0 0 0 4px var(--focus-outline-color);
 	}
 
 	.range-slider:focus-visible::-moz-range-thumb {
-		box-shadow: var(--ring-focus);
+		box-shadow:
+			0 0 0 2px var(--surface-card),
+			0 0 0 4px var(--focus-outline-color);
+	}
+
+	@media (forced-colors: active) {
+		.range-slider:focus-visible {
+			outline: 2px solid Highlight;
+			outline-offset: 2px;
+		}
 	}
 
 	.range-min {

@@ -69,11 +69,6 @@
 		background: var(--border-strong);
 	}
 
-	.toggle-switch:focus-visible {
-		outline: none;
-		box-shadow: var(--ring-focus);
-	}
-
 	.toggle-switch:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
@@ -96,7 +91,7 @@
 		background: var(--text-primary);
 		border-radius: var(--radius-circle);
 		transition: transform var(--timing-normal) var(--easing-default);
-		box-shadow: 0 2px 4px color-mix(in oklab, black 20%, transparent);
+		box-shadow: var(--shadow-control-knob);
 	}
 
 	.toggle-switch[data-active='true'] .toggle-thumb {

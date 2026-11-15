@@ -1,5 +1,10 @@
 import type { Language } from '#lib/i18n/index.js';
-import type { DatasetId } from '#lib/domain/sentimentContract.js';
+import {
+	assertCoversDatasetIds,
+	modelDisplayName,
+	type DatasetId
+} from '#lib/domain/sentimentContract.js';
+import { modelLogo } from '#lib/stores/datasets.svelte.js';
 import type { AssetPath } from '$app/types';
 type LocalizedText = Record<Language, string>;
 
@@ -7,9 +12,16 @@ interface ModelInfo {
 	id: DatasetId;
 	logo: AssetPath;
 	logoAlt: string;
-	/** Name shown on the comparison-grid card */
+	/**
+	 * Name shown on the comparison-grid card. Defaults to the contract's long
+	 * name; set only where the card names the model differently.
+	 */
 	cardName: string;
-	/** Name shown in the single-model badge link */
+	/**
+	 * Name shown in the single-model badge link. Defaults to the dashboard's
+	 * short name; set only where the badge names the underlying model rather
+	 * than the label (the archived campaign's ChatGPT is GPT-5 mini).
+	 */
 	badgeName: string;
 	docsUrl: string;
 	/** First card paragraph (comparison grid) */
@@ -34,10 +46,16 @@ interface ModelInfo {
 	inlineDescription: LocalizedText;
 }
 
-export const MODELS: ModelInfo[] = [
+/**
+ * Logos come from the store's model registry and names from the contract, so
+ * neither is retyped here; an entry sets a name only to depart from them.
+ */
+type ModelEntry = Omit<ModelInfo, 'logo' | 'cardName' | 'badgeName'> &
+	Partial<Pick<ModelInfo, 'cardName' | 'badgeName'>>;
+
+const MODEL_ENTRIES: ModelEntry[] = [
 	{
 		id: 'chatgpt',
-		logo: 'logo/ChatGPT_logo.svg',
 		logoAlt: 'ChatGPT logo',
 		cardName: 'ChatGPT (GPT-5 mini)',
 		badgeName: 'GPT-5 mini',
@@ -57,7 +75,6 @@ export const MODELS: ModelInfo[] = [
 	},
 	{
 		id: 'gemini',
-		logo: 'logo/Gemini_logo.svg',
 		logoAlt: 'Gemini logo',
 		cardName: 'Gemini 3 Flash',
 		badgeName: 'Gemini 3 Flash',
@@ -77,7 +94,6 @@ export const MODELS: ModelInfo[] = [
 	},
 	{
 		id: 'mistral',
-		logo: 'logo/Mistral_AI_logo.svg',
 		logoAlt: 'Mistral logo',
 		cardName: 'Ministral 3 14B',
 		badgeName: 'Ministral 3 14B',
@@ -97,10 +113,7 @@ export const MODELS: ModelInfo[] = [
 	},
 	{
 		id: 'luna',
-		logo: 'logo/ChatGPT_logo.svg',
 		logoAlt: 'OpenAI logo',
-		cardName: 'GPT-5.6 Luna',
-		badgeName: 'GPT-5.6 Luna',
 		docsUrl: 'https://developers.openai.com/api/docs/models/gpt-5.6-luna',
 		cardDescription: {
 			en: 'OpenAI’s reasoning model, run at medium reasoning effort, which is the reference setting for this panel.',
@@ -117,10 +130,7 @@ export const MODELS: ModelInfo[] = [
 	},
 	{
 		id: 'mistral-small',
-		logo: 'logo/Mistral_AI_logo.svg',
 		logoAlt: 'Mistral logo',
-		cardName: 'Mistral Small 4 (2603)',
-		badgeName: 'Mistral Small 4',
 		docsUrl: 'https://docs.mistral.ai/models/model-cards/mistral-small-4-0-26-03',
 		cardDescription: {
 			en: 'Mistral’s small reasoning model, with open weights under an Apache 2.0 licence. It ran at high reasoning effort because its API refuses the lower settings.',
@@ -137,10 +147,8 @@ export const MODELS: ModelInfo[] = [
 	},
 	{
 		id: 'deepseek',
-		logo: 'logo/DeepSeek_logo.svg',
 		logoAlt: 'DeepSeek logo',
 		cardName: 'DeepSeek v4 Flash (0731)',
-		badgeName: 'DeepSeek v4 Flash',
 		docsUrl: 'https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731',
 		cardDescription: {
 			en: 'A reasoning model with open weights under an MIT licence, served through OpenRouter rather than by its maker. It ran at high reasoning effort because it offers no middle setting.',
@@ -157,10 +165,7 @@ export const MODELS: ModelInfo[] = [
 	},
 	{
 		id: 'gemma',
-		logo: 'logo/Gemma_logo.png',
 		logoAlt: 'Gemma logo',
-		cardName: 'Gemma 4 31B',
-		badgeName: 'Gemma 4 31B',
 		docsUrl: 'https://huggingface.co/google/gemma-4-31b-it',
 		cardDescription: {
 			en: 'Google’s open-weights model, served through OpenRouter rather than by Google’s own API, whose free tier may use submitted content to improve its products — which whole archival articles cannot go through.',
@@ -181,10 +186,7 @@ export const MODELS: ModelInfo[] = [
 	},
 	{
 		id: 'qwen',
-		logo: 'logo/Qwen_logo.png',
 		logoAlt: 'Qwen logo',
-		cardName: 'Qwen3.8 27B',
-		badgeName: 'Qwen3.8 27B',
 		docsUrl: 'https://huggingface.co/Qwen/Qwen3.8-27B',
 		cardDescription: {
 			en: 'Alibaba’s open-weights model, and the only member of the panel run on hardware the project controls: self-hosted with vLLM on the University of Bayreuth’s Festus cluster.',
@@ -205,10 +207,7 @@ export const MODELS: ModelInfo[] = [
 	},
 	{
 		id: 'haiku',
-		logo: 'logo/Claude_logo.svg',
 		logoAlt: 'Claude logo',
-		cardName: 'Claude Haiku 5.5',
-		badgeName: 'Claude Haiku 5.5',
 		docsUrl: 'https://www.anthropic.com/claude/haiku',
 		cardDescription: {
 			en: 'Anthropic’s smallest model, called through Anthropic’s own API at medium reasoning effort — a genuine middle step on a ladder that runs from low to max. It joined the panel in October 2026 without a pilot.',
@@ -224,3 +223,15 @@ export const MODELS: ModelInfo[] = [
 		}
 	}
 ];
+
+export const MODELS: ModelInfo[] = MODEL_ENTRIES.map((entry) => ({
+	...entry,
+	logo: modelLogo(entry.id),
+	cardName: entry.cardName ?? modelDisplayName(entry.id, 'long'),
+	badgeName: entry.badgeName ?? modelDisplayName(entry.id, 'short')
+}));
+
+assertCoversDatasetIds(
+	'MODELS (modelMethodology.ts)',
+	MODELS.map((model) => model.id)
+);

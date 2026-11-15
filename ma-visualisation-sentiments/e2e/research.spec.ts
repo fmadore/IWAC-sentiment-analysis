@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
+import { DEPLOY_PATH } from '../deploy.config.js';
 
 test('returning to a loaded pair ignores a late response for another pair', async ({ page }) => {
 	await page.addInitScript(() =>
@@ -17,8 +18,7 @@ test('returning to a loaded pair ignores a late response for another pair', asyn
 	});
 	await page.goto('?view=comparison&compare=true&pair=luna-mistral-small&lang=en');
 	await expect(page.locator('.comparison-table-wrapper tbody tr').first()).toBeVisible();
-	await page.locator('.model-pair-picker .picker-button').click();
-	await page.getByRole('option', { name: /GPT-5.6 Luna.*Qwen/ }).click();
+	await page.getByLabel('Second model', { exact: true }).selectOption('qwen');
 	await expect(page).toHaveURL(/pair=luna-qwen/);
 	await page.goBack();
 	await expect(page).toHaveURL(/pair=luna-mistral-small/);
@@ -100,7 +100,7 @@ test('Back and Forward restore views and removed filters', async ({ page }) => {
 	await page.getByRole('button', { name: 'Trends', exact: true }).click();
 	await expect(page.locator('h1')).toHaveText('Trends');
 	await page.goBack();
-	await expect(page.locator('h1')).toHaveText('Charts');
+	await expect(page.locator('h1')).toHaveText('Distributions');
 	await page.goBack();
 	await expect(page).not.toHaveURL(/countries=/);
 	await expect(benin).toHaveAttribute('aria-pressed', 'false');
@@ -235,20 +235,22 @@ test.describe('immutable data cache', () => {
 	}) => {
 		// Seed what an older visit leaves behind, before the worker is installed:
 		// a superseded release and a file from the flat pre-release layout.
-		await page.addInitScript(() => {
+		// The deploy path comes from deploy.config.js, the single source of truth;
+		// the init script runs in the page, so it is passed in as an argument.
+		await page.addInitScript((base) => {
 			if (navigator.serviceWorker.controller) return;
 			void caches
 				.open('iwac-data-v4')
 				.then((cache) =>
 					Promise.all([
 						cache.put(
-							'/sentiment-analysis/data/releases/000000000000000000000000/iwac_sentiment_luna.json',
+							`${base}/data/releases/000000000000000000000000/iwac_sentiment_luna.json`,
 							new Response('{}')
 						),
-						cache.put('/sentiment-analysis/data/iwac_sentiment_luna.json', new Response('{}'))
+						cache.put(`${base}/data/iwac_sentiment_luna.json`, new Response('{}'))
 					])
 				);
-		});
+		}, DEPLOY_PATH);
 		await page.goto('?view=charts&dataset=luna&lang=en');
 		const release = await page.evaluate(async () => {
 			await navigator.serviceWorker.ready;
@@ -260,7 +262,7 @@ test.describe('immutable data cache', () => {
 			);
 		await expect
 			.poll(cachedPaths, { timeout: 20_000 })
-			.toContain(`/sentiment-analysis/data/releases/${release}/iwac_articles_base.json`);
+			.toContain(`${DEPLOY_PATH}/data/releases/${release}/iwac_articles_base.json`);
 		await expect
 			.poll(async () => (await cachedPaths()).filter((path) => !path.includes(release)), {
 				timeout: 20_000
@@ -286,14 +288,15 @@ test('a browser that blocks site storage still gets a working dashboard', async 
 
 	// No `lang=`, so start-up consults the (blocked) remembered language.
 	await page.goto('?view=charts&dataset=luna');
-	await expect(
-		page.getByRole('heading', { level: 1, name: /^(Charts|Graphiques)$/ })
-	).toBeVisible();
+	await expect(page.getByRole('heading', { level: 1, name: /^Distributions$/ })).toBeVisible();
 	await expect(page.locator('canvas').first()).toBeVisible();
 
-	await page.getByRole('button', { name: /^(Change language|Changer de langue)$/ }).click();
+	await page.getByRole('button', { name: /^(Change language|Changer de langue)\b/ }).click();
 	await page.getByRole('option', { name: 'Français' }).click();
-	await expect(page.getByRole('heading', { level: 1, name: 'Graphiques' })).toBeVisible();
+	// "Distributions" reads the same in both languages; the lede and the
+	// document language are what change.
+	await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
+	await expect(page.getByText('Lecture d’un modèle', { exact: true }).first()).toBeVisible();
 	expect(errors).toEqual([]);
 });
 
@@ -362,7 +365,7 @@ test('touring the views requests each data file once', async ({ page }) => {
 		['Agreement', 'agreement'],
 		['Arbiter', 'arbiter'],
 		['Extremes', 'extremes'],
-		['Charts', 'charts']
+		['Distributions', 'charts']
 	]) {
 		await page.getByRole('button', { name: label, exact: true }).first().click();
 		await expect(page).toHaveURL(new RegExp(`view=${id}`));

@@ -1,14 +1,12 @@
 <script lang="ts">
-	import {
-		CountryFilter,
-		JournalFilter,
-		PolarityFilter,
-		SubjectivityFilter,
-		CentralityFilter,
-		ExtremeAnalysisControls,
-		ClearFiltersButton
-	} from '#lib/components/filters/index.js';
-	import { DatasetBadge } from '#lib/components/ui/index.js';
+	import CountryFilter from '#lib/components/filters/CountryFilter.svelte';
+	import JournalFilter from '#lib/components/filters/JournalFilter.svelte';
+	import PolarityFilter from '#lib/components/filters/PolarityFilter.svelte';
+	import SubjectivityFilter from '#lib/components/filters/SubjectivityFilter.svelte';
+	import CentralityFilter from '#lib/components/filters/CentralityFilter.svelte';
+	import ExtremeAnalysisControls from '#lib/components/filters/ExtremeAnalysisControls.svelte';
+	import ClearFiltersButton from '#lib/components/filters/ClearFiltersButton.svelte';
+	import DatasetBadge from '#lib/components/ui/DatasetBadge.svelte';
 	import { uiState } from '#lib/stores/index.js';
 	import { t } from '#lib/i18n/index.js';
 	import { MediaQuery } from 'svelte/reactivity';
@@ -55,7 +53,9 @@
 	class="filters-rail"
 >
 	<div class="rail-header">
-		<h2 class="rail-title">{$t.filters.title}</h2>
+		<!-- Not a heading: the rail precedes the view's <h1> in the DOM, and the
+		     drawer's landmark is already named by `label`. -->
+		<p class="rail-title">{$t.filters.title}</p>
 		<button class="rail-close" onclick={closeDrawer} aria-label={$t.common.close}>
 			<XIcon size={20} />
 		</button>

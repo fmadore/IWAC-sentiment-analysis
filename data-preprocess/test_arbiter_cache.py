@@ -225,19 +225,33 @@ PINNED_V2_ARTICLE = {
 PINNED_V2_DIGEST = "36170c153695d1bbc909aa07bdd16013f873a823beacfe5b3c71fdb201c83824"
 
 
+PINNED_V2_OPTIONS = {
+    "arbiter_model": "claude-opus-5",
+    "source_revision": "deadbeef",
+    "text_revision": "cafef00d",
+    "max_input_chars": 15_000,
+    "contract": CONTRACT_V2,
+}
+
+
 def test_the_published_panel_fingerprint_is_frozen():
+    # The published run was judged under prompt v2.2.0. The contract's default
+    # moved to v2.3.0 (codebook parity), so the version is now named here; the
+    # digest itself is the one computed before either change.
     assert set(PINNED_V2_ARTICLE["analyses"]) == set(CONTRACT_V2.arbiter_model_ids)
     assert (
-        three_way_cache_fingerprint(
-            PINNED_V2_ARTICLE,
-            arbiter_model="claude-opus-5",
-            source_revision="deadbeef",
-            text_revision="cafef00d",
-            max_input_chars=15_000,
-            contract=CONTRACT_V2,
-        )
+        three_way_cache_fingerprint(PINNED_V2_ARTICLE, **PINNED_V2_OPTIONS, prompt_version="v2.2.0")
         == PINNED_V2_DIGEST
     )
+
+
+def test_a_new_prompt_version_never_answers_for_the_published_one():
+    assert CONTRACT_V2.arbiter["promptVersion"] == "v2.3.0"
+    default = three_way_cache_fingerprint(PINNED_V2_ARTICLE, **PINNED_V2_OPTIONS)
+    explicit = three_way_cache_fingerprint(
+        PINNED_V2_ARTICLE, **PINNED_V2_OPTIONS, prompt_version="v2.3.0"
+    )
+    assert default == explicit != PINNED_V2_DIGEST
 
 
 def test_the_panel_fingerprint_reads_its_mode_from_the_contract():

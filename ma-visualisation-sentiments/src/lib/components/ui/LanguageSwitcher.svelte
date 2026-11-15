@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from '#lib/i18n/index.js';
 	import { currentLanguage, switchLanguage, getAvailableLanguages } from '#lib/i18n/index.js';
-	import { DropdownMenu } from '#lib/components/common/index.js';
+	import DropdownMenu from '#lib/components/common/DropdownMenu.svelte';
 	import GlobeIcon from '@lucide/svelte/icons/globe';
 
 	let languages = getAvailableLanguages();
@@ -33,14 +33,14 @@
 	{#snippet trigger()}
 		<GlobeIcon size={18} />
 		<span class="language-label">
-			{currentLang?.name || 'Language'}
+			{currentLang?.name ?? $currentLanguage.toUpperCase()}
 		</span>
 	{/snippet}
 
 	{#snippet itemRenderer({ item, isSelected })}
 		<span class="language-name">{item.label}</span>
 		{#if isSelected}
-			<span class="check-mark">✓</span>
+			<span class="check-mark" aria-hidden="true">✓</span>
 		{/if}
 	{/snippet}
 </DropdownMenu>

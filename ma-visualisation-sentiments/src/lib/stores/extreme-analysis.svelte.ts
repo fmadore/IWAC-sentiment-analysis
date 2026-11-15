@@ -33,10 +33,6 @@ export const loadExtremeAnalysis = (
 	fetchFunction: typeof fetch = fetch
 ): Promise<void> => extremeResource.ensure(datasetId, fetchFunction);
 
-/** Load the selected model's payload. */
-export const loadCurrentExtremeAnalysis = (fetchFunction: typeof fetch = fetch): Promise<void> =>
-	loadExtremeAnalysis(datasetState.selected, fetchFunction);
-
 /** Load the selected model's payload again after a failure. */
 export const retryCurrentExtremeAnalysis = (fetchFunction: typeof fetch = fetch): Promise<void> =>
 	extremeResource.retry(datasetState.selected, fetchFunction);

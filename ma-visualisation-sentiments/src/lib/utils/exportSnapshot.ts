@@ -28,7 +28,8 @@ export interface ExportProvenance {
  */
 export function captureExportProvenance(
 	models: readonly DatasetId[],
-	selection: 'filtered_articles' | 'filtered_comparisons' | 'arbiter_evaluations'
+	selection:
+		'filtered_articles' | 'searched_articles' | 'filtered_comparisons' | 'arbiter_evaluations'
 ): ExportProvenance {
 	const state = getCurrentState();
 	const query = buildURLSearchParams(state).toString();

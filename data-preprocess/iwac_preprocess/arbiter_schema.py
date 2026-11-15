@@ -10,7 +10,7 @@ takes `inline_json_schema()` of it.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Literal, get_args
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -189,5 +189,6 @@ def convert_response(
         overall_winner=response.overall_winner,
         overall_explanation=response.overall_explanation,
         confidence_level=response.confidence_level,
-        timestamp=datetime.now().isoformat(),
+        # UTC-aware: the published run's naive local stamps stay as written.
+        timestamp=datetime.now(UTC).isoformat(),
     )

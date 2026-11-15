@@ -173,25 +173,6 @@ export function buildConfusionMatrix(pairs: LabelPair[], categories: string[]): 
 	};
 }
 
-/**
- * Landis & Koch (1977) interpretation bands for kappa.
- *
- * Widely used and widely criticised as arbitrary — surfaced in the UI as a
- * qualitative hint beside the number, never in place of it.
- */
-export type AgreementStrength =
-	'poor' | 'slight' | 'fair' | 'moderate' | 'substantial' | 'almostPerfect';
-
-export function interpretKappa(kappa: number): AgreementStrength | null {
-	if (Number.isNaN(kappa)) return null;
-	if (kappa <= 0) return 'poor';
-	if (kappa <= 0.2) return 'slight';
-	if (kappa <= 0.4) return 'fair';
-	if (kappa <= 0.6) return 'moderate';
-	if (kappa <= 0.8) return 'substantial';
-	return 'almostPerfect';
-}
-
 /** One article's labels as assigned by every model being compared. */
 export type RaterLabels = string[];
 

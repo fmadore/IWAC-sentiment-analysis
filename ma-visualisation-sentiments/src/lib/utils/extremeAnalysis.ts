@@ -180,11 +180,72 @@ export function getTopKeywords(
 }
 
 /**
- * Calculate percentage
+ * Each category's opposite pole on the same scale. The "distinctive" ranking
+ * contrasts a category with this pole rather than with "everything else":
+ * the payload indexes only articles that fall in at least one category, so a
+ * complement drawn from it would be a biased slice of the corpus, while both
+ * poles of a scale are present in full.
  */
-export function calculatePercentage(value: number, total: number): number {
-	if (total === 0) return 0;
-	return Math.round((value / total) * 100);
+export const OPPOSITE_CATEGORY: Record<ExtremeCategory, ExtremeCategory> = {
+	subjectivity_extreme_high: 'subjectivity_extreme_low',
+	subjectivity_extreme_low: 'subjectivity_extreme_high',
+	polarity_very_negative: 'polarity_very_positive',
+	polarity_very_positive: 'polarity_very_negative',
+	centrality_very_central: 'centrality_not_central',
+	centrality_not_central: 'centrality_very_central'
+};
+
+export interface DistinctiveKeyword {
+	keyword: string;
+	/** Articles in the target category carrying the keyword. */
+	count: number;
+	/** Articles in the opposite category carrying it. */
+	contrastCount: number;
+	/** Log-odds ratio z-score; positive means over-represented in the target. */
+	score: number;
+}
+
+/**
+ * Keywords that distinguish `target` from `contrast`: the weighted log-odds
+ * ratio with an informative Dirichlet prior (Monroe, Colaresi & Quinn 2008,
+ * "Fightin' Words"), the prior being the two groups' pooled frequencies. Raw
+ * counts rank the same handful of corpus-wide subjects first in every
+ * category (eight of the top ten overlap between high and low subjectivity);
+ * the z-score asks which keywords are over-represented on this side, and the
+ * prior shrinks rare keywords so a word seen twice cannot top the list.
+ *
+ * Only keywords seen at least `minCount` times in the target and with a
+ * positive score are returned, ranked by score.
+ */
+export function getDistinctiveKeywords(
+	target: Record<string, number>,
+	contrast: Record<string, number>,
+	limit: number = 10,
+	minCount: number = 5
+): DistinctiveKeyword[] {
+	const sum = (counts: Record<string, number>) =>
+		Object.values(counts).reduce((total, value) => total + value, 0);
+	const nTarget = sum(target);
+	const nContrast = sum(contrast);
+	if (nTarget === 0 || nContrast === 0) return [];
+
+	const vocabulary = new Set([...Object.keys(target), ...Object.keys(contrast)]);
+	// Prior: pooled counts. alpha0 = the pooled total, the usual choice when
+	// the background is the union of the two groups.
+	const alpha0 = nTarget + nContrast;
+	const results: DistinctiveKeyword[] = [];
+	for (const keyword of vocabulary) {
+		const yTarget = target[keyword] ?? 0;
+		if (yTarget < minCount) continue;
+		const yContrast = contrast[keyword] ?? 0;
+		const alpha = yTarget + yContrast;
+		const logOdds = (y: number, n: number) => Math.log((y + alpha) / (n + alpha0 - y - alpha));
+		const delta = logOdds(yTarget, nTarget) - logOdds(yContrast, nContrast);
+		const variance = 1 / (yTarget + alpha) + 1 / (yContrast + alpha);
+		const score = delta / Math.sqrt(variance);
+		if (score > 0) results.push({ keyword, count: yTarget, contrastCount: yContrast, score });
+	}
+	return results.sort((a, b) => b.score - a.score).slice(0, limit);
 }
 
 /**
@@ -333,10 +394,16 @@ function filterCategoryAnalysis(
 function calculateFilteredStatistics(
 	analysis: Record<ExtremeCategory, ExtremeCategoryAnalysis>
 ): ExtremeStatistics {
+	// Distinct articles, not the sum of category sizes: an article sits in up
+	// to three categories (one per scale), so the sum overstated the filtered
+	// corpus about threefold. Still a lower bound — articles in no category
+	// are not in the payload at all.
+	const distinct = new Set<string>();
+	for (const categoryData of Object.values(analysis)) {
+		for (const article of categoryData.articles) distinct.add(String(article.id));
+	}
 	return {
-		total_articles: Object.values(analysis).reduce((total, categoryData) => {
-			return total + categoryData.articles.length;
-		}, 0),
+		total_articles: distinct.size,
 		subjectivity_high_count: analysis.subjectivity_extreme_high?.articles.length || 0,
 		subjectivity_low_count: analysis.subjectivity_extreme_low?.articles.length || 0,
 		polarity_very_negative_count: analysis.polarity_very_negative?.articles.length || 0,

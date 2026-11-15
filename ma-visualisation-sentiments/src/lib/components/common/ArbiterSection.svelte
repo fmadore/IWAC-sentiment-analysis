@@ -16,13 +16,10 @@
 -->
 <script lang="ts">
 	import { getPairModelNames } from '#lib/types/data.js';
-	import { SentimentBadge } from '#lib/components/common/index.js';
+	import SentimentBadge from '#lib/components/common/SentimentBadge.svelte';
 	import Spinner from './Spinner.svelte';
-	import {
-		getVerdictBadgeClass,
-		getConfidenceBadgeClass,
-		getConfidenceLabel
-	} from '#lib/utils/arbiter.js';
+	import ConfidenceBadge from './ConfidenceBadge.svelte';
+	import VerdictBadge from './VerdictBadge.svelte';
 	import { t } from '#lib/i18n/index.js';
 	import {
 		getArbiterForArticle,
@@ -35,9 +32,6 @@
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import ChevronUpIcon from '@lucide/svelte/icons/chevron-up';
 	import SparklesIcon from '@lucide/svelte/icons/sparkles';
-	import CheckCircleIcon from '@lucide/svelte/icons/check-circle';
-	import XCircleIcon from '@lucide/svelte/icons/x-circle';
-	import MinusCircleIcon from '@lucide/svelte/icons/minus-circle';
 
 	interface ArbiterSectionProps {
 		/** The article ID to fetch arbiter data for */
@@ -77,14 +71,29 @@
 		}
 	}
 
-	// Get icon type for preferred model
-	function getPreferredModelIconType(
-		preferredModel: 'model_a' | 'model_b' | 'both' | 'neither'
-	): 'check' | 'both' | 'neither' {
-		if (preferredModel === 'model_a' || preferredModel === 'model_b') return 'check';
-		if (preferredModel === 'both') return 'both';
-		return 'neither';
-	}
+	type Verdict = NonNullable<typeof arbiterData>['polarity'];
+
+	/** The three dimensions, in panel order: heading, badge family and score. */
+	const DIMENSIONS = [
+		{
+			key: 'polarity',
+			badge: 'polarity',
+			heading: () => $t.arbiter.polarityVerdict,
+			score: (verdict: Verdict) => verdict.score
+		},
+		{
+			key: 'subjectivity',
+			badge: 'subjectivity',
+			heading: () => $t.arbiter.subjectivityVerdict,
+			score: (verdict: Verdict) => parseInt(verdict.score) || null
+		},
+		{
+			key: 'centrality',
+			badge: 'centrality',
+			heading: () => $t.arbiter.centralityVerdict,
+			score: (verdict: Verdict) => verdict.score
+		}
+	] as const;
 
 	// Decode Model A/B references in text to actual model names
 	// Uses arbiter_model_a/arbiter_model_b from metadata to get the correct mapping
@@ -129,11 +138,37 @@
 	}
 </script>
 
+{#snippet dimensionPanel(dimension: (typeof DIMENSIONS)[number], verdict: Verdict)}
+	<div class="arbiter-verdict-panel">
+		<div class="flex items-center justify-between mb-3">
+			<h5 class="verdict-heading">{dimension.heading()}</h5>
+			<div class="flex items-center gap-2">
+				<SentimentBadge type={dimension.badge} value={dimension.score(verdict)} size="sm" />
+				<VerdictBadge
+					verdict={verdict.preferred_model}
+					label={getPreferredModelLabel(verdict.preferred_model)}
+				/>
+			</div>
+		</div>
+		<div class="space-y-2">
+			<div>
+				<span class="field-label">{$t.arbiter.arbiterJustification}</span>
+				<p class="field-text mt-1">{decodeVerdictText(verdict.justification)}</p>
+			</div>
+			<div>
+				<span class="field-label">{$t.arbiter.verdictExplanation}</span>
+				<p class="field-text mt-1">{decodeVerdictText(verdict.verdict_explanation)}</p>
+			</div>
+		</div>
+	</div>
+{/snippet}
+
 <div class="arbiter-section">
 	<!-- Header with toggle -->
 	<button
 		class="arbiter-header w-full flex items-center justify-between gap-3 mb-4"
 		onclick={() => (showArbiter = !showArbiter)}
+		aria-expanded={showArbiter}
 	>
 		<div class="flex items-center gap-3">
 			<div class="arbiter-icon">
@@ -142,7 +177,7 @@
 			<div class="text-left">
 				<h4 class="section-title flex items-center gap-2">
 					{$t.arbiter.title}
-					<span class="badge badge-sm badge-model">
+					<span class="model-tag">
 						{$t.arbiter.modelName}
 					</span>
 				</h4>
@@ -151,9 +186,7 @@
 		</div>
 		<div class="flex items-center gap-2">
 			{#if arbiterData}
-				<span class="badge badge-sm {getConfidenceBadgeClass(arbiterData.confidence_level)}">
-					{getConfidenceLabel(arbiterData.confidence_level, $t)}
-				</span>
+				<ConfidenceBadge level={arbiterData.confidence_level} />
 			{/if}
 			{#if showArbiter}
 				<span class="toggle-chevron"><ChevronUpIcon size={20} /></span>
@@ -185,7 +218,7 @@
 								>{getPreferredModelLabel(arbiterData.overall_winner)}</strong
 							>
 						</p>
-						<p class="verdict-body leading-relaxed">
+						<p class="verdict-body">
 							{decodeVerdictText(arbiterData.overall_explanation)}
 						</p>
 					</div>
@@ -194,121 +227,9 @@
 
 			<!-- Dimension-by-dimension verdicts -->
 			<div class="grid grid-cols-1 gap-4">
-				<!-- Polarity Verdict -->
-				<div class="arbiter-verdict-panel">
-					<div class="flex items-center justify-between mb-3">
-						<h5 class="verdict-heading">{$t.arbiter.polarityVerdict}</h5>
-						<div class="flex items-center gap-2">
-							<SentimentBadge type="polarity" value={arbiterData.polarity.score} size="sm" />
-							<span
-								class="badge badge-sm {getVerdictBadgeClass(arbiterData.polarity.preferred_model)}"
-							>
-								{#if getPreferredModelIconType(arbiterData.polarity.preferred_model) === 'check'}
-									<CheckCircleIcon size={12} class="mr-1" />
-								{:else if getPreferredModelIconType(arbiterData.polarity.preferred_model) === 'both'}
-									<MinusCircleIcon size={12} class="mr-1" />
-								{:else}
-									<XCircleIcon size={12} class="mr-1" />
-								{/if}
-								{getPreferredModelLabel(arbiterData.polarity.preferred_model)}
-							</span>
-						</div>
-					</div>
-					<div class="space-y-2">
-						<div>
-							<span class="field-label">{$t.arbiter.arbiterJustification}</span>
-							<p class="field-text mt-1">
-								{decodeVerdictText(arbiterData.polarity.justification)}
-							</p>
-						</div>
-						<div>
-							<span class="field-label">{$t.arbiter.verdictExplanation}</span>
-							<p class="field-text mt-1">
-								{decodeVerdictText(arbiterData.polarity.verdict_explanation)}
-							</p>
-						</div>
-					</div>
-				</div>
-
-				<!-- Subjectivity Verdict -->
-				<div class="arbiter-verdict-panel">
-					<div class="flex items-center justify-between mb-3">
-						<h5 class="verdict-heading">{$t.arbiter.subjectivityVerdict}</h5>
-						<div class="flex items-center gap-2">
-							<SentimentBadge
-								type="subjectivity"
-								value={parseInt(arbiterData.subjectivity.score) || null}
-								size="sm"
-							/>
-							<span
-								class="badge badge-sm {getVerdictBadgeClass(
-									arbiterData.subjectivity.preferred_model
-								)}"
-							>
-								{#if getPreferredModelIconType(arbiterData.subjectivity.preferred_model) === 'check'}
-									<CheckCircleIcon size={12} class="mr-1" />
-								{:else if getPreferredModelIconType(arbiterData.subjectivity.preferred_model) === 'both'}
-									<MinusCircleIcon size={12} class="mr-1" />
-								{:else}
-									<XCircleIcon size={12} class="mr-1" />
-								{/if}
-								{getPreferredModelLabel(arbiterData.subjectivity.preferred_model)}
-							</span>
-						</div>
-					</div>
-					<div class="space-y-2">
-						<div>
-							<span class="field-label">{$t.arbiter.arbiterJustification}</span>
-							<p class="field-text mt-1">
-								{decodeVerdictText(arbiterData.subjectivity.justification)}
-							</p>
-						</div>
-						<div>
-							<span class="field-label">{$t.arbiter.verdictExplanation}</span>
-							<p class="field-text mt-1">
-								{decodeVerdictText(arbiterData.subjectivity.verdict_explanation)}
-							</p>
-						</div>
-					</div>
-				</div>
-
-				<!-- Centrality Verdict -->
-				<div class="arbiter-verdict-panel">
-					<div class="flex items-center justify-between mb-3">
-						<h5 class="verdict-heading">{$t.arbiter.centralityVerdict}</h5>
-						<div class="flex items-center gap-2">
-							<SentimentBadge type="centrality" value={arbiterData.centrality.score} size="sm" />
-							<span
-								class="badge badge-sm {getVerdictBadgeClass(
-									arbiterData.centrality.preferred_model
-								)}"
-							>
-								{#if getPreferredModelIconType(arbiterData.centrality.preferred_model) === 'check'}
-									<CheckCircleIcon size={12} class="mr-1" />
-								{:else if getPreferredModelIconType(arbiterData.centrality.preferred_model) === 'both'}
-									<MinusCircleIcon size={12} class="mr-1" />
-								{:else}
-									<XCircleIcon size={12} class="mr-1" />
-								{/if}
-								{getPreferredModelLabel(arbiterData.centrality.preferred_model)}
-							</span>
-						</div>
-					</div>
-					<div class="space-y-2">
-						<div>
-							<span class="field-label">{$t.arbiter.arbiterJustification}</span>
-							<p class="field-text mt-1">
-								{decodeVerdictText(arbiterData.centrality.justification)}
-							</p>
-						</div>
-						<div>
-							<span class="field-label">{$t.arbiter.verdictExplanation}</span>
-							<p class="field-text mt-1">
-								{decodeVerdictText(arbiterData.centrality.verdict_explanation)}
-							</p>
-						</div>
-					</div>
-				</div>
+				{#each DIMENSIONS as dimension (dimension.key)}
+					{@render dimensionPanel(dimension, arbiterData[dimension.key])}
+				{/each}
 			</div>
 		{:else}
 			<!-- No arbiter data available -->
@@ -402,6 +323,7 @@
 
 	.verdict-body {
 		color: var(--text-primary);
+		line-height: var(--line-height-relaxed);
 	}
 
 	/* Uppercase mono eyebrow over each justification field. --text-muted, not
@@ -435,14 +357,22 @@
 		color: var(--text-subtle);
 	}
 
+	/* --text-muted: the floor for real text (--text-subtle is for rules). */
 	.empty-hint {
 		font-size: var(--font-size-xs);
-		color: var(--text-subtle);
+		color: var(--text-muted);
 	}
 
-	.badge-model {
+	.model-tag {
+		display: inline-flex;
+		align-items: center;
+		padding: var(--space-0-5) var(--space-2);
+		font-family: var(--font-mono);
+		font-size: var(--font-size-eyebrow);
+		font-weight: var(--font-weight-semibold);
+		letter-spacing: var(--tracking-wider);
 		background: var(--sentiment-arbiter-bg);
-		border-color: var(--sentiment-arbiter-border);
+		border: 1px solid var(--sentiment-arbiter-border);
 		color: var(--sentiment-arbiter-light);
 	}
 
@@ -463,22 +393,6 @@
 
 	.arbiter-verdict-panel:hover {
 		border-color: var(--sentiment-arbiter-border);
-	}
-
-	.badge {
-		padding: var(--space-1) var(--space-2-5);
-		font-family: var(--font-mono);
-		font-size: var(--font-size-eyebrow);
-		font-weight: 600;
-		letter-spacing: var(--tracking-wider);
-		border-radius: 0;
-		border: 1px solid var(--border-default);
-		cursor: default;
-	}
-
-	.badge-sm {
-		padding: var(--space-0-5) var(--space-2);
-		font-size: var(--font-size-eyebrow);
 	}
 
 	@media (prefers-reduced-motion: reduce) {

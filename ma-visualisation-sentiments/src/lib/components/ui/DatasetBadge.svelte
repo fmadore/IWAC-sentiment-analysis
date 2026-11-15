@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { datasetState } from '#lib/stores/index.js';
+	import { modelBrandColor } from '#lib/stores/datasets.svelte.js';
 	import { t } from '#lib/i18n/index.js';
 	import { asset } from '$app/paths';
 	import GitCompareIcon from '@lucide/svelte/icons/git-compare';
@@ -13,13 +14,6 @@
 	}
 
 	let { size = 'md', showIcon = true, showLabel = true }: Props = $props();
-
-	// Size configurations
-	const sizeClasses = {
-		sm: 'text-xs px-2 py-1',
-		md: 'text-sm px-3 py-1.5',
-		lg: 'text-base px-4 py-2'
-	};
 
 	const iconSizes = {
 		sm: 14,
@@ -35,7 +29,7 @@
 </script>
 
 {#if datasetState.isComparisonMode}
-	<div class="dataset-badge comparison-mode {sizeClasses[size]}">
+	<div class="dataset-badge comparison-mode" data-size={size}>
 		{#if showIcon}
 			<GitCompareIcon size={iconSizes[size]} />
 		{/if}
@@ -44,9 +38,12 @@
 		{/if}
 	</div>
 {:else if currentDataset}
+	<!-- The badge is the logo's surround, so it carries the model's brand
+	     colour; the series colour belongs to charts that plot several models. -->
 	<div
-		class="dataset-badge {sizeClasses[size]}"
-		style={currentDataset.color ? `--dataset-color: ${currentDataset.color}` : undefined}
+		class="dataset-badge"
+		data-size={size}
+		style="--dataset-color: {modelBrandColor(currentDataset.id)}"
 	>
 		{#if showIcon}
 			{#if currentDataset.logo}
@@ -92,6 +89,26 @@
 		overflow: hidden;
 	}
 
+	.dataset-badge[data-size='sm'] {
+		font-size: var(--font-size-xs);
+		padding: var(--space-1) var(--space-2);
+	}
+
+	.dataset-badge[data-size='md'] {
+		font-size: var(--font-size-sm);
+		padding: var(--space-1-5) var(--space-3);
+	}
+
+	.dataset-badge[data-size='lg'] {
+		font-size: var(--font-size-base);
+		padding: var(--space-2) var(--space-4);
+	}
+
+	/* The brand colour as a hairline beside the logo, never on the text. */
+	.dataset-badge:not(.comparison-mode) {
+		border-left: 2px solid var(--dataset-color);
+	}
+
 	.dataset-badge:hover {
 		border-color: var(--border-active);
 	}
@@ -122,18 +139,12 @@
 		z-index: 1;
 	}
 
-	/* Icon-plus-value until there is room for the label. The
-	   `show-label-mobile` opt-out is for callers where the label is the only
-	   thing identifying the dataset. */
+	/* Icon-plus-value until there is room for the label. */
 	.badge-label {
 		position: relative;
 		z-index: 1;
 		white-space: nowrap;
 		display: none;
-	}
-
-	.dataset-badge.show-label-mobile .badge-label {
-		display: inline;
 	}
 
 	@media (min-width: 640px) {

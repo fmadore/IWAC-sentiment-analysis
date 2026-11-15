@@ -58,6 +58,37 @@ if (strayDirectories.size) {
 			'(a new static/ folder must be added to ALLOWED_DIRECTORIES in check-build-artifact.mjs)'
 	);
 }
+
+// Loose files, checked as strictly as directories. The app's own top level is
+// what static/ ships plus the shell; the artifact root (when the app is nested)
+// holds only what nest-build.mjs hoists there for GitHub Pages. A stray file —
+// a build-time handoff such as data-build.json, a scratch export — fails here
+// instead of shipping.
+const APP_FILES = new Set([
+	'index.html',
+	'404.html',
+	'sw.js',
+	'favicon.png',
+	'manifest.json',
+	'browserconfig.xml',
+	'social-preview.png'
+]);
+const ROOT_FILES = new Set(['index.html', '404.html', 'CNAME']);
+const strayFiles = relativePaths.filter((path) => {
+	if (!path.includes('/')) {
+		return !ROOT_FILES.has(path) && !(nestedPrefix === '' && APP_FILES.has(path));
+	}
+	if (!path.startsWith(nestedPrefix)) return true;
+	const inApp = path.slice(nestedPrefix.length);
+	return !inApp.includes('/') && !APP_FILES.has(inApp);
+});
+if (strayFiles.length) {
+	throw new Error(
+		`[artifact] unexpected top-level files: ${strayFiles.slice(0, 5).join(', ')} ` +
+			'(a new static/ file must be added to APP_FILES in check-build-artifact.mjs)'
+	);
+}
+
 const strayData = relativePaths
 	.filter((path) => path.startsWith(`${nestedPrefix}data/`))
 	.map((path) => path.slice(`${nestedPrefix}data/`.length))
@@ -68,8 +99,14 @@ if (strayData.length) {
 	);
 }
 
-for (const file of files.filter((candidate) =>
-	/\.(?:html|js|json|css)$/.test(candidate.pathname)
+// Placeholders are stamped into the shell, the worker and the 404 page. The data
+// release (~170 MB of JSON) is copied verbatim from static/ and never carries
+// one, so reading it here would only cost time.
+const releasesPrefix = `${nestedPrefix}data/releases/`;
+for (const file of files.filter(
+	(candidate, index) =>
+		/\.(?:html|js|json|css)$/.test(candidate.pathname) &&
+		!relativePaths[index].startsWith(releasesPrefix)
 )) {
 	const source = await readFile(file, 'utf8');
 	for (const placeholder of ['__DEPLOY_PATH__', '__BUILD_VERSION__', '__DATA_RELEASE__']) {
@@ -78,13 +115,39 @@ for (const file of files.filter((candidate) =>
 	}
 }
 
+// The JS the shell loads before first render: modulepreload links, script tags
+// and the inline `import("…")` entry calls, with either quote style.
 const appHtml = await readFile(new URL('index.html', nested), 'utf8');
-const initialPaths = [...appHtml.matchAll(/(?:src|href)="([^"]+\.js)"/g)].map((match) => match[1]);
+const initialPaths = new Set(
+	[
+		...appHtml.matchAll(/\b(?:src|href)=["']([^"']+\.m?js)["']/g),
+		...appHtml.matchAll(/\bimport\(\s*["']([^"']+\.m?js)["']\s*\)/g)
+	].map((match) => match[1])
+);
+// A budget over nothing passes vacuously. A SvelteKit shell names its `_app/`
+// entry; if it does and none of the patterns above found a script, they have
+// drifted from the shell's markup and the budget is measuring nothing.
+const shellReferencesApp = /_app\//.test(appHtml);
+if (shellReferencesApp && initialPaths.size === 0) {
+	throw new Error(
+		'[artifact] the shell references _app/ but no initial JS was found; ' +
+			'the extraction patterns in check-build-artifact.mjs no longer match its markup'
+	);
+}
+const appScriptsInShell = new Set(appHtml.match(/[^"'\s()]*_app\/[^"'\s()]+\.m?js/g) ?? []);
+const missed = [...appScriptsInShell].filter((path) => !initialPaths.has(path));
+if (missed.length) {
+	throw new Error(
+		`[artifact] shell scripts the initial-JS budget does not count: ${missed.slice(0, 3).join(', ')}`
+	);
+}
 let initialGzip = 0;
-for (const path of new Set(initialPaths)) {
-	const relative = path.startsWith(DEPLOY_PATH)
-		? path.slice(DEPLOY_PATH.length + 1)
-		: path.replace(/^\//, '');
+for (const path of initialPaths) {
+	// `/sentiment-analysis/_app/…`, `/_app/…` or `./_app/…`, all relative to the app.
+	const relative =
+		DEPLOY_PATH && path.startsWith(`${DEPLOY_PATH}/`)
+			? path.slice(DEPLOY_PATH.length + 1)
+			: path.replace(/^\//, '');
 	const bytes = await readFile(new URL(relative, nested));
 	initialGzip += gzipSync(bytes).length;
 }
@@ -97,5 +160,6 @@ if (initialGzip > INITIAL_GZIP_BUDGET) {
 }
 
 console.log(
-	`[artifact] OK: ${files.length} files, initial JS ${Math.round(initialGzip / 1024)} KiB gzip`
+	`[artifact] OK: ${files.length} files, initial JS ${Math.round(initialGzip / 1024)} KiB gzip ` +
+		`across ${initialPaths.size} module(s)`
 );

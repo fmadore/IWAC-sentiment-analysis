@@ -17,7 +17,9 @@
 	import { num } from '#lib/i18n/utils.js';
 	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
-	import { innerWidth } from 'svelte/reactivity/window';
+	import { isCompactWidth } from '#lib/utils/viewport.svelte.js';
+	import { useChartCardHeading } from '#lib/components/ui/chartCardHeading.svelte.js';
+	import ChartHeading from './ChartHeading.svelte';
 
 	import { t, currentLanguage } from '#lib/i18n/index.js';
 	import { translateSentimentValue } from '#lib/i18n/utils.js';
@@ -34,7 +36,6 @@
 		subjectivityColors,
 		centralityColors,
 		chartColors,
-		getTitleStyle,
 		getTooltipConfig
 	} from '#lib/utils/chartTheme.js';
 
@@ -47,7 +48,9 @@
 
 	let { rows, models, dimension, includeDeclined }: LabelFlowChartProps = $props();
 
-	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
+	// Compact layout follows the chart's own width, not the window's.
+	let containerWidth = $state<number>();
+	let isMobile = $derived(isCompactWidth(containerWidth));
 
 	let flow = $derived(buildLabelFlow(rows, dimension, models.length, includeDeclined));
 
@@ -86,26 +89,23 @@
 			flow.nodes.map((n) => [n.name, `${modelNames[n.depth]} · ${displayCategory(n.category)}`])
 		)
 	);
+	const flowTotal = $derived(
+		flow.links
+			.filter((link) => link.source.startsWith('0 '))
+			.reduce((sum, link) => sum + link.value, 0)
+	);
+	const headingSubtitle = $derived(
+		`${modelNames.join('  →  ')} · ${$num(flowTotal)} ${$t.common.articles}`
+	);
+	const heading = useChartCardHeading(() => ({
+		title: $t.agreement.flowTitle,
+		subtitle: headingSubtitle
+	}));
 	let options = $derived.by(() => {
 		const currentT = $t;
-		const total = flow.links
-			.filter((link) => link.source.startsWith('0 '))
-			.reduce((sum, link) => sum + link.value, 0);
 
 		return {
 			backgroundColor: 'transparent',
-			title: {
-				text: currentT.agreement.flowTitle,
-				subtext: `${modelNames.join('  →  ')} · ${$num(total)} ${currentT.common.articles}`,
-				left: 'center',
-				top: '1%',
-				textStyle: getTitleStyle(isMobile),
-				subtextStyle: {
-					color: chartColors.text.secondary,
-					fontSize: isMobile ? 10 : 12,
-					fontFamily: '"JetBrains Mono", ui-monospace, monospace'
-				}
-			},
 			tooltip: {
 				...getTooltipConfig(isMobile),
 				trigger: 'item',
@@ -132,7 +132,7 @@
 			series: [
 				{
 					type: 'sankey',
-					top: isMobile ? 90 : 84,
+					top: isMobile ? 24 : 20,
 					bottom: isMobile ? 34 : 40,
 					left: isMobile ? '4%' : '3%',
 					right: isMobile ? '18%' : '13%',
@@ -179,6 +179,9 @@
 	});
 </script>
 
+{#if !heading.inCard}
+	<ChartHeading title={$t.agreement.flowTitle} subtitle={headingSubtitle} />
+{/if}
 {#if flow.nodes.length > 0}
 	<div class="flow-columns">
 		{#each modelNames as name, index (models[index])}
@@ -187,8 +190,9 @@
 	</div>
 
 	<div
-		style="height: {isMobile ? '480px' : '600px'}; position: relative;"
+		style="height: {isMobile ? '420px' : '540px'}; position: relative;"
 		class="chart-container"
+		bind:clientWidth={containerWidth}
 		role="img"
 		aria-label={$t.agreement.flowTitle}
 	>

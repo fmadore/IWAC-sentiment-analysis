@@ -12,8 +12,20 @@
   app.css custom properties directly; only the ramp swatches take the hex
   values, because those must match what WebGL actually painted.
 -->
+<script lang="ts" module>
+	/**
+	 * Bubble opacities. A mean resting on fewer rated articles than the shared
+	 * low-n floor is faded: its size (a count) is exact, its colour is not.
+	 * Exported so the map's paint expression and this legend's swatches read
+	 * the same two numbers.
+	 */
+	export const BUBBLE_OPACITY = 0.75;
+	export const BUBBLE_OPACITY_LOW_N = 0.3;
+</script>
+
 <script lang="ts">
 	import { t } from '#lib/i18n/index.js';
+	import { LOW_N_THRESHOLD } from '#lib/utils/stats.js';
 	import type { MapDimension } from '#lib/utils/placeAggregation.js';
 	import {
 		DIMENSION_RAMPS,
@@ -36,6 +48,8 @@
 	let { maxCount, dimension, label }: MapLegendProps = $props();
 
 	const ramp = $derived(DIMENSION_RAMPS[dimension]);
+	/** A mid-ramp colour for the reliability swatches: only opacity differs. */
+	const midColor = $derived(ramp[Math.floor(ramp.length / 2)]?.color ?? UNSCORED_COLOR);
 
 	/**
 	 * Swatch labels live in whichever i18n group owns the dimension's scale
@@ -87,6 +101,34 @@
 			<li class="ramp-item ramp-item-unscored">
 				<span class="ramp-swatch" style:background-color={UNSCORED_COLOR}></span>
 				<span class="ramp-label">{$t.map.legendUnscored}</span>
+			</li>
+		</ul>
+	</div>
+
+	<!-- The low-n fade is a third encoding on the same bubbles; without this
+	     block a faded bubble read as a paler category. -->
+	<div class="legend-block">
+		<span class="legend-title">{$t.map.legendReliabilityTitle}</span>
+		<ul class="ramp">
+			<li class="ramp-item">
+				<span
+					class="ramp-swatch reliability-swatch"
+					style:background-color={midColor}
+					style:opacity={BUBBLE_OPACITY}
+				></span>
+				<span class="ramp-label"
+					>{$t.map.legendReliable.replace('{min}', numberFormat.format(LOW_N_THRESHOLD))}</span
+				>
+			</li>
+			<li class="ramp-item">
+				<span
+					class="ramp-swatch reliability-swatch"
+					style:background-color={midColor}
+					style:opacity={BUBBLE_OPACITY_LOW_N}
+				></span>
+				<span class="ramp-label"
+					>{$t.map.legendLowN.replace('{min}', numberFormat.format(LOW_N_THRESHOLD))}</span
+				>
 			</li>
 		</ul>
 	</div>
@@ -179,6 +221,10 @@
 		margin-left: 0;
 		padding-left: 0;
 		border-left: none;
+	}
+
+	.reliability-swatch {
+		border-radius: var(--radius-circle);
 	}
 
 	.ramp-swatch {

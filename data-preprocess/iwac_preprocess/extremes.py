@@ -6,7 +6,7 @@ Importable and tested without the network; the script is the CLI around it.
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import Any, NamedTuple
 
 import pandas as pd
@@ -57,12 +57,13 @@ CATEGORIES: list[ExtremeCategory] = [
     ExtremeCategory(
         "subjectivity_extreme_high",
         "subjectivity_high",
-        lambda subj, pol, cen: bool(subj) and subj >= EXTREME_SUBJECTIVITY_HIGH,
+        lambda subj, pol, cen: subj is not None and subj >= EXTREME_SUBJECTIVITY_HIGH,
     ),
     ExtremeCategory(
         "subjectivity_extreme_low",
         "subjectivity_low",
-        lambda subj, pol, cen: bool(subj) and subj <= EXTREME_SUBJECTIVITY_LOW,
+        # A rank of 0 is not on the 1-5 scale; it never counted as "low".
+        lambda subj, pol, cen: subj is not None and 0 < subj <= EXTREME_SUBJECTIVITY_LOW,
     ),
     ExtremeCategory(
         "polarity_very_negative",
@@ -128,6 +129,42 @@ def convert_keywords_by_facet(keywords_dict: dict, top_n: int = FACET_TOP_KEYWOR
     }
 
 
+def check_category_labels(contract: SentimentContract) -> None:
+    """Every label a category compares against must exist in ``contract``'s scales.
+
+    The categories compare raw strings. A label renamed in the contract would
+    otherwise match nothing and publish an empty category that still validates.
+    """
+    for label in (EXTREME_POLARITY_VERY_NEGATIVE, EXTREME_POLARITY_VERY_POSITIVE):
+        if label not in contract.polarity_scores:
+            raise ValueError(
+                f"Extreme category label {label!r} is not a {contract.analysis_version} polarity"
+            )
+    for label in (EXTREME_CENTRALITY_VERY_CENTRAL, EXTREME_CENTRALITY_MARGINAL):
+        if label not in contract.centrality_scores:
+            raise ValueError(
+                f"Extreme category label {label!r} is not a {contract.analysis_version} centrality"
+            )
+
+
+def _known_label(
+    value: Any, scale: Mapping[str, int], dimension: str, contract: SentimentContract
+) -> str | None:
+    """A stored label, or ``None`` when absent; an unknown label raises.
+
+    Mirrors ``coerce_subjectivity``: silently passing an unknown label through
+    would publish categories that count nothing.
+    """
+    if value is None or (isinstance(value, float) and pd.isna(value)):
+        return None
+    label = str(value)
+    if not label.strip():
+        return None
+    if label not in scale:
+        raise ValueError(f"Unknown {contract.analysis_version} {dimension} label {label!r}")
+    return label
+
+
 def _new_category_accumulator() -> dict:
     """Create the empty per-category accumulator used during the article scan."""
     return {
@@ -146,6 +183,7 @@ def analyze_extreme_keywords(
     model_id: str,
     top_n: int = TOP_KEYWORDS,
     contract: SentimentContract = CONTRACT_V1,
+    source: Mapping[str, str | None] | None = None,
 ) -> dict:
     """Analyse keywords associated with sentiment extremes for one model.
 
@@ -160,6 +198,8 @@ def analyze_extreme_keywords(
         top_n: Number of most frequent keywords to keep globally per category.
         contract: Analysis generation the model id belongs to. It also decides
             how subjectivity is decoded: v1 stores the 1-5 rank, v2 a label.
+        source: Optional provenance block (``serialization.provenance_block``),
+            published under ``source``. Absent from files written before it.
 
     Returns:
         dict with the exact structure consumed by the webapp::
@@ -188,6 +228,7 @@ def analyze_extreme_keywords(
     embedding it per category duplicated ~7MB per output file. The webapp
     denormalizes at load time (utils/extremeAnalysis.ts).
     """
+    check_category_labels(contract)
     accumulators = {category.key: _new_category_accumulator() for category in CATEGORIES}
 
     stats: dict[str, int] = {"total_articles": 0}
@@ -207,8 +248,18 @@ def analyze_extreme_keywords(
         subj_score = contract.coerce_subjectivity(
             item.get(contract.sentiment_column(model_id, "subjectivite_score"))
         )
-        polarity = item.get(contract.sentiment_column(model_id, "polarite"))
-        centrality = item.get(contract.sentiment_column(model_id, "centralite_islam_musulmans"))
+        polarity = _known_label(
+            item.get(contract.sentiment_column(model_id, "polarite")),
+            contract.polarity_scores,
+            "polarity",
+            contract,
+        )
+        centrality = _known_label(
+            item.get(contract.sentiment_column(model_id, "centralite_islam_musulmans")),
+            contract.centrality_scores,
+            "centrality",
+            contract,
+        )
 
         # Metadata + facets
         country = safe_str(item.get("country"))
@@ -274,6 +325,7 @@ def analyze_extreme_keywords(
         # each extremes payload to the generation that produced it.
         "schema_version": contract.schema_version,
         "analysis_version": contract.analysis_version,
+        **({"source": dict(source)} if source is not None else {}),
         "model": model_id,
         "articles_index": articles_index,
         "analysis": analysis,
@@ -282,4 +334,27 @@ def analyze_extreme_keywords(
             "countries": dict(all_countries.most_common()),
             "newspapers": dict(all_newspapers.most_common()),
         },
+    }
+
+
+def extremes_filename(model_id: str) -> str:
+    return f"iwac_extreme_analysis_{model_id}.json"
+
+
+def build_extremes_payloads(
+    records: list[dict],
+    contract: SentimentContract,
+    source: Mapping[str, str | None] | None = None,
+    top_n: int = TOP_KEYWORDS,
+) -> dict[str, dict]:
+    """One extremes payload per model of ``contract``, keyed by published filename.
+
+    ``records`` must already be scoped to the published base: the validator
+    holds ``statistics.total_articles`` to the base's size.
+    """
+    return {
+        extremes_filename(model_id): analyze_extreme_keywords(
+            records, model_id, top_n=top_n, contract=contract, source=source
+        )
+        for model_id in contract.model_names
     }

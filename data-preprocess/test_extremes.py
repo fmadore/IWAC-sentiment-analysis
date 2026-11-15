@@ -90,3 +90,45 @@ def test_an_unknown_v2_subjectivity_label_fails_loudly():
     record = {"o:id": 1, f"{prefix}_subjectivite_score": "Assez subjectif"}
     with pytest.raises(ValueError):
         analyze_extreme_keywords([record], "luna", contract=CONTRACT_V2)
+
+
+def test_an_unknown_polarity_label_raises_instead_of_matching_nothing():
+    """A renamed label used to publish an empty category that still validated."""
+    records = [v1_row(1, polarity="Tres negatif", subjectivity=3, centrality="Central")]
+    with pytest.raises(ValueError, match="polarity label 'Tres negatif'"):
+        analyze_extreme_keywords(records, "chatgpt", contract=CONTRACT_V1)
+
+
+def test_an_unknown_centrality_label_raises():
+    records = [v1_row(1, polarity="Neutre", subjectivity=3, centrality="Peripherique")]
+    with pytest.raises(ValueError, match="centrality label"):
+        analyze_extreme_keywords(records, "chatgpt", contract=CONTRACT_V1)
+
+
+@pytest.mark.parametrize("contract", [CONTRACT_V1, CONTRACT_V2])
+def test_every_category_label_is_a_contract_label(contract):
+    from iwac_preprocess.extremes import check_category_labels
+
+    check_category_labels(contract)
+
+
+def test_a_category_label_missing_from_the_contract_is_refused(monkeypatch):
+    from iwac_preprocess import extremes
+
+    monkeypatch.setattr(extremes, "EXTREME_CENTRALITY_MARGINAL", "Périphérique")
+    with pytest.raises(ValueError, match="Périphérique"):
+        extremes.check_category_labels(CONTRACT_V1)
+
+
+def test_the_provenance_block_is_published_only_when_given():
+    from iwac_preprocess.extremes import build_extremes_payloads
+    from iwac_preprocess.serialization import provenance_block
+
+    records = [v1_row(1, polarity="Neutre", subjectivity=3, centrality="Central")]
+    assert "source" not in analyze_extreme_keywords(records, "chatgpt", contract=CONTRACT_V1)
+    source = provenance_block("example/corpus", "abc123")
+    payloads = build_extremes_payloads(records, CONTRACT_V1, source)
+    assert set(payloads) == {
+        f"iwac_extreme_analysis_{model_id}.json" for model_id in CONTRACT_V1.model_names
+    }
+    assert all(payload["source"] == source for payload in payloads.values())

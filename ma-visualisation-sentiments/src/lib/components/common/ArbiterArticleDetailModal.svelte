@@ -21,7 +21,8 @@
 	import { getJournalName } from '#lib/utils/format.js';
 	import { getArticleUrl } from '#lib/utils/format.js';
 	import IIIFViewer from '#lib/components/viz/IIIFViewer.svelte';
-	import { ComparisonPanel, ArbiterSection } from '#lib/components/common/index.js';
+	import ComparisonPanel from '#lib/components/common/ComparisonPanel.svelte';
+	import ArbiterSection from '#lib/components/common/ArbiterSection.svelte';
 	import FullScreenModal from './FullScreenModal.svelte';
 	import ScaleIcon from '@lucide/svelte/icons/scale';
 	import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
@@ -80,6 +81,7 @@
 		{open}
 		{onClose}
 		title={modalTitle}
+		titleLang={comparison?.article['o:title'] ? 'fr' : undefined}
 		subtitle={modalSubtitle}
 		accentVariant="arbiter"
 	>

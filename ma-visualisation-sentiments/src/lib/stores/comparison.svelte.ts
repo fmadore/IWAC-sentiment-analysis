@@ -4,7 +4,7 @@
  * Manages model comparison state and derived data using Svelte 5 runes.
  */
 
-import type { ComparisonData } from '#lib/types/data.js';
+import type { Article, ComparisonData } from '#lib/types/data.js';
 import { getModelsFromPair } from '#lib/types/data.js';
 import { datasetState } from './datasets.svelte';
 import { filterState } from './filters.svelte';
@@ -29,9 +29,23 @@ let _selectedComparison = $state.raw<ComparisonData | null>(null);
 // Derived State (reactive runes)
 // ============================================
 
-const _comparisonDataRune = $derived.by(() =>
-	buildComparisonData(articleState.datasets, datasetState.isComparisonMode, datasetState.pair)
-);
+/*
+ * The two selected corpora, each as its own derived. `articleState.datasets` is
+ * replaced whenever any dataset lands — every background prefetch included —
+ * but these resolve to the same array references unless one of the pair's own
+ * datasets changed, so the 12k comparison rows below are rebuilt only then.
+ */
+const _pairModels = $derived(getModelsFromPair(datasetState.pair));
+const _datasetA = $derived(articleState.datasets[_pairModels[0]]);
+const _datasetB = $derived(articleState.datasets[_pairModels[1]]);
+
+const _comparisonDataRune = $derived.by(() => {
+	const [modelAId, modelBId] = _pairModels;
+	const datasets: Record<string, Article[]> = {};
+	if (_datasetA) datasets[modelAId] = _datasetA;
+	if (_datasetB) datasets[modelBId] = _datasetB;
+	return buildComparisonData(datasets, datasetState.isComparisonMode, datasetState.pair);
+});
 
 const _filteredComparisonsRune = $derived.by(() =>
 	filterComparisons(

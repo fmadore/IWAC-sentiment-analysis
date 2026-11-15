@@ -35,6 +35,11 @@
 		onClose: () => void;
 		/** Title displayed in the header */
 		title: string;
+		/**
+		 * Language of the title when it differs from the interface: `fr` for an
+		 * article title, which stays in the corpus language in either interface.
+		 */
+		titleLang?: string;
 		/** Optional subtitle/description */
 		subtitle?: string;
 		/** Optional header icon snippet */
@@ -51,6 +56,7 @@
 		open,
 		onClose,
 		title,
+		titleLang,
 		subtitle,
 		headerIcon,
 		headerActions,
@@ -116,14 +122,19 @@
 				<div class="header-content">
 					<!-- Back button and title -->
 					<div class="header-left">
+						<!-- Named for what it does from where it sits ("back to the
+						     dashboard"), so it is not a second, identical "Close"
+						     beside the X. The visible word hides on phones, hence the
+						     aria-label rather than relying on the text. -->
 						<button
+							type="button"
 							class="back-button"
 							onclick={onClose}
-							title={$t.audit.closeModal}
-							aria-label={$t.audit.closeModal}
+							title={$t.audit.backToDashboard}
+							aria-label={$t.audit.backToDashboard}
 						>
-							<ArrowLeftIcon size={20} />
-							<span class="back-text">Back</span>
+							<ArrowLeftIcon size={20} aria-hidden="true" />
+							<span class="back-text" aria-hidden="true">{$t.audit.back}</span>
 						</button>
 
 						<div class="header-title-group">
@@ -133,7 +144,9 @@
 								</div>
 							{/if}
 							<div class="header-text">
-								<h1 id={titleId} class="fs-modal-title">{title}</h1>
+								<!-- h2: the page keeps its one h1; the dialog is named by
+								     this heading through aria-labelledby. -->
+								<h2 id={titleId} class="fs-modal-title" lang={titleLang}>{title}</h2>
 								{#if subtitle}
 									<p class="fs-modal-subtitle">{subtitle}</p>
 								{/if}
@@ -150,23 +163,25 @@
 							</div>
 						{/if}
 						<button
+							type="button"
 							class="close-button"
 							onclick={onClose}
 							title={$t.audit.closeModal}
 							aria-label={$t.audit.closeModal}
 						>
-							<XIcon size={24} />
+							<XIcon size={24} aria-hidden="true" />
 						</button>
 					</div>
 				</div>
 			</header>
 
-			<!-- Scrollable content area -->
-			<main class="fs-modal-content custom-scrollbar">
+			<!-- Scrollable content area. Not a <main>: the page already has one,
+			     and a dialog is its own region (named by the h2 above). -->
+			<div class="fs-modal-content custom-scrollbar">
 				<div class="content-wrapper">
 					{@render children()}
 				</div>
-			</main>
+			</div>
 		</div>
 	</dialog>
 {/if}

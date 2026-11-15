@@ -8,6 +8,12 @@
  * import { FilterCard, SentimentBadge, SentimentChart } from '#lib/components/index.js';
  * import { CountryFilter, PolarityFilter } from '#lib/components/filters/index.js';
  * import { ArticleTable, ArticleDetail } from '#lib/components/data-display/index.js';
+ *
+ * Application code does not: it imports each component from its own file.
+ * A Svelte component module is not provably side-effect-free, so importing one
+ * name from a barrel ties every component it re-exports into the importer's
+ * chunk — the detail modals and arbiter panels used to ride along on every
+ * cold load that way. Barrels remain for tests and external consumers.
  */
 
 // Common - Base reusable components

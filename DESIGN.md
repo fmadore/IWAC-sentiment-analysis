@@ -223,12 +223,18 @@ default.
 - **Display / view title** (700, 1.625rem/26px, line-height 1.15,
   tracking −0.018em, serif): one per view, set by `ViewContent`.
 - **Title / chart-card title** (600, 1.0625rem → 1.25rem at ≥640px,
-  tracking −0.008em, serif): panel headers; large/comparison variants step up
-  to 1.625rem.
+  tracking −0.008em, serif): panel headers. A chart's title goes through
+  `ChartCard`'s heading (its `title` prop, or the heading slot a chart fills
+  through `chartCardHeading.svelte.ts`), so it is the card's `<h2>` in the DOM
+  rather than text painted on the canvas.
 - **Body** (400, 0.9375rem/15px, line-height 1.55, sans): prose and controls;
   paragraphs capped at `--prose-width` (65ch).
 - **Eyebrow / label** (600, 0.6875rem/11px, uppercase, tracking 0.08em, mono):
-  section labels, table `th`, chip captions, chart notes, badges.
+  section labels, table `th`, chip captions, badges.
+- **Chart note** (`.chart-note`: 400, 13px sans, `--text-secondary`, above a
+  dashed hairline): the caveat a reader needs to interpret a figure. It is body
+  text, not the eyebrow voice: it used to be 11px mono in `--text-muted`, the
+  faintest type on the page carrying the most important sentence.
 - The full size scale runs 11/12/13/15/17/20/26/34/46px with ~1.33× steps
   between display sizes; 34px (`--font-size-3xl`) and the 46px hero-numeric
   step are reserved for hero statistics.
@@ -259,8 +265,11 @@ auto-fit handles the reflow, so no media query restates it.
 
 **The Container Rule.** A component inside the 320px filter rail never
 branches on viewport width — it asks its container
-(`@container filter-rail (max-width: …)`). In JavaScript, `MediaQuery` from
-`svelte/reactivity`, never a one-shot `window.innerWidth` read.
+(`@container filter-rail (max-width: …)`). In JavaScript, the helpers in
+`utils/viewport.svelte.ts` (`isCompact`, `isBelowLarge`, `isCompactWidth` for a
+chart's own measured width) or `MediaQuery` from `svelte/reactivity`, never a
+one-shot `window.innerWidth` read and never a literal threshold: a `< 768` in
+script is a fourth breakpoint no stylesheet rule agrees with.
 
 ## Elevation & Depth
 
@@ -279,7 +288,8 @@ were glassmorphism cues and the panels are matte.
 - **`--elevation-modal`**: dialogs.
 - **`--elevation-drawer` / `--elevation-drawer-mirrored`**: off-canvas
   drawers; a hairline edge plus a wide lift off the scrim.
-- **`--ring-focus`**: the 3px Wire Amber focus ring (error variant in red).
+- **Focus** is not a shadow: see `--focus-outline` under Accessibility floors.
+  `--ring-focus` survives only as an optional decorative halo.
 
 **The Mirrored Drawer Rule.** A drawer's shadow falls onto the page it
 covers, so a right-edge drawer casts left. The two drawer tokens are mirror
@@ -309,7 +319,8 @@ engaged. There is no global `.btn` — every control declares its own box
 - **Shadow:** `--elevation-card` at rest; hover brightens the border, not the
   shadow.
 - **Header:** eyebrow + serif title over a hairline; body padding `--space-3`
-  (mobile) → `--space-4`; large/comparison variants step padding and title up.
+  (mobile) → `--space-4`. Only variants with styles exist (`extreme` changes the
+  layout); there is no `large` variant.
 
 ### Buttons & toggles
 
@@ -330,7 +341,8 @@ engaged. There is no global `.btn` — every control declares its own box
 ### Inputs / Selects
 
 - `.select`: panel radius, `surface-muted` fill, `border-default`; hover
-  brightens both; focus swaps the border to Wire Amber under `--ring-focus`.
+  brightens both; focus swaps the border to Wire Amber, and keyboard focus adds
+  the shared `--focus-outline`.
   `.select-sm` is the compact toolbar variant.
 
 ### Navigation
@@ -346,12 +358,19 @@ engaged. There is no global `.btn` — every control declares its own box
   `surface-card-elevated` fill (translucency lets rows read through), hairline
   row separators, row hover in `surface-muted`, tabular numerals throughout.
 - The container paints CSS-only scroll shadows so a sideways-scrollable table
-  is visibly scrollable.
+  is visibly scrollable. Any other wide block that scrolls sideways (the label
+  patterns, the agreement matrix) takes the shared `.scroll-shadow-x` class
+  rather than a bare `overflow-x: auto`; set `--scroll-shadow-surface` when it
+  does not sit on a card.
 
 ### Badges & alerts
 
 - Badges: hairline radius, 12px medium, tinted `-bg`/`-border` fills from the
-  value's ramp.
+  value's ramp. Their text reads `--sentiment-text`, the value's colour mixed
+  toward `--text-primary` (`--sentiment-text-weight`, 60%): the dark ramp steps
+  are illegible as type on their own tint, and the ramps themselves stay
+  pinned for the charts. The arbiter's confidence level is always
+  `ConfidenceBadge`.
 - Alerts: tinted fill + 1px hairline border, no side stripe; a leading Lucide
   icon (16–18px) in the alert colour carries the status cue.
 
@@ -365,6 +384,20 @@ per-value glyph (`POLARITY_GLYPHS`) plus the value's name in words.
 
 **The One Resolver Rule.** No component maps a sentiment value to a colour
 itself — ever. Emit the data attribute; read the three variables.
+
+**Model colours.** A model's series colour comes from `modelSeriesColor(id)`
+(`stores/datasets.svelte.ts`), the categorical chart palette indexed by its
+place in its generation. Its brand colour (`modelBrandColor`) is for the logo
+surround only, never a data series and never text: brand colours are not
+contrast-checked.
+
+### Print
+
+`components.css` carries one `@media print` block: text tokens switch to the
+`--print-*` values, chrome (header, drawers, navigation, chart toolbars and
+anything marked `.no-print`) is hidden, cards print on a light surface with a
+hairline and avoid page breaks, and a chart keeps its dark plot area because
+its palette assumes it.
 
 ## Do's and Don'ts
 
@@ -408,7 +441,28 @@ component, which is why they are here rather than in a comment at the top of a
 
 `npm run lint` enforces rules 1, 2, 3 and 6 mechanically
 ([`scripts/check-design-tokens.mjs`](ma-visualisation-sentiments/scripts/check-design-tokens.mjs)).
-A rule nobody can violate does not need to be remembered.
+A rule nobody can violate does not need to be remembered. Exactly what it fails
+on, across `src/**/*.{svelte,css,ts}`:
+
+- **Rule 1:** a Tailwind colour utility (`text-white/60`, `bg-red-500`, and the
+  project's own palette names such as `bg-surface-800`, which Tailwind does not
+  generate at all), and in a component's markup or script a typography utility
+  (`text-xs`, `font-semibold`, `leading-relaxed`, `tracking-wide`).
+- **Rule 2:** a hex, `rgb()` or `hsl()` literal anywhere outside a token
+  definition in `src/lib/styles/tokens.css` and the listed chart exemptions; a
+  CSS colour keyword (`white`, `black`, …) in a colour-bearing declaration,
+  `color-mix()` included; a px/rem/em length in `font-size` (inside `clamp()`
+  too); a non-zero length in `letter-spacing`; a non-zero ms/s duration in a
+  `transition` or `animation` declaration. These read stylesheet declarations
+  (a `<style>` block or a `.css` file), not inline `style=` attributes. Spacing
+  is not checked.
+- **Rule 3:** a `var()` with a fallback, and a `var(--x)` that nothing defines.
+- **Rule 6:** a watched Skeleton-era class (`btn*`, `chip`, `card`, `badge`,
+  `select*`, …) that neither the shared stylesheets nor the component defines.
+
+Violations that predate a check are listed in the script's `TEMPORARY_ALLOW`,
+by file and offending text. An entry that no longer matches fails the run, so
+fixing one means deleting its entry in the same change.
 
 The reasoning behind the palettes — why the polarity ramp is equal-lightness at
 the poles, why surfaces are opaque, why the type scale steps the way it does —
@@ -516,9 +570,16 @@ corner radii, and a third component used it without defining it at all.
 
 ## Accessibility floors
 
-- `--text-muted` is the floor for text. `--text-subtle` (~3:1) is for decorative
-  rules and icon strokes beside a real label; `--text-disabled` (~2:1) is for the
-  disabled state of a control and nothing else.
+- `--text-muted` is the floor for text. `--text-subtle` measures 4.4:1 over a
+  card, just under AA, so it is for decorative rules, dividers and icon strokes
+  beside a real label, never text, not even a placeholder. `--text-disabled`
+  (2.6:1) is decorative only: the disabled state of a control and nothing else.
+- Focus is one contract: the global `:focus-visible` rule draws
+  `outline: var(--focus-outline)` (2px solid Wire Amber, 8.8:1 on a card) at
+  `--focus-outline-offset`. Components do not restate it; a control inside a
+  clipping container only moves the offset inward
+  (`calc(var(--focus-outline-offset) * -1)`). Never `outline: none` with a
+  box-shadow in its place: forced-colors mode drops shadows.
 - 11px (`--font-size-eyebrow`) is the smallest type in the app. Nothing goes
   below it — if it does not fit, the control needs less content, not smaller text.
 - Controls are `--size-control-lg` (40px) in the header and in any touch context.

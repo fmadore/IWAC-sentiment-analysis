@@ -1,42 +1,91 @@
 <!--
   DimensionDistributionChart Component
 
-  Shared distribution chart for a sentiment dimension (polarity or
-  subjectivity): stacked bars by newspaper, or a globally-aggregated pie,
-  with a chart-type toggle. SentimentChart and SubjectivityChart are thin
-  wrappers that supply the dimension configuration.
+  Shared distribution chart for a sentiment dimension (polarity, subjectivity
+  or centrality): a global bar or pie, or one 100% bar per newspaper stacked
+  by category, with a chart-type toggle. SentimentChart, SubjectivityChart and
+  CentralityChart are thin wrappers that supply the dimension configuration.
 -->
+<script lang="ts" module>
+	/** Newspapers drawn individually in the by-newspaper profile; the rest pool as one row. */
+	export const PROFILE_TOP_N = 10;
+
+	export interface NewspaperProfile {
+		name: string;
+		/** Rated articles in this row: the denominator of its shares. */
+		n: number;
+		/** Raw counts per category, in `frenchLabels` order. */
+		counts: number[];
+		/** Number of newspapers pooled in this row (1 except for the remainder). */
+		pooled: number;
+	}
+
+	/**
+	 * One profile per newspaper, largest first, so every bar can be normalised
+	 * to its own total: raw stacked counts let the largest title dominate and
+	 * hide the composition of the rest. Newspapers beyond `topN` are pooled into
+	 * a single `otherLabel` row.
+	 */
+	export function newspaperProfiles(
+		newspaperCounts: Record<string, Record<string, number>>,
+		frenchLabels: string[],
+		otherLabel: string,
+		topN = PROFILE_TOP_N
+	): NewspaperProfile[] {
+		const rows = Object.keys(newspaperCounts).map((name) => {
+			const counts = frenchLabels.map((label) => newspaperCounts[name]?.[label] ?? 0);
+			return { name, counts, n: counts.reduce((a, b) => a + b, 0), pooled: 1 };
+		});
+		rows.sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
+		const top = rows.slice(0, topN);
+		const rest = rows.slice(topN);
+		if (rest.length > 0) {
+			const counts = frenchLabels.map((_, i) => rest.reduce((sum, row) => sum + row.counts[i], 0));
+			top.push({
+				name: otherLabel,
+				counts,
+				n: counts.reduce((a, b) => a + b, 0),
+				pooled: rest.length
+			});
+		}
+		return top;
+	}
+</script>
+
 <script lang="ts">
 	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
 	import Chart from './CitableChart.svelte';
 
 	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption, SeriesOption } from 'echarts';
-	import { innerWidth } from 'svelte/reactivity/window';
+	import { isCompactWidth } from '#lib/utils/viewport.svelte.js';
+	import { useChartCardHeading } from '#lib/components/ui/chartCardHeading.svelte.js';
+	import ChartHeading from './ChartHeading.svelte';
 
 	import { articleState } from '#lib/stores/index.js';
 	import type { Article } from '#lib/types/data.js';
 	import { aggregateByJournalAndDimension } from '#lib/utils/chartAggregators.js';
 	import { t, currentLanguage } from '#lib/i18n/index.js';
-	import { formatNumber } from '#lib/i18n/utils.js';
+	import { formatNumber, formatPercent } from '#lib/i18n/utils.js';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import ChartTypeToggle from './ChartTypeToggle.svelte';
 	import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
 	import PieChartIcon from '@lucide/svelte/icons/pie-chart';
 	import {
 		createPieTooltipFormatter,
-		createStackedBarTooltipFormatter
+		tooltipHeader,
+		tooltipPanel,
+		tooltipSeriesRow
 	} from '#lib/utils/chartFormatters.js';
 
 	// Import centralized chart theme
 	import {
-		seriesColorPalette,
 		getTooltipConfig,
 		getLegendConfig,
 		getAxisLineStyle,
 		getAxisLabelStyle,
-		getGridConfig,
 		getCountYAxis,
+		getShareYAxis,
 		getPieSeriesStyle,
 		getEmphasisConfig,
 		getUniversalTransitionConfig,
@@ -45,13 +94,15 @@
 	} from '#lib/utils/chartTheme.js';
 
 	interface DimensionDistributionChartProps {
+		/** Which dimension: selects the `…Chart` / `…Grouping` URL options */
+		dimension: 'polarity' | 'subjectivity' | 'centrality';
 		/** French dimension labels used as data-lookup keys, in display order */
 		frenchLabels: string[];
 		/** Translated labels for the current language (same order as frenchLabels) */
 		translatedLabels: string[];
 		/** Resolve an article to its French dimension label, or null to skip it */
 		getKey: (article: Article) => string | null;
-		/** Slice color for a French dimension label (pie mode) */
+		/** Fill colour for a French dimension label */
 		getColor: (frenchLabel: string) => string;
 		/** Translated dimension title, e.g. t.charts.polarityDistribution */
 		title: string;
@@ -64,6 +115,7 @@
 	}
 
 	let {
+		dimension,
 		frenchLabels,
 		translatedLabels,
 		getKey,
@@ -74,12 +126,12 @@
 		ariaLabel
 	}: DimensionDistributionChartProps = $props();
 
-	// Reactive window width for responsive behavior
-	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
-	const chartKey = $derived(seriesIdPrefix === 'sentiment' ? 'polarityChart' : 'subjectivityChart');
-	const groupingKey = $derived(
-		seriesIdPrefix === 'sentiment' ? 'polarityGrouping' : 'subjectivityGrouping'
-	);
+	// Compact layout follows the chart's own width, not the window's.
+	let containerWidth = $state<number>();
+	let isMobile = $derived(isCompactWidth(containerWidth));
+	const chartKey = $derived(`${dimension}Chart` as const);
+	const groupingKey = $derived(`${dimension}Grouping` as const);
+	const heading = useChartCardHeading(() => ({ title }));
 	const aggregate = $derived(
 		aggregateByJournalAndDimension(articleState.filtered, frenchLabels, getKey)
 	);
@@ -91,6 +143,15 @@
 			)
 		)
 	);
+	const profiles = $derived(
+		newspaperProfiles(aggregate.newspaperCounts, frenchLabels, $t.audit.other)
+	);
+	const profileLabels = $derived(
+		profiles.map(
+			(row) =>
+				`${row.pooled > 1 ? `${row.name} (${formatNumber(row.pooled, $currentLanguage)})` : row.name} · n = ${formatNumber(row.n, $currentLanguage)}`
+		)
+	);
 	const tableColumns = $derived(
 		viewOptionsState[groupingKey] === 'global'
 			? [
@@ -100,7 +161,8 @@
 				]
 			: [
 					{ label: $t.audit.journal },
-					...translatedLabels.map((label) => ({ label, format: 'integer' as const }))
+					...translatedLabels.map((label) => ({ label, format: 'integer' as const })),
+					{ label: 'n', format: 'integer' as const }
 				]
 	);
 	const tableRows = $derived(
@@ -110,34 +172,19 @@
 					count,
 					aggregate.articlesAnalyzed ? count / aggregate.articlesAnalyzed : null
 				])
-			: aggregate.newspaperList.map((journal) => [
-					journal,
-					...frenchLabels.map((label) => aggregate.newspaperCounts[journal][label] ?? 0)
-				])
+			: aggregate.newspaperList.map((journal) => {
+					const counts = frenchLabels.map(
+						(label) => aggregate.newspaperCounts[journal][label] ?? 0
+					);
+					return [journal, ...counts, counts.reduce((a, b) => a + b, 0)];
+				})
 	);
 
 	// Use $derived for proper reactivity in Svelte 5
 	let options = $derived.by(() => {
-		const currentT = $t; // Capture current translations for reactive updates
+		void $t; // Re-derive when the language changes
 		const currentLang = $currentLanguage; // Capture current language for reactive updates
 
-		const ranked = [...aggregate.newspaperList].sort(
-			(a, b) =>
-				Object.values(aggregate.newspaperCounts[b]).reduce((x, y) => x + y, 0) -
-					Object.values(aggregate.newspaperCounts[a]).reduce((x, y) => x + y, 0) ||
-				a.localeCompare(b)
-		);
-		const newspaperList = ranked.slice(0, 6);
-		const newspaperCounts = { ...aggregate.newspaperCounts };
-		if (ranked.length > 6) {
-			newspaperList.push(currentT.audit.other);
-			newspaperCounts[currentT.audit.other] = Object.fromEntries(
-				frenchLabels.map((label) => [
-					label,
-					ranked.slice(6).reduce((sum, j) => sum + (aggregate.newspaperCounts[j][label] ?? 0), 0)
-				])
-			);
-		}
 		if (viewOptionsState[groupingKey] === 'global' && viewOptionsState[chartKey] === 'bar') {
 			return {
 				backgroundColor: 'transparent',
@@ -172,19 +219,10 @@
 
 		if (viewOptionsState[groupingKey] === 'global' && viewOptionsState[chartKey] === 'pie') {
 			// Pie chart: global aggregation by dimension label
-			const totalByLabel: Record<string, number> = {};
-			frenchLabels.forEach((frenchLabel, index) => {
-				const translatedLabel = translatedLabels[index];
-				totalByLabel[translatedLabel] = 0;
-				newspaperList.forEach((journal) => {
-					totalByLabel[translatedLabel] += newspaperCounts[journal]?.[frenchLabel] || 0;
-				});
-			});
-
 			const pieData = translatedLabels
 				.map((label, index) => ({
 					name: label,
-					value: totalByLabel[label],
+					value: totals[index],
 					itemStyle: { color: getColor(frenchLabels[index]) }
 				}))
 				.filter((item) => item.value > 0);
@@ -219,82 +257,90 @@
 				]
 			} as EChartsOption;
 		} else {
-			// Bar chart (original)
-			const seriesData: SeriesOption[] = newspaperList.map((journal, index) => {
-				return {
-					name: journal,
-					type: 'bar',
-					stack: 'total',
-					emphasis: getEmphasisConfig(),
-					...getUniversalTransitionConfig(),
-					...getStaggeredAnimationDelay(),
-					id: `${seriesIdPrefix}-${index}`,
-					data: frenchLabels.map((frenchLabel) => newspaperCounts[journal]?.[frenchLabel] || 0),
-					itemStyle: {
-						color: seriesColorPalette[index % seriesColorPalette.length],
-						borderRadius: 0
-					}
-				};
-			});
-
-			const tooltipConfig = getTooltipConfig(isMobile);
+			// By newspaper: one bar per newspaper, stacked by category and
+			// normalised to 100% of that newspaper's rated articles, so profiles
+			// compare directly whatever each title's size. n sits in the label.
+			const seriesData: SeriesOption[] = frenchLabels.map((frenchLabel, index) => ({
+				name: translatedLabels[index],
+				type: 'bar',
+				stack: 'share',
+				barMaxWidth: 28,
+				emphasis: getEmphasisConfig(),
+				...getUniversalTransitionConfig(),
+				...getStaggeredAnimationDelay(),
+				id: `${seriesIdPrefix}-${index}`,
+				data: profiles.map((row) => ({
+					value: row.n ? (row.counts[index] / row.n) * 100 : 0,
+					rawCount: row.counts[index]
+				})),
+				itemStyle: { color: getColor(frenchLabel), borderRadius: 0 }
+			}));
 
 			return {
 				backgroundColor: 'transparent',
 				tooltip: {
-					...tooltipConfig,
+					...getTooltipConfig(isMobile),
 					trigger: 'axis',
-					triggerOn: 'mousemove',
-					enterable: true,
-					axisPointer: {
-						type: 'shadow',
-						shadowStyle: {
-							color: chartColors.axis.pointerShadow
-						}
-					},
+					axisPointer: { type: 'shadow', shadowStyle: { color: chartColors.axis.pointerShadow } },
 					confine: true,
-					formatter: createStackedBarTooltipFormatter({
-						getTotalLabel: () => currentT.common.total,
-						lang: () => currentLang,
-						getIsMobile: () => isMobile,
-						scrollableList: true
-					})
+					formatter: (params: unknown) => {
+						const items = params as Array<{
+							dataIndex: number;
+							seriesName: string;
+							color: string;
+							data: { value: number; rawCount: number };
+						}>;
+						if (!Array.isArray(items) || items.length === 0) return '';
+						const row = profiles[items[0].dataIndex];
+						return tooltipPanel(
+							200,
+							tooltipHeader(`${row.name} · n = ${formatNumber(row.n, currentLang)}`),
+							...items
+								.filter((item) => item.data.rawCount > 0)
+								.map((item) =>
+									tooltipSeriesRow(
+										item.color,
+										item.seriesName,
+										`${formatPercent(item.data.value / 100, 1, currentLang)} (${formatNumber(item.data.rawCount, currentLang)})`
+									)
+								)
+						);
+					}
 				},
 				legend: {
 					...getLegendConfig(isMobile),
-					data: newspaperList,
-					// Mobile: anchor the horizontal legend to the bottom (the grid
-					// reserves space for it). Desktop: keep it at the top. Both anchors
-					// are explicit ('auto' neutralises the unused side) so the legend
-					// repositions cleanly when the viewport crosses the 768px breakpoint.
-					top: isMobile ? 'auto' : '8%',
-					bottom: isMobile ? 0 : 'auto'
-				},
-				grid: getGridConfig(isMobile, {
-					hasLegendTop: !isMobile,
-					legendPosition: isMobile ? 'bottom' : 'top'
-				}),
-				xAxis: {
-					type: 'category',
 					data: translatedLabels,
-					axisTick: {
-						alignWithLabel: true,
-						lineStyle: { color: chartColors.axis.tickLine }
-					},
+					top: 0
+				},
+				grid: {
+					left: isMobile ? 8 : 12,
+					right: isMobile ? 16 : 24,
+					top: isMobile ? 48 : 36,
+					bottom: 24,
+					containLabel: true
+				},
+				xAxis: getShareYAxis(isMobile),
+				yAxis: {
+					type: 'category',
+					data: profileLabels,
+					inverse: true,
 					axisLine: getAxisLineStyle(),
+					axisTick: { show: false },
 					axisLabel: {
 						...getAxisLabelStyle(isMobile),
-						rotate: isMobile ? 45 : 30,
-						interval: 0
+						width: isMobile ? 130 : 220,
+						overflow: 'truncate'
 					}
 				},
-				yAxis: getCountYAxis(isMobile),
 				series: seriesData
 			} as EChartsOption;
 		}
 	});
 </script>
 
+{#if !heading.inCard}
+	<ChartHeading {title} />
+{/if}
 {#if articleState.filtered.length > 0}
 	<!-- Dataset badge + chart-type toggle -->
 	<div class="chart-toolbar">
@@ -320,13 +366,17 @@
 			/>
 		{/if}
 	</div>
-	<h2 class="chart-heading">{title}</h2>
 	{#if viewOptionsState[groupingKey] === 'journal'}<p class="chart-note">
 			{$t.audit.topJournals}
 		</p>{/if}
 	<div
-		style="height: {isMobile ? '350px' : '450px'}; position: relative;"
+		style="height: {viewOptionsState[groupingKey] === 'journal'
+			? `${profiles.length * (isMobile ? 32 : 36) + 90}px`
+			: isMobile
+				? '350px'
+				: '450px'}; position: relative;"
 		class="chart-container"
+		bind:clientWidth={containerWidth}
 		role="img"
 		aria-label={ariaLabel}
 	>
@@ -354,11 +404,6 @@
 {/if}
 
 <style>
-	.chart-heading {
-		font-family: var(--font-display);
-		font-size: var(--font-size-lg);
-		margin-block: var(--space-4);
-	}
 	.chart-note {
 		color: var(--text-secondary);
 		font-size: var(--font-size-sm);

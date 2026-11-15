@@ -57,7 +57,8 @@
 	import { onMount } from 'svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 	import { t } from '#lib/i18n/index.js';
-	import { LanguageSwitcher, DatasetPicker } from '#lib/components/ui/index.js';
+	import LanguageSwitcher from '#lib/components/ui/LanguageSwitcher.svelte';
+	import DatasetPicker from '#lib/components/ui/DatasetPicker.svelte';
 	import { uiState, datasetState, filterState } from '#lib/stores/index.js';
 	import { hasFilterRail, hasSingleModelPicker } from '#lib/types/data.js';
 	import { analysisState } from '#lib/stores/analysis.svelte.js';
@@ -156,7 +157,12 @@
 
 		{#if desktop.current}
 			<div class="header-headline">
-				{#if hasSingleModelPicker(uiState.activeView)}<DatasetPicker />{/if}
+				<!-- Pair and panel views choose their models inside the view; the
+				     masthead still names what is on screen, so the pair is never
+				     hidden on a wide screen. -->
+				{#if hasSingleModelPicker(uiState.activeView)}<DatasetPicker />{:else}<span
+						class="header-context">{currentModelName}</span
+					>{/if}
 			</div>
 		{/if}
 
@@ -237,6 +243,19 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+	}
+
+	.header-context {
+		font-family: var(--font-mono);
+		font-size: var(--font-size-xs);
+		font-weight: var(--font-weight-medium);
+		text-transform: uppercase;
+		letter-spacing: var(--tracking-wider);
+		color: var(--text-secondary);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		min-width: 0;
 	}
 
 	.header-trail {

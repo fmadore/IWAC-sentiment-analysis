@@ -77,7 +77,7 @@ def ok_ramp(anchors: list[tuple[float, float, float]], t: float):
     f = pos - low
     start = _oklch.oklch_to_oklab(*anchors[low])
     end = _oklch.oklch_to_oklab(*anchors[low + 1])
-    L, a, b = (p + (q - p) * f for p, q in zip(start, end))
+    L, a, b = (p + (q - p) * f for p, q in zip(start, end, strict=True))
     channels = _oklch.oklab_to_linear_srgb(L, a, b)
     return tuple(max(0, min(255, round(_oklch.linear_to_srgb_channel(c) * 255))) for c in channels)
 
@@ -236,7 +236,7 @@ def stacked_bar(image, xy, size, counts, radius=6):
     x, y = px(xy[0]), px(xy[1])
     w, h = px(size[0]), px(size[1])
     # Denominator is each model's *own* annotated rows, not every row in the
-    # file. Generation 2 carries 51 all-null articles by design (the prompt is
+    # file. Generation 2 carries 50 all-null articles by design (the prompt is
     # French; those are neither French nor English) and Qwen3.8 27B declines a
     # further 200, so counting file rows would leave the bars visibly short of
     # their right edge with nothing to explain the gap. Per-model normalisation
@@ -269,7 +269,7 @@ def render(models: list[tuple[str, str]]) -> Image.Image:
         t = row / (HEIGHT * SCALE - 1)
         draw.line(
             [(0, row), (WIDTH * SCALE, row)],
-            fill=tuple(round(a + (b - a) * t) for a, b in zip(BG_TOP, BG_BOTTOM)),
+            fill=tuple(round(a + (b - a) * t) for a, b in zip(BG_TOP, BG_BOTTOM, strict=True)),
         )
 
     # Top rule: the polarity scale as a continuous diverging ramp.

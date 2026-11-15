@@ -24,13 +24,13 @@ def oklab_to_linear_srgb(L: float, a: float, b: float):
     m_ = L - 0.1055613458 * a - 0.0638541728 * b
     s_ = L - 0.0894841775 * a - 1.2914855480 * b
 
-    l = l_**3
-    m = m_**3
-    s = s_**3
+    l3 = l_**3
+    m3 = m_**3
+    s3 = s_**3
 
-    r = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s
-    g = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s
-    bb = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s
+    r = 4.0767416621 * l3 - 3.3077115913 * m3 + 0.2309699292 * s3
+    g = -1.2684380046 * l3 + 2.6097574011 * m3 - 0.3413193965 * s3
+    bb = -0.0041960863 * l3 - 0.7034186147 * m3 + 1.7076147010 * s3
     return r, g, bb
 
 
@@ -60,12 +60,12 @@ def oklch_to_srgb_bytes(L: float, C: float, h: float) -> tuple[int, int, int]:
 
 def oklch_to_hex(L: float, C: float, h: float) -> str:
     r, g, b = oklch_to_srgb_bytes(L, C, h)
-    return "#{:02X}{:02X}{:02X}".format(r, g, b)
+    return f"#{r:02X}{g:02X}{b:02X}"
 
 
 def oklch_to_rgba(L: float, C: float, h: float, alpha: float) -> str:
     r, g, b = oklch_to_srgb_bytes(L, C, h)
-    return "rgba({}, {}, {}, {})".format(r, g, b, round(alpha, 2))
+    return f"rgba({r}, {g}, {b}, {round(alpha, 2)})"
 
 
 COLORS = {

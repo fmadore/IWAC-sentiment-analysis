@@ -167,7 +167,7 @@ describe('IIIF manifest lifecycle', () => {
 		vi.stubGlobal('cancelAnimationFrame', cancelFrame);
 		const component = render(IIIFViewer, { manifestUrl: manifestA });
 		await waitFor(() => expect(openSeadragon).toHaveBeenCalledOnce());
-		await fireEvent.click(component.getByRole('button'));
+		await fireEvent.click(component.getByRole('button', { name: 'Toggle expanded view' }));
 		component.unmount();
 		expect(cancelFrame).toHaveBeenCalledWith(42);
 		resize(0);

@@ -1,6 +1,31 @@
+<!--
+  DropdownMenu
+
+  A single-choice picker: a button that opens a listbox (the WAI-ARIA
+  "select-only combobox" interaction, built on a button). Both call sites —
+  the model picker and the language switcher — pick exactly one value, but
+  need a logo or icon beside each option, which a native <select> cannot
+  draw.
+
+  Keyboard: Enter, Space or ArrowDown/ArrowUp on the trigger open the list
+  with the current value active; ArrowUp/ArrowDown move, Home/End jump,
+  typing a letter jumps to the next matching option, Enter or Space selects,
+  Escape closes and returns focus to the trigger, Tab closes. Focus moves
+  into the list on open; the active option is tracked with
+  aria-activedescendant so the list keeps a single tab stop.
+
+  The trigger's accessible name is the caller's label followed by the current
+  value (aria-labelledby over both), so a screen reader hears "Change
+  language, English" rather than a label that hides what is selected.
+
+  Selection happens on click only — never on touchend, which fired at the end
+  of a scroll gesture that happened to start on an option.
+-->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { tick } from 'svelte';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
+	import { t } from '#lib/i18n/index.js';
 
 	interface DropdownMenuItem {
 		id: string;
@@ -30,7 +55,7 @@
 		buttonMinWidth?: string;
 		/** Z-index for the dropdown */
 		zIndex?: number;
-		/** Aria label for the dropdown button */
+		/** What the control chooses ("Change language"); read before the value */
 		ariaLabel?: string;
 		/** Additional class for the trigger button */
 		class?: string;
@@ -46,32 +71,143 @@
 		menuMinWidth = '180px',
 		buttonMinWidth = '120px',
 		zIndex = 1000,
-		ariaLabel = 'Open menu',
+		ariaLabel,
 		class: className = ''
 	}: Props = $props();
 
+	const id = $props.id();
+	const labelId = `${id}-label`;
+	const valueId = `${id}-value`;
+	const listId = `${id}-list`;
+	const optionId = (index: number) => `${id}-option-${index}`;
+
 	let isOpen = $state(false);
+	let activeIndex = $state(-1);
 	let dropdownElement: HTMLDivElement;
+	let triggerElement = $state<HTMLButtonElement>();
+	let listElement = $state<HTMLUListElement>();
 
 	let selectedItem = $derived(items.find((item) => item.id === selectedId));
+	let enabledIndexes = $derived(items.flatMap((item, index) => (item.disabled ? [] : [index])));
 
-	function toggleDropdown(event: Event) {
-		event.preventDefault();
-		event.stopPropagation();
-		isOpen = !isOpen;
+	async function open(focusIndex?: number) {
+		const selectedIndex = items.findIndex((item) => item.id === selectedId);
+		activeIndex =
+			focusIndex ??
+			(selectedIndex >= 0 && !items[selectedIndex].disabled
+				? selectedIndex
+				: (enabledIndexes[0] ?? -1));
+		isOpen = true;
+		await tick();
+		listElement?.focus();
+		scrollActiveIntoView();
 	}
 
-	function handleSelect(event: Event, itemId: string) {
-		event.preventDefault();
-		event.stopPropagation();
-		onSelect(itemId);
+	function close(returnFocus = true) {
 		isOpen = false;
+		if (returnFocus) triggerElement?.focus();
+	}
+
+	function choose(index: number) {
+		const item = items[index];
+		if (!item || item.disabled) return;
+		onSelect(item.id);
+		close();
+	}
+
+	function scrollActiveIntoView() {
+		if (activeIndex < 0) return;
+		document.getElementById(optionId(activeIndex))?.scrollIntoView?.({ block: 'nearest' });
+	}
+
+	function moveActive(step: number) {
+		if (enabledIndexes.length === 0) return;
+		const position = enabledIndexes.indexOf(activeIndex);
+		const next =
+			position === -1
+				? step > 0
+					? 0
+					: enabledIndexes.length - 1
+				: Math.min(Math.max(position + step, 0), enabledIndexes.length - 1);
+		activeIndex = enabledIndexes[next];
+		scrollActiveIntoView();
+	}
+
+	// Typeahead: letters typed within half a second build one search string.
+	let typed = '';
+	let typedTimer: ReturnType<typeof setTimeout> | undefined;
+	function typeahead(character: string) {
+		clearTimeout(typedTimer);
+		typed += character.toLocaleLowerCase();
+		typedTimer = setTimeout(() => (typed = ''), 500);
+		const start = Math.max(activeIndex, 0);
+		const order = [
+			...enabledIndexes.filter((i) => i > start),
+			...enabledIndexes.filter((i) => i <= start)
+		];
+		// A repeated single letter cycles through the matches.
+		const query = typed.length > 1 && new Set(typed).size === 1 ? typed[0] : typed;
+		const match =
+			query.length > 1
+				? [start, ...order].find((i) => items[i]?.label.toLocaleLowerCase().startsWith(query))
+				: order.find((i) => items[i].label.toLocaleLowerCase().startsWith(query));
+		if (match !== undefined && enabledIndexes.includes(match)) {
+			activeIndex = match;
+			scrollActiveIntoView();
+		}
+	}
+
+	function onTriggerKeydown(event: KeyboardEvent) {
+		if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+			event.preventDefault();
+			void open(event.key === 'ArrowUp' ? enabledIndexes.at(-1) : undefined);
+		}
+	}
+
+	function onListKeydown(event: KeyboardEvent) {
+		switch (event.key) {
+			case 'ArrowDown':
+				event.preventDefault();
+				moveActive(1);
+				break;
+			case 'ArrowUp':
+				event.preventDefault();
+				moveActive(-1);
+				break;
+			case 'Home':
+				event.preventDefault();
+				activeIndex = enabledIndexes[0] ?? -1;
+				scrollActiveIntoView();
+				break;
+			case 'End':
+				event.preventDefault();
+				activeIndex = enabledIndexes.at(-1) ?? -1;
+				scrollActiveIntoView();
+				break;
+			case 'Enter':
+			case ' ':
+				event.preventDefault();
+				choose(activeIndex);
+				break;
+			case 'Escape':
+				event.preventDefault();
+				event.stopPropagation();
+				close();
+				break;
+			case 'Tab':
+				close(false);
+				break;
+			default:
+				if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+					typeahead(event.key);
+				}
+		}
 	}
 
 	function handleClickOutside(event: MouseEvent | TouchEvent) {
 		const target = event.target as Element;
 		if (dropdownElement && !dropdownElement.contains(target)) {
-			isOpen = false;
+			close(false);
 		}
 	}
 
@@ -85,6 +221,8 @@
 			};
 		}
 	});
+
+	$effect(() => () => clearTimeout(typedTimer));
 </script>
 
 <div
@@ -92,45 +230,66 @@
 	bind:this={dropdownElement}
 	style="--z-index: {zIndex}; --menu-min-width: {menuMinWidth}; --button-min-width: {buttonMinWidth};"
 >
+	<span id={labelId} class="sr-only">{ariaLabel ?? $t.audit.openMenu}</span>
 	<button
+		bind:this={triggerElement}
 		class="dropdown-trigger"
-		onclick={toggleDropdown}
-		ontouchend={toggleDropdown}
-		aria-label={ariaLabel}
+		onclick={() => (isOpen ? close() : open())}
+		onkeydown={onTriggerKeydown}
+		aria-labelledby="{labelId} {valueId}"
 		aria-expanded={isOpen}
 		aria-haspopup="listbox"
+		aria-controls={isOpen ? listId : undefined}
 		type="button"
 	>
-		<div class="trigger-content">
+		<span class="trigger-content" id={valueId}>
 			{#if trigger}
 				{@render trigger()}
 			{:else}
 				<span class="trigger-label">
-					{selectedItem?.label || 'Select...'}
+					{selectedItem?.label ?? $t.audit.selectPlaceholder}
 				</span>
 			{/if}
-			<ChevronDownIcon size={16} class="chevron {isOpen ? 'rotate-180' : ''}" />
-		</div>
+		</span>
+		<span class="chevron" data-state={isOpen ? 'open' : 'closed'} aria-hidden="true">
+			<ChevronDownIcon size={16} />
+		</span>
 	</button>
 
 	{#if isOpen}
-		<div class="dropdown-menu" role="listbox" aria-label={sectionLabel || ariaLabel}>
+		<div class="dropdown-menu">
 			{#if sectionLabel}
-				<div class="menu-section">
+				<div class="menu-section" aria-hidden="true">
 					<span class="section-label">{sectionLabel}</span>
 				</div>
 			{/if}
-			<div class="menu-items">
-				{#each items as item (item.id)}
-					<button
+			<ul
+				bind:this={listElement}
+				id={listId}
+				class="menu-items"
+				role="listbox"
+				tabindex="-1"
+				aria-label={sectionLabel ?? ariaLabel ?? $t.audit.openMenu}
+				aria-activedescendant={activeIndex >= 0 ? optionId(activeIndex) : undefined}
+				onkeydown={onListKeydown}
+			>
+				{#each items as item, index (item.id)}
+					<!-- Options are not focusable themselves (aria-activedescendant
+					     carries focus); the list handles the keyboard, so the
+					     click handler here is pointer-only by design. -->
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<li
+						id={optionId(index)}
 						class="menu-item"
-						data-state={selectedId === item.id ? 'active' : 'inactive'}
-						disabled={item.disabled}
-						onclick={(e) => handleSelect(e, item.id)}
-						ontouchend={(e) => handleSelect(e, item.id)}
 						role="option"
+						data-state={selectedId === item.id ? 'active' : 'inactive'}
+						data-highlighted={index === activeIndex}
 						aria-selected={selectedId === item.id}
-						tabindex="0"
+						aria-disabled={item.disabled || undefined}
+						onclick={() => choose(index)}
+						onpointermove={() => {
+							if (!item.disabled) activeIndex = index;
+						}}
 					>
 						{#if itemRenderer}
 							{@render itemRenderer({ item, isSelected: selectedId === item.id })}
@@ -142,12 +301,12 @@
 							{/if}
 							<span class="item-label">{item.label}</span>
 							{#if selectedId === item.id}
-								<span class="check-mark">✓</span>
+								<span class="check-mark" aria-hidden="true">✓</span>
 							{/if}
 						{/if}
-					</button>
+					</li>
 				{/each}
-			</div>
+			</ul>
 		</div>
 	{/if}
 </div>
@@ -162,6 +321,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		gap: var(--space-2);
 		min-width: var(--button-min-width);
 		height: var(--size-control-lg);
 		padding: 0 var(--space-3);
@@ -204,13 +364,14 @@
 		white-space: nowrap;
 	}
 
-	.trigger-content :global(.chevron) {
+	.chevron {
+		display: inline-flex;
 		transition: transform var(--timing-fast) var(--easing-default);
 		flex-shrink: 0;
 		color: var(--text-muted);
 	}
 
-	.trigger-content :global(.rotate-180) {
+	.chevron[data-state='open'] {
 		transform: rotate(180deg);
 	}
 
@@ -253,7 +414,22 @@
 	}
 
 	.menu-items {
+		list-style: none;
+		margin: 0;
 		padding: var(--space-1) var(--space-2) var(--space-2);
+		max-height: min(60vh, 24rem);
+		overflow-y: auto;
+	}
+
+	/* The list holds DOM focus; the active option carries the visible
+	   indicator (aria-activedescendant), so the ring goes on the option. */
+	.menu-items:focus-visible {
+		outline: none;
+	}
+
+	.menu-items:focus-visible .menu-item[data-highlighted='true'] {
+		outline: var(--focus-outline);
+		outline-offset: calc(var(--focus-outline-offset) * -1);
 	}
 
 	.menu-item {
@@ -278,12 +454,12 @@
 		min-height: var(--size-control-xl);
 	}
 
-	.menu-item:hover:not(:disabled) {
+	.menu-item[data-highlighted='true']:not([aria-disabled='true']) {
 		background: var(--surface-hover);
 		color: var(--text-primary);
 	}
 
-	.menu-item:disabled {
+	.menu-item[aria-disabled='true'] {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}
@@ -371,7 +547,7 @@
 			transition: none;
 		}
 
-		.trigger-content :global(.chevron) {
+		.chevron {
 			transition: none;
 		}
 	}

@@ -250,7 +250,7 @@
 		position: fixed;
 		inset: 0;
 		z-index: var(--z-overlay);
-		background: color-mix(in oklab, black 65%, transparent);
+		background: var(--scrim);
 		cursor: pointer;
 	}
 

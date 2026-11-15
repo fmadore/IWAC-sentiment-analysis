@@ -37,7 +37,9 @@
 		loadJustifications,
 		justificationsOf
 	} from '#lib/stores/index.js';
-	import { SentimentBadge } from '#lib/components/common/index.js';
+	import SentimentBadge from '#lib/components/common/SentimentBadge.svelte';
+	import PanelRatingChip from './PanelRatingChip.svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 	import { ARBITER_RECUSED_IDS } from '#lib/domain/sentimentContract.js';
 	import {
 		ARBITER_V2_DIMENSIONS,
@@ -47,7 +49,7 @@
 		type ArbiterV2Dimension,
 		type ArbiterV2Row
 	} from '#lib/utils/arbiterV2.js';
-	import { getConfidenceBadgeClass, getConfidenceLabel } from '#lib/utils/arbiter.js';
+	import ConfidenceBadge from './ConfidenceBadge.svelte';
 	import type { ArbiterV2Preference, DatasetId } from '#lib/types/data.js';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import SparklesIcon from '@lucide/svelte/icons/sparkles';
@@ -104,7 +106,11 @@
 	// toggle covers all three dimensions, and the fetch is one shard per model;
 	// the row holds the store's own analysis objects, and `justificationsOf`
 	// re-reads their prose when the shard is merged.
-	let loadingReasoning = $state(false);
+	//
+	// Loading is tracked per article: one shared flag let a slow load for
+	// article A clear the spinner while B was still loading.
+	const loadingReasoningFor = new SvelteSet<string>();
+	const loadingReasoning = $derived(loadingReasoningFor.has(row.articleId));
 	let requestedReasoning = '';
 	$effect(() => {
 		if (!viewOptionsState.reasoning) {
@@ -114,24 +120,37 @@
 		const id = row.articleId;
 		if (requestedReasoning === id) return;
 		requestedReasoning = id;
-		untrack(() => loadReasoning());
+		untrack(() => loadReasoning(id));
 	});
 
-	async function loadReasoning() {
-		loadingReasoning = true;
+	async function loadReasoning(articleId: string) {
+		loadingReasoningFor.add(articleId);
 		try {
 			await Promise.all(
 				[...legend, ...recused].map((entry) =>
-					loadJustifications(entry.modelId, fetch, [row.articleId]).catch((error) =>
+					loadJustifications(entry.modelId, fetch, [articleId]).catch((error) =>
 						console.error(`Failed to load ${entry.modelId} justification:`, error)
 					)
 				)
 			);
 		} finally {
-			loadingReasoning = false;
+			loadingReasoningFor.delete(articleId);
 		}
 	}
 </script>
+
+{#snippet chipMarks(match: boolean, preferred: boolean)}
+	{#if match}
+		<span class="chip-mark chip-mark-match" title={$t.arbiterV2.matchesArbiter}>
+			<EqualIcon size={12} />
+		</span>
+	{/if}
+	{#if preferred}
+		<span class="chip-mark chip-mark-preferred" title={$t.arbiterV2.preferredAnalysis}>
+			<CheckIcon size={12} />
+		</span>
+	{/if}
+{/snippet}
 
 <section class="panel-verdict" aria-label={$t.arbiter.title}>
 	<header class="panel-header">
@@ -147,9 +166,11 @@
 				{/if}
 			</div>
 		</div>
-		<span class="badge {getConfidenceBadgeClass(arbiter.confidence_level)}">
-			{$t.arbiterV2.confidence}: {getConfidenceLabel(arbiter.confidence_level, $t)}
-		</span>
+		<ConfidenceBadge
+			level={arbiter.confidence_level}
+			prefix={`${$t.arbiterV2.confidence}:`}
+			size="md"
+		/>
 	</header>
 
 	<!-- The legend the prose needs. -->
@@ -232,65 +253,47 @@
 
 				<ul class="panel-chips">
 					{#each legend as entry (entry.label)}
-						{@const loaded = entry.modelId in row.analyses}
-						{@const analysis = row.analyses[entry.modelId]}
-						{@const value = analysisValue(analysis, dimension)}
+						{@const value = analysisValue(row.analyses[entry.modelId], dimension)}
 						{@const preferred = verdict.preferred === entry.label}
 						{@const match = matchesArbiterScore(value, verdict.score, dimension)}
-						<li
-							class="panel-chip"
-							data-preferred={preferred}
-							data-match={match}
-							style="--model-color: {modelColor(entry.modelId)}"
+						<PanelRatingChip
+							name={entry.name}
+							color={modelColor(entry.modelId)}
+							{dimension}
+							{value}
+							loaded={entry.modelId in row.analyses}
+							pendingLabel={$t.arbiterV2.panelLoading}
+							unratedLabel={$t.arbiterV2.notRated}
+							letter={entry.label.toUpperCase()}
+							{preferred}
+							{match}
 						>
-							<span class="chip-letter">{entry.label.toUpperCase()}</span>
-							<span class="chip-model">{entry.name}</span>
-							{#if !loaded}
-								<span class="chip-pending">{$t.arbiterV2.panelLoading}</span>
-							{:else if value === null}
-								<span class="chip-unrated">{$t.arbiterV2.notRated}</span>
-							{:else}
-								<SentimentBadge type={dimension} {value} size="sm" />
-							{/if}
-							{#if match}
-								<span class="chip-mark chip-mark-match" title={$t.arbiterV2.matchesArbiter}>
-									<EqualIcon size={12} />
-								</span>
-							{/if}
-							{#if preferred}
-								<span class="chip-mark chip-mark-preferred" title={$t.arbiterV2.preferredAnalysis}>
-									<CheckIcon size={12} />
-								</span>
-							{/if}
-						</li>
+							{#snippet marks()}
+								{@render chipMarks(match, preferred)}
+							{/snippet}
+						</PanelRatingChip>
 					{/each}
 					{#each recused as entry (entry.modelId)}
-						{@const loaded = entry.modelId in row.analyses}
 						{@const value = analysisValue(row.analyses[entry.modelId], dimension)}
 						{@const match = matchesArbiterScore(value, verdict.score, dimension)}
-						<li
-							class="panel-chip panel-chip-recused"
-							data-match={match}
-							style="--model-color: {modelColor(entry.modelId)}"
+						<PanelRatingChip
+							name={entry.name}
+							color={modelColor(entry.modelId)}
+							{dimension}
+							{value}
+							loaded={entry.modelId in row.analyses}
+							pendingLabel={$t.arbiterV2.panelLoading}
+							unratedLabel={$t.arbiterV2.notRated}
+							letter={null}
+							tag={$t.arbiterV2.recused}
+							tagTitle={$t.arbiterV2.recusedTitle}
+							variant="recused"
+							{match}
 						>
-							<span class="chip-letter" aria-hidden="true">–</span>
-							<span class="chip-model">{entry.name}</span>
-							<span class="chip-recused" title={$t.arbiterV2.recusedTitle}>
-								{$t.arbiterV2.recused}
-							</span>
-							{#if !loaded}
-								<span class="chip-pending">{$t.arbiterV2.panelLoading}</span>
-							{:else if value === null}
-								<span class="chip-unrated">{$t.arbiterV2.notRated}</span>
-							{:else}
-								<SentimentBadge type={dimension} {value} size="sm" />
-							{/if}
-							{#if match}
-								<span class="chip-mark chip-mark-match" title={$t.arbiterV2.matchesArbiter}>
-									<EqualIcon size={12} />
-								</span>
-							{/if}
-						</li>
+							{#snippet marks()}
+								{@render chipMarks(match, false)}
+							{/snippet}
+						</PanelRatingChip>
 					{/each}
 				</ul>
 
@@ -390,11 +393,13 @@
 		margin: var(--space-1) 0 0;
 	}
 
-	/* The global `.badge` supplies the box; these set the colours. */
-	.badge {
+	/* The global `.badge` supplies the box; the confidence level is the shared
+	   ConfidenceBadge. These two set the type and colours of the others. */
+	.badge-model,
+	.badge-preferred {
 		font-family: var(--font-mono);
 		font-size: var(--font-size-eyebrow);
-		font-weight: 600;
+		font-weight: var(--font-weight-semibold);
 		letter-spacing: var(--tracking-wider);
 		border-radius: 0;
 		border: 1px solid var(--border-default);
@@ -628,25 +633,6 @@
 		padding: 0;
 	}
 
-	.panel-chip {
-		display: flex;
-		align-items: center;
-		gap: var(--space-2);
-		min-width: 0;
-		padding: var(--space-2) var(--space-3);
-		background: var(--surface-card);
-		border: 1px solid var(--border-subtle);
-	}
-
-	.panel-chip[data-match='true'] {
-		border-color: var(--border-hover);
-	}
-
-	.panel-chip[data-preferred='true'] {
-		background: var(--sentiment-arbiter-bg);
-		border-color: var(--sentiment-arbiter-border);
-	}
-
 	.chip-model {
 		flex: 1;
 		min-width: 0;
@@ -657,25 +643,11 @@
 		white-space: nowrap;
 	}
 
-	/* The judge never read this analysis: a dashed edge instead of a solid one,
-	   and a muted letter slot, so it never passes for one of the labelled five. */
-	.panel-chip-recused {
-		border-style: dashed;
-	}
-
 	.chip-recused {
 		font-family: var(--font-mono);
 		font-size: var(--font-size-eyebrow);
 		letter-spacing: var(--tracking-wider);
 		text-transform: uppercase;
-		color: var(--text-muted);
-		white-space: nowrap;
-	}
-
-	.chip-pending,
-	.chip-unrated {
-		font-size: var(--font-size-eyebrow);
-		font-style: italic;
 		color: var(--text-muted);
 		white-space: nowrap;
 	}

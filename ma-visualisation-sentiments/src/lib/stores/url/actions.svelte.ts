@@ -212,10 +212,6 @@ export function clearSelectedArticle(): void {
 	updateURL();
 }
 
-export function clearSelectedArticleOnly(): void {
-	articleState.selected = null;
-}
-
 /** Retain IDs through slow/failed loads. Missing IDs are disclosed by the view. */
 export function handlePendingArticleSelection(): void {
 	const pending = pendingArticleState.current;

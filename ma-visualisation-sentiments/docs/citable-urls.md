@@ -12,21 +12,21 @@ complete snapshots, including removed filters and closed details.
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Every view                                       | `view`, `lang`, model or model pair; generation follows those stable IDs                                                                                                                                |
 | Single-model views                               | `dataset`, `countries`, `journals`, `polarities`, `subjectivities`, `centralities`                                                                                                                      |
-| Distributions                                    | `polarityChart`, `subjectivityChart` (bar/pie); `polarityGrouping`, `subjectivityGrouping` (global/journal)                                                                                             |
-| Trends                                           | `polarityTrend`, `subjectivityTrend` (count/share); `historyMeasure`, `historyPeriod`, `historyFacet`, `historyCohort`, `historyMinCount`, `historyPage`                                                |
+| Distributions                                    | `polarityChart`, `subjectivityChart`, `centralityChart` (bar/pie); `polarityGrouping`, `subjectivityGrouping`, `centralityGrouping` (global/journal)                                                    |
+| Trends                                           | `polarityTrend`, `subjectivityTrend` (count/share); `historyMeasure`, `historyPeriod`, `historyFacet`, `historyCohort`, `historyMinCount`, `historyPage`, `historyPanel` (none/majority/any)            |
 | Correlation                                      | Model and shared facets; no additional view controls                                                                                                                                                    |
 | Centrality heatmap                               | Model and shared facets; `heatmapMinCount` (minimum rated articles per cell)                                                                                                                            |
 | Volume                                           | `volumeChart` (area/line); `newspaperPeriod`, `newspaperOrder`, `newspaperPage`                                                                                                                         |
 | Hijri seasonality                                | `seasonalityChart` (polar/bar)                                                                                                                                                                          |
-| Newspaper ranking                                | `rankingMeasure`                                                                                                                                                                                        |
+| Newspaper ranking                                | `rankingMeasure`: means (`polarity`, `subjectivity`, `centrality`) or shares (`positive`, `negative`, `net`)                                                                                            |
 | Map                                              | `mapDimension`, `placeId`, `mapCamera` (longitude,latitude,zoom) and shared facets                                                                                                                      |
-| Article table                                    | `tableSort`, `tableOrder`, `tablePage`, `tableSize`, `articleId`                                                                                                                                        |
+| Article table                                    | `tableSort`, `tableOrder`, `tablePage`, `tableSize`, `tableSearch` (title search, at most 200 characters), `articleId`                                                                                  |
 | Comparison                                       | `pair`, `compare=true`, country/newspaper facets, `dimensions`, `excludeNA`, `diffMin`, `diffMax`, `breakdown`, `arbiterSummary`                                                                        |
 | Comparison table and detail                      | `comparisonSort`, `comparisonOrder`, `comparisonLayout`, `comparisonPage`, `comparisonSize`, `comparisonArticleId`                                                                                      |
 | Agreement                                        | `dataset` (generation), `pair`, country/newspaper facets, `scope`, `dimension`, `declined`, `dissent`, `agreementMetric`, `patternKind`, `patternLimit`, `labelPattern`, `patternArticles`, `articleId` |
 | Panel arbiter                                    | `view=arbiter`, a generation-2 `dataset`, `panelSort`, `panelOrder`, `panelPage`, `panelSize`, `arbiterArticleId`                                                                                       |
 | Archived pairwise arbiter                        | `view=arbiter`, generation-1 `pair`, `arbiterDimension`, `arbiterSort`, `arbiterOrder`, `arbiterLayout`, `arbiterPage`, `arbiterSize`, `arbiterArticleId`                                               |
-| Extreme analysis                                 | `category`, `keywordType`, `topN` and shared facets                                                                                                                                                     |
+| Extreme analysis                                 | `category`, `keywordType`, `topN`, `keywordRanking` (count/distinctive) and shared facets                                                                                                               |
 | Panel explanations in article/comparison details | `reasoning=true` loads and expands the models' justifications                                                                                                                                           |
 | Methodology prompt                               | `prompt=true`, with the current view and generation determining the prompt                                                                                                                              |
 | Digitised article pages                          | `scanPage` (one-based); the article ID identifies the manifest                                                                                                                                          |
@@ -90,7 +90,9 @@ does not change the analysis and is intentionally excluded.
 ## CSV provenance
 
 Article, comparison and arbiter exports capture their rows, model
-context, language and canonical URL at click time. Loading justifications does
+context, language and canonical URL at click time. The article export carries
+the rows the table lists, title search included; its selection scope then reads
+`searched_articles` instead of `filtered_articles`. Loading justifications does
 not change that snapshot if controls change while the download is being prepared.
 Seven appended columns record the export time, analysis URL, data release,
 generation, model IDs, selection scope and language. Existing column

@@ -21,6 +21,7 @@
 -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 
 	interface AccordionItemProps {
 		/** The title/label for the accordion trigger */
@@ -47,13 +48,16 @@
 <div class="accordion-item {className}">
 	<h3>
 		<button
+			type="button"
 			class="accordion-trigger"
 			data-state={open ? 'open' : 'closed'}
 			onclick={onToggle}
 			aria-expanded={open}
 		>
 			<span class="accordion-trigger-text">{title}</span>
-			<span class="accordion-icon" data-state={open ? 'open' : 'closed'}>▼</span>
+			<span class="accordion-icon" data-state={open ? 'open' : 'closed'} aria-hidden="true"
+				><ChevronDownIcon size={16} /></span
+			>
 		</button>
 	</h3>
 	{#if open}
@@ -104,7 +108,7 @@
 	}
 
 	.accordion-icon {
-		font-size: var(--font-size-xs);
+		display: inline-flex;
 		color: var(--text-muted);
 		transition:
 			transform var(--timing-fast) var(--easing-default),

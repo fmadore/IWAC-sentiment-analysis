@@ -20,7 +20,9 @@
 	import { dec, num, pct } from '#lib/i18n/utils.js';
 	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
-	import { innerWidth } from 'svelte/reactivity/window';
+	import { isCompactWidth } from '#lib/utils/viewport.svelte.js';
+	import { useChartCardHeading } from '#lib/components/ui/chartCardHeading.svelte.js';
+	import ChartHeading from './ChartHeading.svelte';
 
 	import { comparisonState, datasetState } from '#lib/stores/index.js';
 	import { t } from '#lib/i18n/index.js';
@@ -30,7 +32,6 @@
 	import {
 		seriesColorPalette,
 		chartColors,
-		getTitleStyle,
 		getTooltipConfig,
 		getAxisLineStyle,
 		getAxisLabelStyle,
@@ -40,7 +41,9 @@
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import GlobeIcon from '@lucide/svelte/icons/globe';
 
-	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
+	// Compact layout follows the chart's own width, not the window's.
+	let containerWidth = $state<number>();
+	let isMobile = $derived(isCompactWidth(containerWidth));
 
 	let groupOptions = $derived([
 		{ value: 'decade', label: $t.comparison.byDecade, icon: CalendarIcon },
@@ -69,6 +72,12 @@
 			: result.sort((a, b) => b.meanTotal - a.meanTotal);
 	});
 
+	const headingSubtitle = $derived(`${modelNames.modelAName} · ${modelNames.modelBName}`);
+	const heading = useChartCardHeading(() => ({
+		title: $t.comparison.disagreementBreakdown,
+		subtitle: headingSubtitle
+	}));
+
 	let options = $derived.by(() => {
 		const currentT = $t;
 		const keys = buckets.map((b) => b.key);
@@ -77,18 +86,6 @@
 
 		return {
 			backgroundColor: 'transparent',
-			title: {
-				text: currentT.comparison.disagreementBreakdown,
-				subtext: `${modelNames.modelAName} · ${modelNames.modelBName}`,
-				left: 'center',
-				top: '1%',
-				textStyle: getTitleStyle(isMobile),
-				subtextStyle: {
-					color: chartColors.text.secondary,
-					fontSize: isMobile ? 10 : 12,
-					fontFamily: '"JetBrains Mono", ui-monospace, monospace'
-				}
-			},
 			tooltip: {
 				...tooltipConfig,
 				trigger: 'axis',
@@ -120,7 +117,7 @@
 				show: false
 			},
 			grid: {
-				top: isMobile ? '24%' : '20%',
+				top: isMobile ? '8%' : '6%',
 				bottom: isMobile ? '18%' : '12%',
 				left: isMobile ? '10%' : '6%',
 				right: isMobile ? '10%' : '6%',
@@ -164,9 +161,11 @@
 	});
 </script>
 
+{#if !heading.inCard}
+	<ChartHeading title={$t.comparison.disagreementBreakdown} subtitle={headingSubtitle} />
+{/if}
 {#if buckets.length > 0}
 	<div class="chart-toolbar">
-		<span class="toolbar-label">{$t.comparison.disagreementBreakdown}</span>
 		<ChartTypeToggle
 			options={groupOptions}
 			value={viewOptionsState.breakdown}
@@ -178,6 +177,7 @@
 	<div
 		style="height: {isMobile ? '340px' : '400px'}; position: relative;"
 		class="chart-container"
+		bind:clientWidth={containerWidth}
 		role="img"
 		aria-label={$t.comparison.disagreementBreakdown}
 	>

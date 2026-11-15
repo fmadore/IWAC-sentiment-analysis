@@ -10,7 +10,8 @@
 	import { filterState } from '#lib/stores/index.js';
 	import { t } from '#lib/i18n/index.js';
 	import { TOTAL_DISCREPANCY_MAXIMUM } from '#lib/domain/sentimentContract.js';
-	import { FilterCard, FilterChip } from '#lib/components/common/index.js';
+	import FilterCard from '#lib/components/common/FilterCard.svelte';
+	import FilterChip from '#lib/components/common/FilterChip.svelte';
 	import RangeSlider from '#lib/components/common/RangeSlider.svelte';
 	import ToggleSwitch from '#lib/components/common/ToggleSwitch.svelte';
 	import InfoTooltip from '#lib/components/common/InfoTooltip.svelte';
@@ -124,8 +125,8 @@
 					maxDiff = high;
 					updateFilters();
 				}}
-				lowAriaLabel={$t.comparison.differenceRange}
-				highAriaLabel={$t.comparison.differenceRange}
+				lowAriaLabel={$t.audit.differenceMinimum}
+				highAriaLabel={$t.audit.differenceMaximum}
 			/>
 		</div>
 

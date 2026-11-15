@@ -18,7 +18,8 @@
 	import { untrack } from 'svelte';
 	import EmptyState from '#lib/components/common/EmptyState.svelte';
 	import type { ComparisonData } from '#lib/types/data.js';
-	import { ComparisonPanel, ArbiterSection } from '#lib/components/common/index.js';
+	import ComparisonPanel from '#lib/components/common/ComparisonPanel.svelte';
+	import ArbiterSection from '#lib/components/common/ArbiterSection.svelte';
 	import ArbiterV2VerdictPanel from '#lib/components/common/ArbiterV2VerdictPanel.svelte';
 	import { generationOf } from '#lib/domain/sentimentContract.js';
 	import { getJournalName } from '#lib/utils/format.js';
@@ -266,7 +267,7 @@
 <style>
 	.comparison-detail-title {
 		font-family: var(--font-display);
-		font-size: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
+		font-size: clamp(var(--font-size-xl), calc(var(--font-size-lg) + 1vw), var(--font-size-2xl));
 		font-weight: 600;
 		line-height: 1.15;
 		color: var(--text-primary);

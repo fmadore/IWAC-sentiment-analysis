@@ -82,11 +82,13 @@
 		line-height: var(--line-height-normal);
 	}
 
-	/* Colours resolved by app.css from the item's data-* attribute. */
+	/* Colours resolved by components.css from the item's data-* attribute.
+	   Text reads --sentiment-text, the ramp mixed toward --text-primary: the
+	   raw ramp colour as text fell to 1.9:1 on `Non abordé`. */
 	.scale-badge {
 		background: var(--sentiment-bg);
 		border: 1px solid var(--sentiment-border);
-		color: var(--sentiment-fg);
+		color: var(--sentiment-text);
 	}
 
 	.sentiment-desc {
@@ -121,7 +123,7 @@
 	.scale-chip {
 		background: var(--sentiment-bg);
 		border: 1px solid var(--sentiment-border);
-		color: var(--sentiment-fg);
+		color: var(--sentiment-text);
 	}
 
 	.scale-chip[data-kind='sentiment'],

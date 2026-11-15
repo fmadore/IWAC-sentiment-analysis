@@ -27,6 +27,17 @@ export const CONFIDENCE_ORDER: Record<string, number> = {
 	low: 1
 };
 
+/**
+ * Percentage points between two preference shares (each 0–100), as a number.
+ *
+ * Kept numeric so the caller can compare it with a threshold and format it
+ * per language afterwards; the archive cards once compared the formatted
+ * string, which is NaN in French ("12,3").
+ */
+export function leadPoints(firstPercentage: number, secondPercentage: number): number {
+	return Math.abs(firstPercentage - secondPercentage);
+}
+
 /** Semantic badge class for an arbiter verdict / preferred model. */
 export function getVerdictBadgeClass(verdict: string): string {
 	switch (verdict) {
@@ -56,15 +67,21 @@ export function getConfidenceBadgeClass(level: string): string {
 	}
 }
 
-/** Translated label for a confidence level. Pass the current `$t` object. */
+/**
+ * Translated label for a confidence level. Pass the current `$t` object.
+ *
+ * No English fallback: both catalogues carry the three keys (fr.ts is typed
+ * against en.ts), and a literal 'High' here used to be what a French reader
+ * would see if the catalogue lookup ever came back empty.
+ */
 export function getConfidenceLabel(level: string, t: Translations): string {
 	switch (level) {
 		case 'high':
-			return t.arbiter?.confidenceHigh || 'High';
+			return t.arbiter.confidenceHigh;
 		case 'medium':
-			return t.arbiter?.confidenceMedium || 'Medium';
+			return t.arbiter.confidenceMedium;
 		case 'low':
-			return t.arbiter?.confidenceLow || 'Low';
+			return t.arbiter.confidenceLow;
 		default:
 			return level;
 	}

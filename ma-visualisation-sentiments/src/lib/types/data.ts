@@ -77,6 +77,14 @@ export const VIEW_IDS = [
 ] as const;
 export type ViewId = (typeof VIEW_IDS)[number];
 
+/**
+ * The navigation's three sections, in rendered order: what the collection holds
+ * and where (`corpus`), what one model made of it (`model`), and how the models
+ * relate to one another (`panel`). Labels live under `$t.navGroups`.
+ */
+export const VIEW_GROUPS = ['corpus', 'model', 'panel'] as const;
+export type ViewGroup = (typeof VIEW_GROUPS)[number];
+
 /** Per-view layout metadata. */
 export interface ViewMeta {
 	/**
@@ -85,6 +93,8 @@ export interface ViewMeta {
 	 * renders no rail and the header hides its Filters trigger.
 	 */
 	hasFilterRail: boolean;
+	/** The navigation section the view is listed under, and its title eyebrow. */
+	group: ViewGroup;
 }
 
 /**
@@ -97,24 +107,29 @@ export interface ViewMeta {
  * stale on `agreement`, leaving a visible Filters button that opened nothing.
  */
 export const VIEW_META: Record<ViewId, ViewMeta> = {
-	charts: { hasFilterRail: true },
-	trends: { hasFilterRail: true },
-	correlation: { hasFilterRail: true },
-	volume: { hasFilterRail: true },
-	seasonality: { hasFilterRail: true },
-	heatmap: { hasFilterRail: true },
-	ranking: { hasFilterRail: true },
-	map: { hasFilterRail: true },
-	table: { hasFilterRail: true },
-	comparison: { hasFilterRail: false },
-	agreement: { hasFilterRail: false },
-	extremes: { hasFilterRail: true },
-	arbiter: { hasFilterRail: false }
+	charts: { hasFilterRail: true, group: 'model' },
+	trends: { hasFilterRail: true, group: 'model' },
+	correlation: { hasFilterRail: true, group: 'model' },
+	volume: { hasFilterRail: true, group: 'corpus' },
+	seasonality: { hasFilterRail: true, group: 'corpus' },
+	heatmap: { hasFilterRail: true, group: 'model' },
+	ranking: { hasFilterRail: true, group: 'model' },
+	map: { hasFilterRail: true, group: 'corpus' },
+	table: { hasFilterRail: true, group: 'corpus' },
+	comparison: { hasFilterRail: false, group: 'panel' },
+	agreement: { hasFilterRail: false, group: 'panel' },
+	extremes: { hasFilterRail: true, group: 'model' },
+	arbiter: { hasFilterRail: false, group: 'panel' }
 };
 
 /** Whether `view` renders the shared filter rail. The only way to ask. */
 export function hasFilterRail(view: ViewId): boolean {
 	return VIEW_META[view].hasFilterRail;
+}
+
+/** The navigation section `view` belongs to. */
+export function viewGroupOf(view: ViewId): ViewGroup {
+	return VIEW_META[view].group;
 }
 
 /** Pair and panel views choose their models within the analysis itself. */
@@ -287,6 +302,12 @@ export interface ArbiterEvaluationData {
  * a bijection onto the contract's models, so this list and the contract cannot
  * silently drift apart: a mismatch fails the parse rather than mis-attributing
  * verdicts.
+ *
+ * Shared by every panel judge, not only the published one: the prompt and the
+ * response schema present exactly five analyses, and the second-judge script
+ * refuses a judge whose panel is any other size. A second judge reads a
+ * different five under its own permutation, so a label is only ever resolved
+ * through the file it came from.
  */
 export const ARBITER_BLIND_LABELS = ['a', 'b', 'c', 'd', 'e'] as const;
 export type ArbiterBlindLabel = (typeof ARBITER_BLIND_LABELS)[number];
@@ -333,6 +354,16 @@ export interface ArbiterV2EvaluationData {
 	metadata: {
 		generated: string;
 		arbiter_model: string;
+		/** A second judge's display name; absent from the published run. */
+		arbiter_name?: string;
+		/**
+		 * A second judge's developer, from the contract's `developers` registry.
+		 * The published run's developer is the contract's `arbiter.developer`
+		 * and is not repeated in its file.
+		 */
+		arbiter_developer?: string;
+		/** A second judge's recused models: its own developer's members. */
+		recused_models?: DatasetId[];
 		/**
 		 * Deliberately not narrowed to a literal. The run mode is the contract's
 		 * to declare (`arbiter.mode` in sentiment-v2.json) and it has already
@@ -410,4 +441,12 @@ export interface ArbiterV2Evaluation {
 	cache_fingerprint: string;
 	spread: ArbiterV2Spread;
 	arbiter: ArbiterV2Analysis;
+	/**
+	 * Second judge only: whether the judge's own panel shows a reversal. False
+	 * where the only reader across the line was its recused member.
+	 */
+	panel_valence_flip?: boolean;
 }
+
+/** Which panel judge a file belongs to: the published run, or a second judge from another developer. */
+export type ArbiterV2Judge = 'published' | 'second';

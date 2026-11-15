@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { Article } from '#lib/types/data.js';
-import { corpusSlice, historicalTrends, newspaperTimeline, targetRating } from './researchTimeline';
+import {
+	corpusSlice,
+	historicalTrends,
+	newspaperTimeline,
+	panelInCategory,
+	targetRating
+} from './researchTimeline';
 
 function article(
 	id: number,
@@ -114,6 +120,56 @@ describe('historical model sensitivity', () => {
 			groups: [{ key: 'Paper', buckets: [{ period: 1990, n: [1] }] }]
 		});
 		expect(corpusSlice(base, { countries: ['Benin'], journals: [] })).toEqual([]);
+	});
+	it('attaches a Wilson interval to every shown share, and none to a masked one', () => {
+		const a = Array.from({ length: 5 }, (_, i) => article(i + 1, '2000'));
+		const [shown] = historicalTrends({ a }, ['a'], defaults).groups[0].buckets;
+		// n = 5 and no negatives: the point plots 0%, the interval reaches ~43%.
+		expect(shown.shares).toEqual([0]);
+		expect(shown.intervals[0]!.low).toBe(0);
+		expect(shown.intervals[0]!.high).toBeCloseTo(0.4345, 3);
+		const [masked] = historicalTrends({ a }, ['a'], { ...defaults, minimumCount: 6 }).groups[0]
+			.buckets;
+		expect(masked.intervals).toEqual([null]);
+	});
+	it('adds panel majority and any-model series over articles every model rated', () => {
+		const data = {
+			a: [article(1, '2000', 'Négatif'), article(2, '2000', 'Négatif'), article(3, '2000')],
+			b: [article(1, '2000', 'Négatif'), article(2, '2000'), article(3, '2000', null)],
+			c: [article(1, '2000'), article(2, '2000'), article(3, '2000')]
+		};
+		const ids = ['a', 'b', 'c'];
+		const none = historicalTrends(data, ids, defaults).groups[0].buckets[0];
+		expect(none.panelShare).toBeNull();
+		const majority = historicalTrends(data, ids, { ...defaults, panel: 'majority' }).groups[0]
+			.buckets[0];
+		// Article 3 is incomplete; of 1 and 2, only 1 has two of three negative.
+		expect(majority).toMatchObject({ panelN: 2, panelTarget: 1, panelShare: 0.5 });
+		const any = historicalTrends(data, ids, { ...defaults, panel: 'any' }).groups[0].buckets[0];
+		expect(any).toMatchObject({ panelN: 2, panelTarget: 2, panelShare: 1 });
+		// The panel series reads complete ratings even under available cases.
+		expect(
+			historicalTrends(data, ids, { ...defaults, panel: 'any', cohort: 'available' }).groups[0]
+				.buckets[0].panelN
+		).toBe(2);
+	});
+	it('applies the minimum to the panel series too', () => {
+		const data = { a: [article(1, '2000', 'Négatif')], b: [article(1, '2000', 'Négatif')] };
+		const bucket = historicalTrends(data, ['a', 'b'], {
+			...defaults,
+			panel: 'majority',
+			minimumCount: 2
+		}).groups[0].buckets[0];
+		expect(bucket).toMatchObject({ panelN: 1, panelShare: null, panelInterval: null });
+	});
+});
+
+describe('panelInCategory', () => {
+	it('needs a strict majority, or a single model for “any”', () => {
+		expect(panelInCategory([true, true, false, false], 'majority')).toBe(false);
+		expect(panelInCategory([true, true, true, false, false], 'majority')).toBe(true);
+		expect(panelInCategory([false, false, true], 'any')).toBe(true);
+		expect(panelInCategory([false, false], 'any')).toBe(false);
 	});
 });
 

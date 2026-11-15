@@ -20,22 +20,24 @@
 	import { analysisState } from '#lib/stores/analysis.svelte.js';
 	import { datasetState } from '#lib/stores/datasets.svelte.js';
 	import { consensusRows, consensusModels } from '#lib/stores/index.js';
+	import { panelFlags } from '#lib/stores/index.js';
+	import { SIGNIFICANT_SPREAD_THRESHOLD } from '#lib/domain/sentimentContract.js';
 	import { dec, num, pct } from '#lib/i18n/utils.js';
-	import type { AgreementDimension } from '#lib/stores/agreement.svelte.js';
-	import { AGREEMENT_DIMENSIONS } from '#lib/stores/agreement.svelte.js';
+	import type { AgreementDimension } from '#lib/stores/index.js';
+	import { AGREEMENT_DIMENSIONS } from '#lib/stores/index.js';
 	import { profileDissent, usableValues } from '#lib/utils/consensus.js';
 	import { t } from '#lib/i18n/index.js';
-	import { StatCard, StatCardGrid, SectionHead } from '#lib/components/common/index.js';
+	import StatCard from '#lib/components/common/StatCard.svelte';
+	import StatCardGrid from '#lib/components/common/StatCardGrid.svelte';
+	import SectionHead from '#lib/components/common/SectionHead.svelte';
 	import ChartCard from '#lib/components/ui/ChartCard.svelte';
 	import ChartTypeToggle from '#lib/components/viz/ChartTypeToggle.svelte';
 	import LabelPatternExplorer from '#lib/components/viz/LabelPatternExplorer.svelte';
-	import {
-		NewspaperDisagreementChart,
-		DissentProfileChart,
-		DirectionalDissentChart,
-		LabelFlowChart,
-		ConsensusScatterChart
-	} from '#lib/components/viz/index.js';
+	import NewspaperDisagreementChart from '#lib/components/viz/NewspaperDisagreementChart.svelte';
+	import DissentProfileChart from '#lib/components/viz/DissentProfileChart.svelte';
+	import DirectionalDissentChart from '#lib/components/viz/DirectionalDissentChart.svelte';
+	import LabelFlowChart from '#lib/components/viz/LabelFlowChart.svelte';
+	import ConsensusScatterChart from '#lib/components/viz/ConsensusScatterChart.svelte';
 	import UsersIcon from '@lucide/svelte/icons/users';
 	import UserMinusIcon from '@lucide/svelte/icons/user-minus';
 	import ShuffleIcon from '@lucide/svelte/icons/shuffle';
@@ -82,6 +84,27 @@
 		);
 		return total / usable.length;
 	});
+
+	/*
+	 * The reader-facing discrepancy flag, broken down by the dimension that
+	 * tripped it. Counted live over the filtered rows; the flag rule and its
+	 * contract key are untouched.
+	 */
+	const flags = $derived(panelFlags.current);
+	const flagBars = $derived(
+		flags
+			? [
+					{ key: 'polarity', label: $t.filters.polarity, count: flags.polarity },
+					{ key: 'centrality', label: $t.filters.centrality, count: flags.centrality },
+					{ key: 'subjectivity', label: $t.filters.subjectivity, count: flags.subjectivity },
+					{
+						key: 'subjectivity-only',
+						label: $t.reliability.flagsSubjectivityOnly,
+						count: flags.subjectivityOnly
+					}
+				]
+			: []
+	);
 
 	const majorityCount = $derived(profile.dissent.reduce((sum, entry) => sum + entry.total, 0));
 
@@ -153,6 +176,38 @@
 	</StatCard>
 </StatCardGrid>
 
+{#if flags && flags.flagged > 0}
+	<section class="flag-breakdown mb-6" aria-labelledby="panel-flags-title">
+		<h3 id="panel-flags-title" class="flag-title">{$t.reliability.flagsTitle}</h3>
+		<p class="chart-note">
+			{$t.reliability.flagsLede.replace('{threshold}', $num(SIGNIFICANT_SPREAD_THRESHOLD))}
+		</p>
+		<p class="flag-total">
+			<span class="flag-total-label">{$t.reliability.flagsFlagged}</span>
+			<strong>{$num(flags.flagged)}</strong>
+			<span>
+				{$t.reliability.flagsDetail
+					.replace('{count}', $num(flags.flagged))
+					.replace('{total}', $num(flags.comparable))}
+			</span>
+		</p>
+		<dl class="flag-bars" aria-label={$t.reliability.flagsBy}>
+			{#each flagBars as bar (bar.key)}
+				<div class="flag-bar" data-emphasis={bar.key === 'subjectivity-only'}>
+					<dt>{bar.label}</dt>
+					<dd>
+						<span class="flag-track" aria-hidden="true"
+							><span class="flag-fill" style:--progress={bar.count / flags.flagged}></span></span
+						>
+						<span class="flag-value">{$num(bar.count)} ({$pct(bar.count / flags.flagged, 1)})</span>
+					</dd>
+				</div>
+			{/each}
+		</dl>
+		<p class="chart-note">{$t.reliability.flagsSubjectivityNote}</p>
+	</section>
+{/if}
+
 <ChartCard variant="comparison" class="mb-6">
 	<DirectionalDissentChart {profiles} {models} />
 </ChartCard>
@@ -178,6 +233,86 @@
 </ChartCard>
 
 <style>
+	.flag-breakdown {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
+		margin-top: var(--space-6);
+		padding: var(--pad-card);
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-panel);
+	}
+
+	.flag-title {
+		font-family: var(--font-display);
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-semibold);
+		color: var(--text-primary);
+	}
+
+	.flag-total {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: var(--gap-inline);
+		color: var(--text-secondary);
+	}
+
+	.flag-total strong {
+		font-family: var(--font-mono);
+		font-size: var(--font-size-xl);
+		color: var(--text-primary);
+	}
+
+	.flag-total-label,
+	.flag-bar dt {
+		font-family: var(--font-mono);
+		font-size: var(--font-size-eyebrow);
+		letter-spacing: var(--tracking-wider);
+		text-transform: uppercase;
+		color: var(--text-muted);
+	}
+
+	.flag-bars {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+		gap: var(--gap-stack);
+	}
+
+	.flag-bar dd {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+		margin: var(--space-1) 0 0;
+	}
+
+	.flag-track {
+		display: block;
+		height: var(--space-2);
+		background: var(--surface-nested);
+		overflow: hidden;
+	}
+
+	.flag-fill {
+		--progress: 0;
+		display: block;
+		height: 100%;
+		background: var(--status-info);
+		transform: scaleX(var(--progress));
+		transform-origin: left;
+	}
+
+	.flag-bar[data-emphasis='true'] .flag-fill {
+		background: var(--status-caution);
+	}
+
+	.flag-value {
+		font-family: var(--font-mono);
+		font-size: var(--font-size-sm);
+		color: var(--text-primary);
+	}
+
 	/* .toolbar-label is global chart chrome; this only positions the row. */
 	.consensus-toolbar {
 		display: flex;

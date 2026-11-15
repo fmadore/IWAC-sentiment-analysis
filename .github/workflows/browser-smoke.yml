@@ -34,12 +34,32 @@ jobs:
         run: npm ci
 
       - name: Build the production artifact
+        timeout-minutes: 6
         run: npm run build
 
+      # Keyed on the lockfile, which pins Playwright, as in deploy.yml. The OS
+      # packages are installed either way. Step timeouts keep a hung download
+      # or test (the 2026-10-26 run sat until the job limit) from eating the
+      # whole budget silently.
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-firefox-webkit-${{ hashFiles('ma-visualisation-sentiments/package-lock.json') }}
+
       - name: Install Firefox and WebKit
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        timeout-minutes: 6
         run: npx playwright install --with-deps firefox webkit
 
+      - name: Install Firefox and WebKit system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        timeout-minutes: 4
+        run: npx playwright install-deps firefox webkit
+
       - name: Check navigation, downloads and worker recovery
+        timeout-minutes: 7
         env:
           PLAYWRIGHT_CROSS_BROWSER: "1"
         run: npm run test:e2e -- e2e/browser-smoke.spec.ts

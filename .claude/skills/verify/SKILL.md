@@ -28,21 +28,34 @@ npm run build
 
 ## Pass criteria
 
-- **`npm run lint`** chains four things: `prettier --check .`, `eslint .`,
-  `scripts/check-store-cycles.mjs` and `scripts/check-design-tokens.mjs`. A
-  formatting failure is not a real defect — run `npm run format` (or
-  `npx prettier --write <files>`) and re-run. The other two are: a module inside
-  `stores/` imported the `./index` barrel, or a component shipped a raw hex, a
-  raw px/rem font-size, a Tailwind colour utility, an undefined token, a
-  `var()` fallback, or a watched class that nothing defines.
-- **`npm run check`** must end with a summary reading literally
-  `0 ERRORS 0 WARNINGS`. Warnings count. svelte-check exits 0 in some warning
-  cases, so read the summary line rather than trusting the exit code.
+- **`npm run lint`** chains five things: `prettier --check .`, `eslint .`,
+  `scripts/check-store-cycles.mjs`, `scripts/check-design-tokens.mjs` and
+  `scripts/check-i18n-keys.mjs`. A formatting failure is not a real defect —
+  run `npm run format` (or `npx prettier --write <files>`) and re-run. The
+  store check fails when a module inside `stores/` imports the `./index`
+  barrel. The design check fails on a raw hex/`rgb()`/`hsl()` outside
+  `tokens.css`, a CSS colour keyword such as `white` in a colour declaration, a
+  px/rem/em `font-size`, a non-zero `letter-spacing` length, a non-zero ms/s
+  `transition`/`animation` duration, a Tailwind colour or typography utility,
+  an undefined token, a `var()` fallback, a watched class that nothing defines,
+  or a `TEMPORARY_ALLOW` entry that no longer matches (delete it with the fix).
+  The i18n check (run with `--strict`) fails on a catalogue key nothing in
+  `src/` references and on an en/fr placeholder mismatch; a key reached by a
+  computed name belongs in its `DYNAMIC_KEYS` list, not back in the source.
+- **`npm run check`** runs `svelte-check --fail-on-warnings` and then
+  `tsc -p tsconfig.node.json`, which type-checks the e2e specs and the tool
+  configs svelte-check never sees. The svelte-check summary must read literally
+  `0 ERRORS 0 WARNINGS`; with `--fail-on-warnings` a warning now also fails the
+  exit code.
 - **`npm run test:run`** must report every file passed. If CI went red straight
   after a dependency merge, run this first — `runes: true` forces runes mode onto
   `node_modules`, so a bump shipping a legacy `export let` component breaks the
-  build and the Pages deploy fails quietly.
-- **`npm run build`** must complete *and* run both postbuild steps. Expect
+  build and the Pages deploy fails quietly. Tests run in two Vitest projects:
+  `node` by default, `dom` (jsdom) for the paths listed in `vitest.config.ts`
+  (components, stores, i18n, a few utils). A new test elsewhere that needs a
+  DOM fails with "document is not defined"; give it a
+  `// @vitest-environment jsdom` first line or add its path there.
+- **`npm run build`** must complete _and_ run both postbuild steps. Expect
   `[nest-build] Root ready: …` followed by `[stamp-sw] Stamped …`. Missing either
   line means the deploy artifact is malformed even though the build "passed".
 

@@ -112,12 +112,14 @@ def calculate_three_way_spread(
     centrality_spread = max(centrality_ranks) - min(centrality_ranks)
 
     subjectivity_ranks = [
-        _optional_int(analysis.get("subjectivite_score")) for analysis in analyses
+        rank
+        for analysis in analyses
+        if (rank := _optional_int(analysis.get("subjectivite_score"))) is not None
     ]
-    if any(rank is None for rank in subjectivity_ranks):
+    if len(subjectivity_ranks) < len(analyses):
         subjectivity_spread = 0
     else:
-        subjectivity_spread = max(subjectivity_ranks) - min(subjectivity_ranks)  # type: ignore[type-var]
+        subjectivity_spread = max(subjectivity_ranks) - min(subjectivity_ranks)
 
     threshold = contract.significant_spread_threshold or contract.significant_conflict_threshold
     spreads = (polarity_spread, subjectivity_spread, centrality_spread)

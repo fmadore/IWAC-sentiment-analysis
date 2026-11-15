@@ -22,8 +22,18 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { cohensKappa, buildConfusionMatrix, fleissKappa } from './agreement';
 import { DIMENSION_CATEGORIES } from './agreementData';
-import { summarizeAgreement } from './agreementMetrics';
+import {
+	applicabilityAgreement,
+	leaveOneOut,
+	panelReliability,
+	summarizeAgreement
+} from './agreementMetrics';
 import type { LabelPair } from './agreement';
+import { datasetIdsOf } from '#lib/domain/sentimentContract.js';
+import type { Article, DatasetId } from '#lib/types/data.js';
+import { buildPanelJoin, allRows } from './panelJoin';
+import { buildApplicabilityColumns, buildLabelColumns, unitsAt } from './agreementData';
+import { krippendorffAlpha } from './krippendorff';
 
 // Vitest runs with the project root as cwd; import.meta.url is a Vite-served
 // URL here, not a file: one, so resolve from the root instead.
@@ -143,4 +153,107 @@ it('pins the v2 applicable-polarity method and both sample sizes', () => {
 	expect(legacy.weightedKappa).toEqual(
 		cohensKappa(pairs(chatgpt, gemini, polarity), DIMENSION_CATEGORIES.polarity, 'quadratic')
 	);
+});
+
+// ---------------------------------------------------------------------------
+// Panel reliability over the shipped v2 panel: Krippendorff's alpha, Fleiss'
+// kappa on complete cases, leave-one-model-out and applicability agreement.
+// Built through the same panel join the store uses.
+// ---------------------------------------------------------------------------
+
+function corpusDatasets(models: readonly DatasetId[]): Record<string, Article[]> {
+	return Object.fromEntries(
+		models.map((model) => {
+			const scores = loadScores(model);
+			return [
+				model,
+				ids.map(
+					(id) =>
+						({
+							'o:id': Number(id),
+							dataset_id: model,
+							sentiment_analysis: scores[id]
+								? {
+										polarite: scores[id]?.polarite ?? null,
+										centralite_islam_musulmans: scores[id]?.centralite_islam_musulmans ?? null,
+										subjectivite_score: scores[id]?.subjectivite_score ?? null,
+										polarite_justification: null,
+										centralite_justification: null,
+										subjectivite_justification: null
+									}
+								: null
+						}) as Article
+				)
+			];
+		})
+	);
+}
+
+describe('v2 panel reliability over the shipped corpus', () => {
+	const models = datasetIdsOf('v2');
+	const join = buildPanelJoin(corpusDatasets(models), models);
+	if (!join) throw new Error('panel join failed');
+	const rows = allRows(join);
+	const columns = buildLabelColumns(join);
+
+	const reliability = (dimension: 'polarity' | 'centrality' | 'subjectivity') =>
+		panelReliability(columns[dimension], rows, dimension, 'v2');
+
+	it('joins the panel positionally: every dataset shares the base order', () => {
+		expect(join.aligned).toBe(true);
+		expect(join.articles).toHaveLength(12348);
+	});
+
+	// Independently reproduced by an external audit (ordinal α 0.566 / 0.847 /
+	// 0.512; Fleiss 0.451 / 0.629 / 0.279). Nominal polarity alpha keeps the
+	// "Non applicable" verdict as a category, as the nominal kappas do: 0.452.
+	// Dropping it, as the audit did, gives 0.446.
+	it('pins ordinal and nominal alpha beside complete-case Fleiss', () => {
+		const polarity = reliability('polarity');
+		const centrality = reliability('centrality');
+		const subjectivity = reliability('subjectivity');
+		expect(polarity.ordinalAlpha.alpha).toBeCloseTo(0.566, 3);
+		expect(centrality.ordinalAlpha.alpha).toBeCloseTo(0.847, 3);
+		expect(subjectivity.ordinalAlpha.alpha).toBeCloseTo(0.512, 3);
+		expect(polarity.nominalAlpha.alpha).toBeCloseTo(0.452, 3);
+		expect(centrality.nominalAlpha.alpha).toBeCloseTo(0.629, 3);
+		expect(subjectivity.nominalAlpha.alpha).toBeCloseTo(0.283, 3);
+		expect(polarity.fleiss.kappa).toBeCloseTo(0.451, 3);
+		expect(centrality.fleiss.kappa).toBeCloseTo(0.629, 3);
+		expect(subjectivity.fleiss.kappa).toBeCloseTo(0.279, 3);
+		// Alpha keeps articles Fleiss drops; ordinal polarity runs on ranks 1-5.
+		expect(polarity.fleiss.n).toBe(12098);
+		expect(polarity.nominalAlpha.units).toBe(12298);
+		expect(polarity.ordinalAlpha.units).toBe(12051);
+		expect(
+			krippendorffAlpha(
+				unitsAt(columns.polarity, rows),
+				['Très négatif', 'Négatif', 'Neutre', 'Positif', 'Très positif'],
+				'nominal'
+			).alpha
+		).toBeCloseTo(0.446, 3);
+	});
+
+	it('pins leave-one-model-out Fleiss on polarity', () => {
+		const loo = Object.fromEntries(
+			leaveOneOut(columns.polarity, models, rows, 'polarity', 'v2').map((row) => [
+				row.leftOut,
+				row.reliability.fleiss
+			])
+		);
+		expect(loo.qwen.kappa).toBeCloseTo(0.436, 3);
+		expect(loo.haiku.kappa).toBeCloseTo(0.427, 3);
+		expect(loo['mistral-small'].kappa).toBeCloseTo(0.527, 3);
+		// Leaving Qwen out restores the rows only it declined.
+		expect(loo.qwen.n).toBeGreaterThan(reliability('polarity').fleiss.n);
+	});
+
+	it('measures applicability agreement with missing ratings kept apart', () => {
+		const result = applicabilityAgreement(buildApplicabilityColumns(join), models, rows, 'v2');
+		expect(result.rated).toBe(12298);
+		expect(result.mixed).toBe(686);
+		expect(result.allAddressed + result.allNotAddressed + result.mixed).toBe(result.rated);
+		expect(result.alpha.alpha).toBeCloseTo(0.642, 3);
+		expect(result.perModel.find((entry) => entry.modelId === 'qwen')?.missing).toBe(250);
+	});
 });

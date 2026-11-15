@@ -31,6 +31,7 @@
 		<p class="archive-text">
 			<strong>{$t.generations.archivedTitle}</strong>
 			<span class="archive-detail">{$t.generations.archivedDescription}</span>
+			<span class="archive-detail">{$t.generations.archivedConfound}</span>
 		</p>
 		<button class="archive-action" type="button" onclick={returnToCurrent}>
 			{$t.generations.backToCurrent}

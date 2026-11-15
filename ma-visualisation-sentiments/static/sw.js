@@ -48,29 +48,17 @@ const STATIC_FILES = [
 	`${BASE_PATH}/icons/icon-512x512.png`
 ];
 
-// Every corpus filename prefix under /data/. SINGLE SOURCE OF TRUTH: both the
-// install-time precache list and the runtime fetch rule derive from this, so a
-// new data file can never be routed to the wrong (per-build, purged-on-deploy)
-// cache the way `iwac_sentiment_*` silently was.
-const DATA_FILE_PREFIXES = [
-	'iwac_articles_base',
-	'iwac_sentiment_',
-	'iwac_justifications_',
-	'iwac_arbiter_evaluations_',
-	'iwac_extreme_analysis_',
-	'iwac_places',
-	// The map's Natural Earth basemap. Not an `iwac_` payload, but it belongs in
-	// the same deploy-stable cache: it is 170 kB that changes only when Natural
-	// Earth itself does, so re-fetching it on every release would be pure waste.
-	'world-110m'
-];
-
-/** True when a pathname points at one of the corpus JSON payloads. */
-function isDataFilePath(pathname) {
-	return (
-		pathname.includes('/data/') && DATA_FILE_PREFIXES.some((prefix) => pathname.includes(prefix))
-	);
-}
+// Data routing. Every data file the app fetches in production lives under
+// `data/releases/<release>/` (scripts/publish-data-release.mjs moves them
+// there, and check-build-artifact.mjs fails a build that ships one anywhere
+// else), and the worker only runs in production (PWAManager skips registration
+// in dev). So the release rule in the fetch handler is the one data rule: it
+// sends every payload, the map's Natural Earth basemap included, to the
+// deploy-stable DATA_CACHE_NAME. A flat-file prefix list used to sit beside it
+// and could never match; it was removed rather than kept as a second source of
+// truth that nothing exercised. `data/release.json` is deliberately outside the
+// release directory and takes the network-first fallback, so a new release is
+// noticed as soon as the network allows.
 
 // Precached at install: only the small files every session needs regardless of
 // which view the user opens. The per-model sentiment payloads and the
@@ -82,6 +70,30 @@ function isDataFilePath(pathname) {
 // data moved under content-addressed release directories, and precaching it
 // 404ed on every install.
 const DATA_FILES_PRIORITY = [`${BASE_PATH}${RELEASE_PREFIX}iwac_articles_base.json`];
+
+/**
+ * The build chunks the app shell loads before anything renders: its
+ * modulepreload links, its entry `import("…")` calls and its stylesheets, all
+ * under `_app/`. Read from the shell's own HTML at install, so the list is
+ * exactly what this deploy's shell asks for, with no build step to keep in
+ * sync. Precaching them makes a first visit work offline on reload; lazy view
+ * chunks are still cached the first time each view is opened.
+ */
+function shellAssetUrls(html, shellUrl) {
+	const urls = new Set();
+	for (const [tag] of html.matchAll(/<link\b[^>]*>/g)) {
+		if (!/\brel=["']?(?:modulepreload|stylesheet)\b/.test(tag)) continue;
+		const href = /\bhref=["']([^"']+)["']/.exec(tag)?.[1];
+		if (href) urls.add(href);
+	}
+	for (const [, specifier] of html.matchAll(/\bimport\(\s*["']([^"']+)["']\s*\)/g)) {
+		urls.add(specifier);
+	}
+	return [...urls]
+		.map((href) => new URL(href, shellUrl))
+		.filter((url) => url.origin === self.location.origin && url.pathname.includes('/_app/'))
+		.map((url) => url.pathname);
+}
 
 // Install event - cache static files (tolerantly), then data files progressively.
 self.addEventListener('install', (event) => {
@@ -108,6 +120,24 @@ self.addEventListener('install', (event) => {
 					}
 				})
 			);
+
+			// Step 1b: the chunks the shell needs to boot (see shellAssetUrls), so a
+			// first visit survives going offline. Same per-file tolerance.
+			const shell = await staticCache.match(APP_SHELL);
+			if (shell) {
+				const shellUrl = new URL(APP_SHELL, self.location.origin).href;
+				const assets = shellAssetUrls(await shell.clone().text(), shellUrl);
+				await Promise.all(
+					assets.map(async (asset) => {
+						try {
+							const response = await fetch(asset);
+							if (response.ok) await staticCache.put(asset, response);
+						} catch (error) {
+							console.log(`[SW] Could not cache: ${asset}`, error.message);
+						}
+					})
+				);
+			}
 
 			// Step 2: Cache data files progressively by priority (also tolerant).
 			const dataCache = await caches.open(DATA_CACHE_NAME);
@@ -224,17 +254,11 @@ self.addEventListener('fetch', (event) => {
 		return;
 	}
 
-	// Content-addressed releases never fall back to a different release's data.
-	// Cache-first is safe here and avoids re-downloading immutable prose on revisits.
+	// 2) Data → CACHE-FIRST in the deploy-stable DATA_CACHE_NAME. A release
+	//    directory is content-addressed, so its files never change and never
+	//    fall back to another release's copy; a code-only deploy keeps them.
 	if (url.pathname.includes('/data/releases/')) {
 		event.respondWith(cacheFirstStrategy(request, DATA_CACHE_NAME, event));
-		return;
-	}
-	// 2) Data files → network-first (fresh data when online, cached fallback
-	//    offline), stored in the deploy-stable DATA_CACHE_NAME so a new release
-	//    doesn't force a re-download of the whole corpus.
-	if (isDataFilePath(url.pathname)) {
-		event.respondWith(networkFirstStrategy(request, DATA_CACHE_NAME, null, event));
 		return;
 	}
 

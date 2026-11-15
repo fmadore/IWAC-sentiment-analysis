@@ -3,7 +3,7 @@
 	import { t } from '#lib/i18n/index.js';
 	import { asset } from '$app/paths';
 	import type { AssetPath } from '$app/types';
-	import { DropdownMenu } from '#lib/components/common/index.js';
+	import DropdownMenu from '#lib/components/common/DropdownMenu.svelte';
 	import { isDatasetId } from '#lib/domain/sentimentContract.js';
 
 	let currentDataset = $derived(datasetState.available.find((d) => d.id === datasetState.selected));
@@ -14,10 +14,11 @@
 		datasetState.availableInGeneration.map((dataset) => ({
 			id: dataset.id,
 			label: dataset.name,
+			// No colour: the menu identifies a model by logo and name. (The
+			// series colour passed here before was read by nothing.)
 			data: {
 				logo: dataset.logo,
-				icon: dataset.icon,
-				color: dataset.color
+				icon: dataset.icon
 			}
 		}))
 	);

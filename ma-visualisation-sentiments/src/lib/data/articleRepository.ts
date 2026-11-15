@@ -9,30 +9,32 @@ import {
 	type SentimentFile,
 	type SentimentScores
 } from './validation';
-/** Map article properties from different formats (exported for tests) */
-export function mapArticleProperties(
-	item: Record<string, unknown> & Partial<Article>,
-	datasetId: DatasetId
-): Article {
+/**
+ * A base record as `parseBaseArticles` validated it, plus the Article fields a
+ * caller may already carry.
+ */
+type ArticleSource = Partial<Article> & {
+	'o:id': BaseArticleRecord['o:id'];
+	'dcterms:date'?: BaseArticleRecord['dcterms:date'];
+};
+
+/**
+ * Build an Article from a validated base record (exported for tests).
+ *
+ * The published base names its fields `Newspaper` and `dcterms:date`; the
+ * Article shape calls them `journal_source` and `publication_date`. An
+ * already-mapped value wins when present, because the store tests feed
+ * Article-shaped rows through here; the base itself never carries them.
+ */
+export function mapArticleProperties(item: ArticleSource, datasetId: DatasetId): Article {
 	// Spread first so the computed fallbacks below win over null/empty raw values
 	return {
 		...item,
-		'o:id': item['o:id'] as string | number,
-		'o:title': item['o:title'] as string,
-		journal_source:
-			(item.journal_source as string) ||
-			(item.Newspaper as string) ||
-			((item as { display_title?: string }).display_title as string) ||
-			'N/A',
-		Newspaper: item.Newspaper as string,
-		Country: item.Country as string,
-		publication_date:
-			(item.publication_date as string | null | undefined) ||
-			(item as { 'dcterms:date'?: string | null })['dcterms:date'] ||
-			null,
-		hijri_year: (item.hijri_year as number | null | undefined) ?? null,
-		hijri_month: (item.hijri_month as number | null | undefined) ?? null,
-		hijri_day: (item.hijri_day as number | null | undefined) ?? null,
+		journal_source: item.journal_source || item.Newspaper || 'N/A',
+		publication_date: item.publication_date || item['dcterms:date'] || null,
+		hijri_year: item.hijri_year ?? null,
+		hijri_month: item.hijri_month ?? null,
+		hijri_day: item.hijri_day ?? null,
 		sentiment_analysis: item.sentiment_analysis ?? null,
 		dataset_id: datasetId
 	};

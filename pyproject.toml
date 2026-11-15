@@ -14,8 +14,25 @@ target-version = "py312"
 line-length = 100
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B"]
+# BLE keeps every broad `except Exception` deliberate (the arbiter scripts mark
+# theirs `noqa: BLE001` with a reason); RUF100 fails a `noqa` that no longer
+# suppresses anything, so stale suppressions cannot accumulate.
+select = ["E", "F", "I", "UP", "B", "BLE", "RUF100"]
 ignore = ["E501"] # Prompt text and URLs are intentionally kept intact.
 
 [tool.ruff.format]
 quote-style = "double"
+
+# Basic, non-strict type checking of the importable core: `python -m mypy` from
+# the repository root. mypy rather than pyright because it is a pure pip
+# dependency and the hyphenated CLI scripts (not importable modules) are left
+# out either way; their logic lives in the package.
+[tool.mypy]
+python_version = "3.12"
+files = [
+    "data-preprocess/iwac_preprocess",
+    "data-preprocess/validate_generated_data.py",
+    "data-preprocess/shared.py",
+]
+mypy_path = "data-preprocess"
+ignore_missing_imports = true

@@ -19,7 +19,7 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from shared import (  # noqa: E402
+from shared import (
     CENTRALITY_SCORES,
     HF_COLUMN_PREFIXES,
     MODEL_NAMES,
@@ -273,45 +273,50 @@ class TestRestrictToBaseArticles:
 
 
 class TestDataFetchCorpusScope:
-    """`data-fetch.py` never grows the published corpus unless told to."""
+    """`data-fetch.py` never grows the published corpus unless told to.
+
+    The rule lives in `iwac_preprocess.generation`; the script only passes the
+    published base's path.
+    """
+
+    logger = logging.getLogger("test_scope")
 
     @pytest.fixture
-    def data_fetch(self, tmp_path, monkeypatch):
-        import importlib.util
+    def base_path(self, tmp_path):
         import json
 
-        spec = importlib.util.spec_from_file_location(
-            "data_fetch", os.path.join(os.path.dirname(os.path.abspath(__file__)), "data-fetch.py")
-        )
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        (tmp_path / "iwac_articles_base.json").write_text(
-            json.dumps([{"o:id": 1}, {"o:id": 2}]), encoding="utf-8"
-        )
-        monkeypatch.setattr(module, "get_webapp_data_dir", lambda: str(tmp_path))
-        monkeypatch.setattr(module, "get_base_article_ids", lambda: {"1", "2"})
-        return module
+        path = tmp_path / "iwac_articles_base.json"
+        path.write_text(json.dumps([{"o:id": 1}, {"o:id": 2}]), encoding="utf-8")
+        return path
 
-    @staticmethod
-    def ids(records):
-        return [record["o:id"] for record in records]
+    def scope(self, live, generation, admit, base_path):
+        from iwac_preprocess.generation import scope_to_published_corpus
 
-    def test_v2_keeps_the_published_corpus(self, data_fetch):
+        return [
+            record["o:id"]
+            for record in scope_to_published_corpus(live, generation, admit, base_path, self.logger)
+        ]
+
+    def test_v2_keeps_the_published_corpus(self, base_path):
         live = [{"o:id": 1}, {"o:id": 2}, {"o:id": 3}]
-        assert self.ids(data_fetch.scope_to_published_corpus(live, "v2", False)) == [1, 2]
+        assert self.scope(live, "v2", False, base_path) == [1, 2]
 
-    def test_v2_fails_on_an_upstream_deletion(self, data_fetch):
+    def test_v2_fails_on_an_upstream_deletion(self, base_path):
         with pytest.raises(SystemExit, match="gone from the Hugging Face corpus"):
-            data_fetch.scope_to_published_corpus([{"o:id": 1}], "v2", False)
+            self.scope([{"o:id": 1}], "v2", False, base_path)
 
-    def test_v1_drops_a_deletion_but_admits_nothing_new(self, data_fetch):
+    def test_v1_drops_a_deletion_but_admits_nothing_new(self, base_path):
         live = [{"o:id": 1}, {"o:id": 3}]
-        assert self.ids(data_fetch.scope_to_published_corpus(live, "v1", False)) == [1]
+        assert self.scope(live, "v1", False, base_path) == [1]
 
-    def test_v1_admits_new_articles_only_when_asked(self, data_fetch):
+    def test_v1_admits_new_articles_only_when_asked(self, base_path):
         live = [{"o:id": 1}, {"o:id": 3}]
-        assert self.ids(data_fetch.scope_to_published_corpus(live, "v1", True)) == [1, 3]
+        assert self.scope(live, "v1", True, base_path) == [1, 3]
 
-    def test_only_a_v1_run_may_admit_new_articles(self, data_fetch):
+    def test_only_a_v1_run_may_admit_new_articles(self, base_path):
         with pytest.raises(SystemExit, match="only a v1 run writes"):
-            data_fetch.scope_to_published_corpus([{"o:id": 1}], "v2", True)
+            self.scope([{"o:id": 1}], "v2", True, base_path)
+
+    def test_a_first_v1_run_writes_the_base_from_everything(self, tmp_path):
+        live = [{"o:id": 3}, {"o:id": 1}]
+        assert self.scope(live, "v1", False, tmp_path / "absent.json") == [3, 1]
