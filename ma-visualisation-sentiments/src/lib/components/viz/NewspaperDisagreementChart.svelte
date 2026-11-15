@@ -20,7 +20,9 @@
 	import { dec, num, pct } from '#lib/i18n/utils.js';
 	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
-	import { innerWidth } from 'svelte/reactivity/window';
+	import { isCompactWidth } from '#lib/utils/viewport.svelte.js';
+	import { useChartCardHeading } from '#lib/components/ui/chartCardHeading.svelte.js';
+	import ChartHeading from './ChartHeading.svelte';
 
 	import { t } from '#lib/i18n/index.js';
 	import {
@@ -34,7 +36,6 @@
 	import { tooltipHeader, tooltipPanel, tooltipRow } from '#lib/utils/chartFormatters.js';
 	import {
 		chartColors,
-		getTitleStyle,
 		getTooltipConfig,
 		getAxisLineStyle,
 		getAxisLabelStyle,
@@ -57,7 +58,9 @@
 		minArticles = 30
 	}: NewspaperDisagreementChartProps = $props();
 
-	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
+	// Compact layout follows the chart's own width, not the window's.
+	let containerWidth = $state<number>();
+	let isMobile = $derived(isCompactWidth(containerWidth));
 
 	let ranks = $derived(
 		rankNewspaperDisagreement(rows, dimension, modelCount, { includeDeclined, minArticles })
@@ -71,6 +74,14 @@
 		return Math.max(...ordinals) - Math.min(...ordinals);
 	});
 
+	const headingSubtitle = $derived(
+		$t.agreement.disagreementSubtitle.replace('{min}', String(minArticles))
+	);
+	const heading = useChartCardHeading(() => ({
+		title: $t.agreement.disagreementTitle,
+		subtitle: headingSubtitle
+	}));
+
 	let options = $derived.by(() => {
 		const currentT = $t;
 		const names = ranks.map((rank) => rank.newspaper);
@@ -78,18 +89,6 @@
 
 		return {
 			backgroundColor: 'transparent',
-			title: {
-				text: currentT.agreement.disagreementTitle,
-				subtext: currentT.agreement.disagreementSubtitle.replace('{min}', String(minArticles)),
-				left: 'center',
-				top: '1%',
-				textStyle: getTitleStyle(isMobile),
-				subtextStyle: {
-					color: chartColors.text.secondary,
-					fontSize: isMobile ? 10 : 12,
-					fontFamily: '"JetBrains Mono", ui-monospace, monospace'
-				}
-			},
 			tooltip: {
 				...tooltipConfig,
 				trigger: 'item',
@@ -116,7 +115,7 @@
 				}
 			},
 			grid: {
-				top: isMobile ? 96 : 104,
+				top: isMobile ? 36 : 28,
 				bottom: isMobile ? 40 : 44,
 				left: '2%',
 				right: isMobile ? '8%' : '6%',
@@ -215,13 +214,17 @@
 		} as EChartsOption;
 	});
 
-	let chartHeight = $derived(Math.max(320, ranks.length * (isMobile ? 20 : 24) + 140));
+	let chartHeight = $derived(Math.max(280, ranks.length * (isMobile ? 20 : 24) + 72));
 </script>
 
+{#if !heading.inCard}
+	<ChartHeading title={$t.agreement.disagreementTitle} subtitle={headingSubtitle} />
+{/if}
 {#if ranks.length > 0}
 	<div
 		style="height: {chartHeight}px; position: relative;"
 		class="chart-container"
+		bind:clientWidth={containerWidth}
 		role="img"
 		aria-label={$t.agreement.disagreementTitle}
 	>

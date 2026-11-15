@@ -1,9 +1,14 @@
 /**
  * Vitest Test Setup
- * Global setup for all tests
+ * Global setup for both projects (`node` and `dom`, see vitest.config.ts).
  */
-import '@testing-library/svelte/vitest';
 import { loadCatalogue } from '#lib/i18n/index.js';
+
+// The DOM matchers and the automatic unmount between tests only mean something
+// where there is a document; the `node` project runs pure functions.
+if (typeof document !== 'undefined') {
+	await import('@testing-library/svelte/vitest');
+}
 
 /**
  * The English catalogue is loaded on demand in the app. Tests switch language

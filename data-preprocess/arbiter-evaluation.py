@@ -23,10 +23,24 @@ Features:
 - Configurable model pair via --pair argument
 - Non-interactive mode via --yes for CI
 
+**Frozen archive.** Generation 1 is published as a frozen archive so its
+figures stay reproducible, and this script predates every safety the v2
+arbiter has (staged, validated publication; a run lock; a durable cache). It
+therefore refuses to write a file or make a paid call unless `--unfreeze` is
+passed. Under `--unfreeze`:
+
+* an unreadable or invalid published file is an error, never a fresh blind
+  coin flip that would silently reassign its paid verdicts;
+* the run reads the source revision recorded in the published files unless
+  `--source-revision head|SHA` (or `IWAC_HF_REVISION`) asks for another, since
+  that revision is hashed into every fingerprint;
+* a publication that would hold fewer evaluations than the file it replaces is
+  refused unless `--allow-shrink` is passed.
+
 Usage:
-  python arbiter-evaluation.py                        # Process all pairs
-  python arbiter-evaluation.py --pair chatgpt-mistral
-  python arbiter-evaluation.py --pair gemini-mistral --yes
+  python arbiter-evaluation.py                                   # refuses: frozen
+  python arbiter-evaluation.py --unfreeze --prune-cache-only     # reconcile, no spend
+  python arbiter-evaluation.py --unfreeze --pair gemini-mistral --yes
 
 Output: JSON file with arbiter evaluations to be consumed by the visualization app
 """
@@ -43,6 +57,8 @@ from pathlib import Path
 from typing import Any, Literal
 
 import pandas as pd
+from iwac_preprocess.arbiter_lifecycle import CacheUnreadableError
+from iwac_preprocess.source import load_iwac_dataset_source
 from pydantic import BaseModel, Field, ValidationError
 from shared import (
     ANALYSIS_VERSION,
@@ -58,7 +74,6 @@ from shared import (
     get_models_from_pair,
     get_source_revision,
     get_webapp_data_dir,
-    load_iwac_dataset,
     reconcile_cached_evaluations,
     safe_save_json,
     validate_columns,
@@ -391,7 +406,7 @@ def evaluate_with_arbiter(
             # the contract more likely to pass.
             logger.error("Invalid structured response for article %s: %s", article_id, e)
             return None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - the SDK's errors share no base; classified below
             if not is_transient_api_error(e):
                 logger.error("Non-retryable arbiter error for article %s: %s", article_id, e)
                 return None
@@ -404,9 +419,9 @@ def evaluate_with_arbiter(
     return None
 
 
-def load_dataset_with_text_info() -> pd.DataFrame:
+def load_dataset_with_text_info(revision: str | None = None) -> pd.DataFrame:
     """Load the IWAC dataset, validate required columns, and log text-field info."""
-    df = load_iwac_dataset()
+    df = load_iwac_dataset_source(revision=revision).data
     logger.info("Available columns: %s", ", ".join(df.columns.tolist()))
     validate_columns(df, REQUIRED_BASE_COLUMNS)
 
@@ -485,8 +500,10 @@ def load_cached_evaluations(webapp_file: str) -> tuple[list, set, bool | None]:
 
     Returns:
         Tuple of (evaluations list, set of evaluated article ids as strings,
-        stored blind assignment or None). Returns empty values if the file is
-        missing or unreadable.
+        stored blind assignment or None). Returns empty values only if the file
+        is missing; an unreadable file, or a populated one without a blind
+        assignment, raises `CacheUnreadableError` — a fresh coin flip would
+        silently reassign its paid verdicts.
     """
     if not os.path.exists(webapp_file):
         return [], set(), None
@@ -505,10 +522,37 @@ def load_cached_evaluations(webapp_file: str) -> tuple[list, set, bool | None]:
         model_a_is_first = metadata.get("model_a_is_first")
         if model_a_is_first is None and metadata.get("arbiter_model_a"):
             model_a_is_first = metadata["arbiter_model_a"] == metadata.get("pair_first_model")
-        return arbiter_results, evaluated_ids, model_a_is_first
-    except (OSError, json.JSONDecodeError) as e:
-        logger.warning("Failed to load existing data from %s: %s", webapp_file, e)
-        return [], set(), None
+    except (OSError, json.JSONDecodeError, AttributeError, KeyError, TypeError) as e:
+        raise CacheUnreadableError(
+            f"{webapp_file} exists but is not a readable arbiter file ({e}). Restore it; "
+            "starting over would redraw the blind assignment of its paid verdicts."
+        ) from e
+    if arbiter_results and not isinstance(model_a_is_first, bool):
+        raise CacheUnreadableError(
+            f"{webapp_file} holds {len(arbiter_results)} evaluations but no blind assignment. "
+            "Restore model_a_is_first; drawing a new one would reassign paid verdicts."
+        )
+    return arbiter_results, evaluated_ids, model_a_is_first
+
+
+def shrink_refusal(
+    filepath: str,
+    published: int,
+    publishing: int,
+    *,
+    allow_shrink: bool,
+    pruned: int = 0,
+    invalidated: int = 0,
+) -> str | None:
+    """Why writing ``publishing`` rows over ``published`` would lose verdicts, if it would."""
+    if allow_shrink or publishing >= published:
+        return None
+    return (
+        f"Refusing to replace {os.path.basename(filepath)}: it holds {published} evaluations "
+        f"and this run would write {publishing} ({published - publishing} lost; {pruned} no "
+        f"longer selected, {invalidated} invalidated by a changed input or by source revision "
+        f"{get_source_revision()}). Pass --allow-shrink to replace it anyway."
+    )
 
 
 def process_pair(
@@ -518,6 +562,7 @@ def process_pair(
     webapp_data_dir: str,
     *,
     evaluate_missing: bool = True,
+    allow_shrink: bool = False,
 ) -> dict:
     """Process a single model pair and return statistics.
 
@@ -545,8 +590,15 @@ def process_pair(
     # left behind indefinitely.
     webapp_file = os.path.join(webapp_data_dir, f"iwac_arbiter_evaluations_{pair}.json")
     cached_results, _, model_a_is_first = load_cached_evaluations(webapp_file)
+    published_count = len(cached_results)
 
     if not significant_articles:
+        refusal = shrink_refusal(
+            webapp_file, published_count, 0, allow_shrink=allow_shrink, pruned=published_count
+        )
+        if refusal:
+            logger.error("%s", refusal)
+            return {"pair": pair, "total": 0, "new": 0, "cached": 0, "failed": 0, "refused": True}
         if model_a_is_first is None:
             model_a_is_first = random.choice([True, False])
         save_results(
@@ -584,6 +636,33 @@ def process_pair(
             reconciliation.adopted_legacy,
         )
 
+    def guarded_save(results: list, failed_count: int, *, final: bool) -> bool:
+        refusal = shrink_refusal(
+            webapp_file,
+            published_count,
+            len(results),
+            allow_shrink=allow_shrink,
+            pruned=reconciliation.pruned,
+            invalidated=reconciliation.invalidated,
+        )
+        if refusal:
+            if final:
+                logger.error("%s", refusal)
+            return False
+        save_results(
+            webapp_file,
+            results,
+            pair,
+            model_a_is_first,
+            model_a_name,
+            model_b_name,
+            len(significant_articles),
+            len(results),
+            failed_count,
+            legacy_cache_adopted=reconciliation.adopted_legacy,
+        )
+        return True
+
     # Filter out already-evaluated articles
     remaining_articles = [
         a for a in significant_articles if str(a.get("o:id")) not in evaluated_ids
@@ -604,18 +683,15 @@ def process_pair(
 
     if not remaining_articles:
         # Still publish reconciled/pruned cache rows and upgraded metadata.
-        save_results(
-            webapp_file,
-            arbiter_results,
-            pair,
-            model_a_is_first,
-            model_a_name,
-            model_b_name,
-            len(significant_articles),
-            len(arbiter_results),
-            0,
-            legacy_cache_adopted=reconciliation.adopted_legacy,
-        )
+        if not guarded_save(arbiter_results, 0, final=True):
+            return {
+                "pair": pair,
+                "total": len(significant_articles),
+                "new": 0,
+                "cached": cached_count,
+                "failed": 0,
+                "refused": True,
+            }
         logger.info(
             "All %d current articles already evaluated; cache metadata refreshed",
             len(significant_articles),
@@ -633,18 +709,7 @@ def process_pair(
     )
 
     if not evaluate_missing:
-        save_results(
-            webapp_file,
-            arbiter_results,
-            pair,
-            model_a_is_first,
-            model_a_name,
-            model_b_name,
-            len(significant_articles),
-            len(arbiter_results),
-            0,
-            legacy_cache_adopted=reconciliation.adopted_legacy,
-        )
+        refused = not guarded_save(arbiter_results, 0, final=True)
         logger.info("Prune-only mode left %d articles pending evaluation", len(remaining_articles))
         return {
             "pair": pair,
@@ -653,6 +718,7 @@ def process_pair(
             "cached": cached_count,
             "failed": 0,
             "pending": len(remaining_articles),
+            "refused": refused,
         }
 
     # Process new articles with arbiter
@@ -682,19 +748,9 @@ def process_pair(
             successful += 1
 
             # Save progress periodically
-            if successful % SAVE_INTERVAL == 0:
-                save_results(
-                    webapp_file,
-                    arbiter_results,
-                    pair,
-                    model_a_is_first,
-                    model_a_name,
-                    model_b_name,
-                    len(significant_articles),
-                    len(arbiter_results),
-                    failed,
-                    legacy_cache_adopted=reconciliation.adopted_legacy,
-                )
+            if successful % SAVE_INTERVAL == 0 and guarded_save(
+                arbiter_results, failed, final=False
+            ):
                 logger.info("Saved %d results", len(arbiter_results))
         else:
             failed += 1
@@ -704,18 +760,7 @@ def process_pair(
             time.sleep(1)
 
     # Save final results
-    save_results(
-        webapp_file,
-        arbiter_results,
-        pair,
-        model_a_is_first,
-        model_a_name,
-        model_b_name,
-        len(significant_articles),
-        len(arbiter_results),
-        failed,
-        legacy_cache_adopted=reconciliation.adopted_legacy,
-    )
+    refused = not guarded_save(arbiter_results, failed, final=True)
 
     logger.info("Completed: %d new, %d cached, %d failed", successful, cached_count, failed)
 
@@ -725,6 +770,7 @@ def process_pair(
         "new": successful,
         "cached": cached_count,
         "failed": failed,
+        "refused": refused,
     }
 
 
@@ -812,17 +858,51 @@ def create_genai_client(api_key: str):
     return genai.Client(api_key=api_key)
 
 
+def recorded_source_revision(pairs: list[str], webapp_data_dir: str) -> str | None:
+    """The one source revision the published files of ``pairs`` were fingerprinted at."""
+    revisions = set()
+    for pair in pairs:
+        path = os.path.join(webapp_data_dir, f"iwac_arbiter_evaluations_{pair}.json")
+        rows, _, _ = load_cached_evaluations(path)
+        if rows:
+            with open(path, encoding="utf-8") as handle:
+                revisions.add(json.load(handle).get("metadata", {}).get("source_revision"))
+    revisions.discard(None)
+    if len(revisions) > 1:
+        raise CacheUnreadableError(
+            f"The selected pairs were published at different source revisions "
+            f"({', '.join(sorted(revisions))}); run them separately or pass --source-revision."
+        )
+    return revisions.pop() if revisions else None
+
+
 def main(
-    pairs: list[str] | None = None, assume_yes: bool = False, prune_cache_only: bool = False
+    pairs: list[str] | None = None,
+    assume_yes: bool = False,
+    prune_cache_only: bool = False,
+    *,
+    unfreeze: bool = False,
+    allow_shrink: bool = False,
+    source_revision: str | None = None,
 ) -> int:
     """Main function - processes all specified pairs
 
     Args:
         pairs: List of model pairs to evaluate. If None, processes all pairs.
         assume_yes: Skip the interactive confirmation prompt (for CI).
+        unfreeze: Required for any file write or paid call; v1 is a frozen archive.
+        allow_shrink: Allow a published file to lose evaluations.
+        source_revision: ``head`` or a revision sha; default: the recorded one.
     """
     if pairs is None:
         pairs = MODEL_PAIRS
+
+    if not unfreeze:
+        logger.error(
+            "Generation 1 is a frozen archive: this script writes nothing and calls no API "
+            "without --unfreeze. Its published files stay as they are."
+        )
+        return 2
 
     env_path = Path(__file__).parent.parent / ".env"
     if env_path.exists():
@@ -834,16 +914,37 @@ def main(
     logger.info("IWAC Arbiter Evaluation - %s (thinking_level=high)", ARBITER_MODEL)
     logger.info("Processing %d model pair(s): %s", len(pairs), ", ".join(pairs))
 
+    webapp_data_dir = get_webapp_data_dir()
+    try:
+        recorded = recorded_source_revision(pairs, webapp_data_dir)
+    except CacheUnreadableError as error:
+        logger.error("%s", error)
+        return 2
+    if source_revision:
+        requested = "main" if source_revision == "head" else source_revision
+        logger.info("Source revision: %s (requested)", source_revision)
+    elif os.getenv("IWAC_HF_REVISION"):
+        requested = None  # load_source reads the environment variable itself
+        logger.info("Source revision: IWAC_HF_REVISION=%s", os.getenv("IWAC_HF_REVISION"))
+    else:
+        requested = recorded
+        logger.info(
+            "Source revision: %s",
+            f"{recorded} (recorded in the published files; --source-revision head to move)"
+            if recorded
+            else "upstream HEAD (nothing published to resume)",
+        )
+
     # Load dataset
     try:
-        df = load_dataset_with_text_info()
-    except Exception as e:
+        df = load_dataset_with_text_info(requested)
+    except Exception as e:  # noqa: BLE001 - surfaced as an exit code
         logger.error("Failed to load dataset: %s", e)
         return 2
     records = df.to_dict("records")
-
-    # Setup webapp data directory
-    webapp_data_dir = get_webapp_data_dir()
+    if not get_source_revision():
+        logger.error("No immutable source revision is known; refusing to fingerprint verdicts.")
+        return 2
 
     # Find the conflict articles ONCE per pair (reused below by process_pair)
     significant_by_pair: dict[str, list[dict]] = {}
@@ -854,7 +955,11 @@ def main(
         significant_by_pair[pair] = articles
 
         webapp_file = os.path.join(webapp_data_dir, f"iwac_arbiter_evaluations_{pair}.json")
-        cached, _, _ = load_cached_evaluations(webapp_file)
+        try:
+            cached, _, _ = load_cached_evaluations(webapp_file)
+        except CacheUnreadableError as error:
+            logger.error("%s", error)
+            return 2
         reconciled = reconcile_cached_evaluations(
             cached, articles, fingerprint=pair_fingerprint(pair)
         )
@@ -888,6 +993,7 @@ def main(
             pair,
             webapp_data_dir,
             evaluate_missing=not prune_cache_only,
+            allow_shrink=allow_shrink,
         )
         all_stats.append(stats)
 
@@ -901,8 +1007,10 @@ def main(
         logger.info("  Failed: %d", stats["failed"])
         if stats.get("pending"):
             logger.info("  Pending: %d", stats["pending"])
+        if stats.get("refused"):
+            logger.info("  Public file left unchanged (shrink refused)")
 
-    return 0
+    return 1 if any(stats.get("refused") for stats in all_stats) else 0
 
 
 if __name__ == "__main__":
@@ -938,6 +1046,22 @@ Examples:
         action="store_true",
         help="Skip the interactive confirmation prompt (for non-interactive runs)",
     )
+    parser.add_argument(
+        "--unfreeze",
+        action="store_true",
+        help="Required for any file write or paid call: generation 1 is a frozen archive",
+    )
+    parser.add_argument(
+        "--allow-shrink",
+        action="store_true",
+        help="Allow a published file to end up with fewer evaluations than it holds",
+    )
+    parser.add_argument(
+        "--source-revision",
+        default=None,
+        metavar="head|SHA",
+        help="Source revision to read (default: the one recorded in the published files)",
+    )
 
     args = parser.parse_args()
 
@@ -951,5 +1075,8 @@ Examples:
             pairs=pairs_to_process,
             assume_yes=args.yes,
             prune_cache_only=args.prune_cache_only,
+            unfreeze=args.unfreeze,
+            allow_shrink=args.allow_shrink,
+            source_revision=args.source_revision,
         )
     )

@@ -1,8 +1,16 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 
 const panel = JSON.parse(readFileSync('static/data/iwac_arbiter_evaluations_v2.json', 'utf8'));
 const panelId = String(panel.evaluations[0].article_id);
+
+// The detail dialog is named by its <h2> title through aria-labelledby (the
+// page keeps its one <h1>), so its accessible name is the article title.
+const dialogTitle = (dialog: Locator) =>
+	dialog.evaluate(
+		(el) =>
+			document.getElementById(el.getAttribute('aria-labelledby') ?? '')?.textContent?.trim() ?? ''
+	);
 
 test('panel detail links survive a slow arbiter load', async ({ page }) => {
 	let release!: () => void;
@@ -28,18 +36,23 @@ test('panel article selection has a copyable URL, fresh-load identity and browse
 }, testInfo) => {
 	await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 	await page.goto('?view=arbiter&dataset=luna&lang=en&panelSort=title&panelPage=2');
-	const row = page.locator('tbody tr[role="button"]').first();
+	// The row opens through the real button in its title cell; the <tr> keeps
+	// its row semantics and carries no role.
+	const row = page
+		.locator('tbody')
+		.getByRole('button', { name: /^View the article and the verdict:/ })
+		.first();
 	await row.click();
 	const dialog = page.getByRole('dialog');
 	await expect(dialog).toBeVisible();
 	await expect(page).toHaveURL(/arbiterArticleId=/);
-	const title = await dialog.locator('h1').innerText();
+	const title = await dialogTitle(dialog);
 	await dialog.getByRole('button', { name: 'Copy link to this analysis' }).click();
 	const copied = await page.evaluate(() => navigator.clipboard.readText());
 	expect(new URL(copied).searchParams.get('panelPage')).toBe('2');
 	const shared = await context.newPage();
 	await shared.goto(copied);
-	await expect(shared.getByRole('dialog').locator('h1')).toHaveText(title);
+	await expect(shared.getByRole('dialog')).toHaveAccessibleName(title);
 	await shared.close();
 	await page.screenshot({ path: testInfo.outputPath('panel-detail-desktop.png') });
 	await page.setViewportSize({ width: 390, height: 844 });
@@ -51,7 +64,7 @@ test('panel article selection has a copyable URL, fresh-load identity and browse
 	await expect(dialog).toHaveCount(0);
 	await expect(page).toHaveURL(/panelPage=2/);
 	await page.goForward();
-	await expect(dialog.locator('h1')).toHaveText(title);
+	await expect(dialog).toHaveAccessibleName(title);
 	await page.keyboard.press('Escape');
 	await expect(dialog).toHaveCount(0);
 	await expect(page).not.toHaveURL(/arbiterArticleId=/);
@@ -67,9 +80,9 @@ test('archived arbiter details preserve their pair and dimension', async ({ page
 	const dialog = page.getByRole('dialog');
 	await expect(dialog).toBeVisible();
 	await expect(page).toHaveURL(/arbiterArticleId=/);
-	const title = await dialog.locator('h1').innerText();
+	const title = await dialogTitle(dialog);
 	await page.reload();
-	await expect(dialog.locator('h1')).toHaveText(title);
+	await expect(dialog).toHaveAccessibleName(title);
 	await expect(page).toHaveURL(/pair=gemini-mistral/);
 	await expect(page).toHaveURL(/arbiterDimension=centrality/);
 });
@@ -101,6 +114,9 @@ test('comparison details keep facets and survive loading without compare=true', 
 test('table pagination, sorting and detail background survive reload and history', async ({
 	page
 }) => {
+	// Data-coupled: page 3 at 25 rows needs at least 51 Togo articles in the
+	// published base. A corpus change that drops below that breaks this test,
+	// not the feature.
 	await page.goto(
 		'?view=table&dataset=gemma&lang=en&countries=Togo&tablePage=3&tableSize=25&tableSort=date&tableOrder=desc'
 	);
@@ -136,7 +152,14 @@ for (const [view, query, selector, attribute, value] of [
 		'true'
 	],
 	['seasonality', 'seasonalityChart=bar', 'button:has-text("Bars")', 'aria-pressed', 'true'],
-	['ranking', 'rankingMeasure=centrality', 'button:has-text("Centrality")', 'aria-pressed', 'true'],
+	// Scoped to the toggle: the navigation also has a "Centrality by country" button.
+	[
+		'ranking',
+		'rankingMeasure=centrality',
+		'.chart-type-toggle button:has-text("Centrality")',
+		'aria-pressed',
+		'true'
+	],
 	[
 		'extremes',
 		'category=centrality_very_central&keywordType=spatial&topN=25',
@@ -154,6 +177,30 @@ for (const [view, query, selector, attribute, value] of [
 			expect(new URL(page.url()).searchParams.get(key)).toBe(value);
 	});
 }
+
+test('every ranking measure restores its pressed toggle from a citable URL', async ({ page }) => {
+	// The three means predate the share measures; their links must keep working,
+	// and no URL value may press more than one button across the two groups.
+	for (const [measure, label] of [
+		['polarity', 'Polarity'],
+		['subjectivity', 'Subjectivity'],
+		['centrality', 'Centrality'],
+		['positive', 'Share positive'],
+		['negative', 'Share negative'],
+		['net', 'Net share (positive − negative)']
+	]) {
+		await page.goto(`?view=ranking&dataset=luna&lang=en&rankingMeasure=${measure}`);
+		const toggles = page.locator('.chart-type-toggle button');
+		await expect(toggles.filter({ hasText: label }).first()).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
+		await expect(page.locator('.chart-type-toggle button[aria-pressed="true"]')).toHaveCount(1);
+		if (measure === 'polarity')
+			expect(new URL(page.url()).searchParams.has('rankingMeasure')).toBe(false);
+		else expect(new URL(page.url()).searchParams.get('rankingMeasure')).toBe(measure);
+	}
+});
 
 test('chart interactions round-trip and clearing them follows browser history', async ({
 	page
@@ -229,6 +276,9 @@ test('methodology prompt is a shareable detail', async ({ page }) => {
 });
 
 test('map place, dimension and camera restore together', async ({ page }) => {
+	// Data-coupled: place id 269 must be Abidjan in the published
+	// iwac_places.json registry. Ids come from the upstream Omeka records, so a
+	// re-export that renumbers places breaks this test, not the feature.
 	await page.goto(
 		'?view=map&dataset=luna&lang=en&placeId=269&mapDimension=centrality&mapCamera=-4,5.35,5'
 	);

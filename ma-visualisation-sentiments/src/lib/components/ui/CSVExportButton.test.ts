@@ -4,6 +4,7 @@ import type { Article, ComparisonData } from '#lib/types/data.js';
 import { currentLanguage } from '#lib/i18n/index.js';
 import { downloadCSVFile } from '#lib/utils/csv.js';
 import CSVExportButton from './CSVExportButton.svelte';
+import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
 import ComparisonCSVExportButton from './ComparisonCSVExportButton.svelte';
 
 const mocks = vi.hoisted(() => ({
@@ -91,6 +92,25 @@ it('exports the clicked model, rows, language and filters while another selectio
 	expect(csv).not.toContain('Autre sélection');
 	expect(csv).not.toContain('countries=Togo');
 	expect(csv.split('\n')).toHaveLength(2);
+});
+
+it('exports the rows the table search leaves, under its own selection name', async () => {
+	mocks.articleState.filtered = [article(1, 'Église de Lomé'), article(2, 'Autre titre')];
+	mocks.loadJustifications.mockResolvedValue(undefined);
+	viewOptionsState.tableSearch = 'eglise';
+	try {
+		const { getByRole } = render(CSVExportButton);
+		await fireEvent.click(getByRole('button'));
+		expect(mocks.loadJustifications).toHaveBeenCalledWith('luna', expect.any(Function), [1]);
+		await waitFor(() => expect(downloadCSVFile).toHaveBeenCalledOnce());
+		const [csv, filename] = vi.mocked(downloadCSVFile).mock.calls[0];
+		expect(csv).toContain('Église de Lomé');
+		expect(csv).not.toContain('Autre titre');
+		expect(csv).toContain(',searched_articles,');
+		expect(String(filename)).toContain('iwac-articles-search');
+	} finally {
+		viewOptionsState.tableSearch = '';
+	}
 });
 
 it('prepares only the clicked comparison rows for both original models', async () => {

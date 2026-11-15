@@ -1,294 +1,176 @@
+<!--
+  ModelPairPicker
+
+  Two native selects — first model, second model — rather than one menu of
+  every pair. With fifteen pairs in the current panel the old trigger showed two
+  logos and "vs" with no names, its aria-label replaced that content so the
+  current pair was never announced, and the menu was a listbox without the
+  keyboard model a listbox promises. A native select brings its own keyboard,
+  touch and screen-reader behaviour, and the names are always visible.
+
+  The pair is resolved through the contract's pairs, never by splitting an id
+  on "-" (a v2 model id contains a hyphen). Only pairs of the generation on
+  screen are offered: a pair across the prompt rewrite is not a comparison
+  between models.
+-->
 <script lang="ts">
 	import { datasetState, uiState } from '#lib/stores/index.js';
-	import type { ModelPair, DatasetOption } from '#lib/types/data.js';
-	import { getModelsFromPair } from '#lib/types/data.js';
+	import { getModelsFromPair, type DatasetId, type ModelPair } from '#lib/types/data.js';
 	import { t } from '#lib/i18n/index.js';
 	import { asset } from '$app/paths';
-	import type { AssetPath } from '$app/types';
 	import { updateURL } from '#lib/stores/url/index.js';
-	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
-	import { tick } from 'svelte';
 
-	// The pairs of the generation on screen. Offering both generations' pairs
-	// here would invite a comparison across a prompt rewrite, which is not a
-	// comparison between models.
 	let pairs = $derived(datasetState.pairsInGeneration);
+	let models = $derived(datasetState.availableInGeneration);
+
+	const uid = $props.id();
+
+	/** The contract pair joining two models, in either order. */
+	function pairOf(a: DatasetId, b: DatasetId): ModelPair | undefined {
+		return pairs.find((pair) => {
+			const [x, y] = getModelsFromPair(pair);
+			return (x === a && y === b) || (x === b && y === a);
+		});
+	}
 
 	/**
-	 * Label a pair from the model names themselves.
-	 *
-	 * This used to be a switch over three hardcoded translation keys that the
-	 * catalogue never defined, so every label fell through to its English
-	 * fallback. Building the label from the registry means a new model is named
-	 * correctly without a new key.
+	 * Which member the reader put first. The contract fixes each pair's own
+	 * order, so without this a choice could swap the two selects under the
+	 * reader's hand when the contract lists that pair the other way round.
 	 */
-	function getPairLabel(pairId: ModelPair): string {
-		const [modelAId, modelBId] = getModelsFromPair(pairId);
-		const nameOf = (id: string) => datasetState.getById(id)?.name ?? id;
-		return `${nameOf(modelAId)} ${$t.comparison.versus} ${nameOf(modelBId)}`;
-	}
+	let anchor = $state<DatasetId | null>(null);
 
-	let isOpen = $state(false);
-	let dropdownRef = $state<HTMLDivElement | null>(null);
-	let menuRef = $state<HTMLDivElement | null>(null);
-	let menuAlignment = $state<'start' | 'end'>('start');
+	let members = $derived(getModelsFromPair(datasetState.pair));
+	let first = $derived<DatasetId>(anchor && members.includes(anchor) ? anchor : members[0]);
+	let second = $derived<DatasetId>(members[0] === first ? members[1] : members[0]);
 
-	// Get dataset info for a model ID using $derived
-	function getDatasetInfo(modelId: string, datasets: DatasetOption[]): DatasetOption | undefined {
-		return datasets.find((d) => d.id === modelId);
-	}
+	/** Models that form a published pair with the first model. */
+	let partners = $derived(models.filter((model) => model.id !== first && pairOf(first, model.id)));
 
-	// Get logos for a pair - now takes datasets as parameter
-	function getLogosForPair(
-		pair: ModelPair,
-		datasets: DatasetOption[]
-	): [AssetPath | undefined, AssetPath | undefined] {
-		const [modelAId, modelBId] = getModelsFromPair(pair);
-		const modelA = getDatasetInfo(modelAId, datasets);
-		const modelB = getDatasetInfo(modelBId, datasets);
-		return [modelA?.logo, modelB?.logo];
-	}
-
-	// Derived current logos for the selected pair
-	let currentLogos = $derived(getLogosForPair(datasetState.pair, datasetState.available));
-
-	function selectPair(pair: ModelPair) {
-		datasetState.pair = pair;
-		isOpen = false;
-		// Update URL to reflect the new pair, passing the current view
-		updateURL(uiState.activeView);
-	}
-
-	function handleClickOutside(event: MouseEvent) {
-		if (dropdownRef && !dropdownRef.contains(event.target as Node)) {
-			isOpen = false;
+	function apply(a: DatasetId, b: DatasetId) {
+		const pair = pairOf(a, b);
+		if (!pair) return;
+		anchor = a;
+		if (pair !== datasetState.pair) {
+			datasetState.pair = pair;
+			updateURL(uiState.activeView);
 		}
 	}
 
-	function positionMenu() {
-		if (!dropdownRef || !menuRef) return;
-
-		const triggerBounds = dropdownRef.getBoundingClientRect();
-		const menuWidth = menuRef.offsetWidth;
-		const viewportWidth = document.documentElement.clientWidth;
-		const startWouldOverflow = triggerBounds.left + menuWidth > viewportWidth;
-		const endFits = triggerBounds.right - menuWidth >= 0;
-
-		menuAlignment = startWouldOverflow && endFits ? 'end' : 'start';
+	function changeFirst(event: Event) {
+		const value = (event.currentTarget as HTMLSelectElement).value as DatasetId;
+		const keep = value !== second && pairOf(value, second);
+		const partner = keep
+			? second
+			: models.find((model) => model.id !== value && pairOf(value, model.id))?.id;
+		if (partner) apply(value, partner);
 	}
 
-	// A resize event can fire before the new viewport's layout has settled, so
-	// positionMenu would read the trigger's *old* geometry and keep an alignment
-	// that strands the open menu off-screen. Recompute once more after reflow.
-	let repositionTimer: ReturnType<typeof setTimeout> | undefined;
-	function handleResize() {
-		positionMenu();
-		clearTimeout(repositionTimer);
-		repositionTimer = setTimeout(positionMenu, 100);
+	function changeSecond(event: Event) {
+		apply(first, (event.currentTarget as HTMLSelectElement).value as DatasetId);
 	}
 
-	$effect(() => {
-		if (isOpen) {
-			void tick().then(positionMenu);
-			document.addEventListener('click', handleClickOutside);
-			window.addEventListener('resize', handleResize);
-			return () => {
-				document.removeEventListener('click', handleClickOutside);
-				window.removeEventListener('resize', handleResize);
-				clearTimeout(repositionTimer);
-			};
-		}
-	});
+	function logoOf(id: DatasetId) {
+		return datasetState.getById(id)?.logo;
+	}
 </script>
 
-<div class="model-pair-picker" bind:this={dropdownRef}>
-	<button
-		class="picker-button"
-		type="button"
-		onclick={() => (isOpen = !isOpen)}
-		aria-label={$t.comparison.selectModelPair}
-		aria-expanded={isOpen}
-		aria-haspopup="listbox"
-	>
-		<div class="selected-pair">
-			{#each currentLogos as logo, i (i)}
-				{#if logo}
-					<img src={asset(logo)} alt="" class="pair-logo" />
-				{/if}
-				{#if i === 0}
-					<span class="vs-label">vs</span>
-				{/if}
-			{/each}
-		</div>
-		<ChevronDownIcon size={16} class="chevron" data-state={isOpen ? 'open' : 'closed'} />
-	</button>
+<div class="model-pair-picker" role="group" aria-label={$t.comparison.selectModelPair}>
+	<div class="pair-field">
+		<label class="pair-label" for="{uid}-first">{$t.pairPicker.first}</label>
+		<span class="pair-control">
+			{#if logoOf(first)}
+				<img src={asset(logoOf(first)!)} alt="" class="pair-logo" />
+			{/if}
+			<select
+				id="{uid}-first"
+				class="select select-sm pair-select"
+				value={first}
+				onchange={changeFirst}
+			>
+				{#each models as model (model.id)}
+					<option value={model.id}>{model.name}</option>
+				{/each}
+			</select>
+		</span>
+	</div>
 
-	{#if isOpen}
-		<div class="dropdown-menu" data-align={menuAlignment} role="listbox" bind:this={menuRef}>
-			{#each pairs as pairId (pairId)}
-				{@const [logoA, logoB] = getLogosForPair(pairId, datasetState.available)}
-				<button
-					class="dropdown-item"
-					data-state={datasetState.pair === pairId ? 'selected' : 'idle'}
-					type="button"
-					role="option"
-					aria-selected={datasetState.pair === pairId}
-					onclick={() => selectPair(pairId)}
-				>
-					<!-- No "vs" between the logos here: the pair label beside them already
-					     reads "ChatGPT vs Gemini". It used to be set at 8px to fit, which
-					     is below anything legible — the row needed less content, not
-					     smaller type. -->
-					<div class="pair-logos">
-						{#if logoA}
-							<img src={asset(logoA)} alt="" class="pair-logo-sm" />
-						{/if}
-						{#if logoB}
-							<img src={asset(logoB)} alt="" class="pair-logo-sm" />
-						{/if}
-					</div>
-					<span class="pair-label">{getPairLabel(pairId)}</span>
-				</button>
-			{/each}
-		</div>
-	{/if}
+	<span class="vs-label" aria-hidden="true">{$t.comparison.versus}</span>
+
+	<div class="pair-field">
+		<label class="pair-label" for="{uid}-second">{$t.pairPicker.second}</label>
+		<span class="pair-control">
+			{#if logoOf(second)}
+				<img src={asset(logoOf(second)!)} alt="" class="pair-logo" />
+			{/if}
+			<select
+				id="{uid}-second"
+				class="select select-sm pair-select"
+				value={second}
+				onchange={changeSecond}
+			>
+				{#each partners as model (model.id)}
+					<option value={model.id}>{model.name}</option>
+				{/each}
+			</select>
+		</span>
+	</div>
 </div>
 
 <style>
 	.model-pair-picker {
-		--model-pair-menu-width-compact: calc(var(--space-16) * 3 + var(--space-2));
-		--model-pair-menu-width: calc(var(--space-16) * 5);
-		/* The v2 panel has ten pairs, so the menu is now taller than a short
-		   viewport: at 390x844 an unbounded list runs off the bottom of the page
-		   with no way to reach the last entries. Capped against the viewport
-		   rather than a fixed height, so it shrinks with the window instead of
-		   being right at one size. */
-		--model-pair-menu-max-height: min(60vh, calc(var(--size-control-xl) * 8));
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-end;
+		gap: var(--space-2) var(--space-3);
+		max-width: 100%;
+		min-width: 0;
+	}
 
-		position: relative;
-		display: inline-block;
+	.pair-field {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+		min-width: 0;
 		max-width: 100%;
 	}
 
-	.picker-button {
+	.pair-label {
+		font-family: var(--font-mono);
+		font-size: var(--font-size-eyebrow);
+		font-weight: var(--font-weight-semibold);
+		text-transform: uppercase;
+		letter-spacing: var(--tracking-wider);
+		color: var(--text-muted);
+	}
+
+	.pair-control {
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
+		min-width: 0;
+	}
+
+	.pair-select {
 		min-height: var(--size-control-lg);
-		padding: var(--space-2) var(--space-3);
-		background: var(--surface-muted);
-		border: 1px solid var(--border-default);
-		border-radius: var(--radius-panel);
-		color: var(--text-primary);
-		cursor: pointer;
-		transition:
-			background-color var(--timing-fast) var(--easing-default),
-			border-color var(--timing-fast) var(--easing-default);
-	}
-
-	.picker-button:hover {
-		background: var(--surface-subtle);
-		border-color: var(--border-hover);
-	}
-
-	.picker-button:focus-visible,
-	.dropdown-item:focus-visible {
-		outline: 2px solid var(--color-primary-400);
-		outline-offset: 2px;
-	}
-
-	.selected-pair {
-		display: flex;
-		align-items: center;
-		gap: var(--space-1-5);
+		min-width: 0;
+		max-width: 100%;
 	}
 
 	.pair-logo {
 		width: var(--space-5);
 		height: var(--space-5);
 		object-fit: contain;
-	}
-
-	.vs-label {
-		font-size: var(--font-size-eyebrow);
-		font-weight: var(--font-weight-semibold);
-		text-transform: uppercase;
-		color: var(--sentiment-comparison-light);
-		letter-spacing: var(--tracking-wider);
-	}
-
-	.dropdown-menu {
-		position: absolute;
-		top: calc(100% + var(--space-1));
-		left: 0;
-		right: auto;
-		width: min(var(--model-pair-menu-width-compact), calc(100vw - var(--space-8)));
-		background: var(--surface-card-elevated);
-		border: 1px solid var(--border-default);
-		border-radius: var(--radius-hairline);
-		box-shadow: var(--shadow-lg);
-		z-index: var(--z-dropdown);
-		max-height: var(--model-pair-menu-max-height);
-		overflow-x: hidden;
-		overflow-y: auto;
-		overscroll-behavior: contain;
-		padding: var(--space-1);
-	}
-
-	.dropdown-menu[data-align='end'] {
-		right: 0;
-		left: auto;
-	}
-
-	.dropdown-item {
-		display: flex;
-		align-items: center;
-		gap: var(--space-3);
-		width: 100%;
-		min-height: var(--size-control-xl);
-		padding: var(--space-2-5) var(--space-3);
-		background: transparent;
-		border: none;
-		border-radius: var(--radius-hairline);
-		color: var(--text-secondary);
-		cursor: pointer;
-		transition: background-color var(--timing-fast) var(--easing-default);
-		text-align: left;
-	}
-
-	.dropdown-item:hover {
-		background: var(--surface-subtle);
-	}
-
-	.dropdown-item[data-state='selected'] {
-		background: var(--surface-hover);
-		box-shadow: inset 2px 0 0 var(--color-primary-400);
-	}
-
-	.pair-logos {
-		display: flex;
-		align-items: center;
-		gap: var(--space-1);
 		flex-shrink: 0;
 	}
 
-	.pair-logo-sm {
-		width: var(--size-icon-sm);
-		height: var(--size-icon-sm);
-		object-fit: contain;
-	}
-
-	.pair-label {
-		min-width: 0;
-		font-size: var(--font-size-sm);
-		font-weight: var(--font-weight-medium);
-		line-height: var(--line-height-snug);
-		overflow-wrap: anywhere;
-	}
-
-	@media (min-width: 1024px) {
-		.dropdown-menu {
-			width: min(var(--model-pair-menu-width), calc(100vw - var(--space-8)));
-		}
+	.vs-label {
+		font-family: var(--font-mono);
+		font-size: var(--font-size-eyebrow);
+		font-weight: var(--font-weight-semibold);
+		text-transform: uppercase;
+		letter-spacing: var(--tracking-wider);
+		color: var(--sentiment-comparison-light);
+		padding-bottom: var(--space-3);
 	}
 </style>

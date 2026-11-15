@@ -1,24 +1,18 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { provideChartCardHeading } from './chartCardHeading.svelte.js';
 
 	interface ChartCardProps {
 		/** Optional title for the card header */
 		title?: string;
 		/** Optional subtitle for the card header */
 		subtitle?: string;
-		/** Visual variant - drives the accent color tokens */
-		variant?:
-			| 'default'
-			| 'large'
-			| 'extreme'
-			| 'arbiter'
-			| 'comparison'
-			| 'charts'
-			| 'trends'
-			| 'volume'
-			| 'heatmap'
-			| 'table'
-			| 'correlation';
+		/**
+		 * Size variant. Only variants with styles exist; `table` is still passed
+		 * by `layout/ViewContent.svelte` and renders as `default` until that call
+		 * site drops it.
+		 */
+		variant?: 'default' | 'extreme' | 'arbiter' | 'comparison' | 'table';
 		/** Card content */
 		children: Snippet;
 		/** Custom header snippet (overrides title/subtitle) */
@@ -35,18 +29,24 @@
 		header,
 		class: className = ''
 	}: ChartCardProps = $props();
+
+	// A chart inside the card can claim its header (see chartCardHeading.svelte.ts):
+	// its title then lives in the DOM as the card's <h2> instead of the canvas.
+	const headingSlot = provideChartCardHeading();
+	const headingTitle = $derived(title ?? headingSlot.content?.title);
+	const headingSubtitle = $derived(title ? subtitle : headingSlot.content?.subtitle);
 </script>
 
 <div class="chart-card {className}" data-variant={variant}>
-	{#if title || header}
+	{#if headingTitle || header}
 		<div class="chart-card-header">
 			{#if header}
 				{@render header()}
-			{:else if title}
+			{:else if headingTitle}
 				<div class="header-content">
-					<h2 class="chart-title">{title}</h2>
-					{#if subtitle}
-						<p class="chart-subtitle">{subtitle}</p>
+					<h2 class="chart-title">{headingTitle}</h2>
+					{#if headingSubtitle}
+						<p class="chart-subtitle">{headingSubtitle}</p>
 					{/if}
 				</div>
 			{/if}
@@ -120,19 +120,6 @@
 	}
 
 	/* Size variants — only kept where they meaningfully change layout */
-	.chart-card[data-variant='large'] {
-		min-height: var(--height-chart-md);
-	}
-	.chart-card[data-variant='large'] .chart-card-header {
-		padding: var(--space-5) var(--space-6);
-	}
-	.chart-card[data-variant='large'] .chart-title {
-		font-size: var(--font-size-2xl);
-	}
-	.chart-card[data-variant='large'] .chart-card-body {
-		padding: var(--space-6);
-	}
-
 	.chart-card[data-variant='extreme'] {
 		min-height: var(--height-chart-sm);
 	}

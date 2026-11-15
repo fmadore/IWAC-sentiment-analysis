@@ -50,9 +50,18 @@
 </script>
 
 {#if comparison}
-	<FullScreenModal {open} {onClose} {title} {subtitle} accentVariant="comparison">
+	<FullScreenModal
+		{open}
+		{onClose}
+		{title}
+		titleLang={comparison.article?.['o:title'] ? 'fr' : undefined}
+		{subtitle}
+		accentVariant="comparison"
+	>
 		{#snippet headerIcon()}
-			<GitCompareArrowsIcon size={20} class="text-secondary-400" />
+			<!-- A Lucide `class` is a prop, not a scoped class: the colour lives on
+			     a real element and reaches the icon through currentColor. -->
+			<span class="header-icon"><GitCompareArrowsIcon size={20} /></span>
 		{/snippet}
 
 		{#snippet headerActions()}
@@ -68,6 +77,11 @@
 {/if}
 
 <style>
+	.header-icon {
+		display: inline-flex;
+		color: var(--color-secondary-400);
+	}
+
 	.discrepancy-badge {
 		display: none;
 		align-items: center;

@@ -1,14 +1,14 @@
 <!--
   ArbiterMethodology Component
 
-  Displays the methodology specific to the Arbiter (Gemini 3 Pro) evaluation process.
-  Shows the blind evaluation process, system instructions, and prompt details.
+  The methodology of the archived (generation 1) pairwise arbiter, Gemini 3
+  Pro: the blind evaluation, the process, the model, the scales and the prompt.
 
-  Features:
-  - Collapsible section with toggle
-  - Explanation of the blind evaluation process
-  - System instruction and evaluation scales
-  - User prompt template
+  A sibling of ArbiterV2Methodology, not a branch of it: almost every claim
+  differs. The two share leaf components only — the key-fact row
+  (MethodologyKeyInfo), the titled sections (MethodologySection), the scales
+  (MethodologyScales) and the prompt dialog body (PromptBlocks, which also
+  loads the prompt texts when the dialog opens).
 
   Usage:
   <ArbiterMethodology />
@@ -16,12 +16,14 @@
 <script lang="ts">
 	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
 	import { t } from '#lib/i18n/index.js';
-	import { AccordionItem, PromptModal } from '#lib/components/common/index.js';
+	import AccordionItem from '#lib/components/common/AccordionItem.svelte';
+	import PromptModal from '#lib/components/common/PromptModal.svelte';
 	import CollapsibleMethodologyCard from '#lib/components/common/CollapsibleMethodologyCard.svelte';
-	import SentimentScaleList, {
-		type ScaleItem
-	} from '#lib/components/common/SentimentScaleList.svelte';
-	import { loadPromptTexts, promptTexts } from '#lib/data/promptTexts.svelte.js';
+	import MethodologyKeyInfo from '#lib/components/common/MethodologyKeyInfo.svelte';
+	import MethodologySection from '#lib/components/common/MethodologySection.svelte';
+	import MethodologyScales from '#lib/components/common/MethodologyScales.svelte';
+	import PromptBlocks from '#lib/components/common/PromptBlocks.svelte';
+	import { subjectivityScaleItems } from '#lib/utils/scaleItems.js';
 	import { createAccordion } from '#lib/utils/accordion.svelte.js';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import EyeOffIcon from '@lucide/svelte/icons/eye-off';
@@ -29,69 +31,36 @@
 	import BrainIcon from '@lucide/svelte/icons/brain';
 	import { asset } from '$app/paths';
 
-	// State for accordion sections
 	const accordion = createAccordion();
 
-	// State for the prompt modal
-
-	// Evaluation-scale items (chip class + label + description)
-	const polarityItems: ScaleItem[] = $derived([
+	const keyInfo = $derived([
 		{
-			variant: 'polarity-very-positive',
-			badge: 'Très positif',
-			description: $t.arbiter.polarityVeryPositive
+			icon: EyeOffIcon,
+			tone: 'blind' as const,
+			title: $t.arbiter.blindEvaluation,
+			description: $t.arbiter.blindEvaluationDesc
 		},
-		{ variant: 'polarity-positive', badge: 'Positif', description: $t.arbiter.polarityPositive },
-		{ variant: 'polarity-neutral', badge: 'Neutre', description: $t.arbiter.polarityNeutral },
-		{ variant: 'polarity-negative', badge: 'Négatif', description: $t.arbiter.polarityNegative },
 		{
-			variant: 'polarity-very-negative',
-			badge: 'Très négatif',
-			description: $t.arbiter.polarityVeryNegative
+			icon: BrainIcon,
+			tone: 'arbiter' as const,
+			title: $t.arbiter.highReasoning,
+			description: $t.arbiter.highReasoningDesc
+		},
+		{
+			icon: ScaleIcon,
+			tone: 'positive' as const,
+			title: $t.arbiter.independentVerdict,
+			description: $t.arbiter.independentVerdictDesc
 		}
 	]);
 
-	const subjectivityItems: ScaleItem[] = $derived([
-		{ variant: 'subjectivity-1', badge: '1', description: $t.arbiter.subjectivity1 },
-		{ variant: 'subjectivity-2', badge: '2', description: $t.arbiter.subjectivity2 },
-		{ variant: 'subjectivity-3', badge: '3', description: $t.arbiter.subjectivity3 },
-		{ variant: 'subjectivity-4', badge: '4', description: $t.arbiter.subjectivity4 },
-		{ variant: 'subjectivity-5', badge: '5', description: $t.arbiter.subjectivity5 }
-	]);
-
-	const centralityItems: ScaleItem[] = $derived([
-		{
-			variant: 'centrality-very-central',
-			badge: 'Très central',
-			description: $t.arbiter.centralityVeryCentral
-		},
-		{ variant: 'centrality-central', badge: 'Central', description: $t.arbiter.centralityCentral },
-		{
-			variant: 'centrality-secondary',
-			badge: 'Secondaire',
-			description: $t.arbiter.centralitySecondary
-		},
-		{
-			variant: 'centrality-marginal',
-			badge: 'Marginal',
-			description: $t.arbiter.centralityMarginal
-		},
-		{
-			variant: 'centrality-not-addressed',
-			badge: 'Non abordé',
-			description: $t.arbiter.centralityNotAddressed
-		}
-	]);
-	// The prompt texts load only when the modal opens (see promptTexts.svelte.ts).
-	$effect(() => {
-		if (viewOptionsState.prompt) {
-			loadPromptTexts().catch((error) => console.error('Failed to load the prompt texts:', error));
-		}
-	});
+	// v1 stored subjectivity as a 1–5 rank, and the badge shows the rank.
+	const subjectivityItems = $derived(subjectivityScaleItems($t.arbiter));
 </script>
 
 <CollapsibleMethodologyCard
 	variant="arbiter"
+	openOnHash="methodology"
 	title={$t.arbiter.methodologyTitle}
 	subtitle={$t.arbiter.methodologySubtitle}
 >
@@ -101,67 +70,34 @@
 		</div>
 	{/snippet}
 
-	<!-- Key Info Section -->
-	<div class="key-info-grid">
-		<div class="key-info-card">
-			<div class="key-info-icon blind">
-				<EyeOffIcon size={20} />
-			</div>
-			<div>
-				<h4 class="key-info-title">{$t.arbiter.blindEvaluation}</h4>
-				<p class="key-info-desc">{$t.arbiter.blindEvaluationDesc}</p>
-			</div>
-		</div>
-		<div class="key-info-card">
-			<div class="key-info-icon arbiter">
-				<BrainIcon size={20} />
-			</div>
-			<div>
-				<h4 class="key-info-title">{$t.arbiter.highReasoning}</h4>
-				<p class="key-info-desc">{$t.arbiter.highReasoningDesc}</p>
-			</div>
-		</div>
-		<div class="key-info-card">
-			<div class="key-info-icon scale">
-				<ScaleIcon size={20} />
-			</div>
-			<div>
-				<h4 class="key-info-title">{$t.arbiter.independentVerdict}</h4>
-				<p class="key-info-desc">{$t.arbiter.independentVerdictDesc}</p>
-			</div>
-		</div>
-	</div>
+	<MethodologyKeyInfo items={keyInfo} />
 
-	<!-- Accordion Sections -->
 	<div class="accordion-container">
-		<!-- How it works -->
 		<AccordionItem
 			title={$t.arbiter.howItWorks}
 			open={accordion.isOpen('how-it-works')}
 			onToggle={() => accordion.toggle('how-it-works')}
 		>
 			<div class="methodology-content">
-				<div class="methodology-section">
-					<h4 class="section-title">{$t.arbiter.selectionProcess}</h4>
-					<p class="section-text">{$t.arbiter.selectionProcessDesc}</p>
-				</div>
-				<div class="methodology-section">
-					<h4 class="section-title">{$t.arbiter.blindAssignment}</h4>
-					<p class="section-text">{$t.arbiter.blindAssignmentDesc}</p>
-				</div>
-				<div class="methodology-section">
-					<h4 class="section-title">{$t.arbiter.evaluationProcess}</h4>
-					<ol class="process-list">
+				<MethodologySection
+					title={$t.arbiter.selectionProcess}
+					text={$t.arbiter.selectionProcessDesc}
+				/>
+				<MethodologySection
+					title={$t.arbiter.blindAssignment}
+					text={$t.arbiter.blindAssignmentDesc}
+				/>
+				<MethodologySection title={$t.arbiter.evaluationProcess}>
+					<ol>
 						<li>{$t.arbiter.step1}</li>
 						<li>{$t.arbiter.step2}</li>
 						<li>{$t.arbiter.step3}</li>
 						<li>{$t.arbiter.step4}</li>
 					</ol>
-				</div>
+				</MethodologySection>
 			</div>
 		</AccordionItem>
 
-		<!-- Arbiter Model -->
 		<AccordionItem
 			title={$t.arbiter.arbiterModel}
 			open={accordion.isOpen('arbiter-model')}
@@ -169,10 +105,10 @@
 		>
 			<div class="model-card-single">
 				<div class="model-header">
-					<img src={asset('logo/Gemini_logo.svg')} alt="Gemini Logo" class="model-logo" />
+					<img src={asset('logo/Gemini_logo.svg')} alt="" class="model-logo" />
 					<div>
 						<h4 class="model-name">Gemini 3 Pro</h4>
-						<span class="model-badge gemini">{$t.arbiter.arbiterRole}</span>
+						<span class="model-badge">{$t.arbiter.arbiterRole}</span>
 					</div>
 				</div>
 				<p class="model-description">{$t.arbiter.geminiArbiterDesc}</p>
@@ -185,37 +121,22 @@
 			</div>
 		</AccordionItem>
 
-		<!-- Evaluation Scales -->
 		<AccordionItem
 			title={$t.arbiter.evaluationScales}
 			open={accordion.isOpen('scales')}
 			onToggle={() => accordion.toggle('scales')}
 		>
-			<div class="scales-content">
-				<div class="scale-section">
-					<h4 class="section-title">{$t.filters.polarity}</h4>
-					<SentimentScaleList variant="chip" chipKind="sentiment" items={polarityItems} />
-				</div>
-				<div class="scale-section">
-					<h4 class="section-title">{$t.filters.subjectivity}</h4>
-					<SentimentScaleList variant="chip" chipKind="subjectivity" items={subjectivityItems} />
-				</div>
-				<div class="scale-section">
-					<h4 class="section-title">{$t.filters.centrality}</h4>
-					<SentimentScaleList variant="chip" chipKind="centrality" items={centralityItems} />
-				</div>
-			</div>
+			<MethodologyScales {subjectivityItems} />
 		</AccordionItem>
 
-		<!-- View Prompt -->
 		<AccordionItem
 			title={$t.arbiter.viewPrompt}
 			open={accordion.isOpen('prompt')}
 			onToggle={() => accordion.toggle('prompt')}
 		>
 			<div class="prompt-section">
-				<p class="section-text">{$t.arbiter.promptExplanation}</p>
-				<button class="prompt-btn" onclick={() => (viewOptionsState.prompt = true)}>
+				<p class="prompt-text">{$t.arbiter.promptExplanation}</p>
+				<button type="button" class="prompt-btn" onclick={() => (viewOptionsState.prompt = true)}>
 					{$t.arbiter.viewFullPrompt}
 				</button>
 			</div>
@@ -223,36 +144,21 @@
 	</div>
 </CollapsibleMethodologyCard>
 
-<!-- Prompt Modal -->
 <PromptModal open={viewOptionsState.prompt} onClose={() => (viewOptionsState.prompt = false)}>
 	{#snippet title()}
 		<span class="arbiter-glyph"><GavelIcon size={20} /></span>
 		{$t.arbiter.arbiterPrompt}
 	{/snippet}
 
-	{#if promptTexts.current}
-		<div class="prompt-section-header">
-			<h4>{$t.arbiter.systemInstruction}</h4>
-		</div>
-		<div class="prompt-code-container">
-			<pre class="prompt-code">{promptTexts.current.ARBITER_SYSTEM_INSTRUCTION}</pre>
-		</div>
-
-		<div class="prompt-section-header">
-			<h4>{$t.arbiter.userPromptTemplate}</h4>
-		</div>
-		<div class="prompt-code-container">
-			<pre class="prompt-code">{promptTexts.current.ARBITER_USER_PROMPT_TEMPLATE}</pre>
-		</div>
-	{:else}
-		<p class="prompt-loading" role="status">{$t.messages.loading}</p>
-	{/if}
+	<PromptBlocks
+		blocks={(texts) => [
+			{ title: $t.arbiter.systemInstruction, body: texts.ARBITER_SYSTEM_INSTRUCTION },
+			{ title: $t.arbiter.userPromptTemplate, body: texts.ARBITER_USER_PROMPT_TEMPLATE }
+		]}
+	/>
 </PromptModal>
 
 <style>
-	/* ==========================================================================
-     Header Icon
-     ========================================================================== */
 	.arbiter-icon-header {
 		display: flex;
 		align-items: center;
@@ -264,70 +170,12 @@
 		border: 1px solid var(--sentiment-arbiter-border);
 	}
 
-	/* ==========================================================================
-     Key Info Grid
-     ========================================================================== */
-	.key-info-grid {
-		display: grid;
-		grid-template-columns: 1fr;
-		gap: var(--space-4);
-		margin-bottom: var(--space-6);
-	}
-
-	.key-info-card {
-		display: flex;
-		align-items: flex-start;
-		gap: var(--space-3);
-		padding: var(--space-4);
-		background: var(--surface-nested);
-		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-panel);
-	}
-
-	.key-info-icon {
-		display: flex;
+	.arbiter-glyph {
+		display: inline-flex;
 		align-items: center;
-		justify-content: center;
-		width: var(--size-control-lg);
-		height: var(--size-control-lg);
-		border-radius: var(--radius-panel);
-		flex-shrink: 0;
-	}
-
-	.key-info-icon.blind {
-		background: var(--sentiment-subjectivity-3-bg);
-		border: 1px solid var(--sentiment-subjectivity-3-border);
-		color: var(--sentiment-subjectivity-3);
-	}
-
-	.key-info-icon.arbiter {
-		background: var(--sentiment-arbiter-bg);
-		border: 1px solid var(--sentiment-arbiter-border);
 		color: var(--sentiment-arbiter);
 	}
 
-	.key-info-icon.scale {
-		background: var(--sentiment-polarity-very-positive-bg);
-		border: 1px solid var(--sentiment-polarity-very-positive-border);
-		color: var(--sentiment-polarity-positive);
-	}
-
-	.key-info-title {
-		font-size: var(--font-size-base);
-		font-weight: var(--font-weight-semibold);
-		color: var(--color-surface-50);
-		margin-bottom: var(--space-1);
-	}
-
-	.key-info-desc {
-		font-size: var(--font-size-xs);
-		color: var(--text-muted);
-		line-height: var(--line-height-snug);
-	}
-
-	/* ==========================================================================
-     Accordion Styles
-     ========================================================================== */
 	.accordion-container {
 		display: flex;
 		flex-direction: column;
@@ -338,65 +186,12 @@
 		border: 1px solid var(--border-subtle);
 	}
 
-	/* ==========================================================================
-     Methodology Content Styles
-     ========================================================================== */
 	.methodology-content {
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-4);
 	}
 
-	.methodology-section {
-		padding: var(--space-3);
-		background: var(--surface-nested);
-		border-radius: var(--radius-panel);
-	}
-
-	.section-title {
-		font-size: var(--font-size-base);
-		font-weight: var(--font-weight-semibold);
-		color: var(--sentiment-arbiter);
-		margin-bottom: var(--space-2);
-	}
-
-	.section-text {
-		font-size: var(--font-size-sm);
-		color: var(--color-surface-50);
-		opacity: 0.85;
-		line-height: var(--line-height-normal);
-	}
-
-	.process-list {
-		list-style: decimal;
-		padding-left: var(--space-5);
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-2);
-	}
-
-	.process-list li {
-		font-size: var(--font-size-sm);
-		color: var(--text-secondary);
-		line-height: var(--line-height-snug);
-	}
-
-	.config-list {
-		list-style: disc;
-		padding-left: var(--space-5);
-		margin-top: var(--space-3);
-	}
-
-	.config-list li {
-		font-size: var(--font-size-sm);
-		color: var(--color-surface-50);
-		opacity: 0.8;
-		line-height: var(--line-height-relaxed);
-	}
-
-	/* ==========================================================================
-     Model Card Styles
-     ========================================================================== */
 	.model-card-single {
 		background: var(--surface-nested);
 		border: 1px solid var(--border-subtle);
@@ -419,7 +214,7 @@
 	.model-name {
 		font-size: var(--font-size-lg);
 		font-weight: var(--font-weight-semibold);
-		color: var(--color-surface-50);
+		color: var(--text-primary);
 	}
 
 	.model-badge {
@@ -430,40 +225,35 @@
 		border-radius: var(--radius-hairline);
 		text-transform: uppercase;
 		letter-spacing: var(--tracking-wider);
-	}
-
-	.model-badge.gemini {
 		background: var(--sentiment-polarity-neutral-bg);
 		color: var(--sentiment-polarity-neutral);
 		border: 1px solid var(--sentiment-polarity-neutral-border);
 	}
 
-	.model-description {
+	.model-description,
+	.prompt-text {
 		font-size: var(--font-size-sm);
-		color: var(--color-surface-50);
-		opacity: 0.8;
+		color: var(--text-secondary);
 		line-height: var(--line-height-normal);
+		max-width: var(--prose-width);
+	}
+
+	.model-description {
 		margin-bottom: var(--space-3);
 	}
 
-	/* ==========================================================================
-     Scales Content Styles
-     ========================================================================== */
-	.scales-content {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-5);
+	.config-list {
+		list-style: disc;
+		padding-left: var(--space-5);
+		margin-top: var(--space-3);
 	}
 
-	.scale-section {
-		padding: var(--space-3);
-		background: var(--surface-nested);
-		border-radius: var(--radius-panel);
+	.config-list li {
+		font-size: var(--font-size-sm);
+		color: var(--text-secondary);
+		line-height: var(--line-height-relaxed);
 	}
 
-	/* ==========================================================================
-     Prompt Section Styles
-     ========================================================================== */
 	.prompt-section {
 		padding: var(--space-3);
 	}
@@ -481,7 +271,9 @@
 		border: 1px solid var(--sentiment-arbiter-border);
 		border-radius: var(--radius-panel);
 		cursor: pointer;
-		transition: all var(--timing-fast) var(--easing-default);
+		transition:
+			background-color var(--timing-fast) var(--easing-default),
+			border-color var(--timing-fast) var(--easing-default);
 	}
 
 	.prompt-btn:hover {
@@ -489,66 +281,9 @@
 		border-color: var(--sentiment-arbiter);
 	}
 
-	/* ==========================================================================
-     Prompt Body Content Styles (rendered inside shared PromptModal)
-     ========================================================================== */
-	.prompt-section-header {
-		margin-bottom: var(--space-3);
-	}
-
-	.prompt-section-header h4 {
-		font-size: var(--font-size-base);
-		font-weight: var(--font-weight-semibold);
-		color: var(--sentiment-arbiter);
-		text-transform: uppercase;
-		letter-spacing: var(--tracking-wider);
-	}
-
-	.prompt-section-header:not(:first-child) {
-		margin-top: var(--space-6);
-	}
-
-	.prompt-code-container {
-		background: color-mix(in oklab, var(--color-surface-950) 80%, transparent);
-		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-panel);
-		overflow: hidden;
-	}
-
-	.prompt-code {
-		padding: var(--space-4);
-		font-family: 'JetBrains Mono', 'Fira Code', monospace;
-		font-size: var(--font-size-eyebrow);
-		line-height: var(--line-height-relaxed);
-		color: var(--text-secondary);
-		white-space: pre-wrap;
-		word-break: break-word;
-		overflow-x: auto;
-	}
-
-	/* ==========================================================================
-     Responsive Styles
-     ========================================================================== */
-	@media (min-width: 640px) {
-		.key-info-grid {
-			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-		}
-
-		.prompt-code {
-			font-size: var(--font-size-xs);
-		}
-	}
-
-	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
 		.prompt-btn {
 			transition: none;
 		}
-	}
-
-	.arbiter-glyph {
-		display: inline-flex;
-		align-items: center;
-		color: var(--sentiment-arbiter);
 	}
 </style>

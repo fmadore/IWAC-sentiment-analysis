@@ -4,6 +4,12 @@ The private cache retains every paid evaluation and its run provenance, keyed
 by the existing input fingerprint. A narrower publication never deletes one.
 Callers hold the dedicated arbiter run lock while loading and checkpointing;
 the public export has its own shorter publication lock.
+
+It also keeps a *negative* cache: a paid call that ended in a refusal, an
+invalid or a truncated response is recorded under its input fingerprint, so a
+rerun does not bill the same deterministic failure again (``--retry-failed``
+re-attempts them). Failures are never published as verdicts; the published
+counts are derived from them, so a run that makes no call keeps them.
 """
 
 from __future__ import annotations
@@ -106,6 +112,12 @@ class PanelCache:
     metadata: dict
     evaluations: dict[str, dict] = field(default_factory=dict)
     provenance: dict[str, dict] = field(default_factory=dict)
+    # fingerprint -> {article_id, outcome, recorded, prompt_version, ...}
+    failures: dict[str, dict] = field(default_factory=dict)
+    # The public file as it stood when the run started: the shrink guard and
+    # the no-op republish compare against it.
+    published_evaluations: list[dict] = field(default_factory=list)
+    published_metadata: dict = field(default_factory=dict)
 
     @classmethod
     def load(
@@ -144,14 +156,26 @@ class PanelCache:
             "calls", 0
         ):
             metadata["usage"] = public_metadata["usage"]
-        cache = cls(path, metadata)
+        cache = cls(
+            path,
+            metadata,
+            published_evaluations=list(published),
+            published_metadata=dict(public_metadata),
+        )
         if path.exists():
             payload = json.loads(path.read_text(encoding="utf-8"))
             if payload.get("storage_schema_version") != STORAGE_SCHEMA_VERSION or not isinstance(
                 payload.get("provenance"), dict
             ):
                 raise CacheUnreadableError(f"{path} has an unsupported durable cache format.")
+            failures = payload.get("failures", {})
+            if not isinstance(failures, dict) or not all(
+                isinstance(entry, dict) and isinstance(entry.get("outcome"), str)
+                for entry in failures.values()
+            ):
+                raise CacheUnreadableError(f"{path} has an unreadable failure record.")
             cache.provenance = payload["provenance"]
+            cache.failures = failures
         cache.remember(published, public_metadata)
         cache.remember(durable, durable_metadata)
         return cache
@@ -178,16 +202,25 @@ class PanelCache:
             adopted_legacy=0,
         )
 
+    def record_failure(self, fingerprint: str, failure: dict) -> None:
+        """Remember a deterministic paid failure so a rerun does not re-bill it."""
+        self.failures[fingerprint] = dict(failure)
+
+    def clear_failure(self, fingerprint: str) -> None:
+        """Forget a failure once a retry of the same input produced a verdict."""
+        self.failures.pop(fingerprint, None)
+
     def checkpoint(self, evaluations: list[dict], metadata: dict) -> None:
         """Save paid work first, before a public export can fail or be narrowed."""
         self.remember(evaluations, metadata)
         self.metadata = {**metadata, "successful_evaluations": len(self.evaluations)}
-        safe_save_json(
-            {
-                "storage_schema_version": STORAGE_SCHEMA_VERSION,
-                "metadata": self.metadata,
-                "evaluations": list(self.evaluations.values()),
-                "provenance": self.provenance,
-            },
-            self.path,
-        )
+        payload = {
+            "storage_schema_version": STORAGE_SCHEMA_VERSION,
+            "metadata": self.metadata,
+            "evaluations": list(self.evaluations.values()),
+            "provenance": self.provenance,
+        }
+        # Optional key: a reader from before the negative cache ignores it.
+        if self.failures:
+            payload["failures"] = self.failures
+        safe_save_json(payload, self.path)

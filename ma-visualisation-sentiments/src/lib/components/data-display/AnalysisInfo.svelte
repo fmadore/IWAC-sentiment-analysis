@@ -2,11 +2,21 @@
 	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
 	import { MODELS } from '#lib/data/modelMethodology.js';
 	import { t, currentLanguage } from '#lib/i18n/index.js';
-	import { num } from '#lib/i18n/utils.js';
+	import { num, translateSentimentValue, translateSubjectivityScore } from '#lib/i18n/utils.js';
+	import {
+		centralityScaleItems,
+		polarityScaleItems,
+		subjectivityScaleItems
+	} from '#lib/utils/scaleItems.js';
 	import { datasetState, articleState, uiState } from '#lib/stores/index.js';
 	import { updateURL } from '#lib/stores/url/index.js';
-	import { ARCHIVED_GENERATION, generationOf } from '#lib/domain/sentimentContract.js';
-	import { AccordionItem, PromptModal } from '#lib/components/common/index.js';
+	import {
+		ARCHIVED_GENERATION,
+		SENTIMENT_CONTRACT_V2,
+		generationOf
+	} from '#lib/domain/sentimentContract.js';
+	import AccordionItem from '#lib/components/common/AccordionItem.svelte';
+	import PromptModal from '#lib/components/common/PromptModal.svelte';
 	import CollapsibleMethodologyCard from '#lib/components/common/CollapsibleMethodologyCard.svelte';
 	import SentimentScaleList, {
 		type ScaleItem
@@ -14,6 +24,7 @@
 	import { loadPromptTexts, promptTexts } from '#lib/data/promptTexts.svelte.js';
 	import { asset } from '$app/paths';
 	import { createAccordion } from '#lib/utils/accordion.svelte.js';
+	import { hasSingleModelPicker } from '#lib/types/data.js';
 
 	const accordion = createAccordion();
 
@@ -44,12 +55,19 @@
 			: null
 	);
 
-	// The prompt texts load only when the modal opens (see promptTexts.svelte.ts).
-	$effect(() => {
-		if (viewOptionsState.prompt) {
-			loadPromptTexts().catch((error) => console.error('Failed to load the prompt texts:', error));
-		}
-	});
+	// The prompt texts load when the reader asks for them. The click starts the
+	// load; a modal restored from a `prompt=true` link or from history awaits
+	// the same memoized promise inside its body (below), so no effect is needed.
+	function openPrompt() {
+		loadPromptTexts().catch((error) => console.error('Failed to load the prompt texts:', error));
+		viewOptionsState.prompt = true;
+	}
+
+	// Pair and panel views show several models at once; the copy describing
+	// "the model on screen" applies to the single-model views only.
+	const panelView = $derived(!hasSingleModelPicker(uiState.activeView));
+
+	type DimensionKey = 'polarity' | 'subjectivity' | 'centrality';
 
 	// Everything the two campaigns disagree about — scale wording, run
 	// configuration, what the prompt asks for. Same reasoning as activePrompt:
@@ -84,106 +102,61 @@
 		updateURL(uiState.activeView);
 	}
 
-	// Evaluation-scale items (badge class + label + description)
-	const polarityItems: ScaleItem[] = $derived([
-		{
-			variant: 'polarity-very-positive',
-			badge: $t.sentiment.veryPositive,
-			description: copy.polarityVeryPositive
-		},
-		{
-			variant: 'polarity-positive',
-			badge: $t.sentiment.positive,
-			description: copy.polarityPositive
-		},
-		{
-			variant: 'polarity-neutral',
-			badge: $t.sentiment.neutral,
-			description: copy.polarityNeutral
-		},
-		{
-			variant: 'polarity-negative',
-			badge: $t.sentiment.negative,
-			description: copy.polarityNegative
-		},
-		{
-			variant: 'polarity-very-negative',
-			badge: $t.sentiment.veryNegative,
-			description: copy.polarityVeryNegative
-		},
-		{
-			variant: 'polarity-na',
-			badge: $t.sentiment.notApplicable,
-			description: copy.polarityNotApplicable
-		}
-	]);
+	// Evaluation-scale items: the steps and their variants come from
+	// `utils/scaleItems.ts`; the badges are the translated labels and the
+	// descriptions the generation's own wording. Reading `$currentLanguage`
+	// makes the badges follow a language switch.
+	const polarityItems: ScaleItem[] = $derived(
+		polarityScaleItems(copy, {
+			includeNotApplicable: true,
+			badge: (step) => translateSentimentValue(step.value, $currentLanguage)
+		})
+	);
 
 	// The badge stays the 1-5 rank the data files store, even though v2 asked
 	// the models for the label — every chart, filter and export is keyed on the
 	// rank, and showing two different scales for one dimension would not help.
-	const subjectivityItems: ScaleItem[] = $derived([
-		{
-			variant: 'subjectivity-1',
-			badge: '1',
-			label: $t.subjectivity.factual,
-			description: copy.subjectivity1
-		},
-		{
-			variant: 'subjectivity-2',
-			badge: '2',
-			label: $t.subjectivity.ratherFactual,
-			description: copy.subjectivity2
-		},
-		{
-			variant: 'subjectivity-3',
-			badge: '3',
-			label: $t.subjectivity.mixed,
-			description: copy.subjectivity3
-		},
-		{
-			variant: 'subjectivity-4',
-			badge: '4',
-			label: $t.subjectivity.ratherSubjective,
-			description: copy.subjectivity4
-		},
-		{
-			variant: 'subjectivity-5',
-			badge: '5',
-			label: $t.subjectivity.subjective,
-			description: copy.subjectivity5
-		}
-	]);
+	const subjectivityItems: ScaleItem[] = $derived(
+		subjectivityScaleItems(copy, {
+			label: (step) => translateSubjectivityScore(step.value, $currentLanguage)
+		})
+	);
 
-	const centralityItems: ScaleItem[] = $derived([
+	const centralityItems: ScaleItem[] = $derived(
+		centralityScaleItems(copy, {
+			badge: (step) => translateSentimentValue(step.value, $currentLanguage)
+		})
+	);
+
+	// The accordion keys stay the historical French ones.
+	const dimensions = $derived<
+		{ id: DimensionKey; key: string; title: string; description: string; items: ScaleItem[] }[]
+	>([
 		{
-			variant: 'centrality-very-central',
-			badge: $t.centrality.veryCentral,
-			description: copy.centralityVeryCentral
+			id: 'polarity',
+			key: 'polarite',
+			title: $t.analysis.polaritySection,
+			description: copy.polarityDescription,
+			items: polarityItems
 		},
 		{
-			variant: 'centrality-central',
-			badge: $t.centrality.central,
-			description: copy.centralityCentral
+			id: 'subjectivity',
+			key: 'subjectivite',
+			title: $t.analysis.subjectivitySection,
+			description: copy.subjectivityDescription,
+			items: subjectivityItems
 		},
 		{
-			variant: 'centrality-secondary',
-			badge: $t.centrality.secondary,
-			description: copy.centralitySecondary
-		},
-		{
-			variant: 'centrality-marginal',
-			badge: $t.centrality.marginal,
-			description: copy.centralityMarginal
-		},
-		{
-			variant: 'centrality-not-addressed',
-			badge: $t.centrality.notAddressed,
-			description: copy.centralityNotAddressed
+			id: 'centrality',
+			key: 'centralite',
+			title: $t.analysis.centralitySection,
+			description: copy.centralityDescription,
+			items: centralityItems
 		}
 	]);
 </script>
 
-<CollapsibleMethodologyCard title={$t.analysis.title} variant="compact">
+<CollapsibleMethodologyCard title={$t.analysis.title} variant="compact" openOnHash="methodology">
 	<p class="info-description">
 		{$t.analysis.methodologyIntro}<a
 			href={MORETTI_URL}
@@ -198,11 +171,7 @@
 		<strong class="article-count">{$num(totalArticleCount)}</strong>
 		{$t.analysis.methodologyCorpusArticles}
 		<a href={collectionUrl} target="_blank" rel="noopener noreferrer" class="info-link">
-			{#if $currentLanguage === 'en'}
-				<em>Islam West Africa Collection</em> (IWAC)
-			{:else}
-				<em>Collection Islam Afrique de l'Ouest</em> (CIAO)
-			{/if}
+			<em>{$t.analysisInfo.collectionName}</em> ({$t.analysisInfo.collectionAcronym})
 		</a>{$t.analysis.methodologyCorpusDeveloper}
 		<a
 			href="https://www.frederickmadore.com/"
@@ -214,9 +183,7 @@
 		     the generation on screen instead of hardcoding one campaign's models. -->
 		{#each generationModels as model, index (model.id)}{#if index > 0}{index ===
 				generationModels.length - 1
-					? $currentLanguage === 'en'
-						? ' and '
-						: ' et '
+					? $t.analysisInfo.listAnd
 					: ', '}{/if}<a
 				href={model.docsUrl}
 				target="_blank"
@@ -226,56 +193,36 @@
 	</p>
 
 	<div class="accordion-container">
-		<!-- Polarity Section -->
-		<AccordionItem
-			title={$t.analysis.polaritySection}
-			open={accordion.isOpen('polarite')}
-			onToggle={() => accordion.toggle('polarite')}
-		>
-			<p class="panel-description">{copy.polarityDescription}</p>
-			<SentimentScaleList items={polarityItems} />
-			{#if notes.polarity.length > 0}
-				<ul class="scale-notes">
-					{#each notes.polarity as note (note)}
-						<li>{note}</li>
-					{/each}
-				</ul>
-			{/if}
-		</AccordionItem>
+		<!-- One accordion per dimension: same shape, different scale and notes. -->
+		{#snippet dimensionPanel(
+			key: string,
+			title: string,
+			description: string,
+			items: ScaleItem[],
+			dimensionNotes: readonly string[]
+		)}
+			<AccordionItem {title} open={accordion.isOpen(key)} onToggle={() => accordion.toggle(key)}>
+				<p class="panel-description">{description}</p>
+				<SentimentScaleList {items} />
+				{#if dimensionNotes.length > 0}
+					<ul class="scale-notes">
+						{#each dimensionNotes as note (note)}
+							<li>{note}</li>
+						{/each}
+					</ul>
+				{/if}
+			</AccordionItem>
+		{/snippet}
 
-		<!-- Subjectivity Section -->
-		<AccordionItem
-			title={$t.analysis.subjectivitySection}
-			open={accordion.isOpen('subjectivite')}
-			onToggle={() => accordion.toggle('subjectivite')}
-		>
-			<p class="panel-description">{copy.subjectivityDescription}</p>
-			<SentimentScaleList items={subjectivityItems} />
-			{#if notes.subjectivity.length > 0}
-				<ul class="scale-notes">
-					{#each notes.subjectivity as note (note)}
-						<li>{note}</li>
-					{/each}
-				</ul>
-			{/if}
-		</AccordionItem>
-
-		<!-- Centrality Section -->
-		<AccordionItem
-			title={$t.analysis.centralitySection}
-			open={accordion.isOpen('centralite')}
-			onToggle={() => accordion.toggle('centralite')}
-		>
-			<p class="panel-description">{copy.centralityDescription}</p>
-			<SentimentScaleList items={centralityItems} />
-			{#if notes.centrality.length > 0}
-				<ul class="scale-notes">
-					{#each notes.centrality as note (note)}
-						<li>{note}</li>
-					{/each}
-				</ul>
-			{/if}
-		</AccordionItem>
+		{#each dimensions as dimension (dimension.key)}
+			{@render dimensionPanel(
+				dimension.key,
+				dimension.title,
+				dimension.description,
+				dimension.items,
+				notes[dimension.id]
+			)}
+		{/each}
 
 		<!-- Methodology Section -->
 		<AccordionItem
@@ -286,12 +233,8 @@
 			<div class="methodology-content">
 				<div class="methodology-section">
 					<h4 class="section-title">{$t.analysis.modelUsed}</h4>
-					{#if datasetState.isComparisonMode}
-						<p class="section-text">
-							{$currentLanguage === 'en'
-								? 'Every model in the panel read the same articles, so their answers can be set side by side:'
-								: 'Chaque modèle du panel a lu les mêmes articles, ce qui permet de placer leurs réponses côte à côte :'}
-						</p>
+					{#if panelView}
+						<p class="section-text">{$t.analysisInfo.panelReadSame}</p>
 						<div class="model-grid">
 							{#each generationModels as model (model.id)}
 								<div class="model-card">
@@ -310,21 +253,15 @@
 										class="model-link"
 										href={model.docsUrl}
 										target="_blank"
-										rel="noopener noreferrer">Docs →</a
+										rel="noopener noreferrer">{$t.analysisInfo.docs}</a
 									>
 								</div>
 							{/each}
 						</div>
-						<p class="section-note">
-							{$currentLanguage === 'en'
-								? 'Use the model picker in the header to switch between models, or turn on comparison mode to see where they differ.'
-								: 'Utilisez le sélecteur de modèles dans l’en-tête pour passer d’un modèle à l’autre, ou activez le mode comparaison pour voir où ils diffèrent.'}
-						</p>
+						<p class="section-note">{$t.analysisInfo.panelSwitch}</p>
 					{:else}
 						<p class="section-text">
-							{$currentLanguage === 'en'
-								? 'The ratings on screen come from '
-								: 'Les notes affichées viennent de '}
+							{$t.analysisInfo.ratingsFrom}
 
 							{#if selectedModel}
 								<a
@@ -367,17 +304,9 @@
 						{#each copy.config as line (line)}
 							<li>{line}</li>
 						{/each}
-						{#if datasetState.isComparisonMode}
-							<li>
-								{$currentLanguage === 'en'
-									? 'Every model reads the same articles independently, with no sight of the others’ answers'
-									: 'Chaque modèle lit les mêmes articles de son côté, sans connaître les réponses des autres'}
-							</li>
-							<li>
-								{$currentLanguage === 'en'
-									? 'Differences between the models are computed afterwards, dimension by dimension'
-									: 'Les écarts entre modèles sont calculés ensuite, dimension par dimension'}
-							</li>
+						{#if panelView}
+							<li>{$t.analysisInfo.independentReading}</li>
+							<li>{$t.analysisInfo.differencesAfterwards}</li>
 						{/if}
 					</ul>
 				</div>
@@ -385,25 +314,17 @@
 				<div class="methodology-section">
 					<h4 class="section-title">{$t.analysis.analysisPrompt}</h4>
 					<p class="section-text">
-						{datasetState.isComparisonMode
-							? $currentLanguage === 'en'
-								? 'Every model receives the same prompt, so the comparison measures the models rather than their instructions:'
-								: 'Chaque modèle reçoit le même prompt, de sorte que la comparaison mesure les modèles et non leurs instructions :'
-							: $t.analysis.promptDescription}
+						{panelView ? $t.analysisInfo.samePrompt : $t.analysis.promptDescription}
 					</p>
 					<ul class="config-list">
 						{#each copy.promptFeatures as feature (feature)}
 							<li>{feature}</li>
 						{/each}
-						{#if datasetState.isComparisonMode}
-							<li>
-								{$currentLanguage === 'en'
-									? 'The prompt is identical for every model, so nothing in the instructions favours one of them'
-									: 'Le prompt est identique pour tous les modèles, si bien que rien dans les instructions n’en favorise un'}
-							</li>
+						{#if panelView}
+							<li>{$t.analysisInfo.identicalPrompt}</li>
 						{/if}
 					</ul>
-					<button class="prompt-btn" onclick={() => (viewOptionsState.prompt = true)}>
+					<button class="prompt-btn" onclick={openPrompt}>
 						{$t.analysis.viewFullPrompt}
 					</button>
 				</div>
@@ -417,27 +338,13 @@
 			onToggle={() => accordion.toggle('limites')}
 		>
 			<p class="panel-description">{$t.analysis.limitationsDescription}</p>
-			{#if datasetState.isComparisonMode}
+			{#if panelView}
 				<div class="comparison-notice">
-					<h4 class="section-title">
-						{$currentLanguage === 'en' ? 'Reading the comparison' : 'Lire la comparaison'}
-					</h4>
+					<h4 class="section-title">{$t.analysisInfo.readingComparison}</h4>
 					<ul class="config-list">
-						<li>
-							{$currentLanguage === 'en'
-								? 'Differences between models can come from their training data, their architecture and the way they were tuned, and need not mean that one is more accurate'
-								: 'Les écarts entre modèles peuvent tenir à leurs données d’entraînement, à leur architecture et à la façon dont ils ont été réglés, sans qu’aucun soit pour autant plus juste'}
-						</li>
-						<li>
-							{$currentLanguage === 'en'
-								? 'No model is a ground truth. Where two of them disagree, the article is worth reading yourself'
-								: 'Aucun modèle ne fait référence. Là où deux d’entre eux divergent, l’article mérite d’être lu'}
-						</li>
-						<li>
-							{$currentLanguage === 'en'
-								? 'These comparisons are most useful for spotting patterns across the corpus, and least useful as a verdict on any single article'
-								: 'Ces comparaisons servent surtout à repérer des motifs à l’échelle du corpus, et fort peu à trancher sur un article isolé'}
-						</li>
+						{#each $t.analysisInfo.comparisonCaveats as caveat (caveat)}
+							<li>{caveat}</li>
+						{/each}
 					</ul>
 				</div>
 			{/if}
@@ -448,14 +355,14 @@
 <!-- Prompt Modal -->
 <PromptModal open={viewOptionsState.prompt} onClose={() => (viewOptionsState.prompt = false)}>
 	{#snippet title()}
-		{$currentLanguage === 'en' ? 'The full analysis prompt' : 'Le prompt d’analyse complet'}
+		{$t.analysisInfo.promptTitle}
 	{/snippet}
 
-	{#if $currentLanguage === 'en'}
+	{#if $t.analysisInfo.translationNote}
 		<div class="translation-notice">
 			<p>
-				<strong>Note:</strong> this is a translation of the prompt. The models were instructed in French,
-				because the corpus is in French.
+				<strong>{$t.analysisInfo.translationNoteLabel}</strong>
+				{$t.analysisInfo.translationNote}
 			</p>
 		</div>
 	{/if}
@@ -463,11 +370,24 @@
 	<div class="prompt-code-container">
 		<!-- The prompt was rewritten between generations, so showing the current
 		     text next to archived scores would misattribute them. -->
-		{#if activePrompt}
-			<pre class="prompt-code">{activePrompt[$currentLanguage]}</pre>
-		{:else}
+		<!-- Memoized: resolves at once when the click already loaded it. -->
+		{#await loadPromptTexts()}
 			<p class="prompt-loading" role="status">{$t.messages.loading}</p>
-		{/if}
+		{:then}
+			{#if activePrompt}
+				<pre class="prompt-code">{activePrompt[$currentLanguage]}</pre>
+				{#if datasetState.generation === 'v2'}
+					<p class="prompt-fingerprint">
+						{$t.analysisInfo.promptFingerprint.replace(
+							'{fingerprint}',
+							SENTIMENT_CONTRACT_V2.provenance.sentimentPromptFingerprint
+						)}
+					</p>
+				{/if}
+			{/if}
+		{:catch}
+			<p class="prompt-loading" role="status">{$t.messages.dataLoadError}</p>
+		{/await}
 	</div>
 </PromptModal>
 
@@ -910,6 +830,13 @@
 		white-space: pre-wrap;
 		word-wrap: break-word;
 		margin: 0;
+	}
+
+	.prompt-fingerprint {
+		margin: var(--space-3) 0 0;
+		font-family: var(--font-mono);
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
 	}
 
 	/* ==========================================================================

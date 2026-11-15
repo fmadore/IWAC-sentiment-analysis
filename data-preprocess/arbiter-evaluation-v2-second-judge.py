@@ -15,12 +15,13 @@ from the judge's developer (`SentimentContract.recused_for`), never listed.
 What is shared with the published run, so the two judges' verdicts compare:
 
 * the system instruction, the user prompt, the blind labels and the
-  per-article `display_order` (`iwac_preprocess.arbiter_prompt`);
+  per-article `display_order` (`iwac_preprocess.arbiter_prompt`). The prompt
+  version follows the same default as the primary judge (`--prompt-version`);
 * the response schema and the published verdict shape
   (`iwac_preprocess.arbiter_schema`);
-* the input fingerprint, durable cache, run lock and checkpoint-before-publish
-  lifecycle (`arbiter_cache`, `arbiter_lifecycle`), each under this judge's
-  own names.
+* the input fingerprint, durable cache, run lock, revision choice, shrink
+  guard and checkpoint-before-publish loop (`iwac_preprocess.arbiter_run`),
+  each under this judge's own names.
 
 What differs, and why:
 
@@ -37,8 +38,7 @@ What differs, and why:
   `full` keeps all 346: the extra 301 replicate the published run, which is what
   gives a judge-agreement figure and a difference-in-differences estimate of
   each judge's affinity for its own developer's model
-  (`iwac_preprocess.judge_comparison`). Without the replication the 45 verdicts
-  come from a judge nobody has calibrated against the published one.
+  (`iwac_preprocess.judge_comparison`).
 * **Provider.** Gemini 4 Argon runs through Google's Interactions API with
   structured output and `store=False`: the article text comes from the private
   mirror and must not be retained server-side. Other registered judges (GPT-6
@@ -47,9 +47,7 @@ What differs, and why:
 * **Prices change.** Gemini 4 Argon's introductory rates double on
   1 December 2026; `--dry-run` prints the rate in force and the next change.
 
-`--dry-run` makes no API call and writes nothing. It reports the frame, the
-flips that exist only because of the published arbiter's recused member, the
-rows this judge cannot see a flip on, and a cost estimate for both frames.
+`--dry-run` makes no API call and writes nothing.
 
 Usage:
   python arbiter-evaluation-v2-second-judge.py --dry-run
@@ -57,7 +55,6 @@ Usage:
   python arbiter-evaluation-v2-second-judge.py --frame full --limit 20 --yes     # pilot
   python arbiter-evaluation-v2-second-judge.py --frame full --yes                # 346
   python arbiter-evaluation-v2-second-judge.py --frame recused --yes             # 45
-  python arbiter-evaluation-v2-second-judge.py --prune-cache-only
 
 Requires GOOGLE_API_KEY (or GEMINI_API_KEY) for a paid run and HF_TOKEN for the
 private mirror.
@@ -68,8 +65,8 @@ import argparse
 import json
 import os
 import random
-from dataclasses import asdict, dataclass
-from datetime import date, datetime
+from dataclasses import asdict
+from datetime import date
 from functools import partial
 from pathlib import Path
 from typing import Any
@@ -82,65 +79,66 @@ from iwac_preprocess.arbiter_judges import (
     PRICES_CHECKED,
     PROVIDER_GOOGLE,
     TIER_STANDARD,
+    ArbiterUsage,
     JudgeSpec,
-    JudgeUsage,
     Rates,
+    compare_with_published,
     estimate_judge_cost,
+    judge_panel,
+    prefix_chars,
 )
-from iwac_preprocess.arbiter_lifecycle import (
-    CACHE_FILENAME,
-    CacheUnreadableError,
-    PanelCache,
-    resolve_blind_permutation,
-)
+from iwac_preprocess.arbiter_lifecycle import CACHE_FILENAME, CacheUnreadableError
 from iwac_preprocess.arbiter_prompt import (
     ARBITER_MAX_INPUT_CHARS,
     BLIND_LABELS,
-    SYSTEM_INSTRUCTION,
+    DEFAULT_PROMPT_VERSION,
     create_arbiter_prompt,
+    system_instruction,
 )
-from iwac_preprocess.arbiter_schema import (
-    ArbiterAnalysisV2,
-    ArbiterResponseV2,
-    convert_response,
-    inline_json_schema,
+from iwac_preprocess.arbiter_run import (
+    OUTCOME_ERROR,
+    OUTCOME_INVALID,
+    OUTCOME_NO_TEXT,
+    OUTCOME_OK,
+    OUTCOME_REFUSED,
+    OUTCOME_TRUNCATED,
+    ArbiterRunError,
+    EvaluationResult,
+    PanelRun,
+    add_run_arguments,
+    load_env,
+    load_panel_records,
+    load_panel_texts,
+    plan_revisions,
+    positive_limit,
+    recorded_revisions,
+    require_revision,
+    run_locked,
 )
+from iwac_preprocess.arbiter_schema import ArbiterResponseV2, convert_response, inline_json_schema
 from iwac_preprocess.arbiter_selection import (
-    FLIP_NEGATIVE,
-    FLIP_POSITIVE,
     RULE_VALENCE,
+    SelectionError,
     apply_limit,
     attach_full_text,
+    check_text_coverage,
+    classify_frame,
     find_three_way_conflicts,
-    flip_dissenters,
+    flips_over,
     project_to_panel,
 )
-from iwac_preprocess.judge_comparison import (
-    judge_agreement,
-    own_developer_affinity,
-    polarity_verdicts,
-)
-from iwac_preprocess.publication import publication_lock, publish_json_files
+from iwac_preprocess.publication import publish_json_files
+from iwac_preprocess.source import SourceScopeError
 from pydantic import ValidationError
 from shared import (
     CONTRACT_V2,
     HF_FULL_REPO_ID,
     HF_REPO_ID,
-    SentimentContract,
-    build_model_sentiment,
-    get_base_article_ids,
     get_logger,
-    get_source_revision,
     get_staging_dir,
     get_webapp_data_dir,
-    has_polarity_valence_flip,
-    load_iwac_dataset,
-    load_iwac_full_text,
-    restrict_to_base_articles,
     three_way_cache_fingerprint,
-    validate_columns,
 )
-from tqdm import tqdm
 from validate_generated_data import ARBITER_V2_FILENAME, validate_second_judge_envelope
 
 logger = get_logger(__name__)
@@ -168,130 +166,35 @@ HTTP_RETRY_ATTEMPTS = 5
 
 OUTPUT_TEMPLATE = "iwac_arbiter_evaluations_v2_{judge}.json"
 STAGING_TEMPLATE = "arbiter-v2-{judge}"
-SAVE_INTERVAL = 10
 
 # Flattened once: the Interactions API takes a JSON Schema, not a class.
 RESPONSE_SCHEMA = inline_json_schema(ArbiterResponseV2)
-# Repeated on every call and billed as input: the instruction and the schema.
-PREFIX_CHARS = len(SYSTEM_INSTRUCTION) + len(json.dumps(RESPONSE_SCHEMA, ensure_ascii=False))
 
-REQUIRED_BASE_COLUMNS = ["o:id", "title", "newspaper", "country", "pub_date"]
+# Interaction states that mean the budget ran out before the answer did.
+TRUNCATED_STATUSES = frozenset({"incomplete", "budget_exceeded"})
 
 
 def output_filename(judge: JudgeSpec) -> str:
     return OUTPUT_TEMPLATE.format(judge=judge.id)
 
 
-def judge_panel(judge: JudgeSpec, contract: SentimentContract = CONTRACT) -> list[str]:
-    """The models ``judge`` reads: the generation minus its own developer's members."""
-    panel = contract.panel_for(judge.developer)
-    if len(panel) != len(BLIND_LABELS):
-        # The prompt says "cinq analyses" and the schema accepts a-e: a judge
-        # whose developer has no member (or two) needs a prompt version, not a
-        # silently mislabelled run.
-        raise ValueError(
-            f"{judge.display_name} would read {len(panel)} models, but the prompt and the "
-            f"schema present exactly {len(BLIND_LABELS)}"
-        )
-    return panel
-
-
 # ============================================================================
-# Selection
+# Sources (script-level so tests can replace them)
 # ============================================================================
 
 
-def load_dataset_records(contract: SentimentContract = CONTRACT) -> list[dict]:
-    """Load the public projection, scoped to the published article base.
-
-    The live corpus has grown past the panel run (articles only Haiku rated);
-    they cannot flip today, because the rest of the panel has no rating there,
-    but the validator recomputes the frame over the published base, so the
-    selection is held to the same base rather than relying on that.
-    """
-    df = load_iwac_dataset(contract)
-    validate_columns(df, REQUIRED_BASE_COLUMNS)
-    logger.info("Loaded %d articles from %s", len(df), HF_REPO_ID)
-    return restrict_to_base_articles(df.to_dict("records"), get_base_article_ids(), logger)
+def load_dataset_records(revision: str | None = None) -> tuple[list[dict], str]:
+    """The public projection at ``revision``, scoped to the published article base."""
+    return load_panel_records(CONTRACT, revision, logger)
 
 
-@dataclass(frozen=True)
-class FrameSummary:
-    """What the dry run reports about the frame before any money is spent."""
-
-    frame: int
-    in_published_frame: int
-    recused_only: int
-    recused_only_sole_negative: int
-    recused_only_sole_positive: int
-
-
-def flips_over(row: dict, model_ids: list[str], contract: SentimentContract = CONTRACT) -> bool:
-    """Whether ``model_ids`` alone, out of a frame row's analyses, show a valence flip."""
-    return has_polarity_valence_flip(
-        [row["analyses"][model_id] for model_id in model_ids], contract
-    )
-
-
-def classify_frame(
-    rows: list[dict], contract: SentimentContract = CONTRACT
-) -> tuple[list[dict], list[dict], FrameSummary]:
-    """Mark each frame row with its flip's sole dissenters; split off the recused-only rows.
-
-    A row is *recused-only* when it flips over the whole generation but not over
-    the published arbiter's panel: the flip exists only because of a model that
-    arbiter recused (for the Opus run, Haiku alone on its side of the line).
-    Those are the flips the published run structurally could not reach. The
-    sole-negative/positive split says which side the recused model was on.
-    """
-    published_recused = set(contract.arbiter_recused_ids)
-    published_panel = list(contract.arbiter_model_ids)
-    marked: list[dict] = []
-    recused_only: list[dict] = []
-    sole_negative = sole_positive = 0
-    for row in rows:
-        row = {**row, "flip_dissenters": flip_dissenters(row["analyses"], contract)}
-        marked.append(row)
-        if flips_over(row, published_panel, contract):
-            continue
-        recused_only.append(row)
-        sides = {row["flip_dissenters"].get(model_id) for model_id in published_recused}
-        sole_negative += FLIP_NEGATIVE in sides
-        sole_positive += FLIP_POSITIVE in sides
-    return (
-        marked,
-        recused_only,
-        FrameSummary(
-            frame=len(marked),
-            in_published_frame=len(marked) - len(recused_only),
-            recused_only=len(recused_only),
-            recused_only_sole_negative=sole_negative,
-            recused_only_sole_positive=sole_positive,
-        ),
-    )
+def load_article_texts(revision: str | None = None) -> tuple[dict[str, str], str]:
+    return load_panel_texts(revision)
 
 
 # ============================================================================
 # Paid evaluation
 # ============================================================================
-
-OUTCOME_OK = "ok"
-OUTCOME_REFUSED = "refused"
-OUTCOME_TRUNCATED = "truncated"
-OUTCOME_INVALID = "invalid"
-OUTCOME_ERROR = "error"
-OUTCOME_NO_TEXT = "no_text"
-
-# Interaction states that mean the budget ran out before the answer did.
-TRUNCATED_STATUSES = frozenset({"incomplete", "budget_exceeded"})
-
-
-@dataclass(frozen=True)
-class EvaluationResult:
-    """One article's verdict, or the reason there is none."""
-
-    outcome: str
-    analysis: ArbiterAnalysisV2 | None = None
 
 
 def create_genai_client(api_key: str):
@@ -319,8 +222,8 @@ def evaluate_with_gemini(
     effort: str,
     service_tier: str = TIER_STANDARD,
     rates: Rates | None = None,
-    usage: JudgeUsage | None = None,
-    contract: SentimentContract = CONTRACT,
+    usage: ArbiterUsage | None = None,
+    prompt_version: str = DEFAULT_PROMPT_VERSION,
 ) -> EvaluationResult:
     """Send one article to a Gemini judge and return its structured verdict.
 
@@ -330,18 +233,19 @@ def evaluate_with_gemini(
 
     Nothing here retries. A schema violation or a truncated answer is a
     deterministic outcome of this input; transport failures are retried by the
-    SDK before they reach this function.
+    SDK before they reach this function. Usage is recorded as soon as the
+    interaction returns, so an invalid answer is still billed.
     """
     article_id = str(article.get("o:id"))
     if not article.get("OCR"):
         logger.warning("No text available for article %s", article_id)
         return EvaluationResult(OUTCOME_NO_TEXT)
 
-    prompt = create_arbiter_prompt(article, permutation, contract)
+    prompt = create_arbiter_prompt(article, permutation, CONTRACT)
     try:
         interaction = client.interactions.create(
             model=judge.model,
-            system_instruction=SYSTEM_INSTRUCTION,
+            system_instruction=system_instruction(prompt_version),
             input=prompt,
             generation_config={
                 "thinking_level": effort,
@@ -388,13 +292,14 @@ def evaluate_with_gemini(
     except ValidationError as error:
         logger.error("Invalid structured response for article %s: %s", article_id, error)
         return EvaluationResult(OUTCOME_INVALID)
-    return EvaluationResult(OUTCOME_OK, convert_response(parsed, article_id, contract))
+    return EvaluationResult(OUTCOME_OK, convert_response(parsed, article_id, CONTRACT))
 
 
 # One adapter per provider in PAID_PROVIDERS. Adding a provider means adding an
 # entry here and its SDK to requirements.txt (and both locks).
 EVALUATORS = {PROVIDER_GOOGLE: evaluate_with_gemini}
 CLIENT_FACTORIES = {PROVIDER_GOOGLE: create_genai_client}
+SDK_PACKAGES = {PROVIDER_GOOGLE: "google-genai"}
 # The environment variables each provider's client reads, in order. Only
 # these names are ever logged; the name avoids "key" so CodeQL's
 # sensitive-data heuristic does not mistake them for the secret itself.
@@ -402,11 +307,16 @@ PROVIDER_ENV_NAMES = {PROVIDER_GOOGLE: ("GOOGLE_API_KEY", "GEMINI_API_KEY")}
 
 
 # ============================================================================
-# Cache, output and comparison
+# Cache and output
 # ============================================================================
 
 
-def build_fingerprint(judge: JudgeSpec, source_revision: str | None, text_revision: str | None):
+def build_fingerprint(
+    judge: JudgeSpec,
+    source_revision: str,
+    text_revision: str,
+    prompt_version: str = DEFAULT_PROMPT_VERSION,
+):
     """The published run's hasher, bound to this judge's model id.
 
     Same function, same key set: the judge's model and panel are inside the
@@ -415,10 +325,11 @@ def build_fingerprint(judge: JudgeSpec, source_revision: str | None, text_revisi
     return partial(
         three_way_cache_fingerprint,
         arbiter_model=judge.model,
-        source_revision=source_revision,
-        text_revision=text_revision,
+        source_revision=require_revision(source_revision, HF_REPO_ID),
+        text_revision=require_revision(text_revision, HF_FULL_REPO_ID),
         max_input_chars=ARBITER_MAX_INPUT_CHARS,
         contract=CONTRACT,
+        prompt_version=prompt_version,
     )
 
 
@@ -429,15 +340,15 @@ def build_metadata(
     permutation: dict[str, str],
     selection: dict[str, Any],
     counts: dict[str, int],
-    source_revision: str | None,
-    text_revision: str | None,
+    source_revision: str,
+    text_revision: str,
     effort: str,
     service_tier: str,
-    usage: JudgeUsage | None = None,
+    prompt_version: str,
+    usage: ArbiterUsage | None = None,
 ) -> dict:
-    """The self-documenting envelope `validate_second_judge_envelope` checks."""
+    """The envelope `validate_second_judge_envelope` checks (``generated`` is the runner's)."""
     return {
-        "generated": datetime.now().isoformat(),
         "usage": usage.as_metadata() if usage else {},
         "arbiter_model": judge.model,
         "arbiter_name": judge.display_name,
@@ -470,7 +381,7 @@ def build_metadata(
         "contract_schema_version": CONTRACT.schema_version,
         "analysis_version": CONTRACT.analysis_version,
         "cache_schema_version": CONTRACT.arbiter["cacheSchemaVersion"],
-        "prompt_version": CONTRACT.arbiter["promptVersion"],
+        "prompt_version": prompt_version,
         "source": {
             "scores": {"repository": HF_REPO_ID, "revision": source_revision},
             "text": {"repository": HF_FULL_REPO_ID, "revision": text_revision},
@@ -479,7 +390,7 @@ def build_metadata(
     }
 
 
-def save_results(path: str, evaluations: list[dict], metadata: dict) -> None:
+def save_results(path: str | Path, evaluations: list[dict], metadata: dict) -> None:
     """Publish through the shared staged path, the envelope checked first."""
     output = Path(path)
     publish_json_files(
@@ -493,74 +404,6 @@ def save_results(path: str, evaluations: list[dict], metadata: dict) -> None:
     )
 
 
-def model_polarities(records: list[dict], article_ids: set[str]) -> dict[str, dict[str, Any]]:
-    """Every generation model's polarity on ``article_ids``, recused or not."""
-    ratings: dict[str, dict[str, Any]] = {model_id: {} for model_id in FRAME_MODEL_IDS}
-    for item in records:
-        article_id = str(item.get("o:id"))
-        if article_id not in article_ids:
-            continue
-        for model_id in FRAME_MODEL_IDS:
-            ratings[model_id][article_id] = build_model_sentiment(item, model_id, CONTRACT).get(
-                "polarite"
-            )
-    return ratings
-
-
-def compare_with_published(
-    records: list[dict], evaluations: list[dict], judge: JudgeSpec, data_dir: str
-) -> dict | None:
-    """Judge agreement and own-developer affinity against the published arbiter.
-
-    Logged, not published: the figures are only as good as the overlap, and the
-    affinity estimate carries the exposure confound its module explains.
-    """
-    published_path = Path(data_dir) / ARBITER_V2_FILENAME
-    if not evaluations or not published_path.exists():
-        return None
-    published = json.loads(published_path.read_text(encoding="utf-8"))
-    first = polarity_verdicts(published.get("evaluations", []))
-    second = polarity_verdicts(evaluations)
-    shared = set(first) & set(second)
-    if not shared:
-        logger.info("No article is judged by both arbiters yet; nothing to compare")
-        return None
-    agreement = judge_agreement(first, second, CONTRACT)
-    published_name = CONTRACT.arbiter["arbiterModel"]
-    affinity = own_developer_affinity(
-        {
-            published_name: (CONTRACT.arbiter_developer, first),
-            judge.model: (judge.developer, second),
-        },
-        model_polarities(records, shared),
-        CONTRACT,
-    )
-    logger.info(
-        "Judge agreement on %d shared articles: exact %d (%.1f%%); of %d comparable, "
-        "within one step %d, same sign %d",
-        agreement["articles"],
-        agreement["exact"],
-        100 * (agreement["exact_rate"] or 0),
-        agreement["comparable"],
-        agreement["within_one"],
-        agreement["same_sign"],
-    )
-    for name, entry in affinity["affinity"].items():
-        did = entry["difference_in_differences"]
-        logger.info(
-            "  %s own-developer affinity (%s vs controls %s): %s",
-            name,
-            ", ".join(entry["own_models"]) or "none",
-            ", ".join(affinity["controls"]),
-            "n/a" if did is None else f"{did:+.3f}",
-        )
-    logger.info(
-        "  Conservative by construction: each judge never read its own developer's "
-        "model, while the other judge did."
-    )
-    return {"agreement": agreement, "affinity": affinity}
-
-
 # ============================================================================
 # Cost estimate
 # ============================================================================
@@ -572,11 +415,12 @@ def estimate_cost(
     judge: JudgeSpec,
     effort: str,
     rates: Rates,
+    prompt_version: str = DEFAULT_PROMPT_VERSION,
 ) -> dict:
     """Estimate evaluating ``articles`` with ``judge``, from the real prompts."""
     return estimate_judge_cost(
-        [len(create_arbiter_prompt(article, permutation)) for article in articles],
-        prefix_chars=PREFIX_CHARS,
+        [len(create_arbiter_prompt(article, permutation, CONTRACT)) for article in articles],
+        prefix_chars=prefix_chars(prompt_version, RESPONSE_SCHEMA),
         rates=rates,
         effort=effort,
     )
@@ -600,7 +444,9 @@ def report_estimate(label: str, estimate: dict, judge: JudgeSpec, effort: str, r
     )
 
 
-def report_alternatives(rows: list[dict], recused_only: list[dict], texts: dict[str, str]) -> None:
+def report_alternatives(
+    rows: list[dict], recused_only: list[dict], texts: dict[str, str], prompt_version: str
+) -> None:
     """One line per registered judge, so the choice of judge is made on numbers.
 
     Each judge is priced on its own panel's prompts under a contract-order
@@ -616,7 +462,11 @@ def report_alternatives(rows: list[dict], recused_only: list[dict], texts: dict[
         for subset in (recused_only, rows):
             with_text, _ = attach_full_text(subset, texts)
             projected = [project_to_panel(article, panel) for article in with_text]
-            costs.append(estimate_cost(projected, permutation, judge, judge.default_effort, rates))
+            costs.append(
+                estimate_cost(
+                    projected, permutation, judge, judge.default_effort, rates, prompt_version
+                )
+            )
         hidden = sum(1 for row in rows if not flips_over(row, panel))
         logger.info(
             "  %-15s recuses %-6s recused frame ~$%.2f, full frame ~$%.2f, no visible flip on %d%s",
@@ -629,33 +479,9 @@ def report_alternatives(rows: list[dict], recused_only: list[dict], texts: dict[
         )
 
 
-def confirm_api_calls(estimate: dict, judge: JudgeSpec, assume_yes: bool) -> bool:
-    """Ask before spending. Returns False when declined or non-interactive."""
-    if assume_yes:
-        logger.info("--yes given: proceeding with %d API calls", estimate["calls"])
-        return True
-    print(f"\nWARNING: this will make {estimate['calls']} paid API calls to {judge.model}")
-    try:
-        response = input("Do you want to proceed? (yes/no): ").strip().lower()
-    except EOFError:
-        logger.error("No input available (non-interactive run?). Use --yes to skip the prompt.")
-        return False
-    return response in ("yes", "y")
-
-
 # ============================================================================
 # Entry point
 # ============================================================================
-
-
-def positive_limit(value: str) -> int:
-    try:
-        limit = int(value)
-    except ValueError as error:
-        raise argparse.ArgumentTypeError("--limit must be a positive integer") from error
-    if limit <= 0:
-        raise argparse.ArgumentTypeError("--limit must be a positive integer")
-    return limit
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -668,7 +494,6 @@ Examples:
   python arbiter-evaluation-v2-second-judge.py --judge gpt-6.1-sol --dry-run
   python arbiter-evaluation-v2-second-judge.py --frame full --limit 20 --yes   # pilot
   python arbiter-evaluation-v2-second-judge.py --frame full --yes
-  python arbiter-evaluation-v2-second-judge.py --prune-cache-only
 """,
     )
     parser.add_argument(
@@ -704,23 +529,7 @@ Examples:
         default=TIER_STANDARD,
         help="Provider service tier, priced from the registry (Gemini: standard or flex).",
     )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Report the frame and a cost estimate for both frames, then exit without any API "
-        "call or file write.",
-    )
-    parser.add_argument(
-        "--prune-cache-only",
-        action="store_true",
-        help="Republish the selected cached evaluations without paid calls.",
-    )
-    parser.add_argument(
-        "--yes",
-        "-y",
-        action="store_true",
-        help="Skip the interactive confirmation prompt (for non-interactive runs).",
-    )
+    add_run_arguments(parser)
     return parser.parse_args(argv)
 
 
@@ -756,21 +565,16 @@ def main(argv: list[str] | None = None) -> int:
     args.effort = effort
     if args.dry_run:
         return run(args, judge)
-    try:
-        with publication_lock(Path(get_staging_dir()) / STAGING_TEMPLATE.format(judge=judge.id)):
-            return run(args, judge)
-    except BlockingIOError as error:
-        logger.error("Another %s run holds the cache lock: %s", judge.display_name, error)
-        return 2
+    return run_locked(
+        Path(get_staging_dir()) / STAGING_TEMPLATE.format(judge=judge.id),
+        judge.display_name,
+        lambda: run(args, judge),
+        logger,
+    )
 
 
 def run(args: argparse.Namespace, judge: JudgeSpec) -> int:
-    env_path = Path(__file__).parent.parent / ".env"
-    if env_path.exists():
-        from dotenv import load_dotenv
-
-        load_dotenv(env_path)
-        logger.info("Loaded environment variables from %s", env_path)
+    load_env(__file__, logger)
 
     try:
         panel = judge_panel(judge)
@@ -781,17 +585,35 @@ def run(args: argparse.Namespace, judge: JudgeSpec) -> int:
     today = date.today()
     rates = judge.rates_on(today, args.service_tier)
     logger.info(
-        "IWAC second panel arbiter — %s (%s, effort=%s, tier=%s); recuses %s; reads %s",
+        "IWAC second panel arbiter — %s (%s, effort=%s, tier=%s, prompt %s); recuses %s; reads %s",
         judge.display_name,
         judge.model,
         args.effort,
         args.service_tier,
+        args.prompt_version,
         ", ".join(recused),
         ", ".join(panel),
     )
+    data_dir = get_webapp_data_dir()
+    output_path = Path(data_dir) / output_filename(judge)
+    cache_path = Path(get_staging_dir()) / STAGING_TEMPLATE.format(judge=judge.id) / CACHE_FILENAME
 
     try:
-        records = load_dataset_records()
+        recorded, recorded_in = recorded_revisions(output_path, cache_path)
+    except CacheUnreadableError as error:
+        logger.error("%s", error)
+        return 2
+    request = plan_revisions(
+        source_flag=args.source_revision,
+        text_flag=args.text_revision,
+        recorded=recorded,
+        recorded_in=recorded_in,
+    )
+    logger.info("Scores revision: %s — %s", request.scores or "HEAD", request.scores_reason)
+    logger.info("Text revision: %s — %s", request.text or "HEAD", request.text_reason)
+
+    try:
+        records, source_revision = load_dataset_records(request.scores)
     except Exception as error:  # noqa: BLE001 - surfaced as an exit code
         logger.error("Failed to load dataset: %s", error)
         return 2
@@ -812,13 +634,18 @@ def run(args: argparse.Namespace, judge: JudgeSpec) -> int:
     )
 
     try:
-        texts = load_iwac_full_text()
+        texts, text_revision = load_article_texts(request.text)
     except Exception as error:  # noqa: BLE001 - surfaced as an exit code
         logger.error("Failed to load article text from the private mirror: %s", error)
         return 2
 
     framed = recused_only if args.frame == FRAME_RECUSED else rows
     with_text, missing_text = attach_full_text(framed, texts)
+    try:
+        check_text_coverage(missing_text, len(framed))
+    except SelectionError as error:
+        logger.error("%s", error)
+        return 2
     if missing_text:
         logger.warning(
             "%d framed article(s) have no text even in %s and were skipped (e.g. %s)",
@@ -842,39 +669,73 @@ def run(args: argparse.Namespace, judge: JudgeSpec) -> int:
             "--limit %d kept the %d widest polarity disagreements", args.limit, len(selected)
         )
 
-    source_revision = get_source_revision(HF_REPO_ID)
-    text_revision = get_source_revision(HF_FULL_REPO_ID)
-    data_dir = get_webapp_data_dir()
-    output_path = os.path.join(data_dir, output_filename(judge))
-    staging = Path(get_staging_dir()) / STAGING_TEMPLATE.format(judge=judge.id)
+    selection = {
+        "arbiter_rule": RULE_VALENCE,
+        "contract_arbiter_rule": CONTRACT.arbiter_eligibility_rule,
+        "frame": args.frame,
+        "frame_models": FRAME_MODEL_IDS,
+        "frame_articles": summary.frame,
+        "frame_in_published_arbiter": summary.in_published_frame,
+        "recused_only_articles": summary.recused_only,
+        "recused_only_sole_negative": summary.recused_only_sole_negative,
+        "recused_only_sole_positive": summary.recused_only_sole_positive,
+        "framed_articles": len(framed),
+        "selected_articles": len(selected),
+        "panel_flip_hidden": hidden,
+        "limit": args.limit,
+    }
+
     try:
-        cache = PanelCache.load(staging / CACHE_FILENAME, Path(output_path), panel, args.effort)
-        permutation = resolve_blind_permutation(
-            cache.metadata, panel, populated=bool(cache.evaluations)
+        fingerprint = build_fingerprint(judge, source_revision, text_revision, args.prompt_version)
+        holder: dict[str, PanelRun] = {}
+
+        def metadata(counts: dict[str, int], usage: ArbiterUsage) -> dict:
+            return build_metadata(
+                judge=judge,
+                panel=panel,
+                permutation=holder["run"].permutation,
+                selection=selection,
+                counts=counts,
+                source_revision=source_revision,
+                text_revision=text_revision,
+                effort=args.effort,
+                service_tier=args.service_tier,
+                prompt_version=args.prompt_version,
+                usage=usage,
+            )
+
+        panel_run = PanelRun.open(
+            cache_path=cache_path,
+            output_path=output_path,
+            panel=panel,
+            effort=args.effort,
+            selected=selected,
+            fingerprint=fingerprint,
+            prompt_version=args.prompt_version,
+            source={"scores": source_revision, "text": text_revision},
+            save_results=lambda path, rows_, meta: save_results(path, rows_, meta),
+            build_metadata=metadata,
+            usage_provider=judge.provider,
+            logger=logger,
+            missing_text=len(missing_text),
+            allow_shrink=args.allow_shrink,
+            retry_failed=args.retry_failed,
+            sdk_package=SDK_PACKAGES.get(judge.provider),
         )
-    except CacheUnreadableError as error:
+        holder["run"] = panel_run
+    except (ArbiterRunError, CacheUnreadableError, SourceScopeError) as error:
         logger.error("%s", error)
         return 2
+
+    permutation = panel_run.permutation
     logger.info(
         "Blind assignment: %s",
         ", ".join(f"{label.upper()}={permutation[label]}" for label in BLIND_LABELS),
     )
-
-    fingerprint = build_fingerprint(judge, source_revision, text_revision)
-    reconciliation = cache.select(selected, fingerprint)
-    evaluations = reconciliation.evaluations
-    if cache.evaluations:
-        logger.info(
-            "Cache: %d evaluations match this selection; %d retained in durable history",
-            len(evaluations),
-            len(cache.evaluations),
-        )
-    remaining = [
-        article
-        for article in selected
-        if str(article.get("o:id")) not in reconciliation.evaluated_ids
-    ]
-    estimate = estimate_cost(remaining, permutation, judge, args.effort, rates)
+    estimate = estimate_cost(
+        panel_run.remaining, permutation, judge, args.effort, rates, args.prompt_version
+    )
+    published_path = Path(data_dir) / ARBITER_V2_FILENAME
 
     if args.dry_run:
         logger.info(
@@ -882,8 +743,8 @@ def run(args: argparse.Namespace, judge: JudgeSpec) -> int:
             args.frame,
             len(framed),
             len(selected),
-            len(reconciliation.evaluated_ids),
-            len(remaining),
+            len(panel_run.evaluations),
+            len(panel_run.remaining),
         )
         # Both frames are priced whatever --frame says: choosing between them is
         # what the dry run is for. A --limit narrows the run, not this comparison.
@@ -894,18 +755,22 @@ def run(args: argparse.Namespace, judge: JudgeSpec) -> int:
         ):
             subset_text, _ = attach_full_text(subset, texts)
             subset_projected = [project_to_panel(row, panel) for row in subset_text]
-            cached = cache.select(subset_projected, fingerprint).evaluated_ids
+            cached = panel_run.cached_ids(subset_projected)
             uncached = [a for a in subset_projected if str(a.get("o:id")) not in cached]
             report_estimate(
                 label,
-                estimate_cost(uncached, permutation, judge, args.effort, rates),
+                estimate_cost(
+                    uncached, permutation, judge, args.effort, rates, args.prompt_version
+                ),
                 judge,
                 args.effort,
                 rates,
             )
             if change:
                 start, later = change
-                later_estimate = estimate_cost(uncached, permutation, judge, args.effort, later)
+                later_estimate = estimate_cost(
+                    uncached, permutation, judge, args.effort, later, args.prompt_version
+                )
                 logger.info(
                     "    from %s the same run is ~$%.2f ($%.2f/$%.2f per MTok)",
                     start.isoformat(),
@@ -923,92 +788,44 @@ def run(args: argparse.Namespace, judge: JudgeSpec) -> int:
             judge.pricing_source,
         )
         logger.info("Every registered judge, at its default effort and today's rates:")
-        report_alternatives(rows, recused_only, texts)
-        compare_with_published(records, evaluations, judge, data_dir)
+        report_alternatives(rows, recused_only, texts, args.prompt_version)
+        compare_with_published(records, panel_run.evaluations, judge, published_path, logger)
         logger.info("No API call was made and no file was written.")
         return 0
 
-    selection = {
-        "arbiter_rule": RULE_VALENCE,
-        "contract_arbiter_rule": CONTRACT.arbiter_eligibility_rule,
-        "frame": args.frame,
-        "frame_models": FRAME_MODEL_IDS,
-        "frame_articles": summary.frame,
-        "frame_in_published_arbiter": summary.in_published_frame,
-        "recused_only_articles": summary.recused_only,
-        "recused_only_sole_negative": summary.recused_only_sole_negative,
-        "recused_only_sole_positive": summary.recused_only_sole_positive,
-        "framed_articles": len(framed),
-        "selected_articles": len(selected),
-        "panel_flip_hidden": hidden,
-        "limit": args.limit,
-    }
-    usage = JudgeUsage.from_metadata(cache.metadata.get("usage"))
-    counts = {
-        "total": len(selected),
-        "successful": len(evaluations),
-        "failed": 0,
-        "refused": 0,
-        "missing_text": len(missing_text),
-    }
+    def make_client():
+        names = PROVIDER_ENV_NAMES[judge.provider]
+        api_key = next((os.environ[name] for name in names if os.environ.get(name)), None)
+        if not api_key:
+            raise ArbiterRunError(f"No API key found! Set {' or '.join(names)}, or use --dry-run.")
+        try:
+            return CLIENT_FACTORIES[judge.provider](api_key)
+        except RuntimeError as error:
+            raise ArbiterRunError(str(error)) from error
 
-    def publish(extra_counts: dict | None = None) -> None:
-        metadata = build_metadata(
-            judge=judge,
-            panel=panel,
-            permutation=permutation,
-            selection=selection,
-            counts={**counts, **(extra_counts or {}), "successful": len(evaluations)},
-            source_revision=source_revision,
-            text_revision=text_revision,
-            effort=args.effort,
-            service_tier=args.service_tier,
-            usage=usage,
-        )
-        cache.checkpoint(evaluations, metadata)
-        save_results(output_path, evaluations, metadata)
-
-    if not remaining:
-        publish()
-        logger.info("All %d selected articles are already evaluated; republished", len(selected))
-        compare_with_published(records, evaluations, judge, data_dir)
-        return 0
-
-    if args.prune_cache_only:
-        publish()
-        logger.info("Prune-only mode left %d articles pending evaluation", len(remaining))
-        return 0
-
-    api_key = next(
-        (os.environ[name] for name in PROVIDER_ENV_NAMES[judge.provider] if os.environ.get(name)),
-        None,
-    )
-    if not api_key:
-        logger.error(
-            "No API key found! Set %s, or use --dry-run.",
-            " or ".join(PROVIDER_ENV_NAMES[judge.provider]),
-        )
-        return 2
-    try:
-        client = CLIENT_FACTORIES[judge.provider](api_key)
-    except RuntimeError as error:
-        logger.error("%s", error)
-        return 2
-
-    report_estimate("This run", estimate, judge, args.effort, rates)
-    if not confirm_api_calls(estimate, judge, args.yes):
-        logger.info("Aborted.")
-        return 0
+    def make_row(article: dict, analysis: Any, key: str) -> dict:
+        return {
+            "article_id": analysis.article_id,
+            "cache_fingerprint": key,
+            "spread": article["spread"],
+            "frame_spread": article["frame_spread"],
+            "panel_valence_flip": article["panel_valence_flip"],
+            "flip_dissenters": article["flip_dissenters"],
+            "arbiter": asdict(analysis),
+        }
 
     evaluate = EVALUATORS[judge.provider]
-    successful = failed = refused = 0
-
-    def run_counts() -> dict[str, int]:
-        return {"failed": failed, "refused": refused}
-
     try:
-        for article in tqdm(remaining, desc=judge.display_name):
-            result = evaluate(
+        code = panel_run.finish(
+            prune_only=args.prune_cache_only,
+            assume_yes=args.yes,
+            model=judge.model,
+            estimate=estimate,
+            report_estimate=lambda: report_estimate(
+                "This run", estimate, judge, args.effort, rates
+            ),
+            make_client=make_client,
+            evaluate=lambda client, article: evaluate(
                 client,
                 article,
                 permutation,
@@ -1016,43 +833,19 @@ def run(args: argparse.Namespace, judge: JudgeSpec) -> int:
                 effort=args.effort,
                 service_tier=args.service_tier,
                 rates=rates,
-                usage=usage,
-            )
-            if result.analysis is None:
-                if result.outcome == OUTCOME_REFUSED:
-                    refused += 1
-                else:
-                    failed += 1
-                continue
-            evaluations.append(
-                {
-                    "article_id": result.analysis.article_id,
-                    "cache_fingerprint": fingerprint(article),
-                    "spread": article["spread"],
-                    "frame_spread": article["frame_spread"],
-                    "panel_valence_flip": article["panel_valence_flip"],
-                    "flip_dissenters": article["flip_dissenters"],
-                    "arbiter": asdict(result.analysis),
-                }
-            )
-            successful += 1
-            if successful % SAVE_INTERVAL == 0:
-                publish(run_counts())
-                logger.info("Saved %d evaluations", len(evaluations))
-    finally:
-        # Also on Ctrl-C or a crash: every verdict already paid for is saved.
-        publish(run_counts())
-
-    logger.info(
-        "Complete: %d newly evaluated, %d from cache, %d failed, %d refused; spent ~$%.2f in all",
-        successful,
-        len(reconciliation.evaluated_ids),
-        failed,
-        refused,
-        usage.as_metadata().get("usd", 0.0),
-    )
-    compare_with_published(records, evaluations, judge, data_dir)
-    return 0
+                usage=panel_run.usage,
+                prompt_version=args.prompt_version,
+            ),
+            make_row=make_row,
+            desc=judge.display_name,
+            max_consecutive_errors=args.max_consecutive_errors,
+        )
+    except ArbiterRunError as error:
+        logger.error("%s", error)
+        return 2
+    if not args.prune_cache_only:
+        compare_with_published(records, panel_run.evaluations, judge, published_path, logger)
+    return code
 
 
 if __name__ == "__main__":

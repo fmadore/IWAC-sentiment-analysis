@@ -10,12 +10,15 @@
 	import Chart from './CitableChart.svelte';
 	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
-	import { innerWidth } from 'svelte/reactivity/window';
+	import { isCompactWidth } from '#lib/utils/viewport.svelte.js';
+	import { useChartCardHeading } from '#lib/components/ui/chartCardHeading.svelte.js';
+	import ChartHeading from './ChartHeading.svelte';
 
 	import { articleState } from '#lib/stores/index.js';
 	import type { Article } from '#lib/types/data.js';
 	import { t, currentLanguage } from '#lib/i18n/index.js';
 	import { formatNumber } from '#lib/i18n/utils.js';
+	import { isLowN, LOW_N_THRESHOLD } from '#lib/utils/stats.js';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import ChartTypeToggle from './ChartTypeToggle.svelte';
 	import { createTrendTooltipFormatter } from '#lib/utils/chartFormatters.js';
@@ -28,7 +31,6 @@
 
 	// Import centralized chart theme
 	import {
-		getTitleStyle,
 		getTooltipConfig,
 		getLegendConfig,
 		getAxisLineStyle,
@@ -39,7 +41,8 @@
 		getShareYAxis,
 		getDataZoomConfig,
 		getLineSeriesStyle,
-		getEmphasisConfig
+		getEmphasisConfig,
+		chartColors
 	} from '#lib/utils/chartTheme.js';
 
 	interface TrendsChartProps {
@@ -71,8 +74,9 @@
 		ariaLabel
 	}: TrendsChartProps = $props();
 
-	// Reactive window width for responsive behavior
-	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
+	// Compact layout follows the chart's own width, not the window's.
+	let containerWidth = $state<number>();
+	let isMobile = $derived(isCompactWidth(containerWidth));
 
 	/**
 	 * Count vs share. Corpus volume runs from ~20 articles a year in the 1960s to
@@ -95,11 +99,49 @@
 	const shareData = $derived(
 		computeDimensionShares(aggregate.yearlyCounts, aggregate.years, frenchLabels)
 	);
+
+	const headingTitle = $derived(`${title} ${$t.charts.byYear}`);
+	const headingSubtitle = $derived(
+		`${formatNumber(aggregate.articlesAnalyzed, $currentLanguage)} ${$t.charts.articlesAnalyzed}`
+	);
+	const heading = useChartCardHeading(() => ({ title: headingTitle, subtitle: headingSubtitle }));
+
+	/**
+	 * Years whose share bands rest on fewer rated articles than the shared
+	 * low-n floor. The 1960s hold ~20 articles a year, so a 100% stack there
+	 * swings by five points per article; those years are shaded in share mode
+	 * (not hidden, and no URL default changes) and the tooltip gives their n.
+	 */
+	const lowSampleYears = $derived(
+		aggregate.years.filter((year) =>
+			isLowN(
+				frenchLabels.reduce((sum, label) => sum + (aggregate.yearlyCounts[year]?.[label] ?? 0), 0)
+			)
+		)
+	);
+	/** Contiguous runs of low-n years, as [first, last] pairs for markArea. */
+	function lowSampleRanges(years: string[], low: string[]): Array<[string, string]> {
+		const ranges: Array<[string, string]> = [];
+		let start: string | null = null;
+		let previous: string | null = null;
+		for (const year of years) {
+			if (low.includes(year)) {
+				start ??= year;
+				previous = year;
+			} else if (start !== null && previous !== null) {
+				ranges.push([start, previous]);
+				start = null;
+			}
+		}
+		if (start !== null && previous !== null) ranges.push([start, previous]);
+		return ranges;
+	}
+
 	let options = $derived.by(() => {
 		const currentT = $t; // Capture current translations for reactive updates
 		const currentLang = $currentLanguage; // Capture current language for reactive updates
 
-		const { yearlyCounts, years, articlesAnalyzed } = aggregate;
+		const { yearlyCounts, years } = aggregate;
 
 		// Percentage shares are only needed in share mode; each datum carries its
 		// raw count so the tooltip can read "34.2% (58)".
@@ -117,17 +159,40 @@
 				),
 				color,
 				...lineStyle,
-				smooth: true,
+				// Straight segments: a spline invents values between years that do not exist.
+				smooth: false,
 				// Share mode stacks into contiguous bands; count mode stays as
 				// independent lines so series can cross and be compared directly.
 				...(isShare
 					? {
 							stack: 'share',
 							areaStyle: { color, opacity: 0.75 },
-							// Flat bands read better than wobbling splines when the eye is
-							// tracking band thickness rather than a single line's path.
-							smooth: false,
 							symbol: 'none' as const
+						}
+					: {}),
+				// One overlay, on the first series only: a dark veil over every
+				// low-n year, which reads as reduced opacity on the bands beneath.
+				...(isShare && index === 0 && lowSampleYears.length > 0
+					? {
+							markArea: {
+								silent: true,
+								itemStyle: { color: chartColors.background.dark, opacity: 0.55 },
+								label: {
+									show: !isMobile,
+									position: 'insideTop' as const,
+									color: chartColors.text.muted,
+									fontSize: 10,
+									formatter: currentT.trends.lowSampleBand.replace(
+										'{min}',
+										formatNumber(LOW_N_THRESHOLD, currentLang)
+									)
+								},
+								data: lowSampleRanges(years, lowSampleYears).map(([from, to]) => [
+									{ xAxis: from },
+									{ xAxis: to }
+								])
+							},
+							z: 5
 						}
 					: {})
 			};
@@ -137,12 +202,6 @@
 
 		return {
 			backgroundColor: 'transparent',
-			title: {
-				text: `${title} ${currentT.charts.byYear} (${formatNumber(articlesAnalyzed, currentLang)} ${currentT.charts.articlesAnalyzed})`,
-				left: 'center',
-				top: '2%',
-				textStyle: getTitleStyle(isMobile)
-			},
 			tooltip: {
 				...tooltipConfig,
 				trigger: 'axis',
@@ -156,7 +215,7 @@
 			legend: {
 				...getLegendConfig(isMobile),
 				data: legendData,
-				top: isMobile ? '12%' : '8%'
+				top: 0
 			},
 			grid: getGridConfig(isMobile, { hasLegendTop: true, hasDataZoom: true }),
 			xAxis: {
@@ -176,6 +235,9 @@
 	});
 </script>
 
+{#if !heading.inCard}
+	<ChartHeading title={headingTitle} subtitle={headingSubtitle} />
+{/if}
 {#if articleState.filtered.length > 0}
 	<div class="chart-toolbar mb-4">
 		<ChartTypeToggle
@@ -189,6 +251,7 @@
 	<div
 		style="height: {isMobile ? '400px' : '500px'}; position: relative;"
 		class="chart-container p-2 sm:p-4"
+		bind:clientWidth={containerWidth}
 		role="img"
 		aria-label={isShare ? `${ariaLabel} — ${$t.charts.shareMode}` : ariaLabel}
 	>
@@ -208,9 +271,14 @@
 				isShare ? shareData[year][label].value / 100 : (aggregate.yearlyCounts[year][label] ?? 0)
 			)
 		])}
-		caption={`${title} — ${isShare ? $t.charts.shareMode : $t.charts.countMode}`}
+		caption={`${headingTitle} — ${isShare ? $t.charts.shareMode : $t.charts.countMode}`}
 		filenamePrefix={`trends-${viewOptionsState[stateKey]}`}
 	/>
+	{#if isShare && lowSampleYears.length > 0}
+		<p class="chart-note">
+			{$t.trends.lowSampleNote.replace('{min}', formatNumber(LOW_N_THRESHOLD, $currentLanguage))}
+		</p>
+	{/if}
 {:else}
 	<p class="chart-empty">{$t.table.noFilteredArticles}</p>
 {/if}

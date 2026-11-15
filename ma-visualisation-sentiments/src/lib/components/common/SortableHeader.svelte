@@ -104,11 +104,6 @@
 		justify-content: center;
 	}
 
-	.sort-button:focus-visible {
-		outline: 2px solid var(--color-primary-400);
-		outline-offset: 3px;
-	}
-
 	.sort-indicator {
 		display: inline-block;
 		min-width: 1ch;

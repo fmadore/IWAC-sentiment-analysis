@@ -111,22 +111,6 @@ export function getSentimentLabels(
 }
 
 /**
- * Gets the French equivalent of a translated sentiment value
- * This is useful for filtering and data operations that expect French values
- */
-export function getFrenchSentimentValue(translatedValue: string): string {
-	// First, try to find the translation key that matches this translated value
-	for (const [frenchValue, translationKey] of Object.entries(SENTIMENT_VALUE_MAP)) {
-		if (translate(translationKey) === translatedValue) {
-			return frenchValue;
-		}
-	}
-
-	// If no match found, return the original value (might already be French)
-	return translatedValue;
-}
-
-/**
  * Formats a number for display in the active language: `12,356` in English,
  * `12 356` in French (a narrow no-break space, which is the French convention).
  *

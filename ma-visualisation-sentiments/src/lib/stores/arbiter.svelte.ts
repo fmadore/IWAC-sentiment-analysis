@@ -288,8 +288,8 @@ export function getActualModelName(
  *
  * Only generation 1 has a per-pair arbiter file. A v2 pair would build a
  * filename that cannot exist (`iwac_arbiter_evaluations_luna-mistral-small.json`)
- * and 404 on every comparison mount and every pair switch — ten times over, now
- * that the v2 panel has ten pairs. The v2 arbiter judges the whole panel at once
+ * and 404 on every comparison mount and every pair switch — once for every
+ * pair of the v2 panel. The v2 arbiter judges the whole panel at once
  * and is loaded by `arbiterV2` from a single file.
  */
 export const loadArbiterEvaluations = async (

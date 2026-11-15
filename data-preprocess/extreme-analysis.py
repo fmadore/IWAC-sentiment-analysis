@@ -12,6 +12,12 @@ produces:
 
 The set of extreme categories is driven by ``CATEGORIES`` in
 ``iwac_preprocess.extremes``; adding a seventh category is a one-line change.
+
+Each payload records the Hugging Face revision it was computed from under an
+optional ``source`` block. The staged files are validated against the
+published score files, category by category, before anything is promoted.
+``refresh-all.py`` runs this step together with the data fetch, which is the
+preferred path after a corpus change.
 """
 
 from __future__ import annotations
@@ -20,19 +26,22 @@ import argparse
 import os
 from pathlib import Path
 
-from iwac_preprocess.extremes import CATEGORIES, TOP_KEYWORDS, analyze_extreme_keywords
+from iwac_preprocess.extremes import CATEGORIES, TOP_KEYWORDS, build_extremes_payloads
 from iwac_preprocess.publication import publish_json_files
+from iwac_preprocess.serialization import provenance_block
 from shared import (
     GENERATIONS,
+    HF_REPO_ID,
     get_base_article_ids,
     get_contract,
     get_logger,
+    get_source_revision,
     get_staging_dir,
     get_webapp_data_dir,
     load_iwac_records,
     restrict_to_base_articles,
 )
-from validate_generated_data import validate_extremes
+from validate_generated_data import read_scores, validate_extremes
 
 logger = get_logger(__name__)
 
@@ -68,26 +77,23 @@ def main(argv: list[str] | None = None) -> None:
     records = restrict_to_base_articles(records, base_ids, logger)
     logger.info("Analysing %d processed articles", len(records))
 
-    all_results = {}
-    for model_id in contract.model_names:
-        logger.info("Analyzing %s results...", model_id.upper())
-        all_results[model_id] = analyze_extreme_keywords(
-            records, model_id, top_n=TOP_KEYWORDS, contract=contract
-        )
-
-    payloads = {
-        f"iwac_extreme_analysis_{model_id}.json": results
-        for model_id, results in all_results.items()
-    }
+    source = provenance_block(HF_REPO_ID, get_source_revision(HF_REPO_ID))
+    payloads = build_extremes_payloads(records, contract, source, top_n=TOP_KEYWORDS)
+    all_results = {payload["model"]: payload for payload in payloads.values()}
     for name in payloads:
         logger.info("Saving %s", os.path.join(output_dir, name))
     # Staged and validated as a set, then promoted together under the writer
-    # lock: a failure part-way leaves every published file untouched.
+    # lock: a failure part-way leaves every published file untouched. The
+    # membership check reads the published scores, so extremes computed from a
+    # different revision than the score files are refused.
+    published_scores = read_scores(contract, Path(output_dir))
     publish_json_files(
         Path(output_dir),
         Path(get_staging_dir()),
         payloads,
-        validate=lambda stage: validate_extremes(contract, base_ids, data_dir=stage),
+        validate=lambda stage: validate_extremes(
+            contract, base_ids, data_dir=stage, sentiments=published_scores
+        ),
     )
 
     logger.info("ANALYSIS SUMMARY")

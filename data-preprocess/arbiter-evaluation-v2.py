@@ -1,83 +1,54 @@
 """
 Panel arbiter evaluation for the generation-2 models — Claude Opus 5 as judge.
 
-The v1 arbiter judges one *pair* of models at a time. Generation 2 ships five
-models that were run on the same corpus with the same prompt, so a pairwise
-arbiter would ask ten overlapping questions about the same article and give ten
-verdicts that cannot be combined. This script asks the question once: the
-arbiter sees all five analyses at once, scores the article itself, and says
-which of them (if any) it prefers per dimension.
+The v1 arbiter judges one *pair* of models at a time. Generation 2 ships a
+panel run on the same corpus with the same prompt, so a pairwise arbiter would
+ask overlapping questions about the same article and give verdicts that cannot
+be combined. This script asks the question once: the arbiter sees the panel's
+analyses at once, scores the article itself, and says which of them (if any)
+it prefers per dimension.
 
 What differs from `arbiter-evaluation.py`, and why:
 
 * **Selection** is panel-wide rather than a pairwise gap: either the spread
-  (max minus min across all five models, per dimension) or a polarity valence
-  flip, the two rules the contract's `arbiter.eligibility` declares. `--limit N`
-  keeps the N widest disagreements *on the selected dimensions*, tie-broken by
-  article id so a capped run is reproducible.
+  (max minus min across the arbiter's panel, per dimension) or a polarity
+  valence flip, the two rules the contract's `arbiter.eligibility` declares.
+  `--limit N` keeps the N widest disagreements *on the selected dimensions*,
+  tie-broken by article id so a capped run is reproducible.
 * **Article text comes from the private mirror.** This fixes a real v1 flaw:
   the public projection masks `OCR` per row via `OCR_is_public`, so a large
   share of v1-arbitrated articles were judged on an empty string. Only verdicts
   and justifications are published — no OCR is ever serialised here.
 * **Blind assignment is a permutation, not a coin flip.** One global random
-  permutation maps the five model ids onto the labels A-E; it is persisted in
-  the output metadata and reused by every incremental run, so cached and new
+  permutation maps the panel's model ids onto the labels A-E; it is persisted
+  in the output metadata and reused by every incremental run, so cached and new
   rows always mean the same thing.
 * **The judge never reads its own developer's model.** Claude Haiku 5.5 joined
   the panel as its sixth member on 2026-10-22; the judge is Claude Opus 5. Blind
-  labels hide a name, not a house style, and LLM judges favour their own and
-  their family's output, so the contract's `arbiter.recusal` keeps Haiku out of
-  everything this script does: selection, prompt, labels and fingerprints run
-  over the other five, exactly the panel the published run judged. Haiku is
-  compared with the verdicts afterwards, in the dashboard. On the published 301
-  its polarity coincides with the arbiter's in 192, inside the 190-205 of the
-  four non-dissenting members: no sign of a shared Anthropic reading. What the
-  recusal cannot do is hear Haiku's own dissents — the 45 valence flips that
-  exist only because of it — which needs a judge from another developer:
-  `arbiter-evaluation-v2-second-judge.py`. The recused set is derived from the
-  contract's `arbiter.developer`, not listed, so that judge recuses its own
-  developer's member by the same rule.
+  labels hide a name, not a house style, so the contract's `arbiter.recusal`
+  keeps Haiku out of everything this script does: selection, prompt, labels and
+  fingerprints run over the other five, exactly the panel the published run
+  judged. The recused set is derived from the contract's `arbiter.developer`,
+  not listed. Haiku's own dissents need a judge from another developer:
+  `arbiter-evaluation-v2-second-judge.py`.
+* **The prompt is versioned.** The published 301 were judged under prompt
+  v2.2.0, a short scale reference that disagreed with the annotators' codebook
+  on proper-name-only mentions. The default is v2.3.0, which carries the
+  codebook verbatim. `--prompt-version v2.2.0` republishes or extends the
+  published run; the shrink guard keeps the public file intact until a v2.3.0
+  selection is at least as large (see the README).
 * **`--dry-run` prints the eligible/selected counts and a cost estimate and
   exits without making a single API call.** The paid run is deliberately gated.
-* **Paid work is retained separately from the public selection.** A private
-  cache under `.data-staging/arbiter-v2/` bootstraps from the published file and
-  preserves excluded evaluations and their provenance. Back up that directory
-  to retain unpublished work across checkouts. One session holds its run lock;
-  populated caches reject a changed effort or an invalid blind assignment.
 
-**Which disagreements are worth paying for.** Measured on the current corpus of
-12,349 articles with all five models: 11,402 rows are comparable (every model
-gave a comparable polarity and centrality) and 947 are excluded. 251 of those
-exclusions are Qwen's deliberate abstentions — its 200-article gap plus
-the 51 articles no model annotates — and they can never be arbitrated, because
-on those rows a five-way comparison does not exist.
-
-Of the comparable rows the *spread* rule (any dimension >= 3) selects 2,102, and
-1,762 of them (84%) are triggered by *subjectivity* alone — the panel's least
-reliable dimension and the one where "who is right" is least well defined.
-Centrality is the opposite problem: it is the panel's most reliable dimension
-(63.7% exact five-way agreement against 33.0% for polarity), so arbitrating it
-buys the least, and it is also where Mistral Small's documented outlier reading
-weighs most. Selecting on polarity + centrality gave 340 articles of which 198
-had a clear majority, half of them Mistral alone against four.
-
-That leaves polarity, which is what the research question turns on. Here the
-scale's arithmetic matters: a spread of 3 on the 1-5 polarity scale *implies*
-one model is positive and another negative, so `--dimensions polarity` selects
-exactly the 103 widest sign reversals — and structurally cannot reach the 198
-articles where one model says `Positif` and another `Négatif`, a gap of only 2.
-Hence the contract's second arbiter rule, `valenceFlip`, and `--rule valence`.
+The lock, revision choice, durable cache, shrink guard and paid loop are
+`iwac_preprocess.arbiter_run`, shared with the second judge.
 
 **Published run: `--rule valence`** — 301 articles, US$17.61 at effort medium
-over 281 paid calls (recorded in the file's `metadata.usage`; the dry run had
-estimated roughly US$29). Every one of them is a disagreement about the *sign*
-of the coverage. Mind what the frame is, though: only 19% (56) are the strict
-four-against-one exact-label split, against 49% in the old polarity+centrality
-block, but Mistral Small is the sole model across the valence line in 189 of
-the 301 (162 as the only negative reader), so the per-model verdict tallies
-measure how often the panel's dissenter was upheld, not the models' general
-quality. Cost figures are notes, not quotes: `--dry-run` measures the real
-prompts and is the authoritative estimate.
+over 281 paid calls (recorded in the file's `metadata.usage`). Mistral Small is
+the sole model across the valence line in 189 of the 301 (162 as the only
+negative reader), so the per-model verdict tallies measure how often the
+panel's dissenter was upheld, not the models' general quality. `--dry-run`
+measures the real prompts and is the authoritative estimate.
 
 `--rule`, `--dimensions` and `--threshold` can only ever tighten the contract's
 arbiter frame, because `validate_arbiter_three_way` recomputes eligibility from
@@ -85,13 +56,11 @@ the contract with `is_arbiter_eligible` and requires the published ids to be a
 subset of it.
 
 Usage:
-  python arbiter-evaluation-v2.py --dry-run                      # counts + cost, no spend
-  python arbiter-evaluation-v2.py --rule valence --dry-run
-  python arbiter-evaluation-v2.py --rule valence --yes                    # 301, the published run
-  python arbiter-evaluation-v2.py --rule spread --dimensions polarity --yes   # ~103
-  python arbiter-evaluation-v2.py --rule spread --dimensions polarity --threshold 4 --yes  # 18
-  python arbiter-evaluation-v2.py --rule valence --limit 20 --yes         # pilot
-  python arbiter-evaluation-v2.py --prune-cache-only             # reconcile, no spend
+  python arbiter-evaluation-v2.py --rule valence --dry-run          # counts + cost, no spend
+  python arbiter-evaluation-v2.py --rule valence --yes              # re-judge under v2.3.0
+  python arbiter-evaluation-v2.py --rule valence --prompt-version v2.2.0 --prune-cache-only
+  python arbiter-evaluation-v2.py --rule valence --limit 20 --yes   # pilot
+  python arbiter-evaluation-v2.py --rule valence --source-revision head --dry-run
 
 Requires ANTHROPIC_API_KEY for a paid run and HF_TOKEN for the private mirror.
 Output: ma-visualisation-sentiments/static/data/iwac_arbiter_evaluations_v2.json
@@ -101,86 +70,72 @@ import argparse
 import json
 import os
 import random
-from dataclasses import asdict, dataclass, fields
-from datetime import datetime
+from dataclasses import asdict
 from functools import partial
 from pathlib import Path
 from typing import Any
 
-from iwac_preprocess.arbiter_lifecycle import (
-    CACHE_FILENAME,
-    CacheUnreadableError,
-    PanelCache,
+from iwac_preprocess.arbiter_judges import (
+    PROVIDER_ANTHROPIC,
+    USD_PER_MTOK_INPUT,
+    USD_PER_MTOK_OUTPUT,
+    ArbiterUsage,
+    estimate_panel_cost,
 )
-from iwac_preprocess.arbiter_lifecycle import (
-    load_cached_evaluations as load_cached_evaluations,
-)
-from iwac_preprocess.arbiter_lifecycle import (
-    resolve_blind_permutation as resolve_blind_permutation,
-)
+from iwac_preprocess.arbiter_lifecycle import CACHE_FILENAME, CacheUnreadableError
 from iwac_preprocess.arbiter_prompt import (
     ARBITER_MAX_INPUT_CHARS,
     BLIND_LABELS,
-    SYSTEM_INSTRUCTION,
+    DEFAULT_PROMPT_VERSION,
     create_arbiter_prompt,
+    system_instruction,
 )
-from iwac_preprocess.arbiter_prompt import (
-    display_order as display_order,
+from iwac_preprocess.arbiter_run import (
+    OUTCOME_ERROR,
+    OUTCOME_INVALID,
+    OUTCOME_NO_TEXT,
+    OUTCOME_OK,
+    OUTCOME_REFUSED,
+    OUTCOME_TRUNCATED,
+    ArbiterRunError,
+    EvaluationResult,
+    PanelRun,
+    add_run_arguments,
+    load_env,
+    load_panel_records,
+    load_panel_texts,
+    plan_revisions,
+    positive_limit,
+    recorded_revisions,
+    require_revision,
+    run_locked,
 )
-from iwac_preprocess.arbiter_schema import (
-    PREFERENCE_VALUES as PREFERENCE_VALUES,
-)
-from iwac_preprocess.arbiter_schema import (
-    ArbiterAnalysisV2,
-    ArbiterResponseV2,
-    convert_response,
-)
-from iwac_preprocess.arbiter_schema import (
-    ArbiterScoreV2 as ArbiterScoreV2,
-)
-from iwac_preprocess.arbiter_schema import (
-    CentralityVerdict as CentralityVerdict,
-)
-from iwac_preprocess.arbiter_schema import (
-    PolarityVerdict as PolarityVerdict,
-)
-from iwac_preprocess.arbiter_schema import (
-    SubjectivityVerdict as SubjectivityVerdict,
-)
+from iwac_preprocess.arbiter_schema import ArbiterResponseV2, convert_response
 from iwac_preprocess.arbiter_selection import (
     DEFAULT_RULE,
     DIMENSIONS,
     RULE_UNION,
     RULE_VALENCE,
     RULES,
+    SelectionError,
     apply_limit,
     attach_full_text,
+    check_text_coverage,
     find_three_way_conflicts,
     resolve_threshold,
 )
-from iwac_preprocess.arbiter_selection import (
-    RULE_SPREAD as RULE_SPREAD,
-)
-from iwac_preprocess.arbiter_selection import (
-    SPREAD_KEYS as SPREAD_KEYS,
-)
-from iwac_preprocess.publication import publication_lock, publish_json_files
+from iwac_preprocess.publication import publish_json_files
+from iwac_preprocess.source import SourceScopeError
 from pydantic import ValidationError
 from shared import (
     CONTRACT_V2,
     HF_FULL_REPO_ID,
     HF_REPO_ID,
-    SentimentContract,
     get_logger,
-    get_source_revision,
     get_staging_dir,
     get_webapp_data_dir,
-    load_iwac_dataset,
-    load_iwac_full_text,
     three_way_cache_fingerprint,
-    validate_columns,
 )
-from tqdm import tqdm
 from validate_generated_data import validate_arbiter_envelope
 
 logger = get_logger(__name__)
@@ -201,163 +156,33 @@ ARBITER_DEFAULT_EFFORT = "medium"
 EFFORT_LEVELS = ("low", "medium", "high", "xhigh", "max")
 
 OUTPUT_FILENAME = "iwac_arbiter_evaluations_v2.json"
-SAVE_INTERVAL = 10  # write partial progress every N successful evaluations
-
-# Published Claude Opus 5 rates, used only for the --dry-run estimate.
-USD_PER_MTOK_INPUT = 5.0
-USD_PER_MTOK_OUTPUT = 25.0
-# Measured, not assumed: `count_tokens` on the real system instruction returns
-# 1,463 tokens for 3,540 characters. French accented prose tokenizes far worse
-# than the 3.2 this constant used to carry, which made every estimate here read
-# about a third low on the input side. Re-measure with `client.messages.
-# count_tokens` (free, no spend) if the prompt language ever changes.
-ESTIMATE_CHARS_PER_TOKEN = 2.42
-
-# The cached prefix is identical on every call and sits above Opus 5's 512-token
-# minimum, so it is billed once at the write rate and at a tenth of the base rate
-# thereafter. Cache reads are 0.1x, 5-minute writes 1.25x; back-to-back calls
-# keep the entry warm — the 301-article run wrote the entry exactly once and
-# read it 281 times over roughly two hours.
-CACHE_WRITE_MULTIPLIER = 1.25
-CACHE_READ_MULTIPLIER = 0.1
-# Measured at 3,565 tokens/call over that run, against 1,463 for the system
-# instruction alone. The difference is the structured-output schema: the API
-# renders `output_format` ahead of `system`, and a breakpoint on the system block
-# caches everything before it too. Deriving this from `len(SYSTEM_INSTRUCTION)`
-# understated the cached prefix — and so the saving — by well over half.
-CACHED_PREFIX_TOKENS = 3565
-
-# `medium` is measured (453,184 output tokens over 281 calls, thinking included).
-# The other rungs are still assumptions, and the medium measurement suggests they
-# are high by a similar margin — treat them as upper bounds until measured.
-ESTIMATE_OUTPUT_TOKENS = {"low": 1100, "medium": 1613, "high": 2400, "xhigh": 3500, "max": 4800}
-
-# Dataset columns the selection pass depends on.
-REQUIRED_BASE_COLUMNS = ["o:id", "title", "newspaper", "country", "pub_date"]
+STAGING_DIRNAME = "arbiter-v2"
+SDK_PACKAGE = "anthropic"
 
 # The arbiter's panel, not the generation's: a recused model (one from the
 # judge's own developer, see `arbiter.recusal` in the contract) is never shown
 # to it, so it takes no label, no fingerprint slot and no part in selection.
 MODEL_IDS = list(CONTRACT.arbiter_model_ids)
 
-# The response schema and the published verdict shape (`ArbiterResponseV2`,
-# `ArbiterAnalysisV2`) live in `iwac_preprocess.arbiter_schema`, shared with the
-# second judge so the two judges' verdicts stay comparable field by field.
-
 
 # ============================================================================
-# Serialized shapes (mirrored by the frontend types)
+# Sources (script-level so tests can replace them)
 # ============================================================================
 
 
-@dataclass
-class UsageTotals:
-    """What the run actually cost, accumulated across calls.
-
-    Without this the dry-run estimate can never be checked against reality: the
-    published verdicts show only the JSON the model returned, and thinking
-    tokens — the larger half of the output at every effort level — leave no
-    trace in the file. `cache_read_input_tokens` is also the only proof that the
-    cached system prefix is being read rather than silently re-billed.
-    """
-
-    calls: int = 0
-    input_tokens: int = 0
-    output_tokens: int = 0
-    cache_creation_input_tokens: int = 0
-    cache_read_input_tokens: int = 0
-
-    @classmethod
-    def from_metadata(cls, stored: Any) -> "UsageTotals":
-        """Resume the totals a previous run published.
-
-        The published file is the record of what it cost. A resumed run adds
-        its own calls to that record; a run that makes no call at all —
-        `--prune-cache-only`, or one that finds everything cached — keeps it
-        rather than overwriting it with nothing.
-        """
-        if not isinstance(stored, dict):
-            return cls()
-        return cls(
-            **{
-                field.name: int(stored.get(field.name) or 0)
-                for field in fields(cls)
-                if isinstance(stored.get(field.name, 0), int | float)
-            }
-        )
-
-    def add(self, usage: Any) -> None:
-        if usage is None:
-            return
-        self.calls += 1
-        for field in (
-            "input_tokens",
-            "output_tokens",
-            "cache_creation_input_tokens",
-            "cache_read_input_tokens",
-        ):
-            setattr(self, field, getattr(self, field) + (getattr(usage, field, 0) or 0))
-
-    def as_metadata(self) -> dict:
-        """Serialisable totals, plus the per-call averages worth reading."""
-        if not self.calls:
-            return {}
-        return {
-            **asdict(self),
-            "output_tokens_per_call": round(self.output_tokens / self.calls),
-            "input_tokens_per_call": round(self.input_tokens / self.calls),
-            "usd": round(
-                (self.input_tokens + self.cache_creation_input_tokens * CACHE_WRITE_MULTIPLIER)
-                / 1_000_000
-                * USD_PER_MTOK_INPUT
-                + self.cache_read_input_tokens
-                / 1_000_000
-                * USD_PER_MTOK_INPUT
-                * CACHE_READ_MULTIPLIER
-                + self.output_tokens / 1_000_000 * USD_PER_MTOK_OUTPUT,
-                2,
-            ),
-        }
+def load_dataset_records(revision: str | None = None) -> tuple[list[dict], str]:
+    """The public projection at ``revision``, scoped to the published base."""
+    return load_panel_records(CONTRACT, revision, logger)
 
 
-# ============================================================================
-# Prompt
-# ============================================================================
-
-# ============================================================================
-# Selection
-# ============================================================================
-
-
-def load_dataset_records(contract: SentimentContract = CONTRACT) -> list[dict]:
-    """Load the public projection and validate the columns selection needs."""
-    df = load_iwac_dataset(contract)
-    validate_columns(df, REQUIRED_BASE_COLUMNS)
-    logger.info("Loaded %d articles from %s", len(df), HF_REPO_ID)
-    return df.to_dict("records")
+def load_article_texts(revision: str | None = None) -> tuple[dict[str, str], str]:
+    """The private mirror's text at ``revision``."""
+    return load_panel_texts(revision)
 
 
 # ============================================================================
 # Paid evaluation
 # ============================================================================
-
-# Why an article produced no verdict, counted separately in the published
-# metadata. `refused` is the model declining the task; every other non-ok
-# outcome is a failure of the call or of the response.
-OUTCOME_OK = "ok"
-OUTCOME_REFUSED = "refused"
-OUTCOME_TRUNCATED = "truncated"
-OUTCOME_INVALID = "invalid"
-OUTCOME_ERROR = "error"
-OUTCOME_NO_TEXT = "no_text"
-
-
-@dataclass(frozen=True)
-class EvaluationResult:
-    """One article's verdict, or the reason there is none."""
-
-    outcome: str
-    analysis: ArbiterAnalysisV2 | None = None
 
 
 def create_anthropic_client(api_key: str):
@@ -377,8 +202,8 @@ def evaluate_with_arbiter(
     permutation: dict[str, str],
     *,
     effort: str = ARBITER_DEFAULT_EFFORT,
-    contract: SentimentContract = CONTRACT,
-    usage: UsageTotals | None = None,
+    usage: ArbiterUsage | None = None,
+    prompt_version: str = DEFAULT_PROMPT_VERSION,
 ) -> EvaluationResult:
     """Send one article to Claude Opus 5 and return its structured verdict.
 
@@ -396,31 +221,36 @@ def evaluate_with_arbiter(
         logger.warning("No text available for article %s", article_id)
         return EvaluationResult(OUTCOME_NO_TEXT)
 
-    prompt = create_arbiter_prompt(article, permutation, contract)
+    request = {
+        "model": ARBITER_MODEL,
+        "max_tokens": ARBITER_MAX_OUTPUT_TOKENS,
+        # Cached: the instruction is byte-identical on every call and above
+        # Opus 5's 512-token minimum, so it is written once and read at a tenth
+        # of the price after that. The article and the analyses differ every
+        # time and cannot be cached at all.
+        "system": [
+            {
+                "type": "text",
+                "text": system_instruction(prompt_version),
+                "cache_control": {"type": "ephemeral"},
+            }
+        ],
+        "messages": [
+            {"role": "user", "content": create_arbiter_prompt(article, permutation, CONTRACT)}
+        ],
+        "output_format": ArbiterResponseV2,
+        "output_config": {"effort": effort},
+    }
 
     try:
-        response = client.messages.parse(
-            model=ARBITER_MODEL,
-            max_tokens=ARBITER_MAX_OUTPUT_TOKENS,
-            # Cached: the instruction is byte-identical on all 301 calls and is
-            # comfortably above Opus 5's 512-token minimum, so it is written
-            # once and read at a tenth of the price after that. The article and
-            # the analyses differ every time and cannot be cached at all, which
-            # is why this saves single-digit percent rather than the 90% the
-            # headline number suggests.
-            system=[
-                {
-                    "type": "text",
-                    "text": SYSTEM_INSTRUCTION,
-                    "cache_control": {"type": "ephemeral"},
-                }
-            ],
-            messages=[{"role": "user", "content": prompt}],
-            output_format=ArbiterResponseV2,
-            output_config={"effort": effort},
-        )
+        response = client.messages.parse(**request)
     except ValidationError as error:
         logger.error("Invalid structured response for article %s: %s", article_id, error)
+        if usage is not None:
+            # Billed like any other call, but `messages.parse` validates inside
+            # the SDK and raises before handing back the usage (and its raw
+            # wrapper has no `parse`), so the call is counted without tokens.
+            usage.add_unmetered()
         return EvaluationResult(OUTCOME_INVALID)
     except Exception as error:  # noqa: BLE001 - one bad article must not end the run
         logger.error("Arbiter call failed for article %s: %s", article_id, error)
@@ -430,7 +260,7 @@ def evaluate_with_arbiter(
     # like any other, and an accounting that skipped those would understate the
     # run exactly where it went wrong.
     if usage is not None:
-        usage.add(getattr(response, "usage", None))
+        usage.add_anthropic(getattr(response, "usage", None))
 
     stop_reason = getattr(response, "stop_reason", None)
     if stop_reason == "refusal":
@@ -450,7 +280,7 @@ def evaluate_with_arbiter(
         logger.error("Empty structured response for article %s", article_id)
         return EvaluationResult(OUTCOME_INVALID)
 
-    return EvaluationResult(OUTCOME_OK, convert_response(parsed, article_id, contract))
+    return EvaluationResult(OUTCOME_OK, convert_response(parsed, article_id, CONTRACT))
 
 
 # ============================================================================
@@ -458,15 +288,18 @@ def evaluate_with_arbiter(
 # ============================================================================
 
 
-def build_fingerprint(source_revision: str | None, text_revision: str | None):
-    """Bind this run's model and both source revisions to the v2 hasher."""
+def build_fingerprint(
+    source_revision: str, text_revision: str, prompt_version: str = DEFAULT_PROMPT_VERSION
+):
+    """Bind this run's model, prompt and both source revisions to the v2 hasher."""
     return partial(
         three_way_cache_fingerprint,
         arbiter_model=ARBITER_MODEL,
-        source_revision=source_revision,
-        text_revision=text_revision,
+        source_revision=require_revision(source_revision, HF_REPO_ID),
+        text_revision=require_revision(text_revision, HF_FULL_REPO_ID),
         max_input_chars=ARBITER_MAX_INPUT_CHARS,
         contract=CONTRACT,
+        prompt_version=prompt_version,
     )
 
 
@@ -475,20 +308,18 @@ def build_metadata(
     permutation: dict[str, str],
     selection: dict[str, Any],
     counts: dict[str, int],
-    source_revision: str | None,
-    text_revision: str | None,
+    source_revision: str,
+    text_revision: str,
     effort: str,
-    legacy_cache_adopted: int = 0,
-    usage: UsageTotals | None = None,
+    prompt_version: str,
+    usage: ArbiterUsage | None = None,
 ) -> dict:
-    """Assemble the self-documenting envelope the dashboard and validator read."""
-    measured = usage.as_metadata() if usage else {}
+    """Assemble the self-documenting envelope (``generated`` is the runner's)."""
     return {
-        "generated": datetime.now().isoformat(),
         # Cumulative over every run that contributed to the file: seeded from
         # the published record, so a resumed run adds to it and a run that
         # makes no call leaves it as it was.
-        "usage": measured,
+        "usage": usage.as_metadata() if usage else {},
         "arbiter_model": ARBITER_MODEL,
         "mode": CONTRACT.arbiter["mode"],
         "effort": effort,
@@ -511,18 +342,18 @@ def build_metadata(
         "contract_schema_version": CONTRACT.schema_version,
         "analysis_version": CONTRACT.analysis_version,
         "cache_schema_version": CONTRACT.arbiter["cacheSchemaVersion"],
-        "prompt_version": CONTRACT.arbiter["promptVersion"],
+        "prompt_version": prompt_version,
         # Two repositories, two revisions: scores from the public projection,
         # article text from the private mirror.
         "source": {
             "scores": {"repository": HF_REPO_ID, "revision": source_revision},
             "text": {"repository": HF_FULL_REPO_ID, "revision": text_revision},
         },
-        "legacy_cache_adopted": legacy_cache_adopted,
+        "legacy_cache_adopted": 0,
     }
 
 
-def save_results(path: str, evaluations: list[dict], metadata: dict) -> None:
+def save_results(path: str | Path, evaluations: list[dict], metadata: dict) -> None:
     """Publish the file through the shared staged path, envelope checked first.
 
     Waits for the writer lock rather than failing: a concurrent export must not
@@ -538,61 +369,6 @@ def save_results(path: str, evaluations: list[dict], metadata: dict) -> None:
         ),
         blocking=True,
     )
-
-
-# ============================================================================
-# Cost estimate
-# ============================================================================
-
-
-def estimate_cost(articles: list[dict], permutation: dict[str, str], effort: str) -> dict:
-    """Estimate the spend of evaluating ``articles``, from real prompt sizes.
-
-    The input side is measured (the prompts are assembled here); the output side
-    is an assumption, printed alongside the number so nobody reads the total as
-    a quote.
-    """
-    calls = len(articles)
-    prompt_chars = sum(
-        len(SYSTEM_INSTRUCTION) + len(create_arbiter_prompt(article, permutation))
-        for article in articles
-    )
-    input_tokens = prompt_chars / ESTIMATE_CHARS_PER_TOKEN
-
-    # Split the input in two, because the two halves are not billed alike: the
-    # schema and the system instruction are cached, the article and the analyses
-    # are fresh on every call. `prompt_chars` counts the system instruction but
-    # not the schema, so the fresh half is derived by removing only what it
-    # actually counted.
-    system_tokens = len(SYSTEM_INSTRUCTION) / ESTIMATE_CHARS_PER_TOKEN
-    fresh_tokens = input_tokens - calls * system_tokens
-    cached_tokens = (
-        CACHED_PREFIX_TOKENS * CACHE_WRITE_MULTIPLIER
-        + max(calls - 1, 0) * CACHED_PREFIX_TOKENS * CACHE_READ_MULTIPLIER
-        if calls
-        else 0.0
-    )
-    billable_input = fresh_tokens + cached_tokens
-    # What the same run would have cost with no breakpoint: every call paying
-    # for the whole prefix at the base rate.
-    uncached_input = fresh_tokens + calls * CACHED_PREFIX_TOKENS
-
-    output_tokens = calls * ESTIMATE_OUTPUT_TOKENS.get(effort, 3000)
-    return {
-        "calls": calls,
-        "input_tokens": round(uncached_input),
-        "billable_input_tokens": round(billable_input),
-        "cache_saving_usd": round(
-            (uncached_input - billable_input) / 1_000_000 * USD_PER_MTOK_INPUT, 2
-        ),
-        "output_tokens": output_tokens,
-        "assumed_output_tokens_per_call": ESTIMATE_OUTPUT_TOKENS.get(effort, 3000),
-        "usd": round(
-            billable_input / 1_000_000 * USD_PER_MTOK_INPUT
-            + output_tokens / 1_000_000 * USD_PER_MTOK_OUTPUT,
-            2,
-        ),
-    }
 
 
 def report_estimate(estimate: dict, effort: str) -> None:
@@ -617,35 +393,9 @@ def report_estimate(estimate: dict, effort: str) -> None:
     )
 
 
-def confirm_api_calls(estimate: dict, effort: str, assume_yes: bool) -> bool:
-    """Ask before spending. Returns False when declined or non-interactive."""
-    if assume_yes:
-        logger.info("--yes given: proceeding with %d API calls", estimate["calls"])
-        return True
-
-    report_estimate(estimate, effort)
-    print(f"\nWARNING: this will make {estimate['calls']} paid API calls to {ARBITER_MODEL}")
-    try:
-        response = input("Do you want to proceed? (yes/no): ").strip().lower()
-    except EOFError:
-        logger.error("No input available (non-interactive run?). Use --yes to skip the prompt.")
-        return False
-    return response in ("yes", "y")
-
-
 # ============================================================================
 # Entry point
 # ============================================================================
-
-
-def positive_limit(value: str) -> int:
-    try:
-        limit = int(value)
-    except ValueError as error:
-        raise argparse.ArgumentTypeError("--limit must be a positive integer") from error
-    if limit <= 0:
-        raise argparse.ArgumentTypeError("--limit must be a positive integer")
-    return limit
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -654,13 +404,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python arbiter-evaluation-v2.py --dry-run
   python arbiter-evaluation-v2.py --rule valence --dry-run
-  python arbiter-evaluation-v2.py --rule valence --yes                   # ~301, recommended
+  python arbiter-evaluation-v2.py --rule valence --yes                   # re-judge, v2.3.0
+  python arbiter-evaluation-v2.py --rule valence --prompt-version v2.2.0 --prune-cache-only
   python arbiter-evaluation-v2.py --rule valence --limit 20 --yes        # pilot
-  python arbiter-evaluation-v2.py --rule spread --dimensions polarity --yes
-  python arbiter-evaluation-v2.py --rule spread --dimensions polarity --threshold 4 --yes
-  python arbiter-evaluation-v2.py --prune-cache-only
+  python arbiter-evaluation-v2.py --rule spread --dimensions polarity --dry-run
 """,
     )
     parser.add_argument(
@@ -676,7 +424,7 @@ Examples:
         default=DEFAULT_RULE,
         help=f"Which of the contract's arbiter rules to select on (default: {DEFAULT_RULE}, "
         "the full contract frame). 'valence' keeps every article where one model reports a "
-        "positive polarity and another a negative one — the recommended run, ~301 articles — "
+        "positive polarity and another a negative one — the published run, ~301 articles — "
         "and ignores --dimensions/--threshold, which narrow the spread rule only.",
     )
     parser.add_argument(
@@ -685,9 +433,7 @@ Examples:
         choices=DIMENSIONS,
         default=list(DIMENSIONS),
         metavar="DIM",
-        help="Which dimensions may trigger selection under the spread rule (default: all three). "
-        "Subjectivity disagreement dominates the corpus, so narrowing to 'polarity' is the "
-        "difference between ~2,100 articles and ~103.",
+        help="Which dimensions may trigger selection under the spread rule (default: all three).",
     )
     parser.add_argument(
         "--threshold",
@@ -701,25 +447,9 @@ Examples:
         choices=EFFORT_LEVELS,
         default=ARBITER_DEFAULT_EFFORT,
         help=f"Reasoning effort on the arbiter model (default: {ARBITER_DEFAULT_EFFORT}). "
-        "The primary cost lever.",
+        "The primary cost lever; a populated cache binds the effort it was run at.",
     )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Print eligible/selected counts and a cost estimate, then exit without "
-        "making any API call.",
-    )
-    parser.add_argument(
-        "--prune-cache-only",
-        action="store_true",
-        help="Republish the selected cached evaluations without paid calls; the durable cache retains every evaluation.",
-    )
-    parser.add_argument(
-        "--yes",
-        "-y",
-        action="store_true",
-        help="Skip the interactive confirmation prompt (for non-interactive runs).",
-    )
+    add_run_arguments(parser)
     return parser.parse_args(argv)
 
 
@@ -728,40 +458,46 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     if args.dry_run:
         return run(args)
-    # Serialize whole arbiter sessions, not just public writes: two sessions
-    # must never price the same missing rows or overwrite each other's cache.
-    try:
-        with publication_lock(Path(get_staging_dir()) / "arbiter-v2"):
-            return run(args)
-    except BlockingIOError as error:
-        logger.error("Another panel arbiter run holds the cache lock: %s", error)
-        return 2
+    return run_locked(
+        Path(get_staging_dir()) / STAGING_DIRNAME, "panel arbiter", lambda: run(args), logger
+    )
 
 
 def run(args: argparse.Namespace) -> int:
-    env_path = Path(__file__).parent.parent / ".env"
-    if env_path.exists():
-        from dotenv import load_dotenv
-
-        load_dotenv(env_path)
-        logger.info("Loaded environment variables from %s", env_path)
-
+    load_env(__file__, logger)
     logger.info(
-        "IWAC panel arbiter — %s (effort=%s), contract %s",
+        "IWAC panel arbiter — %s (effort=%s, prompt %s), contract %s",
         ARBITER_MODEL,
         args.effort,
+        args.prompt_version,
         CONTRACT.analysis_version,
     )
+    output_path = Path(get_webapp_data_dir()) / OUTPUT_FILENAME
+    cache_path = Path(get_staging_dir()) / STAGING_DIRNAME / CACHE_FILENAME
 
     try:
-        records = load_dataset_records()
+        recorded, recorded_in = recorded_revisions(output_path, cache_path)
+    except CacheUnreadableError as error:
+        logger.error("%s", error)
+        return 2
+    request = plan_revisions(
+        source_flag=args.source_revision,
+        text_flag=args.text_revision,
+        recorded=recorded,
+        recorded_in=recorded_in,
+    )
+    logger.info("Scores revision: %s — %s", request.scores or "HEAD", request.scores_reason)
+    logger.info("Text revision: %s — %s", request.text or "HEAD", request.text_reason)
+
+    try:
+        records, source_revision = load_dataset_records(request.scores)
     except Exception as error:  # noqa: BLE001 - surfaced as an exit code
         logger.error("Failed to load dataset: %s", error)
         return 2
 
     try:
         threshold = resolve_threshold(args.threshold)
-    except SystemExit as error:
+    except SelectionError as error:
         logger.error("%s", error)
         return 2
 
@@ -787,12 +523,17 @@ def run(args: argparse.Namespace) -> int:
         )
 
     try:
-        texts = load_iwac_full_text()
+        texts, text_revision = load_article_texts(request.text)
     except Exception as error:  # noqa: BLE001 - surfaced as an exit code
         logger.error("Failed to load article text from the private mirror: %s", error)
         return 2
 
     with_text, missing_text = attach_full_text(eligible, texts)
+    try:
+        check_text_coverage(missing_text, len(eligible))
+    except SelectionError as error:
+        logger.error("%s", error)
+        return 2
     if missing_text:
         logger.warning(
             "%d eligible article(s) have no text even in %s and were skipped (e.g. %s)",
@@ -810,42 +551,6 @@ def run(args: argparse.Namespace) -> int:
             " / ".join(args.dimensions),
         )
 
-    source_revision = get_source_revision(HF_REPO_ID)
-    text_revision = get_source_revision(HF_FULL_REPO_ID)
-    output_path = os.path.join(get_webapp_data_dir(), OUTPUT_FILENAME)
-    try:
-        cache = PanelCache.load(
-            Path(get_staging_dir()) / "arbiter-v2" / CACHE_FILENAME,
-            Path(output_path),
-            MODEL_IDS,
-            args.effort,
-        )
-    except CacheUnreadableError as error:
-        logger.error("%s", error)
-        return 2
-    cached_metadata = cache.metadata
-    permutation = resolve_blind_permutation(
-        cached_metadata, MODEL_IDS, populated=bool(cache.evaluations)
-    )
-    logger.info(
-        "Blind assignment: %s",
-        ", ".join(f"{label.upper()}={permutation[label]}" for label in BLIND_LABELS),
-    )
-
-    reconciliation = cache.select(selected, build_fingerprint(source_revision, text_revision))
-    evaluations = reconciliation.evaluations
-    if cache.evaluations:
-        logger.info(
-            "Cache: %d evaluations match this selection; %d retained in durable history",
-            len(evaluations),
-            len(cache.evaluations),
-        )
-
-    remaining = [
-        article
-        for article in selected
-        if str(article.get("o:id")) not in reconciliation.evaluated_ids
-    ]
     selection = {
         "rule": CONTRACT.contract["discrepancy"]["threeWaySpread"]["rule"],
         # What this run actually selected on, which may be tighter than the
@@ -860,113 +565,111 @@ def run(args: argparse.Namespace) -> int:
         "selected_articles": len(selected),
         "valence_flips_selected": sum(1 for article in selected if article.get("valence_flip")),
     }
-    # Threaded through `publish`, so a partial save carries the spend so far.
-    usage = UsageTotals.from_metadata(cached_metadata.get("usage"))
-    counts = {
-        "total": len(selected),
-        "successful": len(evaluations),
-        "failed": 0,
-        "refused": 0,
-        "missing_text": len(missing_text),
-    }
 
-    def publish(extra_counts: dict | None = None) -> None:
-        metadata = build_metadata(
-            permutation=permutation,
-            selection=selection,
-            counts={**counts, **(extra_counts or {}), "successful": len(evaluations)},
-            source_revision=source_revision,
-            text_revision=text_revision,
+    try:
+        fingerprint = build_fingerprint(source_revision, text_revision, args.prompt_version)
+        holder: dict[str, PanelRun] = {}
+
+        def metadata(counts: dict[str, int], usage: ArbiterUsage) -> dict:
+            return build_metadata(
+                permutation=holder["run"].permutation,
+                selection=selection,
+                counts=counts,
+                source_revision=source_revision,
+                text_revision=text_revision,
+                effort=args.effort,
+                prompt_version=args.prompt_version,
+                usage=usage,
+            )
+
+        panel_run = PanelRun.open(
+            cache_path=cache_path,
+            output_path=output_path,
+            panel=MODEL_IDS,
             effort=args.effort,
-            legacy_cache_adopted=reconciliation.adopted_legacy,
-            usage=usage,
+            selected=selected,
+            fingerprint=fingerprint,
+            prompt_version=args.prompt_version,
+            source={"scores": source_revision, "text": text_revision},
+            save_results=lambda path, rows, meta: save_results(path, rows, meta),
+            build_metadata=metadata,
+            usage_provider=PROVIDER_ANTHROPIC,
+            logger=logger,
+            missing_text=len(missing_text),
+            allow_shrink=args.allow_shrink,
+            retry_failed=args.retry_failed,
+            sdk_package=SDK_PACKAGE,
         )
-        cache.checkpoint(evaluations, metadata)
-        save_results(output_path, evaluations, metadata)
+        holder["run"] = panel_run
+    except (ArbiterRunError, CacheUnreadableError, SourceScopeError) as error:
+        logger.error("%s", error)
+        return 2
 
-    estimate = estimate_cost(remaining, permutation, args.effort)
+    permutation = panel_run.permutation
+    logger.info(
+        "Blind assignment: %s",
+        ", ".join(f"{label.upper()}={permutation[label]}" for label in BLIND_LABELS),
+    )
+    estimate = estimate_panel_cost(panel_run.remaining, permutation, args.effort, CONTRACT)
 
     if args.dry_run:
         logger.info(
             "Dry run: %d eligible, %d selected, %d cached, %d would be evaluated",
             len(eligible),
             len(selected),
-            len(reconciliation.evaluated_ids),
-            len(remaining),
+            len(panel_run.evaluations),
+            len(panel_run.remaining),
         )
         report_estimate(estimate, args.effort)
+        notice = panel_run.transition_notice(len(panel_run.remaining), estimate["usd"])
+        if notice:
+            logger.warning("%s", notice)
+        refusal = panel_run.shrink_refusal()
+        if refusal and not panel_run.remaining:
+            logger.warning("%s", refusal)
         logger.info("No API call was made and no file was written.")
         return 0
 
-    if not remaining:
-        publish()
-        logger.info(
-            "All %d selected articles are already evaluated; republished the selection",
-            len(selected),
-        )
-        return 0
+    def make_client():
+        api_key = os.environ.get("ANTHROPIC_API_KEY")
+        if not api_key:
+            raise ArbiterRunError("No API key found! Set ANTHROPIC_API_KEY, or use --dry-run.")
+        try:
+            return create_anthropic_client(api_key)
+        except RuntimeError as error:
+            raise ArbiterRunError(str(error)) from error
 
-    if args.prune_cache_only:
-        publish()
-        logger.info("Prune-only mode left %d articles pending evaluation", len(remaining))
-        return 0
+    def make_row(article: dict, analysis: Any, key: str) -> dict:
+        return {
+            "article_id": analysis.article_id,
+            "cache_fingerprint": key,
+            "spread": article["spread"],
+            "arbiter": asdict(analysis),
+        }
 
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        logger.error("No API key found! Set ANTHROPIC_API_KEY, or use --dry-run.")
-        return 2
     try:
-        client = create_anthropic_client(api_key)
-    except RuntimeError as error:
+        return panel_run.finish(
+            prune_only=args.prune_cache_only,
+            assume_yes=args.yes,
+            model=ARBITER_MODEL,
+            estimate=estimate,
+            report_estimate=lambda: report_estimate(estimate, args.effort),
+            make_client=make_client,
+            evaluate=lambda client, article: evaluate_with_arbiter(
+                client,
+                article,
+                permutation,
+                effort=args.effort,
+                usage=panel_run.usage,
+                prompt_version=args.prompt_version,
+            ),
+            make_row=make_row,
+            desc="Panel arbiter",
+            max_consecutive_errors=args.max_consecutive_errors,
+        )
+    except ArbiterRunError as error:
         logger.error("%s", error)
         return 2
-
-    if not confirm_api_calls(estimate, args.effort, args.yes):
-        logger.info("Aborted.")
-        return 0
-
-    fingerprint = build_fingerprint(source_revision, text_revision)
-    successful = failed = refused = 0
-
-    def run_counts() -> dict[str, int]:
-        return {"failed": failed, "refused": refused}
-
-    try:
-        for article in tqdm(remaining, desc="Panel arbiter"):
-            result = evaluate_with_arbiter(
-                client, article, permutation, effort=args.effort, usage=usage
-            )
-            if result.analysis is None:
-                if result.outcome == OUTCOME_REFUSED:
-                    refused += 1
-                else:
-                    failed += 1
-                continue
-
-            evaluations.append(
-                {
-                    "article_id": result.analysis.article_id,
-                    "cache_fingerprint": fingerprint(article),
-                    "spread": article["spread"],
-                    "arbiter": asdict(result.analysis),
-                }
-            )
-            successful += 1
-            if successful % SAVE_INTERVAL == 0:
-                publish(run_counts())
-                logger.info("Saved %d evaluations", len(evaluations))
-    finally:
-        # Also on Ctrl-C or a crash: every verdict already paid for is saved.
-        publish(run_counts())
-
-    logger.info(
-        "Complete: %d newly evaluated, %d from cache, %d failed, %d refused",
-        successful,
-        len(reconciliation.evaluated_ids),
-        failed,
-        refused,
-    )
-    return 0
 
 
 if __name__ == "__main__":

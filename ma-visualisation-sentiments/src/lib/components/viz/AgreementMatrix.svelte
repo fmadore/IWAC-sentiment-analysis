@@ -14,16 +14,17 @@
 	import { num, pct } from '#lib/i18n/utils.js';
 	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
-	import { innerWidth } from 'svelte/reactivity/window';
+	import { isCompactWidth } from '#lib/utils/viewport.svelte.js';
+	import { useChartCardHeading } from '#lib/components/ui/chartCardHeading.svelte.js';
+	import ChartHeading from './ChartHeading.svelte';
 
 	import { t, currentLanguage } from '#lib/i18n/index.js';
 	import { translateSentimentValue } from '#lib/i18n/utils.js';
 	import type { ConfusionMatrix } from '#lib/utils/agreement.js';
-	import type { AgreementDimension } from '#lib/stores/agreement.svelte.js';
+	import type { AgreementDimension } from '#lib/stores/index.js';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import {
 		centralityColors,
-		getTitleStyle,
 		getTooltipConfig,
 		getAxisLineStyle,
 		getAxisLabelStyle,
@@ -39,7 +40,9 @@
 
 	let { matrix, dimension, modelAName, modelBName }: AgreementMatrixProps = $props();
 
-	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
+	// Compact layout follows the chart's own width, not the window's.
+	let containerWidth = $state<number>();
+	let isMobile = $derived(isCompactWidth(containerWidth));
 
 	/**
 	 * Subjectivity categories are numeric strings ('1'..'5') that carry no
@@ -60,6 +63,14 @@
 				)
 			: matrix.categories.map((category) => translateSentimentValue(category, $currentLanguage))
 	);
+
+	const headingTitle = $derived(
+		`${$t.agreement.matrixTitle} (${$num(matrix.n)} ${$t.common.articles})`
+	);
+	const headingSubtitle = $derived(
+		`${$t.agreement.rowsAre} ${modelAName} · ${$t.agreement.columnsAre} ${modelBName}`
+	);
+	const heading = useChartCardHeading(() => ({ title: headingTitle, subtitle: headingSubtitle }));
 
 	let options = $derived.by(() => {
 		const labels = axisLabels;
@@ -82,18 +93,6 @@
 
 		return {
 			backgroundColor: 'transparent',
-			title: {
-				text: `${currentT.agreement.matrixTitle} (${$num(matrix.n)} ${currentT.common.articles})`,
-				subtext: `${currentT.agreement.rowsAre} ${modelAName} · ${currentT.agreement.columnsAre} ${modelBName}`,
-				left: 'center',
-				top: '1%',
-				textStyle: getTitleStyle(isMobile),
-				subtextStyle: {
-					color: chartColors.text.secondary,
-					fontSize: isMobile ? 10 : 12,
-					fontFamily: '"JetBrains Mono", ui-monospace, monospace'
-				}
-			},
 			tooltip: {
 				...tooltipConfig,
 				position: 'top',
@@ -120,7 +119,7 @@
 				}
 			},
 			grid: {
-				top: isMobile ? '20%' : '16%',
+				top: isMobile ? '6%' : '4%',
 				bottom: isMobile ? '22%' : '16%',
 				left: isMobile ? 46 : 64,
 				right: isMobile ? '6%' : '4%',
@@ -243,10 +242,14 @@
 	});
 </script>
 
+{#if !heading.inCard}
+	<ChartHeading title={headingTitle} subtitle={headingSubtitle} />
+{/if}
 {#if matrix.n > 0}
 	<div
 		style="height: {isMobile ? '460px' : '560px'}; position: relative;"
 		class="chart-container"
+		bind:clientWidth={containerWidth}
 		role="img"
 		aria-label="{$t.agreement.matrixTitle} — {modelAName} / {modelBName}"
 	>

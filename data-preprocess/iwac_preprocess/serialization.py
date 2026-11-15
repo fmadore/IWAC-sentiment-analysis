@@ -46,11 +46,22 @@ def save_json(data: Any, filepath: str | os.PathLike[str], indent: int | None = 
             delete=False,
         ) as handle:
             temp_path = Path(handle.name)
-            json.dump(data, handle, ensure_ascii=False, indent=indent, separators=separators)
+            # allow_nan=False: Python would write NaN/Infinity, which no browser
+            # JSON.parse accepts, so one float leaking from pandas would ship a
+            # file the app cannot load. Fail here instead.
+            json.dump(
+                data,
+                handle,
+                ensure_ascii=False,
+                indent=indent,
+                separators=separators,
+                allow_nan=False,
+            )
             handle.flush()
             os.fsync(handle.fileno())
         os.replace(temp_path, target)
-    except Exception:
+    except BaseException:
+        # BaseException, so an interrupt mid-write leaves no orphaned temp file.
         if temp_path is not None:
             temp_path.unlink(missing_ok=True)
         raise
@@ -71,6 +82,21 @@ def safe_save_json(
             if attempt == max_retries:
                 raise
             time.sleep(2**attempt)
+
+
+def provenance_block(
+    repository: str, revision: str | None, *, generated: datetime | None = None
+) -> dict[str, str | None]:
+    """The optional ``source`` block stamped on derived payloads (extremes, places).
+
+    Which immutable Hugging Face commit the payload was computed from, and when
+    (UTC, timezone-aware). Files published before the block existed carry none,
+    so the validator checks it only where present.
+    """
+    when = generated or datetime.now(UTC)
+    if when.tzinfo is None:
+        raise ValueError("Provenance timestamps must be timezone-aware")
+    return {"repository": repository, "revision": revision, "generated": when.isoformat()}
 
 
 def write_generation_manifest(

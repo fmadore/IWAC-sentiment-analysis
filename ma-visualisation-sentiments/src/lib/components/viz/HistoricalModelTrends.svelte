@@ -6,7 +6,12 @@
 	import { VIEW_OPTIONS, viewOptionsState } from '#lib/stores/view-options.svelte.js';
 	import { datasetIdsOf } from '#lib/domain/sentimentContract.js';
 	import { datasetReadiness } from '#lib/utils/datasetReadiness.js';
-	import { historicalTrends, type HistoricalGroup } from '#lib/utils/researchTimeline.js';
+	import {
+		historicalTrends,
+		type HistoricalBucket,
+		type HistoricalGroup
+	} from '#lib/utils/researchTimeline.js';
+	import { isLowN, LOW_N_THRESHOLD, type ProportionInterval } from '#lib/utils/stats.js';
 	import { init } from '#lib/utils/echartsSetup.js';
 	import { t } from '#lib/i18n/index.js';
 	import { num, pct } from '#lib/i18n/utils.js';
@@ -26,6 +31,8 @@
 
 	const PAGE_SIZE = 6;
 	const symbols = ['circle', 'rect', 'triangle', 'diamond', 'pin', 'arrow'];
+	/** The hollow twin of each symbol, for points resting on few articles. */
+	const hollow = (symbol: string) => `empty${symbol[0].toUpperCase()}${symbol.slice(1)}`;
 	const dashes = ['solid', 'dashed', 'dotted'] as const;
 	const modelIds = $derived(datasetIdsOf(datasetState.generation));
 	const models = $derived(
@@ -37,16 +44,29 @@
 		}))
 	);
 	const readiness = $derived(datasetReadiness(modelIds, articleState.loadStates));
+	// Gated on readiness: the join builds one id map per model, and before this
+	// gate it ran on every dataset arrival, over a panel that was still partial.
 	const result = $derived(
-		historicalTrends(articleState.datasets, modelIds, {
-			countries: filterState.countries,
-			journals: filterState.journals,
-			measure: viewOptionsState.historyMeasure,
-			period: viewOptionsState.historyPeriod,
-			facet: viewOptionsState.historyFacet,
-			cohort: viewOptionsState.historyCohort,
-			minimumCount: viewOptionsState.historyMinCount
-		})
+		readiness.ready
+			? historicalTrends(articleState.datasets, modelIds, {
+					countries: filterState.countries,
+					journals: filterState.journals,
+					measure: viewOptionsState.historyMeasure,
+					period: viewOptionsState.historyPeriod,
+					facet: viewOptionsState.historyFacet,
+					cohort: viewOptionsState.historyCohort,
+					minimumCount: viewOptionsState.historyMinCount,
+					panel: viewOptionsState.historyPanel
+				})
+			: { groups: [] as HistoricalGroup[], collected: 0, undated: 0, common: 0 }
+	);
+	const lowSampleLabel = $derived(
+		$t.historyResearch.lowSample.replace('{min}', $num(LOW_N_THRESHOLD))
+	);
+	const panelName = $derived(
+		viewOptionsState.historyPanel === 'majority'
+			? $t.historyResearch.panelMajorityName
+			: $t.historyResearch.panelAnyName
 	);
 	const pages = $derived(Math.max(1, Math.ceil(result.groups.length / PAGE_SIZE)));
 	// Keep a restored URL page until data arrives; presentation clamps only once ready.
@@ -96,6 +116,44 @@
 		return `history-${datasetState.generation}-${viewOptionsState.historyFacet}-${hash.toString(36)}`;
 	}
 
+	function intervalText(interval: ProportionInterval | null): string {
+		return interval ? ` [${$pct(interval.low, 1)}–${$pct(interval.high, 1)}]` : '';
+	}
+
+	/**
+	 * A share as a chart datum. Points below the shared low-n floor become a
+	 * hollow, faded twin of the series symbol — still drawn, never hidden, but
+	 * visibly weaker than a point resting on enough articles.
+	 */
+	function datum(share: number | null, n: number, symbol: string) {
+		if (share === null) return null;
+		if (!isLowN(n)) return share * 100;
+		return { value: share * 100, symbol: hollow(symbol), itemStyle: { opacity: 0.45 } };
+	}
+
+	function panelSeries(group: HistoricalGroup): LineSeriesOption[] {
+		if (viewOptionsState.historyPanel === 'none') return [];
+		return [
+			{
+				id: `panel-${viewOptionsState.historyPanel}`,
+				name: panelName,
+				type: 'line',
+				data: group.buckets.map((bucket: HistoricalBucket) =>
+					datum(bucket.panelShare, bucket.panelN, 'roundRect')
+				),
+				connectNulls: false,
+				smooth: false,
+				symbol: 'roundRect',
+				symbolSize: 7,
+				showSymbol: true,
+				lineStyle: { color: chartColors.text.primary, width: 3 },
+				itemStyle: { color: chartColors.text.primary },
+				emphasis: { focus: 'series' },
+				z: 4
+			}
+		];
+	}
+
 	function chartOptions(group: HistoricalGroup): EChartsOption {
 		const series: LineSeriesOption[] = [
 			{
@@ -133,7 +191,7 @@
 				name: model.name,
 				type: 'line',
 				data: group.buckets.map((bucket) =>
-					bucket.shares[index] === null ? null : bucket.shares[index]! * 100
+					datum(bucket.shares[index], bucket.n[index], symbols[index % symbols.length])
 				),
 				connectNulls: false,
 				smooth: false,
@@ -144,12 +202,20 @@
 				itemStyle: { color: model.color },
 				emphasis: { focus: 'series' },
 				z: 3
-			}))
+			})),
+			...panelSeries(group)
 		];
 		return {
 			animation: false,
 			backgroundColor: 'transparent',
-			legend: { ...getLegendConfig(true), data: models.map((model) => model.name), bottom: 0 },
+			legend: {
+				...getLegendConfig(true),
+				data: [
+					...models.map((model) => model.name),
+					...(viewOptionsState.historyPanel === 'none' ? [] : [panelName])
+				],
+				bottom: 0
+			},
 			grid: { top: 12, bottom: 60, left: 8, right: 10, containLabel: true },
 			xAxis: {
 				type: 'category',
@@ -174,8 +240,13 @@
 						`${$t.historyResearch.collected}: ${$num(bucket.collected)}`,
 						...models.map(
 							(model, i) =>
-								`${model.name}: ${bucket.shares[i] === null ? '—' : $pct(bucket.shares[i]!, 1)} (${$num(bucket.target[i])}/${$num(bucket.n[i])})`
+								`${model.name}: ${bucket.shares[i] === null ? '—' : $pct(bucket.shares[i]!, 1)} (${$num(bucket.target[i])}/${$num(bucket.n[i])})${intervalText(bucket.intervals[i])}${bucket.shares[i] !== null && isLowN(bucket.n[i]) ? ` · ${lowSampleLabel}` : ''}`
 						),
+						...(viewOptionsState.historyPanel === 'none'
+							? []
+							: [
+									`${panelName}: ${bucket.panelShare === null ? '—' : $pct(bucket.panelShare, 1)} (${$num(bucket.panelTarget)}/${$num(bucket.panelN)})${intervalText(bucket.panelInterval)}`
+								]),
 						`${$t.historyResearch.range}: ${bucket.minimum === null || bucket.maximum === null ? '—' : `${$pct(bucket.minimum, 1)}–${$pct(bucket.maximum, 1)}`}`
 					].join('\n');
 				}
@@ -185,18 +256,36 @@
 	}
 
 	function dataRows(group: HistoricalGroup): Array<Array<string | number | null>> {
-		return group.buckets.flatMap((bucket) =>
-			models.map((model, index) => [
+		return group.buckets.flatMap((bucket) => [
+			...models.map((model, index) => [
 				periodLabel(bucket.period),
 				model.name,
 				bucket.collected,
 				bucket.n[index],
 				bucket.target[index],
 				bucket.shares[index],
+				bucket.intervals[index]?.low ?? null,
+				bucket.intervals[index]?.high ?? null,
 				bucket.minimum,
 				bucket.maximum
-			])
-		);
+			]),
+			...(viewOptionsState.historyPanel === 'none'
+				? []
+				: [
+						[
+							periodLabel(bucket.period),
+							panelName,
+							bucket.collected,
+							bucket.panelN,
+							bucket.panelTarget,
+							bucket.panelShare,
+							bucket.panelInterval?.low ?? null,
+							bucket.panelInterval?.high ?? null,
+							null,
+							null
+						]
+					])
+		]);
 	}
 </script>
 
@@ -239,6 +328,14 @@
 			</select>
 		</label>
 		<label>
+			<span>{$t.historyResearch.panelSeries}</span>
+			<select class="select-sm" bind:value={viewOptionsState.historyPanel}>
+				<option value="none">{$t.historyResearch.panelNone}</option>
+				<option value="majority">{$t.historyResearch.panelMajority}</option>
+				<option value="any">{$t.historyResearch.panelAny}</option>
+			</select>
+		</label>
+		<label>
 			<span>{$t.historyResearch.minimum}</span>
 			<input
 				class="minimum-input"
@@ -259,6 +356,12 @@
 	</p>
 	<p class="method-note">{$t.historyResearch.minimumNote}</p>
 	<p class="method-note">{$t.historyResearch.rangeBandNote}</p>
+	<p class="method-note">
+		{$t.historyResearch.lowSampleNote.replace('{min}', $num(LOW_N_THRESHOLD))}
+	</p>
+	{#if viewOptionsState.historyPanel !== 'none'}
+		<p class="method-note">{$t.historyResearch.panelNote}</p>
+	{/if}
 
 	{#if readiness.failed.length > 0}
 		<DatasetLoadError ids={readiness.failed} />
@@ -310,6 +413,8 @@
 								{ label: $t.historyResearch.rated, format: 'integer' },
 								{ label: $t.historyResearch.target, format: 'integer' },
 								{ label: `${$t.historyResearch.share} (%)`, format: 'percent' },
+								{ label: `${$t.historyResearch.intervalLow} (%)`, format: 'percent' },
+								{ label: `${$t.historyResearch.intervalHigh} (%)`, format: 'percent' },
 								{ label: `${$t.historyResearch.minimumShare} (%)`, format: 'percent' },
 								{ label: `${$t.historyResearch.maximumShare} (%)`, format: 'percent' }
 							]}
@@ -379,11 +484,6 @@
 		border: 1px solid var(--border-default);
 		border-radius: var(--radius-panel);
 		font: inherit;
-	}
-	.minimum-input:focus-visible,
-	.page-button:focus-visible {
-		outline: 2px solid var(--accent);
-		outline-offset: 2px;
 	}
 	.method-note {
 		margin: var(--space-2) 0;

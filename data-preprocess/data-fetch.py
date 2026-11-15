@@ -29,6 +29,11 @@ annotated the 4,367 Burkina Faso articles added in October 2026, which no other
 model has read). Admitting them is a deliberate step: a v1 run with
 ``--admit-new-articles``. An article deleted upstream fails a v2 run; a v1 run
 drops it from the base, which is that run's job.
+
+This command publishes one generation. A corpus refresh that touches the base
+leaves the other generation, the extremes and the places stale until they are
+re-run, so ``refresh-all.py`` is the preferred path: it stages everything and
+publishes once. The payload assembly lives in ``iwac_preprocess.generation``.
 """
 
 import argparse
@@ -37,91 +42,27 @@ import shutil
 from pathlib import Path
 
 import validate_generated_data as validator
+from iwac_preprocess.generation import (
+    build_generation_payloads,
+    require_shared_shard_count,
+    scope_to_published_corpus,
+    stage_generation,
+)
 from iwac_preprocess.publication import publish_generation, staged_publication
-from iwac_preprocess.shards import justification_shard as _justification_shard
 from shared import (
     BASE_FILENAME,
-    CONTRACT,
     GENERATIONS,
     HF_REPO_ID,
     SentimentContract,
-    build_base_article,
-    build_model_justifications,
-    build_model_scores,
-    get_base_article_ids,
     get_contract,
     get_logger,
     get_source_revision,
     get_staging_dir,
     get_webapp_data_dir,
     load_iwac_records,
-    manifest_filename,
-    read_base_article_ids,
-    restrict_to_base_articles,
-    safe_int_convert,
-    safe_save_json,
-    write_generation_manifest,
 )
-from tqdm import tqdm
 
 logger = get_logger(__name__)
-JUSTIFICATION_SHARDS = int(CONTRACT["delivery"]["justificationShards"])
-
-
-def justification_shard(article_id: str) -> int:
-    """The shard the browser will fetch this article's prose from."""
-    return _justification_shard(article_id, JUSTIFICATION_SHARDS)
-
-
-def assert_base_matches(base_path: str, article_ids: set[str]) -> None:
-    """Refuse to publish a generation that disagrees with the shared base.
-
-    The frontend joins the base metadata to each generation's score file and
-    requires the two id sets to be identical, so a drifted snapshot would ship
-    a dataset the app rejects at load time. Failing here is also the only
-    signal that the corpus changed under a frozen v1.
-    """
-    if not os.path.exists(base_path):
-        raise SystemExit(
-            f"{BASE_FILENAME} is missing. Generate it with `--generation v1` before "
-            "publishing another generation."
-        )
-
-    existing = read_base_article_ids(base_path)
-    if existing == article_ids:
-        return
-
-    missing = sorted(existing - article_ids)[:5]
-    added = sorted(article_ids - existing)[:5]
-    raise SystemExit(
-        f"The Hugging Face snapshot no longer matches {BASE_FILENAME}: "
-        f"{len(existing - article_ids)} article(s) gone (e.g. {missing}), "
-        f"{len(article_ids - existing)} new (e.g. {added}). The base metadata is shared "
-        "with the frozen v1 files, so refreshing it is a deliberate cross-generation "
-        "decision rather than a side effect of this run."
-    )
-
-
-def scope_to_published_corpus(
-    records: list[dict], generation: str, admit_new_articles: bool
-) -> list[dict]:
-    """Keep the run on the corpus the base already defines.
-
-    A v1 run owns the base, so it may drop articles deleted upstream and, only
-    when asked, admit new ones; with no base yet it writes the first one from
-    everything. A v2 run may do neither.
-    """
-    if admit_new_articles and generation != "v1":
-        raise SystemExit(
-            "--admit-new-articles changes the shared base, which only a v1 run writes. "
-            "Run `data-fetch.py --generation v1 --admit-new-articles` first."
-        )
-    base_path = os.path.join(get_webapp_data_dir(), BASE_FILENAME)
-    if generation == "v1" and (admit_new_articles or not os.path.exists(base_path)):
-        return records
-    return restrict_to_base_articles(
-        records, get_base_article_ids(), logger, drop_vanished=generation == "v1"
-    )
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -144,116 +85,38 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     contract: SentimentContract = get_contract(args.generation)
-    if contract.justification_shards != JUSTIFICATION_SHARDS:
-        raise SystemExit(
-            f"{contract.analysis_version} declares {contract.justification_shards} justification "
-            f"shards but the browser resolves shards with {JUSTIFICATION_SHARDS}; both "
-            "generations must agree."
-        )
+    require_shared_shard_count(contract)
 
     logger.info("Loading config: articles (%s)", contract.analysis_version)
 
     records = load_iwac_records(contract)
     logger.info("Dataset loaded successfully! Number of articles: %d", len(records))
-    records = scope_to_published_corpus(records, args.generation, args.admit_new_articles)
-
-    model_ids = list(contract.model_names)
-    base_items: list[dict] = []
-    scores: dict[str, dict[str, dict | None]] = {model_id: {} for model_id in model_ids}
-    justifications: dict[str, list[dict[str, dict | None]]] = {
-        model_id: [{} for _ in range(JUSTIFICATION_SHARDS)] for model_id in model_ids
-    }
+    target = Path(get_webapp_data_dir())
+    records = scope_to_published_corpus(
+        records, args.generation, args.admit_new_articles, target / BASE_FILENAME, logger
+    )
 
     logger.info("Processing %d records...", len(records))
-    for item in tqdm(records, desc="Processing articles"):
-        article_key = str(safe_int_convert(item.get("o:id")))
-        shard = justification_shard(article_key)
-        base_items.append(build_base_article(item))
+    payloads = build_generation_payloads(records, contract)
 
-        for model_id in model_ids:
-            scores[model_id][article_key] = build_model_scores(item, model_id, contract)
-            justifications[model_id][shard][article_key] = build_model_justifications(
-                item, model_id, contract
-            )
-
-    target = Path(get_webapp_data_dir())
     # Exclusive writer lock, released by the OS even if a run is killed; the
     # stage sits beside static/, never inside it.
     with staged_publication(target, Path(get_staging_dir())) as stage:
         if (target / BASE_FILENAME).exists():
             shutil.copy2(target / BASE_FILENAME, stage / BASE_FILENAME)
-        output_dir = os.fspath(stage)
-        base_path = os.path.join(output_dir, BASE_FILENAME)
-
-        if args.generation == "v1":
-            logger.info("Saving shared article base metadata to: %s", base_path)
-            safe_save_json(base_items, base_path)
-            logger.info("Base metadata saved (%d records)", len(base_items))
-        else:
-            assert_base_matches(base_path, {str(item["o:id"]) for item in base_items})
-            logger.info("Shared article base metadata verified against %s", base_path)
-
-        # The base file is listed first either way: for v1 it is a published
-        # artifact, for v2 an informational checksum of the input it was verified
-        # against.
-        generated_files = [base_path]
-        for model_id in model_ids:
-            score_path = os.path.join(output_dir, f"iwac_sentiment_{model_id}.json")
-            logger.info("Saving %s sentiment scores to: %s", model_id, score_path)
-            safe_save_json(
-                {
-                    "schema_version": contract.schema_version,
-                    "analysis_version": contract.analysis_version,
-                    "model": model_id,
-                    "sentiments": scores[model_id],
-                },
-                score_path,
-            )
-
-            generated_files.append(score_path)
-            for shard, shard_data in enumerate(justifications[model_id]):
-                justification_path = os.path.join(
-                    output_dir, f"iwac_justifications_{model_id}_{shard:02d}.json"
-                )
-                safe_save_json(
-                    {
-                        "schema_version": contract.schema_version,
-                        "analysis_version": contract.analysis_version,
-                        "model": model_id,
-                        "shard": shard,
-                        "shard_count": JUSTIFICATION_SHARDS,
-                        "justifications": shard_data,
-                    },
-                    justification_path,
-                )
-                generated_files.append(justification_path)
-
-            logger.info(
-                "%s JSON files saved successfully! (%d records)",
-                model_id,
-                len(scores[model_id]),
-            )
-
-        manifest_path = os.path.join(output_dir, manifest_filename(contract.analysis_version))
-        write_generation_manifest(
-            manifest_path,
-            generated_files,
-            contract_schema_version=contract.schema_version,
-            analysis_version=contract.analysis_version,
+        names = stage_generation(
+            stage,
+            payloads,
             source_repository=HF_REPO_ID,
             source_revision=get_source_revision(HF_REPO_ID),
+            logger=logger,
         )
-        logger.info("Staged generation manifest: %s", manifest_path)
+        logger.info("Staged %d files in %s", len(names), os.fspath(stage))
 
         base_ids = validator.validate_base(stage)
         validator.validate_core(contract, base_ids, stage)
         validator.validate_manifest(contract, stage)
-        names = [
-            Path(path).name
-            for path in generated_files
-            if args.generation == "v1" or Path(path).name != BASE_FILENAME
-        ]
-        publish_generation(stage, target, [*names, Path(manifest_path).name])
+        publish_generation(stage, target, names)
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@
 	import SentimentChart from '#lib/components/viz/SentimentChart.svelte';
 	import SentimentTrendsChart from '#lib/components/viz/SentimentTrendsChart.svelte';
 	import SubjectivityChart from '#lib/components/viz/SubjectivityChart.svelte';
+	import CentralityChart from '#lib/components/viz/CentralityChart.svelte';
 	import SubjectivityTrendsChart from '#lib/components/viz/SubjectivityTrendsChart.svelte';
 	import HistoricalModelTrends from '#lib/components/viz/HistoricalModelTrends.svelte';
 	import CorrelationChart from '#lib/components/viz/CorrelationChart.svelte';
@@ -10,7 +11,7 @@
 	import CentralityHeatmap from '#lib/components/viz/CentralityHeatmap.svelte';
 	import HijriSeasonalityChart from '#lib/components/viz/HijriSeasonalityChart.svelte';
 	import NewspaperRankingChart from '#lib/components/viz/NewspaperRankingChart.svelte';
-	import { ChartCard } from '#lib/components/ui/index.js';
+	import ChartCard from '#lib/components/ui/ChartCard.svelte';
 
 	type ChartView =
 		'charts' | 'trends' | 'correlation' | 'volume' | 'seasonality' | 'heatmap' | 'ranking';
@@ -19,22 +20,23 @@
 
 {#if view === 'charts'}
 	<div class="space-y-4 sm:space-y-6">
-		<ChartCard variant="charts"><SentimentChart /></ChartCard>
-		<ChartCard variant="charts"><SubjectivityChart /></ChartCard>
+		<ChartCard><SentimentChart /></ChartCard>
+		<ChartCard><SubjectivityChart /></ChartCard>
+		<ChartCard><CentralityChart /></ChartCard>
 	</div>
 {:else if view === 'trends'}
-	<ChartCard variant="trends" class="mb-6"><HistoricalModelTrends /></ChartCard>
-	<ChartCard variant="trends" class="mb-6"><SentimentTrendsChart /></ChartCard>
-	<ChartCard variant="trends"><SubjectivityTrendsChart /></ChartCard>
+	<ChartCard class="mb-6"><HistoricalModelTrends /></ChartCard>
+	<ChartCard class="mb-6"><SentimentTrendsChart /></ChartCard>
+	<ChartCard><SubjectivityTrendsChart /></ChartCard>
 {:else if view === 'correlation'}
-	<ChartCard variant="correlation"><CorrelationChart /></ChartCard>
+	<ChartCard><CorrelationChart /></ChartCard>
 {:else if view === 'volume'}
-	<ChartCard variant="volume" class="mb-6"><NewspaperTimeline /></ChartCard>
-	<ChartCard variant="volume"><VolumeChart /></ChartCard>
+	<ChartCard class="mb-6"><NewspaperTimeline /></ChartCard>
+	<ChartCard><VolumeChart /></ChartCard>
 {:else if view === 'seasonality'}
-	<ChartCard variant="volume"><HijriSeasonalityChart /></ChartCard>
+	<ChartCard><HijriSeasonalityChart /></ChartCard>
 {:else if view === 'heatmap'}
-	<ChartCard variant="heatmap"><CentralityHeatmap /></ChartCard>
+	<ChartCard><CentralityHeatmap /></ChartCard>
 {:else if view === 'ranking'}
-	<ChartCard variant="charts"><NewspaperRankingChart /></ChartCard>
+	<ChartCard><NewspaperRankingChart /></ChartCard>
 {/if}

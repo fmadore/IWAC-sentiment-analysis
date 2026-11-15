@@ -357,6 +357,221 @@
 				"total": 0,
 				"significant": false
 			}
+		},
+		{
+			"name": "a six-model panel is measured across all six members",
+			"analyses": [
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Très négatif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"comparable": true,
+				"polarity": 3,
+				"subjectivity": 1,
+				"centrality": 0,
+				"total": 4,
+				"significant": true
+			}
+		},
+		{
+			"name": "six models one rank apart on every dimension stay below the threshold",
+			"analyses": [
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Secondaire"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Secondaire"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Secondaire"
+				}
+			],
+			"expected": {
+				"comparable": true,
+				"polarity": 1,
+				"subjectivity": 1,
+				"centrality": 1,
+				"total": 3,
+				"significant": false
+			}
+		},
+		{
+			"name": "one declined subjectivity among six drops the dimension, never reads as agreement",
+			"analyses": [
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 1,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 5,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": null,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"comparable": true,
+				"polarity": 0,
+				"subjectivity": 0,
+				"centrality": 0,
+				"total": 0,
+				"significant": false
+			}
+		},
+		{
+			"name": "the sixth model's non-applicable polarity excludes the row",
+			"analyses": [
+				{
+					"polarite": "Très positif",
+					"subjectivite_score": 1,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Très négatif",
+					"subjectivite_score": 5,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Très négatif",
+					"subjectivite_score": 5,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Très négatif",
+					"subjectivite_score": 5,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Très négatif",
+					"subjectivite_score": 5,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Non applicable",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"comparable": false,
+				"polarity": 0,
+				"subjectivity": 0,
+				"centrality": 0,
+				"total": 0,
+				"significant": false
+			}
+		},
+		{
+			"name": "the sixth model's not-addressed centrality excludes the row",
+			"analyses": [
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Très central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Très central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Très central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Très central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Très central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Non abordé"
+				}
+			],
+			"expected": {
+				"comparable": false,
+				"polarity": 0,
+				"subjectivity": 0,
+				"centrality": 0,
+				"total": 0,
+				"significant": false
+			}
 		}
 	],
 	"valenceFlip": [
@@ -638,6 +853,170 @@
 				{
 					"polarite": "Neutre",
 					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"flip": false,
+				"arbiterEligible": true,
+				"significantSpread": true,
+				"polarity": 0
+			}
+		},
+		{
+			"name": "a flip only the sixth model creates is eligible",
+			"analyses": [
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Négatif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"flip": true,
+				"arbiterEligible": true,
+				"significantSpread": false,
+				"polarity": 2
+			}
+		},
+		{
+			"name": "a six-model flip survives a declined subjectivity",
+			"analyses": [
+				{
+					"polarite": "Positif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Négatif",
+					"subjectivite_score": null,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"flip": true,
+				"arbiterEligible": true,
+				"significantSpread": false,
+				"polarity": 2
+			}
+		},
+		{
+			"name": "the sixth model's non-applicable polarity removes even the widest flip",
+			"analyses": [
+				{
+					"polarite": "Très positif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Très négatif",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Non applicable",
+					"subjectivite_score": 3,
+					"centralite_islam_musulmans": "Central"
+				}
+			],
+			"expected": {
+				"flip": false,
+				"arbiterEligible": false,
+				"significantSpread": false,
+				"polarity": null
+			}
+		},
+		{
+			"name": "a six-model subjectivity-only spread is eligible without being a flip",
+			"analyses": [
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 1,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 4,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 2,
+					"centralite_islam_musulmans": "Central"
+				},
+				{
+					"polarite": "Neutre",
+					"subjectivite_score": 2,
 					"centralite_islam_musulmans": "Central"
 				}
 			],

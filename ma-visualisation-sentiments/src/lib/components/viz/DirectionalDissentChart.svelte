@@ -25,7 +25,9 @@
 	import { pct } from '#lib/i18n/utils.js';
 	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
-	import { innerWidth } from 'svelte/reactivity/window';
+	import { isCompactWidth } from '#lib/utils/viewport.svelte.js';
+	import { useChartCardHeading } from '#lib/components/ui/chartCardHeading.svelte.js';
+	import ChartHeading from './ChartHeading.svelte';
 
 	import { t } from '#lib/i18n/index.js';
 	import { getModelDisplayNames } from '#lib/utils/format.js';
@@ -35,7 +37,6 @@
 	import {
 		seriesColorPalette,
 		chartColors,
-		getTitleStyle,
 		getTooltipConfig,
 		getLegendConfig,
 		getAxisLineStyle,
@@ -51,7 +52,9 @@
 
 	let { profiles, models }: DirectionalDissentChartProps = $props();
 
-	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
+	// Compact layout follows the chart's own width, not the window's.
+	let containerWidth = $state<number>();
+	let isMobile = $derived(isCompactWidth(containerWidth));
 
 	let modelNames = $derived(getModelDisplayNames(models, datasetState.availableInGeneration));
 
@@ -60,6 +63,11 @@
 		subjectivity: $t.filters.subjectivity,
 		centrality: $t.filters.centrality
 	});
+
+	const heading = useChartCardHeading(() => ({
+		title: $t.agreement.directionTitle,
+		subtitle: $t.agreement.directionSubtitle
+	}));
 
 	let options = $derived.by(() => {
 		const currentT = $t;
@@ -96,20 +104,6 @@
 
 		return {
 			backgroundColor: 'transparent',
-			title: {
-				text: currentT.agreement.directionTitle,
-				subtext: currentT.agreement.directionSubtitle,
-				left: 'center',
-				top: '1%',
-				textStyle: getTitleStyle(isMobile),
-				subtextStyle: {
-					color: chartColors.text.secondary,
-					fontSize: isMobile ? 10 : 12,
-					fontFamily: '"JetBrains Mono", ui-monospace, monospace',
-					width: isMobile ? 300 : 620,
-					overflow: 'break'
-				}
-			},
 			tooltip: {
 				...getTooltipConfig(isMobile),
 				trigger: 'axis',
@@ -146,10 +140,10 @@
 			},
 			legend: {
 				...getLegendConfig(isMobile),
-				top: isMobile ? '20%' : '15%'
+				top: 0
 			},
 			grid: {
-				top: isMobile ? '38%' : '30%',
+				top: isMobile ? '18%' : '12%',
 				bottom: isMobile ? '8%' : '6%',
 				left: isMobile ? '6%' : '4%',
 				right: isMobile ? '6%' : '4%',
@@ -184,10 +178,14 @@
 	});
 </script>
 
+{#if !heading.inCard}
+	<ChartHeading title={$t.agreement.directionTitle} subtitle={$t.agreement.directionSubtitle} />
+{/if}
 {#if profiles.some((profile) => profile.n > 0)}
 	<div
 		style="height: {isMobile ? '460px' : '520px'}; position: relative;"
 		class="chart-container"
+		bind:clientWidth={containerWidth}
 		role="img"
 		aria-label={$t.agreement.directionTitle}
 	>

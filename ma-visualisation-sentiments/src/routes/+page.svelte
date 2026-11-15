@@ -21,15 +21,61 @@
 	import type { ExtremeCategory, KeywordType } from '#lib/types/extremeAnalysis.js';
 
 	// Layout
-	import { FiltersPanel, ViewContent } from '#lib/components/layout/index.js';
+	import FiltersPanel from '#lib/components/layout/FiltersPanel.svelte';
+	import ViewContent from '#lib/components/layout/ViewContent.svelte';
+	import ViewIntro from '#lib/components/layout/ViewIntro.svelte';
+	import { generationOf } from '#lib/domain/sentimentContract.js';
+	import type { DataRequirement } from '#lib/stores/index.js';
 
 	// Data Display
 	import AnalysisInfo from '#lib/components/data-display/AnalysisInfo.svelte';
-	import ArbiterMethodology from '#lib/components/data-display/ArbiterMethodology.svelte';
-	import ArbiterV2Methodology from '#lib/components/data-display/ArbiterV2Methodology.svelte';
+
+	/**
+	 * The two arbiter methodology cards render only on the arbiter view, so they
+	 * load on demand, memoized like the views in ViewContent. They are not warmed
+	 * on idle: every other view's cold load would pay for them, and the
+	 * placeholder below holds the collapsed card's place while the chunk lands.
+	 */
+	let arbiterMethodologyPromise: Promise<
+		typeof import('#lib/components/data-display/ArbiterMethodology.svelte')
+	> | null = null;
+	let arbiterV2MethodologyPromise: Promise<
+		typeof import('#lib/components/data-display/ArbiterV2Methodology.svelte')
+	> | null = null;
+	const arbiterMethodology = () =>
+		(arbiterMethodologyPromise ??=
+			import('#lib/components/data-display/ArbiterMethodology.svelte').catch((error) => {
+				arbiterMethodologyPromise = null;
+				throw error;
+			}));
+	const arbiterV2Methodology = () =>
+		(arbiterV2MethodologyPromise ??=
+			import('#lib/components/data-display/ArbiterV2Methodology.svelte').catch((error) => {
+				arbiterV2MethodologyPromise = null;
+				throw error;
+			}));
+
+	/**
+	 * The article detail (and the scan viewer and panel strip inside it) is only
+	 * needed once a reader opens an article, so it loads on the first request and
+	 * stays mounted afterwards. A deep link with `articleId` requests it as soon
+	 * as the article resolves; the URL keeps the identifier meanwhile.
+	 */
+	let articleDetailModalPromise: Promise<
+		typeof import('#lib/components/common/ArticleDetailModal.svelte')
+	> | null = null;
+	const articleDetailModal = () =>
+		(articleDetailModalPromise ??= import('#lib/components/common/ArticleDetailModal.svelte').catch(
+			(error) => {
+				articleDetailModalPromise = null;
+				throw error;
+			}
+		));
 
 	// Common
-	import { ArchiveNotice, ArticleDetailModal, LoadingState } from '#lib/components/common/index.js';
+	import ArchiveNotice from '#lib/components/common/ArchiveNotice.svelte';
+	import LoadingState from '#lib/components/common/LoadingState.svelte';
+	import ViewLoadError from '#lib/components/common/ViewLoadError.svelte';
 
 	// Utilities
 	import SEOHead from '#lib/components/SEOHead.svelte';
@@ -56,6 +102,8 @@
 	let detailedArticle = $state.raw<Article | null>(null);
 	let showDetailsSidebar = $state(false);
 	let isInitialized = $state(false);
+	// Latches on the first open so the modal stays mounted to animate its close.
+	let detailModalWanted = $state(false);
 
 	// Derived state from stores
 	let currentView = $derived(uiState.activeView);
@@ -77,15 +125,21 @@
 	// dataRequirements.ts). This one effect is the only request site for page
 	// data: it depends on the requirements alone — the loaders run untracked —
 	// and every loader is idempotent, so a re-run never double-fetches.
-	const requirements = $derived(
-		dataRequirements({
+	// An open article detail also shows the whole panel's ratings, so it needs
+	// every model of the article's own generation (never the other one's).
+	const requirements = $derived.by((): DataRequirement[] => {
+		const needs = dataRequirements({
 			view: currentView,
 			dataset: currentDatasetId,
 			pair: datasetState.pair,
 			comparisonMode: isComparisonMode,
 			generation: datasetState.generation
-		})
-	);
+		});
+		if (showDetailsSidebar && detailedArticle) {
+			needs.push({ kind: 'panel', generation: generationOf(detailedArticle.dataset_id) });
+		}
+		return needs;
+	});
 	$effect(() => {
 		if (!browser || !isInitialized) return;
 		const needs = requirements;
@@ -113,6 +167,9 @@
 	$effect(() => {
 		detailedArticle = currentSelectedArticle;
 		showDetailsSidebar = currentSelectedArticle !== null;
+	});
+	$effect(() => {
+		if (showDetailsSidebar) detailModalWanted = true;
 	});
 
 	// Drain any pending article selection (from a shared URL) as soon as its
@@ -148,6 +205,13 @@
 		// Load only the current dataset at startup (lazy loading). Pending
 		// article selection is drained reactively by the effect above once the
 		// dataset lands in the store.
+		//
+		// A deep link to a panel view (agreement, trends, the panel arbiter)
+		// also starts everything else that view needs now, in parallel, rather
+		// than after the first dataset lands and flips `isInitialized`. Every
+		// loader is idempotent and deduplicated in flight, so the requirements
+		// effect re-requesting them afterwards costs nothing.
+		untrack(() => ensureDataRequirements(requirements, fetch));
 		const loadData = async () => {
 			try {
 				await loadCurrentDataset(fetch);
@@ -205,15 +269,24 @@
 
 	<!-- The arbiter card is generation-specific: the two runs used different
 	     judges, different selection rules and different article text. -->
-	{#if currentView === 'arbiter'}
-		{#if datasetState.generation === 'v2'}
-			<ArbiterV2Methodology />
+	<!-- The standing orientation: present by default, hideable per session. -->
+	<ViewIntro />
+
+	<!-- `#methodology` is the target of the view header's coverage caveat. -->
+	<div id="methodology" class="methodology-anchor">
+		{#if currentView === 'arbiter'}
+			{#await datasetState.generation === 'v2' ? arbiterV2Methodology() : arbiterMethodology()}
+				<div class="methodology-placeholder" aria-hidden="true"></div>
+			{:then module}
+				{@const Methodology = module.default}
+				<Methodology />
+			{:catch}
+				<ViewLoadError />
+			{/await}
 		{:else}
-			<ArbiterMethodology />
+			<AnalysisInfo />
 		{/if}
-	{:else}
-		<AnalysisInfo />
-	{/if}
+	</div>
 
 	{#if isLoading}
 		<LoadingState />
@@ -267,7 +340,18 @@
 </section>
 
 <!-- Article Details Modal -->
-<ArticleDetailModal article={detailedArticle} open={showDetailsSidebar} onClose={closeDetails} />
+{#if detailModalWanted}
+	{#await articleDetailModal() then module}
+		{@const ArticleDetailModal = module.default}
+		<ArticleDetailModal
+			article={detailedArticle}
+			open={showDetailsSidebar}
+			onClose={closeDetails}
+		/>
+	{:catch}
+		<ViewLoadError />
+	{/await}
+{/if}
 
 <style>
 	/* Main Container. Rail views drop the old narrow `max-w-6xl` and run wide
@@ -318,6 +402,16 @@
 		min-width: 0;
 	}
 
+	.methodology-anchor {
+		scroll-margin-top: var(--header-height);
+	}
+
+	/* Holds the collapsed arbiter card's place while its chunk loads. */
+	.methodology-placeholder {
+		min-height: calc(var(--size-control-xl) + var(--space-6));
+		margin-bottom: var(--space-6);
+	}
+
 	.retry-button {
 		background: color-mix(in oklab, var(--status-error) 18%, var(--surface-card));
 		border: 1px solid var(--color-error-500);
@@ -331,11 +425,6 @@
 
 	.retry-button:hover {
 		background: color-mix(in oklab, var(--status-error) 28%, var(--surface-card));
-	}
-
-	.retry-button:focus-visible {
-		outline: 2px solid currentColor;
-		outline-offset: 2px;
 	}
 
 	@media (min-width: 1024px) {

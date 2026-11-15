@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { EChartsOption } from 'echarts';
-	import { innerWidth } from 'svelte/reactivity/window';
+	import { isCompactWidth } from '#lib/utils/viewport.svelte.js';
 	import { t } from '#lib/i18n/index.js';
 	import { num } from '#lib/i18n/utils.js';
 	import { articleState } from '#lib/stores/articles.svelte.js';
@@ -22,7 +22,8 @@
 	import SectionHead from '../common/SectionHead.svelte';
 
 	const perPage = 12;
-	const mobile = $derived((innerWidth.current ?? 1024) < 768);
+	let containerWidth = $state<number>();
+	const mobile = $derived(isCompactWidth(containerWidth));
 	const corpus = $derived(
 		corpusSlice(articleState.datasets[datasetState.selected] ?? [], filterState)
 	);
@@ -94,7 +95,7 @@
 	}
 </script>
 
-<section aria-label={$t.historyResearch.timelineTitle}>
+<section aria-label={$t.historyResearch.timelineTitle} bind:clientWidth={containerWidth}>
 	<SectionHead title={$t.historyResearch.timelineTitle} lede={$t.historyResearch.timelineIntro} />
 	<p class="note">{$t.historyResearch.timelineFilters}</p>
 	<div class="controls">
@@ -214,11 +215,6 @@
 	}
 	button:hover:not(:disabled) {
 		background: var(--surface-card-hover);
-	}
-	button:focus-visible,
-	select:focus-visible {
-		outline: 2px solid var(--accent);
-		outline-offset: 2px;
 	}
 	.note {
 		color: var(--text-muted);

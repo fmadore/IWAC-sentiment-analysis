@@ -93,7 +93,7 @@ export const CENTRALITY_NON_COMPARABLE = new Set<CentralityValue>(
 
 /**
  * The filter rail's bucket for a rating that was never produced: Qwen's 200
- * declined rows, the 51 articles no model annotates, and every null
+ * declined rows, the 50 articles no model annotates, and every null
  * subjectivity. A filter value, not a scale value — no model emits it and no
  * file stores it, which is what keeps it from ever colliding with the data.
  *
@@ -217,13 +217,62 @@ export function defaultPairOf(generation: GenerationId): ModelPair {
 	return pairIdsOf(generation)[0];
 }
 
-/** The display name a contract gives a model id. */
-export function modelDisplayName(id: DatasetId): string {
+/**
+ * Which name to show for a model.
+ *
+ * - `long`: the contract's `displayName`, shared with Python and written into
+ *   published metadata — it carries the release tag where one exists
+ *   ("Mistral Small 4 (2603)"). For provenance, citations, methodology.
+ * - `short`: the label the dashboard's chrome and charts use ("Mistral Small 4").
+ */
+export type ModelNameVariant = 'long' | 'short';
+
+/**
+ * The dashboard's short labels. A total record, so a model added to a contract
+ * without one is a compile error; the long name stays in the JSON, where
+ * Python reads it too.
+ */
+const MODEL_SHORT_NAMES: Readonly<Record<DatasetId, string>> = Object.freeze({
+	chatgpt: 'ChatGPT',
+	gemini: 'Gemini',
+	mistral: 'Mistral',
+	luna: 'GPT-5.6 Luna',
+	'mistral-small': 'Mistral Small 4',
+	deepseek: 'DeepSeek v4 Flash',
+	gemma: 'Gemma 4 31B',
+	qwen: 'Qwen3.8 27B',
+	haiku: 'Claude Haiku 5.5'
+});
+
+/**
+ * A model's display name — the one source every registry derives from.
+ * Defaults to the contract's long name, which is what this function always
+ * returned; the stores' `name` field and `getModelDisplayName` are the short one.
+ */
+export function modelDisplayName(id: DatasetId, variant: ModelNameVariant = 'long'): string {
+	if (variant === 'short') return MODEL_SHORT_NAMES[id] ?? id;
 	const models = SENTIMENT_CONTRACTS[generationOf(id)].models as Record<
 		string,
 		{ displayName: string }
 	>;
 	return models[id]?.displayName ?? id;
+}
+
+/**
+ * Assert that a per-model registry covers every generation's ids exactly —
+ * no model missing, none extra, none twice. The stores and the methodology
+ * data call it at import time, so a panel change that forgets one fails the
+ * first test that loads it instead of rendering a blank logo or a raw id.
+ */
+export function assertCoversDatasetIds(registry: string, ids: readonly string[]): void {
+	const expected = [...DATASET_IDS].sort();
+	const actual = [...ids].sort();
+	if (expected.length !== actual.length || expected.some((id, index) => id !== actual[index])) {
+		throw new Error(
+			`${registry} must cover each generation's model ids exactly once: ` +
+				`expected ${expected.join(', ')}; got ${actual.join(', ')}`
+		);
+	}
 }
 
 /** A developer id from the v2 contract's registry (`developers`). */
@@ -324,6 +373,8 @@ if (
 if (ARBITER_PANEL_IDS.length < 2) {
 	throw new Error('The v2 arbiter needs at least two unrecused models');
 }
+
+assertCoversDatasetIds('MODEL_SHORT_NAMES', Object.keys(MODEL_SHORT_NAMES));
 
 // Ids must not collide, because the generation is derived from them.
 if (new Set(DATASET_IDS).size !== DATASET_IDS.length) {

@@ -20,7 +20,7 @@
  *  - `agreementData.ts` shapes Articles into rater items for kappa. This module
  *    does the same join but keeps the *ordinal* values, because spread and
  *    direction both need arithmetic that category labels cannot do.
- *  - `derivations.ts`'s `calculateThreeWaySpread` measures the same quantity per
+ *  - `derivations.ts`'s `calculatePanelSpread` measures the same quantity per
  *    article, but as the arbiter's selection metric it drops a row wholesale
  *    when any model reports a non-comparable value on any dimension. That is
  *    right for "is this article worth paying an arbiter for" and wrong here: a
@@ -42,8 +42,9 @@
  * 'Non abordé' as position 1.
  */
 
-import type { Article } from '#lib/types/data.js';
+import type { Article, SentimentAnalysis } from '#lib/types/data.js';
 import { getJournalName } from '#lib/utils/format.js';
+import { allRows, buildPanelJoin, type PanelJoin } from './panelJoin';
 import { CENTRALITY_ORDER, POLARITY_ORDER } from '#lib/domain/sentimentContract.js';
 import type { AgreementDimension } from './agreementData';
 import { countGroupsBelow, median, pearson, summarizeMean } from './stats';
@@ -92,7 +93,14 @@ export interface ConsensusRow {
 
 /** Ordinal value of one article on one dimension, or null when unlabelled. */
 export function ordinalValue(article: Article, dimension: AgreementDimension): number | null {
-	const analysis = article.sentiment_analysis;
+	return analysisOrdinal(article.sentiment_analysis, dimension);
+}
+
+/** `ordinalValue` over a bare analysis, as the panel join stores them. */
+export function analysisOrdinal(
+	analysis: SentimentAnalysis | null | undefined,
+	dimension: AgreementDimension
+): number | null {
 	if (!analysis) return null;
 
 	if (dimension === 'subjectivity') {
@@ -110,7 +118,14 @@ export function ordinalValue(article: Article, dimension: AgreementDimension): n
 
 /** Whether an article's label on a dimension is a refusal rather than a rating. */
 export function isDeclined(article: Article, dimension: AgreementDimension): boolean {
-	const analysis = article.sentiment_analysis;
+	return analysisDeclined(article.sentiment_analysis, dimension);
+}
+
+/** `isDeclined` over a bare analysis. */
+export function analysisDeclined(
+	analysis: SentimentAnalysis | null | undefined,
+	dimension: AgreementDimension
+): boolean {
 	if (!analysis) return false;
 
 	if (dimension === 'subjectivity') return analysis.subjectivite_score == null;
@@ -147,43 +162,34 @@ export function buildConsensusRows(
 	datasets: Record<string, Article[]>,
 	modelIds: readonly string[]
 ): ConsensusRow[] {
-	const [first, ...rest] = modelIds;
-	const firstArticles = datasets[first] ?? [];
-	if (firstArticles.length === 0 || rest.length === 0) return [];
+	if (modelIds.length < 2) return [];
+	const join = buildPanelJoin(datasets, modelIds);
+	return join ? buildConsensusRowsFromJoin(join, allRows(join)) : [];
+}
 
-	const restMaps = rest.map(
-		(id) => new Map((datasets[id] ?? []).map((article) => [String(article['o:id']), article]))
-	);
+const DIMENSIONS: AgreementDimension[] = ['polarity', 'subjectivity', 'centrality'];
 
-	const rows: ConsensusRow[] = [];
+/** The same rows over the shared panel join, restricted to `rows`. */
+export function buildConsensusRowsFromJoin(
+	join: PanelJoin,
+	rows: readonly number[]
+): ConsensusRow[] {
+	if (join.modelIds.length < 2) return [];
+	const out: ConsensusRow[] = [];
 
-	for (const article of firstArticles) {
-		const id = String(article['o:id']);
-
-		const others: Article[] = [];
-		let complete = true;
-		for (const map of restMaps) {
-			const other = map.get(id);
-			if (!other) {
-				complete = false;
-				break;
-			}
-			others.push(other);
-		}
-		if (!complete) continue;
-
-		const all = [article, ...others];
+	for (const i of rows) {
+		const article = join.articles[i];
 		const values = {} as Record<AgreementDimension, number[] | null>;
 		const declined = {} as Record<AgreementDimension, boolean>;
 
-		for (const dimension of ['polarity', 'subjectivity', 'centrality'] as AgreementDimension[]) {
-			const ordinals = all.map((entry) => ordinalValue(entry, dimension));
+		for (const dimension of DIMENSIONS) {
+			const ordinals = join.analyses.map((column) => analysisOrdinal(column[i], dimension));
 			values[dimension] = ordinals.some((value) => value === null) ? null : (ordinals as number[]);
-			declined[dimension] = all.some((entry) => isDeclined(entry, dimension));
+			declined[dimension] = join.analyses.some((column) => analysisDeclined(column[i], dimension));
 		}
 
-		rows.push({
-			id,
+		out.push({
+			id: String(article['o:id']),
 			newspaper: getJournalName(article),
 			country: article.Country || '',
 			year: parseYear(article),
@@ -192,7 +198,7 @@ export function buildConsensusRows(
 		});
 	}
 
-	return rows;
+	return out;
 }
 
 /** How the models split on one article. */

@@ -1,7 +1,7 @@
 {
 	"name": "iwac-visualisation-sentiments",
 	"version": "5.0.0",
-	"description": "Interactive SvelteKit application for visualizing sentiment analysis results on the Islam West Africa Collection (IWAC) corpus. Compares a panel of large language models per annotation campaign — currently GPT-5.6 Luna, Mistral Small 4, DeepSeek v4 Flash, Gemma 4 31B and Qwen3.8 27B, with the archived first campaign of three alongside — through agreement statistics, discrepancy analysis and blind third-party arbitration, with multilingual support (French/English) and comprehensive filtering and export capabilities.",
+	"description": "Interactive SvelteKit dashboard for exploring large language model sentiment annotations of the Islam West Africa Collection (IWAC), a corpus of francophone West African press articles. Each article is annotated for polarity, subjectivity and the centrality of Islam and Muslims by a panel of models, per annotation campaign (the current panel alongside the archived first one), and the dashboard reports each model's distributions, their agreement, where they diverge, and blind third-party arbiter verdicts, in French and English.",
 	"author": {
 		"name": "Frédérick Madore",
 		"url": "https://www.frederickmadore.com/"
@@ -23,10 +23,10 @@
 		"postbuild": "node scripts/nest-build.mjs && node scripts/publish-data-release.mjs && node scripts/stamp-sw.mjs && node scripts/check-build-artifact.mjs",
 		"preview": "node scripts/preview-build.mjs",
 		"prepare": "svelte-kit sync || echo ''",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --fail-on-warnings && tsc -p tsconfig.node.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
-		"lint": "prettier --check . && eslint . && node scripts/check-store-cycles.mjs && node scripts/check-design-tokens.mjs",
+		"lint": "prettier --check . && eslint . && node scripts/check-store-cycles.mjs && node scripts/check-design-tokens.mjs && node scripts/check-i18n-keys.mjs --strict",
 		"test": "vitest",
 		"test:run": "vitest run",
 		"test:e2e": "playwright test"
@@ -66,8 +66,9 @@
 		"visualization",
 		"natural-language-processing",
 		"comparative-analysis",
-		"chatgpt",
-		"gemini",
+		"large-language-models",
+		"llm-evaluation",
+		"inter-rater-agreement",
 		"islam",
 		"west-africa",
 		"journalism",

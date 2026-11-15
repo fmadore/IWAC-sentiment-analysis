@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { spearman, rankWithTies, interpretRho, studentTTwoSided } from './correlation';
+import {
+	spearman,
+	rankWithTies,
+	interpretRho,
+	studentTTwoSided,
+	spearmanInterval,
+	normalQuantile
+} from './correlation';
 
 describe('rankWithTies', () => {
 	it('ranks distinct values 1..n', () => {
@@ -117,5 +124,30 @@ describe('interpretRho', () => {
 
 	it('returns null for an undefined correlation', () => {
 		expect(interpretRho(NaN)).toBeNull();
+	});
+});
+
+describe('spearmanInterval', () => {
+	it('uses the 97.5% normal quantile', () => {
+		expect(normalQuantile(0.975)).toBeCloseTo(1.959964, 5);
+		expect(normalQuantile(0.5)).toBeCloseTo(0, 10);
+		expect(normalQuantile(0.01)).toBeCloseTo(-2.326348, 5);
+	});
+
+	it('brackets rho with a Fisher-z interval on the rank-correlation variance', () => {
+		const { lower, upper } = spearmanInterval(0.3, 103);
+		const se = Math.sqrt(1.06 / 100);
+		expect(lower).toBeCloseTo(Math.tanh(Math.atanh(0.3) - 1.959964 * se), 5);
+		expect(upper).toBeCloseTo(Math.tanh(Math.atanh(0.3) + 1.959964 * se), 5);
+		expect(lower).toBeLessThan(0.3);
+		expect(upper).toBeGreaterThan(0.3);
+	});
+
+	it('narrows with n and is undefined without enough pairs', () => {
+		const small = spearmanInterval(0.2, 50);
+		const large = spearmanInterval(0.2, 12000);
+		expect(large.upper - large.lower).toBeLessThan(small.upper - small.lower);
+		expect(Number.isNaN(spearmanInterval(0.2, 3).lower)).toBe(true);
+		expect(Number.isNaN(spearmanInterval(NaN, 100).upper)).toBe(true);
 	});
 });

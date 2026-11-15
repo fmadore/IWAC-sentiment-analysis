@@ -10,9 +10,13 @@
  * generation flag and a model id to disagree.
  */
 
+import type { AssetPath } from '$app/types';
 import type { DatasetId, DatasetOption, GenerationId, ModelPair } from '#lib/types/data.js';
+import { seriesColorPalette } from '#lib/utils/chartTheme.js';
 import {
+	assertCoversDatasetIds,
 	CURRENT_GENERATION,
+	DATASET_IDS,
 	datasetIdsOf,
 	defaultDatasetOf,
 	defaultPairOf,
@@ -20,89 +24,87 @@ import {
 	getPairModels,
 	isDatasetId,
 	isModelPair,
-	pairIdsOf
+	modelDisplayName,
+	pairIdsOf,
+	type ModelNameVariant
 } from '#lib/domain/sentimentContract.js';
 
 // ============================================
 // Dataset Configuration (Static)
 // ============================================
 
-// Brand colours are duplicated from app.css on purpose: chart and logo code
-// cannot read CSS custom properties (see the note beside --brand-* there).
-const DATASETS: DatasetOption[] = [
-	{
-		id: 'chatgpt',
-		generation: 'v1',
-		name: 'ChatGPT',
-		file: '/data/iwac_sentiment_chatgpt.json',
-		logo: 'logo/ChatGPT_logo.svg',
-		color: '#10a37f'
-	},
-	{
-		id: 'gemini',
-		generation: 'v1',
-		name: 'Gemini',
-		file: '/data/iwac_sentiment_gemini.json',
-		logo: 'logo/Gemini_logo.svg',
-		color: '#8e75b2'
-	},
-	{
-		id: 'mistral',
-		generation: 'v1',
-		name: 'Mistral',
-		file: '/data/iwac_sentiment_mistral.json',
-		logo: 'logo/Mistral_AI_logo.svg',
-		color: '#F54E42'
-	},
-	{
-		id: 'luna',
-		generation: 'v2',
-		name: 'GPT-5.6 Luna',
-		file: '/data/iwac_sentiment_luna.json',
-		logo: 'logo/ChatGPT_logo.svg',
-		color: '#10a37f'
-	},
-	{
-		id: 'mistral-small',
-		generation: 'v2',
-		name: 'Mistral Small 4',
-		file: '/data/iwac_sentiment_mistral-small.json',
-		logo: 'logo/Mistral_AI_logo.svg',
-		color: '#F54E42'
-	},
-	{
-		id: 'deepseek',
-		generation: 'v2',
-		name: 'DeepSeek v4 Flash',
-		file: '/data/iwac_sentiment_deepseek.json',
-		logo: 'logo/DeepSeek_logo.svg',
-		color: '#4d6bfe'
-	},
-	{
-		id: 'gemma',
-		generation: 'v2',
-		name: 'Gemma 4 31B',
-		file: '/data/iwac_sentiment_gemma.json',
-		logo: 'logo/Gemma_logo.png',
-		color: '#338dff'
-	},
-	{
-		id: 'qwen',
-		generation: 'v2',
-		name: 'Qwen3.8 27B',
-		file: '/data/iwac_sentiment_qwen.json',
-		logo: 'logo/Qwen_logo.png',
-		color: '#615ced'
-	},
-	{
-		id: 'haiku',
-		generation: 'v2',
-		name: 'Claude Haiku 5.5',
-		file: '/data/iwac_sentiment_haiku.json',
-		logo: 'logo/Claude_logo.svg',
-		color: '#d97757'
-	}
-];
+/**
+ * What each model needs beyond the contract: its data file, its logo and its
+ * maker's brand colour. Names come from the contract (`modelDisplayName`) and
+ * series colours from the categorical palette, so neither is repeated here.
+ */
+interface ModelAssets {
+	logo: AssetPath;
+	/**
+	 * The maker's brand colour, for logo surrounds only. Never a data series:
+	 * OpenAI's green and Mistral's red are the polarity ramp's hues, and three
+	 * of the v2 brands are near-identical blues. Duplicated from the
+	 * `--brand-*` tokens on purpose, because logo code cannot read CSS custom
+	 * properties.
+	 */
+	brandColor: string;
+}
+
+const MODEL_ASSETS: Readonly<Record<DatasetId, ModelAssets>> = Object.freeze({
+	chatgpt: { logo: 'logo/ChatGPT_logo.svg', brandColor: '#10a37f' },
+	gemini: { logo: 'logo/Gemini_logo.svg', brandColor: '#8e75b2' },
+	mistral: { logo: 'logo/Mistral_AI_logo.svg', brandColor: '#F54E42' },
+	luna: { logo: 'logo/ChatGPT_logo.svg', brandColor: '#10a37f' },
+	'mistral-small': { logo: 'logo/Mistral_AI_logo.svg', brandColor: '#F54E42' },
+	deepseek: { logo: 'logo/DeepSeek_logo.svg', brandColor: '#4d6bfe' },
+	gemma: { logo: 'logo/Gemma_logo.png', brandColor: '#338dff' },
+	qwen: { logo: 'logo/Qwen_logo.png', brandColor: '#615ced' },
+	haiku: { logo: 'logo/Claude_logo.svg', brandColor: '#d97757' }
+});
+
+/**
+ * A model's series colour: the categorical chart palette, indexed by the
+ * model's position in its generation, so a model keeps one colour on every
+ * chart, card and table of the dashboard. The palette avoids the polarity reds
+ * and greens by construction, so a model series never reads as a claim about
+ * sentiment. The two generations reuse the same steps; they are never on
+ * screen together.
+ */
+export function modelSeriesColor(id: DatasetId): string {
+	const index = datasetIdsOf(generationOf(id)).indexOf(id);
+	return seriesColorPalette[index % seriesColorPalette.length];
+}
+
+/** A model's brand colour — for logo surrounds only, never a data series. */
+export function modelBrandColor(id: DatasetId): string {
+	return MODEL_ASSETS[id].brandColor;
+}
+
+/** A model's logo in `static/`; render it through `asset()`. */
+export function modelLogo(id: DatasetId): AssetPath {
+	return MODEL_ASSETS[id].logo;
+}
+
+/**
+ * A model's display name. `short` is what `name` carries and what
+ * `getModelDisplayName` returns; `long` is the contract's release-tagged name.
+ */
+export function modelName(id: DatasetId, variant: ModelNameVariant = 'short'): string {
+	return modelDisplayName(id, variant);
+}
+
+const DATASETS: DatasetOption[] = DATASET_IDS.map((id) => ({
+	id,
+	generation: generationOf(id),
+	name: modelDisplayName(id, 'short'),
+	file: `/data/iwac_sentiment_${id}.json`,
+	logo: MODEL_ASSETS[id].logo,
+	// `color` is the series colour every existing call site reads; the brand
+	// colour is deliberately behind its own accessor.
+	color: modelSeriesColor(id)
+}));
+
+assertCoversDatasetIds('MODEL_ASSETS', Object.keys(MODEL_ASSETS));
 
 // ============================================
 // Svelte 5 Runes State

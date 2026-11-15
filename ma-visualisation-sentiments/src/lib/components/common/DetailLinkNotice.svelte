@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { t } from '#lib/i18n/index.js';
+	import ErrorNotice from './ErrorNotice.svelte';
 	let { onClose }: { onClose: () => void } = $props();
 </script>
 
-<div class="alert alert-error p-4 mb-4" role="alert">
-	<p>{$t.links.missing}</p>
-	<button type="button" onclick={onClose}>{$t.links.close}</button>
-</div>
+<ErrorNotice message={$t.links.missing} actionLabel={$t.links.close} onAction={onClose} />

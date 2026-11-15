@@ -12,7 +12,7 @@
  */
 
 import type { Component } from 'svelte';
-import type { ViewId } from '#lib/types/data.js';
+import { VIEW_GROUPS, viewGroupOf, type ViewGroup, type ViewId } from '#lib/types/data.js';
 import ChartIcon from '@lucide/svelte/icons/bar-chart-2';
 import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
 import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
@@ -49,18 +49,36 @@ export interface NavItem {
 	labelKey: NavLabelKey;
 }
 
+/**
+ * Order within a section is the rendered order; which section a view sits in
+ * is VIEW_META's `group`, never restated here (see NAV_SECTIONS).
+ */
 export const NAV_ITEMS: NavItem[] = [
+	// Corpus: what the collection holds, when and where.
+	{ id: 'volume', icon: AreaChartIcon, labelKey: 'volume' },
+	{ id: 'seasonality', icon: MoonStarIcon, labelKey: 'seasonality' },
+	{ id: 'map', icon: MapIcon, labelKey: 'map' },
+	{ id: 'table', icon: TableIcon, labelKey: 'table' },
+	// One model's reading.
 	{ id: 'charts', icon: ChartIcon, labelKey: 'charts' },
 	{ id: 'trends', icon: TrendingUpIcon, labelKey: 'trends' },
 	{ id: 'correlation', icon: BarChart3Icon, labelKey: 'distribution' },
-	{ id: 'volume', icon: AreaChartIcon, labelKey: 'volume' },
-	{ id: 'seasonality', icon: MoonStarIcon, labelKey: 'seasonality' },
 	{ id: 'heatmap', icon: ActivityIcon, labelKey: 'heatmap' },
 	{ id: 'ranking', icon: NewspaperIcon, labelKey: 'ranking' },
-	{ id: 'map', icon: MapIcon, labelKey: 'map' },
-	{ id: 'table', icon: TableIcon, labelKey: 'table' },
-	{ id: 'comparison', icon: GitCompareIcon, labelKey: 'comparison' },
-	{ id: 'agreement', icon: ScaleIcon, labelKey: 'agreement' },
 	{ id: 'extremes', icon: FlameIcon, labelKey: 'extremes' },
+	// Between models.
+	{ id: 'agreement', icon: ScaleIcon, labelKey: 'agreement' },
+	{ id: 'comparison', icon: GitCompareIcon, labelKey: 'comparison' },
 	{ id: 'arbiter', icon: GavelIcon, labelKey: 'arbiter' }
 ];
+
+export interface NavSection {
+	group: ViewGroup;
+	items: NavItem[];
+}
+
+/** The sidebar's labelled sections, each view placed by `VIEW_META[id].group`. */
+export const NAV_SECTIONS: NavSection[] = VIEW_GROUPS.map((group) => ({
+	group,
+	items: NAV_ITEMS.filter((item) => viewGroupOf(item.id) === group)
+}));

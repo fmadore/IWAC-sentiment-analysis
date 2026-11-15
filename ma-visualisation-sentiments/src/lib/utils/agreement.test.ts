@@ -1,11 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-	cohensKappa,
-	buildConfusionMatrix,
-	interpretKappa,
-	fleissKappa,
-	type LabelPair
-} from './agreement';
+import { cohensKappa, buildConfusionMatrix, fleissKappa, type LabelPair } from './agreement';
 
 const POLARITY = ['Très négatif', 'Négatif', 'Neutre', 'Positif', 'Très positif'];
 
@@ -190,21 +184,6 @@ describe('buildConfusionMatrix', () => {
 		const matrix = buildConfusionMatrix([{ a: 'Marginal', b: 'Central' }], categories);
 		const emptyRowCells = matrix.cells.filter((c) => c.rowIndex === 1);
 		emptyRowCells.forEach((c) => expect(c.rowPercent).toBe(0));
-	});
-});
-
-describe('interpretKappa', () => {
-	it('maps values onto the Landis & Koch bands', () => {
-		expect(interpretKappa(-0.1)).toBe('poor');
-		expect(interpretKappa(0.15)).toBe('slight');
-		expect(interpretKappa(0.35)).toBe('fair');
-		expect(interpretKappa(0.55)).toBe('moderate');
-		expect(interpretKappa(0.75)).toBe('substantial');
-		expect(interpretKappa(0.95)).toBe('almostPerfect');
-	});
-
-	it('returns null for an undefined kappa so the UI can show n/a', () => {
-		expect(interpretKappa(NaN)).toBeNull();
 	});
 });
 

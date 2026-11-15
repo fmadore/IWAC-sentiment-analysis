@@ -1,240 +1,348 @@
 <!--
   ArbiterV2StatsCards
 
-  Win shares for every generation-2 model, plus the two verdicts that name no
-  single model ("several are equivalent", "none is accurate").
+  The panel arbiter's headline: how often each model's rating is the arbiter's
+  own rating, per dimension, with a Wilson 95% interval and n. Computed live
+  from the loaded file and the panel's ratings.
 
-  Logos and brand colours are looked up **by dataset id**, not by matching the
-  display-name string the way the v1 cards do. Two v2 models share a logo with
-  an archived v1 model, and a name-string match is one rename away from
-  attaching the wrong brand to a verdict.
+  WHY NOT THE WIN TALLY. The cards used to lead with "preferred overall" wins
+  per model. On the published run that ranking separates models that give the
+  judge's own polarity about equally often (190–205 of 301 for four of them)
+  and mostly follows closeness on subjectivity: the model that matches the
+  judge's polarity most often is named winner second least. The tally is kept,
+  demoted to a secondary block with a sentence saying what it follows. No
+  figure about the run is typed here or in the catalogue; every number comes
+  from the functions in `utils/arbiterV2.ts`, which a test pins to the file.
 
-  Nothing here counts the models: the grid auto-fits, the overall bar is one
-  segment per model, and the legend wraps. The panel grew from three to five
-  without this file changing (the sixth member is recused from the arbiter), which is the property to preserve.
+  WHOSE PANEL. Match rates and the dissenter sentence run over
+  `metadata.models` — the five the judge read. The recused model (the
+  generation minus that list, from `datasetIdsOf('v2')`) gets its own row,
+  marked as not judged and unlettered, because comparing it with the verdict
+  afterwards is the only thing recusal allows.
 
-  Every headline figure in the grid is an *overall* verdict, one per article,
-  so the cards share a denominator and sum to the articles reviewed. The
-  per-dimension tallies — three verdicts per article, and where "several are
-  equally close" is the usual answer — sit in each card's note line. The two
-  tie cards used to carry the per-dimension counts as their headline, which
-  put 814 of 903 beside 118 of 301 with nothing saying the two were not the
-  same kind of number.
+  Nothing here counts the models: the table grows a row per model, and the
+  bars and legends wrap.
 -->
 <script lang="ts">
-	import type { ArbiterV2Statistics } from '#lib/stores/index.js';
+	import type { ArbiterV2Statistics } from '#lib/stores/arbiterV2.svelte.js';
+	import { datasetState } from '#lib/stores/datasets.svelte.js';
+	import { datasetIdsOf } from '#lib/domain/sentimentContract.js';
+	import type { ArbiterV2EvaluationData, DatasetId } from '#lib/types/data.js';
+	import {
+		ARBITER_V2_DIMENSIONS,
+		arbiterMatchRates,
+		judgeSubjectiveCount,
+		loneDissenters,
+		type ArbiterModelMatch,
+		type ArbiterV2Row
+	} from '#lib/utils/arbiterV2.js';
+	import type { Proportion } from '#lib/utils/stats.js';
 	import { num, pct } from '#lib/i18n/utils.js';
-	import { datasetState } from '#lib/stores/index.js';
 	import { t } from '#lib/i18n/index.js';
 	import { asset } from '$app/paths';
+	import ShareBar, { type ShareSegment } from '#lib/components/common/ShareBar.svelte';
+	import StatCard from '#lib/components/common/StatCard.svelte';
 	import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
-	import ScaleIcon from '@lucide/svelte/icons/scale';
-	import CircleSlashIcon from '@lucide/svelte/icons/circle-slash';
 
 	interface ArbiterV2StatsCardsProps {
 		stats: ArbiterV2Statistics;
+		/** The verdicts joined to the panel's ratings. */
+		rows: ArbiterV2Row[];
+		data: ArbiterV2EvaluationData | null;
+		/** Articles in the corpus, for the frame's share; 0 while loading. */
+		corpusTotal: number;
 	}
 
-	let { stats }: ArbiterV2StatsCardsProps = $props();
+	let { stats, rows, data, corpusTotal }: ArbiterV2StatsCardsProps = $props();
 
-	function datasetFor(modelId: string) {
-		return datasetState.available.find((dataset) => dataset.id === modelId);
+	const judgedIds = $derived(stats.models.map((model) => model.modelId));
+	const recusedIds = $derived(
+		datasetIdsOf('v2').filter((id) => !(judgedIds as readonly DatasetId[]).includes(id))
+	);
+	const matches = $derived(arbiterMatchRates(rows, judgedIds));
+	const recusedMatches = $derived(arbiterMatchRates(rows, recusedIds));
+	const panelLoaded = $derived(matches.every((match) => match.loaded));
+	const dissent = $derived(loneDissenters(rows, judgedIds));
+	const subjective = $derived(judgeSubjectiveCount(data));
+
+	function nameOf(modelId: DatasetId): string {
+		return (
+			stats.models.find((model) => model.modelId === modelId)?.name ??
+			datasetState.getById(modelId)?.name ??
+			modelId
+		);
 	}
 
-	/** Overall verdicts that named exactly one model — the head-to-head base. */
-	const decisive = $derived(stats.models.reduce((total, model) => total + model.overallWins, 0));
+	function colorOf(modelId: DatasetId): string | undefined {
+		return datasetState.getById(modelId)?.color;
+	}
+
+	function labelOf(modelId: DatasetId): string | null {
+		return stats.models.find((model) => model.modelId === modelId)?.label.toUpperCase() ?? null;
+	}
+
+	function interval(value: Proportion): string {
+		return `${$pct(value.low, 1)}–${$pct(value.high, 1)}`;
+	}
+
+	const dissentSentence = $derived.by(() => {
+		const [first, second] = dissent.models;
+		if (dissent.compared === 0 || !first || first.total === 0) return '';
+		return $t.arbiterV2.loneDissenterNote
+			.replace('{model}', nameOf(first.modelId))
+			.replace('{count}', $num(first.total))
+			.replace('{total}', $num(dissent.compared))
+			.replace('{negative}', $num(first.negative))
+			.replace('{next}', $num(second?.total ?? 0));
+	});
+
+	const frameSentence = $derived.by(() => {
+		if (corpusTotal <= 0 || stats.totalEvaluated <= 0 || subjective.n === 0) return '';
+		return $t.arbiterV2.frameShareNote
+			.replace('{share}', $pct(stats.totalEvaluated / corpusTotal, 1))
+			.replace('{evaluated}', $num(stats.totalEvaluated))
+			.replace('{corpus}', $num(corpusTotal))
+			.replace('{subjective}', $num(subjective.successes))
+			.replace('{subjectiveShare}', $pct(subjective.share ?? 0, 0));
+	});
+
+	const winnerSegments = $derived<ShareSegment[]>([
+		...stats.models.map((model) => ({
+			key: model.modelId,
+			label: `${model.name} (${model.label.toUpperCase()})`,
+			count: model.overallWins,
+			color: colorOf(model.modelId)
+		})),
+		{
+			key: 'multiple',
+			label: $t.arbiterV2.multiple,
+			count: stats.overallMultiple,
+			pattern: 'hatch'
+		},
+		{ key: 'none', label: $t.arbiterV2.none, count: stats.overallNone, pattern: 'hatch' }
+	]);
 </script>
 
-<div class="stats-grid">
-	<div class="stat-card">
-		<div class="stat-icon evaluations">
-			<BarChart3Icon size={20} />
-		</div>
-		<div class="stat-content">
-			<div class="stat-value">{$num(stats.totalEvaluated)}</div>
-			<div class="stat-label">{$t.arbiterV2.articlesEvaluated}</div>
-			<div class="stat-note">
-				{$num(stats.totalVerdicts)}
-				{$t.arbiterV2.dimensionVerdicts}
-			</div>
-		</div>
-	</div>
-
-	{#each stats.models as model (model.modelId)}
-		{@const dataset = datasetFor(model.modelId)}
-		<div class="stat-card">
-			<div class="stat-icon model" style="--model-color: {dataset?.color ?? 'currentColor'}">
-				{#if dataset?.logo}
-					<img src={asset(dataset.logo)} alt="" class="model-logo" />
+{#snippet matchRow(match: ArbiterModelMatch, recused: boolean)}
+	{@const dataset = datasetState.getById(match.modelId)}
+	<tr data-recused={recused}>
+		<th scope="row" class="model-cell">
+			<!-- Flex lives on an inner wrapper: on the <th> itself it would
+			     override display: table-cell and collapse the row. -->
+			<span class="model-wrap" style:--model-color={colorOf(match.modelId)}>
+				<span class="model-mark">
+					{#if dataset?.logo}
+						<img src={asset(dataset.logo)} alt="" class="model-logo" />
+					{/if}
+				</span>
+				<span class="model-text">
+					<span class="model-name">{nameOf(match.modelId)}</span>
+					{#if recused}
+						<span class="model-tag">{$t.arbiterV2.recusedRow}</span>
+					{:else}
+						<span class="model-tag">{$t.arbiterV2.blindLabel} {labelOf(match.modelId)}</span>
+					{/if}
+				</span>
+			</span>
+		</th>
+		{#each ARBITER_V2_DIMENSIONS as dimension (dimension)}
+			{@const rate = match.dimensions[dimension]}
+			<td class="rate-cell">
+				{#if rate.exact.n > 0}
+					<span class="rate-value">{$pct(rate.exact.share ?? 0, 1)}</span>
+					<span class="rate-detail">
+						{$t.arbiterV2.interval}
+						{interval(rate.exact)} · n {$num(rate.exact.n)}
+					</span>
+					{#if rate.withinOne.n > 0}
+						<span class="rate-detail">
+							{$t.arbiterV2.withinOne}
+							{$pct(rate.withinOne.share ?? 0, 1)}
+							{#if rate.withinOne.n !== rate.exact.n}· n {$num(rate.withinOne.n)}{/if}
+						</span>
+					{/if}
+				{:else}
+					<span class="rate-detail">—</span>
 				{/if}
-			</div>
-			<div class="stat-content">
-				<div class="stat-value">{$num(model.overallWins)}</div>
-				<div class="stat-label">{model.name} {$t.arbiterV2.preferred}</div>
-				<div class="stat-percentage">{$pct(model.overallPercentage / 100, 1)}</div>
-				<div class="stat-note">
-					{$t.arbiterV2.blindLabel}
-					{model.label.toUpperCase()} · {$num(model.dimensionWins)}
-					{$t.arbiterV2.dimensionVerdicts}
-				</div>
-			</div>
-		</div>
-	{/each}
+			</td>
+		{/each}
+	</tr>
+{/snippet}
 
-	<div class="stat-card">
-		<div class="stat-icon equal">
-			<ScaleIcon size={20} />
-		</div>
-		<div class="stat-content">
-			<div class="stat-value">{$num(stats.overallMultiple)}</div>
-			<div class="stat-label">{$t.arbiterV2.multiple}</div>
-			<div class="stat-percentage">
-				{$pct(stats.totalEvaluated > 0 ? stats.overallMultiple / stats.totalEvaluated : 0, 1)}
-			</div>
-			<div class="stat-note">
-				{$num(stats.multiple)}
-				{$t.arbiterV2.dimensionVerdicts}
-			</div>
-		</div>
-	</div>
+<div class="headline">
+	<StatCard
+		layout="inline"
+		label={$t.arbiterV2.articlesEvaluated}
+		value={$num(stats.totalEvaluated)}
+		accent="neutral"
+	>
+		{#snippet icon()}<BarChart3Icon size={20} aria-hidden="true" />{/snippet}
+	</StatCard>
 
-	<div class="stat-card">
-		<div class="stat-icon neither">
-			<CircleSlashIcon size={20} />
-		</div>
-		<div class="stat-content">
-			<div class="stat-value">{$num(stats.overallNone)}</div>
-			<div class="stat-label">{$t.arbiterV2.none}</div>
-			<div class="stat-percentage">
-				{$pct(stats.totalEvaluated > 0 ? stats.overallNone / stats.totalEvaluated : 0, 1)}
+	<section class="match-section" aria-labelledby="arbiter-match-title">
+		<h2 id="arbiter-match-title" class="match-title">{$t.arbiterV2.matchRatesTitle}</h2>
+		<p class="match-note">{$t.arbiterV2.matchRatesNote}</p>
+
+		{#if !panelLoaded}
+			<p class="match-note">{$t.arbiterV2.panelLoading}</p>
+		{:else}
+			<div class="table-scroll">
+				<table class="match-table">
+					<caption class="visually-hidden">{$t.arbiterV2.matchRatesTitle}</caption>
+					<thead>
+						<tr>
+							<th scope="col">{$t.arbiterV2.matchModel}</th>
+							{#each ARBITER_V2_DIMENSIONS as dimension (dimension)}
+								<th scope="col">{$t.arbiterV2[dimension]} · {$t.arbiterV2.exactMatch}</th>
+							{/each}
+						</tr>
+					</thead>
+					<tbody>
+						{#each matches as match (match.modelId)}
+							{@render matchRow(match, false)}
+						{/each}
+						{#each recusedMatches.filter((match) => match.loaded) as match (match.modelId)}
+							{@render matchRow(match, true)}
+						{/each}
+					</tbody>
+				</table>
 			</div>
-			<div class="stat-note">
-				{$num(stats.none)}
-				{$t.arbiterV2.dimensionVerdicts}
-			</div>
-		</div>
-	</div>
+			{#if recusedIds.length > 0}
+				<p class="match-note">
+					{$t.arbiterV2.recusedRowNote.replace(
+						'{models}',
+						recusedIds.map((id) => nameOf(id)).join(', ')
+					)}
+				</p>
+			{/if}
+		{/if}
+	</section>
 </div>
 
-<p class="tie-note">{$t.arbiterV2.dimensionTieNote}</p>
+<div class="caveats">
+	<p class="tie-note">{$t.arbiterV2.dimensionTieNote}</p>
+	{#if dissentSentence}<p class="tie-note">{dissentSentence}</p>{/if}
+	{#if frameSentence}<p class="tie-note">{frameSentence}</p>{/if}
+</div>
 
-{#if decisive > 0}
-	<div class="overall-section mt-4">
+{#if stats.totalEvaluated > 0}
+	<section class="overall-section mt-4" aria-labelledby="arbiter-winner-title">
 		<div class="overall-header">
-			<span class="overall-title">{$t.arbiterV2.overallVerdicts}</span>
+			<h2 id="arbiter-winner-title" class="overall-title">{$t.arbiterV2.winnerTallyTitle}</h2>
 			<span class="overall-subtitle">{$t.arbiterV2.overallVerdictsNote}</span>
 		</div>
-		<div class="overall-bar">
-			{#each stats.models as model (model.modelId)}
-				{@const dataset = datasetFor(model.modelId)}
-				{#if model.overallWins > 0}
-					<div
-						class="bar-segment"
-						style="width: {(model.overallWins / stats.totalEvaluated) *
-							100}%; background: {dataset?.color ?? 'var(--sentiment-arbiter)'}"
-						title="{model.name}: {model.overallWins}"
-					></div>
-				{/if}
-			{/each}
-			{#if stats.overallMultiple + stats.overallNone > 0}
-				<div
-					class="bar-segment tie-segment"
-					style="width: {((stats.overallMultiple + stats.overallNone) / stats.totalEvaluated) *
-						100}%"
-					title="{$t.arbiterV2.multiple} / {$t.arbiterV2.none}: {stats.overallMultiple +
-						stats.overallNone}"
-				></div>
-			{/if}
-		</div>
-		<ul class="overall-legend">
-			{#each stats.models as model (model.modelId)}
-				{@const dataset = datasetFor(model.modelId)}
-				<li class="legend-item">
-					<span
-						class="legend-swatch"
-						style="background: {dataset?.color ?? 'var(--sentiment-arbiter)'}"
-					></span>
-					<span class="legend-name">{model.name}</span>
-					<strong class="legend-value">{$pct(model.overallPercentage / 100, 1)}</strong>
-				</li>
-			{/each}
-			<li class="legend-item">
-				<span class="legend-swatch tie-swatch"></span>
-				<span class="legend-name">{$t.arbiterV2.multiple} / {$t.arbiterV2.none}</span>
-				<strong class="legend-value">
-					{$pct((stats.overallMultiple + stats.overallNone) / stats.totalEvaluated, 1)}
-				</strong>
-			</li>
-		</ul>
-	</div>
+		<p class="match-note">{$t.arbiterV2.winnerTallyNote}</p>
+		<ShareBar
+			segments={winnerSegments}
+			total={stats.totalEvaluated}
+			label={$t.arbiterV2.winnerTallyTitle}
+		/>
+	</section>
 {/if}
 
 <style>
-	.stats-grid {
+	.headline {
 		display: grid;
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: minmax(0, 1fr);
 		gap: var(--space-4);
 	}
 
-	/* Why the headline number is the overall verdict and not the per-dimension
-	   one. Without it a reader compares two counts that do not mean the same
-	   thing, and reads the smaller per-dimension tally as a weaker model. */
+	.match-table thead th {
+		font-family: var(--font-mono);
+		font-size: var(--font-size-eyebrow);
+		font-weight: 600;
+		letter-spacing: var(--tracking-widest);
+		text-transform: uppercase;
+		color: var(--text-muted);
+	}
+
+	.match-section,
+	.overall-section {
+		padding: var(--pad-card-compact);
+		background: var(--surface-card);
+		border: 1px solid var(--border-subtle);
+		min-width: 0;
+	}
+
+	.match-title,
+	.overall-title {
+		font-family: var(--font-display);
+		font-size: var(--font-size-lg);
+		font-weight: var(--font-weight-semibold);
+		color: var(--text-primary);
+		margin: 0 0 var(--space-2);
+	}
+
+	.match-note,
 	.tie-note {
-		margin-top: var(--space-3);
+		margin: var(--space-2) 0;
 		font-size: var(--font-size-xs);
 		color: var(--text-muted);
 		line-height: var(--line-height-relaxed);
 		max-width: var(--prose-width);
 	}
 
-	.stat-card {
+	.caveats {
+		margin-top: var(--space-3);
+		padding-top: var(--space-2);
+		border-top: 1px dashed var(--border-subtle);
+	}
+
+	.table-scroll {
+		overflow-x: auto;
+		margin-top: var(--space-3);
+	}
+
+	.match-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.match-table thead th {
+		text-align: left;
+		padding: var(--space-2) var(--space-3);
+		background: var(--surface-card-elevated);
+		border-bottom: 1px solid var(--border-default);
+	}
+
+	.match-table td,
+	.match-table tbody th {
+		padding: var(--space-3);
+		border-bottom: 1px solid var(--border-subtle);
+		vertical-align: top;
+		text-align: left;
+	}
+
+	/* The recused row is a comparison, not a judged analysis: set apart by a
+	   dashed rule and a word, never by colour alone. */
+	.match-table tr[data-recused='true'] td,
+	.match-table tr[data-recused='true'] th {
+		border-top: 1px dashed var(--border-strong);
+	}
+
+	.model-cell {
+		min-width: 12rem;
+		font-weight: 400;
+	}
+
+	.model-wrap {
+		--model-color: var(--border-default);
 		display: flex;
-		align-items: flex-start;
-		gap: var(--space-4);
-		padding: var(--pad-card-compact);
-		background: var(--surface-card);
-		border: 1px solid var(--border-subtle);
-		transition: border-color var(--timing-fast) var(--easing-default);
+		align-items: center;
+		gap: var(--space-3);
 	}
 
-	.stat-card:hover {
-		border-color: var(--border-hover);
-	}
-
-	.stat-icon {
+	.model-mark {
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		width: var(--size-control-md);
 		height: var(--size-control-md);
 		flex-shrink: 0;
-	}
-
-	.stat-icon.evaluations {
-		background: var(--sentiment-polarity-neutral-bg);
-		color: var(--sentiment-polarity-neutral);
-		border: 1px solid var(--sentiment-polarity-neutral-border);
-	}
-
-	/* The brand colour arrives as an inline custom property rather than a
-	   literal: chart-facing colours cannot come from CSS variables, but this is
-	   plain DOM, so the registry value is the single source. */
-	.stat-icon.model {
 		background: var(--surface-nested);
 		border: 1px solid var(--border-subtle);
 		border-bottom: 2px solid var(--model-color);
-	}
-
-	.stat-icon.equal {
-		background: var(--sentiment-arbiter-bg);
-		color: var(--sentiment-arbiter-light);
-		border: 1px solid var(--sentiment-arbiter-border);
-	}
-
-	.stat-icon.neither {
-		background: var(--sentiment-polarity-na-bg);
-		color: var(--sentiment-polarity-na);
-		border: 1px solid var(--sentiment-polarity-na-border);
 	}
 
 	.model-logo {
@@ -243,51 +351,42 @@
 		object-fit: contain;
 	}
 
-	.stat-content {
-		flex: 1;
-		min-width: 0;
+	.model-text {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
 	}
 
-	.stat-value {
-		font-family: var(--font-display);
-		font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem);
-		font-weight: 600;
-		font-variant-numeric: tabular-nums;
+	.model-name {
+		font-size: var(--font-size-sm);
 		color: var(--text-primary);
-		line-height: 1;
-		letter-spacing: var(--tracking-tight);
 	}
 
-	.stat-label {
-		font-family: var(--font-mono);
-		font-size: var(--font-size-eyebrow);
-		font-weight: 600;
-		letter-spacing: var(--tracking-widest);
-		text-transform: uppercase;
-		color: var(--text-muted);
-		margin-top: var(--space-2);
-	}
-
-	/* Text sits at --text-muted, the floor DESIGN.md sets; --text-subtle is
-	   for rules and icon strokes and reads at ~4.3:1 here, below AA. */
-	.stat-percentage {
-		font-size: var(--font-size-xs);
-		color: var(--text-muted);
-		margin-top: var(--space-1);
-	}
-
-	.stat-note {
+	.model-tag {
 		font-family: var(--font-mono);
 		font-size: var(--font-size-eyebrow);
 		letter-spacing: var(--tracking-wide);
 		color: var(--text-muted);
-		margin-top: var(--space-1);
 	}
 
-	.overall-section {
-		padding: var(--pad-card-compact);
-		background: var(--surface-card);
-		border: 1px solid var(--border-subtle);
+	.rate-cell {
+		min-width: 9rem;
+	}
+
+	.rate-value {
+		display: block;
+		font-family: var(--font-display);
+		font-size: var(--font-size-xl);
+		font-weight: 600;
+		color: var(--text-primary);
+		line-height: 1.1;
+	}
+
+	.rate-detail {
+		display: block;
+		margin-top: var(--space-1);
+		font-size: var(--font-size-xs);
+		color: var(--text-muted);
 	}
 
 	.overall-header {
@@ -295,13 +394,6 @@
 		flex-wrap: wrap;
 		align-items: baseline;
 		gap: var(--space-2);
-		margin-bottom: var(--space-4);
-	}
-
-	.overall-title {
-		font-size: var(--font-size-base);
-		font-weight: var(--font-weight-semibold);
-		color: var(--text-primary);
 	}
 
 	.overall-subtitle {
@@ -309,75 +401,20 @@
 		color: var(--text-muted);
 	}
 
-	.overall-bar {
-		display: flex;
-		height: var(--size-icon-md);
-		background: var(--surface-muted);
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
 		overflow: hidden;
-	}
-
-	.bar-segment {
-		height: 100%;
-	}
-
-	.tie-segment {
-		background: var(--surface-muted);
-		border-left: 1px solid var(--border-subtle);
-	}
-
-	.overall-legend {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-3) var(--space-5);
-		margin-top: var(--space-3);
-		list-style: none;
-		padding: 0;
-	}
-
-	.legend-item {
-		display: flex;
-		align-items: center;
-		gap: var(--space-2);
-		font-size: var(--font-size-xs);
-		color: var(--text-muted);
-	}
-
-	.legend-swatch {
-		width: 10px;
-		height: 10px;
-		flex-shrink: 0;
-	}
-
-	.tie-swatch {
-		background: var(--surface-muted);
-		border: 1px solid var(--border-default);
-	}
-
-	.legend-value {
-		font-variant-numeric: tabular-nums;
-		color: var(--text-primary);
+		clip-path: inset(50%);
+		white-space: nowrap;
 	}
 
 	@media (min-width: 640px) {
-		.stats-grid {
-			grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-		}
-
-		.stat-card {
-			padding: var(--pad-card);
-		}
-
-		.model-logo {
-			width: var(--size-icon-lg);
-			height: var(--size-icon-lg);
-		}
-
+		.match-section,
 		.overall-section {
 			padding: var(--pad-card);
-		}
-
-		.overall-bar {
-			height: var(--size-icon-lg);
 		}
 	}
 </style>

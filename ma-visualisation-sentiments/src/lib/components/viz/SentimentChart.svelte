@@ -25,6 +25,7 @@
 </script>
 
 <DimensionDistributionChart
+	dimension="polarity"
 	frenchLabels={frenchPolarityLabels}
 	translatedLabels={polarityLabels}
 	getKey={(article) =>

@@ -71,10 +71,6 @@
 		background: var(--surface-active);
 		color: var(--text-primary);
 	}
-	.info-icon:focus-visible {
-		outline: 2px solid var(--text-primary);
-		outline-offset: 2px;
-	}
 	.tooltip-content {
 		position: fixed;
 		inset: auto;

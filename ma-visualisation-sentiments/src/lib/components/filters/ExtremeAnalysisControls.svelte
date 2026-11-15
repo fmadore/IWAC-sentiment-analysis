@@ -8,8 +8,11 @@
 <script lang="ts">
 	import { t } from '#lib/i18n/index.js';
 	import type { ExtremeCategory, KeywordType } from '#lib/types/extremeAnalysis.js';
-	import { FilterCard } from '#lib/components/common/index.js';
+	import FilterCard from '#lib/components/common/FilterCard.svelte';
 	import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
+	import { extremeState } from '#lib/stores/index.js';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
+	import { num, pct } from '#lib/i18n/utils.js';
 
 	// Props
 	interface Props {
@@ -41,6 +44,30 @@
 		onKeywordTypeChange(type);
 	}
 
+	/**
+	 * "Low subjectivity" holds three articles in four: a category's size and
+	 * share are what tell a reader how extreme it is, so every option names
+	 * them. Empty while the payload loads.
+	 */
+	function sizeSuffix(category: ExtremeCategory): string {
+		const data = extremeState.filtered;
+		if (!data) return '';
+		const count = data.analysis[category]?.articles.length ?? 0;
+		const total = data.statistics.total_articles;
+		return ` (${$num(count)} · ${$pct(total > 0 ? count / total : 0, 0)})`;
+	}
+
+	/** Category names, spelled out so every catalogue key is read literally. */
+	let categoryLabels = $derived<Record<ExtremeCategory, string>>({
+		subjectivity_extreme_high: $t.extremeAnalysis.categories.subjectivityHigh,
+		subjectivity_extreme_low: $t.extremeAnalysis.categories.subjectivityLow,
+		polarity_very_negative: $t.extremeAnalysis.categories.polarityNegative,
+		polarity_very_positive: $t.extremeAnalysis.categories.polarityPositive,
+		centrality_very_central: $t.extremeAnalysis.categories.centralityHigh,
+		centrality_not_central: $t.extremeAnalysis.categories.centralityLow
+	});
+	const categoryOptions = $derived(Object.keys(categoryLabels) as ExtremeCategory[]);
+
 	// Handle number change
 	function handleTopNChange(event: Event) {
 		const target = event.target as HTMLInputElement;
@@ -69,46 +96,65 @@
 					onchange={handleCategoryChange}
 					class="select-input"
 				>
-					<option value="subjectivity_extreme_high">
-						{$t.extremeAnalysis.categories.subjectivityHigh}
-					</option>
-					<option value="subjectivity_extreme_low">
-						{$t.extremeAnalysis.categories.subjectivityLow}
-					</option>
-					<option value="polarity_very_negative">
-						{$t.extremeAnalysis.categories.polarityNegative}
-					</option>
-					<option value="polarity_very_positive">
-						{$t.extremeAnalysis.categories.polarityPositive}
-					</option>
-					<option value="centrality_very_central">
-						{$t.extremeAnalysis.categories.centralityHigh}
-					</option>
-					<option value="centrality_not_central">
-						{$t.extremeAnalysis.categories.centralityLow}
-					</option>
+					{#each categoryOptions as option (option)}
+						<option value={option}>
+							{categoryLabels[option]}{sizeSuffix(option)}
+						</option>
+					{/each}
 				</select>
 			</div>
 
 			<!-- Keyword Type Toggle -->
-			<div class="control-group">
+			<div class="control-group" role="group" aria-labelledby="keyword-type-label">
 				<span class="control-label" id="keyword-type-label">
 					{$t.extremeAnalysis.selectKeywordType}
 				</span>
 				<div class="btn-group-toggle">
 					<button
-						class="btn-toggle {selectedKeywordType === 'subject' ? 'active' : ''}"
+						type="button"
+						class="btn-toggle"
+						data-active={selectedKeywordType === 'subject'}
 						onclick={() => handleKeywordTypeChange('subject')}
 						aria-pressed={selectedKeywordType === 'subject'}
 					>
 						{$t.extremeAnalysis.subjectKeywords}
 					</button>
 					<button
-						class="btn-toggle {selectedKeywordType === 'spatial' ? 'active' : ''}"
+						type="button"
+						class="btn-toggle"
+						data-active={selectedKeywordType === 'spatial'}
 						onclick={() => handleKeywordTypeChange('spatial')}
 						aria-pressed={selectedKeywordType === 'spatial'}
 					>
 						{$t.extremeAnalysis.spatialKeywords}
+					</button>
+				</div>
+			</div>
+
+			<!-- Keyword ranking: raw frequency (the original) or distinctiveness
+			     against the opposite pole. Bound to the URL store directly. -->
+			<div class="control-group" role="group" aria-labelledby="keyword-ranking-label">
+				<span class="control-label" id="keyword-ranking-label">
+					{$t.extremeAnalysis.ranking}
+				</span>
+				<div class="btn-group-toggle">
+					<button
+						type="button"
+						class="btn-toggle"
+						data-active={viewOptionsState.keywordRanking === 'count'}
+						onclick={() => (viewOptionsState.keywordRanking = 'count')}
+						aria-pressed={viewOptionsState.keywordRanking === 'count'}
+					>
+						{$t.extremeAnalysis.rankingCount}
+					</button>
+					<button
+						type="button"
+						class="btn-toggle"
+						data-active={viewOptionsState.keywordRanking === 'distinctive'}
+						onclick={() => (viewOptionsState.keywordRanking = 'distinctive')}
+						aria-pressed={viewOptionsState.keywordRanking === 'distinctive'}
+					>
+						{$t.extremeAnalysis.rankingDistinctive}
 					</button>
 				</div>
 			</div>
@@ -218,7 +264,7 @@
 
 	.select-input option:checked {
 		background: var(--color-primary-500);
-		color: white;
+		color: var(--text-on-light);
 	}
 
 	/* Button Toggle Group */
@@ -256,7 +302,7 @@
 		color: var(--text-primary);
 	}
 
-	.btn-toggle.active {
+	.btn-toggle[data-active='true'] {
 		background: var(--sentiment-extreme-bg);
 		color: var(--sentiment-extreme-accent);
 		font-weight: var(--font-weight-semibold);

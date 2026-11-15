@@ -27,29 +27,30 @@
 	import { dec, num, pct } from '#lib/i18n/utils.js';
 	import {
 		pairAgreement,
-		panelAgreement,
 		modelMarginals,
 		AGREEMENT_DIMENSIONS,
 		DIMENSION_CATEGORIES,
 		type AgreementDimension
-	} from '#lib/stores/agreement.svelte.js';
-	import { interpretKappa } from '#lib/utils/agreement.js';
+	} from '#lib/stores/index.js';
 	import { getPairModelNames } from '#lib/types/data.js';
 	import { datasetIdsOf } from '#lib/domain/sentimentContract.js';
 	import { t } from '#lib/i18n/index.js';
-	import { StatCard, StatCardGrid, SectionHead } from '#lib/components/common/index.js';
+	import StatCard from '#lib/components/common/StatCard.svelte';
+	import StatCardGrid from '#lib/components/common/StatCardGrid.svelte';
 	import ModelPairPicker from '#lib/components/ui/ModelPairPicker.svelte';
-	import { CountryFilter, JournalFilter } from '#lib/components/filters/index.js';
-	import { AgreementMatrix, ModelCalibrationChart } from '#lib/components/viz/index.js';
+	import CountryFilter from '#lib/components/filters/CountryFilter.svelte';
+	import JournalFilter from '#lib/components/filters/JournalFilter.svelte';
+	import AgreementMatrix from '#lib/components/viz/AgreementMatrix.svelte';
+	import ModelCalibrationChart from '#lib/components/viz/ModelCalibrationChart.svelte';
 	import ChartTypeToggle from '#lib/components/viz/ChartTypeToggle.svelte';
 	import ConsensusSection from './ConsensusSection.svelte';
+	import PanelReliabilitySection from './PanelReliabilitySection.svelte';
 	import ModelAgreementOverview from '../viz/ModelAgreementOverview.svelte';
 	import ChartCard from '#lib/components/ui/ChartCard.svelte';
 	import LoadingState from '#lib/components/common/LoadingState.svelte';
 	import TargetIcon from '@lucide/svelte/icons/target';
 	import ScaleIcon from '@lucide/svelte/icons/scale';
 	import LayersIcon from '@lucide/svelte/icons/layers';
-	import UsersIcon from '@lucide/svelte/icons/users';
 	import GitCompareIcon from '@lucide/svelte/icons/git-compare';
 	import NetworkIcon from '@lucide/svelte/icons/network';
 
@@ -63,7 +64,6 @@
 	]);
 
 	const agreement = $derived(pairAgreement.current);
-	const panel = $derived(panelAgreement.current);
 	const marginals = $derived(modelMarginals.current);
 	const modelNames = $derived(
 		getPairModelNames(datasetState.pair, datasetState.availableInGeneration)
@@ -93,11 +93,16 @@
 		return Number.isFinite(value) ? $pct(value, 1) : $t.agreementResearch.undefined;
 	}
 
-	/** Landis & Koch band, translated; null when kappa is undefined. */
-	function strengthLabel(kappa: number): string | undefined {
-		const strength = interpretKappa(kappa);
-		return strength ? $t.agreement.strength[strength] : undefined;
-	}
+	/*
+	 * No verbal strength band under Cohen's kappa: the Landis–Koch labels are
+	 * arbitrary cut-points with no grounding for this task, and they read as a
+	 * verdict. The card states the n instead.
+	 */
+	const methodLabel = $derived(
+		active?.weightedMethod === 'ordinal-v1'
+			? $t.agreementResearch.legacyMethod
+			: $t.agreementResearch.ordinalMethod
+	);
 </script>
 
 {#if loadStatus.failed.length > 0}
@@ -186,8 +191,10 @@
 			<StatCard
 				label={$t.agreement.adjacentAgreement}
 				value={formatPercent(active.ordinalAdjacency.value)}
-				detail="{$num(active.ordinalAdjacency.n)} {$t.agreement.articlesCompared}"
-				tooltip={$t.agreement.adjacentAgreementHelp}
+				detail={$t.reliability.chanceWithinOne
+					.replace('{value}', formatPercent(active.ordinalAdjacency.expected))
+					.replace('{count}', $num(active.ordinalAdjacency.n))}
+				tooltip={$t.reliability.chanceWithinOneHelp}
 				accent="comparison"
 			>
 				{#snippet icon()}<LayersIcon size={20} />{/snippet}
@@ -196,7 +203,7 @@
 			<StatCard
 				label={$t.agreement.kappa}
 				value={formatKappa(active.kappa.kappa)}
-				detail={strengthLabel(active.kappa.kappa)}
+				detail="{$num(active.kappa.n)} {$t.agreement.articlesCompared}"
 				tooltip={$t.agreement.kappaHelp}
 				accent="arbiter"
 				preserveLabelCase
@@ -209,7 +216,7 @@
 				value={formatKappa(active.weightedKappa.kappa)}
 				detail={$t.agreementResearch.weightedN
 					.replace('{count}', $num(active.weightedKappa.n))
-					.replace('{method}', active.weightedMethod)}
+					.replace('{method}', methodLabel)}
 				tooltip={$t.agreementResearch.closeAgreementNote}
 				accent="arbiter"
 				preserveLabelCase
@@ -240,25 +247,7 @@
 			whole generation, so they move here rather than being rebuilt — this is
 			where they always belonged.
 		-->
-		{#if panel}
-			<SectionHead title={$t.agreement.panelTitle} lede={$t.agreement.panelLede} />
-
-			<StatCardGrid class="mb-6">
-				{#each AGREEMENT_DIMENSIONS as dimension (dimension)}
-					{@const result = panel[dimension]}
-					<StatCard
-						label={dimensionLabels[dimension]}
-						value={formatKappa(result.kappa)}
-						detail="{$t.agreement.fleissKappa} · {$num(result.n)} {$t.common.articles}"
-						tooltip={$t.agreement.fleissHelp}
-						accent="arbiter"
-						layout="inline"
-					>
-						{#snippet icon()}<UsersIcon size={20} />{/snippet}
-					</StatCard>
-				{/each}
-			</StatCardGrid>
-		{/if}
+		<PanelReliabilitySection dimension={analysisState.dimension} {dimensionLabels} />
 
 		<ChartCard variant="comparison" class="mb-6">
 			<ModelAgreementOverview dimension={analysisState.dimension} />

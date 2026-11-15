@@ -3,7 +3,9 @@
 	import Chart from './CitableChart.svelte';
 	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
-	import { innerWidth } from 'svelte/reactivity/window';
+	import { isCompactWidth } from '#lib/utils/viewport.svelte.js';
+	import { useChartCardHeading } from '#lib/components/ui/chartCardHeading.svelte.js';
+	import ChartHeading from './ChartHeading.svelte';
 
 	import { articleState } from '#lib/stores/index.js';
 	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
@@ -20,7 +22,6 @@
 	// Import centralized chart theme
 	import {
 		centralityColors,
-		getTitleStyle,
 		getTooltipConfig,
 		getAxisLineStyle,
 		getAxisLabelStyle,
@@ -32,23 +33,26 @@
 	const centralityLabels = $derived(
 		HEATMAP_CENTRALITY_VALUES.map((label) => translateSentimentValue(label, $currentLanguage))
 	);
-	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
+	// Compact layout follows the chart's own width, not the window's.
+	let containerWidth = $state<number>();
+	let isMobile = $derived(isCompactWidth(containerWidth));
 	const aggregate = $derived(
 		aggregateCentralityHeatmap(articleState.filtered, viewOptionsState.heatmapMinCount)
 	);
+	const headingSubtitle = $derived(
+		`${$num(aggregate.articlesAnalyzed)} ${$t.charts.articlesAnalyzed}`
+	);
+	const heading = useChartCardHeading(() => ({
+		title: $t.charts.centralityHeatmap,
+		subtitle: headingSubtitle
+	}));
 	let options = $derived.by(() => {
-		const { countries, years, heatmapData, articlesAnalyzed } = aggregate;
+		const { countries, years, heatmapData } = aggregate;
 		const currentTranslations = $t;
 		const tooltipConfig = getTooltipConfig(isMobile);
 
 		return {
 			backgroundColor: 'transparent',
-			title: {
-				text: `${$t.charts.centralityHeatmap} (${$num(articlesAnalyzed)} ${$t.charts.articlesAnalyzed})`,
-				left: 'center',
-				top: '2%',
-				textStyle: getTitleStyle(isMobile)
-			},
 			tooltip: {
 				...tooltipConfig,
 				position: 'top',
@@ -91,7 +95,7 @@
 			},
 			grid: {
 				height: '55%',
-				top: isMobile ? '18%' : '14%',
+				top: isMobile ? '6%' : '4%',
 				left: isMobile ? '12%' : '8%',
 				right: isMobile ? '8%' : '6%'
 			},
@@ -159,6 +163,9 @@
 	});
 </script>
 
+{#if !heading.inCard}
+	<ChartHeading title={$t.charts.centralityHeatmap} subtitle={headingSubtitle} />
+{/if}
 {#if articleState.filtered.length > 0}
 	<div class="chart-toolbar">
 		<DatasetBadge size="sm" />
@@ -191,6 +198,7 @@
 	<div
 		style="height: {isMobile ? '500px' : '600px'}; position: relative;"
 		class="chart-container p-2 sm:p-4"
+		bind:clientWidth={containerWidth}
 		role="img"
 		aria-label={$t.charts.centralityHeatmap}
 	>
@@ -204,7 +212,7 @@
 			{ label: $t.audit.count, format: 'integer' }
 		]}
 		rows={aggregate.cells.map((cell) => [cell.country, cell.year, cell.meanCentrality, cell.count])}
-		caption={$t.filters.centrality}
+		caption={$t.charts.centralityHeatmap}
 		filenamePrefix="centrality-by-country-year"
 	/>
 {:else}

@@ -74,7 +74,7 @@
 	title={count === 0 ? $t.export.noDataToExport : $t.export.downloadCSV}
 >
 	{#if isExporting}
-		<Spinner size="sm" />
+		<Spinner size="sm" decorative />
 	{:else}
 		<DownloadIcon size={16} />
 	{/if}

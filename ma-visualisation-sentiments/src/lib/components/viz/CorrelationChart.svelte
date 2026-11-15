@@ -4,7 +4,9 @@
 	import { dec, num } from '#lib/i18n/utils.js';
 	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
-	import { innerWidth } from 'svelte/reactivity/window';
+	import { isCompactWidth } from '#lib/utils/viewport.svelte.js';
+	import { useChartCardHeading } from '#lib/components/ui/chartCardHeading.svelte.js';
+	import ChartHeading from './ChartHeading.svelte';
 
 	import { articleState } from '#lib/stores/index.js';
 	import type { Article } from '#lib/types/data.js';
@@ -12,12 +14,11 @@
 	import { translateSentimentValue } from '#lib/i18n/utils.js';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
 	import { createStackedBarTooltipFormatter } from '#lib/utils/chartFormatters.js';
-	import { spearman, interpretRho } from '#lib/utils/correlation.js';
+	import { spearman, spearmanInterval, interpretRho } from '#lib/utils/correlation.js';
 
 	// Import centralized chart theme
 	import {
 		subjectivityColors,
-		getTitleStyle,
 		getTooltipConfig,
 		getLegendConfig,
 		getAxisLineStyle,
@@ -56,8 +57,9 @@
 		5: $t.filters.verySubjectiveScore
 	});
 
-	// Reactive window width for responsive behavior
-	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
+	// Compact layout follows the chart's own width, not the window's.
+	let containerWidth = $state<number>();
+	let isMobile = $derived(isCompactWidth(containerWidth));
 
 	/**
 	 * Spearman's rho between polarity and subjectivity.
@@ -98,13 +100,12 @@
 
 	let rhoStrength = $derived(interpretRho(correlation.rho));
 
-	/** p-values below the float noise floor read better as an inequality. */
-	function formatP(p: number): string {
-		if (Number.isNaN(p)) return '—';
-		// The threshold goes through the formatter too, so the inequality reads
-		// "< 0,0001" in French rather than switching decimal separator mid-line.
-		return p < 0.0001 ? `< ${$dec(0.0001, 4)}` : $dec(p, 4);
-	}
+	/*
+	 * A Fisher-z interval and n rather than a p-value: at roughly 12,000
+	 * articles p is zero for any correlation visible in the chart, so it says
+	 * nothing about how precisely rho is pinned down.
+	 */
+	let interval = $derived(spearmanInterval(correlation.rho, correlation.n));
 
 	const aggregate = $derived.by(() => {
 		const articles = articleState.filtered;
@@ -140,8 +141,13 @@
 		// Créer les séries pour chaque score de subjectivité
 		return { data, articlesAnalyzed };
 	});
+	const headingSubtitle = $derived(`${$num(aggregate.articlesAnalyzed)} ${$t.common.articles}`);
+	const heading = useChartCardHeading(() => ({
+		title: $t.charts.polaritySubjectivityDistribution,
+		subtitle: headingSubtitle
+	}));
 	let options = $derived.by(() => {
-		const { data, articlesAnalyzed } = aggregate;
+		const { data } = aggregate;
 		const series = subjectivityOrder.map((subjScore) => ({
 			name: subjectivityLabels[subjScore as keyof typeof subjectivityLabels],
 			type: 'bar' as const,
@@ -158,12 +164,6 @@
 
 		return {
 			backgroundColor: 'transparent',
-			title: {
-				text: `${$t.charts.polaritySubjectivityDistribution} (${articlesAnalyzed} ${$t.common.articles})`,
-				left: 'center',
-				top: '2%',
-				textStyle: getTitleStyle(isMobile)
-			},
 			tooltip: {
 				...tooltipConfig,
 				trigger: 'axis',
@@ -186,7 +186,7 @@
 				data: subjectivityOrder.map(
 					(s) => subjectivityLabels[s as keyof typeof subjectivityLabels]
 				),
-				top: isMobile ? '12%' : '8%'
+				top: 0
 			},
 			grid: getGridConfig(isMobile, { hasLegendTop: true }),
 			xAxis: {
@@ -223,6 +223,9 @@
 	});
 </script>
 
+{#if !heading.inCard}
+	<ChartHeading title={$t.charts.polaritySubjectivityDistribution} subtitle={headingSubtitle} />
+{/if}
 {#if articleState.filtered.length > 0}
 	<div class="mb-4">
 		<DatasetBadge size="sm" />
@@ -231,6 +234,7 @@
 	<div
 		style="height: {isMobile ? '450px' : '500px'}; position: relative;"
 		class="chart-container p-2 sm:p-4"
+		bind:clientWidth={containerWidth}
 		role="img"
 		aria-label={$t.charts.polaritySubjectivityDistribution}
 	>
@@ -251,16 +255,21 @@
 					<span class="stat-value">{$t.correlation.strength[rhoStrength]}</span>
 				</span>
 			{/if}
-			<span class="stat">
-				<span class="stat-key">p</span>
-				<span class="stat-value">{formatP(correlation.pValue)}</span>
-			</span>
+			{#if Number.isFinite(interval.lower)}
+				<span class="stat">
+					<span class="stat-key">{$t.reliability.correlationInterval}</span>
+					<span class="stat-value">[{$dec(interval.lower, 3)}, {$dec(interval.upper, 3)}]</span>
+				</span>
+			{/if}
 			<span class="stat">
 				<span class="stat-key">n</span>
 				<span class="stat-value">{$num(correlation.n)}</span>
 			</span>
 		</p>
-		<p class="correlation-note">{$t.correlation.rhoNote}</p>
+		<p class="correlation-note">
+			{$t.correlation.rhoNote}
+			{$t.reliability.correlationIntervalNote}
+		</p>
 	{/if}
 	<ChartDataTable
 		columns={[
@@ -274,7 +283,7 @@
 			translatedPolarityLabels[i],
 			...subjectivityOrder.map((score) => aggregate.data[label][score])
 		])}
-		caption={$t.charts.polarityDistribution}
+		caption={$t.charts.polaritySubjectivityDistribution}
 		filenamePrefix="polarity-subjectivity"
 	/>
 {:else}

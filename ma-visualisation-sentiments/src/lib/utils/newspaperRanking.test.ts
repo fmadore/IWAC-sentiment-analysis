@@ -4,6 +4,7 @@ import {
 	getMeasureValue,
 	rankNewspapers,
 	countExcludedNewspapers,
+	isProportionMeasure,
 	MEASURE_SCALES
 } from './newspaperRanking';
 
@@ -165,5 +166,53 @@ describe('MEASURE_SCALES', () => {
 		expect(MEASURE_SCALES.polarity.neutral).toBe(0);
 		expect(MEASURE_SCALES.subjectivity.neutral).toBe(3);
 		expect(MEASURE_SCALES.centrality.neutral).toBe(3);
+	});
+});
+
+describe('proportion measures', () => {
+	it('code polarity as a side of neutral, leaving Non applicable out', () => {
+		const positive = article('J', { polarite: 'Très positif' });
+		const negative = article('J', { polarite: 'Négatif' });
+		const neutral = article('J', { polarite: 'Neutre' });
+		expect(getMeasureValue(positive, 'positive')).toBe(1);
+		expect(getMeasureValue(negative, 'positive')).toBe(0);
+		expect(getMeasureValue(negative, 'negative')).toBe(1);
+		expect(getMeasureValue(neutral, 'net')).toBe(0);
+		expect(getMeasureValue(negative, 'net')).toBe(-1);
+		expect(getMeasureValue(article('J', { polarite: 'Non applicable' }), 'negative')).toBeNull();
+		expect(isProportionMeasure('negative')).toBe(true);
+		expect(isProportionMeasure('polarity')).toBe(false);
+	});
+
+	it('ranks by share with an asymmetric Wilson interval', () => {
+		const articles = [
+			...repeat('Few', 'Négatif', 1),
+			...repeat('Few', 'Neutre', 29),
+			...repeat('Many', 'Négatif', 15),
+			...repeat('Many', 'Positif', 15)
+		];
+		const [few, many] = rankNewspapers(articles, 'negative');
+		expect(few.newspaper).toBe('Few');
+		expect(few.mean).toBeCloseTo(1 / 30, 10);
+		expect(few.low).toBeGreaterThanOrEqual(0);
+		// Wilson is asymmetric near zero: more room above than below.
+		expect(few.high - few.mean).toBeGreaterThan(few.mean - few.low);
+		expect(many.mean).toBe(0.5);
+	});
+
+	it('nets positive against negative as a mean sign', () => {
+		const articles = [...repeat('J', 'Positif', 20), ...repeat('J', 'Négatif', 10)];
+		const [rank] = rankNewspapers(articles, 'net');
+		expect(rank.mean).toBeCloseTo(1 / 3, 10);
+		expect(rank.low).toBeCloseTo(rank.mean - rank.confidence, 10);
+		expect(MEASURE_SCALES.net).toEqual({ min: -1, max: 1, neutral: 0 });
+	});
+
+	it('keeps symmetric bounds for the mean measures', () => {
+		const [rank] = rankNewspapers(
+			[...repeat('J', 'Positif', 20), ...repeat('J', 'Neutre', 10)],
+			'polarity'
+		);
+		expect(rank.high - rank.mean).toBeCloseTo(rank.confidence, 10);
 	});
 });

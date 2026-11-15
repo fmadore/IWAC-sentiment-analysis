@@ -12,7 +12,7 @@
 	import { pct } from '#lib/i18n/utils.js';
 	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
-	import { innerWidth } from 'svelte/reactivity/window';
+	import { isCompactWidth } from '#lib/utils/viewport.svelte.js';
 
 	import {
 		getTooltipConfig,
@@ -38,7 +38,8 @@
 
 	let { chartId, data, countNoun, ariaLabel }: ArbiterPieChartProps = $props();
 
-	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
+	let containerWidth = $state<number>();
+	let isMobile = $derived(isCompactWidth(containerWidth));
 
 	const options = $derived.by((): EChartsOption => {
 		const pieStyle = getPieSeriesStyle(isMobile);
@@ -86,7 +87,7 @@
 	});
 </script>
 
-<div class="chart-container" role="img" aria-label={ariaLabel}>
+<div class="chart-container" bind:clientWidth={containerWidth} role="img" aria-label={ariaLabel}>
 	<Chart {chartId} {options} {init} />
 </div>
 

@@ -6,10 +6,10 @@
 	import { getPairModelNames } from '#lib/types/data.js';
 	import { t } from '#lib/i18n/index.js';
 	import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
-	import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
+	import DiffIcon from '@lucide/svelte/icons/diff';
 	import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
 	import GitCompareArrowsIcon from '@lucide/svelte/icons/git-compare-arrows';
-	import InfoTooltip from '../common/InfoTooltip.svelte';
+	import StatCard from '../common/StatCard.svelte';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import ChevronUpIcon from '@lucide/svelte/icons/chevron-up';
@@ -33,66 +33,161 @@
 		};
 	});
 
-	// State for arbiter summary visibility
+	type BarRow = { variant: string; label: string; count: number; share: number };
+
+	function rows(entries: Omit<BarRow, 'share'>[], total: number): BarRow[] {
+		return entries.map((entry) => ({ ...entry, share: total > 0 ? entry.count / total : 0 }));
+	}
+
+	const breakdownRows = $derived(
+		rows(
+			[
+				{ variant: 'polarity', label: $t.comparison.polarity, count: stats.polarityConflicts },
+				{
+					variant: 'subjectivity',
+					label: $t.comparison.subjectivity,
+					count: stats.subjectivityConflicts
+				},
+				{ variant: 'centrality', label: $t.comparison.centrality, count: stats.centralityConflicts }
+			],
+			stats.totalArticles
+		)
+	);
+
+	/*
+	 * Which dimension made each sharp disagreement sharp, counted live. The flag
+	 * rule is unchanged; subjectivity alone accounts for much of it.
+	 */
+	const conflictRows = $derived(
+		rows(
+			[
+				{
+					variant: 'polarity',
+					label: $t.comparison.polarity,
+					count: stats.highConflictBy.polarity
+				},
+				{
+					variant: 'subjectivity',
+					label: $t.comparison.subjectivity,
+					count: stats.highConflictBy.subjectivity
+				},
+				{
+					variant: 'centrality',
+					label: $t.comparison.centrality,
+					count: stats.highConflictBy.centrality
+				},
+				{
+					variant: 'subjectivity-only',
+					label: $t.reliability.flagsSubjectivityOnly,
+					count: stats.highConflictBy.subjectivityOnly
+				}
+			],
+			stats.highConflictArticles
+		)
+	);
+
+	const arbiterRows = $derived<BarRow[]>([
+		{
+			variant: 'model-a',
+			label: `${arbiterStats.modelAName} ${$t.arbiter.preferred}`,
+			count: arbiterStats.modelAPreferred,
+			share: arbiterStats.modelAPercentage / 100
+		},
+		{
+			variant: 'model-b',
+			label: `${arbiterStats.modelBName} ${$t.arbiter.preferred}`,
+			count: arbiterStats.modelBPreferred,
+			share: arbiterStats.modelBPercentage / 100
+		},
+		{
+			variant: 'equal',
+			label: $t.arbiter.bothEqual,
+			count: arbiterStats.bothEqual,
+			share: arbiterStats.bothPercentage / 100
+		},
+		{
+			variant: 'neither',
+			label: $t.arbiter.neitherAccurate,
+			count: arbiterStats.neitherAccurate,
+			share: arbiterStats.neitherPercentage / 100
+		}
+	]);
 </script>
 
+{#snippet breakdownBar(row: BarRow)}
+	<div class="breakdown-item">
+		<div class="breakdown-bar" style:--progress={row.share}>
+			<div class="breakdown-fill" data-variant={row.variant}></div>
+		</div>
+		<div class="breakdown-info">
+			<span class="breakdown-label">{row.label}</span>
+			<span class="breakdown-value">{$num(row.count)} ({$pct(row.share, 1)})</span>
+		</div>
+	</div>
+{/snippet}
+
+{#snippet arbiterBar(row: BarRow)}
+	<div class="arbiter-stat">
+		<div class="arbiter-stat-bar" style:--progress={row.share}>
+			<div class="arbiter-stat-fill" data-variant={row.variant}></div>
+		</div>
+		<div class="arbiter-stat-info">
+			<span class="arbiter-stat-label">{row.label}</span>
+			<span class="arbiter-stat-value">{$num(row.count)} ({$pct(row.share, 1)})</span>
+		</div>
+	</div>
+{/snippet}
+
+{#snippet averageHelp()}
+	<p class="tooltip-text">{$t.comparison.averageDiscrepancyExplanation}</p>
+	<p class="tooltip-text">{$t.reliability.totalDifferenceCaveat}</p>
+{/snippet}
+
 <div class="stats-grid">
-	<div class="stat-card comparison-stat-card">
-		<div class="stat-header">
-			<div class="stat-icon-container comparison-icon">
-				<GitCompareArrowsIcon size={24} />
-			</div>
-			<span class="stat-label">{$t.comparison.totalArticles}</span>
-		</div>
-		<div class="stat-value comparison-stat-value">{$num(stats.totalArticles)}</div>
-		<div class="stat-detail">{$t.comparison.articlesAnalyzed}</div>
-	</div>
+	<StatCard
+		label={$t.comparison.totalArticles}
+		value={$num(stats.totalArticles)}
+		detail={$t.comparison.articlesAnalyzed}
+		accent="comparison"
+		iconAccent="accent"
+	>
+		{#snippet icon()}<GitCompareArrowsIcon size={24} />{/snippet}
+	</StatCard>
 
-	<div class="stat-card comparison-stat-card">
-		<div class="stat-header">
-			<div class="stat-icon-container discrepancy-icon">
-				<AlertCircleIcon size={24} />
-			</div>
-			<span class="stat-label">{$t.comparison.totalDiscrepancies}</span>
-			<InfoTooltip ariaLabel={dynamicTooltips.totalDiscrepancies}
-				><p>{dynamicTooltips.totalDiscrepancies}</p></InfoTooltip
-			>
-		</div>
-		<div class="stat-value discrepancy-stat-value">{$num(stats.totalDiscrepancies)}</div>
-		<div class="stat-detail">
-			{$t.comparison.articlesWithDifferences}
-		</div>
-	</div>
+	<StatCard
+		label={$t.comparison.totalDiscrepancies}
+		value={$num(stats.totalDiscrepancies)}
+		detail={$t.comparison.articlesWithDifferences}
+		tooltip={dynamicTooltips.totalDiscrepancies}
+		tooltipLabel={dynamicTooltips.totalDiscrepancies}
+		accent="discrepancy"
+	>
+		{#snippet icon()}<DiffIcon size={24} />{/snippet}
+	</StatCard>
 
-	<div class="stat-card comparison-stat-card">
-		<div class="stat-header">
-			<div class="stat-icon-container success-icon">
-				<TrendingUpIcon size={24} />
-			</div>
-			<span class="stat-label">{$t.comparison.averageDiscrepancy}</span>
-			<InfoTooltip ariaLabel={$t.comparison.averageDiscrepancyExplanation}
-				><p>{$t.comparison.averageDiscrepancyExplanation}</p></InfoTooltip
-			>
-		</div>
-		<div class="stat-value">{$dec(stats.averageDiscrepancy, 2)}</div>
-		<div class="stat-detail">{$t.comparison.pointsPerArticle}</div>
-	</div>
+	<StatCard
+		label={$t.comparison.averageDiscrepancy}
+		value={$dec(stats.averageDiscrepancy, 2)}
+		detail={$t.comparison.pointsPerArticle}
+		tooltip={averageHelp}
+		tooltipLabel="{$t.comparison.averageDiscrepancyExplanation} {$t.reliability
+			.totalDifferenceCaveat}"
+		accent="neutral"
+		iconAccent="positive"
+	>
+		{#snippet icon()}<TrendingUpIcon size={24} />{/snippet}
+	</StatCard>
 
-	<div class="stat-card comparison-stat-card">
-		<div class="stat-header">
-			<div class="stat-icon-container conflict-icon">
-				<BarChart3Icon size={24} />
-			</div>
-			<span class="stat-label">{$t.comparison.highConflicts}</span>
-			<InfoTooltip ariaLabel={dynamicTooltips.significantDifferences}
-				><p>{dynamicTooltips.significantDifferences}</p></InfoTooltip
-			>
-		</div>
-		<div class="stat-value conflict-stat-value">{$num(stats.highConflictArticles)}</div>
-		<div class="stat-detail">
-			{$t.comparison.significantDifferences}
-		</div>
-	</div>
+	<StatCard
+		label={$t.comparison.highConflicts}
+		value={$num(stats.highConflictArticles)}
+		detail={$t.comparison.significantDifferences}
+		tooltip={dynamicTooltips.significantDifferences}
+		tooltipLabel={dynamicTooltips.significantDifferences}
+		accent="accent"
+	>
+		{#snippet icon()}<BarChart3Icon size={24} />{/snippet}
+	</StatCard>
 </div>
 
 <!-- Breakdown by dimension -->
@@ -102,60 +197,16 @@
 	</h4>
 
 	<div class="breakdown-grid">
-		<div class="breakdown-item">
-			<div
-				class="breakdown-bar"
-				style="--progress: {stats.polarityConflicts / stats.totalArticles || 0}"
-			>
-				<div class="breakdown-fill polarity"></div>
-			</div>
-			<div class="breakdown-info">
-				<span class="breakdown-label">{$t.comparison.polarity}</span>
-				<span class="breakdown-value"
-					>{$num(stats.polarityConflicts)} ({$pct(
-						stats.polarityConflicts / stats.totalArticles || 0,
-						1
-					)})</span
-				>
-			</div>
-		</div>
-
-		<div class="breakdown-item">
-			<div
-				class="breakdown-bar"
-				style="--progress: {stats.subjectivityConflicts / stats.totalArticles || 0}"
-			>
-				<div class="breakdown-fill subjectivity"></div>
-			</div>
-			<div class="breakdown-info">
-				<span class="breakdown-label">{$t.comparison.subjectivity}</span>
-				<span class="breakdown-value"
-					>{$num(stats.subjectivityConflicts)} ({$pct(
-						stats.subjectivityConflicts / stats.totalArticles || 0,
-						1
-					)})</span
-				>
-			</div>
-		</div>
-
-		<div class="breakdown-item">
-			<div
-				class="breakdown-bar"
-				style="--progress: {stats.centralityConflicts / stats.totalArticles || 0}"
-			>
-				<div class="breakdown-fill centrality"></div>
-			</div>
-			<div class="breakdown-info">
-				<span class="breakdown-label">{$t.comparison.centrality}</span>
-				<span class="breakdown-value"
-					>{$num(stats.centralityConflicts)} ({$pct(
-						stats.centralityConflicts / stats.totalArticles || 0,
-						1
-					)})</span
-				>
-			</div>
-		</div>
+		{#each breakdownRows as row (row.variant)}{@render breakdownBar(row)}{/each}
 	</div>
+
+	{#if stats.highConflictArticles > 0}
+		<h4 class="mt-6 mb-3 breakdown-title">{$t.reliability.conflictBreakdownTitle}</h4>
+		<div class="breakdown-grid">
+			{#each conflictRows as row (row.variant)}{@render breakdownBar(row)}{/each}
+		</div>
+		<p class="chart-note mt-3">{$t.reliability.flagsSubjectivityNote}</p>
+	{/if}
 </div>
 
 <!-- Arbiter Summary Section -->
@@ -186,69 +237,7 @@
 		{#if viewOptionsState.arbiterSummary}
 			<div class="arbiter-content">
 				<div class="arbiter-stats-grid">
-					<div class="arbiter-stat">
-						<div class="arbiter-stat-bar" style="--progress: {arbiterStats.modelAPercentage / 100}">
-							<div class="arbiter-stat-fill model-a"></div>
-						</div>
-						<div class="arbiter-stat-info">
-							<span class="arbiter-stat-label"
-								>{arbiterStats.modelAName} {$t.arbiter.preferred}</span
-							>
-							<span class="arbiter-stat-value"
-								>{$num(arbiterStats.modelAPreferred)} ({$pct(
-									arbiterStats.modelAPercentage / 100,
-									1
-								)})</span
-							>
-						</div>
-					</div>
-
-					<div class="arbiter-stat">
-						<div class="arbiter-stat-bar" style="--progress: {arbiterStats.modelBPercentage / 100}">
-							<div class="arbiter-stat-fill model-b"></div>
-						</div>
-						<div class="arbiter-stat-info">
-							<span class="arbiter-stat-label"
-								>{arbiterStats.modelBName} {$t.arbiter.preferred}</span
-							>
-							<span class="arbiter-stat-value"
-								>{$num(arbiterStats.modelBPreferred)} ({$pct(
-									arbiterStats.modelBPercentage / 100,
-									1
-								)})</span
-							>
-						</div>
-					</div>
-
-					<div class="arbiter-stat">
-						<div class="arbiter-stat-bar" style="--progress: {arbiterStats.bothPercentage / 100}">
-							<div class="arbiter-stat-fill equal"></div>
-						</div>
-						<div class="arbiter-stat-info">
-							<span class="arbiter-stat-label">{$t.arbiter.bothEqual}</span>
-							<span class="arbiter-stat-value"
-								>{$num(arbiterStats.bothEqual)} ({$pct(arbiterStats.bothPercentage / 100, 1)})</span
-							>
-						</div>
-					</div>
-
-					<div class="arbiter-stat">
-						<div
-							class="arbiter-stat-bar"
-							style="--progress: {arbiterStats.neitherPercentage / 100}"
-						>
-							<div class="arbiter-stat-fill neither"></div>
-						</div>
-						<div class="arbiter-stat-info">
-							<span class="arbiter-stat-label">{$t.arbiter.neitherAccurate}</span>
-							<span class="arbiter-stat-value"
-								>{$num(arbiterStats.neitherAccurate)} ({$pct(
-									arbiterStats.neitherPercentage / 100,
-									1
-								)})</span
-							>
-						</div>
-					</div>
+					{#each arbiterRows as row (row.variant)}{@render arbiterBar(row)}{/each}
 				</div>
 
 				<p class="arbiter-note">
@@ -268,102 +257,15 @@
 		margin-bottom: var(--space-6);
 	}
 
-	.stat-card {
-		position: relative;
-		padding: var(--space-4);
+	.tooltip-text {
+		margin: 0 0 var(--space-2);
+		font-size: var(--font-size-sm);
+		line-height: var(--line-height-relaxed);
+		color: var(--text-secondary);
 	}
 
-	.comparison-stat-card {
-		background: var(--surface-card);
-		border: 1px solid var(--border-subtle);
-		transition: border-color var(--timing-fast) var(--easing-default);
-	}
-
-	.comparison-stat-card:hover {
-		border-color: var(--border-hover);
-	}
-
-	.stat-icon-container {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: var(--size-control-md);
-		height: var(--size-control-md);
-		flex-shrink: 0;
-		border: 1px solid var(--border-subtle);
-		background: var(--surface-subtle);
-	}
-
-	/* Lucide strokes with currentColor, so each wrapper tints its own glyph.
-	   These replace four Tailwind palette utilities that set the icon to a
-	   colour the token layer had no say in. */
-	.comparison-icon {
-		background: var(--sentiment-comparison-bg);
-		border-color: var(--sentiment-comparison-border);
-		color: var(--sentiment-comparison-accent);
-	}
-
-	.discrepancy-icon {
-		background: color-mix(in oklab, var(--sentiment-discrepancy-light) 12%, transparent);
-		border-color: color-mix(in oklab, var(--sentiment-discrepancy-light) 28%, transparent);
-		color: var(--sentiment-discrepancy-light);
-	}
-
-	.success-icon {
-		background: color-mix(in oklab, var(--sentiment-polarity-very-positive) 12%, transparent);
-		border-color: color-mix(in oklab, var(--sentiment-polarity-very-positive) 28%, transparent);
-		color: var(--sentiment-polarity-very-positive);
-	}
-
-	.conflict-icon {
-		background: color-mix(in oklab, var(--sentiment-comparison-accent) 12%, transparent);
-		border-color: color-mix(in oklab, var(--sentiment-comparison-accent) 28%, transparent);
-		color: var(--sentiment-comparison-accent);
-	}
-
-	.stat-header {
-		display: flex;
-		align-items: center;
-		gap: var(--space-3);
-		margin-bottom: var(--space-3);
-	}
-
-	.stat-label {
-		font-family: var(--font-mono);
-		font-size: var(--font-size-eyebrow);
-		font-weight: 600;
-		letter-spacing: var(--tracking-widest);
-		text-transform: uppercase;
-		color: var(--text-muted);
-	}
-
-	.stat-value {
-		font-family: var(--font-display);
-		font-size: clamp(2rem, 1.5rem + 1.5vw, 2.75rem);
-		font-weight: 600;
-		font-variant-numeric: tabular-nums;
-		color: var(--text-primary);
-		line-height: 1;
-		margin-bottom: var(--space-1);
-		letter-spacing: var(--tracking-tight);
-	}
-
-	.comparison-stat-value {
-		color: var(--sentiment-comparison-light);
-	}
-
-	.discrepancy-stat-value {
-		color: var(--sentiment-discrepancy-light);
-	}
-
-	.conflict-stat-value {
-		color: var(--sentiment-comparison-accent);
-	}
-
-	.stat-detail {
-		font-family: var(--font-sans);
-		font-size: var(--font-size-xs);
-		color: var(--text-muted);
+	.tooltip-text:last-child {
+		margin-bottom: 0;
 	}
 
 	.breakdown-section {
@@ -407,16 +309,20 @@
 		transition: transform var(--timing-slow) var(--easing-default);
 	}
 
-	.breakdown-fill.polarity {
+	.breakdown-fill[data-variant='polarity'] {
 		background: var(--sentiment-polarity-neutral);
 	}
 
-	.breakdown-fill.subjectivity {
+	.breakdown-fill[data-variant='subjectivity'] {
 		background: var(--sentiment-subjectivity-3);
 	}
 
-	.breakdown-fill.centrality {
+	.breakdown-fill[data-variant='centrality'] {
 		background: var(--sentiment-centrality-very-central);
+	}
+
+	.breakdown-fill[data-variant='subjectivity-only'] {
+		background: var(--status-caution);
 	}
 
 	.breakdown-info {
@@ -531,19 +437,19 @@
 		transition: transform var(--timing-slow) var(--easing-default);
 	}
 
-	.arbiter-stat-fill.model-a {
+	.arbiter-stat-fill[data-variant='model-a'] {
 		background: var(--sentiment-polarity-very-positive);
 	}
 
-	.arbiter-stat-fill.model-b {
+	.arbiter-stat-fill[data-variant='model-b'] {
 		background: var(--sentiment-comparison-light);
 	}
 
-	.arbiter-stat-fill.equal {
+	.arbiter-stat-fill[data-variant='equal'] {
 		background: var(--sentiment-arbiter);
 	}
 
-	.arbiter-stat-fill.neither {
+	.arbiter-stat-fill[data-variant='neither'] {
 		background: var(--sentiment-polarity-na);
 	}
 

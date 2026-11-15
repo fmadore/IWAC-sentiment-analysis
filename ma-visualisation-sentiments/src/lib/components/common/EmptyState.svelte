@@ -5,8 +5,13 @@
   (ArticleDetail, ComparisonDetail): centered icon + title + lede.
   Renders a document icon by default; pass an `icon` snippet to override.
 
+  The title is a strongly styled paragraph by default: an empty state sits
+  wherever its caller does, and a fixed <h4> skipped levels in most of them.
+  Pass `headingLevel` when the title really does head a section.
+
   Usage:
   <EmptyState title="No article selected" lede="Select an article to see details" />
+  <EmptyState title="…" lede="…" headingLevel={3} />
 -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
@@ -18,9 +23,11 @@
 		lede: string;
 		/** Optional icon override (defaults to a document icon) */
 		icon?: Snippet;
+		/** Render the title as a heading of this level; a paragraph otherwise */
+		headingLevel?: 2 | 3 | 4 | 5 | 6;
 	}
 
-	let { title, lede, icon }: EmptyStateProps = $props();
+	let { title, lede, icon, headingLevel }: EmptyStateProps = $props();
 </script>
 
 <div class="empty-state">
@@ -38,7 +45,11 @@
 			</svg>
 		{/if}
 	</div>
-	<h4 class="empty-title">{title}</h4>
+	{#if headingLevel}
+		<div class="empty-title" role="heading" aria-level={headingLevel}>{title}</div>
+	{:else}
+		<p class="empty-title">{title}</p>
+	{/if}
 	<p class="empty-lede">{lede}</p>
 </div>
 

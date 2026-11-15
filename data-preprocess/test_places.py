@@ -147,8 +147,25 @@ def test_a_payload_the_validator_rejects_is_never_published(stub_export, monkeyp
     monkeypatch.setattr(
         script,
         "build_places_payload",
-        lambda records, edges: {"places": [{"id": 1}, {"id": 1}], "articles": {}},
+        lambda records, edges, source=None: {"places": [{"id": 1}, {"id": 1}], "articles": {}},
     )
     with pytest.raises(ContractError):
         script.main()
     assert (data_dir / "iwac_places.json").read_text(encoding="utf-8") == previous
+
+
+def test_edges_are_ordered_by_article_id_and_provenance_is_optional():
+    from iwac_preprocess.serialization import provenance_block
+
+    lookup, records = build_place_lookup(index_frame())
+    edges = build_place_edges(
+        [{"o:id": 40, "spatial": "Lomé"}, {"o:id": 3, "spatial": "Bamako"}], lookup
+    )
+    payload = build_places_payload(records, edges)
+    assert list(payload["articles"]) == ["3", "40"]
+    assert "source" not in payload
+
+    source = provenance_block("example/corpus", "abc123")
+    stamped = build_places_payload(records, edges, source)
+    assert stamped["source"] == source
+    assert {key: stamped[key] for key in ("places", "articles")} == payload

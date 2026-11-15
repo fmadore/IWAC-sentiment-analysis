@@ -1,7 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { computeArbiterV2Statistics } from './arbiterV2.svelte';
+import {
+	computeArbiterV2Statistics,
+	secondJudgeFilename,
+	SECOND_JUDGE_IDS
+} from './arbiterV2.svelte';
+import { compareJudges } from '#lib/utils/arbiterV2.js';
 import { parseArbiterV2EvaluationData } from '#lib/data/validation.js';
-import { ARBITER_PANEL_IDS, SENTIMENT_CONTRACT_V2 } from '#lib/domain/sentimentContract.js';
+import {
+	ARBITER_PANEL_IDS,
+	SENTIMENT_CONTRACT_V2,
+	arbiterPanelFor,
+	recusedFor
+} from '#lib/domain/sentimentContract.js';
 import { ARBITER_BLIND_LABELS } from '#lib/types/data.js';
 import type {
 	ArbiterBlindLabel,
@@ -238,5 +248,82 @@ describe('parseArbiterV2EvaluationData', () => {
 			)
 		) as ArbiterV2EvaluationData;
 		expect(() => parseArbiterV2EvaluationData(data)).toThrow(/Duplicate/);
+	});
+});
+
+/**
+ * A synthetic second-judge file, shaped like the one
+ * `arbiter-evaluation-v2-second-judge.py` publishes: a Google judge, whose
+ * panel is the generation minus Gemma, under its own permutation.
+ */
+function secondJudgePayload(developer: 'google' | 'openai' = 'google') {
+	const panel = [...arbiterPanelFor(developer)] as DatasetId[];
+	const base = JSON.parse(
+		JSON.stringify(
+			payload([evaluation('1', ['a', 'b', 'c'], 'b'), evaluation('7', ['a', 'b', 'c'], 'c')])
+		)
+	) as ArbiterV2EvaluationData;
+	base.metadata.arbiter_model = 'gemini-4-argon';
+	base.metadata.arbiter_name = 'Gemini 4 Argon';
+	base.metadata.arbiter_developer = developer;
+	base.metadata.recused_models = [...recusedFor(developer)];
+	base.metadata.models = panel;
+	base.metadata.model_names = Object.fromEntries(panel.map((id) => [id, `Name ${id}`]));
+	base.metadata.blind_permutation = Object.fromEntries(
+		ARBITER_BLIND_LABELS.map((label, index) => [label, panel[(index + 1) % panel.length]])
+	) as Record<ArbiterBlindLabel, DatasetId>;
+	return base;
+}
+
+describe('second judge', () => {
+	it('reads the file the script publishes', () => {
+		expect(SECOND_JUDGE_IDS).toContain('gemini-4-argon');
+		expect(secondJudgeFilename('gemini-4-argon')).toBe(
+			'/data/iwac_arbiter_evaluations_v2_gemini-4-argon.json'
+		);
+	});
+
+	it('parses a second judge whose panel is the generation minus its developer’s model', () => {
+		const data = parseArbiterV2EvaluationData(secondJudgePayload(), 'second');
+		expect(data.metadata.models).toEqual([...arbiterPanelFor('google')]);
+		expect(data.metadata.models).toContain('haiku');
+		expect(data.metadata.models).not.toContain('gemma');
+	});
+
+	it('is still rejected by the published parser, whose panel is the contract arbiter’s', () => {
+		expect(() => parseArbiterV2EvaluationData(secondJudgePayload())).toThrow(/arbiter panel/);
+	});
+
+	it('derives the panel from the developer, never from the file', () => {
+		const data = secondJudgePayload();
+		// Lists its own developer's model: the unrecused reading recusal prevents.
+		data.metadata.models = [...ARBITER_PANEL_IDS];
+		expect(() => parseArbiterV2EvaluationData(data, 'second')).toThrow(/arbiter panel/);
+	});
+
+	it('rejects an unregistered developer, the published developer, or a wrong recusal', () => {
+		const unknown = secondJudgePayload();
+		unknown.metadata.arbiter_developer = 'acme';
+		expect(() => parseArbiterV2EvaluationData(unknown, 'second')).toThrow(/registered/);
+
+		const same = secondJudgePayload();
+		same.metadata.arbiter_developer = SENTIMENT_CONTRACT_V2.arbiter.developer;
+		expect(() => parseArbiterV2EvaluationData(same, 'second')).toThrow(/another developer/);
+
+		const recusal = secondJudgePayload();
+		recusal.metadata.recused_models = [];
+		expect(() => parseArbiterV2EvaluationData(recusal, 'second')).toThrow(/recusal/);
+	});
+
+	it('compares with the published judge on own scores over shared articles only', () => {
+		const second = parseArbiterV2EvaluationData(secondJudgePayload(), 'second');
+		const first = payload([
+			evaluation('1', ['a', 'b', 'c'], 'a'),
+			evaluation('2', ['a', 'b', 'c'], 'a')
+		]);
+		const comparison = compareJudges(first, second);
+		expect(comparison.sharedArticles).toBe(1);
+		// Fixture scores are identical on article 1, whatever each judge preferred.
+		expect(comparison.dimensions.map((d) => d.exact.successes)).toEqual([1, 1, 1]);
 	});
 });

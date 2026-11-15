@@ -2,9 +2,10 @@
 	import { MediaQuery } from 'svelte/reactivity';
 	import { t } from '#lib/i18n/index.js';
 	import { uiState } from '#lib/stores/index.js';
-	import { LanguageSwitcher, DatasetPicker } from '#lib/components/ui/index.js';
+	import LanguageSwitcher from '#lib/components/ui/LanguageSwitcher.svelte';
+	import DatasetPicker from '#lib/components/ui/DatasetPicker.svelte';
 	import Drawer from '#lib/components/common/Drawer.svelte';
-	import { NAV_ITEMS } from './navItems';
+	import { NAV_SECTIONS } from './navItems';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
 	import { hasSingleModelPicker, type ViewId } from '#lib/types/data.js';
 
@@ -38,7 +39,14 @@
 		uiState.sidebarExpanded = !uiState.sidebarExpanded;
 	}
 
-	const navItems = NAV_ITEMS;
+	const navSections = NAV_SECTIONS;
+
+	// Spelled out rather than indexed, so the catalogue checker sees each key.
+	const groupLabels = $derived({
+		corpus: $t.navGroups.corpus,
+		model: $t.navGroups.model,
+		panel: $t.navGroups.panel
+	});
 
 	/**
 	 * Below 1024px this rail is the mobile drawer, and it absorbs the controls
@@ -81,30 +89,40 @@
 				<DatasetPicker />
 			</div>
 		{/if}
-		<span class="drawer-label drawer-label-standalone">{$t.nav.views ?? 'Views'}</span>
 	{/if}
 
 	<!-- No role="navigation" on this container: the panel Drawer renders is
 	     already a <nav> landmark and a second one is a duplicate. No
 	     role="menuitem" on the buttons either — it is invalid without a
 	     role="menu" parent and it promises arrow-key navigation this component
-	     does not implement. aria-current does the real work. -->
+	     does not implement. aria-current does the real work.
+
+	     Three labelled sections (VIEW_META's `group`), headed in the drawer's
+	     eyebrow voice. On the collapsed desktop rail the heading is kept for
+	     assistive technology and a hairline marks the section break instead. -->
 	<div class="nav-items">
-		{#each navItems as item (item.id)}
-			<button
-				class="nav-item"
-				data-state={uiState.activeView === item.id ? 'active' : 'inactive'}
-				onclick={() => change(item.id)}
-				aria-current={uiState.activeView === item.id ? 'page' : undefined}
-				title={!uiState.sidebarExpanded ? $t.nav[item.labelKey] || item.id : undefined}
-			>
-				<span class="nav-icon">
-					<item.icon size={20} />
+		{#each navSections as section (section.group)}
+			<div class="nav-group" role="group" aria-labelledby="nav-group-{section.group}">
+				<span class="drawer-label nav-group-label" id="nav-group-{section.group}">
+					{groupLabels[section.group]}
 				</span>
-				<span class="nav-label">
-					{$t.nav[item.labelKey] || item.id}
-				</span>
-			</button>
+				{#each section.items as item (item.id)}
+					<button
+						class="nav-item"
+						data-state={uiState.activeView === item.id ? 'active' : 'inactive'}
+						onclick={() => change(item.id)}
+						aria-current={uiState.activeView === item.id ? 'page' : undefined}
+						title={!uiState.sidebarExpanded ? $t.nav[item.labelKey] || item.id : undefined}
+					>
+						<span class="nav-icon">
+							<item.icon size={20} />
+						</span>
+						<span class="nav-label">
+							{$t.nav[item.labelKey] || item.id}
+						</span>
+					</button>
+				{/each}
+			</div>
 		{/each}
 	</div>
 
@@ -172,8 +190,39 @@
 		color: var(--text-muted);
 	}
 
-	.drawer-label-standalone {
-		padding: 0 var(--space-3);
+	/* ===== Navigation sections ===== */
+	.nav-group {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+	}
+
+	.nav-group + .nav-group {
+		margin-top: var(--space-3);
+	}
+
+	.nav-group-label {
+		padding: var(--space-1) var(--space-3);
+		white-space: nowrap;
+	}
+
+	/* Collapsed desktop rail: no room for words. The heading stays in the
+	   accessibility tree (clipped, not display:none, so aria-labelledby still
+	   names the group) and a hairline marks where one section ends. */
+	@media (min-width: 1024px) {
+		:global(.sidebar[data-expanded='false']) .nav-group-label {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip-path: inset(50%);
+			white-space: nowrap;
+		}
+
+		:global(.sidebar[data-expanded='false']) .nav-group + .nav-group {
+			padding-top: var(--space-3);
+			border-top: 1px solid var(--border-subtle);
+		}
 	}
 
 	.drawer-footer {

@@ -47,11 +47,22 @@ export const VIEW_OPTIONS = {
 	polarityGrouping: choice(['charts'], 'global', ['global', 'journal']),
 	subjectivityChart: choice(['charts'], 'bar', ['bar', 'pie']),
 	subjectivityGrouping: choice(['charts'], 'global', ['global', 'journal']),
+	// The centrality distribution card was added later; same controls, same defaults.
+	centralityChart: choice(['charts'], 'bar', ['bar', 'pie']),
+	centralityGrouping: choice(['charts'], 'global', ['global', 'journal']),
 	polarityTrend: choice(['trends'], 'count', ['count', 'share']),
 	subjectivityTrend: choice(['trends'], 'count', ['count', 'share']),
 	volumeChart: choice(['volume'], 'area', ['area', 'line']),
 	seasonalityChart: choice(['seasonality'], 'polar', ['polar', 'bar']),
-	rankingMeasure: choice(['ranking'], 'polarity', ['polarity', 'subjectivity', 'centrality']),
+	// The share measures were added after the mean ones; `polarity` stays the default.
+	rankingMeasure: choice(['ranking'], 'polarity', [
+		'polarity',
+		'subjectivity',
+		'centrality',
+		'positive',
+		'negative',
+		'net'
+	]),
 	mapDimension: choice(['map'], 'polarity', ['polarity', 'subjectivity', 'centrality']),
 	placeId: integer(['map'], 0, 0, Number.MAX_SAFE_INTEGER),
 	breakdown: choice(['comparison'], 'decade', ['decade', 'country']),
@@ -77,6 +88,8 @@ export const VIEW_OPTIONS = {
 	historyFacet: choice(['trends'], 'all', ['all', 'country', 'journal']),
 	historyCohort: choice(['trends'], 'common', ['common', 'available']),
 	historyMinCount: integer(['trends'], 5, 1, 1000),
+	// Panel-level series beside the per-model lines; `none` is the chart as it was.
+	historyPanel: choice(['trends'], 'none', ['none', 'majority', 'any']),
 	historyPage: integer(['trends'], 1, 1, 1000),
 	newspaperPeriod: choice(['volume'], 'year', ['year', 'decade']),
 	newspaperOrder: choice(['volume'], 'count', ['count', 'name']),
@@ -91,6 +104,8 @@ export const VIEW_OPTIONS = {
 	]),
 	keywordType: choice(['extremes'], 'subject', ['subject', 'spatial']),
 	topN: integer(['extremes'], 10, 5, 25),
+	// Added later: `count` is the original raw-frequency ranking.
+	keywordRanking: choice(['extremes'], 'count', ['count', 'distinctive']),
 	scanPage: integer([], 1, 1, 100_000),
 	mapCamera: {
 		views: ['map'],
@@ -115,6 +130,13 @@ export const VIEW_OPTIONS = {
 	tableOrder: choice(['table'], 'asc', ['asc', 'desc']),
 	tablePage: integer(['table'], 1, 1, 1_000_000),
 	tableSize: choice(['table'], '50', ['25', '50', '100', '200']),
+	// Title search in the article table; empty is "no search". Bounded so a URL
+	// cannot carry an arbitrarily long query into every share link.
+	tableSearch: {
+		views: ['table'],
+		default: '',
+		parse: (raw: string) => (raw.length <= 200 ? raw : undefined)
+	} as Option<string>,
 	comparisonSort: choice(['comparison'], 'discrepancy', ['discrepancy', 'date', 'title']),
 	comparisonOrder: choice(['comparison'], 'desc', ['asc', 'desc']),
 	comparisonPage: integer(['comparison'], 1, 1, 1_000_000),

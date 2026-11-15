@@ -6,19 +6,19 @@
 	import { getPairModels } from '#lib/domain/sentimentContract.js';
 	import DatasetLoadError from '../common/DatasetLoadError.svelte';
 	import { comparisonState, datasetState } from '#lib/stores/index.js';
-	import {
-		CountryFilter,
-		JournalFilter,
-		DiscrepancyFilter
-	} from '#lib/components/filters/index.js';
+	import CountryFilter from '#lib/components/filters/CountryFilter.svelte';
+	import JournalFilter from '#lib/components/filters/JournalFilter.svelte';
+	import DiscrepancyFilter from '#lib/components/filters/DiscrepancyFilter.svelte';
 	import ComparisonTable from './ComparisonTable.svelte';
 	import ComparisonStats from './ComparisonStats.svelte';
-	import { ComparisonDetailModal } from '#lib/components/common/index.js';
+	import ComparisonDetailModal from '#lib/components/common/ComparisonDetailModal.svelte';
 	import Spinner from '#lib/components/common/Spinner.svelte';
 	import ModelPairPicker from '#lib/components/ui/ModelPairPicker.svelte';
-	import { DisagreementBreakdownChart } from '#lib/components/viz/index.js';
+	import DisagreementBreakdownChart from '#lib/components/viz/DisagreementBreakdownChart.svelte';
 	import { t } from '#lib/i18n/index.js';
-	import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
+	import ColumnsIcon from '@lucide/svelte/icons/columns-2';
+	import SearchIcon from '@lucide/svelte/icons/search';
+	import EmptyState from '#lib/components/common/EmptyState.svelte';
 	import {
 		handlePendingComparisonArticleSelection,
 		clearSelectedComparison
@@ -62,14 +62,13 @@
 <div class="comparison-view">
 	{#if !datasetState.isComparisonMode}
 		<!-- Not in comparison mode -->
-		<div class="empty-state comparison-empty-state p-8 text-center">
-			<span class="empty-icon mx-auto mb-4"><AlertCircleIcon size={48} /></span>
-			<h3 class="mb-2 empty-title">
-				{$t.comparison.enableComparisonMode}
-			</h3>
-			<p class="empty-body mx-auto">
-				{$t.comparison.enableComparisonDescription}
-			</p>
+		<div class="comparison-empty">
+			<EmptyState
+				title={$t.comparison.enableComparisonMode}
+				lede={$t.comparison.enableComparisonDescription}
+			>
+				{#snippet icon()}<ColumnsIcon size={48} />{/snippet}
+			</EmptyState>
 		</div>
 	{:else if loadStatus.failed.length > 0}
 		<DatasetLoadError ids={loadStatus.failed} />
@@ -88,10 +87,7 @@
 	{:else}
 		<!-- Model Pair Picker -->
 		<div class="pair-picker-section comparison-pair-picker mb-4">
-			<div class="flex items-center gap-3">
-				<span class="control-label">{$t.comparison.selectModelPair}</span>
-				<ModelPairPicker />
-			</div>
+			<ModelPairPicker />
 		</div>
 
 		<!-- Stats Overview -->
@@ -123,14 +119,10 @@
 				<ComparisonTable />
 			</div>
 		{:else}
-			<div class="empty-results comparison-empty-results p-8 text-center">
-				<span class="empty-icon mx-auto mb-4"><AlertCircleIcon size={48} /></span>
-				<h3 class="mb-2 empty-title">
-					{$t.comparison.noDiscrepancies}
-				</h3>
-				<p class="empty-body mx-auto">
-					{$t.comparison.adjustFilters}
-				</p>
+			<div class="comparison-empty">
+				<EmptyState title={$t.comparison.noDiscrepancies} lede={$t.comparison.adjustFilters}>
+					{#snippet icon()}<SearchIcon size={48} />{/snippet}
+				</EmptyState>
 			</div>
 		{/if}
 	{/if}
@@ -165,14 +157,10 @@
 		align-items: start;
 	}
 
-	.empty-state,
-	.empty-results {
+	.comparison-empty {
 		margin: var(--space-8) auto;
 		max-width: 600px;
-	}
-
-	.comparison-empty-state,
-	.comparison-empty-results {
+		width: 100%;
 		background: var(--surface-card);
 		border: 1px solid var(--border-subtle);
 	}
@@ -207,29 +195,7 @@
 	}
 
 	/* ---- Text roles, replacing Tailwind colour utilities. ---- */
-	.empty-icon {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: color-mix(in oklab, var(--sentiment-comparison-accent) 60%, transparent);
-	}
-
-	.empty-title {
-		font-size: var(--font-size-2xl);
-		color: var(--text-primary);
-	}
-
-	.empty-body {
-		max-width: 28rem;
-		color: var(--text-muted);
-	}
-
 	.loading-note {
 		color: var(--text-secondary);
-	}
-
-	.control-label {
-		font-size: var(--font-size-sm);
-		color: var(--text-muted);
 	}
 </style>

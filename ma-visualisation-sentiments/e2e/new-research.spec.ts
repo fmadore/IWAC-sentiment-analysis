@@ -41,6 +41,8 @@ test('the panel overview restores its metric and opens the selected pair', async
 	const matrix = page.getByRole('table', { name: /^Agreement across model pairs/ }).first();
 	await matrix.getByRole('button').first().click();
 	await expect(page).toHaveURL(/scope=pair/);
+	// Contract-coupled: the matrix's first button is the v2 contract's first
+	// pair. Reordering `pairs` in sentiment-v2.json changes this id.
 	expect(new URL(page.url()).searchParams.get('pair')).toBe('luna-mistral-small');
 	await expect(page.locator('.model-pair-picker')).toBeVisible();
 });

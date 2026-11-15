@@ -1,16 +1,23 @@
 <script lang="ts">
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import Chart from './CitableChart.svelte';
-	import { num } from '#lib/i18n/utils.js';
-	import { innerWidth } from 'svelte/reactivity/window';
+	import ChartHeading from './ChartHeading.svelte';
+	import { num, dec, pct } from '#lib/i18n/utils.js';
 	import { extremeState, retryCurrentExtremeAnalysis } from '#lib/stores/index.js';
+	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
 	import ResourceLoadError from '#lib/components/common/ResourceLoadError.svelte';
 	import { t } from '#lib/i18n/index.js';
 	import Spinner from '#lib/components/common/Spinner.svelte';
 	import type { ExtremeCategory, KeywordType } from '#lib/types/extremeAnalysis.js';
-	import { getExtremeCategoryConfig, getTopKeywords } from '#lib/utils/extremeAnalysis.js';
 	import {
-		getTitleStyle,
+		getExtremeCategoryConfig,
+		getTopKeywords,
+		getDistinctiveKeywords,
+		OPPOSITE_CATEGORY
+	} from '#lib/utils/extremeAnalysis.js';
+	import { useChartCardHeading } from '#lib/components/ui/chartCardHeading.svelte.js';
+	import { isCompactWidth } from '#lib/utils/viewport.svelte.js';
+	import {
 		getTooltipConfig,
 		getAxisLineStyle,
 		getAxisLabelStyle,
@@ -21,7 +28,6 @@
 	// ECharts imports
 	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
-	import { createSimpleTooltipFormatter } from '#lib/utils/chartFormatters.js';
 
 	// Component props
 	interface Props {
@@ -32,27 +38,64 @@
 
 	let { selectedCategory, selectedKeywordType, showTopN }: Props = $props();
 
-	// Reactive window width for responsive behavior
-	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
+	// Measured on the chart's own container (it sits beside the filter rail).
+	let containerWidth = $state<number>();
+	let isMobile = $derived(isCompactWidth(containerWidth));
 
 	// A failed load is its own state with a Retry action; only idle and loading spin.
 	let loadState = $derived(extremeState.loadState);
 	let isLoading = $derived(loadState.status === 'idle' || loadState.status === 'loading');
 
+	let ranking = $derived(viewOptionsState.keywordRanking);
+	let distinctive = $derived(ranking === 'distinctive');
+
+	/** Category names, spelled out so every catalogue key is read literally. */
+	let categoryLabels = $derived<Record<ExtremeCategory, string>>({
+		subjectivity_extreme_high: $t.extremeAnalysis.categories.subjectivityHigh,
+		subjectivity_extreme_low: $t.extremeAnalysis.categories.subjectivityLow,
+		polarity_very_negative: $t.extremeAnalysis.categories.polarityNegative,
+		polarity_very_positive: $t.extremeAnalysis.categories.polarityPositive,
+		centrality_very_central: $t.extremeAnalysis.categories.centralityHigh,
+		centrality_not_central: $t.extremeAnalysis.categories.centralityLow
+	});
+	const categoryLabel = (category: ExtremeCategory) => categoryLabels[category];
+
 	// Derived data
-	let categoryData = $derived.by(() => {
-		if (!extremeState.filtered) return null;
-		return extremeState.filtered.analysis[selectedCategory];
+	let categoryData = $derived(extremeState.filtered?.analysis[selectedCategory] ?? null);
+	let oppositeCategory = $derived(OPPOSITE_CATEGORY[selectedCategory]);
+	let oppositeData = $derived(extremeState.filtered?.analysis[oppositeCategory] ?? null);
+
+	/** Category size and its share of the corpus (or of the filtered articles). */
+	let categorySize = $derived(categoryData?.articles.length ?? 0);
+	let corpusSize = $derived(extremeState.filtered?.statistics.total_articles ?? 0);
+	let categoryShare = $derived(corpusSize > 0 ? categorySize / corpusSize : 0);
+
+	function keywordsOf(data: typeof categoryData): Record<string, number> {
+		if (!data) return {};
+		return selectedKeywordType === 'subject' ? data.subject : data.spatial;
+	}
+
+	type Row = { keyword: string; count: number; contrastCount?: number; score?: number };
+	const rows = $derived.by<Row[]>(() => {
+		if (!categoryData) return [];
+		if (distinctive && oppositeData) {
+			return getDistinctiveKeywords(keywordsOf(categoryData), keywordsOf(oppositeData), showTopN);
+		}
+		return getTopKeywords(keywordsOf(categoryData), showTopN);
 	});
 
-	const topKeywords = $derived(
-		categoryData
-			? getTopKeywords(
-					selectedKeywordType === 'subject' ? categoryData.subject : categoryData.spatial,
-					showTopN
-				)
-			: []
+	let chartTitle = $derived(
+		distinctive ? $t.extremeAnalysis.distinctiveKeywords : $t.extremeAnalysis.topKeywords
 	);
+	let chartSubtitle = $derived(
+		$t.extremeAnalysis.categorySize
+			.replace('{category}', categoryLabel(selectedCategory))
+			.replace('{count}', $num(categorySize))
+			.replace('{share}', $pct(categoryShare, 0))
+			.replace('{total}', $num(corpusSize))
+	);
+	const heading = useChartCardHeading(() => ({ title: chartTitle, subtitle: chartSubtitle }));
+
 	// Chart options
 	let options = $derived.by(() => {
 		const data = categoryData;
@@ -61,58 +104,61 @@
 		const categoryConfig = getExtremeCategoryConfig(selectedCategory);
 
 		// Reverse for horizontal display (highest at top)
-		const reversedData = [...topKeywords].reverse();
+		const reversedData = [...rows].reverse();
 
-		// --- Dynamic left spacing & label width ---
-		// We previously used a percentage (25-30%) which created large unused blank space.
-		// Compute an approximate width needed for the longest label and size the grid and label width accordingly.
+		// Size the label column from the longest keyword rather than a large
+		// percentage; containLabel already widens the grid to fit it.
 		const longestLabelLength = reversedData.reduce((max, k) => Math.max(max, k.keyword.length), 0);
-		// Average character width heuristic (px). Monitors mobile vs desktop.
-		const avgCharWidth = isMobile ? 6 : 7; // conservative so we don't truncate early
-		const computedLabelWidth = longestLabelLength * avgCharWidth;
-		// Clamp to sensible bounds so extremely long labels don't consume the whole chart.
+		const avgCharWidth = isMobile ? 6 : 7;
 		const labelWidth = Math.min(
-			Math.max(computedLabelWidth, isMobile ? 90 : 140),
-			isMobile ? 180 : 260 // slightly reduced max to avoid excessive whitespace
+			Math.max(longestLabelLength * avgCharWidth, isMobile ? 90 : 140),
+			isMobile ? 180 : 260
 		);
-		// IMPORTANT: With containLabel=true ECharts already expands the grid area to fit labels.
-		// Previously we added labelWidth to grid.left, effectively doubling the needed space.
-		// Keep a small constant padding only.
-		const baseLeftPadding = isMobile ? 8 : 12; // px
 
 		const tooltipConfig = getTooltipConfig(isMobile);
+		const opposite = categoryLabel(oppositeCategory);
+		const line = (label: string, value: string) =>
+			`<div style="display:flex;justify-content:space-between;gap:12px;"><span>${label}</span><strong>${value}</strong></div>`;
 
 		return {
 			backgroundColor: 'transparent',
-			title: {
-				text: $t.extremeAnalysis.topKeywords,
-				textStyle: getTitleStyle(isMobile),
-				left: 'center',
-				top: 15
-			},
 			tooltip: {
 				...tooltipConfig,
 				trigger: 'axis',
 				axisPointer: {
 					type: 'shadow',
-					shadowStyle: {
-						color: chartColors.axis.pointerShadowNeutral
-					}
+					shadowStyle: { color: chartColors.axis.pointerShadowNeutral }
 				},
-				formatter: createSimpleTooltipFormatter({
-					getLabel: () => $t.extremeAnalysis.articleCount
-				})
+				formatter: (params: unknown) => {
+					const point = (Array.isArray(params) ? params[0] : params) as { dataIndex: number };
+					const row = reversedData[point.dataIndex];
+					if (!row) return '';
+					const lines = [line($t.extremeAnalysis.articleCount, $num(row.count))];
+					if (row.score !== undefined) {
+						lines.push(
+							line(
+								$t.extremeAnalysis.oppositeCount.replace('{category}', opposite),
+								$num(row.contrastCount ?? 0)
+							),
+							line($t.extremeAnalysis.distinctiveScore, $dec(row.score, 1))
+						);
+					}
+					return `<div style="min-width:160px;"><div style="font-weight:600;margin-bottom:6px;">${row.keyword}</div>${lines.join('')}</div>`;
+				}
 			},
 			grid: {
-				// Use pixel value derived above instead of large percentage to reclaim space.
-				left: baseLeftPadding,
+				left: isMobile ? 8 : 12,
 				right: isMobile ? '8%' : '10%',
-				top: 60,
+				top: 16,
 				bottom: 40,
 				containLabel: true
 			},
 			xAxis: {
 				type: 'value',
+				name: distinctive ? $t.extremeAnalysis.distinctiveScore : $t.extremeAnalysis.articleCount,
+				nameLocation: 'middle',
+				nameGap: 28,
+				nameTextStyle: { color: chartColors.text.muted },
 				axisLabel: getAxisLabelStyle(isMobile),
 				axisLine: getAxisLineStyle(),
 				splitLine: getSplitLineStyle()
@@ -124,32 +170,26 @@
 					...getAxisLabelStyle(isMobile),
 					color: chartColors.text.secondary,
 					interval: 0,
-					// Allow larger labels; only ellipsize if still too long for computed width.
 					formatter: (value: string) => {
 						const maxChars = Math.floor(labelWidth / avgCharWidth);
-						if (value.length > maxChars) {
-							return value.slice(0, Math.max(0, maxChars - 2)) + '…';
-						}
-						return value;
+						return value.length > maxChars
+							? value.slice(0, Math.max(0, maxChars - 2)) + '…'
+							: value;
 					},
 					margin: 12,
 					overflow: 'truncate',
 					width: labelWidth
 				},
 				axisLine: getAxisLineStyle(),
-				axisTick: {
-					show: false
-				},
-				splitLine: {
-					show: false
-				}
+				axisTick: { show: false },
+				splitLine: { show: false }
 			},
 			series: [
 				{
 					type: 'bar',
 					barWidth: isMobile ? '50%' : '60%',
 					data: reversedData.map((item) => ({
-						value: item.count,
+						value: distinctive ? Number((item.score ?? 0).toFixed(2)) : item.count,
 						itemStyle: {
 							color: categoryConfig?.color || chartColors.chrome.accent,
 							borderRadius: 0
@@ -157,10 +197,7 @@
 					})),
 					emphasis: {
 						focus: 'series' as const,
-						itemStyle: {
-							borderColor: chartColors.text.primary,
-							borderWidth: 1
-						}
+						itemStyle: { borderColor: chartColors.text.primary, borderWidth: 1 }
 					},
 					animationDuration: 1000,
 					animationEasing: 'cubicOut',
@@ -169,8 +206,13 @@
 			]
 		} as EChartsOption;
 	});
+
+	let oppositeLabel = $derived(categoryLabel(oppositeCategory));
 </script>
 
+{#if !heading.inCard}
+	<ChartHeading title={chartTitle} subtitle={chartSubtitle} />
+{/if}
 {#if loadState.status === 'error'}
 	<ResourceLoadError error={loadState.error} onRetry={() => retryCurrentExtremeAnalysis(fetch)} />
 {:else if isLoading}
@@ -181,10 +223,11 @@
 				<div class="text-center">
 					<Spinner
 						size="2xl"
+						decorative
 						--spinner-track="var(--border-default)"
 						--spinner-accent="var(--sentiment-extreme)"
 					/>
-					<p class="loading-note">{$t.messages.loading}</p>
+					<p class="loading-note" role="status">{$t.messages.loading}</p>
 				</div>
 			</div>
 		</div>
@@ -199,7 +242,7 @@
 		{@const description = $t.extremeAnalysis.descriptions[descriptionKey]}
 		{#if description && description.trim()}
 			<div class="extreme-description-card">
-				<p class="description-text leading-relaxed">
+				<p class="description-text">
 					{description}
 				</p>
 			</div>
@@ -208,26 +251,40 @@
 
 	<!-- Chart Container -->
 	<div
+		bind:clientWidth={containerWidth}
 		style="height: {isMobile ? '400px' : '500px'}; position: relative;"
 		class="chart-container extreme-chart-container p-2 sm:p-4"
 		role="img"
-		aria-label={$t.extremeAnalysis.topKeywords}
+		aria-label="{chartTitle} — {chartSubtitle}"
 	>
-		<Chart chartId="keyword-frequency-chart" {init} {options} />
+		{#if rows.length > 0}
+			<Chart chartId="keyword-frequency-chart" {init} {options} />
+		{:else}
+			<p class="chart-empty">{$t.extremeAnalysis.noData}</p>
+		{/if}
 	</div>
+
+	<p class="chart-note">
+		{distinctive
+			? $t.extremeAnalysis.distinctiveNote.replace('{opposite}', oppositeLabel)
+			: $t.extremeAnalysis.countNote}
+	</p>
 
 	<!-- Statistics Card -->
 	{#if categoryData}
-		{@const data = categoryData}
 		<div class="extreme-stats-card">
 			<div class="statistics-row">
 				<div class="stat-item">
 					<span class="stat-label">{$t.common.total} {$t.common.articles}:</span>
-					<span class="stat-value extreme-stat-value">{$num(data?.articles.length ?? 0)}</span>
+					<span class="stat-value extreme-stat-value">{$num(categorySize)}</span>
 				</div>
 				<div class="stat-item">
-					<span class="stat-label">{$t.extremeAnalysis.topKeywords}:</span>
-					<span class="stat-value extreme-stat-value">{showTopN}</span>
+					<span class="stat-label">{$t.extremeAnalysis.shareOfCorpus}:</span>
+					<span class="stat-value extreme-stat-value">{$pct(categoryShare, 0)}</span>
+				</div>
+				<div class="stat-item">
+					<span class="stat-label">{chartTitle}:</span>
+					<span class="stat-value extreme-stat-value">{rows.length}</span>
 				</div>
 			</div>
 		</div>
@@ -237,27 +294,27 @@
 {/if}
 
 <ChartDataTable
-	columns={[
-		{ label: $t.extremeAnalysis.topKeywords },
-		{ label: $t.audit.count, format: 'integer' }
-	]}
-	rows={topKeywords.map((k) => [k.keyword, k.count])}
-	caption={$t.extremeAnalysis.topKeywords}
-	filenamePrefix="KeywordFrequencyChart"
+	columns={distinctive
+		? [
+				{ label: chartTitle },
+				{ label: $t.extremeAnalysis.articleCount, format: 'integer' },
+				{
+					label: $t.extremeAnalysis.oppositeCount.replace('{category}', oppositeLabel),
+					format: 'integer'
+				},
+				{ label: $t.extremeAnalysis.distinctiveScore, format: 'decimal', digits: 2 }
+			]
+		: [{ label: chartTitle }, { label: $t.audit.count, format: 'integer' }]}
+	rows={rows.map((k) =>
+		distinctive ? [k.keyword, k.count, k.contrastCount ?? 0, k.score ?? 0] : [k.keyword, k.count]
+	)}
+	caption="{chartTitle} — {chartSubtitle}"
+	filenamePrefix="keywords-{ranking}-{selectedCategory}-{selectedKeywordType}"
 />
 
 <style>
 	.loading-container {
 		animation: fadeIn var(--timing-normal) ease-in-out;
-	}
-
-	@keyframes loading {
-		0% {
-			background-position: 200% 0;
-		}
-		100% {
-			background-position: -200% 0;
-		}
 	}
 
 	@keyframes fadeIn {
@@ -266,12 +323,6 @@
 		}
 		to {
 			opacity: 1;
-		}
-	}
-
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
 		}
 	}
 
@@ -384,6 +435,8 @@
 
 	.description-text {
 		font-size: var(--font-size-sm);
+		line-height: var(--line-height-relaxed);
 		color: var(--text-secondary);
+		margin: 0;
 	}
 </style>

@@ -27,21 +27,19 @@
 	import ResourceLoadError from '#lib/components/common/ResourceLoadError.svelte';
 	import { getPairModelNames, getModelsFromPair } from '#lib/types/data.js';
 	import { t } from '#lib/i18n/index.js';
-	import { ChartCard } from '#lib/components/ui/index.js';
+	import ChartCard from '#lib/components/ui/ChartCard.svelte';
 	import Spinner from '#lib/components/common/Spinner.svelte';
 	import ModelPairPicker from '#lib/components/ui/ModelPairPicker.svelte';
 	import ArbiterStatsCards from './ArbiterStatsCards.svelte';
 	import ArbiterCoverage from './ArbiterCoverage.svelte';
 	import ArbiterArticleTable from './ArbiterArticleTable.svelte';
-	import {
-		ArbiterVerdictChart,
-		ArbiterDimensionChart,
-		ArbiterConfidenceChart
-	} from '#lib/components/viz/index.js';
-	import { ArbiterArticleDetailModal } from '#lib/components/common/index.js';
+	import ArbiterVerdictChart from '#lib/components/viz/ArbiterVerdictChart.svelte';
+	import ArbiterDimensionChart from '#lib/components/viz/ArbiterDimensionChart.svelte';
+	import ArbiterConfidenceChart from '#lib/components/viz/ArbiterConfidenceChart.svelte';
+	import ArbiterArticleDetailModal from '#lib/components/common/ArbiterArticleDetailModal.svelte';
 	import GavelIcon from '@lucide/svelte/icons/gavel';
 	import TableIcon from '@lucide/svelte/icons/table';
-	import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
+	import EmptyState from '#lib/components/common/EmptyState.svelte';
 	import SparklesIcon from '@lucide/svelte/icons/sparkles';
 
 	const selectedDimension = $derived(
@@ -118,10 +116,7 @@
 	<!-- Model Pair Picker -->
 	<div class="pair-picker-section mb-6">
 		<div class="flex flex-wrap items-center gap-4">
-			<div class="flex items-center gap-3">
-				<span class="control-label">{$t.arbiter.selectModelPair}:</span>
-				<ModelPairPicker />
-			</div>
+			<ModelPairPicker />
 			<div class="arbiter-model-badge">
 				<SparklesIcon size={14} />
 				<span class="model-badge-label">{$t.arbiter.modelName}</span>
@@ -184,7 +179,7 @@
 		<div class="charts-grid">
 			<!-- Verdict Distribution Chart -->
 			<ChartCard variant="arbiter">
-				<h3 class="mb-4 chart-title">{$t.arbiter.verdictDistribution}</h3>
+				<h2 class="mb-4 chart-title">{$t.arbiter.verdictDistribution}</h2>
 				<ArbiterVerdictChart
 					dimension={selectedDimension}
 					modelAName={modelNames.modelAName}
@@ -194,13 +189,13 @@
 
 			<!-- Confidence Distribution Chart -->
 			<ChartCard variant="arbiter">
-				<h3 class="mb-4 chart-title">{$t.arbiter.confidenceDistribution}</h3>
+				<h2 class="mb-4 chart-title">{$t.arbiter.confidenceDistribution}</h2>
 				<ArbiterConfidenceChart />
 			</ChartCard>
 
 			<!-- Dimension Breakdown Chart (Full Width) -->
 			<ChartCard variant="arbiter" class="full-width">
-				<h3 class="mb-4 chart-title">{$t.arbiter.verdictsByDimension}</h3>
+				<h2 class="mb-4 chart-title">{$t.arbiter.verdictsByDimension}</h2>
 				<ArbiterDimensionChart
 					modelAName={modelNames.modelAName}
 					modelBName={modelNames.modelBName}
@@ -224,13 +219,9 @@
 	{:else}
 		<!-- No Data State -->
 		<ChartCard>
-			<div class="empty-state flex flex-col items-center justify-center py-16 text-center">
-				<span class="empty-icon mb-4"><AlertCircleIcon size={48} /></span>
-				<h3 class="mb-2 chart-title">{$t.arbiter.noDataForPair}</h3>
-				<p class="empty-body">
-					{$t.arbiter.runScript}
-				</p>
-			</div>
+			<EmptyState title={$t.arbiter.noDataForPair} lede={$t.arbiter.runScript} headingLevel={2}>
+				{#snippet icon()}<GavelIcon size={48} />{/snippet}
+			</EmptyState>
 		</ChartCard>
 	{/if}
 </div>
@@ -267,7 +258,8 @@
 
 	.arbiter-title {
 		font-family: var(--font-display);
-		font-size: clamp(1.75rem, 1.4rem + 1.5vw, 2.5rem);
+		/* 26 → 34px, between two steps of the type scale. */
+		font-size: clamp(var(--font-size-2xl), calc(var(--font-size-xl) + 1.5vw), var(--font-size-3xl));
 		font-weight: 600;
 		line-height: 1.05;
 		color: var(--text-primary);
@@ -400,17 +392,6 @@
 	.chart-title {
 		font-size: var(--font-size-xl);
 		color: var(--text-primary);
-	}
-
-	.empty-icon {
-		display: inline-flex;
-		align-items: center;
-		color: var(--text-subtle);
-	}
-
-	.empty-body {
-		max-width: 28rem;
-		color: var(--text-muted);
 	}
 
 	.arbiter-model-badge :global(svg) {

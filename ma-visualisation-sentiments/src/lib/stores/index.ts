@@ -23,7 +23,6 @@ export {
 	arbiterV2Rows,
 	arbiterV2Statistics,
 	computeArbiterV2Statistics,
-	getArbiterV2ForArticle,
 	getArbiterV2RowForArticle,
 	loadArbiterV2Evaluations,
 	loadArbiterV2Panel,
@@ -41,15 +40,24 @@ export { placeState, type PlaceAggregate } from './places.svelte';
 export {
 	pairAgreement,
 	panelAgreement,
+	panelLeaveOneOut,
+	panelApplicability,
+	panelFlags,
+	panelSlice,
 	modelMarginals,
+	modelPairAgreements,
 	consensusRows,
 	consensusModels,
 	AGREEMENT_DIMENSIONS,
 	DIMENSION_CATEGORIES,
 	type AgreementDimension,
+	type ApplicabilityAgreement,
 	type ConsensusRow,
 	type DimensionAgreement,
-	type ModelMarginals
+	type LeaveOneOutRow,
+	type ModelMarginals,
+	type PanelFlagBreakdown,
+	type PanelReliability
 } from './agreement.svelte';
 
 // URL State (New modular implementation)
@@ -64,7 +72,6 @@ export {
 	initializeURLState,
 	clearAllFilters,
 	clearSelectedArticle,
-	clearSelectedArticleOnly,
 	handlePendingArticleSelection,
 	handlePendingComparisonArticleSelection,
 	clearSelectedComparison,
@@ -89,15 +96,14 @@ export {
 	loadCurrentDataset,
 	loadJustifications,
 	justificationsOf,
-	type Justifications,
-	hasJustifications
+	type Justifications
 } from './articles.svelte';
 
 export { loadComparisonDatasets } from './comparison.svelte';
 export { dataRequirements, type DataContext, type DataRequirement } from './dataRequirements';
 export { ensureDataRequirements } from './dataLoading';
 
-export { loadCurrentExtremeAnalysis, retryCurrentExtremeAnalysis } from './extreme-analysis.svelte';
+export { retryCurrentExtremeAnalysis } from './extreme-analysis.svelte';
 
 export { loadPlaces } from './places.svelte';
 

@@ -1,7 +1,7 @@
 {
 	"schemaVersion": "2.1.0",
 	"analysisVersion": "v2",
-	"description": "Generation-2 six-model IWAC sentiment-analysis contract. Polarity and centrality scales are identical to v1; subjectivity is stored upstream as an ordinal label and is mapped to the shared 1-5 rank at generation time. Qwen's coverage is deliberately 200 articles short of the rest of the panel (a retired gap, not a failed run: 251 null rows, less the 51 articles no model annotates), so its scores carry legitimate nulls on every dimension. Claude Haiku 5.5 joined the panel on 2026-10-22 without a pilot; it shares a developer with the arbiter, which is why `arbiter.recusal` keeps its analyses away from the judge.",
+	"description": "Generation-2 six-model IWAC sentiment-analysis contract. Polarity and centrality scales are identical to v1; subjectivity is stored upstream as an ordinal label and is mapped to the shared 1-5 rank at generation time. Qwen's coverage is deliberately 200 articles short of the rest of the panel (a retired gap, not a failed run: 250 null rows, less the 50 articles no model annotates), so its scores carry legitimate nulls on every dimension. Claude Haiku 5.5 joined the panel on 2026-10-22 without a pilot; it shares a developer with the arbiter, which is why `arbiter.recusal` keeps its analyses away from the judge.",
 	"models": {
 		"luna": {
 			"displayName": "GPT-5.6 Luna",
@@ -121,7 +121,8 @@
 		}
 	},
 	"arbiter": {
-		"promptVersion": "v2.2.0",
+		"promptVersion": "v2.3.0",
+		"acceptedPromptVersions": ["v2.2.0", "v2.3.0"],
 		"arbiterModel": "claude-opus-5",
 		"developer": "anthropic",
 		"cacheSchemaVersion": 1,

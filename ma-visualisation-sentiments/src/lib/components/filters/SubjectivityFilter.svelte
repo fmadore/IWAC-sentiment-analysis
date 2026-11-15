@@ -9,7 +9,8 @@
 	import { t, currentLanguage } from '#lib/i18n/index.js';
 	import { translateSentimentValue } from '#lib/i18n/utils.js';
 	import { NOT_ANNOTATED } from '#lib/domain/sentimentContract.js';
-	import { FilterCard, FilterChip } from '#lib/components/common/index.js';
+	import FilterCard from '#lib/components/common/FilterCard.svelte';
+	import FilterChip from '#lib/components/common/FilterChip.svelte';
 
 	// Filter values (the score as a string, as the store and URL carry it)
 	// with corresponding FilterChip variants
@@ -97,10 +98,11 @@
 		font-weight: var(--font-weight-medium);
 		border-radius: var(--radius-hairline);
 
-		/* Colours resolved by app.css from each badge's data-subjectivity. */
+		/* Colours resolved by components.css from each badge's data-subjectivity;
+		   text reads the AA-safe --sentiment-text, not the raw ramp. */
 		background: var(--sentiment-bg);
 		border: 1px solid var(--sentiment-border);
-		color: var(--sentiment-fg);
+		color: var(--sentiment-text);
 	}
 
 	.legend-text {

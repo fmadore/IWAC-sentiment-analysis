@@ -20,7 +20,6 @@ import { datasetIdsOf, modelDisplayName } from '#lib/domain/sentimentContract.js
 import { ARBITER_BLIND_LABELS } from '#lib/types/data.js';
 import type {
 	ArbiterBlindLabel,
-	ArbiterV2Analysis,
 	ArbiterV2EvaluationData,
 	ArbiterV2Preference,
 	DatasetId
@@ -70,28 +69,6 @@ export const arbiterV2LoadState = {
 		return arbiterV2Resource.state('v2');
 	}
 };
-
-// ============================================
-// Article lookup
-// ============================================
-
-let _indexSource: ArbiterV2EvaluationData | null = null;
-let _index = new Map<string, ArbiterV2Analysis>();
-
-function getIndex(): Map<string, ArbiterV2Analysis> {
-	if (_indexSource !== _evaluations) {
-		_indexSource = _evaluations;
-		_index = new Map(
-			(_evaluations?.evaluations ?? []).map((row) => [String(row.article_id), row.arbiter])
-		);
-	}
-	return _index;
-}
-
-/** The panel-wide verdict for one article, if it was arbitrated. */
-export function getArbiterV2ForArticle(articleId: string | number): ArbiterV2Analysis | null {
-	return getIndex().get(String(articleId)) ?? null;
-}
 
 // ============================================
 // Statistics
@@ -246,7 +223,7 @@ export function computeArbiterV2Statistics(
 		models: modelIds.map((modelId) => ({
 			modelId,
 			label: labelOf[modelId] ?? 'a',
-			name: metadata.model_names?.[modelId] ?? modelDisplayName(modelId),
+			name: metadata.model_names?.[modelId] ?? modelDisplayName(modelId, 'short'),
 			dimensionWins: dimensionWins[modelId],
 			dimensionPercentage: share(dimensionWins[modelId], totalVerdicts),
 			overallWins: overallWins[modelId],
@@ -337,3 +314,50 @@ export const loadArbiterV2Evaluations = (fetchFunction: typeof fetch = fetch): P
 /** Load the panel arbiter file again after a failure. */
 export const retryArbiterV2Evaluations = (fetchFunction: typeof fetch = fetch): Promise<void> =>
 	arbiterV2Resource.retry('v2', fetchFunction);
+
+// ============================================
+// Second judge (optional, unpublished until it runs)
+// ============================================
+
+/**
+ * Judges `arbiter-evaluation-v2-second-judge.py` can publish, by its judge id.
+ * Only the default is requested: the others have no paid-call adapter yet.
+ * The id names the file only; the panel the file must list is derived from
+ * the developer it records, in `parseArbiterV2EvaluationData(…, 'second')`.
+ */
+export const SECOND_JUDGE_IDS = ['gemini-4-argon'] as const;
+export type SecondJudgeId = (typeof SECOND_JUDGE_IDS)[number];
+
+/** The published filename for a second judge (`OUTPUT_TEMPLATE` in the script). */
+export function secondJudgeFilename(judge: SecondJudgeId): string {
+	return `/data/iwac_arbiter_evaluations_v2_${judge}.json`;
+}
+
+/**
+ * A separate resource, keyed by judge, so the published Opus path above keeps
+ * its single key, its filename and its parse exactly as they were. A 404 is
+ * `absent` and the view shows nothing extra.
+ */
+const secondJudgeResource = createResource<SecondJudgeId, ArbiterV2EvaluationData>(
+	async (judge, fetchFunction) => {
+		const data = await fetchOptionalJSON(secondJudgeFilename(judge), fetchFunction);
+		return data === ABSENT ? ABSENT : parseArbiterV2EvaluationData(data, 'second');
+	}
+);
+
+/** The first second-judge file that has loaded, or null. */
+export const secondJudgeEvaluations = {
+	get current(): ArbiterV2EvaluationData | null {
+		for (const judge of SECOND_JUDGE_IDS) {
+			const data = secondJudgeResource.data(judge);
+			if (data) return data;
+		}
+		return null;
+	}
+};
+
+/** Request every second-judge file. Idempotent; a 404 is cached as absent. */
+export const loadSecondJudges = (fetchFunction: typeof fetch = fetch): Promise<void> =>
+	Promise.all(
+		SECOND_JUDGE_IDS.map((judge) => secondJudgeResource.ensure(judge, fetchFunction))
+	).then(() => undefined);

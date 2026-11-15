@@ -31,6 +31,12 @@
 		variant?: 'default' | 'arbiter' | 'compact';
 		/** Body content rendered when the card is open */
 		children: Snippet;
+		/**
+		 * Open the card when the page's hash names this id: the target of an
+		 * in-page link such as the view header's `#methodology` caveat, which
+		 * would otherwise land on a collapsed card.
+		 */
+		openOnHash?: string;
 	}
 
 	let {
@@ -38,37 +44,63 @@
 		subtitle,
 		icon,
 		variant = 'default',
-		children
+		children,
+		openOnHash
 	}: CollapsibleMethodologyCardProps = $props();
 
 	let open = $state(false);
+	const id = $props.id();
+	const contentId = `${id}-content`;
+	const subtitleId = `${id}-subtitle`;
+	const buttonId = `${id}-button`;
+
+	$effect(() => {
+		if (!openOnHash) return;
+		const target = `#${openOnHash}`;
+		const sync = () => {
+			if (window.location.hash === target) open = true;
+		};
+		sync();
+		window.addEventListener('hashchange', sync);
+		return () => window.removeEventListener('hashchange', sync);
+	});
 </script>
 
-<div class="info-card" data-variant={variant}>
-	<!-- Collapsible Header -->
-	<button class="info-header-btn" onclick={() => (open = !open)} aria-expanded={open}>
-		{#if icon || subtitle}
-			<div class="header-main">
-				{#if icon}{@render icon()}{/if}
-				<div class="header-text">
-					<h2 class="info-title">{title}</h2>
-					{#if subtitle}<p class="info-subtitle">{subtitle}</p>{/if}
-				</div>
+<!--
+  The title is not a heading: the card sits above the view and its <h1> in the
+  DOM, so an <h2> here broke the page's heading order. The card is a region
+  named by its toggle instead. The subtitle sits outside the button's name but
+  is tied to it with aria-describedby. The button's ::after stretches over the
+  whole header, so the full bar stays clickable, chevron included.
+-->
+<section class="info-card" data-variant={variant} aria-labelledby={buttonId}>
+	<div class="info-header">
+		<div class="header-main">
+			{#if icon}{@render icon()}{/if}
+			<div class="header-text">
+				<p class="info-title">
+					<button
+						id={buttonId}
+						type="button"
+						class="info-header-btn"
+						onclick={() => (open = !open)}
+						aria-expanded={open}
+						aria-controls={contentId}
+						aria-describedby={subtitle ? subtitleId : undefined}>{title}</button
+					>
+				</p>
+				{#if subtitle}<p id={subtitleId} class="info-subtitle">{subtitle}</p>{/if}
 			</div>
-		{:else}
-			<h2 class="info-title">{title}</h2>
-		{/if}
-		<span class="header-icon" data-state={open ? 'open' : 'closed'}>
+		</div>
+		<span class="header-icon" data-state={open ? 'open' : 'closed'} aria-hidden="true">
 			<ChevronDownIcon size={20} />
 		</span>
-	</button>
+	</div>
 
-	{#if open}
-		<div class="info-content" data-state="open">
-			{@render children()}
-		</div>
-	{/if}
-</div>
+	<div id={contentId} class="info-content" hidden={!open}>
+		{#if open}{@render children()}{/if}
+	</div>
+</section>
 
 <style>
 	/* ==========================================================================
@@ -108,7 +140,7 @@
 		border: 0;
 		border-bottom: 1px solid var(--border-subtle);
 	}
-	[data-variant='compact'] .info-header-btn {
+	[data-variant='compact'] .info-header {
 		display: inline-flex;
 		width: auto;
 		gap: var(--space-2);
@@ -118,41 +150,56 @@
 		font-size: var(--font-size-lg);
 		transition: color var(--timing-fast) var(--easing-default);
 	}
-	[data-variant='compact'] .info-header-btn:hover .info-title {
+	[data-variant='compact'] .info-header:hover .info-title {
 		color: var(--color-primary-300);
 	}
 
 	/* ==========================================================================
 	   COLLAPSIBLE HEADER BUTTON
 	   ========================================================================== */
-	.info-header-btn {
+	.info-header {
+		position: relative;
 		width: 100%;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+		gap: var(--space-3);
+	}
+
+	/* The button carries the heading's text and inherits its type; its
+	   ::after covers the whole header so the bar is one target. */
+	.info-header-btn {
 		padding: 0;
 		background: none;
 		border: none;
 		cursor: pointer;
 		text-align: left;
-		transition: color var(--timing-fast) var(--easing-default);
+		font: inherit;
+		color: inherit;
+		letter-spacing: inherit;
 	}
 
-	.info-header-btn:hover .header-icon {
+	.info-header-btn::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+	}
+
+	.info-header:hover .header-icon {
 		background: var(--surface-hover);
 		color: var(--text-primary);
 	}
 
-	[data-variant='arbiter'] .info-header-btn {
+	[data-variant='arbiter'] .info-header {
 		padding: var(--space-4) var(--space-5);
-		transition: all var(--timing-fast) var(--easing-default);
+		transition: background-color var(--timing-fast) var(--easing-default);
 	}
 
-	[data-variant='arbiter'] .info-header-btn:hover {
+	[data-variant='arbiter'] .info-header:hover {
 		background: color-mix(in oklab, var(--sentiment-arbiter) 5%, transparent);
 	}
 
-	[data-variant='arbiter'] .info-header-btn:hover .header-icon {
+	[data-variant='arbiter'] .info-header:hover .header-icon {
 		background: none;
 		color: var(--color-surface-50);
 	}
@@ -206,7 +253,9 @@
 	/* ==========================================================================
 	   TITLE + SUBTITLE
 	   ========================================================================== */
+	/* A paragraph now, so it takes the display face the global h2 rule gave it. */
 	.info-title {
+		font-family: var(--font-display);
 		font-size: var(--font-size-xl);
 		font-weight: var(--font-weight-semibold);
 		color: var(--text-primary);
@@ -225,7 +274,7 @@
 	.info-subtitle {
 		font-size: var(--font-size-xs);
 		line-height: calc(1 / 0.75);
-		color: color-mix(in oklab, white 60%, transparent);
+		color: var(--text-muted);
 		margin: 0.125rem 0 0;
 	}
 
@@ -235,10 +284,6 @@
 	.info-content {
 		margin-top: var(--space-4);
 		animation: slideDown var(--timing-normal) var(--easing-default);
-	}
-
-	.info-content[data-state='open'] {
-		display: block;
 	}
 
 	[data-variant='arbiter'] .info-content {

@@ -70,10 +70,14 @@ updates:
   #
   # Neither group carries an `update-types` filter. The previous config did, and
   # every pip update still arrived as its own pull request even though all of
-  # them were minor or patch — these are requirements.txt constraint bumps with
-  # no lockfile, and the filter did not match them. Majors therefore land inside
-  # a group; the requirements.txt header is what flags them for a deliberate
-  # re-run.
+  # them were minor or patch, so majors land inside a group; the
+  # requirements.txt header is what flags them for a deliberate re-run.
+  #
+  # Dependabot bumps the requirements*.txt constraints only. The hashed
+  # requirements*.lock files are uv output it does not regenerate, so such a
+  # pull request fails the "Locks match their inputs" CI step until both locks
+  # are recompiled with the commands at the top of requirements.txt — by design,
+  # since CI installs the locks and would otherwise test the old versions.
   - package-ecosystem: pip
     directory: /data-preprocess
     schedule:
@@ -85,8 +89,9 @@ updates:
       prefix: "deps"
     open-pull-requests-limit: 5
     ignore:
-      # datasets 5.0.1 requires huggingface-hub<2.0. Review these together
-      # when datasets permits Hub 2 so the runtime group remains installable.
+      # datasets 5.1 accepts huggingface-hub 2 but not 3 (see requirements.txt).
+      # Review a Hub major together with a datasets release that permits it, so
+      # the runtime group remains installable.
       - dependency-name: "huggingface-hub"
         update-types: ["version-update:semver-major"]
     groups:

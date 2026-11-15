@@ -22,7 +22,9 @@ import {
 	calculateDiscrepancies,
 	buildComparisonData,
 	filterComparisons,
-	computeComparisonStatistics
+	computeComparisonStatistics,
+	calculatePanelSpread,
+	summarizePanelFlags
 } from './derivations';
 
 function article(id: number, overrides: Partial<Article> = {}): Article {
@@ -249,5 +251,80 @@ describe('computeComparisonStatistics', () => {
 		expect(stats.polarityConflicts).toBe(2);
 		expect(stats.highConflictArticles).toBe(1); // only the diff-of-4 row
 		expect(stats.averageDiscrepancy).toBeCloseTo((4 + 1) / 2);
+	});
+});
+
+describe('sharp-disagreement breakdown', () => {
+	it('says which dimension tripped each flag, without changing the flag', () => {
+		const subjectivityOnly = article(3);
+		const other = article(3, {
+			sentiment_analysis: { ...article(3).sentiment_analysis!, subjectivite_score: 1 }
+		});
+		subjectivityOnly.sentiment_analysis!.subjectivite_score = 5;
+		const rows: ComparisonData[] = [
+			comparison(1, 'Très positif', 'Très négatif'),
+			{
+				article: subjectivityOnly,
+				modelA: subjectivityOnly.sentiment_analysis,
+				modelB: other.sentiment_analysis,
+				modelAId: 'chatgpt',
+				modelBId: 'gemini',
+				discrepancies: calculateDiscrepancies(
+					subjectivityOnly.sentiment_analysis,
+					other.sentiment_analysis
+				)
+			}
+		];
+		const stats = computeComparisonStatistics(rows, rows, [], []);
+		expect(stats.highConflictArticles).toBe(2);
+		expect(stats.highConflictBy).toEqual({
+			polarity: 1,
+			subjectivity: 1,
+			centrality: 0,
+			subjectivityOnly: 1
+		});
+	});
+
+	it('counts the country facet with sets, as before', () => {
+		const rows = [
+			{ ...comparison(1, 'Positif', 'Positif'), article: article(1, { Country: 'Togo' }) },
+			comparison(2, 'Positif', 'Positif')
+		];
+		expect(computeComparisonStatistics(rows, [], ['Togo'], []).totalArticles).toBe(1);
+	});
+});
+
+describe('panel spread', () => {
+	const analysis = (
+		polarite: PolarityValue,
+		subjectivite_score: SubjectivityScore,
+		centrality: CentralityValue = 'Central'
+	) => ({
+		...article(1).sentiment_analysis!,
+		polarite,
+		subjectivite_score,
+		centralite_islam_musulmans: centrality
+	});
+
+	it('measures the spread over a panel of any size', () => {
+		const six = Array.from({ length: 6 }, (_, i) => analysis('Neutre', i % 2 ? 1 : 4));
+		expect(calculatePanelSpread(six).subjectivitySpread).toBe(3);
+	});
+
+	it('breaks the flag down by dimension, counting subjectivity-only flags', () => {
+		const breakdown = summarizePanelFlags([
+			[analysis('Neutre', 1), analysis('Neutre', 4)],
+			[analysis('Très positif', 1), analysis('Négatif', 5)],
+			[analysis('Neutre', 2), analysis('Positif', 3)],
+			[analysis('Non applicable', 1), analysis('Neutre', 5)]
+		]);
+		expect(breakdown).toEqual({
+			flagged: 2,
+			comparable: 3,
+			polarity: 1,
+			centrality: 0,
+			subjectivity: 2,
+			subjectivityOnly: 1
+		});
 	});
 });

@@ -11,10 +11,28 @@
 
 import type { Article } from '#lib/types/data.js';
 import { getJournalName } from '#lib/utils/format.js';
-import { countGroupsBelow, summarizeMean } from '#lib/utils/stats.js';
+import { countGroupsBelow, summarizeMean, wilsonInterval } from '#lib/utils/stats.js';
 
-/** Which measure to rank newspapers by. */
-export type RankingMeasure = 'polarity' | 'subjectivity' | 'centrality';
+/**
+ * Which measure to rank newspapers by.
+ *
+ * The first three are means of ordinal codes, which treats the steps of the
+ * scale as equal distances — a convenience, not a property of the labels. The
+ * proportion measures avoid that assumption: `positive` and `negative` are the
+ * share of a title's applicable polarity ratings on that side of neutral
+ * (Wilson 95% interval), and `net` is the first minus the second, i.e. the
+ * mean of a −1/0/+1 sign (normal-approximation interval).
+ */
+export type RankingMeasure =
+	'polarity' | 'subjectivity' | 'centrality' | 'positive' | 'negative' | 'net';
+
+export const MEAN_MEASURES = ['polarity', 'subjectivity', 'centrality'] as const;
+export const PROPORTION_MEASURES = ['positive', 'negative', 'net'] as const;
+
+/** Whether the measure is a share (plotted as a percentage) rather than a mean code. */
+export function isProportionMeasure(measure: RankingMeasure): boolean {
+	return (PROPORTION_MEASURES as readonly string[]).includes(measure);
+}
 
 /**
  * Scale definitions per measure.
@@ -27,7 +45,12 @@ export const MEASURE_SCALES: Record<RankingMeasure, { min: number; max: number; 
 	{
 		polarity: { min: -2, max: 2, neutral: 0 },
 		subjectivity: { min: 1, max: 5, neutral: 3 },
-		centrality: { min: 1, max: 5, neutral: 3 }
+		centrality: { min: 1, max: 5, neutral: 3 },
+		// Shares, as fractions. No neutral reference line is meaningful for a
+		// one-sided share, so its "neutral" is the axis floor.
+		positive: { min: 0, max: 1, neutral: 0 },
+		negative: { min: 0, max: 1, neutral: 0 },
+		net: { min: -1, max: 1, neutral: 0 }
 	};
 
 const POLARITY_INDEX: Record<string, number> = {
@@ -67,15 +90,28 @@ export function getMeasureValue(article: Article, measure: RankingMeasure): numb
 			const score = analysis.subjectivite_score;
 			return typeof score === 'number' && score >= 1 && score <= 5 ? score : null;
 		}
+		case 'positive':
+		case 'negative':
+		case 'net': {
+			const label = analysis.polarite;
+			if (!label || !(label in POLARITY_INDEX)) return null;
+			const sign = Math.sign(POLARITY_INDEX[label]);
+			if (measure === 'net') return sign;
+			return (measure === 'positive' ? sign > 0 : sign < 0) ? 1 : 0;
+		}
 	}
 }
 
 export interface NewspaperRank {
 	newspaper: string;
-	/** Mean of the measure across this newspaper's rated articles. */
+	/** Mean of the measure across this newspaper's rated articles (a share for `positive`/`negative`). */
 	mean: number;
-	/** Half-width of the 95% confidence interval; 0 when n < 2. */
+	/** Half-width of the normal 95% interval; 0 when n < 2. Symmetric measures only. */
 	confidence: number;
+	/** Lower bound of the 95% interval: Wilson for a share, mean − confidence otherwise. */
+	low: number;
+	/** Upper bound of the 95% interval. */
+	high: number;
 	/** Rated articles (the CI's n, not the newspaper's total). */
 	n: number;
 	/** Sample standard deviation; 0 when n < 2. */
@@ -91,7 +127,10 @@ export interface NewspaperRank {
  * enormous whiskers, because a mean of +1.00 from three articles invites a
  * reading it cannot support.
  *
- * Sorted ascending by mean, which is the order a dot plot wants.
+ * Sorted ascending by mean, which is the order a dot plot wants. Order among
+ * titles whose intervals overlap is not interpretable, and it is one model's
+ * ordering: other models of the same generation rank the same titles
+ * differently.
  */
 export function rankNewspapers(
 	articles: Article[],
@@ -120,7 +159,20 @@ export function rankNewspapers(
 	for (const [newspaper, values] of groups) {
 		if (values.length < minArticles) continue;
 
-		ranks.push({ newspaper, ...summarizeMean(values) });
+		const summary = summarizeMean(values);
+		const share =
+			measure === 'positive' || measure === 'negative'
+				? wilsonInterval(
+						values.reduce((sum, value) => sum + value, 0),
+						values.length
+					)
+				: null;
+		ranks.push({
+			newspaper,
+			...summary,
+			low: share ? share.low : summary.mean - summary.confidence,
+			high: share ? share.high : summary.mean + summary.confidence
+		});
 	}
 
 	return ranks.sort((a, b) => a.mean - b.mean);

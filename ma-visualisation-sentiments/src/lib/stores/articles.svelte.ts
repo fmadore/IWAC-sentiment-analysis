@@ -37,7 +37,7 @@ import {
 // ============================================
 
 /*
- * The corpora are held as `$state.raw`: up to five models × 12,349 articles
+ * The corpora are held as `$state.raw`: every model of a generation × 12,348 articles
  * that are replaced wholesale, never edited through the store. Deep `$state`
  * wrapped every article and its analysis in a Proxy and gave every property a
  * signal the first time an aggregate read it, so each filter pass paid a trap
@@ -50,7 +50,6 @@ import {
  * prose read it through `justificationsOf`.
  */
 let _datasetArticles = $state.raw<Record<string, Article[]>>({});
-let _currentDatasetArticles = $state.raw<Article[]>([]);
 let _selectedArticle = $state.raw<Article | null>(null);
 let _loadStates = $state.raw<Partial<Record<DatasetId, LoadState<Article[]>>>>({});
 const _justificationErrors = $state<Partial<Record<DatasetId, Error>>>({});
@@ -99,8 +98,8 @@ const _availableJournalsRune = $derived.by(() => {
  * were check-then-act races between the effects in +page.svelte and the
  * prefetch queue). No AbortController: every dataset ends up cached for
  * comparison/prefetch anyway, so a load started for a dataset the user
- * switched away from is still useful — completion only touches
- * `articleState.current` when that dataset is still the selected one.
+ * switched away from is still useful. The selected dataset's articles are
+ * always read as `datasets[selected]`; there is no second copy to keep in step.
  *
  * Plain Map, not SvelteMap: this is internal plumbing that is never rendered
  * and is read from inside `$effect`s. Svelte tracks reads transitively through
@@ -134,12 +133,7 @@ export const loadSpecificDataset = async (
 	const { showLoading = true } = options;
 	if (!isDatasetId(datasetId)) throw new Error(`Dataset ${datasetId} not found`);
 
-	if (isDatasetLoaded(datasetId)) {
-		if (datasetState.selected === datasetId) {
-			articleState.current = _datasetArticles[datasetId];
-		}
-		return;
-	}
+	if (isDatasetLoaded(datasetId)) return;
 
 	let load = inFlightLoads.get(datasetId);
 	if (!load) {
@@ -172,12 +166,7 @@ export const loadSpecificDataset = async (
 	}
 
 	try {
-		const articles = await load;
-		// Re-check the selection at completion time: if the user switched away
-		// while this was in flight, don't clobber the visible dataset.
-		if (datasetState.selected === datasetId) {
-			articleState.current = articles;
-		}
+		await load;
 	} finally {
 		if (showLoading) {
 			foregroundLoadCount = Math.max(0, foregroundLoadCount - 1);
@@ -271,10 +260,6 @@ export const loadJustifications = async (
 		throw error;
 	}
 };
-
-/** True once a dataset's justification prose has been merged in. */
-export const hasJustifications = (datasetId: DatasetId): boolean =>
-	justificationsLoaded.has(datasetId);
 
 export interface Justifications {
 	polarity: string | null;
@@ -372,14 +357,6 @@ export const articleState = {
 	// All dataset articles
 	get datasets() {
 		return _datasetArticles;
-	},
-
-	// Current dataset articles
-	get current() {
-		return _currentDatasetArticles;
-	},
-	set current(value: Article[]) {
-		_currentDatasetArticles = value;
 	},
 
 	// Selected article

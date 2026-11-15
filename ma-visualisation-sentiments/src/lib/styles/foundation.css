@@ -35,11 +35,22 @@ h3 {
 	font-family: var(--font-display);
 }
 
-/* Enhanced focus styles for accessibility */
+/* The one focus indicator: a 2px Wire Amber outline, offset clear of the
+   control's border (see --focus-outline in tokens.css for the measured
+   ratios). Components do not restate it; they only move the offset when a
+   control is flush against a scroll edge. It no longer touches box-shadow or
+   border-radius, which used to reshape every focused element. */
 :focus-visible {
-	outline: none;
-	box-shadow: var(--ring-focus);
-	border-radius: var(--radius-hairline);
+	outline: var(--focus-outline);
+	outline-offset: var(--focus-outline-offset);
+}
+
+/* Forced-colors mode drops box-shadows and repaints outlines; name the
+   system colour so the indicator survives a high-contrast theme. */
+@media (forced-colors: active) {
+	:focus-visible {
+		outline: 2px solid Highlight;
+	}
 }
 
 ::selection {
@@ -117,8 +128,9 @@ h3 {
 	background: var(--surface-subtle);
 }
 
+/* Border swap on any focus (mouse included); the outline from :focus-visible
+   above is the indicator, the halo is decoration. */
 .select:focus {
-	outline: none;
 	border-color: var(--color-primary-500);
 	box-shadow: var(--ring-focus);
 }

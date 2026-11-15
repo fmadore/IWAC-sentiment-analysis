@@ -111,9 +111,17 @@
 	   three variables from the data-polarity / data-subjectivity /
 	   data-centrality attribute; the utility variants below set them inline. */
 	.filter-chip[data-selected='true'] {
+		/* Re-derived here because the utility variants below set --sentiment-fg
+		   without a resolver attribute. Raw ramp colours as text measured as
+		   low as 1.9:1 on their own tint; mixed, every state clears 4.5:1. */
+		--sentiment-text: color-mix(
+			in oklab,
+			var(--sentiment-fg) var(--sentiment-text-weight),
+			var(--text-primary)
+		);
 		background: var(--sentiment-bg);
 		border-color: var(--sentiment-border);
-		color: var(--sentiment-fg);
+		color: var(--sentiment-text);
 	}
 
 	/* ============================================

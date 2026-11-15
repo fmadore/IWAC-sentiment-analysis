@@ -5,7 +5,7 @@
 	import { datasetState } from '#lib/stores/datasets.svelte.js';
 	import { analysisState } from '#lib/stores/analysis.svelte.js';
 	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
-	import { modelPairAgreements } from '#lib/stores/agreement.svelte.js';
+	import { modelPairAgreements } from '#lib/stores/index.js';
 	import { datasetIdsOf, type ModelPair } from '#lib/domain/sentimentContract.js';
 	import { getModelDisplayNames } from '#lib/utils/format.js';
 	import { agreementMetricValue, type AgreementMetric } from '#lib/utils/agreementMetrics.js';
@@ -60,7 +60,7 @@
 	</select>
 </div>
 
-<div class="matrix-wrap">
+<div class="matrix-wrap scroll-shadow-x">
 	<table class="model-matrix">
 		<caption class="sr-only">{$t.agreementResearch.overviewTitle} — {metricLabels[metric]}</caption>
 		<thead>
@@ -122,7 +122,11 @@
 			pair.models.map((id) => names[models.indexOf(id)]).join(' / '),
 			Number.isFinite(value) ? value : null,
 			n,
-			metric === 'weighted' ? pair.weightedMethod : 'categorical-v1'
+			metric === 'weighted'
+				? pair.weightedMethod === 'ordinal-v1'
+					? $t.agreementResearch.legacyMethod
+					: $t.agreementResearch.ordinalMethod
+				: $t.reliability.methodCategorical
 		];
 	})}
 	caption={$t.agreementResearch.overviewTitle}
@@ -179,7 +183,9 @@
 	.matrix-cell:hover {
 		border-color: var(--border-hover);
 	}
+	/* Inset: the matrix scrolls sideways, and its overflow would clip the
+	   global outline's outward offset on the edge cells. */
 	.matrix-cell:focus-visible {
-		box-shadow: var(--ring-focus);
+		outline-offset: calc(var(--focus-outline-offset) * -1);
 	}
 </style>

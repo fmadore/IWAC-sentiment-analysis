@@ -21,6 +21,10 @@ article mentions, not the place the article is "about". Articles average
 ~3.8 places each, so one article feeds several points and the counts sum to
 far more than the corpus size. The webapp must label these as *articles
 mentioning X*; anything stronger is a claim the data does not support.
+
+The payload records the Hugging Face revision it was computed from under an
+optional ``source`` block. ``refresh-all.py`` runs this export together with
+the data fetch, which is the preferred path after a corpus change.
 """
 
 import os
@@ -28,9 +32,12 @@ from pathlib import Path
 
 from iwac_preprocess.places import build_place_edges, build_place_lookup, build_places_payload
 from iwac_preprocess.publication import publish_json_files
+from iwac_preprocess.serialization import provenance_block
 from shared import (
+    HF_REPO_ID,
     get_base_article_ids,
     get_logger,
+    get_source_revision,
     get_staging_dir,
     get_webapp_data_dir,
     load_iwac_index,
@@ -58,7 +65,9 @@ def main() -> None:
     logger.info("Resolving spatial tags for %d articles...", len(articles))
 
     edges = build_place_edges(articles, lookup)
-    payload = build_places_payload(place_records, edges)
+    payload = build_places_payload(
+        place_records, edges, provenance_block(HF_REPO_ID, get_source_revision(HF_REPO_ID))
+    )
 
     logger.info(
         "Mappable articles: %d / %d (%.1f%%)",

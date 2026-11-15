@@ -17,16 +17,18 @@
 	import { num, pct } from '#lib/i18n/utils.js';
 	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
-	import { innerWidth } from 'svelte/reactivity/window';
+	import { isCompactWidth } from '#lib/utils/viewport.svelte.js';
+	import { useChartCardHeading } from '#lib/components/ui/chartCardHeading.svelte.js';
+	import ChartHeading from './ChartHeading.svelte';
 
 	import { t, currentLanguage } from '#lib/i18n/index.js';
 	import { translateSentimentValue } from '#lib/i18n/utils.js';
 	import { getModelDisplayName } from '#lib/utils/format.js';
 	import { datasetState } from '#lib/stores/index.js';
-	import type { AgreementDimension, ModelMarginals } from '#lib/stores/agreement.svelte.js';
+	import { modelSeriesColor } from '#lib/stores/datasets.svelte.js';
+	import type { DatasetId } from '#lib/types/data.js';
+	import type { AgreementDimension, ModelMarginals } from '#lib/stores/index.js';
 	import {
-		seriesColorPalette,
-		getTitleStyle,
 		getTooltipConfig,
 		getLegendConfig,
 		getAxisLineStyle,
@@ -34,6 +36,7 @@
 		getSplitLineStyle,
 		getGridConfig,
 		getEmphasisConfig,
+		seriesDecal,
 		chartColors
 	} from '#lib/utils/chartTheme.js';
 
@@ -45,7 +48,9 @@
 
 	let { marginals, dimension, categories }: ModelCalibrationChartProps = $props();
 
-	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
+	// Compact layout follows the chart's own width, not the window's.
+	let containerWidth = $state<number>();
+	let isMobile = $derived(isCompactWidth(containerWidth));
 
 	let categoryLabels = $derived(
 		dimension === 'subjectivity'
@@ -62,8 +67,12 @@
 			: categories.map((category) => translateSentimentValue(category, $currentLanguage))
 	);
 
+	const heading = useChartCardHeading(() => ({
+		title: $t.agreement.calibrationTitle,
+		subtitle: $t.agreement.calibrationSubtitle
+	}));
+
 	let options = $derived.by(() => {
-		const currentT = $t;
 		const labels = categoryLabels;
 
 		const modelNames = marginals.map((m) => getModelDisplayName(m.modelId, datasetState.available));
@@ -76,8 +85,13 @@
 				value: percent,
 				rawCount: marginal.counts[i]
 			})),
+			// One colour per model from the single source; within each category the
+			// bars also keep legend order, a positional cue that does not need hue.
+			// …and a texture per model (seriesDecal), repeated in the legend, so six
+			// close hues are never the only key.
 			itemStyle: {
-				color: seriesColorPalette[index % seriesColorPalette.length],
+				color: modelSeriesColor(marginal.modelId as DatasetId),
+				decal: seriesDecal(index),
 				borderRadius: 0
 			},
 			emphasis: getEmphasisConfig()
@@ -87,18 +101,6 @@
 
 		return {
 			backgroundColor: 'transparent',
-			title: {
-				text: currentT.agreement.calibrationTitle,
-				subtext: currentT.agreement.calibrationSubtitle,
-				left: 'center',
-				top: '1%',
-				textStyle: getTitleStyle(isMobile),
-				subtextStyle: {
-					color: chartColors.text.secondary,
-					fontSize: isMobile ? 10 : 12,
-					fontFamily: '"JetBrains Mono", ui-monospace, monospace'
-				}
-			},
 			tooltip: {
 				...tooltipConfig,
 				trigger: 'axis',
@@ -135,7 +137,7 @@
 			legend: {
 				...getLegendConfig(isMobile),
 				data: modelNames,
-				top: isMobile ? '13%' : '10%'
+				top: 0
 			},
 			grid: getGridConfig(isMobile, { hasLegendTop: true }),
 			xAxis: {
@@ -163,10 +165,14 @@
 	});
 </script>
 
+{#if !heading.inCard}
+	<ChartHeading title={$t.agreement.calibrationTitle} subtitle={$t.agreement.calibrationSubtitle} />
+{/if}
 {#if marginals.length > 0}
 	<div
 		style="height: {isMobile ? '420px' : '480px'}; position: relative;"
 		class="chart-container"
+		bind:clientWidth={containerWidth}
 		role="img"
 		aria-label={$t.agreement.calibrationTitle}
 	>

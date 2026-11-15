@@ -21,6 +21,7 @@ import type {
 } from '#lib/types/data.js';
 import { getModelsFromPair } from '#lib/types/data.js';
 import { getJournalName } from '#lib/utils/format.js';
+import { buildPanelJoin } from '#lib/utils/panelJoin.js';
 import {
 	CENTRALITY_NON_COMPARABLE,
 	CENTRALITY_ORDER,
@@ -177,7 +178,7 @@ export function calculateDiscrepancies(
 	return { polarityDiff, subjectivityDiff, centralityDiff, totalDiff, hasConflict, isComparable };
 }
 
-/** How far apart three analyses of the same article sit, per dimension. */
+/** How far apart every model's analysis of the same article sits, per dimension. */
 export interface SpreadInfo {
 	polaritySpread: number;
 	subjectivitySpread: number;
@@ -199,17 +200,20 @@ const EMPTY_SPREAD: SpreadInfo = {
 };
 
 /**
- * Measure the disagreement across all three models of a generation at once.
+ * Measure the disagreement across every model of a generation at once: any
+ * number of analyses, not three. The contract key (`discrepancy.threeWaySpread`)
+ * and the Python half keep their historical three-model names because
+ * published fingerprints and fixtures read them.
  *
- * This is the selection metric for the three-way arbiter, and it mirrors
- * `calculate_three_way_spread` in data-preprocess/iwac_preprocess/discrepancy.py
- * — the shared fixtures in `discrepancy-v2-fixtures.json` hold the two
- * implementations together.
+ * This is the discrepancy flag shown to readers and half of the arbiter's
+ * selection rule. It mirrors `calculate_three_way_spread` in
+ * data-preprocess/iwac_preprocess/discrepancy.py; the shared fixtures in
+ * `discrepancy-v2-fixtures.json` hold the two implementations together.
  *
- * Spread is the full range (max − min), not a pairwise gap: three models one
- * step apart in a row disagree more than the widest single pair suggests.
+ * Spread is the full range (max − min), not a pairwise gap: models one step
+ * apart in a row disagree more than the widest single pair suggests.
  */
-export function calculateThreeWaySpread(
+export function calculatePanelSpread(
 	analyses: (SentimentAnalysis | null | undefined)[]
 ): SpreadInfo {
 	if (analyses.length < 2 || analyses.some((analysis) => !analysis)) return EMPTY_SPREAD;
@@ -253,6 +257,53 @@ export function calculateThreeWaySpread(
 	};
 }
 
+/** Which dimensions put an article over the discrepancy threshold. */
+export interface PanelFlagBreakdown {
+	/** Articles flagged (`hasSignificantSpread`). */
+	flagged: number;
+	/** Comparable articles: the flag's denominator. */
+	comparable: number;
+	polarity: number;
+	centrality: number;
+	subjectivity: number;
+	/** Flagged by subjectivity and by no other dimension. */
+	subjectivityOnly: number;
+}
+
+/**
+ * Break the panel discrepancy flag down by dimension, live. The rule itself is
+ * unchanged; this only says which dimension tripped it, because subjectivity,
+ * the least consistently scaled of the three, trips it alone far more often
+ * than the other two combined.
+ */
+export function summarizePanelFlags(
+	rows: Iterable<(SentimentAnalysis | null | undefined)[]>
+): PanelFlagBreakdown {
+	const breakdown: PanelFlagBreakdown = {
+		flagged: 0,
+		comparable: 0,
+		polarity: 0,
+		centrality: 0,
+		subjectivity: 0,
+		subjectivityOnly: 0
+	};
+	for (const analyses of rows) {
+		const spread = calculatePanelSpread(analyses);
+		if (!spread.isComparable) continue;
+		breakdown.comparable++;
+		if (!spread.hasSignificantSpread) continue;
+		breakdown.flagged++;
+		const polarity = spread.polaritySpread >= SIGNIFICANT_SPREAD_THRESHOLD;
+		const centrality = spread.centralitySpread >= SIGNIFICANT_SPREAD_THRESHOLD;
+		const subjectivity = spread.subjectivitySpread >= SIGNIFICANT_SPREAD_THRESHOLD;
+		if (polarity) breakdown.polarity++;
+		if (centrality) breakdown.centrality++;
+		if (subjectivity) breakdown.subjectivity++;
+		if (subjectivity && !polarity && !centrality) breakdown.subjectivityOnly++;
+	}
+	return breakdown;
+}
+
 /**
  * Whether the panel disagrees about the *sign* of the polarity — at least one
  * model positive and at least one negative on the same article.
@@ -269,7 +320,7 @@ export function calculateThreeWaySpread(
 export function hasPolarityValenceFlip(
 	analyses: (SentimentAnalysis | null | undefined)[]
 ): boolean {
-	const spread = calculateThreeWaySpread(analyses);
+	const spread = calculatePanelSpread(analyses);
 	if (!spread.isComparable) return false;
 
 	const ranks = (analyses as SentimentAnalysis[]).map(
@@ -290,7 +341,7 @@ export function hasPolarityValenceFlip(
  * told is a significant disagreement.
  */
 export function isArbiterEligible(analyses: (SentimentAnalysis | null | undefined)[]): boolean {
-	const spread = calculateThreeWaySpread(analyses);
+	const spread = calculatePanelSpread(analyses);
 	if (!spread.isComparable) return false;
 	return spread.hasSignificantSpread || hasPolarityValenceFlip(analyses);
 }
@@ -311,28 +362,20 @@ export function buildComparisonData(
 		return [];
 	}
 
-	const modelBMap = new Map(datasets[modelBId].map((article) => [article['o:id'], article]));
-	const comparisons: ComparisonData[] = [];
+	// The shared positional join: no id map when the two datasets are aligned,
+	// as every pair loaded from the same article base is.
+	const join = buildPanelJoin(datasets, [modelAId, modelBId]);
+	if (!join) return [];
+	const [analysesA, analysesB] = join.analyses;
 
-	datasets[modelAId].forEach((modelAArticle) => {
-		const modelBArticle = modelBMap.get(modelAArticle['o:id']);
-
-		if (modelBArticle) {
-			comparisons.push({
-				article: modelAArticle,
-				modelA: modelAArticle.sentiment_analysis || null,
-				modelB: modelBArticle.sentiment_analysis || null,
-				modelAId,
-				modelBId,
-				discrepancies: calculateDiscrepancies(
-					modelAArticle.sentiment_analysis,
-					modelBArticle.sentiment_analysis
-				)
-			});
-		}
-	});
-
-	return comparisons;
+	return join.articles.map((article, i) => ({
+		article,
+		modelA: analysesA[i] || null,
+		modelB: analysesB[i] || null,
+		modelAId,
+		modelBId,
+		discrepancies: calculateDiscrepancies(analysesA[i], analysesB[i])
+	}));
 }
 
 /** Apply discrepancy/country/journal filters to comparison rows. */
@@ -404,6 +447,16 @@ export interface ComparisonStatistics {
 	subjectivityConflicts: number;
 	centralityConflicts: number;
 	highConflictArticles: number;
+	/**
+	 * Which dimension reached the sharp-disagreement gap, per flagged article.
+	 * The flag rule is unchanged; this only says what tripped it.
+	 */
+	highConflictBy: {
+		polarity: number;
+		subjectivity: number;
+		centrality: number;
+		subjectivityOnly: number;
+	};
 }
 
 /** Compute aggregate statistics for the filtered comparison set. */
@@ -414,18 +467,13 @@ export function computeComparisonStatistics(
 	journals: string[]
 ): ComparisonStatistics {
 	let totalArticles = allComparisons.length;
+	const countrySet = criterion(countries);
+	const journalSet = criterion(journals);
 
-	if (countries.length > 0 || journals.length > 0) {
+	if (countrySet || journalSet) {
 		totalArticles = allComparisons.filter((comparison) => {
-			if (countries.length > 0 && !countries.includes(comparison.article.Country || '')) {
-				return false;
-			}
-
-			const journalName = getJournalName(comparison.article);
-			if (journals.length > 0 && !journals.includes(journalName)) {
-				return false;
-			}
-
+			if (countrySet && !countrySet.has(comparison.article.Country || '')) return false;
+			if (journalSet && !journalSet.has(getJournalName(comparison.article))) return false;
 			return true;
 		}).length;
 	}
@@ -438,7 +486,8 @@ export function computeComparisonStatistics(
 			polarityConflicts: 0,
 			subjectivityConflicts: 0,
 			centralityConflicts: 0,
-			highConflictArticles: 0
+			highConflictArticles: 0,
+			highConflictBy: { polarity: 0, subjectivity: 0, centrality: 0, subjectivityOnly: 0 }
 		};
 	}
 
@@ -452,6 +501,15 @@ export function computeComparisonStatistics(
 			acc.subjectivityConflicts += disc.subjectivityDiff > 0 ? 1 : 0;
 			acc.centralityConflicts += disc.centralityDiff > 0 ? 1 : 0;
 			acc.highConflictArticles += disc.hasConflict ? 1 : 0;
+			if (disc.hasConflict) {
+				const polarity = disc.polarityDiff >= SIGNIFICANT_CONFLICT_THRESHOLD;
+				const subjectivity = disc.subjectivityDiff >= SIGNIFICANT_CONFLICT_THRESHOLD;
+				const centrality = disc.centralityDiff >= SIGNIFICANT_CONFLICT_THRESHOLD;
+				if (polarity) acc.highConflictBy.polarity++;
+				if (subjectivity) acc.highConflictBy.subjectivity++;
+				if (centrality) acc.highConflictBy.centrality++;
+				if (subjectivity && !polarity && !centrality) acc.highConflictBy.subjectivityOnly++;
+			}
 
 			return acc;
 		},
@@ -461,7 +519,8 @@ export function computeComparisonStatistics(
 			polarityConflicts: 0,
 			subjectivityConflicts: 0,
 			centralityConflicts: 0,
-			highConflictArticles: 0
+			highConflictArticles: 0,
+			highConflictBy: { polarity: 0, subjectivity: 0, centrality: 0, subjectivityOnly: 0 }
 		}
 	);
 
@@ -472,6 +531,7 @@ export function computeComparisonStatistics(
 		polarityConflicts: stats.polarityConflicts,
 		subjectivityConflicts: stats.subjectivityConflicts,
 		centralityConflicts: stats.centralityConflicts,
-		highConflictArticles: stats.highConflictArticles
+		highConflictArticles: stats.highConflictArticles,
+		highConflictBy: stats.highConflictBy
 	};
 }

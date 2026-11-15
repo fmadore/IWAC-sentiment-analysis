@@ -14,7 +14,7 @@ import { TOTAL_DISCREPANCY_MAXIMUM } from '#lib/domain/sentimentContract.js';
 // `$state.raw`, not deep `$state`: every setter replaces the value wholesale and
 // nothing mutates one in place, so deep proxies bought nothing — while every
 // filter pass read these arrays once per article through a Proxy trap and a
-// signal. Measured on 12,349 articles: 43–65 ms per filter change through the
+// signal. Measured on 12,349 articles (the corpus then; 12,348 now): 43–65 ms per filter change through the
 // proxies, 1–2 ms with plain arrays.
 let _countryFilters = $state.raw<string[]>([]);
 let _journalFilters = $state.raw<string[]>([]);

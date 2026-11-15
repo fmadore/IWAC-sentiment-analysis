@@ -5,7 +5,7 @@
   Used in ComparisonDetail to display centrality, polarity, and subjectivity comparisons.
 -->
 <script lang="ts">
-	import { SentimentBadge } from '#lib/components/common/index.js';
+	import SentimentBadge from '#lib/components/common/SentimentBadge.svelte';
 	import { t } from '#lib/i18n/index.js';
 
 	interface ComparisonPanelProps {

@@ -122,3 +122,71 @@ def test_an_unsafe_payload_name_is_refused_before_anything_is_written(tmp_path):
     with pytest.raises(ValueError):
         publication.publish_json_files(tmp_path / "data", tmp_path / "staging", {"../x.json": 1})
     assert not (tmp_path / "x.json").exists()
+
+
+def test_a_transient_sharing_violation_is_retried(tmp_path, monkeypatch):
+    """Windows refuses a rename while a scanner holds the file; that clears."""
+    stage, target = tmp_path / "stage", tmp_path / "data"
+    stage.mkdir()
+    (stage / "scores.json").write_text("new")
+    replace = publication.os.replace
+    failures = {"left": 2}
+
+    def flaky(src, dst):
+        if Path(dst).name == "scores.json" and failures["left"]:
+            failures["left"] -= 1
+            raise PermissionError("sharing violation")
+        return replace(src, dst)
+
+    monkeypatch.setattr(publication.os, "replace", flaky)
+    monkeypatch.setattr(publication.time, "sleep", lambda seconds: None)
+    publication.publish_generation(stage, target, ["scores.json"])
+    assert (target / "scores.json").read_text() == "new"
+    assert failures["left"] == 0
+
+
+def test_a_persistent_sharing_violation_rolls_back_after_bounded_retries(tmp_path, monkeypatch):
+    stage, target = tmp_path / "stage", tmp_path / "data"
+    stage.mkdir()
+    target.mkdir()
+    (target / "scores.json").write_text("old")
+    (stage / "scores.json").write_text("new")
+    attempts = []
+    replace = publication.os.replace
+
+    def always_locked(src, dst):
+        if Path(dst).name != "scores.json":
+            return replace(src, dst)
+        attempts.append(src)
+        raise PermissionError("sharing violation")
+
+    monkeypatch.setattr(publication.os, "replace", always_locked)
+    monkeypatch.setattr(publication.time, "sleep", lambda seconds: None)
+    with pytest.raises(PermissionError):
+        publication.publish_generation(stage, target, ["scores.json"])
+    assert len(attempts) == publication.REPLACE_ATTEMPTS
+    assert (target / "scores.json").read_text() == "old"
+    assert not (target / publication.JOURNAL).exists()
+
+
+def test_a_stage_cleanup_failure_does_not_fail_a_committed_publication(tmp_path):
+    """A handle still open in the stage (a scanner, on Windows) blocks its removal.
+
+    On Windows this really makes the cleanup fail; elsewhere it passes trivially.
+    Either way the publication itself has committed and must report success.
+    """
+    target, staging = tmp_path / "data", tmp_path / "staging"
+    held = []
+
+    def hold_a_file_open(stage):
+        held.append((stage / "held.txt").open("w"))
+
+    try:
+        publication.publish_json_files(
+            target, staging, {"a.json": [1]}, indent=None, validate=hold_a_file_open
+        )
+    finally:
+        for handle in held:
+            handle.close()
+    assert (target / "a.json").read_text() == "[1]"
+    assert not (target / publication.JOURNAL).exists()

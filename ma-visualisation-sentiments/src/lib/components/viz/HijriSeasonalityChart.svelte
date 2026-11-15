@@ -19,13 +19,16 @@
 	import { dec, num } from '#lib/i18n/utils.js';
 	import { init } from '#lib/utils/echartsSetup.js';
 	import type { EChartsOption } from 'echarts';
-	import { innerWidth } from 'svelte/reactivity/window';
+	import { isCompactWidth } from '#lib/utils/viewport.svelte.js';
+	import { useChartCardHeading } from '#lib/components/ui/chartCardHeading.svelte.js';
+	import ChartHeading from './ChartHeading.svelte';
 
 	import { articleState } from '#lib/stores/index.js';
 	import { t } from '#lib/i18n/index.js';
 	import { centralityScores } from '#lib/stores/derivations.js';
 	import { aggregateByHijriMonth } from '#lib/utils/chartAggregators.js';
 	import { HIJRI_MONTH_KEYS } from '#lib/utils/hijri.js';
+	import { isLowN, LOW_N_THRESHOLD } from '#lib/utils/stats.js';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
 	import ChartTypeToggle from './ChartTypeToggle.svelte';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
@@ -33,7 +36,6 @@
 		centralityColors,
 		seriesColorPalette,
 		chartColors,
-		getTitleStyle,
 		getTooltipConfig,
 		getLegendConfig,
 		getAxisLabelStyle
@@ -41,7 +43,8 @@
 	import CircleIcon from '@lucide/svelte/icons/circle';
 	import BarChart3Icon from '@lucide/svelte/icons/bar-chart-3';
 
-	let isMobile = $derived((innerWidth.current ?? 1024) < 768);
+	let containerWidth = $state<number>();
+	let isMobile = $derived(isCompactWidth(containerWidth));
 
 	/**
 	 * Polar reads the cycle; the bar chart is the accessible/precise fallback
@@ -60,9 +63,18 @@
 	/** Months carrying a major observance get a brighter fill and a legend note. */
 	const OBSERVANCE_INDICES = new Set([8, 9, 11]); // Ramadan, Shawwal, Dhu al-Hijjah
 
+	// The title lives in the DOM (ChartCard's h2), not in the canvas.
+	let headingTitle = $derived(
+		`${$t.seasonality.chartTitle} (${$num(seasonality.total)} ${$t.common.articles})`
+	);
+	const heading = useChartCardHeading(() => ({
+		title: headingTitle,
+		subtitle: $t.seasonality.chartSubtitle
+	}));
+
 	let options = $derived.by(() => {
 		const currentT = $t;
-		const { buckets, total } = seasonality;
+		const { buckets } = seasonality;
 		const names = monthNames;
 
 		const barColor = (i: number) =>
@@ -73,7 +85,14 @@
 			itemStyle: { color: barColor(i) }
 		}));
 
-		const centralityData = buckets.map((bucket) => bucket.meanCentrality);
+		// A month whose mean rests on few rated articles is drawn as a hollow,
+		// faded point: still there, visibly weaker. Only the mean is affected —
+		// the bar is a count, and a small count is exact.
+		const centralityData = buckets.map((bucket) =>
+			bucket.meanCentrality === null || !isLowN(bucket.analyzed)
+				? bucket.meanCentrality
+				: { value: bucket.meanCentrality, symbol: 'emptyCircle', itemStyle: { opacity: 0.45 } }
+		);
 
 		const tooltipConfig = getTooltipConfig(isMobile);
 
@@ -97,28 +116,17 @@
 						bucket.meanCentrality === null ? '—' : $dec(bucket.meanCentrality, 2)
 					}</strong>
 				</div>
+				<div style="display:flex;justify-content:space-between;padding:2px 0;">
+					<span>${currentT.seasonality.ratedArticles}:</span><strong>${$num(bucket.analyzed)}</strong>
+				</div>
 			</div>`;
-		};
-
-		const title = {
-			text: `${currentT.seasonality.chartTitle} (${$num(total)} ${currentT.common.articles})`,
-			subtext: currentT.seasonality.chartSubtitle,
-			left: 'center',
-			top: '1%',
-			textStyle: getTitleStyle(isMobile),
-			subtextStyle: {
-				color: chartColors.text.secondary,
-				fontSize: isMobile ? 10 : 12,
-				fontFamily: '"JetBrains Mono", ui-monospace, monospace'
-			}
 		};
 
 		if (viewOptionsState.seasonalityChart === 'polar') {
 			return {
 				backgroundColor: 'transparent',
-				title,
 				tooltip: { ...tooltipConfig, trigger: 'item', formatter: tooltipFormatter },
-				polar: { radius: isMobile ? ['18%', '62%'] : ['20%', '68%'], center: ['50%', '56%'] },
+				polar: { radius: isMobile ? ['18%', '66%'] : ['20%', '72%'], center: ['50%', '50%'] },
 				angleAxis: {
 					type: 'category',
 					data: names,
@@ -155,7 +163,6 @@
 
 		return {
 			backgroundColor: 'transparent',
-			title,
 			tooltip: {
 				...tooltipConfig,
 				trigger: 'axis',
@@ -168,10 +175,10 @@
 			legend: {
 				...getLegendConfig(isMobile),
 				data: [currentT.common.articles, currentT.filters.averageCentrality],
-				top: isMobile ? '13%' : '10%'
+				top: 0
 			},
 			grid: {
-				top: isMobile ? '26%' : '22%',
+				top: isMobile ? '14%' : '10%',
 				bottom: isMobile ? '20%' : '12%',
 				left: isMobile ? '12%' : '7%',
 				right: isMobile ? '12%' : '7%',
@@ -245,6 +252,9 @@
 	});
 </script>
 
+{#if !heading.inCard}
+	<ChartHeading title={headingTitle} subtitle={$t.seasonality.chartSubtitle} />
+{/if}
 {#if articleState.filtered.length > 0}
 	<div class="chart-toolbar">
 		<DatasetBadge size="sm" />
@@ -257,6 +267,7 @@
 	</div>
 
 	<div
+		bind:clientWidth={containerWidth}
 		style="height: {isMobile ? '460px' : '560px'}; position: relative;"
 		class="chart-container"
 		role="img"
@@ -275,18 +286,23 @@
 			{ label: $t.chartData.month },
 			{ label: $t.chartData.articles, format: 'integer' },
 			{ label: $t.chartData.coverageIndex, format: 'decimal', digits: 2 },
-			{ label: $t.chartData.meanCentrality, format: 'decimal', digits: 2 }
+			{ label: $t.chartData.meanCentrality, format: 'decimal', digits: 2 },
+			{ label: $t.seasonality.ratedArticles, format: 'integer' }
 		]}
 		rows={seasonality.buckets.map((bucket, i) => [
 			monthNames[i],
 			bucket.count,
 			bucket.index,
-			bucket.meanCentrality
+			bucket.meanCentrality,
+			bucket.analyzed
 		])}
 		filenamePrefix="iwac-hijri-seasonality"
 		caption={$t.chartData.seasonalityCaption}
 	/>
 
+	<p class="calendar-note">
+		{$t.seasonality.ordinalNote.replace('{min}', $num(LOW_N_THRESHOLD))}
+	</p>
 	<p class="calendar-note">{$t.seasonality.calendarNote}</p>
 
 	{#if seasonality.undated > 0}

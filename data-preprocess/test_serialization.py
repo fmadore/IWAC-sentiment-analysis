@@ -74,3 +74,34 @@ def test_manifest_environment_is_optional_without_a_lock(
     manifest = write_manifest(tmp_path, requirements_lock=lock)
     assert "environment" not in manifest
     assert manifest["source"] == {"repository": "example/corpus", "revision": "source-sha"}
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+def test_non_finite_floats_are_refused_rather_than_written(tmp_path: Path, value: float) -> None:
+    """Python would write ``NaN``; the browser's ``JSON.parse`` rejects the file."""
+    output = tmp_path / "payload.json"
+    output.write_text('{"kept": true}', encoding="utf-8")
+    with pytest.raises(ValueError):
+        serialization.save_json({"score": value}, output)
+    with pytest.raises(ValueError):
+        serialization.safe_save_json({"score": value}, output)
+    # The previous file survives and no temp file is left beside it.
+    assert json.loads(output.read_text(encoding="utf-8")) == {"kept": True}
+    assert [path.name for path in tmp_path.iterdir()] == ["payload.json"]
+
+
+def test_an_interrupted_write_leaves_no_temp_file(tmp_path: Path, monkeypatch: Any) -> None:
+    def interrupt(*args: object, **kwargs: object) -> None:
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(serialization.os, "fsync", interrupt)
+    with pytest.raises(KeyboardInterrupt):
+        serialization.save_json({"rows": []}, tmp_path / "payload.json")
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_manifest_timestamp_is_timezone_aware(tmp_path: Path) -> None:
+    from datetime import datetime
+
+    generated = datetime.fromisoformat(write_manifest(tmp_path)["generated"])
+    assert generated.utcoffset() is not None

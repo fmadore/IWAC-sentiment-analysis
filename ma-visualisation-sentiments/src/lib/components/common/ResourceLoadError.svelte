@@ -8,6 +8,7 @@
 -->
 <script lang="ts">
 	import { t } from '#lib/i18n/index.js';
+	import ErrorNotice from './ErrorNotice.svelte';
 
 	interface Props {
 		/** The error the load ended in, shown on demand for a bug report. */
@@ -29,44 +30,23 @@
 	}
 </script>
 
-<div role="alert" class="load-error">
-	<p>{$t.messages.dataLoadError}</p>
-	<details>
+<ErrorNotice
+	message={$t.messages.dataLoadError}
+	actionLabel={$t.messages.retry}
+	onAction={retry}
+	busy={retrying}
+>
+	<details class="error-details">
 		<summary>{$t.messages.error}</summary>
 		<code>{error.message}</code>
 	</details>
-	<button type="button" onclick={retry} disabled={retrying}>{$t.messages.retry}</button>
-</div>
+</ErrorNotice>
 
 <style>
-	.load-error {
-		padding: var(--space-4);
-		border: 1px solid var(--status-error);
-		color: var(--text-primary);
-	}
-	details {
-		margin-top: var(--space-2);
+	.error-details {
 		color: var(--text-secondary);
 	}
 	code {
 		overflow-wrap: anywhere;
-	}
-	button {
-		margin-top: var(--space-3);
-		padding: var(--space-2) var(--space-4);
-		background: var(--surface-card);
-		color: var(--text-primary);
-		border: 1px solid var(--border-strong);
-		cursor: pointer;
-	}
-	button:hover {
-		background: var(--surface-card-hover);
-	}
-	button:disabled {
-		cursor: progress;
-	}
-	button:focus-visible {
-		outline: 2px solid var(--text-primary);
-		outline-offset: 2px;
 	}
 </style>

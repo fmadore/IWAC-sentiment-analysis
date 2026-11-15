@@ -13,6 +13,14 @@ Usage:
   python significant-differences-export.py                       # Default: chatgpt-gemini
   python significant-differences-export.py --pair gemini-mistral
   python significant-differences-export.py --all-pairs
+  python significant-differences-export.py --seed 913   # an undisclosed seed
+
+The Model A/B assignment is drawn from ``random.Random(seed)``, 42 by default.
+A fixed seed makes an export reproducible, which also means anyone who can
+read this script can recompute the assignment: the default is blind only to an
+evaluator who does not. For a genuinely blind test pass ``--seed`` with a value
+kept away from the evaluator. The seed is recorded in the key file, never in
+the CSV.
 """
 
 from __future__ import annotations
@@ -20,7 +28,7 @@ from __future__ import annotations
 import argparse
 import os
 import random
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pandas as pd
 from shared import (
@@ -40,10 +48,12 @@ from tqdm import tqdm
 logger = get_logger(__name__)
 
 DEFAULT_PAIR = "chatgpt-gemini"
+# Reproducible by default; see the module docstring for what that costs blindness.
+DEFAULT_SEED = 42
 
 
 def extract_significant_differences(
-    records: list[dict], model_a_id: str, model_b_id: str
+    records: list[dict], model_a_id: str, model_b_id: str, rng: random.Random
 ) -> tuple[list[dict], bool]:
     """Extract articles where the two models disagree significantly.
 
@@ -54,6 +64,7 @@ def extract_significant_differences(
         records: IWAC article rows as plain dicts.
         model_a_id: First model id of the pair (e.g. 'chatgpt').
         model_b_id: Second model id of the pair (e.g. 'gemini').
+        rng: Source of the A/B draw, seeded by the caller.
 
     Returns:
         Tuple of (list of anonymised article rows for the CSV,
@@ -62,7 +73,7 @@ def extract_significant_differences(
     significant_articles = []
 
     # Randomise the Model A/B assignment for blind evaluation.
-    first_model_is_model_a = random.choice([True, False])
+    first_model_is_model_a = rng.choice([True, False])
 
     logger.info("Processing %d articles for significant differences...", len(records))
     logger.info("Model assignment randomized for blind evaluation")
@@ -123,6 +134,7 @@ def write_assignment_key(
     first_model_name: str,
     second_model_name: str,
     total_articles: int,
+    seed: int,
 ) -> None:
     """Write the secret Model A/B assignment key file for one export."""
     model_a_name = first_model_name if first_model_is_model_a else second_model_name
@@ -131,19 +143,22 @@ def write_assignment_key(
     with open(key_path, "w", encoding="utf-8") as f:
         f.write("BLIND TEST MODEL ASSIGNMENT\n")
         f.write("========================\n")
-        f.write(f"Generated: {datetime.now().isoformat()}\n")
+        f.write(f"Generated: {datetime.now(UTC).isoformat()}\n")
+        f.write(f"Seed: {seed}\n")
         f.write(f"Total articles: {total_articles}\n\n")
         f.write(f"Model A = {model_a_name}\n")
         f.write(f"Model B = {model_b_name}\n")
         f.write("\nDO NOT REVEAL UNTIL EVALUATION IS COMPLETE!\n")
 
 
-def export_pair(records: list[dict], pair: str) -> None:
+def export_pair(records: list[dict], pair: str, rng: random.Random, seed: int) -> None:
     """Export the blind-evaluation dataset for one model pair.
 
     Args:
         records: IWAC article rows as plain dicts.
         pair: Model pair string (e.g. 'chatgpt-gemini').
+        rng: Shared seeded generator; each pair draws its own A/B assignment.
+        seed: The generator's seed, recorded in the key file.
     """
     model_a_id, model_b_id = get_models_from_pair(pair)
     first_model_name = MODEL_NAMES.get(model_a_id, model_a_id)
@@ -154,7 +169,7 @@ def export_pair(records: list[dict], pair: str) -> None:
     )
 
     significant_articles, first_model_is_model_a = extract_significant_differences(
-        records, model_a_id, model_b_id
+        records, model_a_id, model_b_id, rng
     )
 
     if not significant_articles:
@@ -163,7 +178,7 @@ def export_pair(records: list[dict], pair: str) -> None:
 
     # Output directory. The default pair keeps the historical name
     # (blind_test_<timestamp>); other pairs include the pair in the name.
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%SZ")
     dir_name = (
         f"blind_test_{timestamp}" if pair == DEFAULT_PAIR else f"blind_test_{pair}_{timestamp}"
     )
@@ -183,6 +198,7 @@ def export_pair(records: list[dict], pair: str) -> None:
         first_model_name,
         second_model_name,
         len(significant_articles),
+        seed,
     )
 
     logger.info("EXPORT COMPLETE")
@@ -219,23 +235,7 @@ def export_pair(records: list[dict], pair: str) -> None:
     logger.info("Do NOT open this file until your evaluation is complete!")
 
 
-def main(pairs: list[str]) -> int:
-    """Run the blind-test export for each requested model pair."""
-    logger.info("IWAC Significant Differences Export - BLIND TEST")
-    logger.info("Processing %d model pair(s): %s", len(pairs), ", ".join(pairs))
-
-    try:
-        records = load_iwac_records()
-    except Exception as e:
-        logger.error("Failed to load dataset: %s", e)
-        return 2
-
-    for pair in pairs:
-        export_pair(records, pair)
-    return 0
-
-
-if __name__ == "__main__":
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Export articles with significant model disagreements for blind evaluation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -260,14 +260,35 @@ Examples:
         action="store_true",
         help="Export every model pair",
     )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=DEFAULT_SEED,
+        help=f"Seed for the Model A/B draw (default {DEFAULT_SEED}, which is public: pass "
+        "an undisclosed value for a genuinely blind test).",
+    )
+    return parser.parse_args(argv)
 
-    args = parser.parse_args()
 
-    if args.all_pairs:
-        pairs_to_process = MODEL_PAIRS
-    else:
-        pairs_to_process = args.pairs if args.pairs else [DEFAULT_PAIR]
+def main(argv: list[str] | None = None) -> int:
+    """Run the blind-test export for each requested model pair."""
+    args = parse_args(argv)
+    pairs = list(MODEL_PAIRS) if args.all_pairs else (args.pairs or [DEFAULT_PAIR])
+    rng = random.Random(args.seed)
 
-    # Set random seed for reproducible model assignment
-    random.seed(42)
-    raise SystemExit(main(pairs_to_process))
+    logger.info("IWAC Significant Differences Export - BLIND TEST")
+    logger.info("Processing %d model pair(s): %s", len(pairs), ", ".join(pairs))
+
+    try:
+        records = load_iwac_records()
+    except (OSError, ValueError, RuntimeError) as e:
+        logger.error("Failed to load dataset: %s", e)
+        return 2
+
+    for pair in pairs:
+        export_pair(records, pair, rng, args.seed)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

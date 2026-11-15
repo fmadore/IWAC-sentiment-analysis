@@ -1,6 +1,7 @@
 """Pure candidate selection for the panel arbiter; no provider calls or output writes."""
 
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 
 from tqdm import tqdm
 
@@ -21,6 +22,25 @@ RULE_UNION = "spread-or-valence"
 RULES = (RULE_SPREAD, RULE_VALENCE, RULE_UNION)
 DEFAULT_RULE = RULE_UNION if CONTRACT.polarity_valence_bands else RULE_SPREAD
 
+# How many selected articles may lack text in the private mirror before the
+# join is treated as broken rather than as a few genuinely empty rows: the
+# larger of this share of the frame and one article. The published run had
+# none missing; a mismatched mirror revision or a key-type drift misses nearly
+# all of them, and must not end in a well-formed, empty publication.
+MAX_MISSING_TEXT_SHARE = 0.01
+
+
+class SelectionError(ValueError):
+    """A selection setting or join the arbiter refuses to run with."""
+
+
+class ThresholdError(SelectionError):
+    """A spread threshold looser than the contract's."""
+
+
+class TextJoinError(SelectionError):
+    """Too many selected articles have no text in the private mirror."""
+
 
 def resolve_threshold(threshold: int | None, contract: SentimentContract = CONTRACT) -> int:
     """Validate a threshold override, defaulting to the contract's.
@@ -31,10 +51,15 @@ def resolve_threshold(threshold: int | None, contract: SentimentContract = CONTR
     validator rejects — days after the money was spent.
     """
     floor = contract.significant_spread_threshold
+    if floor is None:
+        raise ThresholdError(
+            f"The {contract.analysis_version} contract defines no significant spread, so it "
+            "has no panel arbiter frame to select from."
+        )
     if threshold is None:
         return floor
     if threshold < floor:
-        raise SystemExit(
+        raise ThresholdError(
             f"--threshold {threshold} is looser than the {contract.analysis_version} contract's "
             f"significant spread ({floor}). The published file would fail validate_generated_data. "
             "Selection can only be tightened here; loosening it is a contract change."
@@ -148,9 +173,10 @@ def flip_dissenters(
     row can have two (one alone on each side) or none (several on both).
     Returns an empty dict for a row with no flip at all.
     """
-    if not has_polarity_valence_flip(list(analyses.values()), contract):
+    bands = contract.polarity_valence_bands
+    if bands is None or not has_polarity_valence_flip(list(analyses.values()), contract):
         return {}
-    positive_minimum, negative_maximum = contract.polarity_valence_bands
+    positive_minimum, negative_maximum = bands
     ranks = {
         model_id: contract.polarity_scores[analysis.get("polarite")]
         for model_id, analysis in analyses.items()
@@ -163,6 +189,62 @@ def flip_dissenters(
     if len(negative) == 1:
         dissenters[negative[0]] = FLIP_NEGATIVE
     return dissenters
+
+
+@dataclass(frozen=True)
+class FrameSummary:
+    """What the second judge's dry run reports about its frame before any spend."""
+
+    frame: int
+    in_published_frame: int
+    recused_only: int
+    recused_only_sole_negative: int
+    recused_only_sole_positive: int
+
+
+def flips_over(row: dict, model_ids: Sequence[str], contract: SentimentContract = CONTRACT) -> bool:
+    """Whether ``model_ids`` alone, out of a frame row's analyses, show a valence flip."""
+    return has_polarity_valence_flip(
+        [row["analyses"][model_id] for model_id in model_ids], contract
+    )
+
+
+def classify_frame(
+    rows: list[dict], contract: SentimentContract = CONTRACT
+) -> tuple[list[dict], list[dict], FrameSummary]:
+    """Mark each frame row with its flip's sole dissenters; split off the recused-only rows.
+
+    A row is *recused-only* when it flips over the whole generation but not over
+    the published arbiter's panel: the flip exists only because of a model that
+    arbiter recused (for the Opus run, Haiku alone on its side of the line).
+    Those are the flips the published run structurally could not reach. The
+    sole-negative/positive split says which side the recused model was on.
+    """
+    published_recused = set(contract.arbiter_recused_ids)
+    published_panel = list(contract.arbiter_model_ids)
+    marked: list[dict] = []
+    recused_only: list[dict] = []
+    sole_negative = sole_positive = 0
+    for row in rows:
+        row = {**row, "flip_dissenters": flip_dissenters(row["analyses"], contract)}
+        marked.append(row)
+        if flips_over(row, published_panel, contract):
+            continue
+        recused_only.append(row)
+        sides = {row["flip_dissenters"].get(model_id) for model_id in published_recused}
+        sole_negative += FLIP_NEGATIVE in sides
+        sole_positive += FLIP_POSITIVE in sides
+    return (
+        marked,
+        recused_only,
+        FrameSummary(
+            frame=len(marked),
+            in_published_frame=len(marked) - len(recused_only),
+            recused_only=len(recused_only),
+            recused_only_sole_negative=sole_negative,
+            recused_only_sole_positive=sole_positive,
+        ),
+    )
 
 
 def project_to_panel(
@@ -209,6 +291,23 @@ def attach_full_text(articles: list[dict], texts: dict[str, str]) -> tuple[list[
             continue
         kept.append({**article, "OCR": text})
     return kept, missing
+
+
+def check_text_coverage(missing: Sequence[str], framed: int) -> None:
+    """Refuse a text join that missed more than a handful of articles.
+
+    A few articles may genuinely be empty in the mirror; they are dropped and
+    reported. A miss above ``MAX_MISSING_TEXT_SHARE`` of the frame means the two
+    sources do not line up (wrong revision, id type drift) and is an error, not
+    a warning followed by a publication with the frame silently emptied.
+    """
+    allowed = max(1, int(framed * MAX_MISSING_TEXT_SHARE))
+    if len(missing) > allowed:
+        raise TextJoinError(
+            f"{len(missing)} of {framed} selected articles have no text in the private mirror "
+            f"(at most {allowed} tolerated; e.g. {', '.join(list(missing)[:5])}). Check that the "
+            "score and text revisions belong together before spending or publishing."
+        )
 
 
 def selection_magnitude(article: dict, dimensions: Sequence[str]) -> int:

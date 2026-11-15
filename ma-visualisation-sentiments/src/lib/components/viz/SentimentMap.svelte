@@ -41,6 +41,7 @@
 	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
 	import { onMount } from 'svelte';
 	import { dec, num } from '#lib/i18n/utils.js';
+	import { LOW_N_THRESHOLD } from '#lib/utils/stats.js';
 	// Side effect only, and first on purpose: calls `setWorkerUrl()` with a
 	// Vite-built worker chunk. See the header comment — without it v6 renders a
 	// blank canvas and reports nothing.
@@ -72,7 +73,7 @@
 	import EmptyState from '#lib/components/common/EmptyState.svelte';
 	import ResourceLoadError from '#lib/components/common/ResourceLoadError.svelte';
 	import ChartDataTable from '#lib/components/common/ChartDataTable.svelte';
-	import MapLegend from './MapLegend.svelte';
+	import MapLegend, { BUBBLE_OPACITY, BUBBLE_OPACITY_LOW_N } from './MapLegend.svelte';
 
 	const PLACE_SOURCE = 'iwac-places';
 	const WORLD_SOURCE = 'iwac-world';
@@ -158,7 +159,9 @@
 				// which dimension is showing. MapLibre expressions cannot branch on
 				// null, so unscored places get the sentinel `circleColorExpression`
 				// tests for explicitly.
-				mean: place.stats[viewOptionsState.mapDimension].mean ?? UNSCORED_MEAN
+				mean: place.stats[viewOptionsState.mapDimension].mean ?? UNSCORED_MEAN,
+				// How many articles the mean rests on, for the low-n fade below.
+				scored: place.stats[viewOptionsState.mapDimension].scored
 			}
 		}))
 	});
@@ -167,6 +170,50 @@
 	// see that module for why they are not written inline here.
 	const radiusExpression = $derived(circleRadiusExpression(maxCount));
 	const colorExpression = $derived(circleColorExpression(viewOptionsState.mapDimension));
+
+	/**
+	 * Hover identification. Click opens the full popup (and is citable); a
+	 * hover readout names the bubble under the pointer without committing to
+	 * it. The map style carries no glyphs endpoint (the app ships no glyph
+	 * server and loads nothing third-party), so MapLibre cannot draw text
+	 * labels; this HTML overlay is the label instead.
+	 */
+	let hovered = $state<{ title: string; count: number; x: number; y: number } | null>(null);
+
+	function onPlaceHover(event: MapLayerMouseEvent) {
+		const feature = event.features?.[0];
+		if (!feature) return;
+		event.target.getCanvas().style.cursor = 'pointer';
+		hovered = {
+			title: String(feature.properties?.title ?? ''),
+			count: Number(feature.properties?.count ?? 0),
+			x: event.point.x,
+			y: event.point.y
+		};
+	}
+
+	function onPlaceLeave(event: MapLayerMouseEvent) {
+		event.target.getCanvas().style.cursor = '';
+		hovered = null;
+	}
+
+	// Dimension tabs: roving tabindex with arrow keys, Home and End, the
+	// same keyboard contract as the agreement view's tabs.
+	let tabButtons = $state<HTMLButtonElement[]>([]);
+	function onTabKeydown(event: KeyboardEvent, index: number) {
+		const last = MAP_DIMENSIONS.length - 1;
+		let next = -1;
+		if (event.key === 'ArrowRight' || event.key === 'ArrowDown')
+			next = index === last ? 0 : index + 1;
+		else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp')
+			next = index === 0 ? last : index - 1;
+		else if (event.key === 'Home') next = 0;
+		else if (event.key === 'End') next = last;
+		if (next === -1) return;
+		event.preventDefault();
+		viewOptionsState.mapDimension = MAP_DIMENSIONS[next];
+		tabButtons[next]?.focus();
+	}
 
 	function onPlaceClick(event: MapLayerMouseEvent) {
 		const feature = event.features?.[0];
@@ -197,13 +244,19 @@
 		<DetailLinkNotice onClose={() => (viewOptionsState.placeId = 0)} />
 	{/if}
 	<div class="dimension-tabs" role="tablist" aria-label={$t.agreement.dimensionSelector}>
-		{#each MAP_DIMENSIONS as option (option)}
+		{#each MAP_DIMENSIONS as option, index (option)}
 			<button
+				bind:this={tabButtons[index]}
+				type="button"
 				role="tab"
+				id="map-tab-{option}"
+				aria-controls="map-panel"
 				class="dimension-tab"
 				data-active={viewOptionsState.mapDimension === option}
 				aria-selected={viewOptionsState.mapDimension === option}
+				tabindex={viewOptionsState.mapDimension === option ? 0 : -1}
 				onclick={() => (viewOptionsState.mapDimension = option)}
+				onkeydown={(event) => onTabKeydown(event, index)}
 			>
 				{dimensionLabels[option]}
 			</button>
@@ -217,67 +270,98 @@
 	{:else if aggregates.length === 0}
 		<EmptyState title={$t.map.noPlacesTitle} lede={$t.map.noPlacesLede} />
 	{:else}
-		<MapLibre
-			bind:map
-			onload={() => (mapReady = true)}
-			onmoveend={saveCamera}
-			class="map-canvas"
-			autoloadGlobalCss={false}
-			attributionControl={false}
-			bounds={WORLD_BOUNDS}
-			maxZoom={9}
-			minZoom={0.6}
-			dragRotate={false}
-			style={{ version: 8, sources: {}, layers: [] }}
+		<div
+			id="map-panel"
+			class="map-frame"
+			role="tabpanel"
+			aria-labelledby="map-tab-{viewOptionsState.mapDimension}"
+			aria-describedby="map-keyboard-note"
 		>
-			<NavigationControl position="top-right" showCompass={false} />
+			<MapLibre
+				bind:map
+				onload={() => (mapReady = true)}
+				onmoveend={saveCamera}
+				class="map-canvas"
+				autoloadGlobalCss={false}
+				attributionControl={false}
+				bounds={WORLD_BOUNDS}
+				maxZoom={9}
+				minZoom={0.6}
+				dragRotate={false}
+				style={{ version: 8, sources: {}, layers: [] }}
+			>
+				<NavigationControl position="top-right" showCompass={false} />
 
-			<BackgroundLayer paint={{ 'background-color': '#101720' }} />
+				<BackgroundLayer paint={{ 'background-color': '#101720' }} />
 
-			<GeoJSONSource id={WORLD_SOURCE} data={world}>
-				<FillLayer paint={{ 'fill-color': '#1B2531' }} />
-				<LineLayer paint={{ 'line-color': '#2C3644', 'line-width': 0.5 }} />
-			</GeoJSONSource>
+				<GeoJSONSource id={WORLD_SOURCE} data={world}>
+					<FillLayer paint={{ 'fill-color': '#1B2531' }} />
+					<LineLayer paint={{ 'line-color': '#2C3644', 'line-width': 0.5 }} />
+				</GeoJSONSource>
 
-			<GeoJSONSource id={PLACE_SOURCE} data={points}>
-				<CircleLayer
-					paint={{
-						'circle-radius': radiusExpression,
-						'circle-color': colorExpression,
-						'circle-opacity': 0.75,
-						'circle-stroke-width': 1,
-						'circle-stroke-color': '#0A0D12',
-						'circle-stroke-opacity': 0.8
-					}}
-					onclick={onPlaceClick}
-					onmouseenter={(e) => (e.target.getCanvas().style.cursor = 'pointer')}
-					onmouseleave={(e) => (e.target.getCanvas().style.cursor = '')}
-				/>
-			</GeoJSONSource>
+				<GeoJSONSource id={PLACE_SOURCE} data={points}>
+					<CircleLayer
+						paint={{
+							'circle-radius': radiusExpression,
+							'circle-color': colorExpression,
+							// A bubble whose mean rests on fewer rated articles than the shared
+							// floor is faded: its size (a count) is exact, its colour is not.
+							'circle-opacity': [
+								'case',
+								['<', ['get', 'scored'], LOW_N_THRESHOLD],
+								BUBBLE_OPACITY_LOW_N,
+								BUBBLE_OPACITY
+							],
+							'circle-stroke-width': 1,
+							'circle-stroke-color': '#0A0D12',
+							'circle-stroke-opacity': 0.8
+						}}
+						onclick={onPlaceClick}
+						onmousemove={onPlaceHover}
+						onmouseleave={onPlaceLeave}
+					/>
+				</GeoJSONSource>
 
-			{#if selected && popupPosition}
-				<Popup lnglat={popupPosition} closeButton onclose={() => (viewOptionsState.placeId = 0)}>
-					<div class="place-popup">
-						<h3 class="popup-title">{selected.title}</h3>
-						<p class="popup-count">
-							{$num(selected.count)}
-							{$t.map.articlesMentioning}
-						</p>
-						<dl class="popup-stats">
-							<dt>
-								{$t.map.meanOf.replace(
-									'{dimension}',
-									dimensionLabels[viewOptionsState.mapDimension]
-								)}
-							</dt>
-							<dd>{formatMean(selectedStat?.mean ?? null)}</dd>
-							<dt>{$t.map.scoredArticles}</dt>
-							<dd>{$num(selectedStat?.scored ?? 0)}</dd>
-						</dl>
-					</div>
-				</Popup>
+				{#if selected && popupPosition}
+					<Popup lnglat={popupPosition} closeButton onclose={() => (viewOptionsState.placeId = 0)}>
+						<div class="place-popup">
+							<h3 class="popup-title">{selected.title}</h3>
+							<p class="popup-count">
+								{$num(selected.count)}
+								{$t.map.articlesMentioning}
+							</p>
+							<dl class="popup-stats">
+								<dt>
+									{$t.map.meanOf.replace(
+										'{dimension}',
+										dimensionLabels[viewOptionsState.mapDimension]
+									)}
+								</dt>
+								<dd>{formatMean(selectedStat?.mean ?? null)}</dd>
+								<dt>{$t.map.scoredArticles}</dt>
+								<dd>{$num(selectedStat?.scored ?? 0)}</dd>
+							</dl>
+						</div>
+					</Popup>
+				{/if}
+			</MapLibre>
+			{#if hovered && !selected}
+				<div
+					class="hover-readout"
+					style:left="{hovered.x}px"
+					style:top="{hovered.y}px"
+					aria-hidden="true"
+				>
+					<strong>{hovered.title}</strong>
+					<span>{$num(hovered.count)} {$t.map.articlesMentioning}</span>
+				</div>
 			{/if}
-		</MapLibre>
+		</div>
+		<!-- The bubbles have no keyboard path (WebGL features are not focusable);
+		     the data table under the map lists every place with the same
+		     numbers, and this note says so to everyone, not only to screen
+		     readers. -->
+		<p id="map-keyboard-note" class="map-caveat">{$t.map.keyboardNote}</p>
 
 		<MapLegend
 			{maxCount}
@@ -285,6 +369,7 @@
 			label={dimensionLabels[viewOptionsState.mapDimension]}
 		/>
 
+		<p class="map-caveat">{$t.map.ordinalNote.replace('{min}', $num(LOW_N_THRESHOLD))}</p>
 		<p class="map-caveat">{$t.map.caveat}</p>
 	{/if}
 </div>
@@ -356,9 +441,33 @@
 		border-color: color-mix(in oklab, var(--accent) 40%, transparent);
 	}
 
-	.dimension-tab:focus-visible {
-		outline: none;
-		box-shadow: var(--ring-focus);
+	.map-frame {
+		position: relative;
+	}
+
+	/* Follows the pointer, offset so it never sits under it. */
+	.hover-readout {
+		position: absolute;
+		z-index: var(--z-raised);
+		transform: translate(var(--space-3), calc(-100% - var(--space-2)));
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-0-5);
+		max-width: 16rem;
+		padding: var(--space-1-5) var(--space-2-5);
+		pointer-events: none;
+		font-size: var(--font-size-xs);
+		line-height: var(--line-height-snug);
+		color: var(--text-secondary);
+		background: var(--surface-card-elevated);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-hairline);
+		box-shadow: var(--elevation-sticky);
+	}
+
+	.hover-readout strong {
+		color: var(--text-primary);
+		font-weight: var(--font-weight-semibold);
 	}
 
 	.map-shell :global(.map-canvas) {

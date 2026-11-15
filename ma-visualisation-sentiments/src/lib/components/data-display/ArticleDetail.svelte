@@ -4,11 +4,12 @@
 	import { getArticleUrl } from '#lib/utils/format.js';
 	import { t } from '#lib/i18n/index.js';
 	import { fmtDate } from '#lib/i18n/utils.js';
-	import { SentimentBadge } from '#lib/components/common/index.js';
+	import SentimentBadge from '#lib/components/common/SentimentBadge.svelte';
 	import EmptyState from '#lib/components/common/EmptyState.svelte';
 	import IIIFViewer from '#lib/components/viz/IIIFViewer.svelte';
 	import { untrack } from 'svelte';
-	import { loadJustifications, justificationsOf } from '#lib/stores/index.js';
+	import { loadJustifications, justificationsOf, datasetState } from '#lib/stores/index.js';
+	import PanelRatingsStrip from '#lib/components/common/PanelRatingsStrip.svelte';
 
 	let { article }: { article: Article | null } = $props();
 
@@ -28,11 +29,20 @@
 	});
 
 	const prose = $derived(justificationsOf(article?.sentiment_analysis));
+
+	// The corpus is French and the models were prompted in French, so titles and
+	// justifications are French whatever the interface language. The base
+	// records carry no language field, hence the constant.
+	const CONTENT_LANG = 'fr';
+
+	const modelName = $derived(
+		article ? (datasetState.getById(article.dataset_id)?.name ?? article.dataset_id) : ''
+	);
 </script>
 
 {#if article}
 	<div class="space-y-6">
-		<h3 class="article-detail-title">
+		<h3 class="article-detail-title" lang={CONTENT_LANG}>
 			{article['o:title'] ?? $t.article.titleNotAvailable}
 		</h3>
 
@@ -65,6 +75,13 @@
 			</p>
 		</div>
 
+		<!-- Every model of the article's generation, before one model's reasons. -->
+		<PanelRatingsStrip {article} />
+
+		<h4 class="model-reading-title">
+			{$t.panelRatings.modelReading.replace('{model}', modelName)}
+		</h4>
+
 		{#if article.sentiment_analysis}
 			<!-- Centralité -->
 			<section class="dimension-section centrality-section">
@@ -80,7 +97,7 @@
 				{#if prose.centrality}
 					<div class="justification-block">
 						<span class="justification-label">{$t.article.justification}</span>
-						<blockquote class="justification">
+						<blockquote class="justification" lang={CONTENT_LANG}>
 							{prose.centrality}
 						</blockquote>
 					</div>
@@ -97,7 +114,7 @@
 				{#if prose.polarity}
 					<div class="justification-block">
 						<span class="justification-label">{$t.article.justification}</span>
-						<blockquote class="justification">
+						<blockquote class="justification" lang={CONTENT_LANG}>
 							{prose.polarity}
 						</blockquote>
 					</div>
@@ -118,7 +135,7 @@
 				{#if prose.subjectivity}
 					<div class="justification-block">
 						<span class="justification-label">{$t.article.justification}</span>
-						<blockquote class="justification">
+						<blockquote class="justification" lang={CONTENT_LANG}>
 							{prose.subjectivity}
 						</blockquote>
 					</div>
@@ -137,13 +154,29 @@
 <style>
 	.article-detail-title {
 		font-family: var(--font-display);
-		font-size: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
+		font-size: var(--font-size-xl);
 		font-weight: 600;
 		line-height: 1.15;
 		color: var(--text-primary);
 		letter-spacing: var(--tracking-snug);
 		margin: 0;
 		max-width: 60ch;
+	}
+
+	.model-reading-title {
+		font-family: var(--font-mono);
+		font-size: var(--font-size-eyebrow);
+		font-weight: var(--font-weight-semibold);
+		text-transform: uppercase;
+		letter-spacing: var(--tracking-wider);
+		color: var(--text-muted);
+		margin: 0;
+	}
+
+	@media (min-width: 640px) {
+		.article-detail-title {
+			font-size: var(--font-size-2xl);
+		}
 	}
 
 	.article-meta-card {

@@ -50,7 +50,14 @@
 </script>
 
 {#if row}
-	<FullScreenModal {open} {onClose} {title} {subtitle} accentVariant="arbiter">
+	<FullScreenModal
+		{open}
+		{onClose}
+		{title}
+		titleLang={row.title ? 'fr' : undefined}
+		{subtitle}
+		accentVariant="arbiter"
+	>
 		{#snippet headerIcon()}
 			<ScaleIcon size={20} />
 		{/snippet}

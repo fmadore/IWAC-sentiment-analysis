@@ -3,11 +3,18 @@
   
   Displays key statistics for arbiter evaluations as a grid of cards.
   Shows total evaluations, model preferences, and agreement rates.
+
+  The lead is kept as a number and formatted only for display: it used to be
+  the locale-formatted string itself, and `Number("12,3")` is NaN, so the lead
+  line never rendered in French, the default language.
 -->
 <script lang="ts">
 	import type { ArbiterStatistics } from '#lib/stores/index.js';
 	import { dec, num, pct } from '#lib/i18n/utils.js';
-	import { datasetState } from '#lib/stores/index.js';
+	import { datasetState } from '#lib/stores/datasets.svelte.js';
+	import ShareBar from '#lib/components/common/ShareBar.svelte';
+	import StatCard from '#lib/components/common/StatCard.svelte';
+	import { leadPoints } from '#lib/utils/arbiter.js';
 	import { t } from '#lib/i18n/index.js';
 	import { asset } from '$app/paths';
 	import type { AssetPath } from '$app/types';
@@ -29,6 +36,10 @@
 		return dataset?.logo ?? null;
 	}
 
+	function getModelColor(modelName: string): string | undefined {
+		return datasetState.available.find((d) => d.name === modelName)?.color;
+	}
+
 	// Derived model logos
 	const modelALogo = $derived(getModelLogo(modelAName));
 	const modelBLogo = $derived(getModelLogo(modelBName));
@@ -42,133 +53,106 @@
 				: null
 	);
 
-	const leadPercentage = $derived(
-		$dec(Math.abs(stats.modelAPercentage - stats.modelBPercentage), 1)
-	);
+	/** Percentage points between the two preference shares; numeric, formatted at render. */
+	const lead = $derived(leadPoints(stats.modelAPercentage, stats.modelBPercentage));
 </script>
 
 <div class="stats-grid">
-	<!-- Total Evaluations -->
-	<div class="stat-card">
-		<div class="stat-icon evaluations">
-			<BarChart3Icon size={20} />
-		</div>
-		<div class="stat-content">
-			<div class="stat-value">{$num(stats.totalEvaluated)}</div>
-			<div class="stat-label">{$t.arbiter.articlesEvaluated}</div>
-		</div>
-	</div>
+	<StatCard
+		layout="inline"
+		label={$t.arbiter.articlesEvaluated}
+		value={$num(stats.totalEvaluated)}
+		accent="neutral"
+	>
+		{#snippet icon()}<BarChart3Icon size={20} />{/snippet}
+	</StatCard>
 
-	<!-- Model A Wins -->
-	<div class="stat-card">
-		<div class="stat-icon model-a">
-			{#if modelALogo}
-				<img src={asset(modelALogo)} alt={modelAName} class="model-logo" />
-			{/if}
-		</div>
-		<div class="stat-content">
-			<div class="stat-value">{$num(stats.modelAPreferred)}</div>
-			<div class="stat-label">{modelAName} {$t.arbiter.preferred}</div>
-			<div class="stat-percentage">{$pct(stats.modelAPercentage / 100, 1)}</div>
-		</div>
-	</div>
+	<StatCard
+		layout="inline"
+		label="{modelAName} {$t.arbiter.preferred}"
+		value={$num(stats.modelAPreferred)}
+		detail={$pct(stats.modelAPercentage / 100, 1)}
+		accent="neutral"
+		iconAccent="positive"
+	>
+		{#snippet icon()}
+			{#if modelALogo}<img src={asset(modelALogo)} alt={modelAName} />{/if}
+		{/snippet}
+	</StatCard>
 
-	<!-- Model B Wins -->
-	<div class="stat-card">
-		<div class="stat-icon model-b">
-			{#if modelBLogo}
-				<img src={asset(modelBLogo)} alt={modelBName} class="model-logo" />
-			{/if}
-		</div>
-		<div class="stat-content">
-			<div class="stat-value">{$num(stats.modelBPreferred)}</div>
-			<div class="stat-label">{modelBName} {$t.arbiter.preferred}</div>
-			<div class="stat-percentage">{$pct(stats.modelBPercentage / 100, 1)}</div>
-		</div>
-	</div>
+	<StatCard
+		layout="inline"
+		label="{modelBName} {$t.arbiter.preferred}"
+		value={$num(stats.modelBPreferred)}
+		detail={$pct(stats.modelBPercentage / 100, 1)}
+		accent="neutral"
+		iconAccent="alternate"
+	>
+		{#snippet icon()}
+			{#if modelBLogo}<img src={asset(modelBLogo)} alt={modelBName} />{/if}
+		{/snippet}
+	</StatCard>
 
-	<!-- Both Equal -->
-	<div class="stat-card">
-		<div class="stat-icon equal">
-			<ScaleIcon size={20} />
-		</div>
-		<div class="stat-content">
-			<div class="stat-value">{$num(stats.bothEqual)}</div>
-			<div class="stat-label">{$t.arbiter.bothEqual}</div>
-			<div class="stat-percentage">{$pct(stats.bothPercentage / 100, 1)}</div>
-		</div>
-	</div>
+	<StatCard
+		layout="inline"
+		label={$t.arbiter.bothEqual}
+		value={$num(stats.bothEqual)}
+		detail={$pct(stats.bothPercentage / 100, 1)}
+		accent="neutral"
+		iconAccent="arbiter"
+	>
+		{#snippet icon()}<ScaleIcon size={20} />{/snippet}
+	</StatCard>
 
-	<!-- Neither Accurate -->
-	<div class="stat-card">
-		<div class="stat-icon neither">
-			<CheckCircle2Icon size={20} />
-		</div>
-		<div class="stat-content">
-			<div class="stat-value">{$num(stats.neitherAccurate)}</div>
-			<div class="stat-label">{$t.arbiter.neitherAccurate}</div>
-			<div class="stat-percentage">{$pct(stats.neitherPercentage / 100, 1)}</div>
-		</div>
-	</div>
+	<StatCard
+		layout="inline"
+		label={$t.arbiter.neitherAccurate}
+		value={$num(stats.neitherAccurate)}
+		detail={$pct(stats.neitherPercentage / 100, 1)}
+		accent="neutral"
+		iconAccent="muted"
+	>
+		{#snippet icon()}<CheckCircle2Icon size={20} />{/snippet}
+	</StatCard>
 </div>
 
 <!-- Overall Lead Indicator -->
-{#if leadingModel && Number(leadPercentage) > 1}
+{#if leadingModel && lead > 1}
 	{@const leadingLogo = getModelLogo(leadingModel)}
 	<div class="lead-indicator mt-4">
 		{#if leadingLogo}
-			<img src={asset(leadingLogo)} alt={leadingModel} class="lead-logo" />
+			<img src={asset(leadingLogo)} alt="" class="lead-logo" />
 		{/if}
 		<span class="lead-text">
-			<strong>{leadingModel}</strong> leads by <strong>{leadPercentage}%</strong> in overall preferences
+			{$t.arbiter.leadNote.replace('{model}', leadingModel).replace('{points}', $dec(lead, 1))}
 		</span>
 	</div>
 {/if}
 
 <!-- Head-to-Head Comparison Bar (based on overall_winner per article) -->
 {#if stats.overallModelAWins + stats.overallModelBWins > 0}
-	{@const totalDecisive = stats.overallModelAWins + stats.overallModelBWins}
-	{@const modelAPercent = (stats.overallModelAWins / totalDecisive) * 100}
-	{@const modelBPercent = (stats.overallModelBWins / totalDecisive) * 100}
 	<div class="comparison-section mt-4">
 		<div class="comparison-header">
 			<span class="comparison-title">{$t.arbiter.headToHead}</span>
 			<span class="comparison-subtitle">{$t.arbiter.excludingTies}</span>
 		</div>
-		<div class="comparison-bar-container">
-			<div class="comparison-labels">
-				<div class="model-label model-a-label">
-					{#if modelALogo}
-						<img src={asset(modelALogo)} alt={modelAName} class="comparison-logo" />
-					{/if}
-					<span>{modelAName}</span>
-					<strong>{$pct(modelAPercent / 100, 1)}</strong>
-				</div>
-				<div class="model-label model-b-label">
-					<strong>{$pct(modelBPercent / 100, 1)}</strong>
-					<span>{modelBName}</span>
-					{#if modelBLogo}
-						<img src={asset(modelBLogo)} alt={modelBName} class="comparison-logo" />
-					{/if}
-				</div>
-			</div>
-			<div class="comparison-bar">
-				<div
-					class="bar-segment model-a-segment"
-					style="width: {modelAPercent}%"
-					title="{modelAName}: {stats.overallModelAWins} ({$pct(modelAPercent / 100, 1)})"
-				></div>
-				<div
-					class="bar-segment model-b-segment"
-					style="width: {modelBPercent}%"
-					title="{modelBName}: {stats.overallModelBWins} ({$pct(modelBPercent / 100, 1)})"
-				></div>
-			</div>
-			<div class="comparison-counts">
-				<span class="count model-a-count">{stats.overallModelAWins} {$t.arbiter.wins}</span>
-				<span class="count model-b-count">{stats.overallModelBWins} {$t.arbiter.wins}</span>
-			</div>
-		</div>
+		<ShareBar
+			label={$t.arbiter.headToHead}
+			segments={[
+				{
+					key: 'model-a',
+					label: `${modelAName} — ${$t.arbiter.wins}`,
+					count: stats.overallModelAWins,
+					color: getModelColor(modelAName)
+				},
+				{
+					key: 'model-b',
+					label: `${modelBName} — ${$t.arbiter.wins}`,
+					count: stats.overallModelBWins,
+					color: getModelColor(modelBName)
+				}
+			]}
+		/>
 	</div>
 {/if}
 
@@ -177,96 +161,6 @@
 		display: grid;
 		grid-template-columns: repeat(2, 1fr);
 		gap: var(--space-4);
-	}
-
-	.stat-card {
-		display: flex;
-		align-items: flex-start;
-		gap: var(--space-4);
-		padding: var(--pad-card-compact);
-		background: var(--surface-card);
-		border: 1px solid var(--border-subtle);
-		transition: border-color var(--timing-fast) var(--easing-default);
-	}
-
-	.stat-card:hover {
-		border-color: var(--border-hover);
-	}
-
-	.stat-icon {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: var(--size-control-md);
-		height: var(--size-control-md);
-		flex-shrink: 0;
-	}
-
-	.stat-icon.evaluations {
-		background: var(--sentiment-polarity-neutral-bg);
-		color: var(--sentiment-polarity-neutral);
-		border: 1px solid var(--sentiment-polarity-neutral-border);
-	}
-
-	.stat-icon.model-a {
-		background: var(--sentiment-polarity-very-positive-bg);
-		color: var(--sentiment-polarity-very-positive);
-		border: 1px solid var(--sentiment-polarity-very-positive-border);
-	}
-
-	.stat-icon.model-b {
-		background: var(--sentiment-subjectivity-3-bg);
-		color: var(--sentiment-subjectivity-3);
-		border: 1px solid var(--sentiment-subjectivity-3-border);
-	}
-
-	.stat-icon.equal {
-		background: var(--sentiment-arbiter-bg);
-		color: var(--sentiment-arbiter-light);
-		border: 1px solid var(--sentiment-arbiter-border);
-	}
-
-	.stat-icon.neither {
-		background: var(--sentiment-polarity-na-bg);
-		color: var(--sentiment-polarity-na);
-		border: 1px solid var(--sentiment-polarity-na-border);
-	}
-
-	.model-logo {
-		width: var(--size-icon-md);
-		height: var(--size-icon-md);
-		object-fit: contain;
-	}
-
-	.stat-content {
-		flex: 1;
-		min-width: 0;
-	}
-
-	.stat-value {
-		font-family: var(--font-display);
-		font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem);
-		font-weight: 600;
-		font-variant-numeric: tabular-nums;
-		color: var(--text-primary);
-		line-height: 1;
-		letter-spacing: var(--tracking-tight);
-	}
-
-	.stat-label {
-		font-family: var(--font-mono);
-		font-size: var(--font-size-eyebrow);
-		font-weight: 600;
-		letter-spacing: var(--tracking-widest);
-		text-transform: uppercase;
-		color: var(--text-muted);
-		margin-top: var(--space-2);
-	}
-
-	.stat-percentage {
-		font-size: var(--font-size-xs);
-		color: var(--text-subtle);
-		margin-top: var(--space-1);
 	}
 
 	.lead-indicator {
@@ -288,10 +182,6 @@
 	.lead-text {
 		font-size: var(--font-size-base);
 		color: var(--text-secondary);
-	}
-
-	.lead-text strong {
-		color: var(--sentiment-arbiter-light);
 	}
 
 	.comparison-section {
@@ -316,113 +206,7 @@
 
 	.comparison-subtitle {
 		font-size: var(--font-size-xs);
-		color: var(--text-subtle);
-	}
-
-	.comparison-bar-container {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-2);
-	}
-
-	.comparison-labels {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	.model-label {
-		display: flex;
-		align-items: center;
-		gap: var(--space-2);
-		font-size: var(--font-size-sm);
-	}
-
-	/* The model's name is hidden until the card is wide enough to carry it;
-	   the logo beside it identifies the model on its own until then. */
-	.model-label span {
-		display: none;
-	}
-
-	@media (min-width: 640px) {
-		.model-label span {
-			display: inline;
-		}
-	}
-
-	.model-a-label {
-		color: var(--sentiment-polarity-very-positive);
-	}
-
-	.model-a-label strong {
-		font-weight: var(--font-weight-bold);
-		font-size: var(--font-size-lg);
-	}
-
-	.model-b-label {
-		color: var(--sentiment-subjectivity-3);
-	}
-
-	.model-b-label strong {
-		font-weight: var(--font-weight-bold);
-		font-size: var(--font-size-lg);
-	}
-
-	.comparison-logo {
-		width: 18px;
-		height: 18px;
-		object-fit: contain;
-	}
-
-	.comparison-bar {
-		display: flex;
-		height: var(--size-icon-md);
-		border-radius: var(--radius-panel);
-		overflow: hidden;
-		background: var(--surface-muted);
-	}
-
-	.bar-segment {
-		height: 100%;
-		position: relative;
-	}
-
-	.bar-segment:first-child {
-		border-radius: var(--radius-panel) 0 0 var(--radius-panel);
-	}
-
-	.bar-segment:last-child {
-		border-radius: 0 var(--radius-panel) var(--radius-panel) 0;
-	}
-
-	.model-a-segment {
-		background: var(--sentiment-polarity-very-positive);
-	}
-
-	.model-b-segment {
-		background: var(--sentiment-subjectivity-3);
-	}
-
-	.comparison-counts {
-		display: flex;
-		justify-content: space-between;
-	}
-
-	.count {
-		font-size: var(--font-size-xs);
 		color: var(--text-muted);
-	}
-
-	.model-a-count {
-		color: color-mix(
-			in oklab,
-			var(--sentiment-polarity-very-positive) 70%,
-			var(--color-surface-50)
-		);
-	}
-
-	.model-b-count {
-		color: color-mix(in oklab, var(--sentiment-subjectivity-3) 70%, var(--color-surface-50));
 	}
 
 	@media (min-width: 640px) {
@@ -430,26 +214,8 @@
 			grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 		}
 
-		.stat-card {
-			padding: var(--pad-card);
-		}
-
-		.model-logo {
-			width: var(--size-icon-lg);
-			height: var(--size-icon-lg);
-		}
-
 		.comparison-section {
 			padding: var(--pad-card);
-		}
-
-		.comparison-bar {
-			height: var(--size-icon-lg);
-		}
-
-		.comparison-logo {
-			width: var(--size-icon-md);
-			height: var(--size-icon-md);
 		}
 	}
 </style>

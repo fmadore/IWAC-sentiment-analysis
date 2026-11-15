@@ -30,8 +30,22 @@ HF_INDEX_PARQUET_FILENAME = "index/train-00000-of-00001.parquet"
 INDEX_TYPE_PLACE = "Lieux"
 IWAC_ITEM_URL_BASE = "https://islam.zmo.de/s/afrique_ouest/item/"
 _COORD_RE = re.compile(r"\s*(-?\d+(?:\.\d+)?)[,;\s]+(-?\d+(?:\.\d+)?)\s*$")
+# Compatibility record of the latest load, kept only for the CLI scripts that
+# still ask `get_source_revision()` after `load_iwac_dataset()` (data-fetch and
+# the frozen v1 arbiter). New callers use the `*_source` loaders, which return
+# the revision with the data instead of leaving it in module state.
 _last_source_revision: str | None = None
 _revisions_by_repo: dict[str, str | None] = {}
+
+
+class SourceScopeError(SystemExit, ValueError):
+    """The live corpus and the published article base disagree.
+
+    A domain error library callers catch as ``ValueError``. It still derives from
+    ``SystemExit`` so the legacy scripts that let it propagate (data-fetch,
+    extreme-analysis, places-export) keep exiting with the message rather than a
+    traceback.
+    """
 
 
 def get_logger(name: str) -> logging.Logger:
@@ -138,28 +152,54 @@ def _load_subset(
     repo_id: str = HF_REPO_ID,
     token: str | None = None,
 ) -> pd.DataFrame:
-    # Compatibility facade for existing CLI consumers; new callers can retain
-    # SourceResult directly instead of consulting last-load provenance.
+    # Compatibility facade for existing CLI consumers; new callers retain the
+    # SourceResult instead of consulting last-load provenance.
+    return _remember(load_source(config, direct_filename, repo_id, token)).data
+
+
+def _remember(result: SourceResult) -> SourceResult:
+    """Record ``result`` for the legacy `get_source_revision()` callers."""
     global _last_source_revision
-    result = load_source(config, direct_filename, repo_id, token)
     _last_source_revision = result.revision
     _revisions_by_repo[result.repository] = result.revision
-    return result.data
+    return result
+
+
+def load_iwac_dataset_source(
+    contract: SentimentContract = CONTRACT_V1, revision: str | None = None
+) -> SourceResult:
+    """The public projection, normalized, with the immutable revision it came from.
+
+    ``revision`` is a branch, tag or sha; ``None`` falls back to
+    ``IWAC_HF_REVISION`` and then upstream HEAD (see `load_source`).
+    """
+    result = load_source("articles", HF_PARQUET_FILENAME, revision=revision)
+    df = contract.normalize_sentiment_columns(result.data)
+    validate_columns(df, contract.sentiment_columns)
+    return _remember(SourceResult(data=df, repository=result.repository, revision=result.revision))
 
 
 def load_iwac_dataset(contract: SentimentContract = CONTRACT_V1) -> pd.DataFrame:
-    df = contract.normalize_sentiment_columns(_load_subset("articles", HF_PARQUET_FILENAME))
-    validate_columns(df, contract.sentiment_columns)
-    return df
+    return load_iwac_dataset_source(contract).data
 
 
-def load_iwac_full_text() -> dict[str, str]:
-    """Return ``o:id -> OCR`` from the private mirror, which masks nothing.
+@dataclass(frozen=True)
+class TextSource:
+    """``o:id -> OCR`` from the private mirror, with the revision it was read at."""
+
+    texts: dict[str, str]
+    repository: str
+    revision: str
+
+
+def load_iwac_full_text_source(revision: str | None = None) -> TextSource:
+    """Return the private mirror's unmasked text and its immutable revision.
 
     The public projection blanks ``OCR`` per row by ``OCR_is_public``, so about
     two fifths of articles carry no text there. Anything that reasons over the
     article itself (the arbiter) must read the full mirror instead of silently
-    working from an empty string. Requires ``HF_TOKEN``.
+    working from an empty string. Requires ``HF_TOKEN``. ``revision`` falls back
+    to ``IWAC_HF_FULL_REVISION`` and then upstream HEAD.
     """
     token = os.getenv("HF_TOKEN")
     if not token:
@@ -167,7 +207,12 @@ def load_iwac_full_text() -> dict[str, str]:
             "HF_TOKEN is required to read the private mirror "
             f"{HF_FULL_REPO_ID}; the public projection masks article text per row."
         )
-    df = _load_subset("articles", HF_PARQUET_FILENAME, repo_id=HF_FULL_REPO_ID, token=token)
+    result = _remember(
+        load_source(
+            "articles", HF_PARQUET_FILENAME, repo_id=HF_FULL_REPO_ID, token=token, revision=revision
+        )
+    )
+    df = result.data
     validate_columns(df, ["o:id", "OCR"])
     texts: dict[str, str] = {}
     for article_id, ocr in zip(df["o:id"], df["OCR"], strict=True):
@@ -175,7 +220,12 @@ def load_iwac_full_text() -> dict[str, str]:
         text = safe_str(ocr)
         if key and text:
             texts[key] = text
-    return texts
+    return TextSource(texts=texts, repository=result.repository, revision=result.revision)
+
+
+def load_iwac_full_text() -> dict[str, str]:
+    """Compatibility wrapper: the texts of `load_iwac_full_text_source` at HEAD."""
+    return load_iwac_full_text_source().texts
 
 
 def load_iwac_index() -> pd.DataFrame:
@@ -189,7 +239,8 @@ def load_iwac_records(contract: SentimentContract = CONTRACT_V1) -> list[dict]:
 def get_source_revision(repo_id: str | None = None) -> str | None:
     """Return the immutable HF snapshot revision used by the latest load.
 
-    Without an argument this reports the most recent load of any repository,
+    Legacy: new code reads the revision off the `SourceResult`/`TextSource` its
+    loader returned. Without an argument this reports the most recent load of any repository,
     which is what the single-source v1 scripts expect. Pass ``repo_id`` when a
     run reads from more than one repository and each revision must be recorded.
     """
@@ -327,7 +378,7 @@ def get_base_article_ids(output_dir: str | None = None) -> set[str]:
     directory = output_dir if output_dir is not None else get_webapp_data_dir()
     base_path = os.path.join(directory, BASE_FILENAME)
     if not os.path.exists(base_path):
-        raise SystemExit(
+        raise SourceScopeError(
             f"{BASE_FILENAME} is missing from {directory}. Generate it with "
             "`data-fetch.py --generation v1` before running this analysis."
         )
@@ -370,7 +421,7 @@ def restrict_to_base_articles(
         )
     elif vanished:
         sample = sorted(vanished)[:5]
-        raise SystemExit(
+        raise SourceScopeError(
             f"{len(vanished)} article(s) in {BASE_FILENAME} are gone from the Hugging "
             f"Face corpus (e.g. {sample}). The base metadata is shared with the frozen "
             "v1 files, so reconciling it is a deliberate cross-generation decision "

@@ -2,11 +2,20 @@ import type { Article } from '#lib/types/data.js';
 import { CENTRALITY_ORDER, POLARITY_ORDER } from '#lib/domain/sentimentContract.js';
 import { extractYear } from './chartAggregators';
 import { getJournalName } from './format';
+import { wilsonInterval, type ProportionInterval } from './stats';
 
 export type HistoricalMeasure = 'negative' | 'central' | 'subjective';
 export type HistoricalPeriod = 'year' | 'decade';
 export type HistoricalFacet = 'all' | 'country' | 'journal';
 export type HistoricalCohort = 'common' | 'available';
+/**
+ * Panel-level series drawn beside the per-model lines. `majority`: more than
+ * half the panel puts the article in the category; `any`: at least one model
+ * does. Both count an article once and read only articles every model rated on
+ * the dimension, whatever the cohort setting, because a majority of a partial
+ * panel is a different quantity.
+ */
+export type HistoricalPanelSeries = 'none' | 'majority' | 'any';
 
 export interface CorpusFacets {
 	countries: readonly string[];
@@ -74,9 +83,44 @@ export interface HistoricalBucket {
 	n: number[];
 	target: number[];
 	shares: Array<number | null>;
+	/** Wilson 95% interval per model, null wherever its share is null. */
+	intervals: Array<ProportionInterval | null>;
 	/** Descriptive model range, never a confidence interval. */
 	minimum: number | null;
 	maximum: number | null;
+	/** Articles every model rated (the panel series' denominator). */
+	panelN: number;
+	/** …of which the panel rule (majority or any) puts in the category. */
+	panelTarget: number;
+	/** Panel share, null below the minimum or when no panel series is asked for. */
+	panelShare: number | null;
+	panelInterval: ProportionInterval | null;
+}
+
+function emptyBucket(period: number, models: number): HistoricalBucket {
+	return {
+		period,
+		collected: 0,
+		n: Array.from({ length: models }, () => 0),
+		target: Array.from({ length: models }, () => 0),
+		shares: [],
+		intervals: [],
+		minimum: null,
+		maximum: null,
+		panelN: 0,
+		panelTarget: 0,
+		panelShare: null,
+		panelInterval: null
+	};
+}
+
+/** Whether the panel rule puts an article in the category, given every model's rating. */
+export function panelInCategory(
+	ratings: readonly boolean[],
+	rule: Exclude<HistoricalPanelSeries, 'none'>
+): boolean {
+	const inCategory = ratings.filter(Boolean).length;
+	return rule === 'any' ? inCategory > 0 : inCategory * 2 > ratings.length;
 }
 
 export interface HistoricalGroup {
@@ -95,8 +139,11 @@ export function historicalTrends(
 		facet: HistoricalFacet;
 		cohort: HistoricalCohort;
 		minimumCount: number;
+		/** Defaults to `none`, which reproduces the per-model chart exactly. */
+		panel?: HistoricalPanelSeries;
 	}
 ): { groups: HistoricalGroup[]; collected: number; undated: number; common: number } {
+	const panel = options.panel ?? 'none';
 	const base = corpusSlice(datasets[modelIds[0]] ?? [], options);
 	const maps = modelIds.map(
 		(model) => new Map((datasets[model] ?? []).map((a) => [String(a['o:id']), a]))
@@ -124,15 +171,7 @@ export function historicalTrends(
 		}
 		let bucket = group.get(period);
 		if (!bucket) {
-			bucket = {
-				period,
-				collected: 0,
-				n: modelIds.map(() => 0),
-				target: modelIds.map(() => 0),
-				shares: [],
-				minimum: null,
-				maximum: null
-			};
+			bucket = emptyBucket(period, modelIds.length);
 			group.set(period, bucket);
 		}
 		bucket.collected++;
@@ -140,7 +179,13 @@ export function historicalTrends(
 			targetRating(map.get(String(article['o:id'])), options.measure)
 		);
 		const complete = ratings.length > 0 && ratings.every((rating) => rating !== null);
-		if (complete) common++;
+		if (complete) {
+			common++;
+			if (panel !== 'none') {
+				bucket.panelN++;
+				if (panelInCategory(ratings as boolean[], panel)) bucket.panelTarget++;
+			}
+		}
 		if (options.cohort === 'common' && !complete) continue;
 		ratings.forEach((rating, index) => {
 			if (rating === null) return;
@@ -155,18 +200,17 @@ export function historicalTrends(
 	const groups = [...grouped]
 		.map(([key, group]) => {
 			const buckets = periods.map((period) => {
-				const bucket = group.get(period) ?? {
-					period,
-					collected: 0,
-					n: modelIds.map(() => 0),
-					target: modelIds.map(() => 0),
-					shares: [],
-					minimum: null,
-					maximum: null
-				};
+				const bucket = group.get(period) ?? emptyBucket(period, modelIds.length);
 				bucket.shares = bucket.n.map((n, i) =>
 					n >= options.minimumCount && n > 0 ? bucket.target[i] / n : null
 				);
+				bucket.intervals = bucket.shares.map((share, i) =>
+					share === null ? null : wilsonInterval(bucket.target[i], bucket.n[i])
+				);
+				if (panel !== 'none' && bucket.panelN >= options.minimumCount && bucket.panelN > 0) {
+					bucket.panelShare = bucket.panelTarget / bucket.panelN;
+					bucket.panelInterval = wilsonInterval(bucket.panelTarget, bucket.panelN);
+				}
 				if (bucket.shares.length && bucket.shares.every((share) => share !== null)) {
 					bucket.minimum = Math.min(...(bucket.shares as number[]));
 					bucket.maximum = Math.max(...(bucket.shares as number[]));

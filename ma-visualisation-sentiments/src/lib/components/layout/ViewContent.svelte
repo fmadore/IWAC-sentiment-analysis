@@ -21,12 +21,14 @@
 	import type { Article, ViewId } from '#lib/types/data.js';
 	import { num } from '#lib/i18n/utils.js';
 	import type { ExtremeCategory, KeywordType } from '#lib/types/extremeAnalysis.js';
-	import { t } from '#lib/i18n/index.js';
+	import { t, currentLanguage } from '#lib/i18n/index.js';
 	import { datasetState, articleState } from '#lib/stores/index.js';
+	import { viewGroupOf } from '#lib/types/data.js';
 	import { getModelDisplayName } from '#lib/utils/format.js';
 
 	// UI
-	import { CSVExportButton, ChartCard } from '#lib/components/ui/index.js';
+	import CSVExportButton from '#lib/components/ui/CSVExportButton.svelte';
+	import ChartCard from '#lib/components/ui/ChartCard.svelte';
 	import LoadingState from '#lib/components/common/LoadingState.svelte';
 
 	/**
@@ -102,9 +104,9 @@
 	 *
 	 * Every model ships one row per article, so the sample count above says
 	 * nothing about coverage — and coverage stopped being uniform when the panel
-	 * grew: Qwen3.8 27B leaves 200 articles permanently unrated on top of the 51
+	 * grew: Qwen3.8 27B leaves 200 articles permanently unrated on top of the 50
 	 * that no model rates (they are neither French nor English). "Sample ·
-	 * 12,349 articles" on its own therefore reads as a claim the data does not
+	 * 12,348 articles" on its own therefore reads as a claim the data does not
 	 * support.
 	 *
 	 * Counted over the same set the sample number describes, so the two halves
@@ -126,6 +128,33 @@
 			return String(n);
 		}
 	}
+
+	/**
+	 * The selected model's unrated articles across the whole corpus, when they
+	 * are a material share of it (more than 1%). Below that the gap is the
+	 * articles no model rates, which every model shares; above it the model
+	 * itself declined, and those declines are not a random subset — so the
+	 * figures on screen describe the articles it rated, and the reader has to
+	 * be told. Computed from the data rather than keyed to a model id, so a
+	 * future model with the same gap is caught without a code change.
+	 */
+	let unratedCaveat = $derived.by(() => {
+		if (comparisonMode || activeView === 'agreement') return null;
+		const corpus = articleState.datasets[datasetState.selected] ?? [];
+		if (corpus.length === 0) return null;
+		let unrated = 0;
+		for (const article of corpus) {
+			if (article.sentiment_analysis?.polarite == null) unrated++;
+		}
+		if (unrated / corpus.length <= 0.01) return null;
+		const share = new Intl.NumberFormat($currentLanguage, {
+			style: 'percent',
+			maximumFractionDigits: 1
+		}).format(unrated / corpus.length);
+		return $t.viewMeta.unratedCaveat
+			.replace('{count}', formatNum(unrated))
+			.replace('{share}', share);
+	});
 
 	let methodologyLine = $derived.by(() => {
 		if (comparisonMode || activeView === 'agreement') {
@@ -150,72 +179,68 @@
 		return parts.join('  ·  ');
 	});
 
+	// Spelled out rather than indexed, so the catalogue checker sees each key.
+	const groupLabels = $derived({
+		corpus: $t.navGroups.corpus,
+		model: $t.navGroups.model,
+		panel: $t.navGroups.panel
+	});
+
 	type ViewKey = Exclude<ViewId, 'arbiter'>;
 
+	// The eyebrow above each title is the view's navigation section
+	// (VIEW_META's `group`), so the title says where in the dashboard you are.
 	type ViewMeta = {
-		eyebrow: string;
 		title: string;
 		lede: string;
 	};
 
 	let viewMeta = $derived<Record<ViewKey, ViewMeta>>({
 		charts: {
-			eyebrow: $t.nav.charts,
 			title: $t.nav.charts,
 			lede: $t.charts.subtitle
 		},
 		trends: {
-			eyebrow: $t.nav.trends,
 			title: $t.nav.trends,
 			lede: $t.trends.subtitle
 		},
 		correlation: {
-			eyebrow: $t.nav.distribution,
 			title: $t.nav.distribution,
 			lede: $t.correlation.subtitle
 		},
 		volume: {
-			eyebrow: $t.nav.volume,
 			title: $t.nav.volume,
 			lede: $t.volume.subtitle
 		},
 		seasonality: {
-			eyebrow: $t.nav.seasonality,
 			title: $t.seasonality.title,
 			lede: $t.seasonality.subtitle
 		},
 		heatmap: {
-			eyebrow: $t.nav.heatmap,
 			title: $t.nav.heatmap,
 			lede: $t.heatmap.subtitle
 		},
 		ranking: {
-			eyebrow: $t.nav.ranking,
 			title: $t.ranking.title,
 			lede: $t.ranking.subtitle
 		},
 		map: {
-			eyebrow: $t.nav.map,
 			title: $t.map.title,
 			lede: $t.map.subtitle
 		},
 		table: {
-			eyebrow: $t.table.title,
 			title: $t.table.title,
 			lede: $t.table.subtitle
 		},
 		agreement: {
-			eyebrow: $t.nav.agreement,
 			title: $t.agreement.title,
 			lede: $t.agreement.subtitle
 		},
 		comparison: {
-			eyebrow: $t.nav.comparison,
 			title: $t.nav.comparison,
 			lede: $t.comparison.subtitle
 		},
 		extremes: {
-			eyebrow: $t.extremeAnalysis.title,
 			title: $t.extremeAnalysis.title,
 			lede: $t.extremeAnalysis.subtitle
 		}
@@ -226,10 +251,17 @@
 	{@const meta = viewMeta[view]}
 	<header class="view-header">
 		<div class="view-header-text">
-			<h1 class="view-title">{meta.title}</h1>
+			<p class="view-eyebrow">{groupLabels[viewGroupOf(view)]}</p>
+			<h1 class="view-title" id="view-title">{meta.title}</h1>
 			<p class="view-lede">{meta.lede}</p>
 			{#if methodologyLine}
 				<p class="view-methodology">{methodologyLine}</p>
+			{/if}
+			{#if unratedCaveat}
+				<p class="view-caveat">
+					{unratedCaveat}
+					<a class="view-caveat-link" href="#methodology">{$t.viewMeta.unratedCaveatLink}</a>
+				</p>
 			{/if}
 		</div>
 		{#if trail}
@@ -398,6 +430,32 @@
 		border-top: 1px dashed var(--border-subtle);
 		margin: 0;
 		max-width: var(--prose-width);
+	}
+
+	/* The section the view belongs to, in the wire-ticker voice. */
+	.view-eyebrow {
+		font-family: var(--font-mono);
+		font-size: var(--font-size-eyebrow);
+		font-weight: var(--font-weight-semibold);
+		text-transform: uppercase;
+		letter-spacing: var(--tracking-wider);
+		color: var(--text-muted);
+		margin: 0 0 var(--space-2);
+	}
+
+	/* A coverage caveat, set as a footnote under the methodology rule. */
+	.view-caveat {
+		font-size: var(--font-size-sm);
+		line-height: var(--line-height-relaxed);
+		color: var(--text-secondary);
+		max-width: var(--prose-width);
+		margin: var(--space-2) 0 0;
+	}
+
+	.view-caveat-link {
+		color: var(--accent);
+		text-decoration: underline;
+		text-underline-offset: 3px;
 	}
 
 	.view-header-trail {
