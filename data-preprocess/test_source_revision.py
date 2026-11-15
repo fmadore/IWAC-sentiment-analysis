@@ -3,7 +3,7 @@
 import sys
 from types import SimpleNamespace
 
-import httpx
+import httpx2
 import pandas as pd
 import pytest
 from huggingface_hub.errors import HfHubHTTPError
@@ -34,7 +34,7 @@ def test_fallback_uses_resolved_revision_not_environment_claim(monkeypatch):
         assert kwargs["revision"] == "resolved-sha"
         raise HfHubHTTPError(
             "missing",
-            response=httpx.Response(404, request=httpx.Request("GET", "https://example.test")),
+            response=httpx2.Response(404, request=httpx2.Request("GET", "https://example.test")),
         )
 
     calls = []
