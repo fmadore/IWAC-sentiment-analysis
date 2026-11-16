@@ -63,7 +63,7 @@ CONTRACTS = {"v1": CONTRACT_V1, "v2": CONTRACT_V2}
 
 # --- The published v2 panel arbiter -------------------------------------------
 ARBITER_V2_ARTICLES = 301
-ARBITER_V2_SINGLE_WINNER = 231
+ARBITER_V2_SINGLE_WINNER = 228
 
 
 @cache

@@ -81,15 +81,15 @@ def test_the_published_run_figures():
     """The figures README and the methodology copy quote; recomputed, not copied."""
     report = position_bias_report(read_json(ARBITER_V2_FILENAME), display_order, permutations=2000)
     assert report["verdicts"] == 301
-    assert report["single_winner"] == 231
+    assert report["single_winner"] == 228
     naive = report["naive"]
-    assert naive["observed"] == [30, 57, 50, 44, 50]
-    assert naive["chi2"] == pytest.approx(8.935, abs=1e-3)
-    assert naive["p"] == pytest.approx(0.0627, abs=1e-4)
+    assert naive["observed"] == [34, 50, 49, 44, 51]
+    assert naive["chi2"] == pytest.approx(4.325, abs=1e-3)
+    assert naive["p"] == pytest.approx(0.3639, abs=1e-4)
     adjusted = report["seating_adjusted"]
-    assert adjusted["chi2"] == pytest.approx(3.826, abs=1e-3)
-    assert 0.2 < adjusted["p_permutation"] < 0.5
-    assert math.isclose(sum(adjusted["expected"]), 231, abs_tol=0.05)
+    assert adjusted["chi2"] == pytest.approx(1.893, abs=1e-3)
+    assert 0.5 < adjusted["p_permutation"] < 0.8
+    assert math.isclose(sum(adjusted["expected"]), 228, abs_tol=0.05)
 
 
 def test_the_script_runs_offline(capsys):
@@ -100,5 +100,5 @@ def test_the_script_runs_offline(capsys):
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     report = module.main(["--permutations", "200"])
-    assert report["single_winner"] == 231
-    assert "Naive: chi2 = 8.935" in capsys.readouterr().out
+    assert report["single_winner"] == 228
+    assert "Naive: chi2 = 4.325" in capsys.readouterr().out

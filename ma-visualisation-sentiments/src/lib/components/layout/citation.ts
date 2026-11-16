@@ -12,8 +12,8 @@
 export const CITATION = {
 	title: 'IWAC Sentiment Analysis Visualization',
 	author: { family: 'Madore', given: 'Frédérick' },
-	version: '5.0.0',
-	dateReleased: '2026-10-05',
+	version: '6.0.0',
+	dateReleased: '2026-11-16',
 	/** The concept DOI: resolves to the latest release. */
 	doi: '10.5281/zenodo.21806223',
 	license: 'MIT',

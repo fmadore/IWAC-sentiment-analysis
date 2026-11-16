@@ -55,12 +55,12 @@ it now reads the sizes from the contracts.
   without a pilot and shares a developer with the judge (Claude Opus 5), so the
   contract's `arbiter.recusal` keeps it away from the arbiter entirely:
   selection, prompt, blind labels (still a–e) and fingerprints run over
-  `contract.arbiter_model_ids` / `ARBITER_PANEL_IDS`, which is exactly the five
-  the published run judged. Anything that asks what the judge was shown reads
+  `contract.arbiter_model_ids` / `ARBITER_PANEL_IDS`, the five the original run
+  judged and the v2.3.0 re-run kept. Anything that asks what the judge was shown reads
   those; anything that asks how the panel rated an article reads
   `datasetIdsOf('v2')`. The verdict panel sets Haiku's rating beside the verdict,
-  unlettered. Its polarity matches the arbiter's in 192 of 301, inside the
-  others' 190–205; the 45 valence flips only Haiku creates are outside the frame
+  unlettered. Its polarity matches the arbiter's in 188 of 301, inside the
+  others' 175–206; the 45 valence flips only Haiku creates are outside the frame
   and would need a judge from another developer
 - **Recusal is derived from a judge's `developer`, never listed.** Each v2 model
   and the arbiter name a developer from the contract's `developers` registry;
@@ -97,13 +97,15 @@ it now reads the sizes from the contracts.
   every comparison mount
 - **The v2 arbiter run is published, and its frame is the dissenter's frame.**
   `iwac_arbiter_evaluations_v2.json` is the `--rule valence` run: 301 articles,
-  US$17.61 recorded in `metadata.usage`. The view's empty state only appears in
+  re-judged under prompt v2.3.0 on 2026-11-16 for US$20.33. `metadata.usage` is
+  cumulative over the durable cache (US$37.94, the v2.2.0 run's US$17.61
+  included). The view's empty state only appears in
   a build that omits the file. Its coverage note keys on
   `metadata.selection.arbiter_rule`, so a re-run under another rule changes the
   copy without a code change. Mistral Small is the only model across the
   valence line in 189 of the 301 articles (162 as the sole negative reader), and
-  the arbiter's polarity coincides with Mistral's in 37 of them against 190–205
-  for each other model — so the per-model verdict tallies measure how often the
+  the arbiter's polarity coincides with Mistral's in 40 of the 301 against
+  175–206 for each other model — so the per-model verdict tallies measure how often the
   panel's dissenter was upheld where it dissented, not the models' general
   quality. Say so when reporting one
 - **Two different rules answer "do these models disagree", and they are not
@@ -130,9 +132,10 @@ it now reads the sizes from the contracts.
   `strictLoneSplits`, `recusedOnlyFlips`, `panelUnanimity`) and pinned in
   `arbiterV2Headline.test.ts`; never type them into the catalogues
 - **Prompt versions are part of the fingerprint.** The contract's
-  `promptVersion` (v2.3.0) is the default for new runs; the published file was
-  judged under v2.2.0, which stays in `acceptedPromptVersions` so its verdicts
-  keep their fingerprints. The v2.3.0 prompt carries the annotators' codebook
+  `promptVersion` (v2.3.0) is the default and judged the published file; the
+  original run's v2.2.0 stays in `acceptedPromptVersions` so its cached verdicts
+  keep their fingerprints (republish them with `--prompt-version v2.2.0` at
+  their recorded revisions, `5629c247` / `d5c318f5`). The v2.3.0 prompt carries the annotators' codebook
   verbatim, and `arbiter-codebook-fixtures.json` (read by both languages) fails
   if the two drift. A run under another prompt replaces the public file only
   when it holds at least as many verdicts, or with `--allow-shrink`; otherwise

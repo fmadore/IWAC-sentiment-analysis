@@ -71,11 +71,11 @@ describe('match rates against the arbiter’s own rating (published run)', () =>
 
 	it.each([
 		// model, polarity exact, centrality exact, subjectivity exact
-		['luna', 191, 285, 218],
-		['mistral-small', 37, 258, 178],
-		['deepseek', 190, 284, 213],
-		['gemma', 205, 274, 191],
-		['qwen', 195, 271, 241]
+		['luna', 175, 287, 222],
+		['mistral-small', 40, 256, 175],
+		['deepseek', 190, 282, 221],
+		['gemma', 206, 274, 200],
+		['qwen', 201, 273, 239]
 	] as const)('%s', (modelId, polarity, centrality, subjectivity) => {
 		const rate = byModel[modelId];
 		expect(rate.dimensions.polarity.exact).toMatchObject({ successes: polarity, n: 301 });
@@ -88,21 +88,21 @@ describe('match rates against the arbiter’s own rating (published run)', () =>
 			(['polarity', 'centrality', 'subjectivity'] as const).map(
 				(dimension) => byModel[modelId].dimensions[dimension].withinOne.successes
 			);
-		expect(withinOne('luna')).toEqual([276, 300, 275]);
-		expect(withinOne('mistral-small')).toEqual([128, 296, 260]);
-		expect(withinOne('deepseek')).toEqual([273, 301, 276]);
-		expect(withinOne('gemma')).toEqual([293, 301, 264]);
-		expect(withinOne('qwen')).toEqual([285, 301, 287]);
+		expect(withinOne('luna')).toEqual([267, 300, 281]);
+		expect(withinOne('mistral-small')).toEqual([132, 296, 255]);
+		expect(withinOne('deepseek')).toEqual([273, 301, 274]);
+		expect(withinOne('gemma')).toEqual([293, 301, 275]);
+		expect(withinOne('qwen')).toEqual([288, 301, 278]);
 	});
 
 	it('attaches a Wilson interval that brackets the share', () => {
 		const { exact } = byModel.gemma.dimensions.polarity;
-		expect(exact.share).toBeCloseTo(205 / 301, 10);
+		expect(exact.share).toBeCloseTo(206 / 301, 10);
 		expect(exact.low).toBeLessThan(exact.share!);
 		expect(exact.high).toBeGreaterThan(exact.share!);
-		expect(exact.low).toBeCloseTo(0.626, 3);
+		expect(exact.low).toBeCloseTo(0.6298, 3);
 		// Reproduced with the closed-form Wilson score interval in Python.
-		expect(exact.high).toBeCloseTo(0.7311, 3);
+		expect(exact.high).toBeCloseTo(0.7343, 3);
 	});
 
 	it('shows the recused model as a comparison the judge never saw', () => {
@@ -112,7 +112,7 @@ describe('match rates against the arbiter’s own rating (published run)', () =>
 		);
 		expect(recused).toEqual([...ARBITER_RECUSED_IDS]);
 		const [haiku] = arbiterMatchRates(rows, recused);
-		expect(haiku.dimensions.polarity.exact).toMatchObject({ successes: 192, n: 301 });
+		expect(haiku.dimensions.polarity.exact).toMatchObject({ successes: 188, n: 301 });
 	});
 
 	it('separates models the overall-winner tally ranks far apart', () => {
@@ -122,8 +122,9 @@ describe('match rates against the arbiter’s own rating (published run)', () =>
 		const wins = Object.fromEntries(
 			stats.models.map((model) => [model.modelId, model.overallWins])
 		);
-		expect(wins).toEqual({ luna: 38, 'mistral-small': 2, deepseek: 50, gemma: 23, qwen: 118 });
-		expect(stats.overallMultiple).toBe(70);
+		expect(wins).toEqual({ luna: 27, 'mistral-small': 5, deepseek: 46, gemma: 23, qwen: 127 });
+		// 228 single winners, 72 'multiple' and one 'none' (article 2713).
+		expect(stats.overallMultiple).toBe(72);
 	});
 });
 
@@ -142,7 +143,7 @@ describe('what the frame mostly contains (published run)', () => {
 	});
 
 	it('counts the articles the judge itself rated as subjective', () => {
-		expect(judgeSubjectiveCount(published)).toMatchObject({ successes: 254, n: 301 });
+		expect(judgeSubjectiveCount(published)).toMatchObject({ successes: 247, n: 301 });
 	});
 
 	it('counts the strict one-against-the-rest splits of the main dissenter', () => {

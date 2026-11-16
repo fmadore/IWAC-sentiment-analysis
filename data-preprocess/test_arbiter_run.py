@@ -122,8 +122,8 @@ def test_the_published_file_records_revisions_a_resume_can_read():
     )
     (scores, text), where = recorded_revisions(published)
     assert where == published
-    assert scores == "5629c24719d8b85bc3cb1d20edb4520647d0e37b"
-    assert text == "d5c318f5c0b1451e0c9a90809e359ab4ebec5910"
+    assert scores == "943f303b91ba9eb0adbf52126432e6316ddc0ef9"
+    assert text == "5d67ae620b2368fb010f397ad9ac492cf484d8e0"
 
 
 # ---------------------------------------------------------------------------

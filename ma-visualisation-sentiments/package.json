@@ -1,6 +1,6 @@
 {
 	"name": "iwac-visualisation-sentiments",
-	"version": "5.0.0",
+	"version": "6.0.0",
 	"description": "Interactive SvelteKit dashboard for exploring large language model sentiment annotations of the Islam West Africa Collection (IWAC), a corpus of francophone West African press articles. Each article is annotated for polarity, subjectivity and the centrality of Islam and Muslims by a panel of models, per annotation campaign (the current panel alongside the archived first one), and the dashboard reports each model's distributions, their agreement, where they diverge, and blind third-party arbiter verdicts, in French and English.",
 	"author": {
 		"name": "Frédérick Madore",
