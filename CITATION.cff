@@ -29,10 +29,13 @@ date-released: "2026-11-16"
 doi: "10.5281/zenodo.21806223"
 identifiers:
   - type: doi
-    value: "10.5281/zenodo.23164331"
+    value: "10.5281/zenodo.24284659"
     description: >-
-      Version DOI for release 5.0.0. Each release also gets its own DOI; add the
+      Version DOI for release 6.0.0. Each release also gets its own DOI; add the
       new one here once Zenodo has minted it.
+  - type: doi
+    value: "10.5281/zenodo.23164331"
+    description: Version DOI for release 5.0.0.
   - type: doi
     value: "10.5281/zenodo.21806224"
     description: Version DOI for release 4.1.0.
