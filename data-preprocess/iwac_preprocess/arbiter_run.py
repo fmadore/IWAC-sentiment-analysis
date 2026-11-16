@@ -469,6 +469,16 @@ class PanelRun:
                 run.skipped_failures += 1
             else:
                 run.remaining.append(article)
+        # A selection holding exactly the published verdicts keeps the public
+        # file's order (the order they were judged in), so republishing them is
+        # a no-op that keeps ``generated``. Any other selection is ordered by
+        # the selection, which is what lets a narrowed file expand back.
+        published_keys = [str(published.get("cache_fingerprint")) for published in run._public_rows]
+        if sorted(published_keys) == sorted(
+            str(cached.get("cache_fingerprint")) for cached in run.evaluations
+        ):
+            position = {key: index for index, key in enumerate(published_keys)}
+            run.evaluations.sort(key=lambda cached: position[str(cached["cache_fingerprint"])])
         if cache.evaluations:
             logger.info(
                 "Cache: %d evaluations match this selection; %d retained in durable history",

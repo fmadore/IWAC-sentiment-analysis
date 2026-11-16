@@ -259,6 +259,25 @@ def test_a_no_op_republish_keeps_generated_and_does_not_rewrite(tmp_path):
     assert json.loads((tmp_path / "out.json").read_text()) == first
 
 
+def test_a_republish_keeps_the_published_order_not_the_selection_order(tmp_path):
+    # The published v2 file lists verdicts in judging order, not by id; a
+    # --prune-cache-only republish must leave it byte-identical.
+    run, _ = open_run(tmp_path, articles(3, 1, 2))
+    run.evaluate_remaining(ok, row, desc="t")
+    first = (tmp_path / "out.json").read_text()
+
+    again, saved_again = open_run(tmp_path, articles(1, 2, 3))
+    assert [r["article_id"] for r in again.evaluations] == ["3", "1", "2"]
+    assert again.publish() == 0
+    assert saved_again == []
+    assert (tmp_path / "out.json").read_text() == first
+
+    wider, saved_wider = open_run(tmp_path, articles(4, 1, 2, 3))
+    wider.evaluate_remaining(ok, row, desc="t")
+    # Extending the published set keeps its rows in place; the new verdict follows.
+    assert [r["article_id"] for r in saved_wider[-1][0]] == ["3", "1", "2", "4"]
+
+
 def test_the_sdk_version_is_recorded_only_by_a_run_that_spent(tmp_path, monkeypatch):
     monkeypatch.setattr(arbiter_run, "installed_version", lambda package: "9.9.9")
     run, _ = open_run(tmp_path, articles(1), sdk_package="anthropic")
