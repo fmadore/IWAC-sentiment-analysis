@@ -285,6 +285,41 @@ def test_mixed_or_incomplete_prefix_is_rejected():
         normalize_sentiment_columns(pd.DataFrame([{"chatgpt_polarite": "Positif"}]))
 
 
+def _v2_row(model_ids):
+    return {
+        CONTRACT_V2.sentiment_column(model_id, suffix): None
+        for model_id in model_ids
+        for suffix in CONTRACT_V2.field_suffixes
+    }
+
+
+def test_a_revision_predating_a_recused_member_loads_for_the_arbiter_panel():
+    """The published arbiter run's revisions carry no Haiku columns."""
+    panel = list(CONTRACT_V2.arbiter_model_ids)
+    frame = pd.DataFrame([_v2_row(panel)])
+    with pytest.raises(ValueError, match=r"complete v2 sentiment field set for model\(s\): haiku"):
+        CONTRACT_V2.normalize_sentiment_columns(frame)
+    normalized = CONTRACT_V2.normalize_sentiment_columns(frame, panel)
+    assert set(CONTRACT_V2.columns_for(panel)) <= set(normalized.columns)
+    assert not any(column.startswith("claude") for column in CONTRACT_V2.columns_for(panel))
+
+
+def test_scoped_normalization_still_requires_every_listed_model():
+    panel = list(CONTRACT_V2.arbiter_model_ids)
+    frame = pd.DataFrame([_v2_row(panel[1:])])
+    with pytest.raises(ValueError, match=panel[0]):
+        CONTRACT_V2.normalize_sentiment_columns(frame, panel)
+
+
+def test_scoped_normalization_rejects_an_unknown_model_id():
+    with pytest.raises(KeyError, match="nobody"):
+        CONTRACT_V2.normalize_sentiment_columns(pd.DataFrame([{}]), ["nobody"])
+
+
+def test_columns_for_defaults_to_the_whole_generation():
+    assert CONTRACT_V2.columns_for() == CONTRACT_V2.sentiment_columns
+
+
 def test_base_article_preserves_stored_hijri_fields_and_null_dates():
     result = build_base_article(
         {"o:id": "42", "title": "A", "pub_date": None, "hijri_year": 1445, "hijri_month": 9}

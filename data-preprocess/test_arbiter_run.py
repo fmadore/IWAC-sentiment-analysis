@@ -333,13 +333,35 @@ def test_records_are_scoped_to_the_published_base(monkeypatch):
     monkeypatch.setattr(
         arbiter_run,
         "load_iwac_dataset_source",
-        lambda contract, revision: source.SourceResult(pd.DataFrame(rows), "public", "sha"),
+        lambda contract, revision, model_ids=None: source.SourceResult(
+            pd.DataFrame(rows), "public", "sha"
+        ),
     )
     records, revision = arbiter_run.load_panel_records(
         CONTRACT_V2, None, arbiter_run.logging.getLogger("t"), base_ids={"1"}
     )
     assert [record["o:id"] for record in records] == [1]
     assert revision == "sha"
+
+
+def test_the_arbiter_panel_reaches_the_column_check(monkeypatch):
+    """The Opus arbiter must resume a revision older than the member it recuses."""
+    import pandas as pd
+
+    seen = {}
+
+    def fake_source(contract, revision, model_ids=None):
+        seen["model_ids"] = model_ids
+        return source.SourceResult(pd.DataFrame([], columns=["o:id"]), "public", "sha")
+
+    monkeypatch.setattr(arbiter_run, "load_iwac_dataset_source", fake_source)
+    monkeypatch.setattr(arbiter_run, "validate_columns", lambda df, columns: None)
+    panel = list(CONTRACT_V2.arbiter_model_ids)
+    arbiter_run.load_panel_records(
+        CONTRACT_V2, "abc", arbiter_run.logging.getLogger("t"), base_ids=set(), model_ids=panel
+    )
+    assert seen["model_ids"] == panel
+    assert "haiku" not in panel
 
 
 # ---------------------------------------------------------------------------

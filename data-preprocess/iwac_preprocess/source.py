@@ -166,16 +166,21 @@ def _remember(result: SourceResult) -> SourceResult:
 
 
 def load_iwac_dataset_source(
-    contract: SentimentContract = CONTRACT_V1, revision: str | None = None
+    contract: SentimentContract = CONTRACT_V1,
+    revision: str | None = None,
+    model_ids: Sequence[str] | None = None,
 ) -> SourceResult:
     """The public projection, normalized, with the immutable revision it came from.
 
     ``revision`` is a branch, tag or sha; ``None`` falls back to
     ``IWAC_HF_REVISION`` and then upstream HEAD (see `load_source`).
+    ``model_ids`` limits the column check to the models the caller reads
+    (default: the whole generation); see
+    `SentimentContract.normalize_sentiment_columns`.
     """
     result = load_source("articles", HF_PARQUET_FILENAME, revision=revision)
-    df = contract.normalize_sentiment_columns(result.data)
-    validate_columns(df, contract.sentiment_columns)
+    df = contract.normalize_sentiment_columns(result.data, model_ids)
+    validate_columns(df, contract.columns_for(model_ids))
     return _remember(SourceResult(data=df, repository=result.repository, revision=result.revision))
 
 

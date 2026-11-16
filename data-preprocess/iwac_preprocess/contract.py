@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import math
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -242,17 +243,46 @@ class SentimentContract:
                 f"{', '.join(sorted(self.subjectivity_label_scores))}"
             ) from None
 
-    def normalize_sentiment_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+    def columns_for(self, model_ids: Sequence[str] | None = None) -> list[str]:
+        """The canonical sentiment columns of ``model_ids`` (default: every model)."""
+        return [
+            self.sentiment_column(model_id, suffix)
+            for model_id in self._known_model_ids(model_ids)
+            for suffix in self.field_suffixes
+        ]
+
+    def _known_model_ids(self, model_ids: Sequence[str] | None) -> list[str]:
+        if model_ids is None:
+            return list(self.hf_column_prefixes)
+        unknown = [model_id for model_id in model_ids if model_id not in self.hf_column_prefixes]
+        if unknown:
+            raise KeyError(
+                f"Unknown model id(s) {', '.join(unknown)} for the {self.analysis_version} "
+                f"contract; expected one of {', '.join(sorted(self.hf_column_prefixes))}"
+            )
+        return list(model_ids)
+
+    def normalize_sentiment_columns(
+        self, df: pd.DataFrame, model_ids: Sequence[str] | None = None
+    ) -> pd.DataFrame:
         """Normalize an exact-model or legacy HF snapshot to canonical columns.
 
         A model prefix is accepted only when *all* six sentiment fields are
         present. Mixing prefixes within one model would silently join analyses
         from different source generations, so it is rejected.
+
+        ``model_ids`` limits the requirement to the models a caller reads. The v2
+        arbiter passes its own panel, so it can resume a revision older than a
+        member it recuses (Haiku joined after the published run); every other
+        caller keeps the default, the whole generation.
         """
         normalized = df.copy()
         missing_models: list[str] = []
+        required = set(self._known_model_ids(model_ids))
 
         for model_id, candidates in self.hf_column_prefix_candidates.items():
+            if model_id not in required:
+                continue
             resolved_prefix = next(
                 (
                     prefix

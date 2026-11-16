@@ -337,14 +337,20 @@ def load_panel_records(
     logger: logging.Logger,
     *,
     base_ids: set[str] | None = None,
+    model_ids: Sequence[str] | None = None,
 ) -> tuple[list[dict], str]:
     """The public projection at ``revision``, scoped to the published article base.
 
     The live corpus has grown past the panel run (articles only Haiku rated),
     and the validator recomputes the arbiter frame over the published base, so
     the selection is held to the same base.
+
+    ``model_ids`` is the set of models the run reads; only their columns must
+    exist. The Opus arbiter passes its panel, so the revisions recorded in the
+    published file, which predate Haiku's columns, still load. ``None`` requires
+    the whole generation.
     """
-    result = load_iwac_dataset_source(contract, revision)
+    result = load_iwac_dataset_source(contract, revision, model_ids)
     validate_columns(result.data, REQUIRED_BASE_COLUMNS)
     logger.info(
         "Loaded %d articles from %s at %s", len(result.data), result.repository, result.revision
