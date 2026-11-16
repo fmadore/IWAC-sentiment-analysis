@@ -172,7 +172,7 @@ MODEL_IDS = list(CONTRACT.arbiter_model_ids)
 
 def load_dataset_records(revision: str | None = None) -> tuple[list[dict], str]:
     """The public projection at ``revision``, scoped to the published base."""
-    return load_panel_records(CONTRACT, revision, logger)
+    return load_panel_records(CONTRACT, revision, logger, model_ids=MODEL_IDS)
 
 
 def load_article_texts(revision: str | None = None) -> tuple[dict[str, str], str]:
