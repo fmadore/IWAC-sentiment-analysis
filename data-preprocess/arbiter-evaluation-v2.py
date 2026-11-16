@@ -27,24 +27,27 @@ What differs from `arbiter-evaluation.py`, and why:
   the panel as its sixth member on 2026-10-22; the judge is Claude Opus 5. Blind
   labels hide a name, not a house style, so the contract's `arbiter.recusal`
   keeps Haiku out of everything this script does: selection, prompt, labels and
-  fingerprints run over the other five, exactly the panel the published run
-  judged. The recused set is derived from the contract's `arbiter.developer`,
+  fingerprints run over the other five, the panel the original run judged and
+  the v2.3.0 re-run kept. The recused set is derived from the contract's `arbiter.developer`,
   not listed. Haiku's own dissents need a judge from another developer:
   `arbiter-evaluation-v2-second-judge.py`.
-* **The prompt is versioned.** The published 301 were judged under prompt
-  v2.2.0, a short scale reference that disagreed with the annotators' codebook
-  on proper-name-only mentions. The default is v2.3.0, which carries the
-  codebook verbatim. `--prompt-version v2.2.0` republishes or extends the
-  published run; the shrink guard keeps the public file intact until a v2.3.0
-  selection is at least as large (see the README).
+* **The prompt is versioned.** The original run (2026-09-04) was judged under
+  prompt v2.2.0, a short scale reference that disagreed with the annotators'
+  codebook on proper-name-only mentions. v2.3.0, the default, carries the
+  codebook verbatim; the published 301 were re-judged under it on 2026-11-16.
+  `--prompt-version v2.2.0` republishes the original verdicts from the durable
+  cache; the shrink guard keeps a public file intact until a new selection is
+  at least as large (see the README).
 * **`--dry-run` prints the eligible/selected counts and a cost estimate and
   exits without making a single API call.** The paid run is deliberately gated.
 
 The lock, revision choice, durable cache, shrink guard and paid loop are
 `iwac_preprocess.arbiter_run`, shared with the second judge.
 
-**Published run: `--rule valence`** — 301 articles, US$17.61 at effort medium
-over 281 paid calls (recorded in the file's `metadata.usage`). Mistral Small is
+**Published run: `--rule valence`** — 301 articles under prompt v2.3.0, US$20.33
+at effort medium over 301 paid calls. The file's `metadata.usage` is cumulative
+over every run that fed the durable cache (US$37.94, 582 calls, the original
+v2.2.0 run's US$17.61 over 281 calls included). Mistral Small is
 the sole model across the valence line in 189 of the 301 (162 as the only
 negative reader), so the per-model verdict tallies measure how often the
 panel's dissenter was upheld, not the models' general quality. `--dry-run`

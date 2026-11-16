@@ -7,7 +7,7 @@
 
   WHY NOT THE WIN TALLY. The cards used to lead with "preferred overall" wins
   per model. On the published run that ranking separates models that give the
-  judge's own polarity about equally often (190–205 of 301 for four of them)
+  judge's own polarity about equally often (175–206 of 301 for four of them)
   and mostly follows closeness on subjectivity: the model that matches the
   judge's polarity most often is named winner second least. The tally is kept,
   demoted to a secondary block with a sentence saying what it follows. No
