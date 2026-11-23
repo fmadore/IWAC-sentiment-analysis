@@ -145,6 +145,21 @@ it now reads the sizes from the contracts.
   Refused, invalid or truncated paid calls are remembered in the durable cache
   and not billed again unless `--retry-failed`. The v1 arbiter writes nothing
   and spends nothing without `--unfreeze`
+- **Within a run, two breakers stop the paid loop.** `--max-consecutive-errors`
+  counts API errors; `--max-consecutive-failures` (default 5) counts billed
+  calls that came back truncated or invalid, a systematic fault (output ceiling
+  against `--effort`, or the schema) that would otherwise be paid for on every
+  remaining article. A refusal neither counts nor resets that streak: resetting
+  would let refusals interleaved with truncations hide a broken ceiling. The
+  durable cache is checkpointed every ten billed calls, failures included, and
+  a run whose articles produced no verdict and at least one failure exits 1;
+  refusals alone exit 0
+- **The Opus arbiter calls `messages.create`, never `messages.parse`.** `parse`
+  validates inside the SDK before returning, which turned mid-JSON truncations
+  and refusals carrying text into usage-less "invalid". The schema sent is the
+  one `parse` would build, `transform_schema()` over the model's
+  `TypeAdapter(...).json_schema()`, and a test pins the request body
+  byte-for-byte against `parse`, so an SDK upgrade that changes it fails there
 - **The blind labels are fixed for the run; the presentation order is not.**
   `display_order()` reshuffles the five blocks per article, seeded on the article
   id. Without it one model would sit first on every prompt and the judge's

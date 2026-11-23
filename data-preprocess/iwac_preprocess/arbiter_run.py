@@ -16,8 +16,10 @@ here once:
 * the **shrink guard**: a publication never drops verdicts the public file
   already holds unless ``--allow-shrink`` is passed, and says how many would be
   lost and why (selection, source revision or prompt version);
-* the paid loop: checkpoint-before-publish, a negative cache for deterministic
-  failures, a consecutive-error breaker, and a public export that may fail
+* the paid loop: checkpoint-before-publish (every few billed calls, failures
+  included), a negative cache for deterministic failures, two breakers (API
+  errors in a row; truncated or invalid billed calls in a row), a non-zero exit
+  when nothing in the run produced a verdict, and a public export that may fail
   mid-run without losing the durable checkpoint.
 
 Nothing here calls a provider. Each script passes an ``evaluate`` callback and a
@@ -68,6 +70,10 @@ OUTCOME_NO_TEXT = "no_text"
 # money without making a different answer likely, so they are remembered by
 # fingerprint and skipped until `--retry-failed`. Transport errors are not.
 NEGATIVE_OUTCOMES = frozenset({OUTCOME_REFUSED, OUTCOME_INVALID, OUTCOME_TRUNCATED})
+# The billed outcomes that point at the run rather than the article: an output
+# ceiling too low for the effort, or a schema the judge keeps missing, repeats
+# on every call. A refusal is the model declining one article and is not here.
+SYSTEMATIC_FAILURES = frozenset({OUTCOME_INVALID, OUTCOME_TRUNCATED})
 
 EXIT_OK = 0
 EXIT_INCOMPLETE = 1
@@ -75,6 +81,7 @@ EXIT_REFUSED = 2
 
 DEFAULT_SAVE_INTERVAL = 10
 DEFAULT_MAX_CONSECUTIVE_ERRORS = 5
+DEFAULT_MAX_CONSECUTIVE_FAILURES = 5
 
 # `--source-revision head` asks for upstream HEAD explicitly.
 HEAD = "head"
@@ -218,6 +225,16 @@ def add_run_arguments(parser: argparse.ArgumentParser) -> None:
         metavar="K",
         help="Stop the paid loop, after checkpointing, once K API calls in a row fail "
         f"(default: {DEFAULT_MAX_CONSECUTIVE_ERRORS}).",
+    )
+    parser.add_argument(
+        "--max-consecutive-failures",
+        type=positive_int,
+        default=DEFAULT_MAX_CONSECUTIVE_FAILURES,
+        metavar="K",
+        help="Stop the paid loop, after checkpointing, once K billed calls in a row come back "
+        "truncated or invalid — a systematic fault (output ceiling, schema) that would "
+        "otherwise be paid for on every remaining article. Refusals neither count nor reset "
+        f"the streak; a verdict resets it (default: {DEFAULT_MAX_CONSECUTIVE_FAILURES}).",
     )
     parser.add_argument(
         "--yes",
@@ -665,6 +682,7 @@ class PanelRun:
         desc: str,
         save_interval: int = DEFAULT_SAVE_INTERVAL,
         max_consecutive_errors: int = DEFAULT_MAX_CONSECUTIVE_ERRORS,
+        max_consecutive_failures: int = DEFAULT_MAX_CONSECUTIVE_FAILURES,
     ) -> int:
         """Evaluate every remaining article; checkpoint and publish on the way and at the end.
 
@@ -672,12 +690,29 @@ class PanelRun:
           negative cache and not billed again by a later run.
         * ``max_consecutive_errors`` API errors in a row stop the loop: an
           outage or a revoked key should not walk the whole frame.
+        * ``max_consecutive_failures`` billed calls in a row that came back
+          truncated or invalid stop it too: an output ceiling too low for the
+          effort, or a schema the judge keeps missing, would otherwise be paid
+          for on every remaining article. A refusal is neutral — it neither
+          counts (the model declining one article says nothing about the run)
+          nor resets the streak (a frame dense with sensitive articles must not
+          let refusals interleaved with truncations hide a broken ceiling). A
+          verdict resets it.
+        * The durable cache is checkpointed every ``save_interval`` *billed*
+          calls (verdicts and negative outcomes alike), so a hard kill loses at
+          most that many calls' failure memory and usage, even in a run that
+          produces no verdict at all.
         * A failed intermediate public export is logged and the loop goes on —
           the durable checkpoint before it already holds the verdicts. A failed
           final export makes the run exit non-zero.
         * Ctrl-C or a crash still checkpoints every verdict already paid for.
+
+        Returns `EXIT_INCOMPLETE` when a breaker tripped, the final export
+        failed, or the articles evaluated produced no verdict and at least one
+        failure (truncated, invalid, API error, no text). Refusals alone are a
+        complete run: the model declined, and the declines are remembered.
         """
-        successful = consecutive = 0
+        successful = billed = failed = consecutive = consecutive_failures = 0
         aborted = False
         exported = False
         try:
@@ -687,7 +722,9 @@ class PanelRun:
                 result = evaluate(article)
                 if result.analysis is None:
                     if result.outcome in NEGATIVE_OUTCOMES:
+                        # A billed answer: the API is reachable, whatever it said.
                         consecutive = 0
+                        billed += 1
                         self.cache.record_failure(
                             key,
                             {
@@ -697,8 +734,30 @@ class PanelRun:
                                 "prompt_version": self.prompt_version,
                             },
                         )
+                        if result.outcome in SYSTEMATIC_FAILURES:
+                            failed += 1
+                            consecutive_failures += 1
+                            if consecutive_failures >= max_consecutive_failures:
+                                self.logger.error(
+                                    "%d billed calls in a row came back truncated or invalid "
+                                    "(last: %s on article %s); stopping after a checkpoint "
+                                    "(--max-consecutive-failures %d). This is systematic, not "
+                                    "per-article: check the output ceiling against --effort, or "
+                                    "the response schema. The failed calls are remembered and "
+                                    "not billed again; once the cause is fixed, rerun with "
+                                    "--retry-failed to re-attempt them and resume the rest.",
+                                    consecutive_failures,
+                                    result.outcome,
+                                    article_id,
+                                    max_consecutive_failures,
+                                )
+                                aborted = True
+                                break
+                        if billed % save_interval == 0:
+                            self._checkpoint_mid_run()
                     else:
                         self.errors += 1
+                        failed += 1
                         consecutive += result.outcome == OUTCOME_ERROR
                         if consecutive >= max_consecutive_errors:
                             self.logger.error(
@@ -710,22 +769,13 @@ class PanelRun:
                             aborted = True
                             break
                     continue
-                consecutive = 0
+                consecutive = consecutive_failures = 0
                 self.cache.clear_failure(key)
                 self.evaluations.append(make_row(article, result.analysis, key))
                 successful += 1
-                if successful % save_interval == 0:
-                    metadata = self.checkpoint()
-                    try:
-                        if self.export(metadata, final=False):
-                            self.logger.info("Saved %d evaluations", len(self.evaluations))
-                    except Exception as error:  # noqa: BLE001 - the checkpoint holds the work
-                        self.logger.error(
-                            "Public export failed mid-run (%s); the durable checkpoint holds "
-                            "%d evaluations, continuing",
-                            error,
-                            len(self.evaluations),
-                        )
+                billed += 1
+                if billed % save_interval == 0:
+                    self._checkpoint_mid_run()
         finally:
             # Durable first, and loudly: if this fails nothing else matters.
             metadata = self.checkpoint()
@@ -748,7 +798,27 @@ class PanelRun:
             counts["refused"],
             self.usage.as_metadata().get("usd", 0.0),
         )
+        if not successful and failed:
+            self.logger.error(
+                "No article in this run produced a verdict (%d failed); exiting non-zero",
+                failed,
+            )
+            return EXIT_INCOMPLETE
         return EXIT_INCOMPLETE if aborted or not exported else EXIT_OK
+
+    def _checkpoint_mid_run(self) -> None:
+        """Checkpoint the durable cache, then try the public export without ending the run."""
+        metadata = self.checkpoint()
+        try:
+            if self.export(metadata, final=False):
+                self.logger.info("Saved %d evaluations", len(self.evaluations))
+        except Exception as error:  # noqa: BLE001 - the checkpoint holds the work
+            self.logger.error(
+                "Public export failed mid-run (%s); the durable checkpoint holds "
+                "%d evaluations, continuing",
+                error,
+                len(self.evaluations),
+            )
 
     def finish(
         self,
@@ -763,6 +833,7 @@ class PanelRun:
         make_row: Callable[[dict, Any, str], dict],
         desc: str,
         max_consecutive_errors: int = DEFAULT_MAX_CONSECUTIVE_ERRORS,
+        max_consecutive_failures: int = DEFAULT_MAX_CONSECUTIVE_FAILURES,
         save_interval: int = DEFAULT_SAVE_INTERVAL,
     ) -> int:
         """Everything after selection for a non-dry run.
@@ -797,11 +868,13 @@ class PanelRun:
             desc=desc,
             save_interval=save_interval,
             max_consecutive_errors=max_consecutive_errors,
+            max_consecutive_failures=max_consecutive_failures,
         )
 
 
 __all__ = [
     "DEFAULT_MAX_CONSECUTIVE_ERRORS",
+    "DEFAULT_MAX_CONSECUTIVE_FAILURES",
     "DEFAULT_SAVE_INTERVAL",
     "EXIT_INCOMPLETE",
     "EXIT_OK",
@@ -815,6 +888,7 @@ __all__ = [
     "OUTCOME_REFUSED",
     "OUTCOME_TRUNCATED",
     "REQUIRED_BASE_COLUMNS",
+    "SYSTEMATIC_FAILURES",
     "ArbiterRunError",
     "CacheUnreadableError",
     "EvaluationResult",

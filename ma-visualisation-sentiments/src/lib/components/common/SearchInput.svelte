@@ -44,6 +44,11 @@
 
 	function handleKeydown(event: KeyboardEvent) {
 		if (event.key === 'Escape' && value) {
+			// This Escape was spent clearing the text, so it must not also reach
+			// a window listener: inside the filter drawer it would close the
+			// drawer too. An empty input lets Escape through, so a second press
+			// still closes whatever contains it.
+			event.stopPropagation();
 			handleClear();
 		}
 	}

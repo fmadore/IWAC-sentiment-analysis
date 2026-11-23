@@ -399,38 +399,17 @@
 		padding: var(--space-4);
 	}
 
-	/* Responsive adjustments */
+	/* Responsive adjustments. One tier per breakpoint, in ascending order.
+	   These used to be three blocks — 640, 1024, then a second 640 — and the
+	   last one, coming after the 1024 block, won at every width from 640 up.
+	   The shipped look is that last block's, so it is the one kept; the
+	   declarations it silently overrode (larger header/content padding at both
+	   tiers, a 2xl title at 640) never rendered and are gone. */
 	@media (min-width: 640px) {
 		.back-text {
 			display: inline;
 		}
 
-		.header-content {
-			padding: var(--space-5) var(--space-8);
-		}
-
-		.fs-modal-title {
-			font-size: var(--font-size-2xl);
-		}
-
-		.content-wrapper {
-			padding: var(--space-8) var(--space-10);
-		}
-	}
-
-	@media (min-width: 1024px) {
-		.header-content {
-			padding: var(--space-6) var(--space-12);
-		}
-
-		.content-wrapper {
-			padding: var(--space-10) var(--space-12);
-			max-width: 900px;
-		}
-	}
-
-	/* Mobile optimizations */
-	@media (min-width: 640px) {
 		.header-content {
 			padding: var(--space-4) var(--space-6);
 			gap: var(--space-4);
@@ -447,7 +426,6 @@
 		.header-icon {
 			width: var(--size-control-lg);
 			height: var(--size-control-lg);
-			border-radius: var(--radius-panel);
 		}
 
 		.fs-modal-title {
@@ -465,6 +443,12 @@
 
 		.content-wrapper {
 			padding: var(--space-6);
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.content-wrapper {
+			max-width: 900px;
 		}
 	}
 

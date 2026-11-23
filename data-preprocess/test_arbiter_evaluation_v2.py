@@ -16,18 +16,20 @@ from functools import partial
 from pathlib import Path
 from types import SimpleNamespace
 
+import anthropic
 import pytest
 from iwac_preprocess import (
     CONTRACT_V2,
     arbiter_judges,
     arbiter_lifecycle,
     arbiter_prompt,
+    arbiter_run,
     arbiter_schema,
     arbiter_selection,
 )
 from iwac_preprocess.arbiter_judges import PROVIDER_ANTHROPIC, ArbiterUsage
 from iwac_preprocess.arbiter_selection import RULE_SPREAD, SPREAD_KEYS, ThresholdError
-from pydantic import ValidationError
+from pydantic import TypeAdapter, ValidationError
 
 
 def load_module():
@@ -480,11 +482,16 @@ class StubClient:
         self.calls: list[dict] = []
         self.messages = self
 
-    def parse(self, **kwargs):
+    def create(self, **kwargs):
         self.calls.append(kwargs)
         if isinstance(self.outcome, Exception):
             raise self.outcome
         return self.outcome
+
+    def parse(self, **kwargs):
+        # `messages.parse` validates inside the SDK before returning, which is
+        # what hid stop reasons and usage; the arbiter must never call it.
+        raise AssertionError("evaluate_with_arbiter must call messages.create, not parse")
 
 
 def valid_response() -> arbiter.ArbiterResponseV2:
@@ -505,8 +512,16 @@ def valid_response() -> arbiter.ArbiterResponseV2:
     )
 
 
-def message(parsed, stop_reason="end_turn", **extra):
-    return SimpleNamespace(parsed_output=parsed, stop_reason=stop_reason, **extra)
+def message(parsed, stop_reason="end_turn", *, text=None, **extra):
+    """A `messages.create` response: ``parsed`` serialised as the one text block.
+
+    ``text`` sends raw text instead (truncated or malformed JSON); with neither,
+    the response has no content at all.
+    """
+    if text is None and parsed is not None:
+        text = parsed.model_dump_json()
+    content = [] if text is None else [SimpleNamespace(type="text", text=text)]
+    return SimpleNamespace(content=content, stop_reason=stop_reason, **extra)
 
 
 def test_every_blind_label_is_an_accepted_preference():
@@ -661,10 +676,19 @@ def test_the_request_carries_no_sampling_parameters_and_no_thinking_block():
     arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION, effort="low")
     (sent,) = client.calls
     assert sent["model"] == arbiter.ARBITER_MODEL
-    assert sent["output_config"] == {"effort": "low"}
+    assert sent["max_tokens"] == arbiter.ARBITER_MAX_OUTPUT_TOKENS
+    assert set(sent) == {"model", "max_tokens", "system", "messages", "output_config"}
+    assert set(sent["output_config"]) == {"effort", "format"}
+    assert sent["output_config"]["effort"] == "low"
+    # The verdict schema `messages.parse(output_format=ArbiterResponseV2)` would send.
+    assert sent["output_config"]["format"] == {
+        "type": "json_schema",
+        "schema": anthropic.transform_schema(TypeAdapter(arbiter.ArbiterResponseV2).json_schema()),
+    }
     assert "temperature" not in sent
+    assert "top_p" not in sent
     assert "thinking" not in sent
-    assert sent["output_format"] is arbiter.ArbiterResponseV2
+    assert "output_format" not in sent
 
 
 def test_the_system_prefix_is_sent_as_one_cached_block():
@@ -754,14 +778,28 @@ def test_usage_metadata_is_empty_when_nothing_was_spent():
     assert ArbiterUsage(PROVIDER_ANTHROPIC).as_metadata() == {}
 
 
-def test_a_schema_violation_is_not_retried():
-    try:
-        arbiter.ArbiterResponseV2.model_validate({})
-    except ValidationError as error:
-        client = StubClient(error)
-    result = arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION)
+def test_a_schema_violation_is_not_retried_and_is_billed():
+    usage = SimpleNamespace(input_tokens=100, output_tokens=40)
+    client = StubClient(message(None, text='{"polarity": {}}', usage=usage))
+    totals = ArbiterUsage(PROVIDER_ANTHROPIC)
+    result = arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION, usage=totals)
     assert result.outcome == arbiter.OUTCOME_INVALID
     assert len(client.calls) == 1
+    assert (totals.calls, totals.unmetered_calls, totals.output_tokens) == (1, 0, 40)
+
+
+def test_an_end_turn_with_no_text_is_invalid():
+    client = StubClient(message(None))
+    result = arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION)
+    assert result.outcome == arbiter.OUTCOME_INVALID
+
+
+def test_a_transport_failure_is_an_error_not_a_billed_outcome():
+    client = StubClient(RuntimeError("connection reset"))
+    totals = ArbiterUsage(PROVIDER_ANTHROPIC)
+    result = arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION, usage=totals)
+    assert result.outcome == arbiter.OUTCOME_ERROR
+    assert (totals.calls, totals.unmetered_calls) == (0, 0)
 
 
 def test_a_refusal_is_recorded_as_a_refusal_and_not_retried():
@@ -779,6 +817,173 @@ def test_a_truncated_response_is_a_failure_rather_than_a_partial_verdict():
     result = arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION)
     assert result.outcome == arbiter.OUTCOME_TRUNCATED
     assert result.analysis is None
+
+
+def test_a_response_truncated_mid_json_is_truncated_not_invalid():
+    """The commonest truncation shape: the text block stops inside the JSON."""
+    text = valid_response().model_dump_json()[:40]
+    client = StubClient(message(None, stop_reason="max_tokens", text=text))
+    result = arbiter.evaluate_with_arbiter(client, prompt_article(), PERMUTATION)
+    assert result.outcome == arbiter.OUTCOME_TRUNCATED
+
+
+# ---------------------------------------------------------------------------
+# The paid call through the real SDK (mock transport, no network)
+# ---------------------------------------------------------------------------
+
+
+def _sdk_client(respond):
+    """A real `anthropic.Anthropic` whose transport is ``respond``; never the network."""
+    import httpx2
+
+    transport = httpx2.MockTransport(respond)
+    return anthropic.Anthropic(
+        api_key="test-api-key",
+        base_url="https://arbiter.example.test",
+        http_client=httpx2.Client(transport=transport, trust_env=False),
+        max_retries=0,
+    )
+
+
+SDK_USAGE = {
+    "input_tokens": 120,
+    "output_tokens": 16000,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 1463,
+}
+
+
+def _api_message(content: list[dict], stop_reason: str, **extra) -> dict:
+    return {
+        "id": "msg_test",
+        "type": "message",
+        "role": "assistant",
+        "model": arbiter.ARBITER_MODEL,
+        "content": content,
+        "stop_reason": stop_reason,
+        "stop_sequence": None,
+        "usage": SDK_USAGE,
+        **extra,
+    }
+
+
+@pytest.mark.parametrize(
+    ("content", "stop_reason", "outcome"),
+    [
+        pytest.param(
+            [{"type": "text", "text": "Je ne peux pas évaluer cet article."}],
+            "refusal",
+            arbiter.OUTCOME_REFUSED,
+            id="refusal-with-text",
+        ),
+        pytest.param([], "refusal", arbiter.OUTCOME_REFUSED, id="refusal-empty"),
+        pytest.param(
+            [{"type": "text", "text": valid_response().model_dump_json()[:60]}],
+            "max_tokens",
+            arbiter.OUTCOME_TRUNCATED,
+            id="max-tokens-truncated-json",
+        ),
+        pytest.param(
+            [{"type": "thinking", "thinking": "Analyse A ...", "signature": "sig"}],
+            "max_tokens",
+            arbiter.OUTCOME_TRUNCATED,
+            id="max-tokens-thinking-only",
+        ),
+        pytest.param(
+            [
+                {"type": "thinking", "thinking": "Raisonnement", "signature": "sig"},
+                {"type": "text", "text": valid_response().model_dump_json()},
+            ],
+            "end_turn",
+            arbiter.OUTCOME_OK,
+            id="end-turn-valid",
+        ),
+        pytest.param(
+            [{"type": "text", "text": '{"polarity": "Positif"}'}],
+            "end_turn",
+            arbiter.OUTCOME_INVALID,
+            id="end-turn-schema-violation",
+        ),
+    ],
+)
+def test_real_sdk_outcomes_keep_their_stop_reason_and_usage(caplog, content, stop_reason, outcome):
+    """Through the installed SDK: every billed call is classified and metered.
+
+    `messages.parse` raised `ValidationError` inside the SDK for a refusal with
+    text and a mid-JSON truncation, so both were recorded as invalid with no
+    tokens. These responses reach the stop-reason branches with usage intact.
+    """
+    import httpx2
+
+    client = _sdk_client(
+        lambda request: httpx2.Response(200, json=_api_message(content, stop_reason)),
+    )
+    totals = ArbiterUsage(PROVIDER_ANTHROPIC)
+    with client, caplog.at_level("ERROR"):
+        result = arbiter.evaluate_with_arbiter(
+            client, prompt_article(), PERMUTATION, effort="low", usage=totals
+        )
+
+    assert result.outcome == outcome
+    assert (result.analysis is not None) == (outcome == arbiter.OUTCOME_OK)
+    assert totals.calls == 1
+    assert totals.unmetered_calls == 0
+    assert totals.output_tokens == SDK_USAGE["output_tokens"]
+    assert totals.cache_read_input_tokens == SDK_USAGE["cache_read_input_tokens"]
+    assert totals.usd > 0
+    if outcome == arbiter.OUTCOME_TRUNCATED:
+        # The diagnostic that tells the operator which lever to pull.
+        assert "hit max_tokens" in caplog.text
+
+
+def test_create_sends_the_byte_identical_body_parse_sent():
+    """The wire request must not change: same body as `messages.parse` built.
+
+    The published verdicts were judged through `parse(output_format=...)`; the
+    fix swaps the method, not the request. Only the SDK's telemetry header
+    (`x-stainless-helper-method: messages.parse`) differs.
+    """
+    import httpx2
+
+    bodies: list[bytes] = []
+
+    def respond(request):
+        bodies.append(request.content)
+        return httpx2.Response(
+            200,
+            json=_api_message(
+                [{"type": "text", "text": valid_response().model_dump_json()}], "end_turn"
+            ),
+        )
+
+    client = _sdk_client(respond)
+    article = prompt_article()
+    with client:
+        result = arbiter.evaluate_with_arbiter(client, article, PERMUTATION, effort="medium")
+        assert result.outcome == arbiter.OUTCOME_OK
+        # The request the code sent before the fix, verbatim.
+        client.messages.parse(
+            model=arbiter.ARBITER_MODEL,
+            max_tokens=arbiter.ARBITER_MAX_OUTPUT_TOKENS,
+            system=[
+                {
+                    "type": "text",
+                    "text": arbiter.system_instruction(arbiter.DEFAULT_PROMPT_VERSION),
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ],
+            messages=[
+                {
+                    "role": "user",
+                    "content": arbiter.create_arbiter_prompt(article, PERMUTATION, CONTRACT_V2),
+                }
+            ],
+            output_format=arbiter.ArbiterResponseV2,
+            output_config={"effort": "medium"},
+        )
+
+    created, parsed = bodies
+    assert created == parsed
 
 
 def test_an_article_without_text_is_never_sent():
@@ -1094,13 +1299,46 @@ def paid_run(monkeypatch, outcomes: list) -> None:
 
 def test_refusals_are_counted_apart_from_failures(stub_pipeline, monkeypatch):
     paid_run(monkeypatch, [arbiter.OUTCOME_REFUSED, arbiter.OUTCOME_INVALID])
-    assert arbiter.main(["--yes"]) == 0
+    # No verdict and one failure: the run did not do its job, so it says so.
+    assert arbiter.main(["--yes"]) == arbiter_run.EXIT_INCOMPLETE
     metadata = json.loads((stub_pipeline / arbiter.OUTPUT_FILENAME).read_text(encoding="utf-8"))[
         "metadata"
     ]
     assert metadata["refused_evaluations"] == 1
     assert metadata["failed_evaluations"] == 1
     assert metadata["successful_evaluations"] == 0
+
+
+def test_a_run_of_refusals_alone_is_complete(stub_pipeline, monkeypatch):
+    """The model declining every article is an answer, remembered, not a fault."""
+    paid_run(monkeypatch, [arbiter.OUTCOME_REFUSED, arbiter.OUTCOME_REFUSED])
+    assert arbiter.main(["--yes"]) == arbiter_run.EXIT_OK
+
+
+def test_the_failure_breaker_flag_reaches_the_paid_loop(stub_pipeline, monkeypatch, caplog):
+    paid_run(monkeypatch, [arbiter.OUTCOME_TRUNCATED])  # a second call would exhaust it
+    with caplog.at_level("ERROR"):
+        code = arbiter.main(["--yes", "--max-consecutive-failures", "1"])
+    assert code == arbiter_run.EXIT_INCOMPLETE
+    assert "--max-consecutive-failures 1" in caplog.text
+    durable = json.loads(
+        (
+            stub_pipeline / ".staging" / arbiter.STAGING_DIRNAME / arbiter_lifecycle.CACHE_FILENAME
+        ).read_text(encoding="utf-8")
+    )
+    assert durable["metadata"]["failed_evaluations"] == 1
+
+
+@pytest.mark.parametrize("value", ["0", "-1", "two"])
+def test_the_failure_breaker_threshold_must_be_positive(value, capsys):
+    with pytest.raises(SystemExit) as exit_info:
+        arbiter.parse_args(["--max-consecutive-failures", value])
+    assert exit_info.value.code == 2
+    assert "positive integer" in capsys.readouterr().err
+
+
+def test_the_failure_breaker_defaults_to_five():
+    assert arbiter.parse_args([]).max_consecutive_failures == 5
 
 
 def test_an_interrupted_run_saves_every_verdict_already_paid_for(stub_pipeline, monkeypatch):

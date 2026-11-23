@@ -275,6 +275,30 @@ test('methodology prompt is a shareable detail', async ({ page }) => {
 	await expect(page).not.toHaveURL(/prompt=/);
 });
 
+test('methodology prompt closes on Escape and returns focus to its opener', async ({ page }) => {
+	await page.goto('?view=charts&dataset=gemma&lang=en');
+	await expect(page.getByRole('dialog')).toHaveCount(0);
+	// The opener sits in the methodology card's "Method and models" accordion,
+	// both collapsed on load.
+	await page.getByRole('button', { name: 'Analysis methodology', exact: true }).click();
+	const accordion = page.getByRole('button', { name: 'Method and models', exact: true });
+	if ((await accordion.getAttribute('aria-expanded')) !== 'true') await accordion.click();
+	const opener = page.getByRole('button', { name: 'View full prompt', exact: true });
+	await expect(opener).toBeVisible();
+	await opener.click();
+	await expect(page).toHaveURL(/prompt=true/);
+	const dialog = page.getByRole('dialog');
+	await expect(dialog).toBeVisible();
+	// Native showModal() moves focus into the dialog.
+	await expect
+		.poll(() => dialog.evaluate((node) => node.contains(document.activeElement)))
+		.toBe(true);
+	await page.keyboard.press('Escape');
+	await expect(dialog).toHaveCount(0);
+	await expect(page).not.toHaveURL(/prompt=/);
+	await expect(opener).toBeFocused();
+});
+
 test('map place, dimension and camera restore together', async ({ page }) => {
 	// Data-coupled: place id 269 must be Abidjan in the published
 	// iwac_places.json registry. Ids come from the upstream Omeka records, so a

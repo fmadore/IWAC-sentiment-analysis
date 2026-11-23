@@ -174,3 +174,60 @@ describe('IIIF manifest lifecycle', () => {
 		expect(openSeadragon.mock.results[0].value.viewport.goHome).not.toHaveBeenCalled();
 	});
 });
+
+describe('IIIF expanded view and Escape', () => {
+	async function expandedViewer() {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue(response(manifest('https://example.org/a/1')))
+		);
+		const component = render(IIIFViewer, { manifestUrl: manifestA });
+		await waitFor(() => expect(openSeadragon).toHaveBeenCalledOnce());
+		const toggle = component.getByRole('button', { name: 'Toggle expanded view' });
+		await fireEvent.click(toggle);
+		const wrapper = component.container.querySelector('.iiif-viewer-wrapper')!;
+		expect(wrapper.getAttribute('data-expanded')).toBe('true');
+		return { component, toggle, wrapper };
+	}
+
+	it('collapses on Escape, cancels the keydown and keeps it from the enclosing dialog', async () => {
+		const { toggle, wrapper } = await expandedViewer();
+		// Stands in for the article modal's own keydown listeners, which sit
+		// above the viewer in the tree.
+		const outer = vi.fn();
+		document.body.addEventListener('keydown', outer);
+		const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+		toggle.dispatchEvent(event);
+		await tick();
+		document.body.removeEventListener('keydown', outer);
+
+		expect(event.defaultPrevented).toBe(true);
+		expect(outer).not.toHaveBeenCalled();
+		expect(wrapper.getAttribute('data-expanded')).toBe('false');
+		expect(toggle.getAttribute('aria-pressed')).toBe('false');
+	});
+
+	it('leaves Escape alone once collapsed, so the modal can close', async () => {
+		const { toggle } = await expandedViewer();
+		await fireEvent.click(toggle);
+		const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+		toggle.dispatchEvent(event);
+		expect(event.defaultPrevented).toBe(false);
+	});
+
+	it('ignores other keys while expanded', async () => {
+		const { toggle, wrapper } = await expandedViewer();
+		const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+		toggle.dispatchEvent(event);
+		await tick();
+		expect(event.defaultPrevented).toBe(false);
+		expect(wrapper.getAttribute('data-expanded')).toBe('true');
+	});
+
+	it('hides the toolbar icons from assistive technology', async () => {
+		const { component } = await expandedViewer();
+		const icons = component.container.querySelectorAll('.viewer-toolbar svg');
+		expect(icons.length).toBeGreaterThan(0);
+		for (const icon of icons) expect(icon.getAttribute('aria-hidden')).toBe('true');
+	});
+});

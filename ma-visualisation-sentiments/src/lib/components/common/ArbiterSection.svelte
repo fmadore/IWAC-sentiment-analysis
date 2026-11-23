@@ -165,36 +165,43 @@
 
 <div class="arbiter-section">
 	<!-- Header with toggle -->
-	<button
-		class="arbiter-header w-full flex items-center justify-between gap-3 mb-4"
-		onclick={() => (showArbiter = !showArbiter)}
-		aria-expanded={showArbiter}
-	>
-		<div class="flex items-center gap-3">
-			<div class="arbiter-icon">
-				<GavelIcon size={24} />
-			</div>
-			<div class="text-left">
-				<h4 class="section-title flex items-center gap-2">
-					{$t.arbiter.title}
-					<span class="model-tag">
-						{$t.arbiter.modelName}
+	<!-- Disclosure pattern: heading > button, phrasing content only inside the
+	     button. Preflight leaves the <h4> without margin or type of its own, and
+	     with no padding or border the button's negative margin collapses through
+	     it, so the header sits exactly where the bare button did. -->
+	<h4>
+		<button
+			type="button"
+			class="arbiter-header w-full flex items-center justify-between gap-3 mb-4"
+			onclick={() => (showArbiter = !showArbiter)}
+			aria-expanded={showArbiter}
+		>
+			<span class="flex items-center gap-3">
+				<span class="arbiter-icon">
+					<GavelIcon size={24} />
+				</span>
+				<span class="text-left">
+					<span class="section-title flex items-center gap-2">
+						{$t.arbiter.title}
+						<span class="model-tag">
+							{$t.arbiter.modelName}
+						</span>
 					</span>
-				</h4>
-				<p class="section-subtitle">{$t.arbiter.subtitle}</p>
-			</div>
-		</div>
-		<div class="flex items-center gap-2">
-			{#if arbiterData}
-				<ConfidenceBadge level={arbiterData.confidence_level} />
-			{/if}
-			{#if showArbiter}
-				<span class="toggle-chevron"><ChevronUpIcon size={20} /></span>
-			{:else}
-				<span class="toggle-chevron"><ChevronDownIcon size={20} /></span>
-			{/if}
-		</div>
-	</button>
+					<span class="section-subtitle">{$t.arbiter.subtitle}</span>
+				</span>
+			</span>
+			<span class="flex items-center gap-2">
+				{#if arbiterData}
+					<ConfidenceBadge level={arbiterData.confidence_level} />
+				{/if}
+				{#if showArbiter}
+					<span class="toggle-chevron"><ChevronUpIcon size={20} /></span>
+				{:else}
+					<span class="toggle-chevron"><ChevronDownIcon size={20} /></span>
+				{/if}
+			</span>
+		</button>
+	</h4>
 
 	{#if showArbiter}
 		{#if arbiterLoadState.current.status === 'loading'}
@@ -283,7 +290,10 @@
 		color: var(--text-primary);
 	}
 
+	/* A span now (a <button> takes phrasing content only), so it states the
+	   block box its old <p> had, keeping it on its own line under the title. */
 	.section-subtitle {
+		display: block;
 		font-size: var(--font-size-xs);
 		color: var(--text-muted);
 	}

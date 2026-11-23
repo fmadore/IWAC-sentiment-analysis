@@ -275,6 +275,103 @@ describe('loadDatasetArticles', () => {
 			loadDatasetArticles('/data/iwac_sentiment_chatgpt.json', 'chatgpt', mockFetch({}, false))
 		).rejects.toThrow('Failed to fetch');
 	});
+
+	it('reports the HTTP status, which survives an empty HTTP/2 statusText', async () => {
+		const fetch503 = vi.fn(async () => ({
+			ok: false,
+			status: 503,
+			statusText: '',
+			json: async () => null
+		})) as unknown as typeof fetch;
+		await expect(
+			loadDatasetArticles('/data/iwac_sentiment_chatgpt.json', 'chatgpt', fetch503)
+		).rejects.toThrow(/^Failed to fetch \S+\.json: 503/);
+	});
+});
+
+/**
+ * Issue #232: like `createResource.ensure`, an implicit request never re-fetches
+ * a dataset that failed — only an explicit Retry (`force`) does.
+ */
+describe('loadSpecificDataset after a failure', () => {
+	const baseRecords = [{ 'o:id': 1, 'o:title': 'T', Newspaper: 'J' }];
+	const sentimentFile = (model: string) => ({
+		schema_version: '1.0.0',
+		analysis_version: 'v1',
+		model,
+		sentiments: {
+			'1': { polarite: 'Neutre', subjectivite_score: 3, centralite_islam_musulmans: 'Central' }
+		}
+	});
+
+	/** Serves the base, and the model file only once `failModel` is false. */
+	function flakyFetch(model: string) {
+		const control = { failModel: true };
+		const spy = vi.fn(async (input: RequestInfo | URL) => {
+			const url = String(input);
+			if (url.includes('iwac_articles_base')) {
+				return { ok: true, status: 200, statusText: 'OK', json: async () => baseRecords };
+			}
+			if (url.includes(`iwac_sentiment_${model}`) && !control.failModel) {
+				return { ok: true, status: 200, statusText: 'OK', json: async () => sentimentFile(model) };
+			}
+			return { ok: false, status: 500, statusText: '', json: async () => null };
+		});
+		const modelCalls = () =>
+			spy.mock.calls.filter(([input]) => String(input).includes(`iwac_sentiment_${model}`)).length;
+		return { control, fetch: spy as unknown as typeof fetch, modelCalls };
+	}
+
+	it('does not re-request an errored dataset implicitly', async () => {
+		const { loadSpecificDataset, articleState } = await import('./articles.svelte');
+		const { fetch, modelCalls, control } = flakyFetch('gemini');
+
+		await expect(loadSpecificDataset('gemini', fetch, { showLoading: false })).rejects.toThrow(
+			'500'
+		);
+		expect(articleState.loadStates.gemini?.status).toBe('error');
+		expect(modelCalls()).toBe(1);
+
+		// The server recovers, but a requirement change is not a Retry.
+		control.failModel = false;
+		await expect(loadSpecificDataset('gemini', fetch, { showLoading: false })).rejects.toThrow(
+			'500'
+		);
+		expect(modelCalls()).toBe(1);
+		expect(articleState.loadStates.gemini?.status).toBe('error');
+	});
+
+	it('reloads an errored dataset when the Retry forces it', async () => {
+		const { loadSpecificDataset, articleState } = await import('./articles.svelte');
+		const { fetch, modelCalls, control } = flakyFetch('mistral');
+
+		await expect(loadSpecificDataset('mistral', fetch, { showLoading: false })).rejects.toThrow();
+		control.failModel = false;
+		await loadSpecificDataset('mistral', fetch, { showLoading: false, force: true });
+
+		expect(modelCalls()).toBe(2);
+		expect(articleState.loadStates.mistral?.status).toBe('ready');
+		expect(articleState.datasets.mistral).toHaveLength(1);
+
+		// Once ready, neither path fetches again.
+		await loadSpecificDataset('mistral', fetch, { showLoading: false, force: true });
+		await loadSpecificDataset('mistral', fetch, { showLoading: false });
+		expect(modelCalls()).toBe(2);
+	});
+
+	it('joins a forced retry already in flight instead of fetching twice', async () => {
+		const { loadSpecificDataset } = await import('./articles.svelte');
+		const { fetch, modelCalls, control } = flakyFetch('chatgpt');
+
+		await expect(loadSpecificDataset('chatgpt', fetch, { showLoading: false })).rejects.toThrow();
+		control.failModel = false;
+		await Promise.all([
+			loadSpecificDataset('chatgpt', fetch, { showLoading: false, force: true }),
+			// An implicit request during the retry joins it rather than rejecting.
+			loadSpecificDataset('chatgpt', fetch, { showLoading: false })
+		]);
+		expect(modelCalls()).toBe(2);
+	});
 });
 
 describe('justificationsOf', () => {

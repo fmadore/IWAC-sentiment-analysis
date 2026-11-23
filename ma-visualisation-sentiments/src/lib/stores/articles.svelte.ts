@@ -120,20 +120,37 @@ let foregroundLoadCount = 0;
 const isDatasetLoaded = (datasetId: DatasetId): boolean =>
 	_loadStates[datasetId]?.status === 'ready';
 
+export interface DatasetLoadOptions {
+	/** Drive the page-level loading indicator (foreground loads only). */
+	showLoading?: boolean;
+	/**
+	 * Load again after a failure. Only a Retry button passes it: like
+	 * `createResource.ensure`, an implicit request never replaces the error a
+	 * reader is looking at with a silent re-fetch.
+	 */
+	force?: boolean;
+}
+
 /**
  * Load a specific dataset into the store. Idempotent and race-free: an
  * already-loaded dataset resolves immediately, and concurrent callers of a
- * loading dataset await the same underlying fetch.
+ * loading dataset await the same underlying fetch. A failed dataset rejects
+ * with its recorded error until a caller passes `force`.
  */
 export const loadSpecificDataset = async (
 	datasetId: string,
 	fetchFunction: typeof fetch,
-	options: { showLoading?: boolean } = {}
+	options: DatasetLoadOptions = {}
 ): Promise<void> => {
-	const { showLoading = true } = options;
+	const { showLoading = true, force = false } = options;
 	if (!isDatasetId(datasetId)) throw new Error(`Dataset ${datasetId} not found`);
 
 	if (isDatasetLoaded(datasetId)) return;
+
+	// Rejecting (rather than resolving) keeps callers such as
+	// `loadJustifications` from proceeding as if the articles were there.
+	const current = _loadStates[datasetId];
+	if (current?.status === 'error' && !force) throw current.error;
 
 	let load = inFlightLoads.get(datasetId);
 	if (!load) {
@@ -281,11 +298,17 @@ export function justificationsOf(analysis: SentimentAnalysis | null | undefined)
 	};
 }
 
-/** Load only the currently selected dataset (lazy loading) */
-export const loadCurrentDataset = async (fetchFunction: typeof fetch): Promise<void> => {
+/**
+ * Load only the currently selected dataset (lazy loading). `force` is the
+ * page-level Retry; see `DatasetLoadOptions`.
+ */
+export const loadCurrentDataset = async (
+	fetchFunction: typeof fetch,
+	options: { force?: boolean } = {}
+): Promise<void> => {
 	const currentDatasetId = datasetState.selected;
 
-	await loadSpecificDataset(currentDatasetId, fetchFunction);
+	await loadSpecificDataset(currentDatasetId, fetchFunction, { force: options.force });
 
 	prefetchOtherDatasets(currentDatasetId, fetchFunction);
 };

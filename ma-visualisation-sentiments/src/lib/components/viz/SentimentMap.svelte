@@ -88,19 +88,27 @@
 	let map = $state<import('maplibre-gl').Map>();
 	let mapReady = $state(false);
 	let restoringCamera = false;
+	/**
+	 * The `mapCamera` value the map already shows: written by `saveCamera` and
+	 * by the restore effect, never rendered (plain, so the effect does not depend
+	 * on it). It lets the effect tell its own write's echo — which would jump to
+	 * the rounded coordinates after every move — from an external change such as
+	 * a shared link or Back/Forward, which it must still apply. `null` means
+	 * nothing is applied yet, so a freshly loaded map always restores.
+	 */
+	let appliedCamera: string | null = null;
 	function saveCamera() {
 		if (!map || !mapReady || restoringCamera) return;
 		const center = map.getCenter();
 		const lng = ((((center.lng + 180) % 360) + 360) % 360) - 180;
-		viewOptionsState.mapCamera = [
-			lng.toFixed(5),
-			center.lat.toFixed(5),
-			map.getZoom().toFixed(3)
-		].join(',');
+		const camera = [lng.toFixed(5), center.lat.toFixed(5), map.getZoom().toFixed(3)].join(',');
+		appliedCamera = camera;
+		viewOptionsState.mapCamera = camera;
 	}
 	$effect(() => {
 		const camera = viewOptionsState.mapCamera;
-		if (!map || !mapReady) return;
+		if (!map || !mapReady || camera === appliedCamera) return;
+		appliedCamera = camera;
 		restoringCamera = true;
 		try {
 			if (camera) {
@@ -113,6 +121,17 @@
 			restoringCamera = false;
 		}
 	});
+	/**
+	 * The map unmounts when the selection empties. The next instance is bound
+	 * before its `load`, so the restore effect must wait for that `onload` again,
+	 * and must restore the camera into it rather than treat it as applied.
+	 */
+	function resetMapOnUnmount() {
+		return () => {
+			mapReady = false;
+			appliedCamera = null;
+		};
+	}
 
 	/** Which dimension the bubble fill encodes. Size always means article count. */
 
@@ -276,6 +295,7 @@
 			role="tabpanel"
 			aria-labelledby="map-tab-{viewOptionsState.mapDimension}"
 			aria-describedby="map-keyboard-note"
+			{@attach resetMapOnUnmount}
 		>
 			<MapLibre
 				bind:map

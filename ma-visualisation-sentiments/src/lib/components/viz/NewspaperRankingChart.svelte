@@ -311,23 +311,24 @@
 {#if !heading.inCard}
 	<ChartHeading title={headingTitle} subtitle={headingSubtitle} />
 {/if}
+<!-- Outside the `{#if}`: a measure with no title above the threshold must
+     still offer the toggle back to one that has some. -->
+<div class="chart-toolbar">
+	<DatasetBadge size="sm" />
+	<ChartTypeToggle
+		options={measureOptions}
+		value={viewOptionsState.rankingMeasure}
+		onChange={(value) => (viewOptionsState.rankingMeasure = value as RankingMeasure)}
+		ariaLabel={$t.ranking.chartTitle}
+	/>
+	<ChartTypeToggle
+		options={shareOptions}
+		value={viewOptionsState.rankingMeasure}
+		onChange={(value) => (viewOptionsState.rankingMeasure = value as RankingMeasure)}
+		ariaLabel={`${$t.ranking.chartTitle} — ${$t.ranking.measureGroup}`}
+	/>
+</div>
 {#if ranks.length > 0}
-	<div class="chart-toolbar">
-		<DatasetBadge size="sm" />
-		<ChartTypeToggle
-			options={measureOptions}
-			value={viewOptionsState.rankingMeasure}
-			onChange={(value) => (viewOptionsState.rankingMeasure = value as RankingMeasure)}
-			ariaLabel={$t.ranking.chartTitle}
-		/>
-		<ChartTypeToggle
-			options={shareOptions}
-			value={viewOptionsState.rankingMeasure}
-			onChange={(value) => (viewOptionsState.rankingMeasure = value as RankingMeasure)}
-			ariaLabel={`${$t.ranking.chartTitle} — ${$t.ranking.measureGroup}`}
-		/>
-	</div>
-
 	<div
 		style="height: {chartHeight}px; position: relative;"
 		class="chart-container"

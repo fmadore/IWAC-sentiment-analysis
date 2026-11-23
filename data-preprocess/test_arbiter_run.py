@@ -20,8 +20,10 @@ from iwac_preprocess.arbiter_prompt import BLIND_LABELS, display_order
 from iwac_preprocess.arbiter_run import (
     HEAD,
     OUTCOME_ERROR,
+    OUTCOME_INVALID,
     OUTCOME_OK,
     OUTCOME_REFUSED,
+    OUTCOME_TRUNCATED,
     EvaluationResult,
     PanelRun,
     RevisionError,
@@ -226,6 +228,173 @@ def test_the_breaker_counts_only_consecutive_errors(tmp_path):
     # Stopped at the second error in a row; the fifth article was never sent.
     assert len(run.evaluations) == 1
     assert run.counts()["failed"] == 3
+
+
+def scripted_outcomes(*outcomes: str):
+    """An ``evaluate`` callback returning ``outcomes`` in order, recording each call."""
+    sequence = iter(outcomes)
+    sent: list[int] = []
+
+    def evaluate(article):
+        sent.append(article["o:id"])
+        outcome = next(sequence)
+        return ok(article) if outcome == OUTCOME_OK else EvaluationResult(outcome)
+
+    return evaluate, sent
+
+
+def test_the_failure_breaker_trips_on_consecutive_truncations(tmp_path, caplog):
+    evaluate, sent = scripted_outcomes(*[OUTCOME_TRUNCATED] * 3, OUTCOME_OK)
+    run, _ = open_run(tmp_path, articles(1, 2, 3, 4))
+    with caplog.at_level("ERROR"):
+        code = run.evaluate_remaining(evaluate, row, desc="t", max_consecutive_failures=3)
+    assert code == arbiter_run.EXIT_INCOMPLETE
+    # Stopped on the third truncation; the fourth article was never billed.
+    assert sent == [1, 2, 3]
+    assert "--max-consecutive-failures 3" in caplog.text
+    assert "--retry-failed" in caplog.text
+    # The failures are durable, so a plain rerun does not bill them again.
+    again, _ = open_run(tmp_path, articles(1, 2, 3, 4))
+    assert [article["o:id"] for article in again.remaining] == [4]
+    assert again.skipped_failures == 3
+
+
+def test_invalid_and_truncated_calls_share_one_streak(tmp_path):
+    evaluate, sent = scripted_outcomes(OUTCOME_INVALID, OUTCOME_TRUNCATED, OUTCOME_OK)
+    run, _ = open_run(tmp_path, articles(1, 2, 3))
+    assert run.evaluate_remaining(evaluate, row, desc="t", max_consecutive_failures=2) == 1
+    assert sent == [1, 2]
+
+
+def test_the_failure_breaker_never_trips_on_refusals(tmp_path):
+    evaluate, sent = scripted_outcomes(*[OUTCOME_REFUSED] * 6, OUTCOME_OK)
+    run, _ = open_run(tmp_path, articles(*range(1, 8)))
+    assert run.evaluate_remaining(evaluate, row, desc="t", max_consecutive_failures=2) == 0
+    assert len(sent) == 7
+    assert run.counts()["refused"] == 6
+
+
+def test_a_refusal_does_not_mask_a_truncation_streak(tmp_path):
+    """Neutral, not a reset: refusals interleaved with truncations still trip it."""
+    evaluate, sent = scripted_outcomes(
+        OUTCOME_TRUNCATED, OUTCOME_REFUSED, OUTCOME_TRUNCATED, OUTCOME_REFUSED, OUTCOME_OK
+    )
+    run, _ = open_run(tmp_path, articles(1, 2, 3, 4, 5))
+    assert run.evaluate_remaining(evaluate, row, desc="t", max_consecutive_failures=2) == 1
+    assert sent == [1, 2, 3]
+
+
+def test_a_verdict_resets_the_failure_streak(tmp_path):
+    evaluate, sent = scripted_outcomes(
+        OUTCOME_TRUNCATED, OUTCOME_TRUNCATED, OUTCOME_OK, OUTCOME_TRUNCATED, OUTCOME_TRUNCATED
+    )
+    run, _ = open_run(tmp_path, articles(1, 2, 3, 4, 5))
+    assert run.evaluate_remaining(evaluate, row, desc="t", max_consecutive_failures=3) == 0
+    assert len(sent) == 5
+    assert len(run.evaluations) == 1
+
+
+def test_api_errors_neither_count_towards_nor_reset_the_failure_streak(tmp_path):
+    evaluate, sent = scripted_outcomes(
+        OUTCOME_TRUNCATED, OUTCOME_ERROR, OUTCOME_TRUNCATED, OUTCOME_OK
+    )
+    run, _ = open_run(tmp_path, articles(1, 2, 3, 4))
+    code = run.evaluate_remaining(
+        evaluate, row, desc="t", max_consecutive_failures=2, max_consecutive_errors=5
+    )
+    assert code == 1
+    assert sent == [1, 2, 3]
+
+
+def test_the_checkpoint_cadence_counts_billed_calls_not_verdicts(tmp_path, monkeypatch):
+    """A run producing no verdict still checkpoints its failure memory and usage."""
+    evaluate, _ = scripted_outcomes(
+        OUTCOME_TRUNCATED,
+        OUTCOME_REFUSED,
+        OUTCOME_ERROR,  # not billed: does not advance the cadence
+        OUTCOME_INVALID,
+        OUTCOME_REFUSED,
+        OUTCOME_REFUSED,
+        OUTCOME_OK,
+    )
+    run, _ = open_run(tmp_path, articles(*range(1, 8)))
+    durable = []
+    original = run.cache.checkpoint
+
+    def spy(evaluations, metadata):
+        durable.append((len(run.cache.failures), metadata["failed_evaluations"]))
+        original(evaluations, metadata)
+
+    monkeypatch.setattr(run.cache, "checkpoint", spy)
+    run.evaluate_remaining(evaluate, row, desc="t", save_interval=2, max_consecutive_failures=9)
+    # Billed calls 2 (T, R), 4 (I, R) and 6 (R, OK) checkpoint mid-run, then
+    # the final one. The old cadence (every 2 verdicts) checkpointed only there.
+    assert [failures for failures, _ in durable] == [2, 4, 5, 5]
+    # The metadata written mid-run already counts the failures (T, E, I).
+    assert [failed for _, failed in durable] == [1, 3, 3, 3]
+
+
+def test_a_mid_run_checkpoint_survives_a_hard_kill_in_an_all_failure_run(tmp_path):
+    """Before, only verdicts advanced the cadence: an all-failure run saved nothing
+    until its `finally`, which a hard kill never reaches."""
+
+    class HardKill(BaseException):
+        pass
+
+    sequence = iter([OUTCOME_TRUNCATED, OUTCOME_INVALID])
+    killed = []
+
+    def evaluate(article):
+        outcome = next(sequence, None)
+        if outcome is None:
+            killed.append(True)
+            raise HardKill
+        return EvaluationResult(outcome)
+
+    run, _ = open_run(tmp_path, articles(1, 2, 3))
+    # A hard kill never reaches the `finally`: any checkpoint after it is lost.
+    original = run.cache.checkpoint
+
+    def until_killed(evaluations, metadata):
+        if not killed:
+            original(evaluations, metadata)
+
+    run.cache.checkpoint = until_killed  # type: ignore[method-assign]
+    with pytest.raises(HardKill):
+        run.evaluate_remaining(evaluate, row, desc="t", save_interval=2)
+    durable = json.loads((tmp_path / "staging" / CACHE_FILENAME).read_text())
+    assert sorted(durable["failures"]) == ["fp-1", "fp-2"]
+
+
+def test_a_run_with_no_verdict_and_a_failure_exits_incomplete(tmp_path):
+    evaluate, _ = scripted_outcomes(OUTCOME_REFUSED, OUTCOME_INVALID)
+    run, _ = open_run(tmp_path, articles(1, 2))
+    assert run.evaluate_remaining(evaluate, row, desc="t") == arbiter_run.EXIT_INCOMPLETE
+
+
+def test_a_run_of_refusals_alone_exits_ok(tmp_path):
+    evaluate, _ = scripted_outcomes(OUTCOME_REFUSED, OUTCOME_REFUSED)
+    run, _ = open_run(tmp_path, articles(1, 2))
+    assert run.evaluate_remaining(evaluate, row, desc="t") == arbiter_run.EXIT_OK
+
+
+def test_the_failure_flag_is_threaded_through_finish(tmp_path):
+    evaluate, sent = scripted_outcomes(OUTCOME_TRUNCATED, OUTCOME_OK)
+    run, _ = open_run(tmp_path, articles(1, 2))
+    code = run.finish(
+        prune_only=False,
+        assume_yes=True,
+        model="judge",
+        estimate={"usd": 0.0},
+        report_estimate=lambda: None,
+        make_client=lambda: object(),
+        evaluate=lambda client, article: evaluate(article),
+        make_row=row,
+        desc="t",
+        max_consecutive_failures=1,
+    )
+    assert code == arbiter_run.EXIT_INCOMPLETE
+    assert sent == [1]
 
 
 def test_a_refusal_is_remembered_and_counted_apart(tmp_path):

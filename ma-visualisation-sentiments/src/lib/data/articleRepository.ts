@@ -84,7 +84,8 @@ export const fetchJSON = async (
 	const resolvedPath = dataUrl(filePath);
 	const response = await fetchFunction(resolvedPath);
 	if (!response.ok) {
-		throw new Error(`Failed to fetch ${filePath}: ${response.statusText}`);
+		// The status code is the reliable part: `statusText` is empty over HTTP/2.
+		throw new Error(`Failed to fetch ${filePath}: ${response.status} ${response.statusText}`);
 	}
 	return response.json();
 };

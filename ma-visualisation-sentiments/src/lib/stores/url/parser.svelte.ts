@@ -158,7 +158,10 @@ export function parseURLState(searchParams: ReadonlyURLSearchParams): URLState {
 	if (state.diffMin !== undefined && state.diffMax !== undefined && state.diffMin > state.diffMax) {
 		[state.diffMin, state.diffMax] = [state.diffMax, state.diffMin];
 	}
-	state.options = parseViewOptions(searchParams, state.view);
+	// A link without `view=` opens the charts view (`applyURLState` falls back
+	// the same way), so its chart options apply. `state.view` itself stays
+	// unset: only the options read the fallback.
+	state.options = parseViewOptions(searchParams, state.view ?? 'charts');
 	state.chartState = parseChartInteractions(searchParams.get(URL_PARAMS.chartState));
 	return state;
 }

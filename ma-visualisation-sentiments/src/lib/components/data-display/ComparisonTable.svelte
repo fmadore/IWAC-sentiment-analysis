@@ -98,6 +98,7 @@
 		);
 		viewOptionsState.comparisonSort = next.column;
 		viewOptionsState.comparisonOrder = next.order;
+		pagination.currentPage = 1;
 	}
 
 	const pagination = createPagination({
