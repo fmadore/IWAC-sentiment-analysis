@@ -130,7 +130,7 @@
 		font-family: var(--font-sans);
 		font-size: var(--font-size-sm);
 		font-style: italic;
-		color: var(--text-faint);
+		color: var(--text-muted);
 		margin: 0;
 	}
 

@@ -68,11 +68,20 @@
 	});
 	const categoryOptions = $derived(Object.keys(categoryLabels) as ExtremeCategory[]);
 
-	// Handle number change
+	/**
+	 * Only an integer in [5, 25] reaches the chart. Anything else (99, 2.5, an
+	 * empty field) puts the current N back in the field: the value is one-way,
+	 * so nothing else would, and the input would show a count the chart is not
+	 * using.
+	 */
 	function handleTopNChange(event: Event) {
 		const target = event.target as HTMLInputElement;
-		const value = Number(target.value);
-		if (Number.isInteger(value) && value >= 5 && value <= 25) onTopNChange(value);
+		const value = target.value.trim() === '' ? NaN : Number(target.value);
+		if (Number.isInteger(value) && value >= 5 && value <= 25) {
+			onTopNChange(value);
+		} else {
+			target.value = String(showTopN);
+		}
 	}
 </script>
 
@@ -92,7 +101,7 @@
 				</label>
 				<select
 					id="category-select"
-					bind:value={selectedCategory}
+					value={selectedCategory}
 					onchange={handleCategoryChange}
 					class="select-input"
 				>
@@ -169,7 +178,7 @@
 					type="number"
 					min="5"
 					max="25"
-					bind:value={showTopN}
+					value={showTopN}
 					onchange={handleTopNChange}
 					class="number-input"
 				/>
@@ -231,23 +240,16 @@
 		border-radius: var(--radius-panel);
 		transition:
 			background-color var(--timing-fast) var(--easing-default),
-			border-color var(--timing-fast) var(--easing-default),
-			box-shadow var(--timing-fast) var(--easing-default);
+			border-color var(--timing-fast) var(--easing-default);
 		font-size: var(--font-size-sm);
 		min-height: 38px;
 		width: 100%;
 		cursor: pointer;
-		outline: none;
 	}
 
 	.select-input:hover {
 		background: var(--surface-hover);
 		border-color: var(--border-active);
-	}
-
-	.select-input:focus {
-		border-color: color-mix(in oklab, var(--sentiment-extreme) 50%, transparent);
-		box-shadow: 0 0 0 3px color-mix(in oklab, var(--sentiment-extreme) 10%, transparent);
 	}
 
 	/* Fix dropdown options styling */
@@ -317,23 +319,16 @@
 		border-radius: var(--radius-panel);
 		transition:
 			background-color var(--timing-fast) var(--easing-default),
-			border-color var(--timing-fast) var(--easing-default),
-			box-shadow var(--timing-fast) var(--easing-default);
+			border-color var(--timing-fast) var(--easing-default);
 		font-size: var(--font-size-sm);
 		min-height: 38px;
 		width: 100%;
 		max-width: 100px;
-		outline: none;
 	}
 
 	.number-input:hover {
 		background: var(--surface-hover);
 		border-color: var(--border-active);
-	}
-
-	.number-input:focus {
-		border-color: color-mix(in oklab, var(--sentiment-extreme) 50%, transparent);
-		box-shadow: 0 0 0 3px color-mix(in oklab, var(--sentiment-extreme) 10%, transparent);
 	}
 
 	/* Chrome, Safari, Edge, Opera */

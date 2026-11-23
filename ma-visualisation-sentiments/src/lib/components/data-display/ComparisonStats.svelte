@@ -212,27 +212,33 @@
 <!-- Arbiter Summary Section -->
 {#if arbiterStats.totalEvaluated > 0}
 	<div class="arbiter-section mt-6">
-		<button
-			class="arbiter-header"
-			onclick={() => (viewOptionsState.arbiterSummary = !viewOptionsState.arbiterSummary)}
-			aria-expanded={viewOptionsState.arbiterSummary}
-		>
-			<div class="arbiter-header-content">
-				<span class="arbiter-glyph"><GavelIcon size={20} /></span>
-				<h4 class="arbiter-summary-title">
-					{$t.arbiter.summaryTitle}
-				</h4>
-				<span class="badge badge-count"
-					>{$num(arbiterStats.totalEvaluated)}
-					{$t.arbiter.articlesEvaluated}</span
-				>
-			</div>
-			{#if viewOptionsState.arbiterSummary}
-				<span class="toggle-chevron"><ChevronUpIcon size={20} /></span>
-			{:else}
-				<span class="toggle-chevron"><ChevronDownIcon size={20} /></span>
-			{/if}
-		</button>
+		<!-- Disclosure pattern: heading > button, phrasing content only inside the
+		     button. Preflight leaves the <h4> without margin or type of its own,
+		     so the box renders exactly as the button did on its own. -->
+		<h4>
+			<button
+				type="button"
+				class="arbiter-header"
+				onclick={() => (viewOptionsState.arbiterSummary = !viewOptionsState.arbiterSummary)}
+				aria-expanded={viewOptionsState.arbiterSummary}
+			>
+				<span class="arbiter-header-content">
+					<span class="arbiter-glyph"><GavelIcon size={20} /></span>
+					<span class="arbiter-summary-title">
+						{$t.arbiter.summaryTitle}
+					</span>
+					<span class="badge badge-count"
+						>{$num(arbiterStats.totalEvaluated)}
+						{$t.arbiter.articlesEvaluated}</span
+					>
+				</span>
+				{#if viewOptionsState.arbiterSummary}
+					<span class="toggle-chevron"><ChevronUpIcon size={20} /></span>
+				{:else}
+					<span class="toggle-chevron"><ChevronDownIcon size={20} /></span>
+				{/if}
+			</button>
+		</h4>
 
 		{#if viewOptionsState.arbiterSummary}
 			<div class="arbiter-content">
