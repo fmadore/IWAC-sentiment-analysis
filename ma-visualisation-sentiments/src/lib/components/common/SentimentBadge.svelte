@@ -11,8 +11,7 @@
   <SentimentBadge type="centrality" value="Central" />
 -->
 <script lang="ts">
-	import { currentLanguage } from '#lib/i18n/index.js';
-	import { translateSentimentValue, translateSubjectivityScore } from '#lib/i18n/utils.js';
+	import { sentimentLabel, subjectivityLabel } from '#lib/i18n/utils.js';
 	import { NOT_ANNOTATED } from '#lib/domain/sentimentContract.js';
 	import { sentimentAttributes, type SentimentFamily } from '#lib/utils/sentimentTokens.js';
 
@@ -44,7 +43,7 @@
 		// A null score is "not annotated", never "N/A": the latter reads as the
 		// scale's own "Non applicable", which is a verdict this article lacks.
 		if (value === null || value === undefined) {
-			return translateSentimentValue(NOT_ANNOTATED, $currentLanguage);
+			return $sentimentLabel(NOT_ANNOTATED);
 		}
 
 		if (!translate) {
@@ -53,10 +52,10 @@
 
 		if (type === 'subjectivity') {
 			const score = typeof value === 'string' ? parseInt(value, 10) : value;
-			return translateSubjectivityScore(score as number, $currentLanguage);
+			return $subjectivityLabel(score as number);
 		}
 
-		return translateSentimentValue(String(value), $currentLanguage);
+		return $sentimentLabel(String(value));
 	}
 
 	let paletteAttributes = $derived(sentimentAttributes(type, value));

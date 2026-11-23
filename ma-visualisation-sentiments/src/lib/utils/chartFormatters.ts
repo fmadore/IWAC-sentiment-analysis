@@ -60,12 +60,46 @@ const POLARITY_GLYPHS: Record<string, string> = {
 };
 
 /**
+ * Display name → stored French key, for the series whose swatch should carry a
+ * polarity glyph. Series are named with *translated* labels, so a lookup on the
+ * display text alone only ever matched in French (whose catalogue happens to
+ * equal the keys). The chart that knows both parallel arrays builds this map
+ * and hands it to the formatter; `POLARITY_GLYPHS` stays keyed on the data,
+ * never on catalogue copy.
+ */
+export type GlyphKeys = Readonly<Record<string, string>>;
+
+/**
+ * Pair each display label with the French key at the same index. Build it only
+ * for a polarity chart: glyphs encode polarity steps, and other scales keep
+ * plain colour chips.
+ */
+export function polarityGlyphKeys(displayLabels: string[], frenchLabels: string[]): GlyphKeys {
+	const keys: Record<string, string> = {};
+	frenchLabels.forEach((frenchLabel, index) => {
+		const display = displayLabels[index];
+		if (display !== undefined) keys[display] = frenchLabel;
+	});
+	return keys;
+}
+
+/**
  * Swatch markup for a tooltip row: the series colour, plus a shape whenever the
  * series is a polarity step. Returns a plain colour chip for everything else,
  * where hue is not carrying an ordered meaning.
+ *
+ * `glyphKeys` translates the display name back to its stored key; without it
+ * (or for a name it does not list) the name itself is looked up, which is what
+ * every caller did before the map existed.
  */
-function swatch(color: string | undefined, seriesName: string | undefined, round = false): string {
-	const glyph = seriesName ? POLARITY_GLYPHS[seriesName] : undefined;
+function swatch(
+	color: string | undefined,
+	seriesName: string | undefined,
+	round = false,
+	glyphKeys?: GlyphKeys
+): string {
+	const key = seriesName === undefined ? undefined : (glyphKeys?.[seriesName] ?? seriesName);
+	const glyph = key ? POLARITY_GLYPHS[key] : undefined;
 
 	if (glyph) {
 		return `<span aria-hidden="true" style="display:inline-block;width:10px;text-align:center;line-height:10px;font-size:10px;color:${color};">${glyph}</span>`;
@@ -104,10 +138,11 @@ export function tooltipRow(label: string, value: string): string {
 export function tooltipSeriesRow(
 	color: string | undefined,
 	name: string | undefined,
-	value: string
+	value: string,
+	glyphKeys?: GlyphKeys
 ): string {
 	return `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">
-		${swatch(color, name, true)}
+		${swatch(color, name, true, glyphKeys)}
 		<span style="flex:1;">${name}</span>
 		<strong>${value}</strong>
 	</div>`;
@@ -133,20 +168,23 @@ export function createPieTooltipFormatter(options: {
 	formatValue: (n: number) => string;
 	/** Active language, read at format time so a switch re-renders correctly. */
 	lang: () => Language;
+	/** Display name → stored key, so translated polarity slices keep their glyph. */
+	glyphKeys?: () => GlyphKeys | undefined;
 }): (params: unknown) => string {
 	return function (params: unknown) {
 		const lang = options.lang();
+		const glyphKeys = options.glyphKeys?.();
 		if (Array.isArray(params)) {
 			return (params as TooltipParam[])
 				.map(
 					(param) =>
-						`${swatch(param.color, param.seriesName, true)} ${param.seriesName}: ${formatNumber(param.value, lang)} (${formatPercent((param.percent ?? 0) / 100, 1, lang)})`
+						`${swatch(param.color, param.seriesName, true, glyphKeys)} ${param.seriesName}: ${formatNumber(param.value, lang)} (${formatPercent((param.percent ?? 0) / 100, 1, lang)})`
 				)
 				.join('<br/>');
 		} else {
 			const p = params as TooltipParam;
 			return `<div style="font-weight:600;margin-bottom:8px;">${p.seriesName}</div>
-				${swatch(p.color, p.name, true)}
+				${swatch(p.color, p.name, true, glyphKeys)}
 				${p.name}: <strong>${options.formatValue(p.value)}</strong> (${formatPercent((p.percent ?? 0) / 100, 1, lang)})`;
 		}
 	};
@@ -221,6 +259,8 @@ export function createTrendTooltipFormatter(options: {
 	 * year's article count rather than a meaningless 100%.
 	 */
 	share?: () => boolean;
+	/** Display name → stored key, so translated polarity series keep their glyph. */
+	glyphKeys?: () => GlyphKeys | undefined;
 }): (params: unknown) => string {
 	const sort = options.sort ?? false;
 
@@ -231,6 +271,7 @@ export function createTrendTooltipFormatter(options: {
 
 		const lang = options.lang();
 		const isShare = options.share?.() ?? false;
+		const glyphKeys = options.glyphKeys?.();
 		const typed = params as TooltipParam[];
 		const items = sort ? typed.slice().sort((a, b) => b.value - a.value) : typed;
 
@@ -244,7 +285,7 @@ export function createTrendTooltipFormatter(options: {
 					? `${formatPercent(param.value / 100, 1, lang)}${rawCount === null ? '' : ` <span style="opacity:0.65;font-weight:400;">(${formatNumber(rawCount, lang)})</span>`}`
 					: formatNumber(param.value, lang);
 				listHtml += `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">
-					${swatch(param.color, param.seriesName, true)}
+					${swatch(param.color, param.seriesName, true, glyphKeys)}
 					<span style="flex:1;">${param.seriesName}</span>
 					<strong>${display}</strong>
 				</div>`;

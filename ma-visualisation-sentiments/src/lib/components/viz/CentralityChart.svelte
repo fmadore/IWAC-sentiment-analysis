@@ -6,8 +6,8 @@
 -->
 <script lang="ts">
 	import DimensionDistributionChart from './DimensionDistributionChart.svelte';
-	import { t, currentLanguage } from '#lib/i18n/index.js';
-	import { getSentimentLabels } from '#lib/i18n/utils.js';
+	import { t } from '#lib/i18n/index.js';
+	import { scaleLabels } from '#lib/i18n/utils.js';
 	import { centralityColors, polarityColors } from '#lib/utils/chartTheme.js';
 
 	// French labels for data lookup (data is stored in French)
@@ -20,10 +20,7 @@
 		'Non applicable'
 	];
 
-	let centralityLabels = $derived([
-		...getSentimentLabels('centrality', $currentLanguage),
-		$t.sentiment.notApplicable
-	]);
+	let centralityLabels = $derived([...$scaleLabels('centrality'), $t.sentiment.notApplicable]);
 
 	// `Non applicable` has no step on the amber ramp; it shares the neutral grey
 	// the polarity ramp gives the same verdict.

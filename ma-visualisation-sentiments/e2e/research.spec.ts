@@ -297,7 +297,30 @@ test('a browser that blocks site storage still gets a working dashboard', async 
 	// document language are what change.
 	await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
 	await expect(page.getByText('Lecture d’un modèle', { exact: true }).first()).toBeVisible();
+	// With storage blocked the address bar is the only place the choice can
+	// survive a reload.
+	await expect(page).toHaveURL(/[?&]lang=fr(&|$)/);
+	await page.reload();
+	await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
+	await expect(page.getByText('Lecture d’un modèle', { exact: true }).first()).toBeVisible();
 	expect(errors).toEqual([]);
+});
+
+test('switching language rewrites ?lang= so a reload keeps the choice', async ({ page }) => {
+	// The URL outranks the remembered language at start-up, so a stale `lang=`
+	// would undo the switch on reload even though localStorage holds it.
+	await page.goto('?view=charts&dataset=luna&lang=fr');
+	await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
+	await expect(page.locator('canvas').first()).toBeVisible();
+
+	await page.getByRole('button', { name: /^(Change language|Changer de langue)\b/ }).click();
+	await page.getByRole('option', { name: 'English' }).click();
+	await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+	await expect(page).toHaveURL(/[?&]lang=en(&|$)/);
+
+	await page.reload();
+	await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+	await expect(page).toHaveURL(/[?&]lang=en(&|$)/);
 });
 
 test('a failed extremes payload is an error with a working retry, not an endless spinner', async ({

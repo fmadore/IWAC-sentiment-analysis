@@ -103,20 +103,30 @@ export const t = derived(
 	([$currentLanguage, $catalogues]) => $catalogues[$currentLanguage] ?? fr
 );
 
-// Translation function
+/**
+ * A one-shot lookup: reads the language and the catalogue once, at call time.
+ *
+ * Fine for imperative work (a CSV built on click), wrong inside a component's
+ * `$derived` or template: nothing there subscribes to the catalogue, so a label
+ * read before the English catalogue lands stays French. Components read `$t`, or
+ * the label stores in `./utils` that derive from it.
+ */
 export function translate(key: string, lang?: Language): string {
 	const targetLang = lang || get(currentLanguage);
-	const translation = get(catalogues)[targetLang] ?? fr;
+	return translateFrom(get(catalogues)[targetLang] ?? fr, key);
+}
 
+/** Look a dotted key up in a given catalogue; the key itself if it is missing. */
+export function translateFrom(catalogue: Translations, key: string): string {
 	// Support nested keys with dot notation
 	const keys = key.split('.');
-	let value: unknown = translation;
+	let value: unknown = catalogue;
 
 	for (const k of keys) {
 		if (value && typeof value === 'object' && k in (value as Record<string, unknown>)) {
 			value = (value as Record<string, unknown>)[k];
 		} else {
-			console.warn(`Translation key not found: ${key} for language: ${targetLang}`);
+			console.warn(`Translation key not found: ${key}`);
 			return key; // Return the key if translation not found
 		}
 	}

@@ -6,8 +6,8 @@
 -->
 <script lang="ts">
 	import TrendsChart from './TrendsChart.svelte';
-	import { t, currentLanguage } from '#lib/i18n/index.js';
-	import { getSentimentLabels } from '#lib/i18n/utils.js';
+	import { t } from '#lib/i18n/index.js';
+	import { scaleLabels } from '#lib/i18n/utils.js';
 	import { getSubjectivityLabel } from '#lib/utils/chartAggregators.js';
 	import { subjectivityColors } from '#lib/utils/chartTheme.js';
 
@@ -21,14 +21,13 @@
 	];
 
 	// Get subjectivity labels in current language
-	let subjectivityLabels = $derived(getSentimentLabels('subjectivity', $currentLanguage));
+	let subjectivityLabels = $derived($scaleLabels('subjectivity'));
 </script>
 
 <TrendsChart
 	stateKey="subjectivityTrend"
 	frenchLabels={frenchSubjectivityLabels}
 	seriesLabels={subjectivityLabels}
-	legendData={subjectivityLabels.slice(0, 5)}
 	getKey={(article) => {
 		const score = article.sentiment_analysis?.subjectivite_score;
 		return score ? getSubjectivityLabel(score) : null;

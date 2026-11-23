@@ -5,8 +5,8 @@
 -->
 <script lang="ts">
 	import { filterState } from '#lib/stores/index.js';
-	import { t, currentLanguage } from '#lib/i18n/index.js';
-	import { translateSentimentValue } from '#lib/i18n/utils.js';
+	import { t } from '#lib/i18n/index.js';
+	import { sentimentLabel } from '#lib/i18n/utils.js';
 	import { NOT_ANNOTATED } from '#lib/domain/sentimentContract.js';
 	import FilterCard from '#lib/components/common/FilterCard.svelte';
 	import FilterChip from '#lib/components/common/FilterChip.svelte';
@@ -28,7 +28,7 @@
 	const translatedOptions = $derived(
 		centralityOptions.map((option) => ({
 			value: option.value, // Keep French value for data operations
-			label: translateSentimentValue(option.value, $currentLanguage), // Translated label for display
+			label: $sentimentLabel(option.value), // Translated label for display
 			variant: option.variant
 		}))
 	);

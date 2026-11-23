@@ -9,8 +9,8 @@
 
 	import { articleState } from '#lib/stores/index.js';
 	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
-	import { t, currentLanguage } from '#lib/i18n/index.js';
-	import { dec, num, translateSentimentValue } from '#lib/i18n/utils.js';
+	import { t } from '#lib/i18n/index.js';
+	import { dec, num, sentimentLabel } from '#lib/i18n/utils.js';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
 	import {
 		aggregateCentralityHeatmap,
@@ -31,7 +31,7 @@
 
 	const heatmapColors = HEATMAP_CENTRALITY_VALUES.map((label) => centralityColors[label]);
 	const centralityLabels = $derived(
-		HEATMAP_CENTRALITY_VALUES.map((label) => translateSentimentValue(label, $currentLanguage))
+		HEATMAP_CENTRALITY_VALUES.map((label) => $sentimentLabel(label))
 	);
 	// Compact layout follows the chart's own width, not the window's.
 	let containerWidth = $state<number>();

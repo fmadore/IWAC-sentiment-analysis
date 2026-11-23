@@ -1,11 +1,6 @@
 <script lang="ts">
-	import { t, currentLanguage } from '#lib/i18n/index.js';
-	import {
-		num,
-		pct,
-		translateSentimentValue,
-		translateSubjectivityScore
-	} from '#lib/i18n/utils.js';
+	import { t } from '#lib/i18n/index.js';
+	import { num, pct, sentimentLabel, subjectivityLabel } from '#lib/i18n/utils.js';
 	import { articleState } from '#lib/stores/articles.svelte.js';
 	import { panelSlice } from '#lib/stores/index.js';
 	import { datasetState } from '#lib/stores/datasets.svelte.js';
@@ -82,8 +77,8 @@
 	}
 	function label(value: number): string {
 		return dimension === 'subjectivity'
-			? translateSubjectivityScore(value, $currentLanguage)
-			: translateSentimentValue(String(rawLabel(value)), $currentLanguage);
+			? $subjectivityLabel(value)
+			: $sentimentLabel(String(rawLabel(value)));
 	}
 	function selectPattern(key: string) {
 		viewOptionsState.labelPattern = key;

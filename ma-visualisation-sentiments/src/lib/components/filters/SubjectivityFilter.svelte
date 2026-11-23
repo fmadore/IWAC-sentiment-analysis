@@ -6,8 +6,8 @@
 -->
 <script lang="ts">
 	import { filterState } from '#lib/stores/index.js';
-	import { t, currentLanguage } from '#lib/i18n/index.js';
-	import { translateSentimentValue } from '#lib/i18n/utils.js';
+	import { t } from '#lib/i18n/index.js';
+	import { sentimentLabel } from '#lib/i18n/utils.js';
 	import { NOT_ANNOTATED } from '#lib/domain/sentimentContract.js';
 	import FilterCard from '#lib/components/common/FilterCard.svelte';
 	import FilterChip from '#lib/components/common/FilterChip.svelte';
@@ -29,7 +29,7 @@
 		{
 			value: NOT_ANNOTATED,
 			variant: 'subjectivity-not-annotated' as const,
-			label: translateSentimentValue(NOT_ANNOTATED, $currentLanguage)
+			label: $sentimentLabel(NOT_ANNOTATED)
 		}
 	]);
 

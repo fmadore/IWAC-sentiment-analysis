@@ -21,7 +21,7 @@
 	import { isLowN, LOW_N_THRESHOLD } from '#lib/utils/stats.js';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
 	import ChartTypeToggle from './ChartTypeToggle.svelte';
-	import { createTrendTooltipFormatter } from '#lib/utils/chartFormatters.js';
+	import { createTrendTooltipFormatter, polarityGlyphKeys } from '#lib/utils/chartFormatters.js';
 	import {
 		aggregateByYearAndDimension,
 		computeDimensionShares
@@ -49,10 +49,12 @@
 		stateKey: 'polarityTrend' | 'subjectivityTrend';
 		/** French dimension labels used as data-lookup keys, in series order */
 		frenchLabels: string[];
-		/** Translated series names (same order as frenchLabels) */
+		/**
+		 * Translated series names, in frenchLabels order. Only the first
+		 * `frenchLabels.length` are used: the shared scale lists carry a sixth
+		 * "not applicable / not annotated" bucket that has no trend line.
+		 */
 		seriesLabels: string[];
-		/** Translated legend entries */
-		legendData: string[];
 		/** Resolve an article to its French dimension label, or null to skip it */
 		getKey: (article: Article) => string | null;
 		/** Line color for a French dimension label */
@@ -67,7 +69,6 @@
 		stateKey,
 		frenchLabels,
 		seriesLabels,
-		legendData,
 		getKey,
 		getColor,
 		title,
@@ -91,6 +92,22 @@
 		{ value: 'count', label: $t.charts.countMode, icon: HashIcon },
 		{ value: 'share', label: $t.charts.shareMode, icon: PercentIcon }
 	]);
+
+	/**
+	 * One name per series, derived from `frenchLabels` so the series, the legend,
+	 * the data-table header and the CSV header always have exactly as many
+	 * entries as each row has cells. A longer label list is truncated, a shorter
+	 * one falls back to the stored key rather than shifting the columns.
+	 */
+	const seriesNames = $derived(
+		frenchLabels.map((frenchLabel, index) => seriesLabels[index] ?? frenchLabel)
+	);
+	/** `polarity-trend` / `subjectivity-trend`: the chart id and the CSV stem. */
+	const chartId = $derived(stateKey.replace('Trend', '-trend'));
+	/** Polarity steps carry a glyph in the tooltip swatch; subjectivity does not. */
+	const glyphKeys = $derived(
+		stateKey === 'polarityTrend' ? polarityGlyphKeys(seriesNames, frenchLabels) : undefined
+	);
 
 	// Use $derived for proper reactivity in Svelte 5
 	const aggregate = $derived(
@@ -151,7 +168,7 @@
 			const color = getColor(frenchLabel, index);
 			const lineStyle = getLineSeriesStyle(isMobile, color);
 			return {
-				name: seriesLabels[index],
+				name: seriesNames[index],
 				type: 'line' as const,
 				emphasis: getEmphasisConfig(),
 				data: years.map((year) =>
@@ -209,12 +226,13 @@
 				formatter: createTrendTooltipFormatter({
 					getTotalLabel: () => currentT.common.total,
 					lang: () => currentLang,
-					share: () => isShare
+					share: () => isShare,
+					glyphKeys: () => glyphKeys
 				})
 			},
 			legend: {
 				...getLegendConfig(isMobile),
-				data: legendData,
+				data: seriesNames,
 				top: 0
 			},
 			grid: getGridConfig(isMobile, { hasLegendTop: true, hasDataZoom: true }),
@@ -255,12 +273,12 @@
 		role="img"
 		aria-label={isShare ? `${ariaLabel} — ${$t.charts.shareMode}` : ariaLabel}
 	>
-		<Chart chartId={stateKey.replace('Trend', '-trend')} {init} {options} />
+		<Chart {chartId} {init} {options} />
 	</div>
 	<ChartDataTable
 		columns={[
 			{ label: $t.audit.year },
-			...seriesLabels.map((label) => ({
+			...seriesNames.map((label) => ({
 				label,
 				format: isShare ? ('percent' as const) : ('integer' as const)
 			}))
@@ -272,7 +290,7 @@
 			)
 		])}
 		caption={`${headingTitle} — ${isShare ? $t.charts.shareMode : $t.charts.countMode}`}
-		filenamePrefix={`trends-${viewOptionsState[stateKey]}`}
+		filenamePrefix={`${chartId}-${viewOptionsState[stateKey]}`}
 	/>
 	{#if isShare && lowSampleYears.length > 0}
 		<p class="chart-note">

@@ -158,6 +158,11 @@
 	let hasSyncedURL = false;
 	$effect(() => {
 		if (!browser || !isInitialized) return;
+		// getCurrentState() reads the language with svelte/store's get(), which
+		// no effect can track, so a language switch would never reach `?lang=`
+		// and a reload would revert it (the URL outranks localStorage). Subscribe
+		// here; updateURL() still skips the write while a restore is applying.
+		void $currentLanguage;
 		reconcileSelectionContext();
 		updateURL(undefined, !hasSyncedURL);
 		hasSyncedURL = true;
