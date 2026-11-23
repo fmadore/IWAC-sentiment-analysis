@@ -656,6 +656,19 @@ def test_a_paid_run_saves_each_verdict_with_its_frame_bookkeeping(stub_pipeline,
     assert len(client.calls) == 1
 
 
+def test_systematic_truncation_trips_the_failure_breaker(stub_pipeline, monkeypatch, caplog):
+    """The second judge shares the paid loop, so it gets the same protection."""
+    client = FakeClient(interaction(status="incomplete"))
+    monkeypatch.setitem(second.CLIENT_FACTORIES, "google", lambda api_key: client)
+    with caplog.at_level("ERROR"):
+        code = second.main(["--frame", "full", "--yes", "--max-consecutive-failures", "2"])
+    assert code == 1
+    # Three articles framed; the breaker stopped the run after two billed truncations.
+    assert len(client.calls) == 2
+    assert "--max-consecutive-failures 2" in caplog.text
+    assert output_of(stub_pipeline)["metadata"]["usage"]["calls"] == 2
+
+
 def test_a_rerun_with_another_effort_is_refused_rather_than_relabelled(stub_pipeline, monkeypatch):
     client = FakeClient(interaction(text=valid_json()))
     monkeypatch.setitem(second.CLIENT_FACTORIES, "google", lambda api_key: client)

@@ -74,7 +74,7 @@ import json
 import os
 import random
 from dataclasses import asdict
-from functools import partial
+from functools import cache, partial
 from pathlib import Path
 from typing import Any
 
@@ -129,7 +129,7 @@ from iwac_preprocess.arbiter_selection import (
 )
 from iwac_preprocess.publication import publish_json_files
 from iwac_preprocess.source import SourceScopeError
-from pydantic import ValidationError
+from pydantic import TypeAdapter, ValidationError
 from shared import (
     CONTRACT_V2,
     HF_FULL_REPO_ID,
@@ -199,6 +199,39 @@ def create_anthropic_client(api_key: str):
     return anthropic.Anthropic(api_key=api_key, max_retries=5)
 
 
+@cache
+def _response_format_schema() -> str:
+    """The structured-output schema exactly as `messages.parse` would send it.
+
+    `parse` builds it as ``transform_schema(TypeAdapter(output_format).json_schema())``
+    and puts it under ``output_config.format``. Built here the same way so the
+    wire request is byte-identical to the one the published run sent (a test
+    compares the two bodies); kept as JSON text so every call gets a fresh copy.
+    """
+    from anthropic import transform_schema
+
+    return json.dumps(transform_schema(TypeAdapter(ArbiterResponseV2).json_schema()))
+
+
+def response_format() -> dict[str, Any]:
+    """``output_config.format`` for the arbiter's verdict schema.
+
+    Key order matches the SDK's ``JSONOutputFormatParam(schema=..., type=...)``,
+    so the serialised body is byte-identical, not merely equal as JSON.
+    """
+    return {"schema": json.loads(_response_format_schema()), "type": "json_schema"}
+
+
+def _response_text(response: Any) -> str:
+    """The concatenated text blocks of a Messages API response (thinking excluded)."""
+    blocks = getattr(response, "content", None) or []
+    return "".join(
+        str(getattr(block, "text", "") or "")
+        for block in blocks
+        if getattr(block, "type", None) == "text"
+    )
+
+
 def evaluate_with_arbiter(
     client: Any,
     article: dict,
@@ -241,20 +274,15 @@ def evaluate_with_arbiter(
         "messages": [
             {"role": "user", "content": create_arbiter_prompt(article, permutation, CONTRACT)}
         ],
-        "output_format": ArbiterResponseV2,
-        "output_config": {"effort": effort},
+        # The schema `messages.parse` would derive from ArbiterResponseV2, sent
+        # through `messages.create` instead: `parse` validates every text block
+        # inside the SDK and raises before returning, so a refusal carrying
+        # text or a truncation mid-JSON surfaced as "invalid" with no usage.
+        "output_config": {"effort": effort, "format": response_format()},
     }
 
     try:
-        response = client.messages.parse(**request)
-    except ValidationError as error:
-        logger.error("Invalid structured response for article %s: %s", article_id, error)
-        if usage is not None:
-            # Billed like any other call, but `messages.parse` validates inside
-            # the SDK and raises before handing back the usage (and its raw
-            # wrapper has no `parse`), so the call is counted without tokens.
-            usage.add_unmetered()
-        return EvaluationResult(OUTCOME_INVALID)
+        response = client.messages.create(**request)
     except Exception as error:  # noqa: BLE001 - one bad article must not end the run
         logger.error("Arbiter call failed for article %s: %s", article_id, error)
         return EvaluationResult(OUTCOME_ERROR)
@@ -278,9 +306,16 @@ def evaluate_with_arbiter(
         )
         return EvaluationResult(OUTCOME_TRUNCATED)
 
-    parsed = getattr(response, "parsed_output", None)
-    if parsed is None:
+    # Validated only now, after the usage and the stop reason: the SDK's own
+    # parse would have raised before either was visible.
+    text = _response_text(response)
+    if not text:
         logger.error("Empty structured response for article %s", article_id)
+        return EvaluationResult(OUTCOME_INVALID)
+    try:
+        parsed = ArbiterResponseV2.model_validate_json(text)
+    except ValidationError as error:
+        logger.error("Invalid structured response for article %s: %s", article_id, error)
         return EvaluationResult(OUTCOME_INVALID)
 
     return EvaluationResult(OUTCOME_OK, convert_response(parsed, article_id, CONTRACT))
@@ -669,6 +704,7 @@ def run(args: argparse.Namespace) -> int:
             make_row=make_row,
             desc="Panel arbiter",
             max_consecutive_errors=args.max_consecutive_errors,
+            max_consecutive_failures=args.max_consecutive_failures,
         )
     except ArbiterRunError as error:
         logger.error("%s", error)

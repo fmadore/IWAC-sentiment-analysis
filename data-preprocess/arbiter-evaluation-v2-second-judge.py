@@ -839,6 +839,7 @@ def run(args: argparse.Namespace, judge: JudgeSpec) -> int:
             make_row=make_row,
             desc=judge.display_name,
             max_consecutive_errors=args.max_consecutive_errors,
+            max_consecutive_failures=args.max_consecutive_failures,
         )
     except ArbiterRunError as error:
         logger.error("%s", error)
