@@ -13,43 +13,71 @@
 
 	let { open, onClose, title, children }: PromptModalProps = $props();
 
-	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape') {
-			onClose();
+	let dialog = $state<HTMLDialogElement>();
+	const titleId = $props.id();
+
+	// Keep Tab inside the panel rather than letting it leave for the browser
+	// chrome (same contract as FullScreenModal).
+	function containFocus(event: KeyboardEvent) {
+		if (event.key !== 'Tab' || !dialog) return;
+		const controls = Array.from(
+			dialog.querySelectorAll<HTMLElement>(
+				'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+			)
+		).filter((el) => el.getClientRects().length > 0);
+		const first = controls[0],
+			last = controls.at(-1);
+		if (event.shiftKey && document.activeElement === first) {
+			event.preventDefault();
+			last?.focus();
+		} else if (!event.shiftKey && document.activeElement === last) {
+			event.preventDefault();
+			first?.focus();
 		}
 	}
 
-	// Prevent background scroll while the modal is open (matches FullScreenModal).
+	// The dialog element itself is the full-viewport scrim and the panel sits
+	// inside it, so a click whose target is the dialog landed on the scrim.
+	function closeOnScrim(event: MouseEvent) {
+		if (event.target === event.currentTarget) onClose();
+	}
+
+	// Native modality moves focus in, traps it and makes the page behind inert.
+	// Focus is returned explicitly because `{#if open}` removes the dialog on
+	// close, and the body's own overflow is restored rather than blanked.
 	$effect(() => {
-		if (open && typeof document !== 'undefined') {
+		if (open && dialog) {
+			const opener = document.activeElement;
+			const activeDialog = dialog;
+			const previousOverflow = document.body.style.overflow;
+			activeDialog.showModal();
 			document.body.style.overflow = 'hidden';
 			return () => {
-				document.body.style.overflow = '';
+				activeDialog.close();
+				document.body.style.overflow = previousOverflow;
+				if (opener instanceof HTMLElement && opener.isConnected) opener.focus();
 			};
 		}
 	});
 </script>
 
 {#if open}
-	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-	<div
+	<!-- The scrim click is a pointer convenience; Escape (oncancel) and the two
+	     close buttons are the keyboard paths. -->
+	<dialog
+		bind:this={dialog}
 		class="prompt-modal-backdrop"
-		role="dialog"
-		aria-modal="true"
-		aria-labelledby="prompt-modal-title"
-		onclick={onClose}
-		onkeydown={handleKeydown}
-		tabindex="-1"
+		aria-labelledby={titleId}
+		onclick={closeOnScrim}
+		onkeydown={containFocus}
+		oncancel={(event) => {
+			event.preventDefault();
+			onClose();
+		}}
 	>
-		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-		<div
-			class="prompt-modal"
-			role="document"
-			onclick={(e) => e.stopPropagation()}
-			onkeydown={(e) => e.stopPropagation()}
-		>
+		<div class="prompt-modal">
 			<div class="prompt-modal-header">
-				<h3 id="prompt-modal-title" class="prompt-modal-title">
+				<h3 id={titleId} class="prompt-modal-title">
 					{@render title()}
 				</h3>
 				<button
@@ -73,20 +101,38 @@
 				</button>
 			</div>
 		</div>
-	</div>
+	</dialog>
 {/if}
 
 <style>
+	/* The dialog is the scrim: it fills the viewport and centres the panel. The
+	   native ::backdrop is cleared so the scrim is not painted twice. */
 	.prompt-modal-backdrop {
 		position: fixed;
 		inset: 0;
 		z-index: var(--z-modal);
-		display: flex;
+		width: 100%;
+		height: 100%;
+		max-width: none;
+		max-height: none;
+		margin: 0;
+		border: 0;
 		align-items: center;
 		justify-content: center;
 		padding: var(--space-4);
+		color: var(--text-primary);
 		background: var(--scrim-strong);
 		animation: fadeIn var(--timing-fast) var(--easing-default);
+	}
+
+	/* Only when open: a class would otherwise beat the UA's
+	   `dialog:not([open]) { display: none }`. */
+	.prompt-modal-backdrop[open] {
+		display: flex;
+	}
+
+	.prompt-modal-backdrop::backdrop {
+		background: transparent;
 	}
 
 	@keyframes fadeIn {
@@ -99,6 +145,7 @@
 	}
 
 	.prompt-modal {
+		position: relative;
 		width: 100%;
 		max-width: 850px;
 		max-height: 95vh;
@@ -156,8 +203,9 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: var(--size-control-sm);
-		height: var(--size-control-sm);
+		flex-shrink: 0;
+		width: var(--size-control-lg);
+		height: var(--size-control-lg);
 		background: var(--surface-subtle);
 		border: 1px solid var(--border-default);
 		border-radius: var(--radius-panel);
@@ -186,6 +234,7 @@
 	.prompt-modal-footer {
 		display: flex;
 		justify-content: flex-end;
+		gap: var(--space-3);
 		padding: var(--space-4) var(--space-6);
 		border-top: 1px solid var(--border-subtle);
 		background: var(--surface-subtle);
