@@ -73,6 +73,7 @@
 	import PieChartIcon from '@lucide/svelte/icons/pie-chart';
 	import {
 		createPieTooltipFormatter,
+		polarityGlyphKeys,
 		tooltipHeader,
 		tooltipPanel,
 		tooltipSeriesRow
@@ -132,6 +133,14 @@
 	const chartKey = $derived(`${dimension}Chart` as const);
 	const groupingKey = $derived(`${dimension}Grouping` as const);
 	const heading = useChartCardHeading(() => ({ title }));
+	/**
+	 * Series and slices are named with translated labels, so the tooltip swatch
+	 * is told which stored key each name stands for. Polarity only: centrality
+	 * and subjectivity keep their plain colour chips.
+	 */
+	const glyphKeys = $derived(
+		dimension === 'polarity' ? polarityGlyphKeys(translatedLabels, frenchLabels) : undefined
+	);
 	const aggregate = $derived(
 		aggregateByJournalAndDimension(articleState.filtered, frenchLabels, getKey)
 	);
@@ -189,7 +198,30 @@
 			return {
 				backgroundColor: 'transparent',
 				grid: { left: isMobile ? 112 : 150, right: 55, top: 20, bottom: 40 },
-				tooltip: { ...getTooltipConfig(isMobile), trigger: 'item' },
+				tooltip: {
+					...getTooltipConfig(isMobile),
+					trigger: 'item',
+					// What the default item tooltip showed (series name, category,
+					// count), plus the glyph swatch and the share the pie and the
+					// data table give for the same totals.
+					formatter: (params: unknown) => {
+						const p = params as { name?: string; value?: unknown; color?: string };
+						const value = Number(p.value ?? 0);
+						const share = aggregate.articlesAnalyzed
+							? ` (${formatPercent(value / aggregate.articlesAnalyzed, 1, currentLang)})`
+							: '';
+						return tooltipPanel(
+							180,
+							tooltipHeader(seriesName),
+							tooltipSeriesRow(
+								p.color,
+								p.name,
+								`${formatNumber(value, currentLang)}${share}`,
+								glyphKeys
+							)
+						);
+					}
+				},
 				xAxis: getCountYAxis(isMobile),
 				yAxis: {
 					type: 'category',
@@ -237,7 +269,8 @@
 					trigger: 'item',
 					formatter: createPieTooltipFormatter({
 						formatValue: (n) => formatNumber(n, currentLang),
-						lang: () => currentLang
+						lang: () => currentLang,
+						glyphKeys: () => glyphKeys
 					})
 				},
 				// The pie is aggregated globally by dimension, so a journal legend would
@@ -301,7 +334,8 @@
 									tooltipSeriesRow(
 										item.color,
 										item.seriesName,
-										`${formatPercent(item.data.value / 100, 1, currentLang)} (${formatNumber(item.data.rawCount, currentLang)})`
+										`${formatPercent(item.data.value / 100, 1, currentLang)} (${formatNumber(item.data.rawCount, currentLang)})`,
+										glyphKeys
 									)
 								)
 						);

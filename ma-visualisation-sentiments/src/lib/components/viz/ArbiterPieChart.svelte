@@ -103,7 +103,7 @@
 		data.reduce((n, v) => n + v.value, 0) > 0 ? d.value / data.reduce((n, v) => n + v.value, 0) : 0
 	])}
 	caption={ariaLabel}
-	filenamePrefix="ArbiterPieChart"
+	filenamePrefix={`arbiter-${chartId}`}
 />
 
 <style>
