@@ -7,18 +7,27 @@
 
   The five columns fit from the 640px breakpoint up; below it the table option
   is disabled and the rows render as cards whatever `arbiterLayout` says.
-  Verdict labels resolve model_a / model_b through the pair's model names; the
-  blind assignment (`model_a_is_first`) is untouched here.
+  The stored `overall_winner` names the judge's blind slots, not the pair's
+  order: each row's verdict is first mapped to pair order through the run's
+  blind assignment (`arbiterModelAIsFirst`, via `toPairOrderVerdict`), and that
+  one value feeds the label, the VerdictBadge and the verdict sort. On
+  `gemini-mistral` the assignment is swapped, so reading the raw value named
+  the other model on every row.
 -->
 <script lang="ts">
 	import { viewOptionsState, paginationURLState } from '#lib/stores/view-options.svelte.js';
-	import { arbiterEvaluations, comparisonState, datasetState } from '#lib/stores/index.js';
+	import {
+		arbiterEvaluations,
+		arbiterModelAIsFirst,
+		comparisonState,
+		datasetState
+	} from '#lib/stores/index.js';
 	import { fmtDate } from '#lib/i18n/utils.js';
 	import { getPairModelNames, type ArbiterAnalysis } from '#lib/types/data.js';
 	import { t } from '#lib/i18n/index.js';
 	import { getJournalName } from '#lib/utils/format.js';
 	import { createPagination } from '#lib/utils/pagination.svelte.js';
-	import { VERDICT_ORDER, CONFIDENCE_ORDER } from '#lib/utils/arbiter.js';
+	import { VERDICT_ORDER, CONFIDENCE_ORDER, toPairOrderVerdict } from '#lib/utils/arbiter.js';
 	import { compareBy, dateKey, nextSort, titleKey, type SortValue } from '#lib/utils/sorting.js';
 	import { isCompact } from '#lib/utils/viewport.svelte.js';
 	import TableControls from '#lib/components/common/TableControls.svelte';
@@ -50,6 +59,8 @@
 		journal: string;
 		date: string | null;
 		arbiter: ArbiterAnalysis;
+		/** `overall_winner` in pair order: `model_a` is the pair's first model. */
+		verdict: ArbiterAnalysis['overall_winner'];
 	}
 
 	const articlesWithArbiter = $derived.by(() => {
@@ -57,6 +68,7 @@
 		// Use comparisonState.data to reactively subscribe to the store
 		const comparisons = comparisonState.data;
 		if (!evaluations || evaluations.length === 0) return [];
+		const modelAIsFirst = arbiterModelAIsFirst.current;
 
 		const comparisonsById = new Map(
 			(comparisons ?? []).map((comparison) => [String(comparison.article['o:id']), comparison])
@@ -72,7 +84,8 @@
 					sortTitle,
 					journal: getJournalName(comparison.article),
 					date: comparison.article.publication_date || null,
-					arbiter: evaluation.arbiter
+					arbiter: evaluation.arbiter,
+					verdict: toPairOrderVerdict(evaluation.arbiter.overall_winner, modelAIsFirst)
 				};
 			}
 			// Not in the comparison data: still listed, by its id.
@@ -82,7 +95,8 @@
 				sortTitle: null,
 				journal: $t.table.unknownJournal,
 				date: null,
-				arbiter: evaluation.arbiter
+				arbiter: evaluation.arbiter,
+				verdict: toPairOrderVerdict(evaluation.arbiter.overall_winner, modelAIsFirst)
 			};
 		});
 	});
@@ -96,7 +110,7 @@
 			case 'date':
 				return dateKey(article.date);
 			case 'verdict':
-				return VERDICT_ORDER[article.arbiter.overall_winner] ?? null;
+				return VERDICT_ORDER[article.verdict] ?? null;
 			case 'confidence':
 				return CONFIDENCE_ORDER[article.arbiter.confidence_level] ?? null;
 		}
@@ -124,7 +138,8 @@
 		sortedArticles.slice(pagination.startIndex, pagination.endIndex)
 	);
 
-	function getVerdictLabel(verdict: 'model_a' | 'model_b' | 'both' | 'neither'): string {
+	/** Label for a verdict already in pair order (see `toPairOrderVerdict`). */
+	function getVerdictLabel(verdict: ArbiterAnalysis['overall_winner']): string {
 		switch (verdict) {
 			case 'model_a':
 				return modelNames.modelAName;
@@ -228,8 +243,8 @@
 								<td class="row-meta">{$fmtDate(article.date)}</td>
 								<td class="text-center">
 									<VerdictBadge
-										verdict={article.arbiter.overall_winner}
-										label={getVerdictLabel(article.arbiter.overall_winner)}
+										verdict={article.verdict}
+										label={getVerdictLabel(article.verdict)}
 									/>
 								</td>
 								<td class="text-center">
@@ -251,10 +266,7 @@
 						accent="arbiter"
 					>
 						<div class="card-badges">
-							<VerdictBadge
-								verdict={article.arbiter.overall_winner}
-								label={getVerdictLabel(article.arbiter.overall_winner)}
-							/>
+							<VerdictBadge verdict={article.verdict} label={getVerdictLabel(article.verdict)} />
 							<ConfidenceBadge level={article.arbiter.confidence_level} />
 						</div>
 					</ArticleCard>

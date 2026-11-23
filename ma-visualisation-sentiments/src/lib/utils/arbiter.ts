@@ -28,6 +28,24 @@ export const CONFIDENCE_ORDER: Record<string, number> = {
 };
 
 /**
+ * Map a v1 arbiter verdict from the judge's blind slots to pair order.
+ *
+ * The archived arbiter saw the pair's two analyses as "Model A" / "Model B"
+ * under a per-run blind assignment, so its `model_a` is the pair's first model
+ * only when `modelAIsFirst` (the store's `arbiterModelAIsFirst`). With the
+ * assignment swapped — `gemini-mistral` — `model_a` is the pair's second
+ * model. The result reads `model_a` as the pair's first model, ready for a
+ * label from `getPairModelNames`, a VerdictBadge and `VERDICT_ORDER`. Ties
+ * (`both`, `neither`) and any other value pass through unchanged.
+ */
+export function toPairOrderVerdict<V extends string>(verdict: V, modelAIsFirst: boolean): V {
+	if (modelAIsFirst) return verdict;
+	if (verdict === 'model_a') return 'model_b' as V;
+	if (verdict === 'model_b') return 'model_a' as V;
+	return verdict;
+}
+
+/**
  * Percentage points between two preference shares (each 0–100), as a number.
  *
  * Kept numeric so the caller can compare it with a threshold and format it
