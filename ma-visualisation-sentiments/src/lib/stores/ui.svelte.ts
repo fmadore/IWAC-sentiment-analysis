@@ -58,6 +58,21 @@ export const uiState = {
 		_activeView = value;
 	},
 
+	/**
+	 * A view change the reader asked for: switch, then start the new view at the
+	 * top of the page. The URL is written with `reset: false` so that a filter
+	 * change never moves the page, which left a reader who switched views from
+	 * the bottom of a long one at the bottom of the next. Restoring a history
+	 * entry goes through the plain setter instead, so the browser's own scroll
+	 * restoration on Back/Forward is left alone. Instant, not the document's
+	 * smooth scrolling: an animated climb past the old view would be noise.
+	 */
+	showView(value: ViewId) {
+		if (value === _activeView) return;
+		this.activeView = value;
+		if (typeof window !== 'undefined') window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+	},
+
 	// ------------------------------------------------------------------
 	// Off-canvas drawers (< 1024px): the nav menu and the filter rail.
 	//

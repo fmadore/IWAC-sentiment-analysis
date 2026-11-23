@@ -48,10 +48,8 @@
 			<p class="intro-body">
 				{$t.intro.caveat}
 				{#if uiState.activeView !== 'agreement'}
-					<button
-						type="button"
-						class="intro-link"
-						onclick={() => (uiState.activeView = 'agreement')}>{$t.intro.agreementLink}</button
+					<button type="button" class="intro-link" onclick={() => uiState.showView('agreement')}
+						>{$t.intro.agreementLink}</button
 					>
 				{/if}
 			</p>

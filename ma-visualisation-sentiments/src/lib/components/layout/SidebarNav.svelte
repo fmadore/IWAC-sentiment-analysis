@@ -29,7 +29,7 @@
 	});
 
 	function change(view: ViewId) {
-		if (view !== uiState.activeView) uiState.activeView = view;
+		uiState.showView(view);
 		// Close mobile menu after selection
 		if (uiState.mobileMenuOpen) uiState.mobileMenuOpen = false;
 	}
