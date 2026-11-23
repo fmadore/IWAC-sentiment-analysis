@@ -18,8 +18,8 @@
 	import { useChartCardHeading } from '#lib/components/ui/chartCardHeading.svelte.js';
 	import ChartHeading from './ChartHeading.svelte';
 
-	import { t, currentLanguage } from '#lib/i18n/index.js';
-	import { translateSentimentValue } from '#lib/i18n/utils.js';
+	import { t } from '#lib/i18n/index.js';
+	import { sentimentLabel } from '#lib/i18n/utils.js';
 	import type { ConfusionMatrix } from '#lib/utils/agreement.js';
 	import type { AgreementDimension } from '#lib/stores/index.js';
 	import ChartDataTable from '../common/ChartDataTable.svelte';
@@ -61,7 +61,7 @@
 							'5': $t.filters.verySubjectiveScore
 						})[score] ?? score
 				)
-			: matrix.categories.map((category) => translateSentimentValue(category, $currentLanguage))
+			: matrix.categories.map((category) => $sentimentLabel(category))
 	);
 
 	const headingTitle = $derived(

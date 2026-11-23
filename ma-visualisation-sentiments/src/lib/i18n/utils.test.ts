@@ -60,6 +60,39 @@ describe('formatDate', () => {
 		expect(formatDate('2025-01-01T00:30:00Z', 'en')).toBe(timestampDate);
 	});
 
+	it.each(['UTC', 'America/New_York', 'Pacific/Kiritimati'])(
+		'keeps a month-precision date to its month, with no invented day, in %s',
+		(timeZone) => {
+			const toLocaleDateString = Date.prototype.toLocaleDateString;
+			vi.spyOn(Date.prototype, 'toLocaleDateString').mockImplementation(function (
+				this: Date,
+				locales,
+				options
+			) {
+				return toLocaleDateString.call(this, locales, {
+					...options,
+					timeZone: options?.timeZone ?? timeZone
+				});
+			});
+
+			expect(formatDate('1997-10', 'en')).toBe('October 1997');
+			expect(formatDate('1997-10', 'fr')).toBe('octobre 1997');
+			// West of UTC this used to read 31 December 1993.
+			expect(formatDate('1994-01', 'en')).toBe('January 1994');
+		}
+	);
+
+	it('returns a bare year and an ISO range exactly as they came', () => {
+		expect(formatDate('1997', 'en')).toBe('1997');
+		expect(formatDate('1997', 'fr')).toBe('1997');
+		expect(formatDate('1993-02/1993-03', 'en')).toBe('1993-02/1993-03');
+		expect(formatDate('1993-02-01/1993-03-15', 'fr')).toBe('1993-02-01/1993-03-15');
+	});
+
+	it('returns an impossible month as it came', () => {
+		expect(formatDate('1997-13', 'en')).toBe('1997-13');
+	});
+
 	it('returns an unparseable value as it came, and a missing one as the localised placeholder', () => {
 		expect(formatDate('19/10/2011', 'en')).toBe('19/10/2011');
 		expect(formatDate(null, 'en')).not.toBe('');

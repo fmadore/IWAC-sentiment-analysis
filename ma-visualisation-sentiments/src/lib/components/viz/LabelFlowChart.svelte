@@ -21,8 +21,8 @@
 	import { useChartCardHeading } from '#lib/components/ui/chartCardHeading.svelte.js';
 	import ChartHeading from './ChartHeading.svelte';
 
-	import { t, currentLanguage } from '#lib/i18n/index.js';
-	import { translateSentimentValue } from '#lib/i18n/utils.js';
+	import { t } from '#lib/i18n/index.js';
+	import { sentimentLabel } from '#lib/i18n/utils.js';
 	import { getModelDisplayNames } from '#lib/utils/format.js';
 	import { tooltipPanel } from '#lib/utils/chartFormatters.js';
 	import { datasetState } from '#lib/stores/index.js';
@@ -81,7 +81,7 @@
 	function displayCategory(category: string): string {
 		return dimension === 'subjectivity'
 			? (subjectivityLabels[category] ?? category)
-			: translateSentimentValue(category, $currentLanguage);
+			: $sentimentLabel(category);
 	}
 
 	const nodeLabels = $derived(

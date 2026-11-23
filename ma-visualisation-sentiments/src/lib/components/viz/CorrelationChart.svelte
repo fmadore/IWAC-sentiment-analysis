@@ -11,7 +11,7 @@
 	import { articleState } from '#lib/stores/index.js';
 	import type { Article } from '#lib/types/data.js';
 	import { t, currentLanguage } from '#lib/i18n/index.js';
-	import { translateSentimentValue } from '#lib/i18n/utils.js';
+	import { sentimentLabel } from '#lib/i18n/utils.js';
 	import DatasetBadge from '../ui/DatasetBadge.svelte';
 	import { createStackedBarTooltipFormatter } from '#lib/utils/chartFormatters.js';
 	import { spearman, spearmanInterval, interpretRho } from '#lib/utils/correlation.js';
@@ -42,7 +42,7 @@
 
 	// Reactive translated polarity labels for display
 	let translatedPolarityLabels = $derived(
-		polarityOrder.map((polarity) => translateSentimentValue(polarity, $currentLanguage))
+		polarityOrder.map((polarity) => $sentimentLabel(polarity))
 	);
 
 	// Ordre des scores de subjectivité

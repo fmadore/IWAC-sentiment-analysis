@@ -2,7 +2,7 @@
 	import { viewOptionsState } from '#lib/stores/view-options.svelte.js';
 	import { MODELS } from '#lib/data/modelMethodology.js';
 	import { t, currentLanguage } from '#lib/i18n/index.js';
-	import { num, translateSentimentValue, translateSubjectivityScore } from '#lib/i18n/utils.js';
+	import { num, sentimentLabel, subjectivityLabel } from '#lib/i18n/utils.js';
 	import {
 		centralityScaleItems,
 		polarityScaleItems,
@@ -104,12 +104,12 @@
 
 	// Evaluation-scale items: the steps and their variants come from
 	// `utils/scaleItems.ts`; the badges are the translated labels and the
-	// descriptions the generation's own wording. Reading `$currentLanguage`
-	// makes the badges follow a language switch.
+	// descriptions the generation's own wording. Reading the label stores
+	// makes the badges follow a language switch and the catalogue's arrival.
 	const polarityItems: ScaleItem[] = $derived(
 		polarityScaleItems(copy, {
 			includeNotApplicable: true,
-			badge: (step) => translateSentimentValue(step.value, $currentLanguage)
+			badge: (step) => $sentimentLabel(step.value)
 		})
 	);
 
@@ -118,13 +118,13 @@
 	// rank, and showing two different scales for one dimension would not help.
 	const subjectivityItems: ScaleItem[] = $derived(
 		subjectivityScaleItems(copy, {
-			label: (step) => translateSubjectivityScore(step.value, $currentLanguage)
+			label: (step) => $subjectivityLabel(step.value)
 		})
 	);
 
 	const centralityItems: ScaleItem[] = $derived(
 		centralityScaleItems(copy, {
-			badge: (step) => translateSentimentValue(step.value, $currentLanguage)
+			badge: (step) => $sentimentLabel(step.value)
 		})
 	);
 

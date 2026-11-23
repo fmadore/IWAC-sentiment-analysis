@@ -6,8 +6,8 @@
 -->
 <script lang="ts">
 	import DimensionDistributionChart from './DimensionDistributionChart.svelte';
-	import { t, currentLanguage } from '#lib/i18n/index.js';
-	import { getSentimentLabels } from '#lib/i18n/utils.js';
+	import { t } from '#lib/i18n/index.js';
+	import { scaleLabels } from '#lib/i18n/utils.js';
 	import { polarityColors } from '#lib/utils/chartTheme.js';
 
 	// French labels for data lookup (data is stored in French)
@@ -21,7 +21,7 @@
 	];
 
 	// Get polarity labels in current language
-	let polarityLabels = $derived(getSentimentLabels('polarity', $currentLanguage));
+	let polarityLabels = $derived($scaleLabels('polarity'));
 </script>
 
 <DimensionDistributionChart

@@ -21,8 +21,8 @@
 	import { useChartCardHeading } from '#lib/components/ui/chartCardHeading.svelte.js';
 	import ChartHeading from './ChartHeading.svelte';
 
-	import { t, currentLanguage } from '#lib/i18n/index.js';
-	import { translateSentimentValue } from '#lib/i18n/utils.js';
+	import { t } from '#lib/i18n/index.js';
+	import { sentimentLabel } from '#lib/i18n/utils.js';
 	import { getModelDisplayName } from '#lib/utils/format.js';
 	import { datasetState } from '#lib/stores/index.js';
 	import { modelSeriesColor } from '#lib/stores/datasets.svelte.js';
@@ -64,7 +64,7 @@
 							'5': $t.filters.verySubjectiveScore
 						})[score] ?? score
 				)
-			: categories.map((category) => translateSentimentValue(category, $currentLanguage))
+			: categories.map((category) => $sentimentLabel(category))
 	);
 
 	const heading = useChartCardHeading(() => ({
