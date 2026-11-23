@@ -157,9 +157,9 @@ it now reads the sizes from the contracts.
 - **The Opus arbiter calls `messages.create`, never `messages.parse`.** `parse`
   validates inside the SDK before returning, which turned mid-JSON truncations
   and refusals carrying text into usage-less "invalid". The schema sent is the
-  one `parse` would build (`transform_schema(TypeAdapter(ArbiterResponseV2)
-  .json_schema())`), and a test pins the request body byte-for-byte against
-  `parse`, so an SDK upgrade that changes it fails there
+  one `parse` would build, `transform_schema()` over the model's
+  `TypeAdapter(...).json_schema()`, and a test pins the request body
+  byte-for-byte against `parse`, so an SDK upgrade that changes it fails there
 - **The blind labels are fixed for the run; the presentation order is not.**
   `display_order()` reshuffles the five blocks per article, seeded on the article
   id. Without it one model would sit first on every prompt and the judge's
