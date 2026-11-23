@@ -276,6 +276,29 @@ describe('parseURLState', () => {
 		expect(state.compare).toBe(true);
 		expect(state.view).toBe('comparison');
 	});
+
+	// Issue #232: a link without `view=` opens the charts view, so its
+	// charts-scoped options must survive; options scoped elsewhere still drop.
+	it('keeps chart options on a link without view=', () => {
+		const state = parseURLState(
+			new URLSearchParams('polarityChart=pie&dataset=haiku&comparisonSort=date')
+		);
+
+		expect(state.view).toBeUndefined();
+		expect(state.options).toEqual({ polarityChart: 'pie' });
+	});
+
+	it('parses chart options identically with and without view=charts', () => {
+		const query = 'polarityChart=pie&centralityGrouping=journal&dataset=haiku';
+		expect(parseURLState(new URLSearchParams(query)).options).toEqual(
+			parseURLState(new URLSearchParams(`view=charts&${query}`)).options
+		);
+	});
+
+	it('still drops chart options when another view is named', () => {
+		const state = parseURLState(new URLSearchParams('view=table&polarityChart=pie'));
+		expect(state.options).toEqual({});
+	});
 });
 
 // ============================================

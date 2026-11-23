@@ -10,7 +10,7 @@
 		retrying = true;
 		try {
 			await Promise.allSettled(
-				ids.map((id) => loadSpecificDataset(id, fetch, { showLoading: false }))
+				ids.map((id) => loadSpecificDataset(id, fetch, { showLoading: false, force: true }))
 			);
 		} finally {
 			retrying = false;

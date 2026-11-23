@@ -243,7 +243,7 @@
 	}
 
 	function retryDataset() {
-		untrack(() => loadCurrentDataset(fetch)).catch((error) =>
+		untrack(() => loadCurrentDataset(fetch, { force: true })).catch((error) =>
 			console.error('Failed to retry dataset:', error)
 		);
 	}
