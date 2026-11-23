@@ -31,7 +31,14 @@
 
   Rendering: the panel is always in the DOM (it slides via transform, so it can
   animate, and so its content keeps its state between openings). Only the scrim
-  is conditional.
+  is conditional. A transform hides nothing from the keyboard, so a closed
+  drawer is `inert` as well as `aria-hidden` — otherwise every link in the
+  off-screen panel stays in the tab order. The attribute is a render effect,
+  so it is gone before the focus effect below moves focus into the panel. A
+  disabled drawer (the static rail) is never inert. The open state passes
+  `undefined`, not `false`, so the attribute is removed outright whether or not
+  the environment has an `inert` property setter (jsdom has none, and would
+  otherwise be left with a literal `inert="false"`).
 
   Usage:
     <Drawer open={uiState.mobileMenuOpen} onClose={() => (uiState.mobileMenuOpen = false)}
@@ -193,8 +200,13 @@
 
 		previouslyFocused = document.activeElement as HTMLElement | null;
 
-		const background = backgroundOf(panel);
-		const wasInert = background.map((el) => el.inert);
+		// Only what this drawer made inert is handed back on close. Restoring a
+		// snapshot of every sibling would clobber state that changed meanwhile:
+		// the other drawer's closed panel is inert by its own template, and
+		// widening the window past 1024px disables both drawers in one update —
+		// its template drops `inert` first, then this cleanup would put the
+		// stale `true` back and leave the desktop rail unreachable for good.
+		const background = backgroundOf(panel).filter((el) => !el.inert);
 		background.forEach((el) => (el.inert = true));
 
 		const previousOverflow = document.body.style.overflow;
@@ -206,7 +218,7 @@
 		panel.focus();
 
 		return () => {
-			background.forEach((el, i) => (el.inert = wasInert[i]));
+			background.forEach((el) => (el.inert = false));
 			document.body.style.overflow = previousOverflow;
 			previouslyFocused?.focus?.();
 		};
@@ -239,6 +251,7 @@
 	style:--drawer-width={width}
 	aria-label={label}
 	aria-hidden={enabled && !open ? 'true' : undefined}
+	inert={enabled && !open ? true : undefined}
 	tabindex="-1"
 	{...rest}
 >

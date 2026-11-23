@@ -168,6 +168,25 @@
 		viewer?.viewport?.goHome();
 	}
 
+	// While expanded, Escape collapses the viewer and goes no further. The viewer
+	// sits inside the article modal's native <dialog>, whose cancel is fired by
+	// the browser's close request, not by a bubbling keydown: stopping
+	// propagation alone would not prevent it. Cancelling the keydown does —
+	// a close request is only processed when its Escape keydown was not
+	// default-prevented. Capture phase on window, so this runs before any
+	// other keydown listener on the page.
+	$effect(() => {
+		if (!expanded) return;
+		function collapseOnEscape(event: KeyboardEvent) {
+			if (event.key !== 'Escape') return;
+			event.preventDefault();
+			event.stopPropagation();
+			toggleExpanded();
+		}
+		window.addEventListener('keydown', collapseOnEscape, { capture: true });
+		return () => window.removeEventListener('keydown', collapseOnEscape, { capture: true });
+	});
+
 	function toggleExpanded() {
 		expanded = !expanded;
 		// Fit only the viewer that requested this resize, if it is still mounted.
@@ -264,9 +283,9 @@
 						aria-pressed={expanded}
 					>
 						{#if expanded}
-							<MinimizeIcon size={16} />
+							<MinimizeIcon size={16} aria-hidden="true" />
 						{:else}
-							<MaximizeIcon size={16} />
+							<MaximizeIcon size={16} aria-hidden="true" />
 						{/if}
 					</button>
 					{#if articleUrl}
@@ -277,7 +296,7 @@
 							class="viewer-btn"
 							aria-label={$t.audit.newTab}
 						>
-							<ExternalLinkIcon size={16} />
+							<ExternalLinkIcon size={16} aria-hidden="true" />
 						</a>
 					{/if}
 				</div>
